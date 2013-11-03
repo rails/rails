@@ -1,12 +1,15 @@
+*   `.unscope` now removes conditions specified in `default_scope`.
+
+    *Jon Leighton*
+
 *   Extend ActiveRecord::Base#cache_key to take an optional list of timestamp attributes of which the highest will be used.
 
-	Example:
-	
-		# last_reviewed_at will be used, if that's more recent than updated_at, or vice versa
-		Person.find(5).cache_key(:updated_at, :last_reviewed_at)
+    Example:
 
-	*DHH*
+        # last_reviewed_at will be used, if that's more recent than updated_at, or vice versa
+        Person.find(5).cache_key(:updated_at, :last_reviewed_at)
 
+    *DHH*
 
 *   Added ActiveRecord::Base#enum for declaring enum attributes where the values map to integers in the database, but can be queried by name.
 

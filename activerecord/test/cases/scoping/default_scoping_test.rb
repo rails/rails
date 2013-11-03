@@ -103,7 +103,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_overrides_default_scope
     expected = Developer.all.collect { |dev| [dev.name, dev.id] }
-    received = Developer.order('name ASC, id DESC').unscope(:order).collect { |dev| [dev.name, dev.id] }
+    received = DeveloperCalledJamis.unscope(:where).collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 

@@ -341,9 +341,6 @@ module ActiveRecord
     #   User.where(name: "John", active: true).unscope(where: :name)
     #       == User.where(active: true)
     #
-    # This method is applied before the default_scope is applied. So the conditions
-    # specified in default_scope will not be removed.
-    #
     # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
     # because #except will only affect a particular relation's values. It won't wipe
     # the order, grouping, etc. when that relation is merged. For example:
