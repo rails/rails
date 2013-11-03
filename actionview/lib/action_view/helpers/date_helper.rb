@@ -50,19 +50,19 @@ module ActionView
       #   distance_of_time_in_words(from_time, from_time + 50.minutes)                                # => about 1 hour
       #   distance_of_time_in_words(from_time, 50.minutes.from_now)                                   # => about 1 hour
       #   distance_of_time_in_words(from_time, from_time + 15.seconds)                                # => less than a minute
-      #   distance_of_time_in_words(from_time, from_time + 15.seconds, include_seconds: true)      # => less than 20 seconds
+      #   distance_of_time_in_words(from_time, from_time + 15.seconds, include_seconds: true)         # => less than 20 seconds
       #   distance_of_time_in_words(from_time, 3.years.from_now)                                      # => about 3 years
       #   distance_of_time_in_words(from_time, from_time + 60.hours)                                  # => 3 days
-      #   distance_of_time_in_words(from_time, from_time + 45.seconds, include_seconds: true)      # => less than a minute
-      #   distance_of_time_in_words(from_time, from_time - 45.seconds, include_seconds: true)      # => less than a minute
+      #   distance_of_time_in_words(from_time, from_time + 45.seconds, include_seconds: true)         # => less than a minute
+      #   distance_of_time_in_words(from_time, from_time - 45.seconds, include_seconds: true)         # => less than a minute
       #   distance_of_time_in_words(from_time, 76.seconds.from_now)                                   # => 1 minute
       #   distance_of_time_in_words(from_time, from_time + 1.year + 3.days)                           # => about 1 year
       #   distance_of_time_in_words(from_time, from_time + 3.years + 6.months)                        # => over 3 years
       #   distance_of_time_in_words(from_time, from_time + 4.years + 9.days + 30.minutes + 5.seconds) # => about 4 years
       #
       #   to_time = Time.now + 6.years + 19.days
-      #   distance_of_time_in_words(from_time, to_time, include_seconds: true)                     # => about 6 years
-      #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                     # => about 6 years
+      #   distance_of_time_in_words(from_time, to_time, include_seconds: true)                        # => about 6 years
+      #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                        # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       def distance_of_time_in_words(from_time, to_time = 0, options = {})
         options = {
