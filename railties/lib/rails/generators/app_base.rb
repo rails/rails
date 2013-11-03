@@ -109,7 +109,6 @@ module Rails
           assets_gemfile_entry,
           javascript_gemfile_entry,
           jbuilder_gemfile_entry,
-          webconsole_gemfile_entry,
           sdoc_gemfile_entry,
           @extra_entries].flatten.find_all(&@gem_filter)
       end
@@ -259,11 +258,6 @@ module Rails
       def jbuilder_gemfile_entry
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
         GemfileEntry.version('jbuilder', '~> 1.2', comment)
-      end
-
-      def webconsole_gemfile_entry
-        comment = 'Run `rails console` in the browser. Read more: https://github.com/rails/web-console'
-        GemfileEntry.new('web-console', nil, comment, group: :development)
       end
 
       def sdoc_gemfile_entry

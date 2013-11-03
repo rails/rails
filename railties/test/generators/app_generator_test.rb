@@ -313,11 +313,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_web_console
-    run_generator
-    assert_file "Gemfile", /gem 'web-console', \s+group: :development/
-  end
-
   def test_inclusion_of_jbuilder
     run_generator
     assert_file "Gemfile", /gem 'jbuilder'/
