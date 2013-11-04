@@ -5,8 +5,13 @@
   <%- if options[:skip_javascript] -%>
   <%%= stylesheet_link_tag    "application", media: "all" %>
   <%- else -%>
+    <%- if gemfile_entries.any? { |m| m.name == "turbolinks" } -%>
   <%%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
   <%%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+    <%- else -%>
+  <%%= stylesheet_link_tag    "application", media: "all" %>
+  <%%= javascript_include_tag "application" %>
+    <%- end -%>
   <%- end -%>
   <%%= csrf_meta_tags %>
 </head>

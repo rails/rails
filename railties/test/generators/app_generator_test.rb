@@ -182,6 +182,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
     template.unlink
   end
 
+  def test_application_html_checks_gems
+    template = Tempfile.open 'my_template'
+    template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
+    template.flush
+
+    run_generator([destination_root, "-m", template.path])
+    assert_file "Gemfile" do |contents|
+      assert_no_match 'turbolinks', contents
+    end
+    assert_file "Gemfile" do |contents|
+      assert_no_match 'turbolinks', contents
+    end
+    assert_file "app/views/layouts/application.html.erb" do |contents|
+      assert_no_match 'turbolinks', contents
+    end
+  ensure
+    template.close
+    template.unlink
+  end
+
   def test_config_another_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
