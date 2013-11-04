@@ -35,14 +35,4 @@ class EnumTest < ActiveRecord::TestCase
     @book.update! status: :written
     assert @book.written?
   end
-
-  test "constant" do
-    assert_equal 0, Book::STATUS[:proposed]
-    assert_equal 1, Book::STATUS[:written]
-    assert_equal 2, Book::STATUS[:published]
-
-    assert_equal 0, Book::READ_STATUS[:unread]
-    assert_equal 2, Book::READ_STATUS[:reading]
-    assert_equal 3, Book::READ_STATUS[:read]
-  end
 end

@@ -36,37 +36,27 @@ module ActiveRecord
   module Enum
     def enum(definitions)
       definitions.each do |name, values|
-        # DIRECTION = { }
-        const = const_set name.to_s.upcase, {}
-        name = name.to_sym
+        enum_values = {}
+        name        = name.to_sym
 
         # def direction=(value) self[:direction] = DIRECTION[value] end
-        define_method "#{name}=" do |value|
-          self[name] = const[value]
-        end
+        define_method("#{name}=") { |value| self[name] = enum_values[value] }
 
         # def direction() DIRECTION.key self[:direction] end
-        define_method name do
-          const.key self[name]
-        end
+        define_method(name) { enum_values.key self[name] }
 
         pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
         pairs.each do |value, i|
-          # DIRECTION[:incoming] = 0
-          const[value] = i
+          enum_values[value] = i
 
           # scope :incoming, -> { where direction: 0 }
           scope value, -> { where name => i }
 
           # def incoming?() direction == 0 end
-          define_method "#{value}?" do
-            self[name] == i
-          end
+          define_method("#{value}?") { self[name] == i }
 
           # def incoming! update! direction: :incoming end
-          define_method "#{value}!" do
-            update! name => value.to_sym
-          end
+          define_method("#{value}!") { update! name => value.to_sym }
         end
       end
     end
