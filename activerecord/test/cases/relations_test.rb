@@ -1609,4 +1609,21 @@ class RelationTest < ActiveRecord::TestCase
     merged = left.merge(right)
     assert_equal [], merged.bind_values
   end
+
+  def test_merging_reorders_bind_params
+    post         = Post.first
+    id_column    = Post.columns_hash['id']
+    title_column = Post.columns_hash['title']
+
+    bv = Post.connection.substitute_at id_column, 0
+
+    right  = Post.where(id: bv)
+    right.bind_values += [[id_column, post.id]]
+
+    left   = Post.where(title: bv)
+    left.bind_values += [[title_column, post.title]]
+
+    merged = left.merge(right)
+    assert_equal post, merged.first
+  end
 end
