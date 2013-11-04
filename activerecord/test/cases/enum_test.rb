@@ -1,7 +1,7 @@
 require 'cases/helper'
 require 'models/book'
 
-class StoreTest < ActiveRecord::TestCase
+class EnumTest < ActiveRecord::TestCase
   fixtures :books
 
   setup do
