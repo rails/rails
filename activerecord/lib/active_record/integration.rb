@@ -45,7 +45,7 @@ module ActiveRecord
     #   Product.new.cache_key     # => "products/new"
     #   Product.find(5).cache_key # => "products/5" (updated_at not available)
     #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
-    # 
+    #
     # You can also pass a list of named timestamps, and the newest in the list will be
     # used to generate the key:
     #
@@ -56,7 +56,7 @@ module ActiveRecord
         "#{self.class.model_name.cache_key}/new"
       when timestamp_names.any?
         timestamps = timestamp_names.collect { |method| send(method) }.compact
-        "#{self.class.model_name.cache_key}/#{id}-#{timestamps.max.utc.to_s(:number)}"        
+        "#{self.class.model_name.cache_key}/#{id}-#{timestamps.max.utc.to_s(:number)}"
       when timestamp = max_updated_column_timestamp
         timestamp = timestamp.utc.to_s(cache_timestamp_format)
         "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"

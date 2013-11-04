@@ -299,7 +299,6 @@ module ActionDispatch
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
-
     # Extracted into ActionDispatch::Request::Utils.deep_munge, but kept here for backwards compatibility.
     def deep_munge(hash)
       ActiveSupport::Deprecation.warn(
@@ -309,12 +308,10 @@ module ActionDispatch
       Utils.deep_munge(hash)
     end
 
-
     protected
       def parse_query(qs)
         Utils.deep_munge(super)
       end
-
 
     private
       def check_method(name)
