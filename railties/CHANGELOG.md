@@ -3,9 +3,9 @@
 
     Example:
 
-        `BACKTRACE=1 ruby -Itest ...`
+        $ BACKTRACE=1 ruby -Itest ...
         # or with rake
-        `BAKCTRACE=1 bin/rake`
+        $ BACKTRACE=1 bin/rake
 
     *Yves Senn*
 
