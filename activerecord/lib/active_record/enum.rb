@@ -38,15 +38,16 @@ module ActiveRecord
       definitions.each do |name, values|
         # DIRECTION = { }
         const = const_set name.to_s.upcase, {}
+        name = name.to_sym
 
         # def direction=(value) self[:direction] = DIRECTION[value] end
         define_method "#{name}=" do |value|
-          self[:"#{name}"] = const[value]
+          self[name] = const[value]
         end
 
         # def direction() DIRECTION.key self[:direction] end
         define_method name do
-          const.key self[:"#{name}"]
+          const.key self[name]
         end
 
         pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
@@ -59,12 +60,12 @@ module ActiveRecord
 
           # def incoming?() direction == 0 end
           define_method "#{value}?" do
-            self[:"#{name}"] == i
+            self[name] == i
           end
 
           # def incoming! update! direction: :incoming end
           define_method "#{value}!" do
-            update! :"#{name}" => :"#{value}"
+            update! name => value.to_sym
           end
         end
       end
