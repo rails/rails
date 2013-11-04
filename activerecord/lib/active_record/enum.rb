@@ -42,7 +42,12 @@ module ActiveRecord
 
         _enum_methods_module.module_eval do
           # def direction=(value) self[:direction] = DIRECTION[value] end
-          define_method("#{name}=") { |value| self[name] = enum_values[value] }
+          define_method("#{name}=") { |value|
+            unless enum_values.has_key?(value)
+              raise ArgumentError, "'#{value}' is not a valid #{name}"
+            end
+            self[name] = enum_values[value]
+          }
 
           # def direction() DIRECTION.key self[:direction] end
           define_method(name) { enum_values.key self[name] }

@@ -40,4 +40,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "do publish work...", @book.published!
     assert @book.published?
   end
+
+  test "direct assignment" do
+    @book.status = :written
+    assert @book.written?
+  end
+
+  test "assign non existing value raises an error" do
+    e = assert_raises(ArgumentError) do
+      @book.status = :unknown
+    end
+    assert_equal "'unknown' is not a valid status", e.message
+  end
 end
