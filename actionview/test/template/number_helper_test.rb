@@ -51,11 +51,12 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "489.0 Thousand", number_to_human(489000, precision: 4, strip_insignificant_zeros: false)
   end
 
-  def test_number_helpers_escape_delimiter_and_separator
+  def test_number_helpers_escape_delimiter_and_separator_and_unit
     assert_equal "111&lt;script&gt;&lt;/script&gt;111&lt;script&gt;&lt;/script&gt;1111", number_to_phone(1111111111, delimiter: "<script></script>")
 
     assert_equal "$1&lt;script&gt;&lt;/script&gt;01", number_to_currency(1.01, separator: "<script></script>")
     assert_equal "$1&lt;script&gt;&lt;/script&gt;000.00", number_to_currency(1000, delimiter: "<script></script>")
+    assert_equal "1.01", number_to_currency(1.01, unit: "<script>alert(XSS);</script>")
 
     assert_equal "1&lt;script&gt;&lt;/script&gt;010%", number_to_percentage(1.01, separator: "<script></script>")
     assert_equal "1&lt;script&gt;&lt;/script&gt;000.000%", number_to_percentage(1000, delimiter: "<script></script>")

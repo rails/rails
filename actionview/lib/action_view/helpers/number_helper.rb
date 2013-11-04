@@ -106,7 +106,7 @@ module ActionView
       #   # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
         return unless number
-        options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
+        options = escape_unsafe_delimiters_and_separators_and_units(options.symbolize_keys)
 
         wrap_with_output_safety_handling(number, options.delete(:raise)) {
           ActiveSupport::NumberHelper.number_to_currency(number, options)
@@ -151,7 +151,7 @@ module ActionView
       #   number_to_percentage("98a", raise: true)                         # => InvalidNumberError
       def number_to_percentage(number, options = {})
         return unless number
-        options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
+        options = escape_unsafe_delimiters_and_separators_and_units(options.symbolize_keys)
 
         wrap_with_output_safety_handling(number, options.delete(:raise)) {
           ActiveSupport::NumberHelper.number_to_percentage(number, options)
@@ -188,7 +188,7 @@ module ActionView
       #
       #  number_with_delimiter("112a", raise: true)              # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
-        options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
+        options = escape_unsafe_delimiters_and_separators_and_units(options.symbolize_keys)
 
         wrap_with_output_safety_handling(number, options.delete(:raise)) {
           ActiveSupport::NumberHelper.number_to_delimited(number, options)
@@ -237,7 +237,7 @@ module ActionView
       #   number_with_precision(1111.2345, precision: 2, separator: ',', delimiter: '.')
       #   # => 1.111,23
       def number_with_precision(number, options = {})
-        options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
+        options = escape_unsafe_delimiters_and_separators_and_units(options.symbolize_keys)
 
         wrap_with_output_safety_handling(number, options.delete(:raise)) {
           ActiveSupport::NumberHelper.number_to_rounded(number, options)
@@ -293,7 +293,7 @@ module ActionView
       #   number_to_human_size(1234567890123, precision: 5)        # => "1.1229 TB"
       #   number_to_human_size(524288000, precision: 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
-        options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
+        options = escape_unsafe_delimiters_and_separators_and_units(options.symbolize_keys)
 
         wrap_with_output_safety_handling(number, options.delete(:raise)) {
           ActiveSupport::NumberHelper.number_to_human_size(number, options)
@@ -399,7 +399,7 @@ module ActionView
       #  number_to_human(0.34, units: :distance)                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
-        options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
+        options = escape_unsafe_delimiters_and_separators_and_units(options.symbolize_keys)
 
         wrap_with_output_safety_handling(number, options.delete(:raise)) {
           ActiveSupport::NumberHelper.number_to_human(number, options)
@@ -408,9 +408,10 @@ module ActionView
 
       private
 
-      def escape_unsafe_delimiters_and_separators(options)
+      def escape_unsafe_delimiters_and_separators_and_units(options)
         options[:separator] = ERB::Util.html_escape(options[:separator]) if options[:separator] && !options[:separator].html_safe?
         options[:delimiter] = ERB::Util.html_escape(options[:delimiter]) if options[:delimiter] && !options[:delimiter].html_safe?
+        options[:unit] = sanitize(options[:unit]) if options[:unit] 
         options
       end
 
