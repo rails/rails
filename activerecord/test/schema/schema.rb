@@ -53,8 +53,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :audit_logs, :force => true do |t|
-    t.column :message, :string, :null=>false
-    t.column :developer_id, :integer, :null=>false
+    t.column :message, :string, :null => false
+    t.column :developer_id, :integer, :null => false
     t.integer :unvalidated_developer_id
   end
 
@@ -440,7 +440,7 @@ ActiveRecord::Schema.define do
     t.decimal :decimal_number_with_default, :precision => 3, :scale => 2, :default => 2.78
     t.float   :temperature
     # Oracle/SQLServer supports precision up to 38
-    if current_adapter?(:OracleAdapter,:SQLServerAdapter)
+    if current_adapter?(:OracleAdapter, :SQLServerAdapter)
       t.decimal :atoms_in_universe, :precision => 38, :scale => 0
     else
       t.decimal :atoms_in_universe, :precision => 55, :scale => 0
@@ -457,7 +457,7 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
-  create_table :owners, :primary_key => :owner_id ,:force => true do |t|
+  create_table :owners, :primary_key => :owner_id, :force => true do |t|
     t.string :name
     t.column :updated_at, :datetime
     t.column :happy_at,   :datetime
@@ -513,7 +513,7 @@ ActiveRecord::Schema.define do
     t.column :treasure_id, :integer
   end
 
-  create_table :pets, :primary_key => :pet_id ,:force => true do |t|
+  create_table :pets, :primary_key => :pet_id, :force => true do |t|
     t.string :name
     t.integer :owner_id, :integer
     t.timestamps
@@ -687,7 +687,7 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
-  create_table :toys, :primary_key => :toy_id ,:force => true do |t|
+  create_table :toys, :primary_key => :toy_id, :force => true do |t|
     t.string :name
     t.integer :pet_id, :integer
     t.timestamps
