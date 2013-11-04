@@ -138,10 +138,71 @@ module Rails
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
+      class TemplateRecorder < ::BasicObject # :nodoc:
+        attr_reader :gems
+
+        def initialize(target)
+          @target         = target
+          # unfortunately, instance eval has access to these ivars
+          @app_const      = target.send :app_const
+          @app_const_base = target.send :app_const_base
+          @app_name       = target.send :app_name
+          @commands       = []
+          @gems           = []
+        end
+
+        def gemfile_entry(*args)
+          @target.send :gemfile_entry, *args
+        end
+
+        def add_gem_entry_filter(*args, &block)
+          @target.send :add_gem_entry_filter, *args, &block
+        end
+
+        def method_missing(name, *args, &block)
+          @commands << [name, args, block]
+        end
+
+        def respond_to_missing?(method, priv = false)
+          super || @target.respond_to?(method, priv)
+        end
+
+        def replay!
+          @commands.each do |name, args, block|
+            @target.send name, *args, &block
+          end
+        end
+      end
+
       def apply_rails_template
-        apply rails_template if rails_template
+        @recorder = TemplateRecorder.new self
+
+        apply(rails_template, target: @recorder) if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
+      end
+
+      def replay_template
+        @recorder.replay! if @recorder
+      end
+
+      def apply(path, config={})
+        verbose = config.fetch(:verbose, true)
+        target  = config.fetch(:target, self)
+        is_uri  = path =~ /^https?\:\/\//
+        path    = find_in_source_paths(path) unless is_uri
+
+        say_status :apply, path, verbose
+        shell.padding += 1 if verbose
+
+        if is_uri
+          contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
+        else
+          contents = open(path) {|io| io.read }
+        end
+
+        target.instance_eval(contents, path)
+        shell.padding -= 1 if verbose
       end
 
       def set_default_accessors!

@@ -1,6 +1,7 @@
 require 'active_support/test_case'
 require 'active_support/testing/autorun'
 require 'rails/generators/app_base'
+require 'rails/generators/rails/app/app_generator'
 
 module Rails
   module Generators
