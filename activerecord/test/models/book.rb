@@ -9,4 +9,9 @@ class Book < ActiveRecord::Base
 
   enum status: [:proposed, :written, :published]
   enum read_status: {unread: 0, reading: 2, read: 3}
+
+  def published!
+    super
+    "do publish work..."
+  end
 end

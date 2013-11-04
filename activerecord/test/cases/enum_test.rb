@@ -35,4 +35,9 @@ class EnumTest < ActiveRecord::TestCase
     @book.update! status: :written
     assert @book.written?
   end
+
+  test "enum methods are overwritable" do
+    assert_equal "do publish work...", @book.published!
+    assert @book.published?
+  end
 end

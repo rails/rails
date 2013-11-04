@@ -35,29 +35,40 @@ module ActiveRecord
   #   end
   module Enum
     def enum(definitions)
+      klass = self
       definitions.each do |name, values|
         enum_values = {}
         name        = name.to_sym
 
-        # def direction=(value) self[:direction] = DIRECTION[value] end
-        define_method("#{name}=") { |value| self[name] = enum_values[value] }
+        _enum_methods_module.module_eval do
+          # def direction=(value) self[:direction] = DIRECTION[value] end
+          define_method("#{name}=") { |value| self[name] = enum_values[value] }
 
-        # def direction() DIRECTION.key self[:direction] end
-        define_method(name) { enum_values.key self[name] }
+          # def direction() DIRECTION.key self[:direction] end
+          define_method(name) { enum_values.key self[name] }
 
-        pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
-        pairs.each do |value, i|
-          enum_values[value] = i
+          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          pairs.each do |value, i|
+            enum_values[value] = i
 
-          # scope :incoming, -> { where direction: 0 }
-          scope value, -> { where name => i }
+            # scope :incoming, -> { where direction: 0 }
+            klass.scope value, -> { klass.where name => i }
 
-          # def incoming?() direction == 0 end
-          define_method("#{value}?") { self[name] == i }
+            # def incoming?() direction == 0 end
+            define_method("#{value}?") { self[name] == i }
 
-          # def incoming! update! direction: :incoming end
-          define_method("#{value}!") { update! name => value.to_sym }
+            # def incoming! update! direction: :incoming end
+            define_method("#{value}!") { update! name => value.to_sym }
+          end
         end
+      end
+    end
+
+    def _enum_methods_module
+      @_enum_methods_module ||= begin
+        mod = Module.new
+        include mod
+        mod
       end
     end
   end
