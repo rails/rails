@@ -52,7 +52,7 @@ module AbstractController
     class AbstractInvalidHelpers < AbstractHelpers
       include ActionController::Helpers
 
-      path = File.join(File.expand_path('../../../fixtures', __FILE__), "helpers_missing")
+      path = File.expand_path('../../../fixtures/helpers_missing', __FILE__)
       $:.unshift(path)
       self.helpers_path = path
     end

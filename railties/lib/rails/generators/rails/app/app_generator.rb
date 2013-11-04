@@ -324,7 +324,7 @@ module Rails
       end
 
       def self.default_rc_file
-        File.join(File.expand_path('~'), '.railsrc')
+        File.expand_path('~/.railsrc')
       end
 
       private
