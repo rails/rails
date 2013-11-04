@@ -359,6 +359,17 @@ Notice the 'E' in the output. It denotes a test with error.
 
 NOTE: The execution of each test method stops as soon as any error or an assertion failure is encountered, and the test suite continues with the next method. All test methods are executed in alphabetical order.
 
+When a test fails you are presented with the corresponding backtrace. By default
+Rails filters that backtrace and will only print lines relevant to your
+application. This eliminates the framwork noise and helps to focus on your
+code. However there are situations when you want to see the full
+backtrace. simply set the `BACKTRACE` environment variable to enable this
+behavior:
+
+```bash
+$ BACKTRACE=1 rake test test/models/post_test.rb
+```
+
 ### What to Include in Your Unit Tests
 
 Ideally, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
