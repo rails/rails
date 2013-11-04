@@ -42,10 +42,14 @@ module ActiveRecord
         const_set const_name, {}
 
         # def direction=(value) self[:direction] = DIRECTION[value] end
-        class_eval "def #{name}=(value) self[:#{name}] = #{const_name}[value] end"
+        define_method "#{name}=" do |value|
+          self[:"#{name}"] = const_name[value]
+        end
 
         # def direction() DIRECTION.key self[:direction] end
-        class_eval "def #{name}() #{const_name}.key self[:#{name}] end"
+        define_method name do
+          const_name.key self[:"#{name}"]
+        end
 
         pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
         pairs.each do |value, i|
@@ -56,10 +60,14 @@ module ActiveRecord
           scope value, -> { where name => i }
 
           # def incoming?() direction == 0 end
-          class_eval "def #{value}?() self[:#{name}] == #{i} end"
+          define_method "#{value}?" do
+            self[:"#{name}"] == i
+          end
 
           # def incoming! update! direction: :incoming end
-          class_eval "def #{value}!() update! #{name}: :#{value} end"
+          define_method "#{value}!" do
+            update! :"#{name}" => :"#{value}"
+          end
         end
       end
     end
