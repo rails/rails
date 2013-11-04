@@ -98,8 +98,8 @@ module ActiveRecord
       timestamp_attributes_for_create + timestamp_attributes_for_update
     end
 
-    def max_updated_column_timestamp
-      if (timestamps = timestamp_attributes_for_update.map { |attr| self[attr] }.compact).present?
+    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
+      if (timestamps = timestamp_names.map { |attr| self[attr] }.compact).present?
         timestamps.map { |ts| ts.to_time }.max
       end
     end
