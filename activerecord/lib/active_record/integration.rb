@@ -56,7 +56,8 @@ module ActiveRecord
         "#{self.class.model_name.cache_key}/new"
       when timestamp_names.any?
         timestamps = timestamp_names.collect { |method| send(method) }.compact
-        "#{self.class.model_name.cache_key}/#{id}-#{timestamps.max.utc.to_s(:number)}"
+        timestamp = timestamps.max.utc.to_s(cache_timestamp_format)
+        "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
       when timestamp = max_updated_column_timestamp
         timestamp = timestamp.utc.to_s(cache_timestamp_format)
         "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"

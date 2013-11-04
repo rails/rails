@@ -82,9 +82,9 @@ class IntegrationTest < ActiveRecord::TestCase
     dev.touch
     assert_not_equal key, dev.cache_key
   end
-  
+
   def test_named_timestamps_for_cache_key
     owner = owners(:blackbeard)
-    assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:number)}", owner.cache_key(:updated_at, :happy_at)
+    assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:nsec)}", owner.cache_key(:updated_at, :happy_at)
   end
 end
