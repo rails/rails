@@ -9,7 +9,7 @@ After reading this guide, you will know:
 * How to write unit, functional, and integration tests for your application.
 * Other popular testing approaches and plugins.
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 Why Write Tests for your Rails Applications?
 --------------------------------------------
