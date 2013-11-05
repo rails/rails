@@ -1,3 +1,13 @@
+*   Added `ActiveRecord::Base.no_touching`, which allows ignoring touch on models.
+
+    Examples:
+
+      Post.no_touching do
+        Post.first.touch
+      end
+
+    *Sam Stephenson*, *Damien Mathieu*
+
 *   Prevent the counter cache from being decremented twice when destroying
     a record on a has_many :through association.
 

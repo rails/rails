@@ -11,6 +11,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def setup
     @developer = Developer.first
+    @owner = Owner.first
     @developer.update_columns(updated_at: Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
   end
@@ -90,6 +91,53 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_touching_a_record_without_timestamps_is_unexceptional
     assert_nothing_raised { Car.first.touch }
+  end
+
+  def test_touching_a_no_touching_object
+    Developer.no_touching do
+      assert @developer.no_touching?
+      assert !@owner.no_touching?
+      @developer.touch
+    end
+
+    assert !@developer.no_touching?
+    assert !@owner.no_touching?
+    assert_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_touching_related_objects
+    @owner = Owner.first
+    @previously_updated_at = @owner.updated_at
+
+    Owner.no_touching do
+      @owner.pets.first.touch
+    end
+
+    assert_equal @previously_updated_at, @owner.updated_at
+  end
+
+  def test_global_no_touching
+    ActiveRecord::Base.no_touching do
+      assert @developer.no_touching?
+      assert @owner.no_touching?
+      @developer.touch
+    end
+
+    assert !@developer.no_touching?
+    assert !@owner.no_touching?
+    assert_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_no_touching_threadsafe
+    Thread.new do
+      Developer.no_touching do
+        assert @developer.no_touching?
+
+        sleep(1)
+      end
+    end
+
+    assert !@developer.no_touching?
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at
