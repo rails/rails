@@ -40,6 +40,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.update('set @@wait_timeout=1')
     sleep 2
     assert !@connection.active?
+
+    # Repair all fixture connections so other tests won't break.
+    @fixture_connections.each do |c|
+      c.verify!
+    end
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
@@ -156,6 +161,27 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       global_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.DEFAULT_WEEK_FORMAT"
       session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
       assert_equal global_mode.rows, session_mode.rows
+    end
+  end
+
+  def test_mysql_begin_db_transaction_can_throw_an_exception
+    @connection.expects(:exec_query).with('BEGIN').raises('OH NOES')
+    assert_raise RuntimeError do
+      @connection.begin_db_transaction
+    end
+  end
+
+  def test_mysql_commit_db_transaction_can_throw_an_exception
+    @connection.expects(:execute).with('COMMIT').raises('OH NOES')
+    assert_raise RuntimeError do
+      @connection.commit_db_transaction
+    end
+  end
+
+  def test_mysql_rollback_db_transaction_can_throw_an_exception
+    @connection.expects(:execute).with('ROLLBACK').raises('OH NOES')
+    assert_raise RuntimeError do
+      @connection.rollback_db_transaction
     end
   end
 

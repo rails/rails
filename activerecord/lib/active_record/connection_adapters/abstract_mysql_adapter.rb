@@ -314,27 +314,19 @@ module ActiveRecord
 
       def begin_db_transaction
         execute "BEGIN"
-      rescue
-        # Transactions aren't supported
       end
 
       def begin_isolated_db_transaction(isolation)
         execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
         begin_db_transaction
-      rescue
-        # Transactions aren't supported
       end
 
       def commit_db_transaction #:nodoc:
         execute "COMMIT"
-      rescue
-        # Transactions aren't supported
       end
 
       def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
-      rescue
-        # Transactions aren't supported
       end
 
       # In the simple case, MySQL allows us to place JOINs directly into the UPDATE

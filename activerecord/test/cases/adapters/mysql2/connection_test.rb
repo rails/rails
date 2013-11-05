@@ -18,6 +18,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.update('set @@wait_timeout=1')
     sleep 2
     assert !@connection.active?
+
+    # Repair all fixture connections so other tests won't break.
+    @fixture_connections.each do |c|
+      c.verify!
+    end
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
@@ -82,6 +87,27 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
+  end
+
+  def test_mysql_begin_db_transaction_can_throw_an_exception
+    @connection.expects(:execute).with('BEGIN').raises('OH NOES')
+    assert_raise RuntimeError do
+      @connection.begin_db_transaction
+    end
+  end
+
+  def test_mysql_commit_db_transaction_can_throw_an_exception
+    @connection.expects(:execute).with('COMMIT').raises('OH NOES')
+    assert_raise RuntimeError do
+      @connection.commit_db_transaction
+    end
+  end
+
+  def test_mysql_rollback_db_transaction_can_throw_an_exception
+    @connection.expects(:execute).with('ROLLBACK').raises('OH NOES')
+    assert_raise RuntimeError do
+      @connection.rollback_db_transaction
+    end
   end
 
   private
