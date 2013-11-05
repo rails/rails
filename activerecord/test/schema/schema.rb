@@ -334,7 +334,7 @@ ActiveRecord::Schema.define do
     t.integer :ideal_reference_id
   end
 
-  create_table :keyboards, force: true, :id  => false do |t|
+  create_table :keyboards, force: true, id: false do |t|
     t.primary_key :key_number
     t.string      :name
   end
