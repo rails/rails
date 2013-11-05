@@ -17,8 +17,8 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "query state with symbol" do
-    assert_equal :proposed, @book.status
-    assert_equal :unread, @book.read_status
+    assert_equal "proposed", @book.status
+    assert_equal "unread", @book.read_status
   end
 
   test "find via scope" do
@@ -43,6 +43,11 @@ class EnumTest < ActiveRecord::TestCase
 
   test "direct assignment" do
     @book.status = :written
+    assert @book.written?
+  end
+
+  test "assign string value" do
+    @book.status = "written"
     assert @book.written?
   end
 

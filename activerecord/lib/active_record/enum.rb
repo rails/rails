@@ -43,6 +43,7 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           # def direction=(value) self[:direction] = DIRECTION[value] end
           define_method("#{name}=") { |value|
+            value = value.to_s
             unless enum_values.has_key?(value)
               raise ArgumentError, "'#{value}' is not a valid #{name}"
             end
@@ -54,7 +55,7 @@ module ActiveRecord
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
-            enum_values[value] = i
+            enum_values[value.to_s] = i
 
             # scope :incoming, -> { where direction: 0 }
             klass.scope value, -> { klass.where name => i }
