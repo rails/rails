@@ -296,6 +296,7 @@ module ActiveRecord #:nodoc:
 
     include Core
     include Persistence
+    include NoTouching
     include ReadonlyAttributes
     include ModelSchema
     include Inheritance
