@@ -88,7 +88,7 @@ module ActiveRecord::Associations::Builder
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
     def self.define_accessors(model, reflection)
-      mixin = model.generated_feature_methods
+      mixin = model.generated_association_methods
       name = reflection.name
       define_readers(mixin, name)
       define_writers(mixin, name)

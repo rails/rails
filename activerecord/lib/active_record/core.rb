@@ -91,12 +91,12 @@ module ActiveRecord
       def initialize_generated_modules
         super
 
-        generated_feature_methods
+        generated_association_methods
       end
 
-      def generated_feature_methods
-        @generated_feature_methods ||= begin
-          mod = const_set(:GeneratedFeatureMethods, Module.new)
+      def generated_association_methods
+        @generated_association_methods ||= begin
+          mod = const_set(:GeneratedAssociationMethods, Module.new)
           include mod
           mod
         end
