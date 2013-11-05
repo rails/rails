@@ -78,16 +78,6 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
-  def test_generated_methods_modules
-    modules = Computer.ancestors
-    assert modules.include?(Computer::GeneratedFeatureMethods)
-    assert_equal(Computer::GeneratedFeatureMethods, Computer.generated_feature_methods)
-    assert(modules.index(Computer.generated_attribute_methods) > modules.index(Computer.generated_feature_methods),
-           "generated_attribute_methods must be higher in inheritance hierarchy than generated_feature_methods")
-    assert_not_equal Computer.generated_feature_methods, Post.generated_feature_methods
-    assert(modules.index(Computer.generated_attribute_methods) < modules.index(ActiveRecord::Base.ancestors[1]))
-  end
-
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
     classname = conn.class.name[/[^:]*$/]
