@@ -5,24 +5,24 @@ require_dependency "<%= namespaced_file_path %>/application_controller"
 <% module_namespacing do -%>
 class <%= controller_class_name %>Controller < ApplicationController
   before_action :set_<%= singular_table_name %>, only: [:show, :edit, :update, :destroy]
-
-  <% if collection_routing? -%>
+  <% if collection_routing? %>
   # GET <%= route_url %>/1..10,17
   def index
     @<%= plural_table_name %> = <%= singular_table_name %>_ids ? <%= orm_class.find(class_name, "#{singular_table_name}_ids") %> : <%= orm_class.all(class_name) %>
   end
-  <% else -%>
+  <% else %>
   # GET <%= route_url %>
   def index
     @<%= plural_table_name %> = <%= orm_class.all(class_name) %>
   end
-  <% end -%>
+  <% end %>
 
-  <% if collection_routing? -%>
+  # <%= singular_table_name.capitalize %> ids
+  <% if collection_routing? %>
   def <%= singular_table_name %>_ids
-    @<% plural_table_name %>_ids ||= params.permit(ids: 1..2**32-1)
+    @<%= plural_table_name %>_ids ||= params.permit(ids: 1..2**32-1)
   end
-  <% end -%>
+  <% end %>
 
   # GET <%= route_url %>/1
   def show
@@ -38,7 +38,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   end
 
   # POST <%= route_url %>
-  <% if collection_routing? -%>
+  <% if collection_routing? %>
   def create
     <%= plural_table_name %>_params ? create_many : create_one
   end
@@ -79,7 +79,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     redirect_to <%= index_helper %>_url, notice: <%= "'#{human_name} was successfully destroyed.'" %>
   end
 
-  <% if collection_routing? -%>
+  <% if collection_routing? %>
   # Collection routes
   # PATCH <%= route_url %>/1..10
   def update_many
