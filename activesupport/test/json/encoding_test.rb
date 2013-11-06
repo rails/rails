@@ -146,19 +146,25 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_exception_raised_when_encoding_circular_reference_in_array
     a = [1]
     a << a
-    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    assert_deprecated do
+      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    end
   end
 
   def test_exception_raised_when_encoding_circular_reference_in_hash
     a = { :name => 'foo' }
     a[:next] = a
-    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    assert_deprecated do
+      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    end
   end
 
   def test_exception_raised_when_encoding_circular_reference_in_hash_inside_array
     a = { :name => 'foo', :sub => [] }
     a[:sub] << a
-    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    assert_deprecated do
+      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    end
   end
 
   def test_hash_key_identifiers_are_always_quoted
