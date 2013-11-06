@@ -55,7 +55,9 @@ module AbstractController
       Mime::TEXT
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
+    require 'set'
+
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %w(
       @_action_name @_response_body @_formats @_prefixes @_config
       @_view_context_class @_view_renderer @_lookup_context
       @_routes @_db_runtime
@@ -65,9 +67,10 @@ module AbstractController
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
-      variables  = instance_variables
-      variables -= protected_instance_variables
-      variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
+      protected_vars = _protected_ivars
+      variables      = instance_variables
+
+      variables.reject! { |s| protected_vars.include? s }
       variables.each_with_object({}) { |name, hash|
         hash[name.slice(1, name.length)] = instance_variable_get(name)
       }
@@ -107,6 +110,10 @@ module AbstractController
       options = _normalize_args(*args, &block)
       _normalize_options(options)
       options
+    end
+
+    def _protected_ivars # :nodoc:
+      DEFAULT_PROTECTED_INSTANCE_VARIABLES + protected_instance_variables
     end
   end
 end
