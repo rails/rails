@@ -62,7 +62,7 @@ module Rails
 
     def start
       print_boot_information
-      trap_interrupt_and_print_interrupt_information
+      trap(:INT) { exit }
       create_tmp_directories
       log_to_stdout if options[:log_stdout]
 
@@ -116,10 +116,7 @@ module Rails
         if options[:Host].to_s.match(/0\.0\.0\.0/)
           puts "=> Notice: server is listening on all interfaces (#{ options[:Host] }). Consider using 127.0.0.1 (--binding option)"
         end
-      end
 
-      def trap_interrupt_and_print_interrupt_information
-        trap(:INT) { exit }
         puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
       end
 
