@@ -5,20 +5,18 @@ module ActiveRecord
   #     enum status: [ :active, :archived ]
   #   end
   #
-  #   Conversation::STATUS # => { active: 0, archived: 1 }
-  #
   #   # conversation.update! status: 0
   #   conversation.active!
   #   conversation.active? # => true
-  #   conversation.status  # => :active
+  #   conversation.status  # => "active"
   #
   #   # conversation.update! status: 1
   #   conversation.archived!
   #   conversation.archived? # => true
-  #   conversation.status    # => :archived
+  #   conversation.status    # => "archived"
   #
   #   # conversation.update! status: 1
-  #   conversation.status = :archived
+  #   conversation.status = "archived"
   #
   # You can set the default value from the database declaration, like:
   #
