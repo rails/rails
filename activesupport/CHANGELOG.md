@@ -10,7 +10,7 @@
 
 *   Added Numeric#in_milliseconds, like 1.hour.in_milliseconds, so we can feed them to JavaScript functions like getTime().
 
-	*DHH*
+    *DHH*
 
 *   Calling ActiveSupport::JSON.decode with unsupported options now raises an error.
 
@@ -29,7 +29,7 @@
 
     *Benjamin Fleischer*
 
-*   Disable the ability to iterate over Range of AS::TimeWithZone 
+*   Disable the ability to iterate over Range of AS::TimeWithZone
     due to significant performance issues.
 
     *Bogdan Gusiev*
