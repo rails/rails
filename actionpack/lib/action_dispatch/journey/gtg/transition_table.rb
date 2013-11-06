@@ -43,9 +43,7 @@ module ActionDispatch
           move_string(t, a).concat(move_regexp(t, a))
         end
 
-        def to_json
-          require 'json'
-
+        def as_json(options = nil)
           simple_regexp = Hash.new { |h,k| h[k] = {} }
 
           @regexp_states.each do |from, hash|
@@ -54,11 +52,11 @@ module ActionDispatch
             end
           end
 
-          JSON.dump({
+          {
             regexp_states: simple_regexp,
             string_states: @string_states,
             accepting:     @accepting
-          })
+          }
         end
 
         def to_svg

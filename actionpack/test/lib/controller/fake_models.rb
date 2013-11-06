@@ -112,7 +112,7 @@ module Blog
 end
 
 class RenderJsonTestException < Exception
-  def to_json(options = nil)
-    return { :error => self.class.name, :message => self.to_s }.to_json
+  def as_json(options = nil)
+    { :error => self.class.name, :message => self.to_s }
   end
 end

@@ -310,7 +310,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
     hash = {"foo" => f, "other_hash" => {"foo" => "other_foo", "test" => "other_test"}}
     assert_equal({"foo"=>{"foo"=>"hello","bar"=>"world"},
-                  "other_hash" => {"foo"=>"other_foo","test"=>"other_test"}}, JSON.parse(hash.to_json))
+                  "other_hash" => {"foo"=>"other_foo","test"=>"other_test"}}, ActiveSupport::JSON.decode(hash.to_json))
   end
 
   def test_struct_encoding
@@ -335,13 +335,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal({"name" => "David",
                   "sub" => {
                     "name" => "David",
-                    "date" => "2010-01-01" }}, JSON.parse(json_custom))
+                    "date" => "2010-01-01" }}, ActiveSupport::JSON.decode(json_custom))
 
     assert_equal({"name" => "David", "email" => "sample@example.com"},
-                 JSON.parse(json_strings))
+                 ActiveSupport::JSON.decode(json_strings))
 
     assert_equal({"name" => "David", "date" => "2010-01-01"},
-                 JSON.parse(json_string_and_date))
+                 ActiveSupport::JSON.decode(json_string_and_date))
   end
 
   def test_opt_out_big_decimal_string_serialization
