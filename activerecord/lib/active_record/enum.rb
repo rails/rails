@@ -31,17 +31,26 @@ module ActiveRecord
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 0, archived: 1 }
   #   end
+  #
+  # In rare circumstances you might need to access the mapping directly.
+  # The mappings are exposed through a constant with the attributes name:
+  #
+  #   Conversation::STATUS # => { "active" => 0, "archived" => 1 }
+  #
+  # Use that constant when you need to know the ordinal value of an enum:
+  #
+  #   Conversation.where("status <> ?", Conversation::STATUS[:archived])
   module Enum
     def enum(definitions)
       klass = self
       definitions.each do |name, values|
-        enum_values = {}
+        # DIRECTION = { }
+        enum_values = _enum_methods_module.const_set name.to_s.upcase, ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
 
         _enum_methods_module.module_eval do
           # def direction=(value) self[:direction] = DIRECTION[value] end
           define_method("#{name}=") { |value|
-            value = value.to_s
             unless enum_values.has_key?(value)
               raise ArgumentError, "'#{value}' is not a valid #{name}"
             end
@@ -53,7 +62,7 @@ module ActiveRecord
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
-            enum_values[value.to_s] = i
+            enum_values[value] = i
 
             # scope :incoming, -> { where direction: 0 }
             klass.scope value, -> { klass.where name => i }
@@ -62,7 +71,7 @@ module ActiveRecord
             define_method("#{value}?") { self[name] == i }
 
             # def incoming! update! direction: :incoming end
-            define_method("#{value}!") { update! name => value.to_sym }
+            define_method("#{value}!") { update! name => value }
           end
         end
       end

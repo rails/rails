@@ -57,4 +57,10 @@ class EnumTest < ActiveRecord::TestCase
     end
     assert_equal "'unknown' is not a valid status", e.message
   end
+
+  test "constant to access the mapping" do
+    assert_equal 0, Book::STATUS[:proposed]
+    assert_equal 1, Book::STATUS["written"]
+    assert_equal 2, Book::STATUS[:published]
+  end
 end
