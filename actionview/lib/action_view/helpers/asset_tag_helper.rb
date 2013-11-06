@@ -153,14 +153,14 @@ module ActionView
       #
       # ==== Examples
       #
-      #   favicon_link_tag '/myicon.ico'
+      #   favicon_link_tag 'myicon.ico'
       #   # => <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
       #
       # Mobile Safari looks for a different <link> tag, pointing to an image that
       # will be used if you add the page to the home screen of an iPod Touch, iPhone, or iPad.
       # The following call would generate such a tag:
       #
-      #   favicon_link_tag '/mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
+      #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
