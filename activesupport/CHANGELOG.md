@@ -1,3 +1,10 @@
+*   Add `capitalize` option to Inflector.humanize, so strings can be humanized without being capitalized:
+
+        'employee_salary'.humanize                    # => "Employee salary"
+        'employee_salary'.humanize(capitalize: false) # => "employee salary"
+
+    *claudiob*
+
 *   Fixed Object#as_json and Struct#as_json not working properly with options. They now take
     the same options as Hash#as_json:
 
