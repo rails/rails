@@ -212,6 +212,12 @@ module InflectorTestCases
     "underground"     => "Underground"
   }
 
+  UnderscoreToHumanWithoutCapitalize = {
+    "employee_salary" => "employee salary",
+    "employee_id"     => "employee",
+    "underground"     => "underground"
+  }
+
   MixtureToTitleCase = {
     'active_record'         => 'Active Record',
     'ActiveRecord'          => 'Active Record',

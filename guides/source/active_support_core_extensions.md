@@ -1772,6 +1772,12 @@ The method `humanize` gives you a sensible name for display out of an attribute 
 "comments_count".humanize # => "Comments count"
 ```
 
+The capitalization of the first word can be turned off by setting the optional parameter `capitalize` to false:
+
+```ruby
+"author_id".humanize(capitalize: false) # => "author"
+```
+
 The helper method `full_messages` uses `humanize` as a fallback to include attribute names:
 
 ```ruby

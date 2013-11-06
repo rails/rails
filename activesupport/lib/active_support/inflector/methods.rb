@@ -98,20 +98,26 @@ module ActiveSupport
       word
     end
 
-    # Capitalizes the first word and turns underscores into spaces and strips a
-    # trailing "_id", if any. Like +titleize+, this is meant for creating pretty
-    # output.
+    # Capitalizes the first word, turns underscores into spaces, and strips a
+    # trailing '_id' if present.
+    # Like +titleize+, this is meant for creating pretty output.
     #
-    #   'employee_salary'.humanize # => "Employee salary"
-    #   'author_id'.humanize       # => "Author"
-    def humanize(lower_case_and_underscored_word)
+    # The capitalization of the first word can be turned off by setting the
+    # optional parameter +capitalize+ to false.
+    # By default, this parameter is true.
+    #
+    #   humanize('employee_salary')              # => "Employee salary"
+    #   humanize('author_id')                    # => "Author"
+    #   humanize('author_id', capitalize: false) # => "author"
+    def humanize(lower_case_and_underscored_word, options = {})
       result = lower_case_and_underscored_word.to_s.dup
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
       result.gsub!(/_id$/, "")
       result.tr!('_', ' ')
-      result.gsub(/([a-z\d]*)/i) { |match|
+      result.gsub!(/([a-z\d]*)/i) { |match|
         "#{inflections.acronyms[match] || match.downcase}"
-      }.gsub(/^\w/) { $&.upcase }
+      }
+      options.fetch(:capitalize, true) ? result.gsub(/^\w/) { $&.upcase } : result
     end
 
     # Capitalizes all the words and replaces some characters in the string to

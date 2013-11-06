@@ -155,6 +155,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_humanize_without_capitalize
+    UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
+      assert_equal(human, underscore.humanize(capitalize: false))
+    end
+  end
+
   def test_ord
     assert_equal 97, 'a'.ord
     assert_equal 97, 'abc'.ord
@@ -270,7 +276,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   def test_truncate_should_not_be_html_safe
     assert !"Hello World!".truncate(12).html_safe?
   end
-  
+
   def test_remove
     assert_equal "Summer", "Fast Summer".remove(/Fast /)
     assert_equal "Summer", "Fast Summer".remove!(/Fast /)
