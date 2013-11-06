@@ -30,7 +30,7 @@ module ActionView
 
     EMPTY = ''
     def from_rails_root(string)
-      string.sub(rails_root, EMPTY).sub(VIEWS_PATTERN, EMPTY)
+      string.sub(rails_root, EMPTY).sub!(VIEWS_PATTERN, EMPTY)
     end
 
     def rails_root
