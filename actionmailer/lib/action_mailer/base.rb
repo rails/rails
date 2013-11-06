@@ -373,7 +373,11 @@ module ActionMailer
     include AbstractController::AssetPaths
     include AbstractController::Callbacks
 
-    self.protected_instance_variables = [:@_action_has_layout]
+    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]
+
+    def _protected_ivars # :nodoc:
+      PROTECTED_IVARS
+    end
 
     helper ActionMailer::MailHelper
 

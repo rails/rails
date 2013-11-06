@@ -1,5 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/class/attribute'
+require 'set'
 
 module AbstractController
   class DoubleRenderError < Error
@@ -12,11 +13,6 @@ module AbstractController
 
   module Rendering
     extend ActiveSupport::Concern
-
-    included do
-      class_attribute :protected_instance_variables
-      self.protected_instance_variables = []
-    end
 
     # Normalize arguments, options and then delegates render_to_body and
     # sticks the result in self.response_body.
@@ -54,8 +50,6 @@ module AbstractController
     def rendered_format
       Mime::TEXT
     end
-
-    require 'set'
 
     DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %w(
       @_action_name @_response_body @_formats @_prefixes @_config
@@ -113,7 +107,7 @@ module AbstractController
     end
 
     def _protected_ivars # :nodoc:
-      DEFAULT_PROTECTED_INSTANCE_VARIABLES + protected_instance_variables
+      DEFAULT_PROTECTED_INSTANCE_VARIABLES
     end
   end
 end
