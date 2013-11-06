@@ -65,14 +65,12 @@ module AbstractController
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
-      hash = {}
       variables  = instance_variables
       variables -= protected_instance_variables
       variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
-      variables.each { |name|
+      variables.each_with_object({}) { |name, hash|
         hash[name.slice(1, name.length)] = instance_variable_get(name)
       }
-      hash
     end
 
     # Normalize args by converting render "foo" to render :action => "foo" and
