@@ -13,7 +13,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   class Hashlike
     def to_hash
-      { :a => 1 }
+      { :foo => "hello", :bar => "world" }
     end
   end
 
@@ -61,7 +61,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
                    [ :"a b", %("a b")  ]]
 
   ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
-  HashlikeTests = [[ Hashlike.new, %({\"a\":1}) ]]
+  HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
   CustomTests   = [[ Custom.new, '"custom"' ]]
 
   RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
@@ -202,6 +202,31 @@ class TestJSONEncoding < ActiveSupport::TestCase
       }
       ActiveSupport::JSON.encode(hash)
     end
+  end
+
+  def test_hash_like_with_options
+    h = Hashlike.new
+    json = h.to_json :only => [:foo]
+
+    assert_equal({"foo"=>"hello"}, JSON.parse(json))
+  end
+
+  def test_object_to_json_with_options
+    obj = Object.new
+    obj.instance_variable_set :@foo, "hello"
+    obj.instance_variable_set :@bar, "world"
+    json = obj.to_json :only => ["foo"]
+
+    assert_equal({"foo"=>"hello"}, JSON.parse(json))
+  end
+
+  def test_struct_to_json_with_options
+    struct = Struct.new(:foo, :bar).new
+    struct.foo = "hello"
+    struct.bar = "world"
+    json = struct.to_json :only => [:foo]
+
+    assert_equal({"foo"=>"hello"}, JSON.parse(json))
   end
 
   def test_hash_should_pass_encoding_options_to_children_in_as_json

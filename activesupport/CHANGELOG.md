@@ -1,3 +1,13 @@
+*   Fixed Object#as_json and Struct#as_json not working properly with options. They now take
+    the same options as Hash#as_json:
+
+        struct = Struct.new(:foo, :bar).new
+        struct.foo = "hello"
+        struct.bar = "world"
+        json = struct.as_json(only: [:foo]) # => {foo: "hello"}
+
+    *Sergio Campamá*, *Godfrey Chan*
+
 *   Added Numeric#in_milliseconds, like 1.hour.in_milliseconds, so we can feed them to JavaScript functions like getTime().
 
 	*DHH*
