@@ -94,7 +94,7 @@ module ActiveSupport
     private
 
       def event_stack
-        SubscriberQueueRegistry.get_queue(@queue_key)
+        SubscriberQueueRegistry.instance.get_queue(@queue_key)
       end
   end
 

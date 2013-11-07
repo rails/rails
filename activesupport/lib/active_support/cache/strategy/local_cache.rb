@@ -23,6 +23,9 @@ module ActiveSupport
           def set_cache_for(local_cache_key, value)
             @registry[local_cache_key] = value
           end
+
+          def self.set_cache_for(l, v); instance.set_cache_for l, v; end
+          def self.cache_for(l); instance.cache_for l; end
         end
 
         # Simple memory backed cache. This cache is not thread safe and is intended only

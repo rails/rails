@@ -178,7 +178,7 @@ module ActiveSupport
       end
 
       def instrumenter
-        InstrumentationRegistry.instrumenter_for(notifier)
+        InstrumentationRegistry.instance.instrumenter_for(notifier)
       end
     end
 
