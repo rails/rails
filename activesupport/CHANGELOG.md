@@ -1,3 +1,8 @@
+*   Fix ActiveSupport `Time#to_json` and `DateTime#to_json` to return 3 decimal
+    places worth of fractional seconds, similar to `TimeWithZone`.
+
+    *Ryan Glover*
+
 *   Removed circular reference protection in JSON encoder, deprecated
     ActiveSupport::JSON::Encoding::CircularReferenceError.
 

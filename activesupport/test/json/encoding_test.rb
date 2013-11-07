@@ -71,8 +71,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
   DateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
 
   StandardDateTests     = [[ Date.new(2005,2,1), %("2005-02-01") ]]
-  StandardTimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005-02-01T15:15:10Z") ]]
-  StandardDateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005-02-01T15:15:10+00:00") ]]
+  StandardTimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005-02-01T15:15:10.000Z") ]]
+  StandardDateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005-02-01T15:15:10.000+00:00") ]]
   StandardStringTests   = [[ 'this is the <string>', %("this is the <string>")]]
 
   def sorted_json(json)
@@ -184,7 +184,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
     with_env_tz 'US/Eastern' do
-      assert_equal %("2005-02-01T15:15:10-05:00"), ActiveSupport::JSON.encode(Time.local(2005,2,1,15,15,10))
+      assert_equal %("2005-02-01T15:15:10.000-05:00"), ActiveSupport::JSON.encode(Time.local(2005,2,1,15,15,10))
     end
   ensure
     ActiveSupport.use_standard_json_time_format = prev
