@@ -305,6 +305,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_plateform_dependent_gems
+    run_generator([destination_root])
+    if RUBY_ENGINE == 'rbx'
+      assert_gem 'rubysl'
+    end
+  end
+
   def test_creation_of_a_test_directory
     run_generator
     assert_file 'test'
