@@ -27,10 +27,14 @@ module ActionView
 
           # Append a hidden field to make sure something will be sent back to the
           # server if all check boxes are unchecked.
-          hidden_name = @html_options[:name] || "#{tag_name}[]"
-          hidden = @template_object.hidden_field_tag(hidden_name, "", :id => nil)
+          if @options.fetch(:include_hidden, true)
+            hidden_name = @html_options[:name] || "#{tag_name}[]"
+            hidden = @template_object.hidden_field_tag(hidden_name, "", :id => nil)
 
-          rendered_collection + hidden
+            rendered_collection + hidden
+          else
+            rendered_collection
+          end
         end
 
         private
