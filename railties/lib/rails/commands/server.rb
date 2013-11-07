@@ -22,7 +22,7 @@ module Rails
           opts.on("-e", "--environment=name", String,
                   "Specifies the environment to run this server under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v }
-          opts.on("-P","--pid=pid",String,
+          opts.on("-P", "--pid=pid", String,
                   "Specifies the PID file.",
                   "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
 
@@ -75,7 +75,7 @@ module Rails
 
     def middleware
       middlewares = []
-      middlewares << [Rails::Rack::Debugger]  if options[:debugger]
+      middlewares << [Rails::Rack::Debugger] if options[:debugger]
       middlewares << [::Rack::ContentLength]
 
       # FIXME: add Rack::Lock in the case people are using webrick.
@@ -95,26 +95,26 @@ module Rails
 
     def default_options
       super.merge({
-        Port:         3000,
-        DoNotReverseLookup:  true,
-        environment:  (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
-        daemonize:    false,
-        debugger:     false,
-        pid:          File.expand_path("tmp/pids/server.pid"),
-        config:       File.expand_path("config.ru")
+        Port:               3000,
+        DoNotReverseLookup: true,
+        environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
+        daemonize:          false,
+        debugger:           false,
+        pid:                File.expand_path("tmp/pids/server.pid"),
+        config:             File.expand_path("config.ru")
       })
     end
 
     private
 
       def print_boot_information
-        url = "#{ options[:SSLEnable] ? 'https' : 'http' }://#{ options[:Host] }:#{ options[:Port] }"
-        puts "=> Booting #{ ActiveSupport::Inflector.demodulize(server) }"
-        puts "=> Rails #{ Rails.version } application starting in #{ Rails.env } on #{ url }"
+        url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
+        puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
+        puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
         puts "=> Run `rails server -h` for more startup options"
 
         if options[:Host].to_s.match(/0\.0\.0\.0/)
-          puts "=> Notice: server is listening on all interfaces (#{ options[:Host] }). Consider using 127.0.0.1 (--binding option)"
+          puts "=> Notice: server is listening on all interfaces (#{options[:Host]}). Consider using 127.0.0.1 (--binding option)"
         end
 
         puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
