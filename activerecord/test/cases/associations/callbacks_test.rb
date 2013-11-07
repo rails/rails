@@ -115,7 +115,6 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert_equal "after_adding<new>", ar.developers_log.last
   end
 
-
   def test_has_and_belongs_to_many_remove_callback
     david = developers(:david)
     jamis = developers(:jamis)
@@ -125,6 +124,19 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert_equal ["before_removing#{david.id}", "after_removing#{david.id}"], activerecord.developers_log
 
     activerecord.developers_with_callbacks.delete(jamis)
+    assert_equal ["before_removing#{david.id}", "after_removing#{david.id}", "before_removing#{jamis.id}",
+                  "after_removing#{jamis.id}"], activerecord.developers_log
+  end
+
+  def test_has_and_belongs_to_many_alternate_remove_callback
+    david = developers(:david)
+    jamis = developers(:jamis)
+    activerecord = projects(:active_record)
+    assert activerecord.developers_log.empty?
+    activerecord.developers_with_callbacks >> david
+    assert_equal ["before_removing#{david.id}", "after_removing#{david.id}"], activerecord.developers_log
+
+    activerecord.developers_with_callbacks >> jamis
     assert_equal ["before_removing#{david.id}", "after_removing#{david.id}", "before_removing#{jamis.id}",
                   "after_removing#{jamis.id}"], activerecord.developers_log
   end

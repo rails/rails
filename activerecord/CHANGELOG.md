@@ -1,3 +1,20 @@
+*   Added `>>` as an alternate method for deleting an object from an association
+
+    Example:
+
+        class Person < ActiveRecord::Base
+          has_many :pets
+        end
+
+        person.pets.size # => 0
+        pet = Pet.new(name: 'Fancy-Fancy')
+        person.pets << pet
+        person.pets.size # => 1
+        person.pets >> pet
+        person.pets.size # => 0
+
+    *Steve Frank*
+
 *   `.unscope` now removes conditions specified in `default_scope`.
 
     *Jon Leighton*

@@ -343,10 +343,34 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, active_record.developers(true).size
   end
 
+  def test_deleting_alternate
+    david = Developer.find(1)
+    active_record = Project.find(1)
+    david.projects.reload
+    assert_equal 2, david.projects.size
+    assert_equal 3, active_record.developers.size
+
+    david.projects >> active_record
+
+    assert_equal 1, david.projects.size
+    assert_equal 1, david.projects(true).size
+    assert_equal 2, active_record.developers(true).size
+  end
+
   def test_deleting_array
     david = Developer.find(1)
     david.projects.reload
+    assert_equal 2, david.projects.size
     david.projects.delete(Project.all.to_a)
+    assert_equal 0, david.projects.size
+    assert_equal 0, david.projects(true).size
+  end
+
+  def test_deleting_array_alternate
+    david = Developer.find(1)
+    david.projects.reload
+    assert_equal 2, david.projects.size
+    david.projects >> Project.all.to_a
     assert_equal 0, david.projects.size
     assert_equal 0, david.projects(true).size
   end
