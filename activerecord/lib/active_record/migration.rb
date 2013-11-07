@@ -892,7 +892,7 @@ module ActiveRecord
 
       validate(@migrations)
 
-      ActiveRecord::SchemaMigration.create_table
+      ActiveRecord::Schema.suppress_messages{ ActiveRecord::Schema.initialize_schema_migrations_table }
     end
 
     def current_version
