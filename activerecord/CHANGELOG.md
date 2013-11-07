@@ -1,3 +1,8 @@
+*   Fix uninitialized constant TransactionState error when Marshall.load is used on an Active Record result.
+    Fixes #12790
+
+    *Jason Ayre*
+
 *   `.unscope` now removes conditions specified in `default_scope`.
 
     *Jon Leighton*
