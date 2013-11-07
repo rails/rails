@@ -946,6 +946,25 @@ module ActiveRecord
         raise NoMethodError, "prepend on association is not defined. Please use << or append"
       end
 
+      # Deletes one or more +records+ from the collection. Please refer
+      # to +delete+ for further details.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.size # => 0
+      #   pet = Pet.new(name: 'Fancy-Fancy')
+      #   person.pets << pet
+      #   person.pets.size # => 1
+      #   person.pets >> pet
+      #   person.pets.size # => 0
+      #
+      def >>(*records)
+        proxy_association.delete(*records)
+      end
+      alias_method :delete, :>>
+
       # Equivalent to +delete_all+. The difference is that returns +self+, instead
       # of an array with the deleted objects, so methods can be chained. See
       # +delete_all+ for more information.
