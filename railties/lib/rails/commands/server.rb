@@ -61,30 +61,10 @@ module Rails
     end
 
     def start
-      url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
-      puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-      puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
-      puts "=> Run `rails server -h` for more startup options"
-      if options[:Host].to_s.match(/0\.0\.0\.0/)
-        puts "=> Notice: server is listening on all interfaces (#{options[:Host]}). Consider using 127.0.0.1 (--binding option)"
-      end
+      print_boot_information
       trap(:INT) { exit }
-      puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
-
-      #Create required tmp directories if not found
-      %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
-      end
-
-      if options[:log_stdout]
-        wrapped_app # touch the app so the logger is set up
-
-        console = ActiveSupport::Logger.new($stdout)
-        console.formatter = Rails.logger.formatter
-        console.level = Rails.logger.level
-
-        Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
-      end
+      create_tmp_directories
+      log_to_stdout if options[:log_stdout]
 
       super
     ensure
@@ -124,5 +104,36 @@ module Rails
         config:       File.expand_path("config.ru")
       })
     end
+
+    private
+
+      def print_boot_information
+        url = "#{ options[:SSLEnable] ? 'https' : 'http' }://#{ options[:Host] }:#{ options[:Port] }"
+        puts "=> Booting #{ ActiveSupport::Inflector.demodulize(server) }"
+        puts "=> Rails #{ Rails.version } application starting in #{ Rails.env } on #{ url }"
+        puts "=> Run `rails server -h` for more startup options"
+
+        if options[:Host].to_s.match(/0\.0\.0\.0/)
+          puts "=> Notice: server is listening on all interfaces (#{ options[:Host] }). Consider using 127.0.0.1 (--binding option)"
+        end
+
+        puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
+      end
+
+      def create_tmp_directories
+        %w(cache pids sessions sockets).each do |dir_to_make|
+          FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
+        end
+      end
+
+      def log_to_stdout
+        wrapped_app # touch the app so the logger is set up
+
+        console = ActiveSupport::Logger.new($stdout)
+        console.formatter = Rails.logger.formatter
+        console.level = Rails.logger.level
+
+        Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+      end
   end
 end
