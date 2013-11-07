@@ -144,9 +144,9 @@ module Rails
         def initialize(target)
           @target         = target
           # unfortunately, instance eval has access to these ivars
-          @app_const      = target.send :app_const
-          @app_const_base = target.send :app_const_base
-          @app_name       = target.send :app_name
+          @app_const      = target.send :app_const if target.respond_to?(:app_const, true)
+          @app_const_base = target.send :app_const_base if target.respond_to?(:app_const_base, true)
+          @app_name       = target.send :app_name if target.respond_to?(:app_name, true)
           @commands       = []
           @gems           = []
         end
