@@ -375,7 +375,7 @@ Active Record
 
 * Support index sort order in SQLite, MySQL and PostgreSQL adapters.
 
-* Allow the `:class_name` option for associations to take a symbol in addition to a string. This is to avoid confusing newbies, and to be consistent with the fact that other options like :foreign_key already allow a symbol or a string.
+* Allow the `:class_name` option for associations to take a symbol in addition to a string. This is to avoid confusing newbies, and to be consistent with the fact that other options like `:foreign_key` already allow a symbol or a string.
 
     ```ruby
     has_many :clients, :class_name => :Client # Note that the symbol need to be capitalized

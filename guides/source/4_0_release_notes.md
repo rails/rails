@@ -165,9 +165,9 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/a
 
 ### Notable changes
 
-* Replace deprecated `memcache-client` gem with `dalli` in ActiveSupport::Cache::MemCacheStore.
+* Replace deprecated `memcache-client` gem with `dalli` in `ActiveSupport::Cache::MemCacheStore`.
 
-* Optimize ActiveSupport::Cache::Entry to reduce memory and processing overhead.
+* Optimize `ActiveSupport::Cache::Entry` to reduce memory and processing overhead.
 
 * Inflections can now be defined per locale. `singularize` and `pluralize` accept locale as an extra argument.
 

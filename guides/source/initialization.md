@@ -29,9 +29,42 @@ quickly.
 Launch!
 -------
 
-Let's start to boot and initialize the app. It all begins with your app's
-`bin/rails` executable. A Rails application is usually started by running
-`rails console` or `rails server`.
+Let's start to boot and initialize the app. A Rails application is usually
+started by running `rails console` or `rails server`.
+
+### `railties/bin/rails`
+
+The `rails` in the command `rails server` is a ruby executable in your load
+path. This executable contains the following lines:
+
+```ruby
+version = ">= 0"
+load Gem.bin_path('railties', 'rails', version)
+```
+
+If you try out this command in a Rails console, you would see that this loads
+`railties/bin/rails`. A part of the file `railties/bin/rails.rb` has the
+following code:
+
+```ruby
+require "rails/cli"
+```
+
+The file `railties/lib/rails/cli` in turn calls
+`Rails::AppRailsLoader.exec_app_rails`.
+
+### `railties/lib/rails/app_rails_loader.rb`
+
+The primary goal of the function `exec_app_rails` is to execute your app's
+`bin/rails`. If the current directory does not have a `bin/rails`, it will
+navigate upwards until it finds a `bin/rails` executable. Thus one can invoke a
+`rails` command from anywhere inside a rails application.
+
+For `rails server` the equivalent of the following command is executed:
+
+```bash
+$ exec ruby bin/rails server
+```
 
 ### `bin/rails`
 
@@ -54,7 +87,7 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 # Set up gems listed in the Gemfile.
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
 
-require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
+require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
@@ -121,7 +154,7 @@ when 'server'
   # Change to the application's path if there is no config.ru file in current directory.
   # This allows us to run `rails server` from other directories, but still get
   # the main config.ru and properly set the tmp directory.
-  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
+  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
 
   require 'rails/commands/server'
   Rails::Server.new.tap do |server|

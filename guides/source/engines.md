@@ -875,7 +875,7 @@ end
 
 When Rails looks for a view to render, it will first look in the `app/views` directory of the application. If it cannot find the view there, then it will check in the `app/views` directories of all engines which have this directory.
 
-In the `blorgh` engine, there is a currently a file at `app/views/blorgh/posts/index.html.erb`. When the engine is asked to render the view for `Blorgh::PostsController`'s `index` action, it will first see if it can find it at `app/views/blorgh/posts/index.html.erb` within the application and then if it cannot it will look inside the engine.
+When the application is asked to render the view for `Blorgh::PostsController`'s index action, it will look the path `app/views/blorgh/posts/index.html.erb`, first within the application. If it cannot find it, it will look inside the engine.
 
 You can override this view in the application by simply creating a new file at `app/views/blorgh/posts/index.html.erb`. Then you can completely change what this view would normally output.
 
