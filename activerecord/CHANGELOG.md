@@ -1,3 +1,8 @@
+*   Fix uninitialized constant TransactionState error when Marshall.load is used on an Active Record result.
+    Fixes #12790
+
+    *Jason Ayre*
+
 *   Do not add to scope includes values from through associations.
     Fixed bug when providing `includes` in through association scope, and fetching targets.
 

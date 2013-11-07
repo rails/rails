@@ -39,6 +39,7 @@ module ActiveRecord
       autoload :ClosedTransaction
       autoload :RealTransaction
       autoload :SavepointTransaction
+      autoload :TransactionState
     end
 
     # Active Record supports multiple database systems. AbstractAdapter and
