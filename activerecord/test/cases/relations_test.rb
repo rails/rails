@@ -499,6 +499,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, query.to_a.size
   end
 
+  def test_includes_references_with_unknown_column
+    type_cast = current_adapter?(:PostgreSQLAdapter) ? '::varchar(255)' : ''
+
+    posts = Post.select("'foo'#{type_cast} AS foo").includes(:comments)
+    assert posts.first.foo
+
+    posts = Post.select("'foo'#{type_cast} AS foo").references(:comments)
+    assert posts.first.foo
+
+    posts = Post.select("'foo'#{type_cast} AS foo").includes(:comments).references(:comments)
+    assert posts.first.foo
+  end
+
   def test_loading_with_one_association
     posts = Post.preload(:comments)
     post = posts.find { |p| p.id == 1 }

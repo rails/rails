@@ -532,6 +532,10 @@
 
     *Jason Ayre*
 
+*   Fixes #12423 - Additional select columns are removed when using includes
+
+    *Edo Balvers*
+
 *   `.unscope` now removes conditions specified in `default_scope`.
 
     *Jon Leighton*

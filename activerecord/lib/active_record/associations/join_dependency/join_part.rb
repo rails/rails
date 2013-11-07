@@ -46,10 +46,9 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def extract_record(row, column_names_with_alias)
+        def extract_record(hash, row, column_names_with_alias)
           # This code is performance critical as it is called per row.
           # see: https://github.com/rails/rails/pull/12185
-          hash = {}
 
           index = 0
           length = column_names_with_alias.length
@@ -64,7 +63,11 @@ module ActiveRecord
         end
 
         def instantiate(row, aliases)
-          base_klass.instantiate(extract_record(row, aliases))
+          base_klass.instantiate(extract_record({}, row, aliases))
+        end
+
+        def instantiate_with_columns(columns, row, aliases)
+          base_klass.instantiate(extract_record(columns, row, aliases))
         end
       end
     end
