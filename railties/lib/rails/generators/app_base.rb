@@ -110,6 +110,7 @@ module Rails
           javascript_gemfile_entry,
           jbuilder_gemfile_entry,
           sdoc_gemfile_entry,
+          platform_dependent_gemfile_entry,
           @extra_entries].flatten.find_all(&@gem_filter)
       end
 
@@ -313,6 +314,14 @@ module Rails
                                    '>= 1.3.0',
                                    'Use Uglifier as compressor for JavaScript assets')
 
+        gems
+      end
+
+      def platform_dependent_gemfile_entry
+        gems = []
+        if RUBY_ENGINE == 'rbx'
+          gems << GemfileEntry.version('rubysl', nil)
+        end
         gems
       end
 
