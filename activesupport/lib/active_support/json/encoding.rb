@@ -10,7 +10,6 @@ require 'active_support/core_ext/object/instance_variables'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/conversions'
 require 'active_support/core_ext/date/conversions'
-require 'set'
 
 module ActiveSupport
   class << self
@@ -21,9 +20,6 @@ module ActiveSupport
   end
 
   module JSON
-    # matches YAML-formatted dates
-    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
-
     # Dumps objects in JSON (JavaScript Object Notation).
     # See www.json.org for more info.
     #
@@ -34,55 +30,21 @@ module ActiveSupport
     end
 
     module Encoding #:nodoc:
-      class CircularReferenceError < StandardError; end
-
       class Encoder
         attr_reader :options
 
         def initialize(options = nil)
           @options = options || {}
-          @seen = Set.new
         end
 
-        def encode(value, use_options = true)
-          check_for_circular_references(value) do
-            jsonified = use_options ? value.as_json(options_for(value)) : value.as_json
-            jsonified.encode_json(self)
-          end
-        end
-
-        # like encode, but only calls as_json, without encoding to string.
-        def as_json(value, use_options = true)
-          check_for_circular_references(value) do
-            use_options ? value.as_json(options_for(value)) : value.as_json
-          end
-        end
-
-        def options_for(value)
-          if value.is_a?(Array) || value.is_a?(Hash)
-            # hashes and arrays need to get encoder in the options, so that
-            # they can detect circular references.
-            options.merge(:encoder => self)
-          else
-            options.dup
-          end
+        def encode(value)
+          value.as_json(options.dup).encode_json(self)
         end
 
         def escape(string)
           Encoding.escape(string)
         end
-
-        private
-          def check_for_circular_references(value)
-            unless @seen.add?(value.__id__)
-              raise CircularReferenceError, 'object references itself'
-            end
-            yield
-          ensure
-            @seen.delete(value.__id__)
-          end
       end
-
 
       ESCAPED_CHARS = {
         "\x00" => '\u0000', "\x01" => '\u0001', "\x02" => '\u0002',
@@ -137,6 +99,28 @@ module ActiveSupport
           json = %("#{json}")
           json.force_encoding(::Encoding::UTF_8)
           json
+        end
+
+        # Deprecate CircularReferenceError
+        def const_missing(name)
+          if name == :CircularReferenceError
+            message = "The JSON encoder in Rails 4.1 no longer offers protection from circular references. " \
+                      "You are seeing this warning because you are rescuing from (or otherwise referencing) " \
+                      "ActiveSupport::Encoding::CircularReferenceError. In the future, this error will be " \
+                      "removed from Rails. You should remove these rescue blocks from your code and ensure " \
+                      "that your data structures are free of circular references so they can be properly " \
+                      "serialized into JSON.\n\n" \
+                      "For example, the following Hash contains a circular reference to itself:\n" \
+                      "   h = {}\n" \
+                      "   h['circular'] = h\n" \
+                      "In this case, calling h.to_json would not work properly."
+
+            ActiveSupport::Deprecation.warn message
+
+            SystemStackError
+          else
+            super
+          end
         end
       end
 

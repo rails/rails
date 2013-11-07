@@ -1,3 +1,8 @@
+*   Removed circular reference protection in JSON encoder, deprecated
+    ActiveSupport::JSON::Encoding::CircularReferenceError.
+
+    *Godfrey Chan*, *Sergio Campamá*
+
 *   Add `capitalize` option to Inflector.humanize, so strings can be humanized without being capitalized:
 
         'employee_salary'.humanize                    # => "Employee salary"

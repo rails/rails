@@ -139,14 +139,11 @@ end
 
 class Array
   def as_json(options = nil) #:nodoc:
-    # use encoder as a proxy to call as_json on all elements, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    map { |v| encoder.as_json(v, options) }
+    map { |v| v.as_json(options && options.dup) }
   end
 
   def encode_json(encoder) #:nodoc:
-    # we assume here that the encoder has already run as_json on self and the elements, so we run encode_json directly
-    "[#{map { |v| v.encode_json(encoder) } * ','}]"
+    "[#{map { |v| v.as_json.encode_json(encoder) } * ','}]"
   end
 end
 
@@ -165,19 +162,11 @@ class Hash
       self
     end
 
-    # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    Hash[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
+    Hash[subset.map { |k, v| [k.to_s, v.as_json(options && options.dup)] }]
   end
 
   def encode_json(encoder) #:nodoc:
-    # values are encoded with use_options = false, because we don't want hash representations from ActiveModel to be
-    # processed once again with as_json with options, as this could cause unexpected results (i.e. missing fields);
-
-    # on the other hand, we need to run as_json on the elements, because the model representation may contain fields
-    # like Time/Date in their original (not jsonified) form, etc.
-
-    "{#{map { |k,v| "#{encoder.encode(k.to_s)}:#{encoder.encode(v, false)}" } * ','}}"
+    "{#{map { |k,v| "#{k.as_json.encode_json(encoder)}:#{v.as_json.encode_json(encoder)}" } * ','}}"
   end
 end
 
