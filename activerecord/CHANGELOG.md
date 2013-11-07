@@ -1,3 +1,8 @@
+*   Fix `Uninitialized constant ActiveRecord::ConnectionAdapters::TransactionState error when trying to Marshall.load AR Result.
+    Adds autoload :TransactionState, fixes #12790
+
+    *Jason Ayre*
+
 *   `.unscope` now removes conditions specified in `default_scope`.
 
     *Jon Leighton*
