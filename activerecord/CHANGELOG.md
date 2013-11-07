@@ -1,5 +1,5 @@
-*   Fix `Uninitialized constant ActiveRecord::ConnectionAdapters::TransactionState error when trying to Marshall.load AR Result.
-    Adds autoload :TransactionState, fixes #12790
+*   Fix uninitialized constant TransactionState error when Marshall.load is used on an Active Record result.
+    Fixes #12790
 
     *Jason Ayre*
 
