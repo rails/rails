@@ -27,7 +27,16 @@ class YamlSerializationTest < ActiveRecord::TestCase
     topic = Topic.first
     coder = {}
     topic.encode_with coder
-    assert_equal({'attributes' => topic.attributes}, coder)
+
+    instance_variables = {}
+    (topic.instance_variables - [:@attributes, :@columns_hash]).each do |variable|
+        instance_variables[variable] = topic.instance_variable_get(variable)
+    end
+
+    assert_equal({
+      'attributes' => topic.attributes,
+      'instance_variables' => instance_variables
+      }, coder)
   end
 
   def test_psych_roundtrip
@@ -42,5 +51,11 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert topic
     t = Psych.load Psych.dump topic
     assert_equal topic.attributes, t.attributes
+  end
+
+  def test_saved_instance_variables
+    topic = Topic.new
+    t = YAML.load(topic.to_yaml)
+    assert_equal topic.new_record?, t.new_record?
   end
 end

@@ -203,6 +203,12 @@ module ActiveRecord
 
       @new_record = false
 
+      if coder['instance_variables']
+        coder['instance_variables'].each do |name, value|
+          instance_variable_set(name, value)
+        end
+      end
+
       run_callbacks :find
       run_callbacks :initialize
 
@@ -272,6 +278,10 @@ module ActiveRecord
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       coder['attributes'] = attributes
+      coder['instance_variables'] = {}
+      (instance_variables - [:@attributes, :@columns_hash]).each do |variable|
+        coder['instance_variables'][variable] = instance_variable_get(variable)
+      end
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
