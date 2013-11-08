@@ -151,8 +151,7 @@ environments. You can enable or disable it in your configuration through the
 More reading:
 
 * [Optimize caching](http://code.google.com/speed/page-speed/docs/caching.html)
-* [Revving Filenames: don't use
-* querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
+* [Revving Filenames: don't use querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
 
 
 How to Use the Asset Pipeline
