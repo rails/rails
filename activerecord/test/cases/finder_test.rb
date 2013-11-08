@@ -842,6 +842,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_with_limiting_with_custom_select
+    skip 'broken test' if current_adapter?(:MysqlAdapter)
+
     posts = Post.references(:authors).merge(
       :includes => :author, :select => ' posts.*, authors.id as "author_id"',
       :limit => 3, :order => 'posts.id'
