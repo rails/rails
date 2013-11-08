@@ -16,24 +16,22 @@
 #  prefetch_rows: 100
 #  cursor_sharing: similar
 #
-
-development:
+default: &default
   adapter: oracle
-  database: <%= app_name %>_development
   username: <%= app_name %>
   password:
+
+development:
+  <<: *default
+  database: <%= app_name %>_development
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  adapter: oracle
+  <<: *default
   database: <%= app_name %>_test
-  username: <%= app_name %>
-  password:
 
 production:
-  adapter: oracle
+  <<: *default
   database: <%= app_name %>_production
-  username: <%= app_name %>
-  password:
