@@ -1,8 +1,6 @@
 require 'digest/md5'
-require 'securerandom'
 require 'active_support/core_ext/string/strip'
 require 'rails/version' unless defined?(Rails::VERSION)
-require 'rbconfig'
 require 'open-uri'
 require 'uri'
 require 'rails/generators/base'
