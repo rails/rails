@@ -1,6 +1,10 @@
+*   Fix `simple_format` escapes own output when passing `sanitize: true`
+
+    *Paul Seidemann*
+
 *   Ensure ActionView::Digestor.cache is correctly cleaned up when
     combining recursive templates with ActionView::Resolver.caching = false
-    
+
     *wyaeld*
 
 *   Fix `collection_check_boxes` generated hidden input to use the name attribute provided
