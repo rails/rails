@@ -514,6 +514,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal(post.taggings.count, post.taggings_count)
   end
 
+  def test_update_counter_caches_on_replace_association_with_dependent_destroy
+    post = posts(:welcome)
+    tag  = post.tags.create!(:name => 'doomed')
+
+    tag.tagged_posts_with_destroy = []
+    post.reload
+
+    assert_equal(post.taggings.count, post.taggings_count)
+  end
+
   def test_replace_association
     assert_queries(4){posts(:welcome);people(:david);people(:michael); posts(:welcome).people(true)}
 
