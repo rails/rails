@@ -126,7 +126,10 @@ A standard Rails application depends on several gems, specifically:
 
 ### `rails/commands.rb`
 
-Once `config/boot.rb` has finished, the next file that is required is `rails/commands`, which helps in expanding aliases. In the current case, the `ARGV` array simply contains `server` which will be passed over to `rails/commands_tasks`.
+Once `config/boot.rb` has finished, the next file that is required is
+`rails/commands`, which helps in expanding aliases. In the current case, the
+`ARGV` array simply contains `server` which will be passed over to
+`rails/commands_tasks`.
 
 ```ruby
 ARGV << '--help' if ARGV.empty?
@@ -151,28 +154,55 @@ Rails::CommandsTasks.new(ARGV).run_command!(command)
 TIP: As you can see, an empty ARGV list will make Rails show the help
 snippet.
 
-If we had used `s` rather than `server`, Rails would have used the `aliases` defined here to find the matching command.
+If we had used `s` rather than `server`, Rails would have used the `aliases`
+defined here to find the matching command.
 
-With the `server` command, Rails will run this code:
+### `rails/commands/command_tasks.rb`
+
+When one types an incorrect rails command, the `run_command` is responsible for
+throwing an error message. If the command is valid, a function of the same name
+is called.
 
 ```ruby
-when 'server'
-  # Change to the application's path if there is no config.ru file in current directory.
-  # This allows us to run `rails server` from other directories, but still get
-  # the main config.ru and properly set the tmp directory.
-  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
+COMMAND_WHITELIST = %(plugin generate destroy console server dbconsole application runner new version help)
 
-  require 'rails/commands/server'
+def run_command!(command)
+  if COMMAND_WHITELIST.include?(command)
+    send(command)
+  else
+    write_error_message(command)
+  end
+end
+```
+
+With the `server` command, Rails will further run the following code:
+
+```ruby
+def set_application_directory!
+  Dir.chdir(File.expand_path('../../', APP_PATH)) unless
+  File.exist?(File.expand_path("config.ru"))
+end
+
+def server
+  set_application_directory!
+  require_command!("server")
+
   Rails::Server.new.tap do |server|
-    # We need to require application after the server sets environment,
-    # otherwise the --environment option given to the server won't propagate.
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start
   end
+end
+
+def require_command!(command)
+  require "rails/commands/#{command}"
+end
 ```
 
-This file will change into the Rails root directory (a path two directories up from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
+This file will change into the Rails root directory (a path two directories up
+from `APP_PATH` which points at `config/application.rb`), but only if the
+`config.ru` file isn't found. This then requires `rails/commands/server` which
+sets up the `Rails::Server` class.
 
 ```ruby
 require 'fileutils'
