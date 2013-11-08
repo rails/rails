@@ -252,19 +252,20 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
     end
 
-    def test_schema_dump_includes_extensions
-      connection = ActiveRecord::Base.connection
-      skip unless connection.supports_extensions?
+    if ActiveRecord::Base.connection.supports_extensions?
+      def test_schema_dump_includes_extensions
+        connection = ActiveRecord::Base.connection
 
-      connection.stubs(:extensions).returns(['hstore'])
-      output = standard_dump
-      assert_match "# These are extensions that must be enabled", output
-      assert_match %r{enable_extension "hstore"}, output
+        connection.stubs(:extensions).returns(['hstore'])
+        output = standard_dump
+        assert_match "# These are extensions that must be enabled", output
+        assert_match %r{enable_extension "hstore"}, output
 
-      connection.stubs(:extensions).returns([])
-      output = standard_dump
-      assert_no_match "# These are extensions that must be enabled", output
-      assert_no_match %r{enable_extension}, output
+        connection.stubs(:extensions).returns([])
+        output = standard_dump
+        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match %r{enable_extension}, output
+      end
     end
 
     def test_schema_dump_includes_xml_shorthand_definition

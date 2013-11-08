@@ -26,25 +26,25 @@ module ActiveRecord
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      def test_connection_pool_per_pid
-        return skip('must support fork') unless Process.respond_to?(:fork)
+      if Process.respond_to?(:fork)
+        def test_connection_pool_per_pid
+          object_id = ActiveRecord::Base.connection.object_id
 
-        object_id = ActiveRecord::Base.connection.object_id
+          rd, wr = IO.pipe
 
-        rd, wr = IO.pipe
+          pid = fork {
+            rd.close
+            wr.write Marshal.dump ActiveRecord::Base.connection.object_id
+            wr.close
+            exit!
+          }
 
-        pid = fork {
-          rd.close
-          wr.write Marshal.dump ActiveRecord::Base.connection.object_id
           wr.close
-          exit!
-        }
 
-        wr.close
-
-        Process.waitpid pid
-        assert_not_equal object_id, Marshal.load(rd.read)
-        rd.close
+          Process.waitpid pid
+          assert_not_equal object_id, Marshal.load(rd.read)
+          rd.close
+        end
       end
 
       def test_app_delegation

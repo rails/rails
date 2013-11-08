@@ -612,18 +612,17 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 'たこ焼き仮面', weird.なまえ
   end
 
-  def test_respect_internal_encoding
-    if current_adapter?(:PostgreSQLAdapter)
-      skip 'pg does not respect internal encoding and always returns utf8'
+  unless current_adapter?(:PostgreSQLAdapter)
+    def test_respect_internal_encoding
+      old_default_internal = Encoding.default_internal
+      silence_warnings { Encoding.default_internal = "EUC-JP" }
+
+      Weird.reset_column_information
+
+      assert_equal ["EUC-JP"], Weird.columns.map {|c| c.name.encoding.name }.uniq
+    ensure
+      silence_warnings { Encoding.default_internal = old_default_internal }
     end
-    old_default_internal = Encoding.default_internal
-    silence_warnings { Encoding.default_internal = "EUC-JP" }
-
-    Weird.reset_column_information
-
-    assert_equal ["EUC-JP"], Weird.columns.map {|c| c.name.encoding.name }.uniq
-  ensure
-    silence_warnings { Encoding.default_internal = old_default_internal }
   end
 
   def test_non_valid_identifier_column_name
@@ -1362,34 +1361,33 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, post.comments.length
   end
 
-  def test_marshal_between_processes
-    skip "can't marshal between processes when using an in-memory db" if in_memory_db?
-    skip "fork isn't supported" unless Process.respond_to?(:fork)
+  if Process.respond_to?(:fork) && !in_memory_db?
+    def test_marshal_between_processes
+      # Define a new model to ensure there are no caches
+      if self.class.const_defined?("Post", false)
+        flunk "there should be no post constant"
+      end
 
-    # Define a new model to ensure there are no caches
-    if self.class.const_defined?("Post", false)
-      flunk "there should be no post constant"
-    end
+      self.class.const_set("Post", Class.new(ActiveRecord::Base) {
+        has_many :comments
+      })
 
-    self.class.const_set("Post", Class.new(ActiveRecord::Base) {
-      has_many :comments
-    })
+      rd, wr = IO.pipe
 
-    rd, wr = IO.pipe
+      ActiveRecord::Base.connection_handler.clear_all_connections!
 
-    ActiveRecord::Base.connection_handler.clear_all_connections!
+      fork do
+        rd.close
+        post = Post.new
+        post.comments.build
+        wr.write Marshal.dump(post)
+        wr.close
+      end
 
-    fork do
-      rd.close
-      post = Post.new
-      post.comments.build
-      wr.write Marshal.dump(post)
       wr.close
+      assert Marshal.load rd.read
+      rd.close
     end
-
-    wr.close
-    assert Marshal.load rd.read
-    rd.close
   end
 
   def test_marshalling_new_record_round_trip_with_associations

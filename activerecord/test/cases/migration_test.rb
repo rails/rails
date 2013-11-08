@@ -230,83 +230,73 @@ class MigrationTest < ActiveRecord::TestCase
     assert migration.went_down, 'have not gone down'
   end
 
-  def test_migrator_one_up_with_exception_and_rollback
-    unless ActiveRecord::Base.connection.supports_ddl_transactions?
-      skip "not supported on #{ActiveRecord::Base.connection.class}"
+  if ActiveRecord::Base.connection.supports_ddl_transactions?
+    def test_migrator_one_up_with_exception_and_rollback
+      assert_no_column Person, :last_name
+
+      migration = Class.new(ActiveRecord::Migration) {
+        def version; 100 end
+        def migrate(x)
+          add_column "people", "last_name", :string
+          raise 'Something broke'
+        end
+      }.new
+
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+
+      e = assert_raise(StandardError) { migrator.migrate }
+
+      assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
+
+      assert_no_column Person, :last_name,
+        "On error, the Migrator should revert schema changes but it did not."
     end
 
-    assert_no_column Person, :last_name
+    def test_migrator_one_up_with_exception_and_rollback_using_run
+      assert_no_column Person, :last_name
 
-    migration = Class.new(ActiveRecord::Migration) {
-      def version; 100 end
-      def migrate(x)
-        add_column "people", "last_name", :string
-        raise 'Something broke'
-      end
-    }.new
+      migration = Class.new(ActiveRecord::Migration) {
+        def version; 100 end
+        def migrate(x)
+          add_column "people", "last_name", :string
+          raise 'Something broke'
+        end
+      }.new
 
-    migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
 
-    e = assert_raise(StandardError) { migrator.migrate }
+      e = assert_raise(StandardError) { migrator.run }
 
-    assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
+      assert_equal "An error has occurred, this migration was canceled:\n\nSomething broke", e.message
 
-    assert_no_column Person, :last_name,
-     "On error, the Migrator should revert schema changes but it did not."
-  end
-
-  def test_migrator_one_up_with_exception_and_rollback_using_run
-    unless ActiveRecord::Base.connection.supports_ddl_transactions?
-      skip "not supported on #{ActiveRecord::Base.connection.class}"
+      assert_no_column Person, :last_name,
+        "On error, the Migrator should revert schema changes but it did not."
     end
 
-    assert_no_column Person, :last_name
+    def test_migration_without_transaction
+      assert_no_column Person, :last_name
 
-    migration = Class.new(ActiveRecord::Migration) {
-      def version; 100 end
-      def migrate(x)
-        add_column "people", "last_name", :string
-        raise 'Something broke'
+      migration = Class.new(ActiveRecord::Migration) {
+        self.disable_ddl_transaction!
+
+        def version; 101 end
+        def migrate(x)
+          add_column "people", "last_name", :string
+          raise 'Something broke'
+        end
+      }.new
+
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 101)
+      e = assert_raise(StandardError) { migrator.migrate }
+      assert_equal "An error has occurred, all later migrations canceled:\n\nSomething broke", e.message
+
+      assert_column Person, :last_name,
+        "without ddl transactions, the Migrator should not rollback on error but it did."
+    ensure
+      Person.reset_column_information
+      if Person.column_names.include?('last_name')
+        Person.connection.remove_column('people', 'last_name')
       end
-    }.new
-
-    migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
-
-    e = assert_raise(StandardError) { migrator.run }
-
-    assert_equal "An error has occurred, this migration was canceled:\n\nSomething broke", e.message
-
-    assert_no_column Person, :last_name,
-      "On error, the Migrator should revert schema changes but it did not."
-  end
-
-  def test_migration_without_transaction
-    unless ActiveRecord::Base.connection.supports_ddl_transactions?
-      skip "not supported on #{ActiveRecord::Base.connection.class}"
-    end
-
-    assert_no_column Person, :last_name
-
-    migration = Class.new(ActiveRecord::Migration) {
-      self.disable_ddl_transaction!
-
-      def version; 101 end
-      def migrate(x)
-        add_column "people", "last_name", :string
-        raise 'Something broke'
-      end
-    }.new
-
-    migrator = ActiveRecord::Migrator.new(:up, [migration], 101)
-    e = assert_raise(StandardError) { migrator.migrate }
-    assert_equal "An error has occurred, all later migrations canceled:\n\nSomething broke", e.message
-
-    assert_column Person, :last_name,
-     "without ddl transactions, the Migrator should not rollback on error but it did."
-  ensure
-    Person.reset_column_information
-    if Person.column_names.include?('last_name')
-      Person.connection.remove_column('people', 'last_name')
     end
   end
 
@@ -450,62 +440,64 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :binary_testings rescue nil
   end
 
-  def test_create_table_with_custom_sequence_name
-    skip "not supported" unless current_adapter? :OracleAdapter
+  if current_adapter? :OracleAdapter
+    def test_create_table_with_custom_sequence_name
+      skip "not supported"
 
-    # table name is 29 chars, the standard sequence name will
-    # be 33 chars and should be shortened
-    assert_nothing_raised do
-      begin
-        Person.connection.create_table :table_with_name_thats_just_ok do |t|
-          t.column :foo, :string, :null => false
+      # table name is 29 chars, the standard sequence name will
+      # be 33 chars and should be shortened
+      assert_nothing_raised do
+        begin
+          Person.connection.create_table :table_with_name_thats_just_ok do |t|
+            t.column :foo, :string, :null => false
+          end
+        ensure
+          Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
         end
-      ensure
-        Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
       end
-    end
 
-    # should be all good w/ a custom sequence name
-    assert_nothing_raised do
-      begin
-        Person.connection.create_table :table_with_name_thats_just_ok,
-                                       :sequence_name => 'suitably_short_seq' do |t|
-          t.column :foo, :string, :null => false
+      # should be all good w/ a custom sequence name
+      assert_nothing_raised do
+        begin
+          Person.connection.create_table :table_with_name_thats_just_ok,
+            :sequence_name => 'suitably_short_seq' do |t|
+            t.column :foo, :string, :null => false
+          end
+
+          Person.connection.execute("select suitably_short_seq.nextval from dual")
+
+        ensure
+          Person.connection.drop_table :table_with_name_thats_just_ok,
+            :sequence_name => 'suitably_short_seq' rescue nil
         end
+      end
 
+      # confirm the custom sequence got dropped
+      assert_raise(ActiveRecord::StatementInvalid) do
         Person.connection.execute("select suitably_short_seq.nextval from dual")
-
-      ensure
-        Person.connection.drop_table :table_with_name_thats_just_ok,
-                                     :sequence_name => 'suitably_short_seq' rescue nil
       end
-    end
-
-    # confirm the custom sequence got dropped
-    assert_raise(ActiveRecord::StatementInvalid) do
-      Person.connection.execute("select suitably_short_seq.nextval from dual")
     end
   end
 
-  def test_out_of_range_limit_should_raise
-    skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
-
-    Person.connection.drop_table :test_limits rescue nil
-    assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
-      Person.connection.create_table :test_integer_limits, :force => true do |t|
-        t.column :bigone, :integer, :limit => 10
-      end
-    end
-
-    unless current_adapter?(:PostgreSQLAdapter)
-      assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
-        Person.connection.create_table :test_text_limits, :force => true do |t|
-          t.column :bigtext, :text, :limit => 0xfffffffff
+  if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+    def test_out_of_range_limit_should_raise
+      Person.connection.drop_table :test_limits rescue nil
+      assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
+        Person.connection.create_table :test_integer_limits, :force => true do |t|
+          t.column :bigone, :integer, :limit => 10
         end
       end
-    end
 
-    Person.connection.drop_table :test_limits rescue nil
+      unless current_adapter?(:PostgreSQLAdapter)
+        assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
+          Person.connection.create_table :test_text_limits, :force => true do |t|
+            t.column :bigtext, :text, :limit => 0xfffffffff
+          end
+        end
+      end
+
+      Person.connection.drop_table :test_limits rescue nil
+    end
   end
 
   protected

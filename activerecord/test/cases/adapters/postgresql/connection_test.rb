@@ -98,33 +98,33 @@ module ActiveRecord
     # you know the incantation to do that.
     # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
-    def test_reconnection_after_actual_disconnection_with_verify
-      skip "with_manual_interventions is false in configuration" unless ARTest.config['with_manual_interventions']
+    if ARTest.config['with_manual_interventions']
+      def test_reconnection_after_actual_disconnection_with_verify
+        original_connection_pid = @connection.query('select pg_backend_pid()')
 
-      original_connection_pid = @connection.query('select pg_backend_pid()')
+        # Sanity check.
+        assert @connection.active?
 
-      # Sanity check.
-      assert @connection.active?
+        puts 'Kill the connection now (e.g. by restarting the PostgreSQL ' +
+          'server with the "-m fast" option) and then press enter.'
+        $stdin.gets
 
-      puts 'Kill the connection now (e.g. by restarting the PostgreSQL ' +
-           'server with the "-m fast" option) and then press enter.'
-      $stdin.gets
+        @connection.verify!
 
-      @connection.verify!
+        assert @connection.active?
 
-      assert @connection.active?
+        # If we get no exception here, then either we re-connected successfully, or
+        # we never actually got disconnected.
+        new_connection_pid = @connection.query('select pg_backend_pid()')
 
-      # If we get no exception here, then either we re-connected successfully, or
-      # we never actually got disconnected.
-      new_connection_pid = @connection.query('select pg_backend_pid()')
+        assert_not_equal original_connection_pid, new_connection_pid,
+          "umm -- looks like you didn't break the connection, because we're still " +
+          "successfully querying with the same connection pid."
 
-      assert_not_equal original_connection_pid, new_connection_pid,
-        "umm -- looks like you didn't break the connection, because we're still " +
-        "successfully querying with the same connection pid."
-
-      # Repair all fixture connections so other tests won't break.
-      @fixture_connections.each do |c|
-        c.verify!
+        # Repair all fixture connections so other tests won't break.
+        @fixture_connections.each do |c|
+          c.verify!
+        end
       end
     end
 

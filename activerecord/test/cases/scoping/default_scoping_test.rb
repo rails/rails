@@ -54,14 +54,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
   end
 
-  def test_default_scoping_with_threads
-    skip "in-memory database mustn't disconnect" if in_memory_db?
-
-    2.times do
-      Thread.new {
-        assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC')
-        DeveloperOrderedBySalary.connection.close
-      }.join
+  unless in_memory_db?
+    def test_default_scoping_with_threads
+      2.times do
+        Thread.new {
+          assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC')
+          DeveloperOrderedBySalary.connection.close
+        }.join
+      end
     end
   end
 
@@ -362,23 +362,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 1, DeveloperWithIncludes.where(:audit_logs => { :message => 'foo' }).count
   end
 
-  def test_default_scope_is_threadsafe
-    if in_memory_db?
-      skip "in memory db can't share a db between threads"
-    end
+  unless in_memory_db?
+    def test_default_scope_is_threadsafe
+      threads = []
+      assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
 
-    threads = []
-    assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
-
-    threads << Thread.new do
-      Thread.current[:long_default_scope] = true
-      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-      ThreadsafeDeveloper.connection.close
+      threads << Thread.new do
+        Thread.current[:long_default_scope] = true
+        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+        ThreadsafeDeveloper.connection.close
+      end
+      threads << Thread.new do
+        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+        ThreadsafeDeveloper.connection.close
+      end
+      threads.each(&:join)
     end
-    threads << Thread.new do
-      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-      ThreadsafeDeveloper.connection.close
-    end
-    threads.each(&:join)
   end
 end

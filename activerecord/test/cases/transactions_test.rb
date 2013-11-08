@@ -571,23 +571,23 @@ if current_adapter?(:PostgreSQLAdapter)
   class ConcurrentTransactionTest < TransactionTest
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
-    def test_transaction_per_thread
-      skip "in memory db can't share a db between threads" if in_memory_db?
-
-      threads = 3.times.map do
-        Thread.new do
-          Topic.transaction do
-            topic = Topic.find(1)
-            topic.approved = !topic.approved?
-            assert topic.save!
-            topic.approved = !topic.approved?
-            assert topic.save!
+    unless in_memory_db?
+      def test_transaction_per_thread
+        threads = 3.times.map do
+          Thread.new do
+            Topic.transaction do
+              topic = Topic.find(1)
+              topic.approved = !topic.approved?
+              assert topic.save!
+              topic.approved = !topic.approved?
+              assert topic.save!
+            end
+            Topic.connection.close
           end
-          Topic.connection.close
         end
-      end
 
-      threads.each { |t| t.join }
+        threads.each { |t| t.join }
+      end
     end
 
     # Test for dirty reads among simultaneous transactions.

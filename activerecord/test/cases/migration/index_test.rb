@@ -27,32 +27,28 @@ module ActiveRecord
         ActiveRecord::Base.primary_key_prefix_type = nil
       end
 
-      def test_rename_index
-        skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
+      unless current_adapter?(:OpenBaseAdapter)
+        def test_rename_index
+          # keep the names short to make Oracle and similar behave
+          connection.add_index(table_name, [:foo], :name => 'old_idx')
+          connection.rename_index(table_name, 'old_idx', 'new_idx')
 
-        # keep the names short to make Oracle and similar behave
-        connection.add_index(table_name, [:foo], :name => 'old_idx')
-        connection.rename_index(table_name, 'old_idx', 'new_idx')
+          # if the adapter doesn't support the indexes call, pick defaults that let the test pass
+          assert_not connection.index_name_exists?(table_name, 'old_idx', false)
+          assert connection.index_name_exists?(table_name, 'new_idx', true)
+        end
 
-        # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-        assert_not connection.index_name_exists?(table_name, 'old_idx', false)
-        assert connection.index_name_exists?(table_name, 'new_idx', true)
-      end
-
-      def test_double_add_index
-        skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
-
-        connection.add_index(table_name, [:foo], :name => 'some_idx')
-        assert_raises(ArgumentError) {
+        def test_double_add_index
           connection.add_index(table_name, [:foo], :name => 'some_idx')
-        }
-      end
+          assert_raises(ArgumentError) {
+            connection.add_index(table_name, [:foo], :name => 'some_idx')
+          }
+        end
 
-      def test_remove_nonexistent_index
-        skip "not supported on openbase" if current_adapter?(:OpenBaseAdapter)
-
-        # we do this by name, so OpenBase is a wash as noted above
-        assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
+        def test_remove_nonexistent_index
+          # we do this by name, so OpenBase is a wash as noted above
+          assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
+        end
       end
 
       def test_add_index_works_with_long_index_names

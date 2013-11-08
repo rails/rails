@@ -14,20 +14,20 @@ module ActiveRecord
       end
 
       class StatementPoolTest < ActiveRecord::TestCase
-        def test_cache_is_per_pid
-          return skip('must support fork') unless Process.respond_to?(:fork)
+        if Process.respond_to?(:fork)
+          def test_cache_is_per_pid
+            cache = StatementPool.new nil, 10
+            cache['foo'] = 'bar'
+            assert_equal 'bar', cache['foo']
 
-          cache = StatementPool.new nil, 10
-          cache['foo'] = 'bar'
-          assert_equal 'bar', cache['foo']
+            pid = fork {
+              lookup = cache['foo'];
+              exit!(!lookup)
+            }
 
-          pid = fork {
-            lookup = cache['foo'];
-            exit!(!lookup)
-          }
-
-          Process.waitpid pid
-          assert $?.success?, 'process should exit successfully'
+            Process.waitpid pid
+            assert $?.success?, 'process should exit successfully'
+          end
         end
 
         def test_dealloc_does_not_raise_on_inactive_connection

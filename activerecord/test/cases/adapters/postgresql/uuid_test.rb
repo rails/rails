@@ -12,10 +12,6 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
 
-    unless @connection.supports_extensions?
-      return skip "do not test on PG without uuid-ossp"
-    end
-
     unless @connection.extension_enabled?('uuid-ossp')
       @connection.enable_extension 'uuid-ossp'
       @connection.commit_db_transaction
@@ -35,33 +31,35 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     @connection.execute 'drop table if exists pg_uuids'
   end
 
-  def test_id_is_uuid
-    assert_equal :uuid, UUID.columns_hash['id'].type
-    assert UUID.primary_key
-  end
+  if ActiveRecord::Base.connection.supports_extensions?
+    def test_id_is_uuid
+      assert_equal :uuid, UUID.columns_hash['id'].type
+      assert UUID.primary_key
+    end
 
-  def test_id_has_a_default
-    u = UUID.create
-    assert_not_nil u.id
-  end
+    def test_id_has_a_default
+      u = UUID.create
+      assert_not_nil u.id
+    end
 
-  def test_auto_create_uuid
-    u = UUID.create
-    u.reload
-    assert_not_nil u.other_uuid
-  end
+    def test_auto_create_uuid
+      u = UUID.create
+      u.reload
+      assert_not_nil u.other_uuid
+    end
 
-  def test_pk_and_sequence_for_uuid_primary_key
-    pk, seq = @connection.pk_and_sequence_for('pg_uuids')
-    assert_equal 'id', pk
-    assert_equal nil, seq
-  end
+    def test_pk_and_sequence_for_uuid_primary_key
+      pk, seq = @connection.pk_and_sequence_for('pg_uuids')
+      assert_equal 'id', pk
+      assert_equal nil, seq
+    end
 
-  def test_schema_dumper_for_uuid_primary_key
-    schema = StringIO.new
-    ActiveRecord::SchemaDumper.dump(@connection, schema)
-    assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema.string)
-    assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
+    def test_schema_dumper_for_uuid_primary_key
+      schema = StringIO.new
+      ActiveRecord::SchemaDumper.dump(@connection, schema)
+      assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema.string)
+      assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
+    end
   end
 end
 
@@ -73,6 +71,11 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.reconnect!
+
+    unless @connection.extension_enabled?('uuid-ossp')
+      @connection.enable_extension 'uuid-ossp'
+      @connection.commit_db_transaction
+    end
 
     @connection.transaction do
       @connection.create_table('pg_uuids', id: false) do |t|
@@ -86,12 +89,14 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
     @connection.execute 'drop table if exists pg_uuids'
   end
 
-  def test_id_allows_default_override_via_nil
-    col_desc = @connection.execute("SELECT pg_get_expr(d.adbin, d.adrelid) as default
+  if ActiveRecord::Base.connection.supports_extensions?
+    def test_id_allows_default_override_via_nil
+      col_desc = @connection.execute("SELECT pg_get_expr(d.adbin, d.adrelid) as default
                                     FROM pg_attribute a
                                     LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                                     WHERE a.attname='id' AND a.attrelid = 'pg_uuids'::regclass").first
-    assert_nil col_desc["default"]
+      assert_nil col_desc["default"]
+    end
   end
 end
 
@@ -109,6 +114,11 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.reconnect!
+
+    unless @connection.extension_enabled?('uuid-ossp')
+      @connection.enable_extension 'uuid-ossp'
+      @connection.commit_db_transaction
+    end
 
     @connection.transaction do
       @connection.create_table('pg_uuid_posts', id: :uuid) do |t|
@@ -128,9 +138,11 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
     end
   end
 
-  def test_collection_association_with_uuid
-    post    = UuidPost.create!
-    comment = post.uuid_comments.create!
-    assert post.uuid_comments.find(comment.id)
+  if ActiveRecord::Base.connection.supports_extensions?
+    def test_collection_association_with_uuid
+      post    = UuidPost.create!
+      comment = post.uuid_comments.create!
+      assert post.uuid_comments.find(comment.id)
+    end
   end
 end

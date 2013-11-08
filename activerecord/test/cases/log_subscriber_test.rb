@@ -119,11 +119,11 @@ class LogSubscriberTest < ActiveRecord::TestCase
     Thread.new { assert_equal 0, ActiveRecord::LogSubscriber.runtime }.join
   end
 
-  def test_binary_data_is_not_logged
-    skip if current_adapter?(:Mysql2Adapter)
-
-    Binary.create(data: 'some binary data')
-    wait
-    assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)
+  unless current_adapter?(:Mysql2Adapter)
+    def test_binary_data_is_not_logged
+      Binary.create(data: 'some binary data')
+      wait
+      assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)
+    end
   end
 end

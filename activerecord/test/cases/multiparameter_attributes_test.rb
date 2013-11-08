@@ -268,12 +268,12 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     end
   end
 
-  def test_multiparameter_attributes_setting_time_attribute
-    return skip "Oracle does not have TIME data type" if current_adapter? :OracleAdapter
-
-    topic = Topic.new( "bonus_time(4i)"=> "01", "bonus_time(5i)" => "05" )
-    assert_equal 1, topic.bonus_time.hour
-    assert_equal 5, topic.bonus_time.min
+  unless current_adapter? :OracleAdapter
+    def test_multiparameter_attributes_setting_time_attribute
+      topic = Topic.new( "bonus_time(4i)"=> "01", "bonus_time(5i)" => "05" )
+      assert_equal 1, topic.bonus_time.hour
+      assert_equal 5, topic.bonus_time.min
+    end
   end
 
   def test_multiparameter_attributes_setting_date_attribute
