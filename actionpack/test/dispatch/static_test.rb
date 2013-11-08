@@ -37,6 +37,10 @@ module StaticTests
   end
 
   def test_served_static_file_with_non_english_filename
+    if RUBY_ENGINE == 'jruby '
+      skip "Stop skiping if following bug gets fixed: " \
+      "http://jira.codehaus.org/browse/JRUBY-7192"
+    end
     assert_html "means hello in Japanese\n", get("/foo/#{Rack::Utils.escape("こんにちは.html")}")
   end
 
