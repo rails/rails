@@ -465,7 +465,12 @@ module ActiveRecord
         def remove_records(existing_records, records, method)
           records.each { |record| callback(:before_remove, record) }
 
-          delete_records(existing_records, method) if existing_records.any?
+          if existing_records.any?
+            result = delete_records(existing_records, method)
+            # one of the associated records failed to be destroyed
+            return false if result == false
+          end
+
           records.each { |record| target.delete(record) }
 
           records.each { |record| callback(:after_remove, record) }

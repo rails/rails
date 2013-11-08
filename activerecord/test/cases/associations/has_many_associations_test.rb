@@ -22,6 +22,8 @@ require 'models/engine'
 require 'models/categorization'
 require 'models/minivan'
 require 'models/speedometer'
+require 'models/ship'
+require 'models/ship_part'
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
@@ -1756,5 +1758,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
     assert_equal 1, speedometer.reload.minivans.to_a.size
+  end
+
+  test "do not destroy record unless associated records are properly destroyed" do
+    original_ships_count = Ship.count
+    original_parts_count = ShipPart.count
+
+    ship = Ship.create! name: 'myship'
+    ship.parts.create! name: 'myparts'
+    ship.reload
+
+    refute ship.destroy, "ship should not be destroyed because ship_part could not be destroyed"
+
+    assert_equal original_ships_count + 1, Ship.count
+    assert_equal original_parts_count + 1, ShipPart.count
   end
 end
