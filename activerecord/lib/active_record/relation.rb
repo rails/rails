@@ -265,6 +265,11 @@ module ActiveRecord
       end
     end
 
+    # Returns true if there is only one record
+    def one?
+      loaded? ? @records.one? : count == 1
+    end
+
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do
