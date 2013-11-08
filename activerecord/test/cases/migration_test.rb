@@ -442,8 +442,6 @@ class MigrationTest < ActiveRecord::TestCase
 
   if current_adapter? :OracleAdapter
     def test_create_table_with_custom_sequence_name
-      skip "not supported"
-
       # table name is 29 chars, the standard sequence name will
       # be 33 chars and should be shortened
       assert_nothing_raised do

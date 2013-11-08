@@ -78,8 +78,6 @@ module ActiveRecord
 
       if current_adapter?(:PostgreSQLAdapter)
         def test_rename_table_for_postgresql_should_also_rename_default_sequence
-          skip 'not supported'
-
           rename_table :test_models, :octopi
 
           pk, seq = connection.pk_and_sequence_for('octopi')
