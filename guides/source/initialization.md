@@ -126,7 +126,7 @@ A standard Rails application depends on several gems, specifically:
 
 ### `rails/commands.rb`
 
-Once `config/boot.rb` has finished, the next file that is required is `rails/commands` which will execute a command based on the arguments passed in. In this case, the `ARGV` array simply contains `server` which is extracted into the `command` variable using these lines:
+Once `config/boot.rb` has finished, the next file that is required is `rails/commands`, which helps in expanding aliases. In the current case, the `ARGV` array simply contains `server` which will be passed over to `rails/commands_tasks`.
 
 ```ruby
 ARGV << '--help' if ARGV.empty?
@@ -142,12 +142,18 @@ aliases = {
 
 command = ARGV.shift
 command = aliases[command] || command
+
+require 'rails/commands/commands_tasks'
+
+Rails::CommandsTasks.new(ARGV).run_command!(command)
 ```
 
 TIP: As you can see, an empty ARGV list will make Rails show the help
 snippet.
 
-If we used `s` rather than `server`, Rails will use the `aliases` defined in the file and match them to their respective commands. With the `server` command, Rails will run this code:
+If we had used `s` rather than `server`, Rails would have used the `aliases` defined here to find the matching command.
+
+With the `server` command, Rails will run this code:
 
 ```ruby
 when 'server'
