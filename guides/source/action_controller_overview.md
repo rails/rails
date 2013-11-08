@@ -328,7 +328,7 @@ the job done:
 
 ```ruby
 def product_params
-  params.require(:product).permit(:name, { data: params[:product][:data].try(:keys) })
+  params.require(:product).permit(:name, data: params[:product][:data].try(:keys))
 end
 ```
 
