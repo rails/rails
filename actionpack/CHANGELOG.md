@@ -1,3 +1,7 @@
+*   Fix `simple_format` escapes own output when passing `sanitize: true`
+
+    *Paul Seidemann*
+
 *   Don't let strong parameters mutate the given hash via `fetch`
 
     Create a new instance if the given parameter is a `Hash` instead of
