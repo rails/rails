@@ -9,7 +9,7 @@ After reading this guide, you will know:
 * How to write unit, functional, and integration tests for your application.
 * Other popular testing approaches and plugins.
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 Why Write Tests for your Rails Applications?
 --------------------------------------------
@@ -798,7 +798,7 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 
 | Tasks                   | Description |
 | ----------------------- | ----------- |
-| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake test` as Rails will run all the tests by default|
+| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake` as Rails will run all the tests by default|
 | `rake test:controllers` | Runs all the controller tests from `test/controllers`|
 | `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
 | `rake test:helpers`     | Runs all the helper tests from `test/helpers`|
