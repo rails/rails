@@ -16,6 +16,9 @@ class Author < ActiveRecord::Base
       Rating.joins(:comment).merge(self)
     end
   end
+
+  has_many :hot_comments, -> { includes(:ratings).references(:ratings).where("ratings.value > 1") }, through: :posts, source: :comments
+
   has_many :comments_containing_the_letter_e, :through => :posts, :source => :comments
   has_many :comments_with_order_and_conditions, -> { order('comments.body').where("comments.body like 'Thank%'") }, :through => :posts, :source => :comments
   has_many :comments_with_include, -> { includes(:post) }, :through => :posts, :source => :comments

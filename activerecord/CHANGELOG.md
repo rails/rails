@@ -1,3 +1,8 @@
+*   Fix context of *_through association scope from through scope to target scope (as in other association)
+
+    *Ivan Antropov*
+
+
 *   Allow for the name of the schema_migrations table to be configured.
 
     *Jerad Phelps*

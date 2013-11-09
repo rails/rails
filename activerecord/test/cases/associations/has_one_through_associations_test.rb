@@ -89,7 +89,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_with_conditions_eager_loading
     # conditions on the through table
-    assert_equal clubs(:moustache_club), Member.all.merge!(:includes => :favourite_club).find(@member.id).favourite_club
+    assert_equal clubs(:moustache_club), Member.references(:favourite_club).includes(:favourite_club).find(@member.id).favourite_club
     memberships(:membership_of_favourite_club).update_columns(favourite: false)
     assert_equal nil,                    Member.all.merge!(:includes => :favourite_club).find(@member.id).reload.favourite_club
 

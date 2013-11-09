@@ -71,6 +71,10 @@ module ActiveRecord
           end
         end
 
+        def filter_reflection_scope(type)
+          return unless reflection_scope.values[type]
+          reflection_scope.values[type].select { |reference_name| reflection_scope.table.name.to_s == reference_name.to_s }
+        end
 
         def through_scope
           scope = through_reflection.klass.unscoped
@@ -78,15 +82,13 @@ module ActiveRecord
           if options[:source_type]
             scope.where! reflection.foreign_type => options[:source_type]
           else
-            unless reflection_scope.where_values.empty?
-              scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
+            if reflection_scope.where_values.any? && filter_reflection_scope(:references) && filter_reflection_scope(:references).any?
+              scope.includes_values = Array(filter_reflection_scope(:includes) || options[:source])
               scope.where_values    = reflection_scope.values[:where]
+              scope.references! filter_reflection_scope(:references)
+              scope.order! reflection_scope.values[:order] if scope.eager_loading?
             end
-
-            scope.references! reflection_scope.values[:references]
-            scope.order! reflection_scope.values[:order] if scope.eager_loading?
           end
-
           scope
         end
       end

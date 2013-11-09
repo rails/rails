@@ -22,6 +22,7 @@ require 'models/membership'
 require 'models/club'
 require 'models/categorization'
 require 'models/sponsor'
+require 'models/rating'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
@@ -1184,5 +1185,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     author = Author.includes(:posts).references(:posts).reorder(:name).find_by('posts.title IS NOT NULL')
     assert_equal authors(:bob), author
+  end
+
+  test "context of has_many_through scope while eargering" do
+    joe = Author.create name: "Joe"
+    hot_post = joe.posts.create title: "Hot Hot", body: "Hot body"
+    hot_comment = hot_post.comments.create body: "Hot comment"
+    hot_rating = hot_comment.ratings.create value: 150
+
+    joe_with_hot_comments = Author.includes(:hot_comments).find(joe.id)
+    assert_no_queries { joe_with_hot_comments.hot_comments }
   end
 end
