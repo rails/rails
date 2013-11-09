@@ -126,7 +126,7 @@ module ActiveRecord
             else super(value, column)
             end
           when IPAddr
-            if ['inet','cidr'].include? column.sql_type
+            if %w(inet cidr).include? column.sql_type
               PostgreSQLColumn.cidr_to_string(value)
             else
               super(value, column)
