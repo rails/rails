@@ -147,7 +147,7 @@ module ActiveSupport
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
     #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-    #   # => "2005-02-01T15:15:10Z"
+    #   # => "2005-02-01T15:15:10.000Z"
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
     #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
