@@ -7,8 +7,6 @@ rescue LoadError
   exit
 end
 
-require 'rails/generators'
-
 module Rails
   module Generators
     class Error < Thor::Error # :nodoc:

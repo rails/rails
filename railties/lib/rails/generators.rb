@@ -15,6 +15,7 @@ module Rails
   module Generators
     autoload :Actions,         'rails/generators/actions'
     autoload :ActiveModel,     'rails/generators/active_model'
+    autoload :Base,            'rails/generators/base'
     autoload :Migration,       'rails/generators/migration'
     autoload :NamedBase,       'rails/generators/named_base'
     autoload :ResourceHelpers, 'rails/generators/resource_helpers'
