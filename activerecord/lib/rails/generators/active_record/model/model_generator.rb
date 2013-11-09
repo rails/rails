@@ -7,16 +7,23 @@ module ActiveRecord
 
       check_class_collision
 
-      class_option :migration,  :type => :boolean
-      class_option :timestamps, :type => :boolean
-      class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
-      class_option :indexes,    :type => :boolean, :default => true, :desc => "Add indexes for references and belongs_to columns"
+      class_option :skip_migration,   type: :boolean, aliases: '-M', default: false,
+                                      desc: "Don't generate migration"
+
+      class_option :skip_timestamps,  type: :boolean, aliases: '-T', default: false,
+                                      desc: "Don't add timestamps to migration"
+
+      class_option :parent,           type: :string,
+                                      desc: "The parent class for the generated model"
+
+      class_option :indexes,          type: :boolean, default: true,
+                                      desc: "Add indexes for references and belongs_to columns"
 
       
       # creates the migration file for the model.
 
       def create_migration_file
-        return unless options[:migration] && options[:parent].nil?
+        return if options[:skip_migration] || !options[:parent].nil?
         attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false
         migration_template "../../migration/templates/create_table_migration.rb", "db/migrate/create_#{table_name}.rb"
       end

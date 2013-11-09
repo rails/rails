@@ -13,8 +13,8 @@ module ActiveRecord
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
 
-    config.app_generators.orm :active_record, :migration => true,
-                                              :timestamps => true
+    config.app_generators.orm :active_record, :skip_migration => false,
+                                              :skip_timestamps => false
 
     config.app_middleware.insert_after "::ActionDispatch::Callbacks",
       "ActiveRecord::QueryCache"
