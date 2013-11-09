@@ -47,18 +47,18 @@ module ActiveRecord
 
       def test_insert_sql_with_proprietary_returning_clause
         id = @connection.insert_sql("insert into ex (number) values(5150)", nil, "number")
-        assert_equal "5150", id
+        assert_equal 5150, id
       end
 
       def test_insert_sql_with_quoted_schema_and_table_name
         id = @connection.insert_sql('insert into "public"."ex" (number) values(5150)')
-        expect = @connection.query('select max(id) from ex').first.first
+        expect = @connection.query('select max(id) from ex').first.first.to_i
         assert_equal expect, id
       end
 
       def test_insert_sql_with_no_space_after_table_name
         id = @connection.insert_sql("insert into ex(number) values(5150)")
-        expect = @connection.query('select max(id) from ex').first.first
+        expect = @connection.query('select max(id) from ex').first.first.to_i
         assert_equal expect, id
       end
 

@@ -2,6 +2,25 @@ require "cases/helper"
 
 module ActiveRecord
   class ResultTest < ActiveRecord::TestCase
+    def result_column_types
+      Result.new(
+        ['col_1', 'col_2'],
+        [
+          ['1', 'row 1 col 2'],
+          ['2', 'row 2 col 2']
+        ],
+        {
+          'col_1' => Class.new { def type_cast(v); v.to_i; end }.new
+        })
+    end
+
+    def test_hash_rows_with_column_types_returns_type_casted_values
+      assert_equal [
+        {'col_1' => 1, 'col_2' => 'row 1 col 2'},
+        {'col_1' => 2, 'col_2' => 'row 2 col 2'}
+      ], result_column_types.to_hash
+    end
+
     def result
       Result.new(['col_1', 'col_2'], [
         ['row 1 col 1', 'row 1 col 2'],

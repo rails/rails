@@ -1,3 +1,35 @@
+*   Result should return type_casted values
+
+    The `type_cast` should be done earlier. `select_*` uses the values
+    provided by the `result` class, so it makes sense to use the `type_cast`
+    method from the adapters and passed into the class (`column_types`).
+
+    Example:
+        create_table :documents do |t|
+            t.string :tags, array: true, default: []
+            t.integer :tag_ids, array: true, default: []
+        end
+
+        Person.create(
+          tags: ["cfabianski", "cedric"],
+          tag_ids: [4, 8, 9]
+        )
+
+        query = Person.where(["? = ANY (tags)", "cfabianski"])
+        row   = Person.connection.select_one(query)
+
+        # Before
+
+        => {"id" => "1", tags" => "{cfabianski,cedric}", "tag_ids" => "{4,8,9}"}
+
+        # After
+
+        => {"id" => 1, "tags" => ["cfabianski", "cedric"], "tag_ids" => [4, 8, 9]}
+
+    Note: /!\ This is not backwards compatible /!\
+
+    *Cédric Fabianski*
+
 *   Fix uninitialized constant TransactionState error when Marshall.load is used on an Active Record result.
     Fixes #12790
 

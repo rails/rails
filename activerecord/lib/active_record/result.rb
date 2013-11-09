@@ -107,7 +107,10 @@ module ActiveRecord
             length = columns.length
 
             while index < length
-              hash[columns[index]] = row[index]
+              column = columns[index]
+              value  = row[index]
+
+              hash[column] = column_type(column).type_cast(value)
               index += 1
             end
 
