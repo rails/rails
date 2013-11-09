@@ -980,4 +980,34 @@
 
     *Slava Markevich*
 
+*   Prepend original table name to order hash
+
+    With the models
+
+        class Post
+          has_many :comments
+          scope :dewey, -> { order(subject: :desc) }
+        end
+
+        class Comment
+          belongs_to :post
+        end
+
+    And records
+
+        p1 = Post.create(subject: 'Awesomeness')
+        p2 = Post.create(subject: 'Zaniness')
+        c1 = Comment.create(type: 'Cool', post_id: p1.id)
+        c2 = Comment.create(type: 'Cool', post_id: p2.id)
+
+    The call
+
+        Comment.where(type: 'Cool').joins(:post).merge(Post.dewey)
+
+    Should yield
+
+        [c2, c1]
+
+    *Paul Pettengill*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activerecord/CHANGELOG.md) for previous changes.

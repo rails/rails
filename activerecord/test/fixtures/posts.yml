@@ -28,6 +28,7 @@ authorless:
 sti_comments:
   id: 4
   author_id: 1
+  comments_count: 4
   title: sti comments
   body: hello
   type: Post
@@ -35,6 +36,7 @@ sti_comments:
 sti_post_and_comments:
   id: 5
   author_id: 1
+  comments_count: 3
   title: sti me
   body: hello
   type: StiPost
