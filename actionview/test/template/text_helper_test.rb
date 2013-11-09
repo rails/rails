@@ -42,6 +42,11 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p><b> test with unsafe string </b></p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
+  def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
+    assert_equal '<p><b> test with unsafe string </b></p>',
+      simple_format('<b> test with unsafe string </b><script>code!</script>', {}, sanitize: true)
+  end
+
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
   end
