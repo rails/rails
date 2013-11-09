@@ -86,8 +86,11 @@ module ActiveRecord
 
           case value
           when Range
-            return super(value, column) unless /range$/ =~ column.sql_type
-            PostgreSQLColumn.range_to_string(value)
+            if /range$/ =~ column.sql_type
+              PostgreSQLColumn.range_to_string(value)
+            else
+              super(value, column)
+            end
           when NilClass
             if column.array && array_member
               'NULL'
@@ -101,12 +104,18 @@ module ActiveRecord
             when 'point' then PostgreSQLColumn.point_to_string(value)
             when 'json' then PostgreSQLColumn.json_to_string(value)
             else
-              return super(value, column) unless column.array
-              PostgreSQLColumn.array_to_string(value, column, self)
+              if column.array
+                PostgreSQLColumn.array_to_string(value, column, self)
+              else
+                super(value, column)
+              end
             end
           when String
-            return super(value, column) unless 'bytea' == column.sql_type
-            { :value => value, :format => 1 }
+            if 'bytea' == column.sql_type
+              { value: value, format: 1 }
+            else
+              super(value, column)
+            end
           when Hash
             case column.sql_type
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
@@ -114,8 +123,11 @@ module ActiveRecord
             else super(value, column)
             end
           when IPAddr
-            return super(value, column) unless ['inet','cidr'].include? column.sql_type
-            PostgreSQLColumn.cidr_to_string(value)
+            if ['inet','cidr'].include? column.sql_type
+              PostgreSQLColumn.cidr_to_string(value)
+            else
+              super(value, column)
+            end
           else
             super(value, column)
           end
