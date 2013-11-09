@@ -105,7 +105,7 @@ module ActionView
       #   number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "", format: "%n %u")
       #   # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
-        delegate_number_helper_method(number, options, :number_to_currency)
+        delegate_number_helper_method(:number_to_currency, number, options)
       end
 
       # Formats a +number+ as a percentage string (e.g., 65%). You can
@@ -145,7 +145,7 @@ module ActionView
       #
       #   number_to_percentage("98a", raise: true)                         # => InvalidNumberError
       def number_to_percentage(number, options = {})
-        delegate_number_helper_method(number, options, :number_to_percentage)
+        delegate_number_helper_method(:number_to_percentage, number, options)
       end
 
       # Formats a +number+ with grouped thousands using +delimiter+
@@ -178,7 +178,7 @@ module ActionView
       #
       #  number_with_delimiter("112a", raise: true)              # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
-        delegate_number_helper_method(number, options, :number_to_delimited)
+        delegate_number_helper_method(:number_to_delimited, number, options)
       end
 
       # Formats a +number+ with the specified level of
@@ -223,7 +223,7 @@ module ActionView
       #   number_with_precision(1111.2345, precision: 2, separator: ',', delimiter: '.')
       #   # => 1.111,23
       def number_with_precision(number, options = {})
-        delegate_number_helper_method(number, options, :number_to_rounded)
+        delegate_number_helper_method(:number_to_rounded, number, options)
       end
 
       # Formats the bytes in +number+ into a more understandable
@@ -275,7 +275,7 @@ module ActionView
       #   number_to_human_size(1234567890123, precision: 5)        # => "1.1229 TB"
       #   number_to_human_size(524288000, precision: 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
-        delegate_number_helper_method(number, options, :number_to_human_size)
+        delegate_number_helper_method(:number_to_human_size, number, options)
       end
 
       # Pretty prints (formats and approximates) a number in a way it
@@ -377,12 +377,12 @@ module ActionView
       #  number_to_human(0.34, units: :distance)                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
-        delegate_number_helper_method(number, options, :number_to_human)
+        delegate_number_helper_method(:number_to_human, number, options)
       end
 
       private
 
-      def delegate_number_helper_method(number, options, method)
+      def delegate_number_helper_method(method, number, options)
         return unless number
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
