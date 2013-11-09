@@ -112,6 +112,9 @@ module ActiveRecord
             end
           when String
             if 'bytea' == column.sql_type
+              # Return a bind param hash with format as binary.
+              # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
+              # for more information
               { value: value, format: 1 }
             else
               super(value, column)
