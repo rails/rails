@@ -41,6 +41,17 @@ module ActiveRecord
         assert_equal binds, message[4][:binds]
       end
 
+      def test_binds_are_logged_after_type_cast
+        sub   = @connection.substitute_at(@pk, 0)
+        binds = [[@pk, "3"]]
+        sql   = "select * from topics where id = #{sub}"
+
+        @connection.exec_query(sql, 'SQL', binds)
+
+        message = @listener.calls.find { |args| args[4][:sql] == sql }
+        assert_equal [[@pk, 3]], message[4][:binds]
+      end
+
       def test_find_one_uses_binds
         Topic.find(1)
         binds = [[@pk, 1]]

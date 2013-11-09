@@ -783,11 +783,12 @@ module ActiveRecord
 
         def exec_cache(sql, name, binds)
           stmt_key = prepare_statement(sql)
+          type_casted_binds = binds.map { |col, val|
+            [col, type_cast(val, col)]
+          }
 
-          log(sql, name, binds, stmt_key) do
-            @connection.send_query_prepared(stmt_key, binds.map { |col, val|
-              type_cast(val, col)
-            })
+          log(sql, name, type_casted_binds, stmt_key) do
+            @connection.send_query_prepared(stmt_key, type_casted_binds.map(&:second))
             @connection.block
             @connection.get_last_result
           end

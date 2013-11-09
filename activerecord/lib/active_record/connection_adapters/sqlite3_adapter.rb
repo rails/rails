@@ -291,8 +291,11 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [])
-        log(sql, name, binds) do
+        type_casted_binds = binds.map { |col, val|
+          [col, type_cast(val, col)]
+        }
 
+        log(sql, name, type_casted_binds) do
           # Don't cache statements if they are not prepared
           if without_prepared_statement?(binds)
             stmt    = @connection.prepare(sql)
@@ -307,9 +310,7 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params binds.map { |col, val|
-              type_cast(val, col)
-            }
+            stmt.bind_params type_casted_binds.map(&:second)
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)

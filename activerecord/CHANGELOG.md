@@ -1,3 +1,12 @@
+*   Log bind variables after they are type casted. This makes it more
+    transparent what values are actually sent to the database.
+
+        irb(main):002:0> Event.find("im-no-integer")
+        # Before: ... WHERE "events"."id" = $1 LIMIT 1  [["id", "im-no-integer"]]
+        # After: ... WHERE "events"."id" = $1 LIMIT 1  [["id", 0]]
+
+    *Yves Senn*
+
 *   Fix uninitialized constant TransactionState error when Marshall.load is used on an Active Record result.
     Fixes #12790
 
