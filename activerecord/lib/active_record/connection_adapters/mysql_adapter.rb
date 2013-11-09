@@ -491,7 +491,7 @@ module ActiveRecord
           end
 
           begin
-            stmt.execute(*type_casted_binds.map(&:second))
+            stmt.execute(*type_casted_binds.map { |_, val| val })
           rescue Mysql::Error => e
             # Older versions of MySQL leave the prepared statement in a bad
             # place when an error occurs. To support older mysql versions, we

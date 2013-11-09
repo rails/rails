@@ -310,7 +310,7 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params type_casted_binds.map(&:second)
+            stmt.bind_params type_casted_binds.map { |_, val| val }
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)

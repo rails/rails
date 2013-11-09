@@ -788,7 +788,7 @@ module ActiveRecord
           }
 
           log(sql, name, type_casted_binds, stmt_key) do
-            @connection.send_query_prepared(stmt_key, type_casted_binds.map(&:second))
+            @connection.send_query_prepared(stmt_key, type_casted_binds.map { |_, val| val })
             @connection.block
             @connection.get_last_result
           end
