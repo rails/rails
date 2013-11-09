@@ -16,7 +16,7 @@ module ActiveRecord
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
   # NOTE - If you are using special PostgreSQL columns like +hstore+ or +json+ there is no need for
-  # the serialization provieded by +store+. You can simply use +store_accessor+ instead to generate
+  # the serialization provided by +store+. You can simply use +store_accessor+ instead to generate
   # the accessor methods.
   #
   # Examples:
