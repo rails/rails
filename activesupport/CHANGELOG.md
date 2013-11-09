@@ -1,3 +1,10 @@
+*   Add `Time.zone.yesterday` and `Time.zone.tomorrow`. These follow the
+    behavior of Ruby's `Date.yesterday` and `Date.tomorrow` but return localized
+    versions, similar to how `Time.zone.today` has returned a localized version
+    of `Date.today`.
+
+    *Colin Bartlett*
+
 *   Show valid keys when `assert_valid_keys` raises an exception, and show the
     wrong value as it was entered.
 
