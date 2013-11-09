@@ -44,10 +44,8 @@ module ActiveSupport
     end
 
     # FIXME: we have tests that depend on run order, we should fix that and
-    # remove this method.
-    def self.test_order # :nodoc:
-      :sorted
-    end
+    # remove this method call.
+    self.i_suck_and_my_tests_are_order_dependent!
 
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown
