@@ -2,8 +2,8 @@
 
     *Paul Seidemann*
 
-*   Ensure ActionView::Digestor.cache is correctly cleaned up when
-    combining recursive templates with ActionView::Resolver.caching = false
+*   Ensure `ActionView::Digestor.cache` is correctly cleaned up when
+    combining recursive templates with `ActionView::Resolver.caching = false`.
 
     *wyaeld*
 
@@ -12,7 +12,7 @@
 
     *Angel N. Sciortino*
 
-*   Fix some edge cases for AV `select` helper with `:selected` option
+*   Fix some edge cases for AV `select` helper with `:selected` option.
 
     *Bogdan Gusiev*
 
@@ -26,14 +26,14 @@
 
     *Bogdan Gusiev*
 
-*   Handle `:namespace` form option in collection labels
+*   Handle `:namespace` form option in collection labels.
 
     *Vasiliy Ermolovich*
 
-*   Fix `form_for` when both `namespace` and `as` options are present
+*   Fix `form_for` when both `namespace` and `as` options are present.
 
     `as` option no longer overwrites `namespace` option when generating
-    html id attribute of the form element
+    html id attribute of the form element.
 
     *Adam Niedzielski*
 

@@ -1,22 +1,22 @@
-*   Fix ActiveSupport `Time#to_json` and `DateTime#to_json` to return 3 decimal
+*   Fix Active Support `Time#to_json` and `DateTime#to_json` to return 3 decimal
     places worth of fractional seconds, similar to `TimeWithZone`.
 
     *Ryan Glover*
 
 *   Removed circular reference protection in JSON encoder, deprecated
-    ActiveSupport::JSON::Encoding::CircularReferenceError.
+    `ActiveSupport::JSON::Encoding::CircularReferenceError`.
 
     *Godfrey Chan*, *Sergio Campamá*
 
-*   Add `capitalize` option to Inflector.humanize, so strings can be humanized without being capitalized:
+*   Add `capitalize` option to `Inflector.humanize`, so strings can be humanized without being capitalized:
 
         'employee_salary'.humanize                    # => "Employee salary"
         'employee_salary'.humanize(capitalize: false) # => "employee salary"
 
     *claudiob*
 
-*   Fixed Object#as_json and Struct#as_json not working properly with options. They now take
-    the same options as Hash#as_json:
+*   Fixed `Object#as_json` and `Struct#as_json` not working properly with options. They now take
+    the same options as `Hash#as_json`:
 
         struct = Struct.new(:foo, :bar).new
         struct.foo = "hello"
@@ -25,15 +25,15 @@
 
     *Sergio Campamá*, *Godfrey Chan*
 
-*   Added Numeric#in_milliseconds, like 1.hour.in_milliseconds, so we can feed them to JavaScript functions like getTime().
+*   Added `Numeric#in_milliseconds`, like `1.hour.in_milliseconds`, so we can feed them to JavaScript functions like `getTime()`.
 
     *DHH*
 
-*   Calling ActiveSupport::JSON.decode with unsupported options now raises an error.
+*   Calling `ActiveSupport::JSON.decode` with unsupported options now raises an error.
 
     *Godfrey Chan*
 
-*   Support :unless_exist in FileStore
+*   Support `:unless_exist` in `FileStore`.
 
     *Michael Grosser*
 

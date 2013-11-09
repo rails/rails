@@ -7,7 +7,7 @@
 
     *Yves Senn*
 
-*   Fix uninitialized constant TransactionState error when Marshall.load is used on an Active Record result.
+*   Fix uninitialized constant `TransactionState` error when `Marshall.load` is used on an Active Record result.
     Fixes #12790
 
     *Jason Ayre*
@@ -16,7 +16,7 @@
 
     *Jon Leighton*
 
-*   Added ActiveRecord::QueryMethods#rewhere which will overwrite an existing, named where condition.
+*   Added `ActiveRecord::QueryMethods#rewhere` which will overwrite an existing, named where condition.
 
     Examples:
 
@@ -26,7 +26,7 @@
 
     *DHH*
 
-*   Extend ActiveRecord::Base#cache_key to take an optional list of timestamp attributes of which the highest will be used.
+*   Extend `ActiveRecord::Base#cache_key` to take an optional list of timestamp attributes of which the highest will be used.
 
     Example:
 
@@ -35,7 +35,7 @@
 
     *DHH*
 
-*   Added ActiveRecord::Base#enum for declaring enum attributes where the values map to integers in the database, but can be queried by name.
+*   Added `ActiveRecord::Base#enum` for declaring enum attributes where the values map to integers in the database, but can be queried by name.
 
     Example:
 
@@ -48,23 +48,23 @@
         # conversation.update! status: 0
         conversation.active!
         conversation.active? # => true
-        conversation.status  # => :active
+        conversation.status  # => "active"
 
         # conversation.update! status: 1
         conversation.archived!
         conversation.archived? # => true
-        conversation.status    # => :archived
+        conversation.status    # => "archived"
 
         # conversation.update! status: 1
         conversation.status = :archived
 
     *DHH*
 
-*   ActiveRecord::Base#attribute_for_inspect now truncates long arrays (more than 10 elements)
+*   `ActiveRecord::Base#attribute_for_inspect` now truncates long arrays (more than 10 elements).
 
     *Jan Bernacki*
 
-*   Allow for the name of the schema_migrations table to be configured.
+*   Allow for the name of the `schema_migrations` table to be configured.
 
     *Jerad Phelps*
 
