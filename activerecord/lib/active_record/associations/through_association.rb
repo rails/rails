@@ -17,7 +17,7 @@ module ActiveRecord
             scope.merge!(
               reflection.klass.all.
                 except(:select, :create_with, :includes, :preload, :joins, :eager_load)
-            )
+            ) if reflection.table_name != scope.table.name
           end
           scope
         end

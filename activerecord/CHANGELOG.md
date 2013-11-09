@@ -1,3 +1,9 @@
+*   Prevent merging target_scope conditions for *_through with STI case
+
+    Fixes: #12474
+
+    *Ivan Antropov*
+
 *   Make ActiveRecord::Relation#unscope affect relations it is merged in
     to.
 
