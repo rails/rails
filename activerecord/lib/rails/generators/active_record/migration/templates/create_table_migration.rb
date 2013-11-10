@@ -8,7 +8,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration
       t.<%= attribute.type %> :<%= attribute.name %><%= attribute.inject_options %>
 <% end -%>
 <% end -%>
-<% if options[:timestamps] %>
+<% unless options[:skip_timestamps] %>
       t.timestamps
 <% end -%>
     end
