@@ -157,10 +157,13 @@ The following methods trigger callbacks:
 * `save!`
 * `save(validate: false)`
 * `toggle!`
+* `touch`
 * `update_attribute`
 * `update`
 * `update!`
 * `valid?`
+
+NOTE: The `touch` method triggers only `after_touch` callback. 
 
 Additionally, the `after_find` callback is triggered by the following finder methods:
 
@@ -189,7 +192,6 @@ Just as with validations, it is also possible to skip callbacks by using the fol
 * `increment`
 * `increment_counter`
 * `toggle`
-* `touch`
 * `update_column`
 * `update_columns`
 * `update_all`
