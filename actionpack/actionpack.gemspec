@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'actionpack'
-  s.version = '2.3.18'
+  s.version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).chomp
   s.summary = 'Web-flow and rendering framework putting the VC in MVC.'
   s.description = 'Eases web-request routing, handling, and response as a half-way front, half-way page controller. Implemented with specific emphasis on enabling easy unit/integration testing that doesn\'t require a browser.'
 

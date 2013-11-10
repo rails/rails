@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'activesupport'
-  s.version = '2.3.18'
+  s.version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).chomp
   s.summary = 'Support and utility classes used by the Rails framework.'
   s.description = 'Utility library which carries commonly used classes and goodies from the Rails framework'
 

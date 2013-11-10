@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'activerecord'
-  s.version = '2.3.18'
+  s.version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).chomp
   s.summary = 'Implements the ActiveRecord pattern for ORM.'
   s.description = 'Implements the ActiveRecord pattern (Fowler, PoEAA) for ORM. It ties database tables and classes together for business objects, like Customer or Subscription, that can find, save, and destroy themselves without resorting to manual SQL.'
 

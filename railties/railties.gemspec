@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'rails'
-  s.version = '2.3.18'
+  s.version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).chomp
   s.summary = 'Web-application framework with template engine, control-flow layer, and ORM.'
   s.description = "Rails is a framework for building web-application using CGI, FCGI, mod_ruby, or WEBrick\non top of either MySQL, PostgreSQL, SQLite, DB2, SQL Server, or Oracle with eRuby- or Builder-based templates."
 

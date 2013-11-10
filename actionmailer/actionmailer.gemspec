@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'actionmailer'
-  s.version = '2.3.18'
+  s.version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).chomp
   s.summary = 'Service layer for easy email delivery and testing.'
   s.description = 'Makes it trivial to test and deliver emails sent from a single service layer.'
 

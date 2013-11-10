@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'activeresource'
-  s.version = '2.3.18'
+  s.version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).chomp
   s.summary = 'Think Active Record for web resources.'
   s.description = 'Wraps web resources in model classes that can be manipulated through XML over REST.'
 
