@@ -100,17 +100,6 @@ primary_key (#{caller.first}) is deprecated and will be removed in Arel 4.0.0
       from(self).having expr
     end
 
-    def columns
-      if $VERBOSE
-        warn <<-eowarn
-(#{caller.first}) Arel::Table#columns is deprecated and will be removed in
-Arel 4.0.0 with no replacement.  PEW PEW PEW!!!
-        eowarn
-      end
-      @columns ||=
-        attributes_for @engine.connection.columns(@name, "#{@name} Columns")
-    end
-
     def [] name
       ::Arel::Attribute.new self, name
     end
@@ -149,15 +138,5 @@ Arel 4.0.0 with no replacement.  PEW PEW PEW!!!
       end
     end
 
-    @@table_cache = nil
-    def self.table_cache engine # :nodoc:
-      if $VERBOSE
-        warn <<-eowarn
-(#{caller.first}) Arel::Table.table_cache is deprecated and will be removed in
-Arel 4.0.0 with no replacement.  PEW PEW PEW!!!
-        eowarn
-      end
-      @@table_cache ||= Hash[engine.connection.tables.map { |x| [x,true] }]
-    end
   end
 end
