@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency('i18n',       '~> 0.6', '>= 0.6.4')
   s.add_dependency 'json',       '~> 1.7'
-  s.add_dependency 'tzinfo',     '~> 0.3.37'
+  s.add_dependency 'tzinfo',     '~> 1.1'
   s.add_dependency 'minitest',   '~> 5.0'
   s.add_dependency 'thread_safe','~> 0.1'
 end
