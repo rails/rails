@@ -28,3 +28,7 @@ source 'https://rubygems.org'
 # Use debugger
 # gem 'debugger', group: [:development, :test]
 <% end -%>
+
+<% if RUBY_ENGINE == 'rbx' -%>
+  gem 'rubysl', '~> 2.0'
+<% end %>
