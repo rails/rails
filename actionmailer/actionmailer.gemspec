@@ -1,6 +1,8 @@
+version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).chomp
+
 Gem::Specification.new do |s|
   s.name = 'actionmailer'
-  s.version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).chomp
+  s.version = version
   s.summary = 'Service layer for easy email delivery and testing.'
   s.description = 'Makes it trivial to test and deliver emails sent from a single service layer.'
 
@@ -10,5 +12,5 @@ Gem::Specification.new do |s|
 
   s.require_path = 'lib'
 
-  s.add_dependency 'actionpack', '= 2.3.18'
+  s.add_dependency 'actionpack', "= #{version}"
 end
