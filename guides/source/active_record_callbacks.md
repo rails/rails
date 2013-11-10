@@ -157,6 +157,7 @@ The following methods trigger callbacks:
 * `save!`
 * `save(validate: false)`
 * `toggle!`
+* `touch`
 * `update_attribute`
 * `update`
 * `update!`
@@ -189,7 +190,6 @@ Just as with validations, it is also possible to skip callbacks by using the fol
 * `increment`
 * `increment_counter`
 * `toggle`
-* `touch`
 * `update_column`
 * `update_columns`
 * `update_all`
