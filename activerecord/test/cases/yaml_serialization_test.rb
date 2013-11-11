@@ -43,4 +43,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
     t = Psych.load Psych.dump topic
     assert_equal topic.attributes, t.attributes
   end
+
+  def test_active_record_relation_serialization
+    [Topic.all].to_yaml
+  end
 end
