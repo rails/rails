@@ -226,11 +226,13 @@ module ActionDispatch
               action     = action.to_s     unless action.is_a?(Regexp)
 
               if controller.blank? && segment_keys.exclude?(:controller)
-                raise ArgumentError, "missing :controller"
+                message = "Missing :controller key on routes definition, please check your routes."
+                raise ArgumentError, message
               end
 
               if action.blank? && segment_keys.exclude?(:action)
-                raise ArgumentError, "missing :action"
+                message = "Missing :action key on routes definition, please check your routes."
+                raise ArgumentError, message
               end
 
               if controller.is_a?(String) && controller !~ /\A[a-z_0-9\/]*\z/
