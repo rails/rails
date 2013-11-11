@@ -88,7 +88,7 @@ module ActiveRecord
     end
 
     [:select!, :uniq!].each do |method|
-      test "##{method} is triggers an immutable error" do
+      test "##{method} triggers an immutable error" do
         assert_raises ActiveRecord::ImmutableRelation do
           assert_responds(target, method)
         end
