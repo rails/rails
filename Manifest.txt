@@ -110,7 +110,6 @@ test/nodes/test_true.rb
 test/nodes/test_update_statement.rb
 test/nodes/test_window.rb
 test/support/fake_record.rb
-test/test_activerecord_compat.rb
 test/test_attributes.rb
 test/test_crud.rb
 test/test_delete_manager.rb
