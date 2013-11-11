@@ -64,7 +64,7 @@ module ActiveRecord
     fixtures :comments
 
     def target
-      Comment.where.not(body: nil)
+      Comment.where(body: 'Normal type')
     end
 
     [:map, :collect].each do |method|
