@@ -1,3 +1,14 @@
+*   Rename messages for association `restrict_dependent_destroy` errors
+
+    Previously `has_one` and `has_many` associations were using the
+    `one` and `many` messages respectively. Both of these keys have special
+    meaning in I18n (they are considered to be pluralizations) so by
+    renaming them to `has_one` and `has_many` we make the messages more explicit
+    and most importantly they don't clash with linguistical systems that need to
+    validate translation keys (and their pluralizations).
+
+    *Christopher Dell*
+
 *   Log bind variables after they are type casted. This makes it more
     transparent what values are actually sent to the database.
 
