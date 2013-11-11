@@ -1,3 +1,9 @@
+*   Fix bug where has_one associaton record update result in crash, when replaced with itself.
+
+    Fixes #12834.
+
+    *Denis Redozubov*, *Sergio Cambra*
+
 *   Log bind variables after they are type casted. This makes it more
     transparent what values are actually sent to the database.
 

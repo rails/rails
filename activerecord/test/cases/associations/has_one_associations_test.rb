@@ -509,16 +509,30 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { Firm.new.account = account }
   end
 
-  def test_has_one_assignment_triggers_save_on_change
+  def test_has_one_assignment_dont_triggers_save_on_change_of_same_object
     pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
     ship = pirate.build_ship(name: 'old name')
     ship.save!
 
     ship.name = 'new name'
     assert ship.changed?
+    assert_queries(1) do
+      # One query for updating name, not triggering query for updating pirate_id
+      pirate.ship = ship
+    end
+
+    assert_equal 'new name', pirate.ship.reload.name
+  end
+
+  def test_has_one_assignment_triggers_save_on_change_on_replacing_object
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    ship = pirate.build_ship(name: 'old name')
+    ship.save!
+
+    new_ship = Ship.create(name: 'new name')
     assert_queries(2) do
       # One query for updating name and second query for updating pirate_id
-      pirate.ship = ship
+      pirate.ship = new_ship
     end
 
     assert_equal 'new name', pirate.ship.reload.name
