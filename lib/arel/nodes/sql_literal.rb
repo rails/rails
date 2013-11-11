@@ -5,6 +5,10 @@ module Arel
       include Arel::Predications
       include Arel::AliasPredication
       include Arel::OrderPredications
+
+      def encode_with(coder)
+        coder.scalar = self.to_s
+      end
     end
 
     class BindParam < SqlLiteral

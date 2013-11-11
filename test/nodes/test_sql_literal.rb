@@ -1,4 +1,5 @@
 require 'helper'
+require 'yaml'
 
 module Arel
   module Nodes
@@ -54,6 +55,13 @@ module Arel
         it 'makes a grouping node with an or node' do
           node = SqlLiteral.new('foo').eq_all([1,2])
           @visitor.accept(node).must_be_like %{ (foo = 1 AND foo = 2) }
+        end
+      end
+
+      describe 'serialization' do
+        it 'serializes into YAML' do
+          yaml_literal = SqlLiteral.new('foo').to_yaml
+          assert_equal('foo', YAML.load(yaml_literal))
         end
       end
     end
