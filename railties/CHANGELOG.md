@@ -1,3 +1,7 @@
+*   Fixed missing line and shadow on service pages(404, 422, 500).
+
+    *Dmitry Korotkov*
+
 *   `BACKTRACE` environment variable to show unfiltered backtraces for
     test failures.
 
