@@ -7,7 +7,7 @@ module ActiveRecord
     delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, to: :all
     delegate :find_each, :find_in_batches, to: :all
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
-             :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly,
+             :where, :rewhere, :unwhere, :preload, :eager_load, :includes, :from, :lock, :readonly,
              :having, :create_with, :uniq, :distinct, :references, :none, :unscope, to: :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
     delegate :pluck, :ids, to: :all

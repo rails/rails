@@ -1,3 +1,13 @@
+*   Added ActiveRecord::QueryMethods#unwhere which will unscope existing, named where conditions.
+
+    Examples:
+
+        Post.where(author: 'X', trashed: true).unwhere(:trashed) #=> WHERE `author` = 'X'
+        Post.where(trashed: false).unwhere(:trashed)             #=> Post.all
+        Post.where(active: true).where(trashed: true).unwhere    #=> Post.all
+
+    *Juanjo Bazán*
+
 *   Fix bug where has_one associaton record update result in crash, when replaced with itself.
 
     Fixes #12834.

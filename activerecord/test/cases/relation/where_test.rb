@@ -28,6 +28,11 @@ module ActiveRecord
       assert_equal posts(:welcome), Post.rewhere(title: 'Welcome to the weblog').first
     end
 
+    def test_unwhere_on_root
+      assert_equal Post.all, Post.unwhere(:title)
+      assert_equal Post.all, Post.unwhere
+    end
+
     def test_belongs_to_shallow_where
       author = Author.new
       author.id = 1
