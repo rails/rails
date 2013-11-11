@@ -14,7 +14,8 @@
     *Yves Senn*
 
 *   Fix uninitialized constant `TransactionState` error when `Marshall.load` is used on an Active Record result.
-    Fixes #12790
+
+    Fixes #12790.
 
     *Jason Ayre*
 
@@ -114,6 +115,7 @@
     *Severin Schoepke*
 
 *   `ActiveRecord::Store` works together with PG `hstore` columns.
+
     Fixes #12452.
 
     *Yves Senn*
