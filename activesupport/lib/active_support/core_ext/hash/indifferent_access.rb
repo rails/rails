@@ -18,5 +18,6 @@ class Hash
   #
   #   b = { b: 1 }
   #   { a: b }.with_indifferent_access['a'] # calls b.nested_under_indifferent_access
+  #   # => {"b"=>32}
   alias nested_under_indifferent_access with_indifferent_access
 end

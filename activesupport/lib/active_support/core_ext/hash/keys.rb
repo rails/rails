@@ -4,7 +4,7 @@ class Hash
   #  hash = { name: 'Rob', age: '28' }
   #
   #  hash.transform_keys{ |key| key.to_s.upcase }
-  #  # => { "NAME" => "Rob", "AGE" => "28" }
+  #  # => {"NAME"=>"Rob", "AGE"=>"28"}
   def transform_keys
     result = {}
     each_key do |key|
@@ -27,7 +27,7 @@ class Hash
   #   hash = { name: 'Rob', age: '28' }
   #
   #   hash.stringify_keys
-  #   #=> { "name" => "Rob", "age" => "28" }
+  #   # => {"name"=>"Rob", "age"=>"28"}
   def stringify_keys
     transform_keys{ |key| key.to_s }
   end
@@ -44,7 +44,7 @@ class Hash
   #   hash = { 'name' => 'Rob', 'age' => '28' }
   #
   #   hash.symbolize_keys
-  #   #=> { name: "Rob", age: "28" }
+  #   # => {"name"=>"Rob", "age"=>"28"}
   def symbolize_keys
     transform_keys{ |key| key.to_sym rescue key }
   end
@@ -78,7 +78,7 @@ class Hash
   #  hash = { person: { name: 'Rob', age: '28' } }
   #
   #  hash.deep_transform_keys{ |key| key.to_s.upcase }
-  #  # => { "PERSON" => { "NAME" => "Rob", "AGE" => "28" } }
+  #  # => {"PERSON"=>{"NAME"=>"Rob", "AGE"=>"28"}}
   def deep_transform_keys(&block)
     result = {}
     each do |key, value|
@@ -105,7 +105,7 @@ class Hash
   #   hash = { person: { name: 'Rob', age: '28' } }
   #
   #   hash.deep_stringify_keys
-  #   # => { "person" => { "name" => "Rob", "age" => "28" } }
+  #   # => {"person"=>{"name"=>"Rob", "age"=>"28"}}
   def deep_stringify_keys
     deep_transform_keys{ |key| key.to_s }
   end
@@ -124,7 +124,7 @@ class Hash
   #   hash = { 'person' => { 'name' => 'Rob', 'age' => '28' } }
   #
   #   hash.deep_symbolize_keys
-  #   # => { person: { name: "Rob", age: "28" } }
+  #   # => {:person=>{:name=>"Rob", :age=>"28"}}
   def deep_symbolize_keys
     deep_transform_keys{ |key| key.to_sym rescue key }
   end
