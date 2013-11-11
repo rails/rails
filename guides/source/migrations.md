@@ -420,7 +420,7 @@ If the helpers provided by Active Record aren't enough you can use the `execute`
 method to execute arbitrary SQL:
 
 ```ruby
-Products.connection.execute('UPDATE `products` SET `price`=`free` WHERE 1')
+Product.connection.execute('UPDATE `products` SET `price`=`free` WHERE 1')
 ```
 
 For more details and examples of individual methods, check the API documentation.
