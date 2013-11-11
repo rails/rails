@@ -151,7 +151,7 @@ module ActionView
               attrs << tag_option(key, value, escape)
             end
           end
-          " #{attrs.sort! * ' '}".html_safe unless attrs.empty?
+          " #{attrs.sort! * ' '}" unless attrs.empty?
         end
 
         def data_tag_option(key, value, escape)
