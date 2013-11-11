@@ -61,6 +61,8 @@ module ActiveRecord
   end
 
   class DelegationRelationTest < DelegationTest
+    fixtures :comments
+
     def target
       Comment.where.not(body: nil)
     end
