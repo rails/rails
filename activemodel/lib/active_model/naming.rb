@@ -262,10 +262,10 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     #   # For isolated engine:
-    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> "post"
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) # => "post"
     #
     #   # For shared engine:
-    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> "blog_post"
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) # => "blog_post"
     def self.singular_route_key(record_or_class)
       model_name_from_record_or_class(record_or_class).singular_route_key
     end
@@ -274,10 +274,10 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     #   # For isolated engine:
-    #   ActiveModel::Naming.route_key(Blog::Post) #=> "posts"
+    #   ActiveModel::Naming.route_key(Blog::Post) # => "posts"
     #
     #   # For shared engine:
-    #   ActiveModel::Naming.route_key(Blog::Post) #=> "blog_posts"
+    #   ActiveModel::Naming.route_key(Blog::Post) # => "blog_posts"
     #
     # The route key also considers if the noun is uncountable and, in
     # such cases, automatically appends _index.
@@ -289,10 +289,10 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     #   # For isolated engine:
-    #   ActiveModel::Naming.param_key(Blog::Post) #=> "post"
+    #   ActiveModel::Naming.param_key(Blog::Post) # => "post"
     #
     #   # For shared engine:
-    #   ActiveModel::Naming.param_key(Blog::Post) #=> "blog_post"
+    #   ActiveModel::Naming.param_key(Blog::Post) # => "blog_post"
     def self.param_key(record_or_class)
       model_name_from_record_or_class(record_or_class).param_key
     end

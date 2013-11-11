@@ -27,7 +27,7 @@ class Hash
   #   hash = { name: 'Rob', age: '28' }
   #
   #   hash.stringify_keys
-  #   #=> { "name" => "Rob", "age" => "28" }
+  #   # => { "name" => "Rob", "age" => "28" }
   def stringify_keys
     transform_keys{ |key| key.to_s }
   end
@@ -44,7 +44,7 @@ class Hash
   #   hash = { 'name' => 'Rob', 'age' => '28' }
   #
   #   hash.symbolize_keys
-  #   #=> { name: "Rob", age: "28" }
+  #   # => { name: "Rob", age: "28" }
   def symbolize_keys
     transform_keys{ |key| key.to_sym rescue key }
   end

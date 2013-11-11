@@ -83,14 +83,14 @@ module ActiveRecord
       #  end
       #
       #  If I execute `@physician.patients.to_a` then
-      #    base #=> Physician
-      #    associations #=> []
-      #    joins #=>  [#<Arel::Nodes::InnerJoin: ...]
+      #    base # => Physician
+      #    associations # => []
+      #    joins # =>  [#<Arel::Nodes::InnerJoin: ...]
       #
       #  However if I execute `Physician.joins(:appointments).to_a` then
-      #    base #=> Physician
-      #    associations #=> [:appointments]
-      #    joins #=>  []
+      #    base # => Physician
+      #    associations # => [:appointments]
+      #    joins # =>  []
       #
       def initialize(base, associations, joins)
         @alias_tracker = AliasTracker.new(base.connection, joins)

@@ -361,7 +361,7 @@ module ActiveSupport
       #
       #   cache.write("bim", "bam")
       #   cache.fetch_multi("bim", "boom") {|key| key * 2 }
-      #   #=> ["bam", "boomboom"]
+      #   # => ["bam", "boomboom"]
       #
       def fetch_multi(*names)
         options = names.extract_options!
