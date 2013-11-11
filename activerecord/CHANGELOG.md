@@ -1,3 +1,10 @@
+*   Prevent the counter cache from being decremented twice when destroying
+    a record on a has_many :through association.
+
+    Fixes #11079.
+
+    *Dmitry Dedov*
+
 *   Unify boolean type casting for `MysqlAdapter` and `Mysql2Adapter`.
     `type_cast` will return `1` for `true` and `0` for `false`.
 
