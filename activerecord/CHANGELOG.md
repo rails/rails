@@ -1,3 +1,9 @@
+*   Fix bug where has_one associaton record update result in crash, when replaced with itself.
+
+    Fixes #12834.
+
+    *Denis Redozubov*, *Sergio Cambra*
+
 *   Fix uninitialized constant TransactionState error when Marshall.load is used on an Active Record result.
     Fixes #12790
 

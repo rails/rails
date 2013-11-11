@@ -26,11 +26,13 @@ module ActiveRecord
         load_target
 
         return self.target if !(target || record)
-        if (target != record) || record.changed?
+
+        assigning_another_record = target != record
+        if assigning_another_record || record.changed?
           save &&= owner.persisted?
 
           transaction_if(save) do
-            remove_target!(options[:dependent]) if target && !target.destroyed?
+            remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
 
             if record
               set_owner_attributes(record)
