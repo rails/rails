@@ -562,6 +562,20 @@ module ActiveRecord
       unscope(where: conditions.keys).where(conditions)
     end
 
+    # Allows you to remove a previously set where condition for a given attribute.
+    # If not attributes are specified, the complete where clause is unscoped.
+    #
+    #   Post.where(author: 'X', trashed: true, active: false).unwhere(:trashed, :active) #=> WHERE `author` = 'X'
+    #   Post.where(author: 'X', trashed: true).unwhere(:trashed)                         #=> WHERE `author` = 'X'
+    #   Post.where(author: 'X', trashed: true).unwhere                                   #=> Post.all
+    #   Post.where(trashed: false).unwhere(:trashed)                                     #=> Post.all
+    #
+    # This is short-hand for unscope(where: attributes). Note that if attributes are specified we're only unscoping
+    # conditions for the named attribute(s), not the entire where statement.
+    def unwhere(*attributes)
+      attributes.present? ? unscope(where: attributes) : unscope(:where)
+    end
+
     # Allows to specify a HAVING clause. Note that you can't use HAVING
     # without also specifying a GROUP clause.
     #

@@ -76,7 +76,7 @@ module ActiveRecord
       expected = Arel::Nodes::NotEqual.new(Post.arel_table[@name], 'ruby on rails')
       assert_equal(expected, relation.where_values[1])
     end
-    
+
     def test_rewhere_with_one_condition
       relation = Post.where(title: 'hello').where(title: 'world').rewhere(title: 'alone')
 
@@ -105,6 +105,42 @@ module ActiveRecord
       assert_equal 2, relation.where_values.size
       assert_equal body_expected, relation.where_values.first
       assert_equal title_expected, relation.where_values.second
+    end
+
+    def test_unwhere_with_one_condition
+      relation = Post.where(title: 'hello').unwhere(:title)
+
+      assert_equal 0, relation.where_values.size
+    end
+
+    def test_unwhere_with_overwriting
+      relation = Post.where(title: 'hello').where(body: 'world').unwhere(:title).unwhere(:title, :body)
+
+      assert_equal 0, relation.where_values.size
+    end
+
+    def test_unwhere_with_unused_clauses
+      relation = Post.where(title: 'hello').unwhere(:body)
+
+      title_expected = Arel::Nodes::Equality.new(Post.arel_table['title'], 'hello')
+
+      assert_equal 1, relation.where_values.size
+      assert_equal title_expected, relation.where_values.first
+    end
+
+    def test_unwhere_with_multiple_conditions
+      relation = Post.where(author_id: 1).where(body: 'world').where(title: 'hello').unwhere(:author_id, :title)
+
+      body_expected  = Arel::Nodes::Equality.new(Post.arel_table['body'], 'world')
+
+      assert_equal 1, relation.where_values.size
+      assert_equal body_expected, relation.where_values.first
+    end
+
+    def test_unwhere_without_params
+      relation = Post.where(author_id: 1).where(body: 'world').where(title: 'hello').unwhere
+
+      assert_equal 0, relation.where_values.size
     end
   end
 end
