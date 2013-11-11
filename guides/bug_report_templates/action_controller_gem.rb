@@ -19,6 +19,8 @@ class TestApp < Rails::Application
 end
 
 class TestController < ActionController::Base
+  include Rails.application.routes.url_helpers
+
   def index
     render text: 'Home'
   end
