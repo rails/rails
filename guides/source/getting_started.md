@@ -754,18 +754,20 @@ If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
 `show` action before proceeding.
 
-As we have seen in the output of `rake routes`, the route for `show` action is
-as follows:
+When the change has been completed, we will see in the output of `rake
+routes` the route for `show` action as follows:
 
-```ruby
-post GET    /posts/:id(.:format)      posts#show
-```
+| -------------------------------------------------- |
+| post GET    /posts/:id(.:format)      posts#show   |
+| -------------------------------------------------- |
+
 
 The special syntax `:id` tells rails that this route expects an `:id`
 parameter, which in our case will be the id of the post.
 
 As we did before, we need to add the `show` action in
-`app/controllers/posts_controller.rb` and its respective view.
+`app/controllers/posts_controller.rb` and its respective view. It
+should be added to `posts_controller.rb` before the `private` keyword appears.
 
 ```ruby
 def show
@@ -1490,8 +1492,8 @@ So first, we'll wire up the Post show template
   </p>
 <% end %>
 
-<%= link_to 'Back', posts_path %>
-| <%= link_to 'Edit', edit_post_path(@post) %>
+<%= link_to 'Edit Post', edit_post_path(@post) %> |
+<%= link_to 'Back to Posts', posts_path %>
 ```
 
 This adds a form on the `Post` show page that creates a new comment by
@@ -1770,7 +1772,6 @@ class Post < ActiveRecord::Base
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }
-  [...]
 end
 ```
 
@@ -1797,10 +1798,12 @@ action, except for `index` and `show`, so we write that in `app/controllers/post
 ```ruby
 class PostsController < ApplicationController
 
-  http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
+  http_basic_authenticate_with name: "dhh", password: "secret",
+    except: [:index, :show]
 
-  def index
-    @posts = Post.all
+
+  def new
+    @post = Post.new
   end
 
   # snipped for brevity
@@ -1812,7 +1815,8 @@ We also only want to allow authenticated users to delete comments, so in the
 ```ruby
 class CommentsController < ApplicationController
 
-  http_basic_authenticate_with name: "dhh", password: "secret", only: :destroy
+  http_basic_authenticate_with name: "dhh", password: "secret",
+    only: :destroy
 
   def create
     @post = Post.find(params[:post_id])
@@ -1853,8 +1857,9 @@ free to consult these support resources:
 * The [Ruby on Rails mailing list](http://groups.google.com/group/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
-Rails also comes with built-in help that you can generate using the rake
-command-line utility:
+Rails can create built-in help documents using the rake
+command-line utility. To do this, you need to install the RedCloth
+gem. Add this gem to your `Gemfile` and run `bundle install`. Then:
 
 * Running `rake doc:guides` will put a full copy of the Rails Guides in the
   `doc/guides` folder of your application. Open `doc/guides/index.html` in your
@@ -1862,10 +1867,6 @@ command-line utility:
 * Running `rake doc:rails` will put a full copy of the API documentation for
   Rails in the `doc/api` folder of your application. Open `doc/api/index.html`
   in your web browser to explore the API documentation.
-
-TIP: To be able to generate the Rails Guides locally with the `doc:guides` rake
-task you need to install the RedCloth gem. Add it to your `Gemfile` and run
-`bundle install` and you're ready to go.
 
 Configuration Gotchas
 ---------------------
