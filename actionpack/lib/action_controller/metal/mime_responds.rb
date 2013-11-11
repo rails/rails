@@ -396,10 +396,10 @@ module ActionController #:nodoc:
     # request, with this response then being accessible by calling #response.
     class Collector
       include AbstractController::Collector
-      attr_accessor :order, :format
+      attr_accessor :format
 
       def initialize(mimes)
-        @order, @responses = [], {}
+        @responses = {}
         mimes.each { |mime| send(mime) }
       end
 
@@ -414,7 +414,6 @@ module ActionController #:nodoc:
 
       def custom(mime_type, &block)
         mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
-        @order << mime_type
         @responses[mime_type] ||= block
       end
 
@@ -423,7 +422,7 @@ module ActionController #:nodoc:
       end
 
       def negotiate_format(request)
-        @format = request.negotiate_mime(order)
+        @format = request.negotiate_mime(@responses.keys)
       end
     end
   end
