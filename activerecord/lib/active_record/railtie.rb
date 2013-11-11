@@ -122,6 +122,14 @@ module ActiveRecord
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
       ActiveSupport.on_load(:active_record) do
+
+        class ActiveRecord::NoDatabaseError
+          def extend_message(message)
+            message << "Run `$ bin/rake db:create db:migrate` to create your database"
+            message
+          end
+        end
+
         self.configurations = app.config.database_configuration || {}
         establish_connection
       end

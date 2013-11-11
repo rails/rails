@@ -94,6 +94,18 @@ module ActiveRecord
   class PreparedStatementInvalid < ActiveRecordError
   end
 
+  # Raised when a given database does not exist
+  class NoDatabaseError < ActiveRecordError
+    def initialize(message)
+      super extend_message(message)
+    end
+
+    # can be over written to add additional error information.
+    def extend_message(message)
+      message
+    end
+  end
+
   # Raised on attempt to save stale record. Record is stale when it's being saved in another query after
   # instantiation, for example, when two users edit the same wiki page and one starts editing and saves
   # the page before the other.

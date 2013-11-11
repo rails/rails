@@ -1,3 +1,10 @@
+*   When connecting to a non-existant postgresql database, the error:
+    `ActiveRecord::NoDatabaseError` will now be raised. When being used with Rails
+    the error message will include information on how to create a database:
+    `rake db:create`
+
+    *Richard Schneeman*
+
 *   Do not raise `'can not touch on a new record object'` exception on destroying already destroyed
     `belongs_to` association with `touch: true` option
 

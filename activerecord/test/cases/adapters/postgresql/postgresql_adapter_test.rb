@@ -10,6 +10,13 @@ module ActiveRecord
         @connection.exec_query('create table ex(id serial primary key, number integer, data character varying(255))')
       end
 
+      def test_bad_connection
+        assert_raise ActiveRecord::NoDatabaseError do
+          connection = ActiveRecord::Base.postgresql_connection(database: "should_not_exist-cinco-dog-db", adapter: "postgresql")
+          connection.exec_query('drop table if exists ex')
+        end
+      end
+
       def test_valid_column
         column = @connection.columns('ex').find { |col| col.name == 'id' }
         assert @connection.valid_type?(column.type)

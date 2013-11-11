@@ -865,6 +865,12 @@ module ActiveRecord
           PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
 
           configure_connection
+        rescue ::PG::Error => error
+          if error.message.include?("does not exist")
+            raise ActiveRecord::NoDatabaseError.new(error.message)
+          else
+            raise error
+          end
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
