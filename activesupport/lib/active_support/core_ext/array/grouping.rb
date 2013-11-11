@@ -95,9 +95,9 @@ class Array
         results
       end
     else
-      results, arr = [[]], self
+      results, arr = [[]], self.dup
       until arr.empty?
-        if (idx = index(value))
+        if (idx = arr.index(value))
           results.last.concat(arr.shift(idx))
           arr.shift
           results << []
