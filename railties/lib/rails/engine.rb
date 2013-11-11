@@ -611,7 +611,7 @@ module Rails
 
     initializer :load_config_initializers do
       config.paths["config/initializers"].existent.sort.each do |initializer|
-        load(initializer)
+        load_config_initializer(initializer)
       end
     end
 
@@ -644,6 +644,12 @@ module Rails
     end
 
     protected
+
+    def load_config_initializer(initializer)
+      ActiveSupport::Notifications.instrument('load_config_initializer.railties', initializer: initializer) do
+        load(initializer)
+      end
+    end
 
     def run_tasks_blocks(*) #:nodoc:
       super

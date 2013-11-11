@@ -396,6 +396,15 @@ INFO. Cache stores my add their own keys
 }
 ```
 
+Railties
+--------
+
+### load_config_initializer.railties
+
+| Key            | Value                                                 |
+| -------------- | ----------------------------------------------------- |
+| `:initializer` | Path to loaded initializer from `config/initializers` |
+
 Rails
 -----
 

@@ -1,3 +1,33 @@
+*   Instrument an `load_config_initializer.railties` event on each load of configuration initializer
+    from `config/initializers`. Subscribers should be attached before `load_config_initializers`
+    initializer completed.
+
+    Registering subscriber examples:
+
+        # config/application.rb
+        module RailsApp
+          class Application < Rails::Application
+            ActiveSupport::Notifications.subscribe('load_config_initializer.railties') do |*args|
+              event = ActiveSupport::Notifications::Event.new(*args)
+              puts "Loaded initializer #{event.payload[:initializer]} (#{event.duration}ms)"
+            end
+          end
+        end
+
+        # my_engine/lib/my_engine/engine.rb
+        module MyEngine
+          class Engine < ::Rails::Engine
+            config.before_initialize do
+              ActiveSupport::Notifications.subscribe('load_config_initializer.railties') do |*args|
+                event = ActiveSupport::Notifications::Event.new(*args)
+                puts "Loaded initializer #{event.payload[:initializer]} (#{event.duration}ms)"
+              end
+            end
+          end
+        end
+
+    *Paul Nikitochkin*
+
 *   Support for Pathnames in eager load paths.
 
     *Mike Pack*
