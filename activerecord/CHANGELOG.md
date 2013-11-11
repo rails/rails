@@ -1,3 +1,10 @@
+*   Prevent the counter cache from being decremented twice when destroying
+    a record on a has_many :through association.
+
+    Fixes #11079.
+
+    *Dmitry Dedov*
+
 *   Fix bug where has_one associaton record update result in crash, when replaced with itself.
 
     Fixes #12834.
