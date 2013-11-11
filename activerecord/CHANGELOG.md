@@ -5,7 +5,8 @@
     *Denis Redozubov*, *Sergio Cambra*
 
 *   Fix uninitialized constant TransactionState error when Marshall.load is used on an Active Record result.
-    Fixes #12790
+
+    Fixes #12790.
 
     *Jason Ayre*
 
@@ -29,7 +30,7 @@
         vendor.users.to_a # => No exception is raised
 
 
-    Fixes: #12242, #9517, #10240
+    Fixes #12242, #9517, #10240.
 
     *Paul Nikitochkin*
 
