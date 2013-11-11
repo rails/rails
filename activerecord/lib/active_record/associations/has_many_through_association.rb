@@ -163,7 +163,7 @@ module ActiveRecord
 
           delete_through_records(records)
 
-          if source_reflection.options[:counter_cache]
+          if source_reflection.options[:counter_cache] && method != :destroy
             counter = source_reflection.counter_cache_column
             klass.decrement_counter counter, records.map(&:id)
           end
