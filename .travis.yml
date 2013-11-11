@@ -2,7 +2,6 @@ script: "rake test"
 rvm:
   - rbx-19mode
   - jruby
-  - 1.9.2
   - 1.9.3
   - 2.0.0
 notifications:
