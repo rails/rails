@@ -2,7 +2,7 @@ module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
     ERB_METHOD_SIG = /:in `_run_erb_.*/
 
-    RAILS_GEMS   = %w( actionpack activerecord actionmailer activesupport activeresource rails )
+    RAILS_GEMS   = %w( actionpack activerecord actionmailer activesupport rails )
 
     VENDOR_DIRS  = %w( vendor/rails )
     SERVER_DIRS  = %w( lib/mongrel bin/mongrel

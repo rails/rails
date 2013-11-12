@@ -70,7 +70,7 @@ HTML_FILES   = %w( 422.html 404.html 500.html index.html robots.txt favicon.ico 
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
 BIN_FILES    = %w( about console destroy generate performance/benchmarker performance/profiler runner server plugin )
 
-VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport activeresource railties )
+VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport railties )
 
 
 desc "Generates a fresh Rails package with documentation"
@@ -315,7 +315,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('activerecord',     '= 2.3.14' + PKG_BUILD)
   s.add_dependency('actionpack',       '= 2.3.14' + PKG_BUILD)
   s.add_dependency('actionmailer',     '= 2.3.14' + PKG_BUILD)
-  s.add_dependency('activeresource',   '= 2.3.14' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
 

@@ -2,7 +2,7 @@ namespace :rails do
   namespace :freeze do
     desc "Lock this application to the current gems (by unpacking them into vendor/rails)"
     task :gems do
-      deps = %w(actionpack activerecord actionmailer activesupport activeresource)
+      deps = %w(actionpack activerecord actionmailer activesupport)
       require 'rubygems'
       require 'rubygems/gem_runner'
 

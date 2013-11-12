@@ -61,14 +61,6 @@ cd "#{root_dir}/activemodel" do
   build_results[:activemodel] = system 'rake'
 end
 
-rm_f "#{root_dir}/activeresource/debug.log"
-cd "#{root_dir}/activeresource" do
-  puts
-  puts "[CruiseControl] Building ActiveResource"
-  puts
-  build_results[:activeresource] = system 'rake'
-end
-
 cd "#{root_dir}/actionpack" do
   puts
   puts "[CruiseControl] Building ActionPack"

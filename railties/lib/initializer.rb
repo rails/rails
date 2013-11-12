@@ -221,7 +221,7 @@ module Rails
       if Rails.vendor_rails?
         begin; require "rubygems"; rescue LoadError; return; end
 
-        stubs = %w(rails activesupport activerecord actionpack actionmailer activeresource)
+        stubs = %w(rails activesupport activerecord actionpack actionmailer)
         stubs.reject! { |s| Gem.loaded_specs.key?(s) }
 
         stubs.each do |stub|

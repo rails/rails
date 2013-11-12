@@ -20,5 +20,4 @@ Gem::Specification.new do |s|
   s.add_dependency 'activerecord',   "= #{version}"
   s.add_dependency 'actionpack',     "= #{version}"
   s.add_dependency 'actionmailer',   "= #{version}"
-  s.add_dependency 'activeresource', "= #{version}"
 end
