@@ -10,6 +10,47 @@
   * Make visitors threadsafe by removing @last_column
   * Support `columns_for_distinct` with Oracle adapter
 
+== 3.0.2 / 2012-02-21
+
+* Enhancements
+
+  * Added a module for visiting and transforming bind values
+  * Fix in [] to be false, not in [] to be true
+
+* Bug Fixes
+
+  * Revert fix for LIMIT / OFFSET when query is ordered in Oracle
+
+== 3.0.1 / 2012-02-17
+
+* Bug Fixes
+
+  * Fixed LIMIT / OFFSET when query is ordered in Oracle
+
+== 3.0.0 / 2012-01-12
+
+* Enhancements
+
+  * Support connection pool and schema cache
+
+* Bug Fixes
+
+  * Conditions with no column can be followed by other conditions in Postgres
+
+== 2.2.3 / 2012-02-21
+
+* Enhancements
+
+  * Added a module for visiting and transforming bind values
+
+== 2.2.2 / 2012-02-20
+
+* Enhancements
+
+  * Support LOCK
+  * Allow using non-table alias as a right-hand relation name
+  * Added SelectManager#distinct
+
 == 2.2.1 / 2011-09-15
 
 * Enhancements
