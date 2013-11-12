@@ -189,11 +189,6 @@ module ActiveRecord
         @statements.clear
       end
 
-      # Returns true
-      def supports_count_distinct? #:nodoc:
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
