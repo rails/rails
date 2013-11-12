@@ -122,8 +122,7 @@ X-Runtime: 0.014297
 Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
 Cache-Control: no-cache
 
-
- $
+$
 ```
 
 We see there is an empty response (no data after the `Cache-Control` line), but the request was successful because Rails has set the response to 200 OK. You can set the `:status` option on render to change this response. Rendering nothing can be useful for Ajax requests where all you want to send back to the browser is an acknowledgment that the request was completed.
@@ -137,7 +136,7 @@ If you want to render the view that corresponds to a different template within t
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render "edit"
@@ -152,7 +151,7 @@ If you prefer, you can use a symbol instead of a string to specify the action to
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render :edit
