@@ -175,28 +175,28 @@ class Person < ActiveRecord::Base
 end
 
 >> p = Person.new
-#=> #<Person id: nil, name: nil>
+# => #<Person id: nil, name: nil>
 >> p.errors.messages
-#=> {}
+# => {}
 
 >> p.valid?
-#=> false
+# => false
 >> p.errors.messages
-#=> {name:["can't be blank"]}
+# => {name:["can't be blank"]}
 
 >> p = Person.create
-#=> #<Person id: nil, name: nil>
+# => #<Person id: nil, name: nil>
 >> p.errors.messages
-#=> {name:["can't be blank"]}
+# => {name:["can't be blank"]}
 
 >> p.save
-#=> false
+# => false
 
 >> p.save!
-#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
 >> Person.create!
-#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 `invalid?` is simply the inverse of `valid?`. It triggers your validations,
