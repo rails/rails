@@ -465,7 +465,7 @@ module Rails
     # files inside eager_load paths.
     def eager_load!
       config.eager_load_paths.each do |load_path|
-        matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
+        matcher = /\A#{Regexp.escape(load_path.to_s)}\/(.*)\.rb\Z/
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
           require_dependency file.sub(matcher, '\1')
         end
