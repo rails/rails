@@ -176,14 +176,14 @@ duplicate = array.dup
 duplicate.push 'another-string'
 
 # the object was duplicated, so the element was added only to the duplicate
-array     #=> ['string']
-duplicate #=> ['string', 'another-string']
+array     # => ['string']
+duplicate # => ['string', 'another-string']
 
 duplicate.first.gsub!('string', 'foo')
 
 # first element was not duplicated, it will be changed in both arrays
-array     #=> ['foo']
-duplicate #=> ['foo', 'another-string']
+array     # => ['foo']
+duplicate # => ['foo', 'another-string']
 ```
 
 As you can see, after duplicating the `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make deep copy, the string inside the array is still the same object.
@@ -196,8 +196,8 @@ duplicate = array.deep_dup
 
 duplicate.first.gsub!('string', 'foo')
 
-array     #=> ['string']
-duplicate #=> ['foo']
+array     # => ['string']
+duplicate # => ['foo']
 ```
 
 If the object is not duplicable, `deep_dup` will just return it:
@@ -1542,7 +1542,7 @@ ActiveSupport::Inflector.inflections do |inflect|
   inflect.acronym 'SSL'
 end
 
-"SSLError".underscore.camelize #=> "SSLError"
+"SSLError".underscore.camelize # => "SSLError"
 ```
 
 `camelize` is aliased to `camelcase`.
