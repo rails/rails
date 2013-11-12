@@ -330,37 +330,43 @@ and it's free for you to change based on your needs.
 
 ### `Rails::Server#start`
 
-After `config/application` is loaded, `server.start` is called. This method is defined like this:
+After `config/application` is loaded, `server.start` is called. This method is
+defined like this:
 
 ```ruby
 def start
-  url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
-  puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-  puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
-  puts "=> Run `rails server -h` for more startup options"
+  print_boot_information
   trap(:INT) { exit }
-  puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
+  create_tmp_directories
+  log_to_stdout if options[:log_stdout]
 
-  #Create required tmp directories if not found
-  %w(cache pids sessions sockets).each do |dir_to_make|
-    FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+  super
+  ...
+end
+
+private
+
+  def print_boot_information
+    ...
+    puts "=> Run `rails server -h` for more startup options"
+    puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
   end
 
-  unless options[:daemonize]
+  def create_tmp_directories
+    %w(cache pids sessions sockets).each do |dir_to_make|
+      FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
+    end
+  end
+
+  def log_to_stdout
     wrapped_app # touch the app so the logger is set up
 
     console = ActiveSupport::Logger.new($stdout)
     console.formatter = Rails.logger.formatter
+    console.level = Rails.logger.level
 
     Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
   end
-
-  super
-ensure
-  # The '-h' option calls exit before @options is set.
-  # If we call 'options' with it unset, we get double help banners.
-  puts 'Exiting' unless @options && options[:daemonize]
-end
 ```
 
 This is where the first output of the Rails initialization happens. This
