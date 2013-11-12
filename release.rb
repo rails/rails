@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 VERSION  = ARGV.first
-PACKAGES = %w(activesupport activerecord actionpack actionmailer activeresource)
+PACKAGES = %w(activesupport activerecord actionpack actionmailer)
 
 # Copy source
 `mkdir release`

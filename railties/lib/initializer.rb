@@ -221,7 +221,7 @@ module Rails
       if Rails.vendor_rails?
         begin; require "rubygems"; rescue LoadError; return; end
 
-        stubs = %w(rails activesupport activerecord actionpack actionmailer activeresource)
+        stubs = %w(rails activesupport activerecord actionpack actionmailer)
         stubs.reject! { |s| Gem.loaded_specs.key?(s) }
 
         stubs.each do |stub|
@@ -656,9 +656,6 @@ Run `rake gems:install` to install the missing gems.
     # A stub for setting options on ActiveRecord::Base.
     attr_accessor :active_record
 
-    # A stub for setting options on ActiveResource::Base.
-    attr_accessor :active_resource
-
     # A stub for setting options on ActiveSupport.
     attr_accessor :active_support
 
@@ -683,8 +680,7 @@ Run `rake gems:install` to install the missing gems.
 
     # The list of rails framework components that should be loaded. (Defaults
     # to <tt>:active_record</tt>, <tt>:action_controller</tt>,
-    # <tt>:action_view</tt>, <tt>:action_mailer</tt>, and
-    # <tt>:active_resource</tt>).
+    # <tt>:action_view</tt>, and <tt>:action_mailer</tt>).
     attr_accessor :frameworks
 
     # An array of additional paths to prepend to the load path. By default,
@@ -963,7 +959,7 @@ Run `rake gems:install` to install the missing gems.
       paths = %w(railties railties/lib activesupport/lib)
       paths << 'actionpack/lib' if frameworks.include?(:action_controller) || frameworks.include?(:action_view)
 
-      [:active_record, :action_mailer, :active_resource, :action_web_service].each do |framework|
+      [:active_record, :action_mailer, :action_web_service].each do |framework|
         paths << "#{framework.to_s.gsub('_', '')}/lib" if frameworks.include?(framework)
       end
 
@@ -976,7 +972,7 @@ Run `rake gems:install` to install the missing gems.
       end
 
       def default_frameworks
-        [ :active_record, :action_controller, :action_view, :action_mailer, :active_resource ]
+        [ :active_record, :action_controller, :action_view, :action_mailer ]
       end
 
       def default_autoload_paths
