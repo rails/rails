@@ -21,7 +21,7 @@ module Rails
       end
 
       def frameworks
-        %w( active_record action_pack active_resource action_mailer active_support )
+        %w( active_record action_pack action_mailer active_support )
       end
 
       def framework_version(framework)

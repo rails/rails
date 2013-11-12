@@ -159,7 +159,7 @@ class ConfigurationFrameworkPathsTests < Test::Unit::TestCase
   end
 
   def test_paths_for_ar_ares_and_mailer
-    [:active_record, :action_mailer, :active_resource, :action_web_service].each do |framework|
+    [:active_record, :action_mailer, :action_web_service].each do |framework|
       @config.frameworks = [framework]
       assert_framework_path "/#{framework.to_s.gsub('_', '')}/lib"
     end
