@@ -179,7 +179,7 @@ generates
 ```ruby
 class RemovePartNumberFromProducts < ActiveRecord::Migration
   def change
-    remove_column :products, :part_number, :string
+    remove_column :products, :part_number
   end
 end
 ```
