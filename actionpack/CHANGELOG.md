@@ -1,3 +1,12 @@
+*   Take a hash with options inside array in #url_for
+
+    Example:
+
+        url_for [:new, :admin, :post, { param: 'value' }]
+        # => http://example.com/admin/posts/new?params=value
+
+    *Andrey Ognevsky*
+
 *   Add `session#fetch` method
 
     fetch behaves similarly to [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch),

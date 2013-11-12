@@ -83,6 +83,8 @@ module ActionView
         super
       when :back
         _back_url
+      when Array
+        polymorphic_path(options, options.extract_options!)
       else
         polymorphic_path(options)
       end

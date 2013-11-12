@@ -155,6 +155,8 @@ module ActionDispatch
           _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
         when String
           options
+        when Array
+          polymorphic_url(options, options.extract_options!)
         else
           polymorphic_url(options)
         end
