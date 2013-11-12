@@ -141,14 +141,12 @@ module ActiveRecord
         'SQLite'
       end
 
-      # Returns true
       def supports_ddl_transactions?
         true
       end
 
-      # Returns true if SQLite version is '3.6.8' or greater, false otherwise.
       def supports_savepoints?
-        sqlite_version >= '3.6.8'
+        true
       end
 
       # Returns true, since this connection adapter supports prepared statement
@@ -162,7 +160,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true.
       def supports_primary_key? #:nodoc:
         true
       end
@@ -171,7 +168,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true
       def supports_add_column?
         true
       end
@@ -191,11 +187,6 @@ module ActiveRecord
       # Clears the prepared statements cache.
       def clear_cache!
         @statements.clear
-      end
-
-      # Returns true
-      def supports_count_distinct? #:nodoc:
-        true
       end
 
       def supports_index_sort_order?
@@ -218,7 +209,6 @@ module ActiveRecord
         @connection.encoding.to_s
       end
 
-      # Returns true.
       def supports_explain?
         true
       end
