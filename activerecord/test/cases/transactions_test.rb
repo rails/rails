@@ -485,6 +485,13 @@ class TransactionTest < ActiveRecord::TestCase
         raise ActiveRecord::Rollback
       end
     end
+  ensure
+    begin
+      Topic.connection.remove_column('topics', 'stuff')
+    rescue
+    ensure
+      Topic.reset_column_information
+    end
   end
 
   def test_transactions_state_from_rollback
