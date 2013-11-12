@@ -631,7 +631,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true.
       def supports_explain?
         true
       end
