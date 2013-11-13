@@ -340,6 +340,12 @@ module RenderTestCases
     assert_equal "Before\npartial html\nYield!\nAfter\n", render
   end
 
+  def test_render_layout_with_array_and_block
+    users = [User.new("Mac", "developer"), User.new("Ryman", "pitcher")]
+    render = @controller_view.render(:layout => users, :locals => { :greeting => "Hello" }) { |user| "#{user.title}" }
+    assert_equal "Hello: Mac\ndeveloperHello: Ryman\npitcher", render
+  end
+
   def test_render_inline
     assert_equal "Hello, World!", @view.render(:inline => "Hello, World!")
   end

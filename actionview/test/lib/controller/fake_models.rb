@@ -28,6 +28,10 @@ class Customer < Struct.new(:name, :id)
   end
 end
 
+class User < Struct.new(:name, :title)
+  include ActiveModel::Conversion
+end
+
 class GoodCustomer < Customer
 end
 

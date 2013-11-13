@@ -383,20 +383,32 @@ module ActionView
       @lookup_context.find_template(path, prefixes, true, locals, @details)
     end
 
+    def layout_path
+      return nil if @options[:layout].blank?
+      if String === @options[:layout]
+        path = @options[:layout]
+      else
+        path = partial_path(@options[:layout].first)
+      end
+    end
+
+    def layout_matches_partial?
+      @options[:layout] == @options[:partial]
+    end
+
     def collection_with_template
-      view, locals, template = @view, @locals, @template
+      view, locals, template, block = @view, @locals, @template, @block
       as, counter = @variable, @variable_counter
 
-      if layout = @options[:layout]
-        layout = find_template(layout, @template_keys)
-      end
+      layout = layout_path unless layout_matches_partial?
+      layout = find_template(layout, @template_keys) if layout
 
       index = -1
       @collection.map do |object|
         locals[as]      = object
         locals[counter] = (index += 1)
 
-        content = template.render(view, locals)
+        content = template.render(view, locals, nil, &block)
         content = layout.render(view, locals) { content } if layout
         content
       end
