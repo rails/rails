@@ -37,9 +37,10 @@ For every single method defined as a core extension this guide has a note that s
 
 NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
-That means that this single call is enough:
+That means that you can require it like this:
 
 ```ruby
+require 'active_support'
 require 'active_support/core_ext/object/blank'
 ```
 
@@ -52,6 +53,7 @@ The next level is to simply load all extensions to `Object`. As a rule of thumb,
 Thus, to load all extensions to `Object` (including `blank?`):
 
 ```ruby
+require 'active_support'
 require 'active_support/core_ext/object'
 ```
 
@@ -60,6 +62,7 @@ require 'active_support/core_ext/object'
 You may prefer just to load all core extensions, there is a file for that:
 
 ```ruby
+require 'active_support'
 require 'active_support/core_ext'
 ```
 
