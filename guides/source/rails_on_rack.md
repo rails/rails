@@ -182,18 +182,17 @@ You can swap an existing middleware in the middleware stack using `config.middle
 config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
 ```
 
-#### Middleware Stack is an Enumerable
+#### Deleting a Middleware
 
-The middleware stack behaves just like a normal `Enumerable`. You can use any `Enumerable` methods to manipulate or interrogate the stack. The middleware stack also implements some `Array` methods including `[]`, `unshift` and `delete`. Methods described in the section above are just convenience methods.
-
-Append following lines to your application configuration:
+Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
 config.middleware.delete "Rack::Lock"
 ```
 
-And now if you inspect the middleware stack, you'll find that `Rack::Lock` will not be part of it.
+And now if you inspect the middleware stack, you'll find that `Rack::Lock` is
+not a part of it.
 
 ```bash
 $ rake middleware
