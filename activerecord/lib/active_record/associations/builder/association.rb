@@ -22,6 +22,7 @@ module ActiveRecord::Associations::Builder
       extension = define_extensions model, name, &block
       reflection = create_reflection model, name, scope, options, extension
       define_accessors model, reflection
+      define_query_methods model, reflection
       define_callbacks model, reflection
       reflection
     end
@@ -106,6 +107,16 @@ module ActiveRecord::Associations::Builder
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
           association(:#{name}).writer(value)
+        end
+      CODE
+    end
+
+    def self.define_query_methods(model, reflection)
+      mixin = model.generated_association_methods
+      name = reflection.name
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}?(*args)
+          #{name}(*args).present?
         end
       CODE
     end

@@ -20,6 +20,9 @@ require 'models/molecule'
 require 'models/electron'
 require 'models/man'
 require 'models/interest'
+require 'models/contract'
+require 'models/car'
+require 'models/bulb'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -136,6 +139,65 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal ['foo'], firm.association_with_references.references_values
   end
 
+  def test_has_many_query_method
+    company = Company.create!(:name => 'Example')
+
+    assert !company.contracts?
+
+    company.contracts.create!
+    company.reload
+
+    assert company.contracts?
+  end
+
+  def test_has_many_through_query_method
+    company = Company.create!(:name => 'Example')
+    developer = Developer.create!(:name => 'Bob')
+
+    assert !company.developers?
+
+    company.contracts.create!(:developer => developer)
+    company.reload
+
+    assert company.developers?
+  end
+
+  def test_has_one_query_method
+    car = Car.create!
+    assert !car.bulb?
+
+    Bulb.create!(:car => car)
+    car.reload
+
+    assert car.bulb?
+  end
+
+  def test_belongs_to_query_method
+    contract = Contract.create!
+
+    assert !contract.developer?
+
+    developer = Developer.create!(:name => 'Bob')
+    contract.update(:developer => developer)
+    contract.reload
+
+    assert contract.developer?
+  end
+
+  def test_habtm_query_method
+    developer = Developer.create!(:name => 'Bob')
+    project = Project.create!
+
+    assert !developer.projects?
+    assert !project.developers?
+
+    developer.projects << project
+    developer.reload
+    project.reload
+
+    assert developer.projects?
+    assert project.developers?
+  end
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase

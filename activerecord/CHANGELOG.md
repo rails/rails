@@ -1,3 +1,16 @@
+*   Add presence query methods for associations.
+
+    Example:
+
+        class User < ActiveRecord::Base
+          has_many :tasks
+        end
+
+        user = User.first
+        user.tasks? # shorthand for user.tasks.present?
+
+    *Tomas Varneckas*
+
 *   Use strings to represent non-string `order_values`.
 
     *Yves Senn*
