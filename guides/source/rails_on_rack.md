@@ -318,26 +318,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 
-### Using Rack Builder
-
-The following shows how to replace use `Rack::Builder` instead of the Rails supplied `MiddlewareStack`.
-
-<strong>Clear the existing Rails middleware stack</strong>
-
-```ruby
-# config/application.rb
-config.middleware.clear
-```
-
-<br>
-<strong>Add a `config.ru` file to `Rails.root`</strong>
-
-```ruby
-# config.ru
-use MyOwnStackFromScratch
-run Rails.application
-```
-
 Resources
 ---------
 
