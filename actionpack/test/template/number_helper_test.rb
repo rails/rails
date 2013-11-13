@@ -43,10 +43,11 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal("($1,234,567,890.50)", number_to_currency(-1234567890.50, {:negative_format => "(%u%n)"}))
     assert_equal("$1,234,567,892", number_to_currency(1234567891.50, {:precision => 0}))
     assert_equal("$1,234,567,890.5", number_to_currency(1234567890.50, {:precision => 1}))
-    assert_equal("&pound;1234567890,50", number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimiter => ""}))
+    assert_equal("&pound;1234567890,50", number_to_currency(1234567890.50, {:unit => raw("&pound;"), :separator => ",", :delimiter => ""}))
+    assert_equal("&amp;pound;1234567890,50", number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimiter => ""}))
     assert_equal("$1,234,567,890.50", number_to_currency("1234567890.50"))
-    assert_equal("1,234,567,890.50 K&#269;", number_to_currency("1234567890.50", {:unit => "K&#269;", :format => "%n %u"}))
-    assert_equal("1,234,567,890.50 - K&#269;", number_to_currency("-1234567890.50", {:unit => "K&#269;", :format => "%n %u", :negative_format => "%n - %u"}))
+    assert_equal("1,234,567,890.50 K&#269;", number_to_currency("1234567890.50", {:unit => raw("K&#269;"), :format => "%n %u"}))
+    assert_equal("1,234,567,890.50 - K&#269;", number_to_currency("-1234567890.50", {:unit => raw("K&#269;"), :format => "%n %u", :negative_format => "%n - %u"}))
   end
 
   def test_number_to_percentage
