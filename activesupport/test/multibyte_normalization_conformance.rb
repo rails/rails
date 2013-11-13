@@ -25,7 +25,7 @@ class Downloader
   end
 end
 
-class MultibyteConformanceTest < ActiveSupport::TestCase
+class MultibyteNormalizationConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
