@@ -129,3 +129,22 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal post, merged.first
   end
 end
+
+class MergingDifferentRelationsTest < ActiveRecord::TestCase
+  fixtures :posts, :authors
+
+  test "merging where relations" do
+    hello_by_bob = Post.where(body: "hello").joins(:author).
+      merge(Author.where(name: "Bob")).pluck("posts.id")
+
+    assert_equal [posts(:misc_by_bob).id,
+                  posts(:other_by_bob).id], hello_by_bob
+  end
+
+  test "merging order relations" do
+    posts_by_author_name = Post.limit(3).joins(:author).
+      merge(Author.order(:name)).pluck("authors.name")
+
+    assert_equal ["Bob", "Bob", "David"], posts_by_author_name
+  end
+end
