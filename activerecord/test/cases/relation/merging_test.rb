@@ -25,20 +25,20 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality
     devs = Developer.where(Developer.arel_table[:salary].eq(80000)).merge(
-                                                                          Developer.where(Developer.arel_table[:salary].eq(9000))
-                                                                          )
+      Developer.where(Developer.arel_table[:salary].eq(9000))
+    )
     assert_equal [developers(:poor_jamis)], devs.to_a
   end
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality_with_non_attribute_left_hand
     salary_attr = Developer.arel_table[:salary]
     devs = Developer.where(
-                           Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(80000)
-                           ).merge(
-                                   Developer.where(
-                                                   Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(9000)
-                                                   )
-                                   )
+      Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(80000)
+    ).merge(
+      Developer.where(
+        Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(9000)
+      )
+    )
     assert_equal [developers(:poor_jamis)], devs.to_a
   end
 
