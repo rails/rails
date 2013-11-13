@@ -995,12 +995,6 @@ module ActiveRecord
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end
-        when Symbol
-          { o => :desc }
-        when Hash
-          o.each_with_object({}) do |(field, dir), memo|
-            memo[field] = (dir == :asc ? :desc : :asc )
-          end
         else
           o
         end
@@ -1015,17 +1009,6 @@ module ActiveRecord
       orders = order_values.uniq
       orders.reject!(&:blank?)
       orders = reverse_sql_order(orders) if reverse_order_value
-
-      orders = orders.flat_map do |order|
-        case order
-        when Symbol
-          table[order].asc
-        when Hash
-          order.map { |field, dir| table[field].send(dir) }
-        else
-          order
-        end
-      end
 
       arel.order(*orders) unless orders.empty?
     end
@@ -1048,8 +1031,17 @@ module ActiveRecord
 
       # if a symbol is given we prepend the quoted table name
       order_args.map! do |arg|
-        arg.is_a?(Symbol) ? Arel::Nodes::Ascending.new(klass.arel_table[arg]) : arg
-      end
+        case arg
+        when Symbol
+          table[arg].asc
+        when Hash
+          arg.map { |field, dir|
+            table[field].send(dir)
+          }
+        else
+          arg
+        end
+      end.flatten!
     end
 
     # Checks to make sure that the arguments are not blank. Note that if some

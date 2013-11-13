@@ -7,10 +7,6 @@ module ActiveRecord
       extend ActiveRecord::Delegation::DelegateCache
       inherited self
 
-      def arel_table
-        Post.arel_table
-      end
-
       def connection
         Post.connection
       end
@@ -21,7 +17,7 @@ module ActiveRecord
     end
 
     def relation
-      @relation ||= Relation.new FakeKlass.new('posts'), :b
+      @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table
     end
 
     (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order]).each do |method|
