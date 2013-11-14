@@ -609,9 +609,29 @@ module Rails
       end
     end
 
-    initializer :load_config_initializers do
+    # TODO: Where is a more appropriate place for this?
+    def warn_if_slow(threshold, item)
+      t = Time.now
+      yield.tap do
+        duration = Time.now - t
+        if duration > threshold
+          warn "[WARNING] %s took %.2fs to complete (> %.2fs)" %
+            [item, duration, threshold]
+        end
+      end
+    end
+
+    initializer :load_config_initializers do |app|
+      # TODO: Where are other defaults configured? Move this here.
+      app.config.initializer_duration_threshold = 0.1
+
       config.paths["config/initializers"].existent.sort.each do |initializer|
-        load(initializer)
+        warn_if_slow(
+          app.config.initializer_duration_threshold,
+          "Initializer " + File.basename(initializer)
+        ) do
+          load(initializer)
+        end
       end
     end
 
