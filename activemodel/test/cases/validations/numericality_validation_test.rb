@@ -16,8 +16,12 @@ class NumericalityValidationTest < ActiveModel::TestCase
   BLANK = ["", " ", " \t \r \n"]
   BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significant digits
   FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5)
+  POSITIVE_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 +10.5 +0.0001 090.1 90.1e1 90.1e5 +90.1e-5 90e-5)
+  NEGATIVE_STRINGS = %w(-10.0 -10.5 -0.0001 -090.1 -90.1e1 -90.1e5 -90.1e-5 -90e-5)
   INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
   FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS
+  POSITIVES = [0.0, 10.0, 10.5, 0.0001] + POSITIVE_STRINGS
+  NEGATIVES = [-10.0, -10.5, -0.0001] + NEGATIVE_STRINGS
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
@@ -48,6 +52,34 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!(JUNK + BLANK + FLOATS + BIGDECIMAL + INFINITY)
     valid!(NIL + INTEGERS)
+  end
+
+  def test_validates_numericality_of_with_positive_only
+    Topic.validates_numericality_of :approved, only_positive: true
+
+    invalid!(NIL + BLANK + JUNK + NEGATIVES)
+    valid!(POSITIVES)
+  end
+
+  def test_validates_numericality_of_with_positive_only_and_nil_allowed
+    Topic.validates_numericality_of :approved, only_positive: true, allow_nil: true
+
+    invalid!(JUNK + BLANK + NEGATIVES)
+    valid!(NIL + POSITIVES)
+  end
+
+  def test_validates_numericality_of_with_negative_only
+    Topic.validates_numericality_of :approved, only_negative: true
+
+    invalid!(NIL + BLANK + JUNK + POSITIVES)
+    valid!(NEGATIVES)
+  end
+
+  def test_validates_numericality_of_with_negative_only_and_nil_allowed
+    Topic.validates_numericality_of :approved, only_negative: true, allow_nil: true
+
+    invalid!(JUNK + BLANK + POSITIVES)
+    valid!(NIL + NEGATIVES)
   end
 
   def test_validates_numericality_with_greater_than

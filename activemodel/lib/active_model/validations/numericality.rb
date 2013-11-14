@@ -4,12 +4,13 @@ module ActiveModel
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
                  equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
-                 odd: :odd?, even: :even?, other_than: :!= }.freeze
+                 odd: :odd?, even: :even?, other_than: :!=,
+                 only_positive: :>=, only_negative: :< }.freeze
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
       def check_validity!
-        keys = CHECKS.keys - [:odd, :even]
+        keys = CHECKS.keys - [:odd, :even, :only_negative, :only_positive]
         options.slice(*keys).each do |option, value|
           next if value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
           raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
@@ -40,6 +41,10 @@ module ActiveModel
           case option
           when :odd, :even
             unless value.to_i.send(CHECKS[option])
+              record.errors.add(attr_name, option, filtered_options(value))
+            end
+          when :only_positive, :only_negative
+            unless value.send(CHECKS[option], 0)
               record.errors.add(attr_name, option, filtered_options(value))
             end
           else
@@ -108,6 +113,8 @@ module ActiveModel
       #   supplied value.
       # * <tt>:odd</tt> - Specifies the value must be an odd number.
       # * <tt>:even</tt> - Specifies the value must be an even number.
+      # * <tt>:only_positive</tt> - Specifies the value must be a positive number.
+      # * <tt>:only_negative</tt> - Specifies the value must be a negative number.
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+ and +:strict+ .
