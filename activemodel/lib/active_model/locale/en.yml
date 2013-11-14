@@ -19,6 +19,8 @@ en:
       wrong_length: "is the wrong length (should be %{count} characters)"
       not_a_number: "is not a number"
       not_an_integer: "must be an integer"
+      only_positive: "must be a positive number"
+      only_negative: "must be a negative number"
       greater_than: "must be greater than %{count}"
       greater_than_or_equal_to: "must be greater than or equal to %{count}"
       equal_to: "must be equal to %{count}"
