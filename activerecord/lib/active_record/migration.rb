@@ -32,7 +32,11 @@ module ActiveRecord
 
   class PendingMigrationError < ActiveRecordError#:nodoc:
     def initialize
-      super("Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=#{Rails.env}' to resolve this issue.")
+      if defined?(Rails)
+        super("Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=#{::Rails.env}' to resolve this issue.")
+      else
+        super("Migrations are pending; run 'bin/rake db:migrate' to resolve this issue.")
+      end
     end
   end
 
