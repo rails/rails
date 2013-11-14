@@ -27,11 +27,7 @@ module ActionController
     end
 
     def render_to_body(options = {})
-      super || if options[:text].present?
-        options[:text]
-      else
-        " "
-      end
+      super || options[:text].presence || ' '
     end
 
     private
