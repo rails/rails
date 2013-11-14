@@ -135,11 +135,11 @@ module ActionView
           # Delegate to xml builder, first wrapping the element in a xhtml
           # namespaced div element if the method and arguments indicate
           # that an xhtml_block? is desired.
-          def method_missing(method, *arguments)
+          def method_missing(method, *arguments, &block)
             if xhtml_block?(method, arguments)
               @xml.__send__(method, *arguments) do
                 @xml.div(:xmlns => 'http://www.w3.org/1999/xhtml') do |xhtml|
-                  yield(xhtml)
+                  block.call(xhtml)
                 end
               end
             else

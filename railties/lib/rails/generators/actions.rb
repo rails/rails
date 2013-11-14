@@ -84,10 +84,10 @@ module Rails
       #   environment(nil, env: "development") do
       #     "config.autoload_paths += %W(#{config.root}/extras)"
       #   end
-      def environment(data = nil, options = {})
+      def environment(data=nil, options={}, &block)
         sentinel = /class [a-z_:]+ < Rails::Application/i
         env_file_sentinel = /Rails\.application\.configure do/
-        data = yield if !data && block_given?
+        data = block.call if !data && block_given?
 
         in_root do
           if options[:env].nil?
