@@ -147,14 +147,16 @@ module ActionDispatch
             @defaults.merge!(options[:defaults]) if options[:defaults]
 
             options.each do |key, default|
-              next if Regexp === default || IGNORE_OPTIONS.include?(key)
-              @defaults[key] = default
+              unless Regexp === default || IGNORE_OPTIONS.include?(key)
+                @defaults[key] = default
+              end
             end
 
             if options[:constraints].is_a?(Hash)
               options[:constraints].each do |key, default|
-                next unless URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
-                @defaults[key] ||= default
+                if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+                  @defaults[key] ||= default
+                end
               end
             end
 
@@ -169,15 +171,16 @@ module ActionDispatch
             @conditions.merge!(:path_info => path)
 
             constraints.each do |key, condition|
-              next if segment_keys.include?(key) || key == :controller
-              @conditions[key] = condition
+              unless segment_keys.include?(key) || key == :controller
+                @conditions[key] = condition
+              end
             end
 
             @conditions[:required_defaults] = []
             options.each do |key, required_default|
-              next if segment_keys.include?(key) || IGNORE_OPTIONS.include?(key)
-              next if Regexp === required_default
-              @conditions[:required_defaults] << key
+              unless segment_keys.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
+                @conditions[:required_defaults] << key
+              end
             end
 
             via_all = options.delete(:via) if options[:via] == :all
