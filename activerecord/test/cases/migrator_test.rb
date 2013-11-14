@@ -346,11 +346,11 @@ module ActiveRecord
     end
 
     private
-    def m(name, version, &block)
+    def m(name, version)
       x = Sensor.new name, version
       x.extend(Module.new {
-        define_method(:up) { block.call(:up, x); super() }
-        define_method(:down) { block.call(:down, x); super() }
+        define_method(:up) { yield(:up, x); super() }
+        define_method(:down) { yield(:down, x); super() }
       }) if block_given?
     end
 

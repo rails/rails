@@ -358,10 +358,10 @@ module ActionController #:nodoc:
     #
     # Sends :not_acceptable to the client and returns nil if no suitable format
     # is available.
-    def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
+    def retrieve_collector_from_mimes(mimes = nil) #:nodoc:
       mimes ||= collect_mimes_from_class_level
       collector = Collector.new(mimes)
-      block.call(collector) if block_given?
+      yield(collector) if block_given?
       format = collector.negotiate_format(request)
 
       if format
