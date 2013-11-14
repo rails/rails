@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveRecord
   module Integration
     extend ActiveSupport::Concern
@@ -63,6 +65,35 @@ module ActiveRecord
         "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
       else
         "#{self.class.model_name.cache_key}/#{id}"
+      end
+    end
+
+    module ClassMethods
+      # Defines your model's +to_param+ method to generate "pretty" URLs
+      # using +method_name+, which can be any attribute or method that
+      # responds to +to_s+.
+      #
+      #   class User < ActiveRecord::Base
+      #     to_param :name
+      #   end
+      #
+      #   user = User.find_by(name: 'Fancy Pants')
+      #   user.id         # => 123
+      #   user_path(user) # => "/users/123-fancy-pants"
+      #
+      # Because the generated param begins with the record's +id+, it is
+      # suitable for passing to +find+. In a controller, for example:
+      #
+      #   params[:id]               # => "123-fancy-pants"
+      #   User.find(params[:id]).id # => 123
+      def to_param(method_name)
+        define_method :to_param do
+          if (default = super()) && (result = send(method_name).to_s).present?
+            "#{default}-#{result.truncate(20, separator: /\s/, omission: nil).parameterize}"
+          else
+            default
+          end
+        end
       end
     end
   end

@@ -1,3 +1,17 @@
+*   Added `ActiveRecord::Base.to_param` for convenient "pretty" URLs derived from a model's attribute or method.
+
+    Example:
+
+      class User < ActiveRecord::Base
+        to_param :name
+      end
+
+      user = User.find_by(name: 'Fancy Pants')
+      user.id       # => 123
+      user.to_param # => "123-fancy-pants"
+
+    *Javan Makhmali*
+
 *   Added `ActiveRecord::Base.no_touching`, which allows ignoring touch on models.
 
     Examples:

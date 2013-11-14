@@ -40,6 +40,8 @@ module Namespaced
 end
 
 class Firm < Company
+  to_param :name
+
   has_many :clients, -> { order "id" }, :dependent => :destroy, :before_remove => :log_before_remove, :after_remove  => :log_after_remove
   has_many :unsorted_clients, :class_name => "Client"
   has_many :unsorted_clients_with_symbol, :class_name => :Client
