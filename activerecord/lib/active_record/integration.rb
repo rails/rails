@@ -86,12 +86,16 @@ module ActiveRecord
       #
       #   params[:id]               # => "123-fancy-pants"
       #   User.find(params[:id]).id # => 123
-      def to_param(method_name)
-        define_method :to_param do
-          if (default = super()) && (result = send(method_name).to_s).present?
-            "#{default}-#{result.truncate(20, separator: /\s/, omission: nil).parameterize}"
-          else
-            default
+      def to_param(method_name = nil)
+        if method_name.nil?
+          super()
+        else
+          define_method :to_param do
+            if (default = super()) && (result = send(method_name).to_s).present?
+              "#{default}-#{result.squish.truncate(20, separator: /\s/, omission: nil).parameterize}"
+            else
+              default
+            end
           end
         end
       end
