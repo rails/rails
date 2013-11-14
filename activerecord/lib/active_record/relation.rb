@@ -244,8 +244,16 @@ module ActiveRecord
     def empty?
       return @records.empty? if loaded?
 
-      limit_value == 0 ? true : !exists?
+      if limit_value == 0
+        true
+      else
+        # FIXME: This count is not compatible with #select('authors.*') or other select narrows
+        c = count
+        c.respond_to?(:zero?) ? c.zero? : c.empty?
+      end
     end
+
+
 
     # Returns true if there are any records.
     def any?
