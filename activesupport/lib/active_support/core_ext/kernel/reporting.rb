@@ -60,7 +60,7 @@ module Kernel
   #   puts 'This code gets executed and nothing related to ZeroDivisionError was seen'
   def suppress(*exception_classes)
     yield
-  rescue *exception_classes => e
+  rescue *exception_classes
   end
 
   # Captures the given stream and returns it:
