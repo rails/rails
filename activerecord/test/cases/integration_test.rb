@@ -23,6 +23,24 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal '1', client.to_param
   end
 
+  def test_to_param_class_method
+    firm = Firm.find(4)
+    assert_equal '4-flamboyant-software', firm.to_param
+  end
+
+  def to_param_class_method_uses_default_if_blank
+    firm = Firm.find(4)
+    firm.name = nil
+    assert_equal '4', firm.to_param
+    firm.name = ' '
+    assert_equal '4', firm.to_param
+  end
+
+  def to_param_class_method_uses_default_if_not_persisted
+    firm = Firm.new(name: 'Fancy Shirts')
+    assert_equal nil, firm.to_param
+  end
+
   def test_cache_key_for_existing_record_is_not_timezone_dependent
     utc_key = Developer.first.cache_key
 
