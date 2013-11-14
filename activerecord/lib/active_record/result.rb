@@ -83,9 +83,10 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @columns   = columns.dup
-      @rows      = rows.dup
-      @hash_rows = nil
+      @columns      = columns.dup
+      @rows         = rows.dup
+      @column_types = column_types.dup
+      @hash_rows    = nil
     end
 
     private
