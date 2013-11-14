@@ -120,7 +120,7 @@ class BaseMailer < ActionMailer::Base
   end
 
   def with_nil_as_return_value
-    mail(:template_name => "welcome")
+    mail(template_name: "welcome")
     nil
   end
 
