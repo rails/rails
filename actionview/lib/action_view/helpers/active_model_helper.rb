@@ -42,7 +42,7 @@ module ActionView
       end
 
       def tag_generate_errors?(options)
-        options['type'] != 'hidden'
+        options['type'.freeze] != 'hidden'.freeze
       end
     end
   end
