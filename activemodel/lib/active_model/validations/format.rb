@@ -33,8 +33,8 @@ module ActiveModel
       end
 
       def regexp_using_multiline_anchors?(regexp)
-        regexp.source.start_with?("^") ||
-          (regexp.source.end_with?("$") && !regexp.source.end_with?("\\$"))
+        source = regexp.source
+        source.start_with?("^") || (source.end_with?("$") && !source.end_with?("\\$"))
       end
 
       def check_options_validity(options, name)
