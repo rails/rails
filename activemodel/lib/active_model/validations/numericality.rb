@@ -44,8 +44,12 @@ module ActiveModel
               record.errors.add(attr_name, option, filtered_options(value))
             end
           else
-            option_value = option_value.call(record) if option_value.is_a?(Proc)
-            option_value = record.send(option_value) if option_value.is_a?(Symbol)
+            case option_value
+            when Proc
+              option_value = option_value.call(record)
+            when Symbol
+              option_value = record.send(option_value)
+            end
 
             unless value.send(CHECKS[option], option_value)
               record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
