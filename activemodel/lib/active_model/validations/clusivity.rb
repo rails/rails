@@ -35,10 +35,13 @@ module ActiveModel
       # <tt>Range#cover?</tt> uses the previous logic of comparing a value with the range
       # endpoints, which is fast but is only accurate on Numeric, Time, or DateTime ranges.
       def inclusion_method(enumerable)
-        return :include? unless enumerable.is_a?(Range)
-        case enumerable.first
-        when Numeric, Time, DateTime
-          :cover?
+        if enumerable.is_a? Range
+          case enumerable.first
+          when Numeric, Time, DateTime
+            :cover?
+          else
+            :include?
+          end
         else
           :include?
         end
