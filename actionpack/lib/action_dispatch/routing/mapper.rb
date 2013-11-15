@@ -168,7 +168,7 @@ module ActionDispatch
           end
 
           def normalize_conditions!
-            @conditions.merge!(:path_info => path)
+            @conditions[:path_info] = path
 
             constraints.each do |key, condition|
               unless segment_keys.include?(key) || key == :controller
@@ -196,7 +196,7 @@ module ActionDispatch
 
             if via = options[:via]
               list = Array(via).map { |m| m.to_s.dasherize.upcase }
-              @conditions.merge!(:request_method => list)
+              @conditions[:request_method] = list
             end
           end
 
