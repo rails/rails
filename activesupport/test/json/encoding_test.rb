@@ -22,7 +22,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
       @serialized = serialized
     end
 
-    def as_json(options)
+    def as_json(options = nil)
       @serialized
     end
   end
@@ -338,7 +338,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
 
-  def test_to_json_should_not_keep_options_around
+  def test_hash_to_json_should_not_keep_options_around
     f = CustomWithOptions.new
     f.foo = "hello"
     f.bar = "world"
@@ -346,6 +346,16 @@ class TestJSONEncoding < ActiveSupport::TestCase
     hash = {"foo" => f, "other_hash" => {"foo" => "other_foo", "test" => "other_test"}}
     assert_equal({"foo"=>{"foo"=>"hello","bar"=>"world"},
                   "other_hash" => {"foo"=>"other_foo","test"=>"other_test"}}, ActiveSupport::JSON.decode(hash.to_json))
+  end
+
+  def test_array_to_json_should_not_keep_options_around
+    f = CustomWithOptions.new
+    f.foo = "hello"
+    f.bar = "world"
+
+    array = [f, {"foo" => "other_foo", "test" => "other_test"}]
+    assert_equal([{"foo"=>"hello","bar"=>"world"},
+                  {"foo"=>"other_foo","test"=>"other_test"}], ActiveSupport::JSON.decode(array.to_json))
   end
 
   def test_hash_as_json_without_options
