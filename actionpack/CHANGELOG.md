@@ -3,7 +3,7 @@
     Example:
 
         url_for [:new, :admin, :post, { param: 'value' }]
-        # => http://example.com/admin/posts/new?params=value
+        # => http://example.com/admin/posts/new?param=value
 
     *Andrey Ognevsky*
 
