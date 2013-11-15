@@ -38,14 +38,15 @@ module ActiveModel
       end
 
       def check_options_validity(name)
-        option = options[name]
-        if option && !option.is_a?(Regexp) && !option.respond_to?(:call)
-          raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
-        elsif option && option.is_a?(Regexp) &&
-              regexp_using_multiline_anchors?(option) && options[:multiline] != true
-          raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), " \
-          "which may present a security risk. Did you mean to use \\A and \\z, or forgot to add the " \
-          ":multiline => true option?"
+        if option = options[name]
+          if !option.is_a?(Regexp) && !option.respond_to?(:call)
+            raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
+          elsif option.is_a?(Regexp) &&
+                regexp_using_multiline_anchors?(option) && options[:multiline] != true
+            raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), " \
+            "which may present a security risk. Did you mean to use \\A and \\z, or forgot to add the " \
+            ":multiline => true option?"
+          end
         end
       end
     end
