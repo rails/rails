@@ -2,19 +2,22 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class TextField < Base # :nodoc:
+        SIZE  = "size".freeze
+        VALUE = "value".freeze
+
         def render
           options = @options.stringify_keys
-          options["size"] = options["maxlength"] unless options.key?("size")
-          options["type"] ||= field_type
-          options["value"] = options.fetch("value") { value_before_type_cast(object) } unless field_type == "file"
-          options["value"] &&= ERB::Util.html_escape(options["value"])
+          options[SIZE] = options["maxlength".freeze] unless options.key?(SIZE)
+          options["type".freeze] ||= field_type
+          options[VALUE] = options.fetch(VALUE) { value_before_type_cast(object) } unless field_type == "file".freeze
+          options[VALUE] &&= ERB::Util.html_escape(options[VALUE])
           add_default_name_and_id(options)
-          tag("input", options)
+          tag("input".freeze, options)
         end
 
         class << self
           def field_type
-            @field_type ||= self.name.split("::").last.sub("Field", "").downcase
+            @field_type ||= self.name.split("::".freeze).last.sub("Field".freeze, "".freeze).downcase
           end
         end
 

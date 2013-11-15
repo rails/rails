@@ -16,22 +16,25 @@ module ActionView
           super(object_name, method_name, template_object, options)
         end
 
+        FOR = 'for'.freeze
+        ID  = 'id'.freeze
+
         def render(&block)
           options = @options.stringify_keys
-          tag_value = options.delete("value")
+          tag_value = options.delete("value".freeze)
           name_and_id = options.dup
 
-          if name_and_id["for"]
-            name_and_id["id"] = name_and_id["for"]
+          if name_and_id[FOR]
+            name_and_id[ID] = name_and_id[FOR]
           else
-            name_and_id.delete("id")
+            name_and_id.delete(ID)
           end
 
           add_default_name_and_id_for_value(tag_value, name_and_id)
-          options.delete("index")
-          options.delete("namespace")
-          options.delete("multiple")
-          options["for"] = name_and_id["id"] unless options.key?("for")
+          options.delete("index".freeze)
+          options.delete("namespace".freeze)
+          options.delete("multiple".freeze)
+          options[FOR] = name_and_id[ID] unless options.key?(FOR)
 
           if block_given?
             content = @template_object.capture(&block)
@@ -42,11 +45,11 @@ module ActionView
 
                         if object.respond_to?(:to_model)
                           key = object.class.model_name.i18n_key
-                          i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
+                          i18n_default = ["#{key}.#{method_and_value}".to_sym, "".freeze]
                         end
 
-                        i18n_default ||= ""
-                        I18n.t("#{@object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
+                        i18n_default ||= "".freeze
+                        I18n.t("#{@object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label".freeze).presence
                       else
                         @content.to_s
                       end
@@ -58,7 +61,7 @@ module ActionView
             content ||= @method_name.humanize
           end
 
-          label_tag(name_and_id["id"], content, options)
+          label_tag(name_and_id[ID], content, options)
         end
       end
     end

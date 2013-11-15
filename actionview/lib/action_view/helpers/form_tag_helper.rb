@@ -427,7 +427,9 @@ module ActionView
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
 
-        tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options)
+        tag :input, { "type".freeze => "submit".freeze,
+                      "name".freeze => "commit".freeze,
+                      "value".freeze => value }.update(options)
       end
 
       # Creates a button element that defines a <tt>submit</tt> button,

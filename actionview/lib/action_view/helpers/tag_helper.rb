@@ -65,7 +65,7 @@ module ActionView
       #   tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
       def tag(name, options = nil, open = false, escape = true)
-        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+        "<#{name}#{tag_options(options, escape) if options}#{open ? ">".freeze : " />".freeze}".html_safe
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
@@ -141,7 +141,7 @@ module ActionView
           return if options.blank?
           attrs = []
           options.each_pair do |key, value|
-            if key.to_s == 'data' && value.is_a?(Hash)
+            if key.to_s == 'data'.freeze && value.is_a?(Hash)
               value.each_pair do |k, v|
                 attrs << data_tag_option(k, v, escape)
               end
@@ -151,7 +151,7 @@ module ActionView
               attrs << tag_option(key, value, escape)
             end
           end
-          " #{attrs.sort! * ' '}".html_safe unless attrs.empty?
+          " #{attrs.sort! * ' '.freeze}".html_safe unless attrs.empty?
         end
 
         def data_tag_option(key, value, escape)

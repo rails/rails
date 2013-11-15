@@ -56,7 +56,17 @@ module ActionView
         end
 
         def hidden_field_for_checkbox(options)
-          @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value)) : "".html_safe
+          @unchecked_value ? input_tag(options, @unchecked_value) : "".freeze.html_safe
+        end
+
+        def input_tag(options, unchecked_value)
+          name = "input".freeze
+          new_options = options.slice("name".freeze,
+                                      "disabled".freeze,
+                                      "form".freeze).merge!(
+                                        "type".freeze => "hidden".freeze,
+                                        "value".freeze => unchecked_value)
+          tag(name, new_options)
         end
       end
     end

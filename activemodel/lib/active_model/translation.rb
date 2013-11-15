@@ -42,9 +42,9 @@ module ActiveModel
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
       options   = { count: 1 }.merge!(options)
-      parts     = attribute.to_s.split(".")
+      parts     = attribute.to_s.split(".".freeze)
       attribute = parts.pop
-      namespace = parts.join("/") unless parts.empty?
+      namespace = parts.join("/".freeze) unless parts.empty?
       attributes_scope = "#{self.i18n_scope}.attributes"
 
       if namespace
