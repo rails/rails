@@ -34,6 +34,12 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal '4-a-a-a-a-a-a-a-a-a', firm.to_param
   end
 
+  def test_to_param_class_method_truncates_edge_case
+    firm = Firm.find(4)
+    firm.name = 'David HeinemeierHansson'
+    assert_equal '4-david', firm.to_param
+  end
+
   def test_to_param_class_method_squishes
     firm = Firm.find(4)
     firm.name = "ab \n" * 100
