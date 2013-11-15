@@ -1,3 +1,7 @@
+*   Exit with non-zero status for failed database rake tasks.
+
+    *Jay Hayes*
+
 *   Added `ActiveRecord::Base.to_param` for convenient "pretty" URLs derived from a model's attribute or method.
 
     Example:
