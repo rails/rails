@@ -1093,6 +1093,15 @@ end
 
 we can access `field_error_proc` in views.
 
+Also, you can pass a block to `cattr_*` to set up the attribute with a default value:
+
+```ruby
+class MysqlAdapter < AbstractAdapter
+  # Generates class methods to access @@emulate_booleans with default value of true.
+  cattr_accessor(:emulate_booleans) { true }
+end
+```
+
 The generation of the reader instance method can be prevented by setting `:instance_reader` to `false` and the generation of the writer instance method can be prevented by setting `:instance_writer` to `false`. Generation of both methods can be prevented by setting `:instance_accessor` to `false`. In all cases, the value must be exactly `false` and not any false value.
 
 ```ruby

@@ -8,6 +8,9 @@ class ClassAttributeAccessorTest < ActiveSupport::TestCase
       cattr_accessor :bar,  :instance_writer   => false
       cattr_reader   :shaq, :instance_reader   => false
       cattr_accessor :camp, :instance_accessor => false
+      cattr_accessor(:defa) { 'default_accessor_value' }
+      cattr_reader(:defr) { 'default_reader_value' }
+      cattr_writer(:defw) { 'default_writer_value' }
     end
     @object = @class.new
   end
@@ -57,5 +60,11 @@ class ClassAttributeAccessorTest < ActiveSupport::TestCase
       end
     end
     assert_equal "invalid class attribute name: 1nvalid", exception.message
+  end
+
+  def test_should_use_default_value_if_block_passed
+    assert_equal 'default_accessor_value', @class.defa
+    assert_equal 'default_reader_value', @class.defr
+    assert_equal 'default_writer_value', @class.class_variable_get('@@defw')
   end
 end

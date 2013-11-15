@@ -1,3 +1,14 @@
+*   Unify `cattr_*` interface: allow to pass a block to `cattr_reader`.
+
+    Example:
+
+        class A
+          cattr_reader(:defr) { 'default_reader_value' }
+        end
+        A.defr # => 'default_reader_value'
+
+    *Alexey Chernenkov*
+
 *   Improved compatibility with the stdlib JSON gem.
 
     Previously, calling `::JSON.{generate,dump}` sometimes causes unexpected
