@@ -73,7 +73,9 @@ module ActiveModel
       end
 
       def filtered_options(value)
-        options.except(*RESERVED_OPTIONS).merge!(value: value)
+        filtered = options.except(*RESERVED_OPTIONS)
+        filtered[:value] = value
+        filtered
       end
     end
 
