@@ -17,8 +17,8 @@ module ActiveModel
           raise ArgumentError, "Either :with or :without must be supplied (but not both)"
         end
 
-        check_options_validity(options, :with)
-        check_options_validity(options, :without)
+        check_options_validity :with
+        check_options_validity :without
       end
 
       private
@@ -37,7 +37,7 @@ module ActiveModel
         source.start_with?("^") || (source.end_with?("$") && !source.end_with?("\\$"))
       end
 
-      def check_options_validity(options, name)
+      def check_options_validity(name)
         option = options[name]
         if option && !option.is_a?(Regexp) && !option.respond_to?(:call)
           raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
