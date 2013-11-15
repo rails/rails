@@ -253,8 +253,6 @@ module ActiveRecord
       end
     end
 
-
-
     # Returns true if there are any records.
     def any?
       if block_given?

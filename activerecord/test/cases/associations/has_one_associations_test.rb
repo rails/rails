@@ -509,7 +509,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { Firm.new.account = account }
   end
 
-  def test_has_one_assignment_dont_triggers_save_on_change_of_same_object
+  def test_has_one_assignment_dont_trigger_save_on_change_of_same_object
     pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
     ship = pirate.build_ship(name: 'old name')
     ship.save!
