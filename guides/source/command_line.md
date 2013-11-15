@@ -56,8 +56,6 @@ Rails will set you up with what seems like a huge amount of stuff for such a tin
 
 The `rails server` command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to access your application through a web browser.
 
-INFO: WEBrick isn't your only option for serving Rails. We'll get to that [later](#server-with-different-backends).
-
 With no further work, `rails server` will run our new shiny Rails app:
 
 ```bash
