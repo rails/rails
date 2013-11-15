@@ -23,6 +23,10 @@ module ActiveRecord
     def relation
       @relation ||= Relation.new FakeKlass.new('posts'), :b
     end
+    
+    def relation_with_arel
+      @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table
+    end
 
     (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order]).each do |method|
       test "##{method}!" do
@@ -37,8 +41,9 @@ module ActiveRecord
     end
 
     test '#order! with symbol prepends the table name' do
-      assert relation.order!(:name).equal?(relation)
-      node = relation.order_values.first
+      assert relation_with_arel.order!(:name).equal?(relation_with_arel)
+      node = relation_with_arel.arel.orders.first
+      
       assert node.ascending?
       assert_equal :name, node.expr.name
       assert_equal "posts", node.expr.relation.name
@@ -98,8 +103,8 @@ module ActiveRecord
     end
 
     test '#reorder! with symbol prepends the table name' do
-      assert relation.reorder!(:name).equal?(relation)
-      node = relation.order_values.first
+      assert relation_with_arel.reorder!(:name).equal?(relation_with_arel)
+      node = relation_with_arel.arel.orders.first
 
       assert node.ascending?
       assert_equal :name, node.expr.name

@@ -1045,11 +1045,6 @@ module ActiveRecord
       references = order_args.grep(String)
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
-
-      # if a symbol is given we prepend the quoted table name
-      order_args.map! do |arg|
-        arg.is_a?(Symbol) ? Arel::Nodes::Ascending.new(klass.arel_table[arg]) : arg
-      end
     end
 
     # Checks to make sure that the arguments are not blank. Note that if some
