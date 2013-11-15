@@ -81,6 +81,14 @@ module ActiveRecord
       #   user.id         # => 123
       #   user_path(user) # => "/users/123-fancy-pants"
       #
+      #   user = User.find_by(name: 'David Heinemeier Hansson')
+      #   user.id         # => 124
+      #   user_path(user) # => "/users/124-david-heinemeier"
+      #
+      #   user = User.find_by(name: 'David HeinemeierHansson')
+      #   user.id         # => 125
+      #   user_path(user) # => "/users/125-david"
+      #
       # Because the generated param begins with the record's +id+, it is
       # suitable for passing to +find+. In a controller, for example:
       #
