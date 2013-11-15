@@ -195,8 +195,7 @@ module ActionDispatch
             end
 
             if via = options[:via]
-              list = Array(via).map { |m| m.to_s.dasherize.upcase }
-              @conditions[:request_method] = list
+              @conditions[:request_method] = Array(via).map { |m| m.to_s.dasherize.upcase }
             end
           end
 
