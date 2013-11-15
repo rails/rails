@@ -1,3 +1,17 @@
+*   Improved compatibility with the stdlib JSON gem.
+
+    Previously, calling `::JSON.{generate,dump}` sometimes causes unexpected
+    failures such as intridea/multi_json#86.
+
+    `::JSON.{generate,dump}` now bypasses the ActiveSupport JSON encoder
+    completely and yields the same result with or without ActiveSupport. This
+    means that it will **not** call `as_json` and will ignore any options that
+    the JSON gem does not natively understand. To invoke ActiveSupport's JSON
+    encoder instead, use `obj.to_json(options)` or
+    `ActiveSupport::JSON.encode(obj, options)`.
+
+    *Godfrey Chan*
+
 *   Fix Active Support `Time#to_json` and `DateTime#to_json` to return 3 decimal
     places worth of fractional seconds, similar to `TimeWithZone`.
 

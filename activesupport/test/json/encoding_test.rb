@@ -32,6 +32,19 @@ class TestJSONEncoding < ActiveSupport::TestCase
     end
   end
 
+  class HashWithAsJson < Hash
+    attr_accessor :as_json_called
+
+    def initialize(*)
+      super
+    end
+
+    def as_json(options={})
+      @as_json_called = true
+      super
+    end
+  end
+
   TrueTests     = [[ true,  %(true)  ]]
   FalseTests    = [[ false, %(false) ]]
   NilTests      = [[ nil,   %(null)  ]]
@@ -365,6 +378,38 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal nil,   nil.as_json
     assert_equal true,  true.as_json
     assert_equal false, false.as_json
+  end
+
+  def test_json_gem_dump_by_passing_active_support_encoder
+    h = HashWithAsJson.new
+    h[:foo] = "hello"
+    h[:bar] = "world"
+
+    assert_equal %({"foo":"hello","bar":"world"}), JSON.dump(h)
+    assert_nil h.as_json_called
+  end
+
+  def test_json_gem_generate_by_passing_active_support_encoder
+    h = HashWithAsJson.new
+    h[:foo] = "hello"
+    h[:bar] = "world"
+
+    assert_equal %({"foo":"hello","bar":"world"}), JSON.generate(h)
+    assert_nil h.as_json_called
+  end
+
+  def test_json_gem_pretty_generate_by_passing_active_support_encoder
+    h = HashWithAsJson.new
+    h[:foo] = "hello"
+    h[:bar] = "world"
+
+    assert_equal <<EXPECTED.chomp, JSON.pretty_generate(h)
+{
+  "foo": "hello",
+  "bar": "world"
+}
+EXPECTED
+    assert_nil h.as_json_called
   end
 
   protected
