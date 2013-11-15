@@ -176,12 +176,13 @@ module ActionDispatch
               end
             end
 
-            @conditions[:required_defaults] = []
+            required_defaults = []
             options.each do |key, required_default|
               unless segment_keys.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
-                @conditions[:required_defaults] << key
+                required_defaults << key
               end
             end
+            @conditions[:required_defaults] = required_defaults
 
             via_all = options.delete(:via) if options[:via] == :all
 
