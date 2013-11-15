@@ -164,27 +164,6 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_mysql_begin_db_transaction_can_throw_an_exception
-    @connection.expects(:exec_query).with('BEGIN').raises('OH NOES')
-    assert_raise RuntimeError do
-      @connection.begin_db_transaction
-    end
-  end
-
-  def test_mysql_commit_db_transaction_can_throw_an_exception
-    @connection.expects(:execute).with('COMMIT').raises('OH NOES')
-    assert_raise RuntimeError do
-      @connection.commit_db_transaction
-    end
-  end
-
-  def test_mysql_rollback_db_transaction_can_throw_an_exception
-    @connection.expects(:execute).with('ROLLBACK').raises('OH NOES')
-    assert_raise RuntimeError do
-      @connection.rollback_db_transaction
-    end
-  end
-
   private
 
   def run_without_connection
