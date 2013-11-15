@@ -18,8 +18,12 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   class Custom
+    def initialize(serialized)
+      @serialized = serialized
+    end
+
     def as_json(options)
-      'custom'
+      @serialized
     end
   end
 
@@ -81,7 +85,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
   HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
-  CustomTests   = [[ Custom.new, '"custom"' ]]
+  CustomTests   = [[ Custom.new("custom"), '"custom"' ],
+                   [ Custom.new(nil), 'null' ],
+                   [ Custom.new(:a), '"a"' ],
+                   [ Custom.new([ :foo, "bar" ]), '["foo","bar"]' ],
+                   [ Custom.new({ :foo => "hello", :bar => "world" }), '{"bar":"world","foo":"hello"}' ],
+                   [ Custom.new(Hashlike.new), '{"bar":"world","foo":"hello"}' ],
+                   [ Custom.new(Custom.new(Custom.new(:a))), '"a"' ]]
 
   RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
 
