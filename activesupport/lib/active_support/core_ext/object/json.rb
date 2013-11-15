@@ -115,7 +115,7 @@ class BigDecimal
   # BigDecimal, it still has the chance to post-process the string and get the
   # real value.
   #
-  # Use <tt>ActiveSupport.use_standard_json_big_decimal_format = true</tt> to
+  # Use <tt>ActiveSupport.encode_big_decimal_as_string = true</tt> to
   # override this behavior.
   def as_json(options = nil) #:nodoc:
     if finite?
