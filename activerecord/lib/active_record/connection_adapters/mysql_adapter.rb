@@ -462,8 +462,6 @@ module ActiveRecord
 
       def begin_db_transaction #:nodoc:
         exec_query "BEGIN"
-      rescue Mysql::Error
-        # Transactions aren't supported
       end
 
       private
