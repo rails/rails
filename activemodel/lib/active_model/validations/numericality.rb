@@ -48,7 +48,7 @@ module ActiveModel
             option_value = record.send(option_value) if option_value.is_a?(Symbol)
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge(count: option_value))
+              record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
             end
           end
         end
