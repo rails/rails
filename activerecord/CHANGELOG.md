@@ -2,28 +2,28 @@
 
     Example:
 
-      class User < ActiveRecord::Base
-        to_param :name
-      end
+        class User < ActiveRecord::Base
+          to_param :name
+        end
 
-      user = User.find_by(name: 'Fancy Pants')
-      user.id       # => 123
-      user.to_param # => "123-fancy-pants"
+        user = User.find_by(name: 'Fancy Pants')
+        user.id       # => 123
+        user.to_param # => "123-fancy-pants"
 
     *Javan Makhmali*
 
 *   Added `ActiveRecord::Base.no_touching`, which allows ignoring touch on models.
 
-    Examples:
+    Example:
 
-      Post.no_touching do
-        Post.first.touch
-      end
+        Post.no_touching do
+          Post.first.touch
+        end
 
     *Sam Stephenson*, *Damien Mathieu*
 
 *   Prevent the counter cache from being decremented twice when destroying
-    a record on a has_many :through association.
+    a record on a `has_many :through` association.
 
     Fixes #11079.
 
@@ -36,7 +36,7 @@
 
     *Adam Williams*, *Yves Senn*
 
-*   Fix bug where has_one associaton record update result in crash, when replaced with itself.
+*   Fix bug where `has_one` associaton record update result in crash, when replaced with itself.
 
     Fixes #12834.
 
