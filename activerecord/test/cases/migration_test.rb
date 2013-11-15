@@ -63,6 +63,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path = ActiveRecord::Migrator.migrations_paths
     ActiveRecord::Migrator.migrations_paths = migrations_path
 
     ActiveRecord::Migrator.up(migrations_path)
@@ -74,6 +75,8 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 0, ActiveRecord::Migrator.current_version
     assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal true, ActiveRecord::Migrator.needs_migration?
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
