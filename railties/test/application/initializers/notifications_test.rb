@@ -39,5 +39,18 @@ module ApplicationTests
       assert_equal 1, logger.logged(:debug).size
       assert_match(/SHOW tables/, logger.logged(:debug).last)
     end
+
+    test 'rails load_config_initializer event is instrumented' do
+      app_file 'config/initializers/foo.rb', ''
+
+      events = []
+      callback = -> (*_) { events << _ }
+      ActiveSupport::Notifications.subscribed(callback, 'load_config_initializer.railties') do
+        app
+      end
+
+      assert_equal %w[load_config_initializer.railties], events.map(&:first)
+      assert_includes events.first.last[:initializer], 'config/initializers/foo.rb'
+    end
   end
 end
