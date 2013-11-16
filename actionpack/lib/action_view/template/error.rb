@@ -56,13 +56,13 @@ module ActionView
     class Error < ActionViewError #:nodoc:
       SOURCE_CODE_RADIUS = 3
 
-      attr_reader :original_exception, :backtrace
+      attr_reader :original_exception
 
       def initialize(template, original_exception)
         super(original_exception.message)
         @template, @original_exception = template, original_exception
         @sub_templates = nil
-        @backtrace = original_exception.backtrace
+        set_backtrace(original_exception.backtrace)
       end
 
       def file_name
