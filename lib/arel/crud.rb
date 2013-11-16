@@ -2,7 +2,7 @@ module Arel
   ###
   # FIXME hopefully we can remove this
   module Crud
-    def compile_update values
+    def compile_update values, pk
       um = UpdateManager.new @engine
 
       if Nodes::SqlLiteral === values
@@ -10,7 +10,7 @@ module Arel
       else
         relation = values.first.first.relation
       end
-      um.key= relation.primary_key
+      um.key = pk
       um.table relation
       um.set values
       um.take @ast.limit.expr if @ast.limit
