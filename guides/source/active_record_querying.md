@@ -1293,7 +1293,7 @@ especially useful if a `default_scope` is specified in the model and should not 
 applied for this particular query.
 
 ```ruby
-Client.unscoped.all
+Client.unscoped.load
 ```
 
 This method removes all scoping and will do a normal query on the table.
