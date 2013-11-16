@@ -624,20 +624,24 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
 end
 
 class LoadAllFixturesTest < ActiveRecord::TestCase
-  self.fixture_path = FIXTURES_ROOT + "/all"
-  fixtures :all
-
   def test_all_there
+    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixtures :all
+
     assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
   end
 end
 
 class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
-  self.fixture_path = Pathname.new(FIXTURES_ROOT).join('all')
-  fixtures :all
-
   def test_all_there
+    self.class.fixture_path = Pathname.new(FIXTURES_ROOT).join('all')
+    self.class.fixtures :all
+
     assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
   end
 end
 
