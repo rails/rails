@@ -79,7 +79,8 @@ ActiveRecord::Schema.define do
     t.integer     :value
   end
 
-  create_table :binaries, force: true do |t|
+  create_table :binaries, force: true, id: false do |t|
+    t.primary_key :id, :primary_key, limit: 3
     t.string :name
     t.binary :data
     t.binary :short_data, limit: 2048
@@ -803,7 +804,6 @@ ActiveRecord::Schema.define do
     t.string :employable_type
     t.integer :department_id
   end
-
 
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
