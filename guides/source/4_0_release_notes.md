@@ -173,7 +173,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/a
 
 * `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method, but you can still get the old behavior by using the new `Object#try!`.
 
-* `String#to_date` now raises `Argument Error: invalid date` instead of `NoMethodError: undefined method 'div' for nil:NilClass`
+* `String#to_date` now raises `ArgumentError: invalid date` instead of `NoMethodError: undefined method 'div' for nil:NilClass`
   when given an invalid date. It is now the same as `Date.parse`, and it accepts more invalid dates than 3.x, such as:
 
   ```
