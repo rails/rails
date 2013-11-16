@@ -49,6 +49,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     ensure
       # Restore column(s) dropped by `drop extension hstore cascade;`
       load_schema
+      ActiveRecord::FixtureSet.reset_cache
     end
 
     def test_column

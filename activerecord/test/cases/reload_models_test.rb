@@ -6,6 +6,8 @@ class ReloadModelsTest < ActiveRecord::TestCase
   fixtures :pets
 
   def test_has_one_with_reload
+    old_owner_class = Owner
+
     pet = Pet.find_by_name('parrot')
     pet.owner = Owner.find_by_name('ashley')
 
@@ -18,5 +20,8 @@ class ReloadModelsTest < ActiveRecord::TestCase
     pet = Pet.find_by_name('parrot')
     pet.owner = Owner.find_by_name('ashley')
     assert_equal pet.owner, Owner.find_by_name('ashley')
+
+    Object.class_eval { remove_const :Owner }
+    Object.class_eval { const_set :Owner, old_owner_class }
   end
 end
