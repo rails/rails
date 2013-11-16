@@ -91,13 +91,13 @@ module Rails
         github = options[:github]
         path   = options[:path]
 
-        if github
-          @extra_entries << GemfileEntry.github(name, github)
-        elsif path
-          @extra_entries << GemfileEntry.path(name, path)
-        else
-          @extra_entries << GemfileEntry.version(name, version)
-        end
+        @extra_entries << if github
+                            GemfileEntry.github(name, github)
+                          elsif path
+                            GemfileEntry.path(name, path)
+                          else
+                            GemfileEntry.version(name, version)
+                          end
         self
       end
 
@@ -194,11 +194,11 @@ module Rails
         say_status :apply, path, verbose
         shell.padding += 1 if verbose
 
-        if is_uri
-          contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-        else
-          contents = open(path) {|io| io.read }
-        end
+        contents = if is_uri
+                     open(path, "Accept" => "application/x-thor-template") {|io| io.read }
+                   else
+                     open(path) {|io| io.read }
+                   end
 
         target.instance_eval(contents, path)
         shell.padding -= 1 if verbose
