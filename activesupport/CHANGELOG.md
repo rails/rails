@@ -1,3 +1,12 @@
+*   Added `Object#not_in?` method for better readability and convenience.
+
+    Example:
+
+        profiles = ['developer', 'tester', 'designer']
+        'artist'.not_in?(profiles) # => true
+
+    *Kuldeep Aggarwal*
+
 *   Unify `cattr_*` interface: allow to pass a block to `cattr_reader`.
 
     Example:
