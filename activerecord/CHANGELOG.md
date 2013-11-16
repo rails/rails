@@ -1,3 +1,7 @@
+*   Checks to see if the record contains the foreign key to set the inverse automatically.
+
+    *Edo Balvers*
+
 *   Exit with non-zero status for failed database rake tasks.
 
     *Jay Hayes*

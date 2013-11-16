@@ -460,6 +460,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal ['id'], posts(:welcome).comments.select(:id).first.attributes.keys
   end
 
+   def test_select_without_foreign_key
+    assert_equal companies(:first_firm).accounts.first.credit_limit, companies(:first_firm).accounts.select(:credit_limit).first.credit_limit
+   end
+
   def test_adding
     force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")
