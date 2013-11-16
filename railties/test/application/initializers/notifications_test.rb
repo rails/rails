@@ -44,7 +44,7 @@ module ApplicationTests
       app_file 'config/initializers/foo.rb', ''
 
       events = []
-      callback = -> (*_) { events << _ }
+      callback = ->(*_) { events << _ }
       ActiveSupport::Notifications.subscribed(callback, 'load_config_initializer.railties') do
         app
       end
