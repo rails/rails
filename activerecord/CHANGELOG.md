@@ -1,3 +1,7 @@
+*   Checks to see if the record contains the foreign key to set the inverse automatically.
+
+    *Edo Balvers*
+
 *   Prevent the counter cache from being decremented twice when destroying
     a record on a has_many :through association.
 
