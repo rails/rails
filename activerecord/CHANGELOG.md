@@ -1,3 +1,7 @@
+*   Checks to see if the record contains the foreign_key to set the inverse automatically
+
+    *Edo Balvers*
+
 *   `.unscope` now removes conditions specified in `default_scope`.
 
     *Jon Leighton*
