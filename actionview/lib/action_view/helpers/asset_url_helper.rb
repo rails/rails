@@ -194,7 +194,9 @@ module ActionView
         host = config.asset_host if defined? config.asset_host
         host ||= request.base_url if request && options[:protocol] == :request
 
-        if host.respond_to?(:call)
+        if !(defined? host)
+          return
+        elsif host.respond_to?(:call)
           arity = host.respond_to?(:arity) ? host.arity : host.method(:call).arity
           args = [source]
           args << request if request && (arity > 1 || arity < 0)
