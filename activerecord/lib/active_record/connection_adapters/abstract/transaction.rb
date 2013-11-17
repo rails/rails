@@ -118,7 +118,7 @@ module ActiveRecord
       end
 
       def add_record(record)
-        if record.has_transactional_callbacks?
+        if record.has_transactional_callbacks? || record.has_remembered_start_transaction_state?
           records << record
         else
           record.set_transaction_state(@state)

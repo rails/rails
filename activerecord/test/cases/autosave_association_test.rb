@@ -566,8 +566,6 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
 end
 
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
-
   def setup
     super
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
