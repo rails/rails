@@ -906,10 +906,6 @@ module ActionDispatch
             (parent || {}).except(*override_keys(child)).merge!(child)
           end
 
-          def merge_shallow_scope(parent, child) #:nodoc:
-            child ? true : false
-          end
-
           def override_keys(child) #:nodoc:
             child.key?(:only) || child.key?(:except) ? [:only, :except] : []
           end
