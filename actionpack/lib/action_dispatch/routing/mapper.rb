@@ -859,18 +859,12 @@ module ActionDispatch
           def merge_path_scope(parent, child) #:nodoc:
             Mapper.normalize_path("#{parent}/#{child}")
           end
-
-          def merge_shallow_path_scope(parent, child) #:nodoc:
-            Mapper.normalize_path("#{parent}/#{child}")
-          end
+          alias_method :merge_shallow_path_scope, :merge_path_scope
 
           def merge_as_scope(parent, child) #:nodoc:
             parent ? "#{parent}_#{child}" : child
           end
-
-          def merge_shallow_prefix_scope(parent, child) #:nodoc:
-            parent ? "#{parent}_#{child}" : child
-          end
+          alias_method :merge_shallow_prefix_scope, :merge_as_scope
 
           def merge_module_scope(parent, child) #:nodoc:
             parent ? "#{parent}/#{child}" : child
@@ -879,22 +873,13 @@ module ActionDispatch
           def merge_controller_scope(parent, child) #:nodoc:
             child
           end
-
-          def merge_action_scope(parent, child) #:nodoc:
-            child
-          end
+          alias_method :merge_action_scope, :merge_controller_scope
 
           def merge_path_names_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
-
-          def merge_constraints_scope(parent, child) #:nodoc:
-            merge_options_scope(parent, child)
-          end
-
-          def merge_defaults_scope(parent, child) #:nodoc:
-            merge_options_scope(parent, child)
-          end
+          alias_method :merge_constraints_scope, :merge_path_names_scope
+          alias_method :merge_defaults_scope, :merge_path_names_scope
 
           def merge_blocks_scope(parent, child) #:nodoc:
             merged = parent ? parent.dup : []
