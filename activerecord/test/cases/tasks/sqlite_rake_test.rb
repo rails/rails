@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'pathname'
+require 'active_record/tasks/database_tasks'
 
 module ActiveRecord
   class SqliteDBCreateTest < ActiveRecord::TestCase
