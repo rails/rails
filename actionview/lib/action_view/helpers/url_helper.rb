@@ -328,6 +328,7 @@ module ActionView
       # specialize the default behavior (e.g., show a "Start Here" link rather
       # than the link's text).
       #
+      #
       # ==== Examples
       # Let's say you have a navigation menu...
       #
@@ -361,6 +362,27 @@ module ActionView
       #     %>
       def link_to_unless_current(name, options = {}, html_options = {}, &block)
         link_to_unless current_page?(options), name, options, html_options, &block
+      end
+
+      # Creates a link tag with the result of yielding the block, unless the current
+      # request URI is the same as the links, in which case only the result of yielding
+      # the block is returned.
+      #
+      # ==== Examples
+      # If you want to create a link with html elements inside, you can do:
+      #
+      #    <%= multiline_link_to_unless_current({action: "index"}) do %>
+      #           <p>This is an explanation of the link<p>
+      #           <span>Go Back</span>
+      #    <% end %>
+      def multiline_link_to_unless_current(options = {}, html_options = {}, &block)
+        raise ArgumentError, "missing a block" unless block_given?
+
+        if current_page?(options)
+          block.arity <= 1 ? capture(&block) : capture(options, html_options, &block)
+        else
+          link_to options, html_options, &block
+        end
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
