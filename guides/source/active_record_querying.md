@@ -1095,7 +1095,7 @@ Active Record lets you eager load any number of associations with a single `Mode
 #### Array of Multiple Associations
 
 ```ruby
-Post.includes(:category, :comments)
+Post.includes(:category, :comment)
 ```
 
 This loads all the posts and the associated category and comments for each post.
@@ -1115,7 +1115,7 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 However if you must do this, you may use `where` as you would normally.
 
 ```ruby
-Post.includes(:comments).where("comments.visible" => true)
+Post.includes(:comment).where("comments.visible" => true)
 ```
 
 This would generate a query which contains a `LEFT OUTER JOIN` whereas the `joins` method would generate one using the `INNER JOIN` function instead.
