@@ -473,6 +473,19 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to_unless_current("Listing", "http://www.example.com/")
   end
 
+  def test_multiline_link_unless_current
+    @request = request_for_url("/show")
+
+    assert_equal %{<a href="http://www.example.com/"><p>This is an explanation of the link</p><span>Listing</span></a>},
+      multiline_link_to_unless_current("http://www.example.com/") {
+        "<p>This is an explanation of the link</p><span>Listing</span>".html_safe
+      }
+    assert_equal %{<a href="/"><p>This is an explanation of the link</p><span>Listing</span></a>},
+      multiline_link_to_unless_current("/") {
+        "<p>This is an explanation of the link</p><span>Listing</span>".html_safe
+      }
+  end
+
   def test_mail_to
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">david@loudthinking.com</a>}, mail_to("david@loudthinking.com")
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">David Heinemeier Hansson</a>}, mail_to("david@loudthinking.com", "David Heinemeier Hansson")
