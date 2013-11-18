@@ -196,9 +196,9 @@ module ActionDispatch # :nodoc:
     # Returns the content of the response as a string. This contains the contents
     # of any calls to <tt>render</tt>.
     def body
-      strings = []
-      each { |part| strings << part.to_s }
-      strings.join
+      string = ''
+      each { |part| string << part.to_s }
+      string
     end
 
     EMPTY = " "
