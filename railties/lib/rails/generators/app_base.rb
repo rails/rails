@@ -134,12 +134,12 @@ module Rails
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
-            gem 'arel',      github: 'rails/arel'
+            gem 'arel',      github: 'rails/arel', branch: '4-0-stable'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
-            gem 'rails',     github: 'rails/rails'
-            gem 'arel',      github: 'rails/arel'
+            gem 'rails',     github: 'rails/rails', branch: '4-0-stable'
+            gem 'arel',      github: 'rails/arel', branch: '4-0-stable'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc

@@ -105,12 +105,14 @@ module SharedGeneratorTests
     quietly { generator.invoke_all }
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
+    assert_file 'Gemfile', %r{^gem\s+["']arel["'],\s+github:\s+["']#{Regexp.escape("rails/arel")}["'],\s+branch:\s+["']#{Regexp.escape("4-0-stable")}["']$}
   end
 
   def test_edge_option
     generator([destination_root], edge: true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("4-0-stable")}["']$}
+    assert_file 'Gemfile', %r{^gem\s+["']arel["'],\s+github:\s+["']#{Regexp.escape("rails/arel")}["'],\s+branch:\s+["']#{Regexp.escape("4-0-stable")}["']$}
   end
 
   def test_skip_gemfile
