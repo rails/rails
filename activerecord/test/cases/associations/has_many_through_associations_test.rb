@@ -1095,7 +1095,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [posts(:thinking)], person.reload.first_posts
   end
 
-  def test_has_many_through_with_includes_in_through_association_scope
+  test "has many through with includes in through association scope" do
     assert_not_empty posts(:welcome).author_address_extra_with_address
+  end
+
+  test "insert records via has_many_through association with scope" do
+    club = Club.create!
+    member = Member.create!
+    Membership.create!(club: club, member: member)
+
+    club.favourites << member
+    assert_equal [member], club.favourites
+
+    club.reload
+    assert_equal [member], club.favourites
   end
 end

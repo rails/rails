@@ -1,3 +1,9 @@
+*   Fix insertion of records via has_many_through association with scope
+
+    Fixes #3548
+
+    *Ivan Antropov*
+
 *   Checks to see if the record contains the foreign key to set the inverse automatically.
 
     *Edo Balvers*

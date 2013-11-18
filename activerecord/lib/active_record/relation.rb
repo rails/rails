@@ -527,9 +527,9 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
-    def where_values_hash
+    def where_values_hash(relation_table_name = table_name)
       equalities = where_values.grep(Arel::Nodes::Equality).find_all { |node|
-        node.left.relation.name == table_name
+        node.left.relation.name == relation_table_name
       }
 
       binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
