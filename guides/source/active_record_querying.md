@@ -473,7 +473,7 @@ In the case of a belongs_to relationship, an association key can be used to spec
 
 ```ruby
 Post.where(author: author)
-Author.joins(:posts).where(posts: {author: author})
+Author.joins(:post).where(posts: {author: author})
 ```
 
 NOTE: The values cannot be symbols. For example, you cannot do `Client.where(status: :active)`.
@@ -975,7 +975,7 @@ Now all of the following will produce the expected join queries using `INNER JOI
 #### Joining a Single Association
 
 ```ruby
-Category.joins(:posts)
+Category.joins(:post)
 ```
 
 This produces:
@@ -990,7 +990,7 @@ Or, in English: "return a Category object for all categories with posts". Note t
 #### Joining Multiple Associations
 
 ```ruby
-Post.joins(:category, :comments)
+Post.joins(:category, :comment)
 ```
 
 This produces:
@@ -1041,14 +1041,14 @@ You can specify conditions on the joined tables using the regular [Array](#array
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Client.joins(:orders).where('orders.created_at' => time_range)
+Client.joins(:order).where('orders.created_at' => time_range)
 ```
 
 An alternative and cleaner syntax is to nest the hash conditions:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Client.joins(:orders).where(orders: {created_at: time_range})
+Client.joins(:order).where(orders: {created_at: time_range})
 ```
 
 This will find all clients who have orders that were created yesterday, again using a `BETWEEN` SQL expression.
