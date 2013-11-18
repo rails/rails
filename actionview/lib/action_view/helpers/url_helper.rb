@@ -362,6 +362,14 @@ module ActionView
       def link_to_unless_current(name, options = {}, html_options = {}, &block)
         link_to_unless current_page?(options), name, options, html_options, &block
       end
+      
+      def link_to_unless_current(options = {}, html_options = {}, &block)
+        if current_page?(options)
+          block.arity <= 1 ? capture(&block) : capture(options, html_options, &block)
+        else
+          link_to options, html_options, &block
+        end
+      end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
       # +options+ unless +condition+ is true, in which case only the name is
