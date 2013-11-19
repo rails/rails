@@ -6,6 +6,11 @@
 
     *Matthew Draper*
 
+*   `pk_and_sequence_for` now ensures that only the pg_depend entries
+    pointing to pg_class, and thus only sequence objects, are considered.
+
+    *Josh Williams*
+
 *   `where.not` adds `references` for `includes` like normal `where` calls do.
 
     Fixes #14406.
