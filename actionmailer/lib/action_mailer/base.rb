@@ -433,7 +433,7 @@ module ActionMailer
       #
       # Aliased by ::default_options=
       def default(value = nil)
-        self.default_params = default_params.merge(value).freeze if value
+        self.default_params = default_params.merge(value).freeze if value.present?
         default_params
       end
       # Allows to set defaults through app configuration:
