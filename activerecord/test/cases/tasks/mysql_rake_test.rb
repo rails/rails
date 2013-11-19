@@ -1,5 +1,4 @@
 require 'cases/helper'
-require 'active_record/tasks/database_tasks'
 
 module ActiveRecord
   class MysqlDBCreateTest < ActiveRecord::TestCase
