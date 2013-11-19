@@ -338,7 +338,7 @@ shallow do
 end
 ```
 
-There exists two options for `scope` to customize shallow routes. `:shallow_path` prefixes member paths with the specified parameter:
+There exist two options for `scope` to customize shallow routes. `:shallow_path` prefixes member paths with the specified parameter:
 
 ```ruby
 scope shallow_path: "sekret" do
@@ -384,7 +384,7 @@ The comments resource here will have the following routes generated for it:
 
 ### Routing concerns
 
-Routing Concerns allows you to declare common routes that can be reused inside others resources and routes. To define a concern:
+Routing Concerns allows you to declare common routes that can be reused inside other resources and routes. To define a concern:
 
 ```ruby
 concern :commentable do
