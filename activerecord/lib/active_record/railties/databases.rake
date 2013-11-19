@@ -8,47 +8,31 @@ db_namespace = namespace :db do
 
   namespace :create do
     task :all => :load_config do
-      begin
-        ActiveRecord::Tasks::DatabaseTasks.create_all
-      rescue
-        exit(1)
-      end
+      ActiveRecord::Tasks::DatabaseTasks.create_all
     end
   end
 
   desc 'Create the database from DATABASE_URL or config/database.yml for the current Rails.env (use db:create:all to create all databases in the config)'
   task :create => [:load_config] do
-    begin
-      if ENV['DATABASE_URL']
-        ActiveRecord::Tasks::DatabaseTasks.create_database_url
-      else
-        ActiveRecord::Tasks::DatabaseTasks.create_current
-      end
-    rescue
-      exit(1)
+    if ENV['DATABASE_URL']
+      ActiveRecord::Tasks::DatabaseTasks.create_database_url
+    else
+      ActiveRecord::Tasks::DatabaseTasks.create_current
     end
   end
 
   namespace :drop do
     task :all => :load_config do
-      begin
-        ActiveRecord::Tasks::DatabaseTasks.drop_all
-      rescue
-        exit(1)
-      end
+      ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
   end
 
   desc 'Drops the database using DATABASE_URL or the current Rails.env (use db:drop:all to drop all databases)'
   task :drop => [:load_config] do
-    begin
-      if ENV['DATABASE_URL']
-        ActiveRecord::Tasks::DatabaseTasks.drop_database_url
-      else
-        ActiveRecord::Tasks::DatabaseTasks.drop_current
-      end
-    rescue
-      exit(1)
+    if ENV['DATABASE_URL']
+      ActiveRecord::Tasks::DatabaseTasks.drop_database_url
+    else
+      ActiveRecord::Tasks::DatabaseTasks.drop_current
     end
   end
 

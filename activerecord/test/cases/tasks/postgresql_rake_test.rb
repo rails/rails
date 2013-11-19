@@ -60,9 +60,7 @@ module ActiveRecord
       $stderr.expects(:puts).
         with("Couldn't create database for #{@configuration.inspect}")
 
-      assert_raises(Exception) do
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
     def test_create_when_database_exists_outputs_info_to_stderr
@@ -72,9 +70,7 @@ module ActiveRecord
         ActiveRecord::StatementInvalid.new('database "my-app-db" already exists')
       )
 
-      assert_raises(ActiveRecord::Tasks::DatabaseAlreadyExists) do
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
   end
 
