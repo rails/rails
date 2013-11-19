@@ -473,7 +473,7 @@ In the case of a belongs_to relationship, an association key can be used to spec
 
 ```ruby
 Post.where(author: author)
-Author.joins(:posts).where(posts: {author: author})
+Author.joins(:posts).where(posts: { author: author })
 ```
 
 NOTE: The values cannot be symbols. For example, you cannot do `Client.where(status: :active)`.
@@ -1016,7 +1016,7 @@ Or, in English: "return all posts that have a comment made by a guest."
 #### Joining Nested Associations (Multiple Level)
 
 ```ruby
-Category.joins(posts: [{comments: :guest}, :tags])
+Category.joins(posts: [{ comments: :guest }, :tags])
 ```
 
 This produces:
@@ -1042,7 +1042,7 @@ An alternative and cleaner syntax is to nest the hash conditions:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Client.joins(:orders).where(orders: {created_at: time_range})
+Client.joins(:orders).where(orders: { created_at: time_range })
 ```
 
 This will find all clients who have orders that were created yesterday, again using a `BETWEEN` SQL expression.
@@ -1103,7 +1103,7 @@ This loads all the posts and the associated category and comments for each post.
 #### Nested Associations Hash
 
 ```ruby
-Category.includes(posts: [{comments: :guest}, :tags]).find(1)
+Category.includes(posts: [{ comments: :guest }, :tags]).find(1)
 ```
 
 This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.
@@ -1604,7 +1604,7 @@ Client.where(first_name: 'Ryan').count
 You can also use various finder methods on a relation for performing complex calculations:
 
 ```ruby
-Client.includes("orders").where(first_name: 'Ryan', orders: {status: 'received'}).count
+Client.includes("orders").where(first_name: 'Ryan', orders: { status: 'received' }).count
 ```
 
 Which will execute:
