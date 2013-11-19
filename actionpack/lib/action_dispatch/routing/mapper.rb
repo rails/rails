@@ -5,11 +5,12 @@ require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
+require 'set'
 
 module ActionDispatch
   module Routing
     class Mapper
-      URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
+      URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port].to_set
       SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
                        :controller, :action, :path_names, :constraints,
                        :shallow, :blocks, :defaults, :options]
@@ -51,7 +52,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix, :format]
+        IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix, :format].to_set
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
@@ -957,11 +958,11 @@ module ActionDispatch
       module Resources
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
-        VALID_ON_OPTIONS  = [:new, :collection, :member]
+        VALID_ON_OPTIONS  = [:new, :collection, :member].to_set
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
-        CANONICAL_ACTIONS = %w(index create new show update destroy)
-        RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
-        RESOURCE_SCOPES = [:resource, :resources]
+        CANONICAL_ACTIONS = %w(index create new show update destroy).to_set
+        RESOURCE_METHOD_SCOPES = [:collection, :member, :new].to_set
+        RESOURCE_SCOPES = [:resource, :resources].to_set
 
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
