@@ -893,7 +893,7 @@ and performs the validation on it. The custom validator is called using the
 ```ruby
 class MyValidator < ActiveModel::Validator
   def validate(record)
-    unless record.name.starts_with? 'X'
+    unless record.name.start_with? 'X'
       record.errors[:name] << 'Need a name starting with X please!'
     end
   end
