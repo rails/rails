@@ -12,7 +12,7 @@ gem 'bcrypt-ruby', '~> 3.1.2'
 gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0'
-gem 'arel', github: 'rails/arel', branch: '4-0-stable'
+gem 'arel', github: 'rails/arel'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
