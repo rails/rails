@@ -179,7 +179,8 @@ module ActionDispatch
 
       private
         def draw_section(routes)
-          name_width, verb_width, path_width = widths(routes)
+          header_lengths = ['Prefix', 'Verb', 'URI Pattern'].map(&:length)
+          name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
           routes.map do |r|
             "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"

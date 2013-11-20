@@ -1,3 +1,7 @@
+*   Fix formatting for `rake routes` when a section is shorter than a header
+
+    *Sıtkı Bağdat*
+    
 *   Take a hash with options inside array in #url_for
 
     Example:
