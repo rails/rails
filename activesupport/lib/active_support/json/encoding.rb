@@ -5,6 +5,7 @@ module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
+      :json_encoder, :json_encoder=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
 
@@ -15,11 +16,11 @@ module ActiveSupport
     #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
     #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
     def self.encode(value, options = nil)
-      Encoding::Encoder.new(options).encode(value)
+      Encoding.json_encoder.new(options).encode(value)
     end
 
     module Encoding #:nodoc:
-      class Encoder #:nodoc:
+      class JSONGemEncoder #:nodoc:
         attr_reader :options
 
         def initialize(options = nil)
@@ -108,6 +109,10 @@ module ActiveSupport
         # as a safety measure.
         attr_accessor :escape_html_entities_in_json
 
+        # Sets the encoder used by Rails to encode Ruby objects into JSON strings
+        # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
+        attr_accessor :json_encoder
+
         # Deprecate CircularReferenceError
         def const_missing(name)
           if name == :CircularReferenceError
@@ -133,6 +138,7 @@ module ActiveSupport
 
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = true
+      self.json_encoder = JSONGemEncoder
     end
   end
 end
