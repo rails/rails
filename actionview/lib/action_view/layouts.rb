@@ -269,15 +269,6 @@ module ActionView
         _write_layout_method
       end
 
-      # If no layout is supplied, look for a template named the return
-      # value of this method.
-      #
-      # ==== Returns
-      # * <tt>String</tt> - A template name
-      def _implied_layout_name # :nodoc:
-        controller_path
-      end
-
       # Creates a _layout method to be called by _default_layout .
       #
       # If a layout is not explicitly mentioned then look for a layout with the controller's name.
@@ -334,6 +325,17 @@ module ActionView
           end
           private :_layout
         RUBY
+      end
+
+      private
+
+      # If no layout is supplied, look for a template named the return
+      # value of this method.
+      #
+      # ==== Returns
+      # * <tt>String</tt> - A template name
+      def _implied_layout_name # :nodoc:
+        controller_path
       end
     end
 
