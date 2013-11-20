@@ -341,13 +341,19 @@ module ActiveRecord
     #   User.where(name: "John", active: true).unscope(where: :name)
     #       == User.where(active: true)
     #
-    # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
-    # because #except will only affect a particular relation's values. It won't wipe
-    # the order, grouping, etc. when that relation is merged. For example:
+    # This method is similar to <tt>except</tt>, but unlike
+    # <tt>except</tt>, it persists across merges:
     #
-    #   Post.comments.except(:order)
+    #   User.order('email').merge(User.except(:order))
+    #       == User.order('email')
     #
-    # will still have an order if it comes from the default_scope on Comment.
+    #   User.order('email').merge(User.unscope(:order))
+    #       == User.all
+    #
+    # This means it can be used in association definitions:
+    #
+    #   has_many :comments, -> { unscope where: :trashed }
+    #
     def unscope(*args)
       check_if_method_has_arguments!(:unscope, args)
       spawn.unscope!(*args)
@@ -355,6 +361,7 @@ module ActiveRecord
 
     def unscope!(*args) # :nodoc:
       args.flatten!
+      self.unscope_values += args
 
       args.each do |scope|
         case scope
