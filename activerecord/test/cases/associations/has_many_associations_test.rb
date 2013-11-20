@@ -1761,4 +1761,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
     assert_equal 1, speedometer.reload.minivans.to_a.size
   end
+
+  test "can unscope the default scope of the associated model" do
+    car = Car.create!
+    bulb1 = Bulb.create! name: "defaulty", car: car
+    bulb2 = Bulb.create! name: "other",    car: car
+
+    assert_equal [bulb1], car.bulbs
+    assert_equal [bulb1, bulb2], car.all_bulbs.sort_by(&:id)
+  end
 end

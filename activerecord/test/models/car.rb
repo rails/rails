@@ -1,5 +1,6 @@
 class Car < ActiveRecord::Base
   has_many :bulbs
+  has_many :all_bulbs, -> { unscope where: :name }, class_name: "Bulb"
   has_many :funky_bulbs, class_name: 'FunkyBulb', dependent: :destroy
   has_many :foo_bulbs, -> { where(:name => 'foo') }, :class_name => "Bulb"
 

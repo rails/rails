@@ -1,3 +1,8 @@
+*   Make ActiveRecord::Relation#unscope affect relations it is merged in
+    to.
+
+    *Jon Leighton*
+
 *   Use strings to represent non-string `order_values`.
 
     *Yves Senn*
