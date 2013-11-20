@@ -66,6 +66,8 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
 
+* `config.beginning_of_week` sets the default beginning of week for the application. Accepts a valid week day symbol (e.g. `:monday`).
+
 * `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, or an object that implements the cache API. Defaults to `:file_store` if the directory `tmp/cache` exists, and to `:memory_store` otherwise.
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to true.
@@ -128,8 +130,6 @@ numbers. New applications filter out passwords by adding the following `config.f
     This custom store must be defined as `ActionDispatch::Session::MyCustomStore`.
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
-
-* `config.beginning_of_week` sets the default beginning of week for the application. Accepts a valid week day symbol (e.g. `:monday`).
 
 ### Configuring Assets
 
