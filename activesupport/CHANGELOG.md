@@ -11,12 +11,18 @@
         Time.now # => 2013-11-10 15:34:49 -05:00
         Date.today # => Sun, 10 Nov 2013
 
+        end_travel
+        Time.now # => 2013-11-09 15:34:49 -05:00
+
     Example for `#travel_to`:
 
         Time.now # => 2013-11-09 15:34:49 -05:00
         travel_to Time.new(2004, 11, 24, 01, 04, 44)
         Time.now # => 2004-11-24 01:04:44 -05:00
         Date.today # => Wed, 24 Nov 2004
+
+        end_travel
+        Time.now # => 2013-11-09 15:34:49 -05:00
 
     Both of these methods also accept a block, which will return the current time back to its
     original state at the end of the block:
