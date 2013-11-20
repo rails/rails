@@ -158,6 +158,18 @@ module Rails
       end
     end
 
+    def verifier
+      @verifier ||= begin
+        if config.respond_to?(:message_verifier_salt)
+          salt = config.message_verifier_salt
+        end
+
+        salt = salt || 'application verifier'
+        secret = key_generator.generate_key(salt)
+        ActiveSupport::MessageVerifier.new(secret)
+      end
+    end
+
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
