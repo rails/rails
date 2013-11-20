@@ -1,3 +1,42 @@
+*   Add `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These methods change current
+    time to the given time or time difference by stubbing `Time.now` and `Date.today` to return the
+    time or date after the difference calculation, or the time or date that got passed into the
+    method respectively. These methods also accept a block, which will return current time back to
+    its original state at the end of the block.
+
+    Example for `#travel`:
+
+        Time.now # => 2013-11-09 15:34:49 -05:00
+        travel 1.day
+        Time.now # => 2013-11-10 15:34:49 -05:00
+        Date.today # => Sun, 10 Nov 2013
+
+    Example for `#travel_to`:
+
+        Time.now # => 2013-11-09 15:34:49 -05:00
+        travel_to Time.new(2004, 11, 24, 01, 04, 44)
+        Time.now # => 2004-11-24 01:04:44 -05:00
+        Date.today # => Wed, 24 Nov 2004
+
+    Both of these methods also accept a block, which will return the current time back to its
+    original state at the end of the block:
+
+        Time.now # => 2013-11-09 15:34:49 -05:00
+
+        travel 1.day do
+          User.create.created_at # => Sun, 10 Nov 2013 15:34:49 EST -05:00
+        end
+
+        travel_to Time.new(2004, 11, 24, 01, 04, 44) do
+          User.create.created_at # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+        end
+
+        Time.now # => 2013-11-09 15:34:49 -05:00
+
+    This module is included in `ActiveSupport::TestCase` automatically.
+
+    *Prem Sichanugrist*, *DHH*
+
 *   Unify `cattr_*` interface: allow to pass a block to `cattr_reader`.
 
     Example:
