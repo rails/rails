@@ -2,7 +2,7 @@
 <html>
 <head>
   <title><%= camelized %></title>
-  <%- if options[:skip_javascript] -%>
+  <%- if options[:skip_javascript] || options[:skip_turbolinks] -%>
   <%%= stylesheet_link_tag    "application", media: "all" %>
   <%%= javascript_include_tag "application" %>
   <%- else -%>

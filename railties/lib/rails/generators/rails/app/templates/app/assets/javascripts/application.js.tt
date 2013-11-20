@@ -13,6 +13,8 @@
 <% unless options[:skip_javascript] -%>
 //= require <%= options[:javascript] %>
 //= require <%= options[:javascript] %>_ujs
+<% end -%>
+<% unless options[:skip_javascript] || options[:skip_turbolinks] -%>
 //= require turbolinks
 <% end -%>
 //= require_tree .

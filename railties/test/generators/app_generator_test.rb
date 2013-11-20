@@ -305,6 +305,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_turbolinks_is_skipped_if_required
+    run_generator [destination_root, "--skaip-turbolinks"]
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_no_match %r{^//=\s+turbolinks\s}, contents
+    end
+    assert_file "app/views/layouts/application.html.erb" do |contents|
+      assert_match(/stylesheet_link_tag\s+"application", media: "all" %>/, contents)
+      assert_match(/javascript_include_tag\s+"application" \%>/, contents)
+    end
+    assert_file "Gemfile" do |content|
+      assert_no_match(/turbolinks/, content)
+    end
+  end
+
   def test_inclusion_of_debugger
     run_generator
     assert_file "Gemfile", /# gem 'debugger'/
