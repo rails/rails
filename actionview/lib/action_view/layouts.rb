@@ -221,7 +221,7 @@ module ActionView
       # This module is mixed in if layout conditions are provided. This means
       # that if no layout conditions are used, this method is not used
       module LayoutConditions # :nodoc:
-      private
+        private
 
         # Determines whether the current action has a layout definition by
         # checking the action name against the :only and :except conditions
