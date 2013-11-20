@@ -399,17 +399,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
                  ActiveSupport::JSON.decode(json_string_and_date))
   end
 
-  def test_opt_out_big_decimal_string_serialization
-    big_decimal = BigDecimal('2.5')
-
-    begin
-      ActiveSupport.encode_big_decimal_as_string = false
-      assert_equal big_decimal.to_s, big_decimal.to_json
-    ensure
-      ActiveSupport.encode_big_decimal_as_string = true
-    end
-  end
-
   def test_nil_true_and_false_represented_as_themselves
     assert_equal nil,   nil.as_json
     assert_equal true,  true.as_json
