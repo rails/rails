@@ -69,6 +69,7 @@ module ActiveRecord
     end
 
     module ClassMethods
+      DEFAULT_PARAM_LENGTH = 20
       # Defines your model's +to_param+ method to generate "pretty" URLs
       # using +method_name+, which can be any attribute or method that
       # responds to +to_s+.
@@ -93,18 +94,31 @@ module ActiveRecord
       #
       #   params[:id]               # => "123-fancy-pants"
       #   User.find(params[:id]).id # => 123
-      def to_param(method_name = nil)
+      def to_param(method_name = nil, options = {})
         if method_name.nil?
           super()
         else
           define_method :to_param do
             if (default = super()) && (result = send(method_name).to_s).present?
-              "#{default}-#{result.squish.truncate(20, separator: /\s/, omission: nil).parameterize}"
+              "#{default}-#{result.squish.truncate(truncation_length(options), separator: /\s/, omission: nil).parameterize}"
             else
               default
             end
           end
         end
+      end
+    end
+
+    private
+
+    def truncation_length(options)
+      case options[:length]
+      when Proc
+        options[:length].call(self).to_i
+      when Fixnum, Numeric
+        options[:length]
+      else
+        DEFAULT_PARAM_LENGTH
       end
     end
   end
