@@ -66,7 +66,8 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
 
-* `config.beginning_of_week` sets the default beginning of week for the application. Accepts a valid week day symbol (e.g. `:monday`).
+* `config.beginning_of_week` sets the default beginning of week for the
+application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, or an object that implements the cache API. Defaults to `:file_store` if the directory `tmp/cache` exists, and to `:memory_store` otherwise.
 
@@ -329,13 +330,17 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_dispatch.tld_length` sets the TLD (top-level domain) length for the application. Defaults to `1`.
 
-* `config.action_dispatch.http_auth_salt` sets the HTTP Auth salt value. Defaults to `'http authentication'`.
+* `config.action_dispatch.http_auth_salt` sets the HTTP Auth salt value. Defaults
+to `'http authentication'`.
 
-* `config.action_dispatch.signed_cookie_salt` sets the signed cookies salt value. Defaults to `'signed cookie'`.
+* `config.action_dispatch.signed_cookie_salt` sets the signed cookies salt value.
+Defaults to `'signed cookie'`.
 
-* `config.action_dispatch.encrypted_cookie_salt` sets the encrypted cookies salt value. Defaults to `'encrypted cookie'`.
+* `config.action_dispatch.encrypted_cookie_salt` sets the encrypted cookies salt
+value. Defaults to `'encrypted cookie'`.
 
-* `config.action_dispatch.encrypted_signed_cookie_salt` sets the signed encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
+* `config.action_dispatch.encrypted_signed_cookie_salt` sets the signed
+encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
