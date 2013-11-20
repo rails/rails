@@ -33,10 +33,6 @@ module ActiveRecord
         end
       end
 
-      def schema_creation
-        SchemaCreation.new self
-      end
-
       module SchemaStatements
         # Drops the database specified on the +name+ attribute
         # and creates it again using the provided +options+.
