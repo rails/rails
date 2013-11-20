@@ -7,7 +7,6 @@ module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
-      :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
 
@@ -69,10 +68,6 @@ module ActiveSupport
         # to the Active Support legacy format.
         attr_accessor :use_standard_json_time_format
 
-        # If false, serializes BigDecimal objects as numeric instead of wrapping
-        # them in a string.
-        attr_accessor :encode_big_decimal_as_string
-
         attr_accessor :escape_regex
         attr_reader :escape_html_entities_in_json
 
@@ -118,7 +113,6 @@ module ActiveSupport
 
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = true
-      self.encode_big_decimal_as_string  = true
     end
   end
 end
