@@ -189,7 +189,7 @@ The main methods to call are `read`, `write`, `delete`, `exist?`, and `fetch`. T
 
 There are some common options used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
 
-* `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications. The default value will include the application name and Rails environment.
+* `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
 
 * `:compress` - This option can be used to indicate that compression should be used in the cache. This can be useful for transferring large cache entries over a slow network.
 
