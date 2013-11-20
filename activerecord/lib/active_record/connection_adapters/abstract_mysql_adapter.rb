@@ -31,10 +31,6 @@ module ActiveRecord
         end
       end
 
-      def schema_creation
-        SchemaCreation.new self
-      end
-
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation, :strict, :extra
 
