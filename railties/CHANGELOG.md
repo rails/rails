@@ -1,3 +1,15 @@
+*   Add `Application#verifier` method to return a application's message verifier.
+
+    This verifier can be used to generate and verify signed messages in the application.
+
+        message = Rails.application.verifier.generate('my sensible data')
+        Rails.application.verifier.verify(message)
+        # => 'my sensible data'
+
+    See the `ActiveSupport::MessageVerifier` documentation to more information.
+
+    *Rafael Mendonça França*
+
 *   The [Spring application
     preloader](https://github.com/jonleighton/spring) is now installed
     by default for new applications. It uses the development group of
