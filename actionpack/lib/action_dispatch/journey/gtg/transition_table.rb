@@ -43,7 +43,7 @@ module ActionDispatch
           move_string(t, a).concat(move_regexp(t, a))
         end
 
-        def as_json(options = nil)
+        def as_json
           simple_regexp = Hash.new { |h,k| h[k] = {} }
 
           @regexp_states.each do |from, hash|
