@@ -73,7 +73,7 @@ module ApplicationTests
 
       assert_nothing_raised(ActionController::RoutingError) do
         get '/foo'
-        assert_match "The page you were looking for doesn't exist.", last_response.body
+        assert_match "The page you were looking for doesn't exist.", last_response.body
       end
     end
 
