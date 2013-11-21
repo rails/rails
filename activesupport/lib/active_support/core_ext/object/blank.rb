@@ -82,7 +82,7 @@ class String
 
     # 1.8 does not takes [:space:] properly
     if encoding_aware?
-      self !~ /[^[:space:]]/
+      self =~ /\A[[:space:]]*\z/
     else
       self !~ NON_WHITESPACE_REGEXP
     end
