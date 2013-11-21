@@ -42,33 +42,32 @@ module ActiveRecord::Associations::Builder
       habtm = JoinTableResolver.build lhs_model, association_name, options
 
       join_model = Class.new(ActiveRecord::Base) {
-        class << self;
+        class << self
           attr_accessor :class_resolver
           attr_accessor :name
           attr_accessor :table_name_resolver
           attr_accessor :left_reflection
           attr_accessor :right_reflection
-        end
 
-        def self.table_name
-          table_name_resolver.join_table
-        end
+          def table_name
+            table_name_resolver.join_table
+          end
 
-        def self.compute_type(class_name)
-          class_resolver.compute_type class_name
-        end
+          def compute_type(class_name)
+            class_resolver.compute_type class_name
+          end
 
-        def self.add_left_association(name, options)
-          belongs_to name, options
-          self.left_reflection = reflect_on_association(name)
-        end
+          def add_left_association(name, options)
+            belongs_to name, options
+            self.left_reflection = reflect_on_association(name)
+          end
 
-        def self.add_right_association(name, options)
-          rhs_name = name.to_s.singularize.to_sym
-          belongs_to rhs_name, options
-          self.right_reflection = reflect_on_association(rhs_name)
+          def add_right_association(name, options)
+            rhs_name = name.to_s.singularize.to_sym
+            belongs_to rhs_name, options
+            self.right_reflection = reflect_on_association(rhs_name)
+          end
         end
-
       }
 
       join_model.name                = "HABTM_#{association_name.to_s.camelize}"
