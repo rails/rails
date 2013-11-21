@@ -1300,8 +1300,8 @@ Client.unscoped.load
 
 This method removes all scoping and will do a normal query on the table.
 
-Note that chaining `unscoped` with a `scope` does not work. In these cases, it is
-recommended that you use the block form of `unscoped`:
+Alternatively, you can also pass a block to the `unscoped` method to generate
+several queries removing any default scope:
 
 ```ruby
 Client.unscoped {
