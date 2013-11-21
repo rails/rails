@@ -1,8 +1,8 @@
-*   Fix formatting for `rake routes` when a section is shorter than a header
+*   Fix formatting for `rake routes` when a section is shorter than a header.
 
     *Sıtkı Bağdat*
-    
-*   Take a hash with options inside array in #url_for
+
+*   Take a hash with options inside array in #url_for.
 
     Example:
 
@@ -226,11 +226,13 @@
 
     *Yves Senn*, *Andrew White*
 
-*   ActionView extracted from ActionPack
+*   ActionView extracted from ActionPack.
 
     *Piotr Sarnacki*, *Łukasz Strzałkowski*
 
-*   Fix removing trailing slash for mounted apps #3215
+*   Fix removing trailing slash for mounted apps.
+
+    Fixes #3215.
 
     *Piotr Sarnacki*
 
