@@ -90,7 +90,7 @@ class String
   #   '　'.blank?               # => true
   #   ' something here '.blank? # => false
   def blank?
-    self =~ /\A[[:space:]]*\z/
+    self.strip == ''
   end
 end
 
