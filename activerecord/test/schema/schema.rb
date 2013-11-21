@@ -659,6 +659,9 @@ ActiveRecord::Schema.define do
   create_table :tasks, force: true do |t|
     t.datetime :starting
     t.datetime :ending
+    t.string   :name
+    t.string   :type
+    t.integer  :parent_id
   end
 
   create_table :topics, force: true do |t|
