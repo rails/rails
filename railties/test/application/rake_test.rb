@@ -150,7 +150,7 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path){ `rake routes` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\ncart GET /cart(.:format) cart#show\n", output
+      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
     def test_rake_routes_displays_message_when_no_routes_are_defined

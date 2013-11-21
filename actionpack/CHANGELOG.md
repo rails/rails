@@ -1,3 +1,7 @@
+*   Fix formatting for `rake routes` when a section is shorter than a header.
+
+    *Sıtkı Bağdat*
+
 *   Use `set_backtrace` instead of instance variable `@backtrace` in ActionView exceptions
 
     *Shimpei Makimoto*
