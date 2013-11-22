@@ -309,6 +309,16 @@ module ApplicationTests
       assert_equal 'some_value', verifier.verify(last_response.body)
     end
 
+    test "application verifier can build different verifiers" do
+      make_basic_app do |app|
+        app.config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.session_store :disabled
+      end
+
+      assert_equal Rails.application.message_verifier.object_id, Rails.application.message_verifier.object_id
+      assert_not_equal Rails.application.message_verifier.object_id, Rails.application.message_verifier('text').object_id
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 

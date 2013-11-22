@@ -108,12 +108,13 @@ module Rails
 
     def initialize(initial_variable_values = {}, &block)
       super()
-      @initialized      = false
-      @reloaders        = []
-      @routes_reloader  = nil
-      @app_env_config   = nil
-      @ordered_railties = nil
-      @railties         = nil
+      @initialized       = false
+      @reloaders         = []
+      @routes_reloader   = nil
+      @app_env_config    = nil
+      @ordered_railties  = nil
+      @railties          = nil
+      @message_verifiers = {}
 
       add_lib_to_load_path!
       ActiveSupport.run_load_hooks(:before_configuration, self)
@@ -159,17 +160,25 @@ module Rails
       end
     end
 
-    # Return the application's message verifier.
+    # Return a message verifier object.
     #
     # This verify can be used to generate and verify signed messages in the application.
+    #
+    # By default all the verifiers will share the same salt.
+    #
+    # ==== Parameters
+    #
+    # * +verifier_name+ - the name of verifier you want to get.
+    #
+    # ==== Examples
     #
     #     message = Rails.application.message_verifier.generate('my sensible data')
     #     Rails.application.message_verifier.verify(message)
     #     # => 'my sensible data'
     #
     # See the +ActiveSupport::MessageVerifier+ documentation to more information.
-    def message_verifier
-      @message_verifier ||= begin
+    def message_verifier(verifier_name = 'default')
+      @message_verifiers[verifier_name] ||= begin
         if config.respond_to?(:message_verifier_salt)
           salt = config.message_verifier_salt
         end
