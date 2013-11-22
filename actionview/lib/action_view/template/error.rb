@@ -41,6 +41,9 @@ module ActionView
         'template'
       end
 
+      if partial && path.present?
+        path = path.sub(%r{([^/]+)$}, "_\\1")
+      end
       searched_paths = prefixes.map { |prefix| [prefix, path].join("/") }
 
       out  = "Missing #{template_type} #{searched_paths.join(", ")} with #{details.inspect}. Searched in:\n"
