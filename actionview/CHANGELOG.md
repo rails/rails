@@ -1,3 +1,9 @@
+*   `ActionView::MissingTemplate` includes underscore when raised for a partial.
+
+    Fixes #13002.
+
+    *Yves Senn*
+
 *   Use `set_backtrace` instead of instance variable `@backtrace` in ActionView exceptions
 
     *Shimpei Makimoto*
