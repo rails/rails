@@ -35,6 +35,11 @@ class Employee < ActiveRecord::Base
   validates_uniqueness_of :nicknames
 end
 
+class TopicWithUniqEvent < Topic
+  belongs_to :event, foreign_key: :parent_id
+  validates :event, uniqueness: true
+end
+
 class UniquenessValidationTest < ActiveRecord::TestCase
   fixtures :topics, 'warehouse-things', :developers
 
@@ -375,5 +380,19 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       assert e2.errors[:nicknames].any?, "Should have errors for nicknames"
       assert_equal ["has already been taken"], e2.errors[:nicknames], "Should have uniqueness message for nicknames"
     end
+  end
+
+  def test_validate_uniqueness_on_existing_relation
+    event = Event.create
+    assert TopicWithUniqEvent.create(event: event).valid?
+
+    topic = TopicWithUniqEvent.new(event: event)
+    assert_not topic.valid?
+    assert_equal ['has already been taken'], topic.errors[:event]
+  end
+
+  def test_validate_uniqueness_on_empty_relation
+    topic = TopicWithUniqEvent.new
+    assert topic.valid?
   end
 end

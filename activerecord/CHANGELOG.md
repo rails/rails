@@ -1,3 +1,7 @@
+*   Fix validation on uniqueness of empty association.
+
+    *Evgeny Li*
+
 *   Make `ActiveRecord::Relation#unscope` affect relations it is merged in to.
 
     *Jon Leighton*
