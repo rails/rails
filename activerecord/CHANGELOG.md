@@ -1,3 +1,7 @@
+*   Fix validation on uniqueness of empty association.
+
+    *Evgeny Li*
+
 *   Perform necessary deeper encoding when hstore is inside an array.
 
     Fixes #11135.
