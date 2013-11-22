@@ -276,13 +276,13 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render text: Rails.application.verifier.generate("some_value")
+          render text: Rails.application.message_verifier.generate("some_value")
         end
       end
 
       get "/"
 
-      assert_equal 'some_value', Rails.application.verifier.verify(last_response.body)
+      assert_equal 'some_value', Rails.application.message_verifier.verify(last_response.body)
 
       secret = app.key_generator.generate_key('application verifier')
       verifier = ActiveSupport::MessageVerifier.new(secret)
@@ -298,7 +298,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render text: Rails.application.verifier.generate("some_value")
+          render text: Rails.application.message_verifier.generate("some_value")
         end
       end
 

@@ -162,13 +162,13 @@ module Rails
     #
     # This verify can be used to generate and verify signed messages in the application.
     #
-    #     message = Rails.application.verifier.generate('my sensible data')
-    #     Rails.application.verifier.verify(message)
+    #     message = Rails.application.message_verifier.generate('my sensible data')
+    #     Rails.application.message_verifier.verify(message)
     #     # => 'my sensible data'
     #
     # See the +ActiveSupport::MessageVerifier+ documentation to more information.
-    def verifier
-      @verifier ||= begin
+    def message_verifier
+      @message_verifier ||= begin
         if config.respond_to?(:message_verifier_salt)
           salt = config.message_verifier_salt
         end
