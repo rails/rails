@@ -284,27 +284,7 @@ module ApplicationTests
 
       assert_equal 'some_value', Rails.application.message_verifier.verify(last_response.body)
 
-      secret = app.key_generator.generate_key('application verifier')
-      verifier = ActiveSupport::MessageVerifier.new(secret)
-      assert_equal 'some_value', verifier.verify(last_response.body)
-    end
-
-    test "application verifier use the configure salt" do
-      make_basic_app do |app|
-        app.config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
-        app.config.session_store :disabled
-        app.config.message_verifier_salt = 'another salt'
-      end
-
-      class ::OmgController < ActionController::Base
-        def index
-          render text: Rails.application.message_verifier.generate("some_value")
-        end
-      end
-
-      get "/"
-
-      secret = app.key_generator.generate_key('another salt')
+      secret = app.key_generator.generate_key('default')
       verifier = ActiveSupport::MessageVerifier.new(secret)
       assert_equal 'some_value', verifier.verify(last_response.body)
     end

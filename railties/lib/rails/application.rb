@@ -164,7 +164,8 @@ module Rails
     #
     # This verify can be used to generate and verify signed messages in the application.
     #
-    # By default all the verifiers will share the same salt.
+    # It is recommended not to use the same verifier for different things, so you can get different
+    # verifiers passing the +verifier_name+ argument.
     #
     # ==== Parameters
     #
@@ -176,15 +177,10 @@ module Rails
     #     Rails.application.message_verifier.verify(message)
     #     # => 'my sensible data'
     #
-    # See the +ActiveSupport::MessageVerifier+ documentation to more information.
+    # See the +ActiveSupport::MessageVerifier+ documentation for more information.
     def message_verifier(verifier_name = 'default')
       @message_verifiers[verifier_name] ||= begin
-        if config.respond_to?(:message_verifier_salt)
-          salt = config.message_verifier_salt
-        end
-
-        salt = salt || 'application verifier'
-        secret = key_generator.generate_key(salt)
+        secret = key_generator.generate_key(verifier_name)
         ActiveSupport::MessageVerifier.new(secret)
       end
     end

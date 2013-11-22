@@ -6,15 +6,12 @@
         Rails.application.message_verifier.verify(message)
         # => 'my sensible data'
 
-    It is recommended to not use the same verifier to different things, so you can get different
+    It is recommended not not use the same verifier for different things, so you can get different
     verifiers passing the name argument.
 
         message = Rails.application.message_verifier('cookies').generate('my sensible cookie data')
 
-    By default all the verifiers will share the same salt, so messages generates by one can be
-    verifier by another one.
-
-    See the `ActiveSupport::MessageVerifier` documentation to more information.
+    See the `ActiveSupport::MessageVerifier` documentation for more information.
 
     *Rafael Mendonça França*
 
