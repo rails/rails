@@ -202,7 +202,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_no_match %r{^//=\s+turbolinks\s}, contents
+      assert_no_match %r{^//= require turbolinks}, contents
     end
   ensure
     template.close
