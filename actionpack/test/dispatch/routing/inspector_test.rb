@@ -50,7 +50,7 @@ module ActionDispatch
           "         blog      /blog                    Blog::Engine",
           "",
           "Routes for Blog::Engine:",
-          "cart GET /cart(.:format) cart#show"
+          "  cart GET  /cart(.:format) cart#show"
         ], output
       end
 
@@ -61,7 +61,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern     Controller#Action",
-          "cart   GET  /cart(.:format) cart#show"
+          "  cart GET  /cart(.:format) cart#show"
         ], output
       end
 
