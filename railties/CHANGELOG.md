@@ -1,6 +1,7 @@
 *   Remove turbolinks when generating a new application based on a template that skips it.
 
-    Example
+    Example:
+
         Skips turbolinks adding `add_gem_entry_filter { |gem| gem.name != "turbolinks" }`
         to the template.
 

@@ -1,5 +1,4 @@
-*   Make ActiveRecord::Relation#unscope affect relations it is merged in
-    to.
+*   Make `ActiveRecord::Relation#unscope` affect relations it is merged in to.
 
     *Jon Leighton*
 
