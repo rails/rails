@@ -182,7 +182,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     template.unlink
   end
 
-  def test_application_html_checks_gems
+  def test_skip_turbolinks_when_it_is_not_on_gemfile
     template = Tempfile.open 'my_template'
     template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
     template.flush
@@ -191,11 +191,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |contents|
       assert_no_match 'turbolinks', contents
     end
-    assert_file "Gemfile" do |contents|
-      assert_no_match 'turbolinks', contents
-    end
+
     assert_file "app/views/layouts/application.html.erb" do |contents|
       assert_no_match 'turbolinks', contents
+    end
+
+    assert_file "app/views/layouts/application.html.erb" do |contents|
+      assert_no_match(/stylesheet_link_tag\s+"application", media: "all", "data-turbolinks-track" => true/, contents)
+      assert_no_match(/javascript_include_tag\s+"application", "data-turbolinks-track" => true/, contents)
+    end
+
+    assert_file "app/assets/javascripts/application.js" do |contents|
+      assert_no_match %r{^//=\s+turbolinks\s}, contents
     end
   ensure
     template.close

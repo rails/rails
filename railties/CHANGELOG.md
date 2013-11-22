@@ -1,3 +1,11 @@
+*   Remove turbolinks when generating a new application based on a template that skips it.
+
+    Example
+        Skips turbolinks adding `add_gem_entry_filter { |gem| gem.name != "turbolinks" }`
+        to the template.
+
+    *Lauro Caetano*
+
 *   Instrument an `load_config_initializer.railties` event on each load of configuration initializer
     from `config/initializers`. Subscribers should be attached before `load_config_initializers`
     initializer completed.
