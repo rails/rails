@@ -113,7 +113,7 @@ module Rails
       end
 
       def add_gem_entry_filter
-        @gem_filter = lambda { |next_filter,entry|
+        @gem_filter = lambda { |next_filter, entry|
           yield(entry) && next_filter.call(entry)
         }.curry[@gem_filter]
       end

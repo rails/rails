@@ -13,6 +13,8 @@
 <% unless options[:skip_javascript] -%>
 //= require <%= options[:javascript] %>
 //= require <%= options[:javascript] %>_ujs
+<% if gemfile_entries.any? { |m| m.name == "turbolinks" } -%>
 //= require turbolinks
+<% end -%>
 <% end -%>
 //= require_tree .
