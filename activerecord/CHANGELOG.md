@@ -1,3 +1,18 @@
+*   Add `#any_of` query methods on active_record relations.
+
+    This allows to compute `OR` like queries with usual `#where` syntax,
+    and also allows to compute dynamic `OR` queries.
+
+    A negative `#none_of` version is also added.
+
+    Example:
+
+        manual_removal = User.where( id: params[:users][:destroy_ids] )
+        users = User.any_of( manual_removal, "email like '%@example.com'", {banned: true}).destroy_all
+        active_users = User.none_of({ banned: true }, "confirmed_at IS NULL" )
+
+    *Olivier El Mekki*
+
 *   Make `ActiveRecord::Relation#unscope` affect relations it is merged in to.
 
     *Jon Leighton*

@@ -157,6 +157,58 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['Mary'],  Author.where("name = ?", 'Mary').map(&:name)
   end
 
+  def test_finding_with_alternate_conditions
+    assert_equal ['David', 'Mary'], Author.where.any_of({name: 'David'}, {name: 'Mary'}).map(&:name)
+    assert_equal ['David', 'Mary'], Author.where.any_of({name: 'David'}, ['name = ?', 'Mary']).map(&:name)
+
+    davids = Author.where(name: 'David')
+    assert_equal ['David', 'Mary', 'Bob'], Author.where.any_of(davids, ['name = ?', 'Mary'], {name: 'Bob'}).map(&:name)
+    assert_equal ['David', 'Mary', 'Bob'], Author.where.any_of(davids, "name = 'Mary'", {name: 'Bob', id: 3}).map(&:name)
+    assert_equal ['David'], Author.where.not(name: 'Mary').where.any_of(davids, ['name = ?', 'Mary']).map(&:name)
+  end
+
+  def test_finding_with_alternate_conditions_on_association
+    david = Author.where(name: 'David').first
+    welcome = david.posts.where(body: 'Such a lovely day')
+    expected = ['Welcome to the weblog', 'So I was thinking']
+    assert_equal expected, david.posts.where.any_of(welcome, {type: 'SpecialPost'}).map(&:title)
+  end
+
+  def test_finding_alternate_dynamically_with_joined_queries
+    david = Author.where(posts: { title: 'Welcome to the weblog' }).joins(:posts)
+    mary = Author.where(posts: { title: "eager loading with OR'd conditions" }).joins(:posts)
+
+    assert_equal ['David', 'Mary'], Author.where.any_of(david, mary).map(&:name)
+
+    david = Author.where(posts: { title: 'Welcome to the weblog' }).includes(:posts).references(:posts)
+    mary = Author.where(posts: { title: "eager loading with OR'd conditions" }).includes(:posts).references(:posts)
+
+    assert_equal ['David', 'Mary'], Author.where.any_of(david, mary).map(&:name)
+  end
+
+  def test_finding_with_alternate_negative_conditions
+    assert_equal ['Bob'], Author.where.none_of({name: 'David'}, {name: 'Mary'}).map(&:name)
+  end
+
+  def test_finding_with_alternate_negative_conditions_on_association
+    david = Author.where(name: 'David').first
+    welcome = david.posts.where(body: 'Such a lovely day')
+    expected = ['sti comments', 'sti me', 'habtm sti test']
+    assert_equal expected, david.posts.where.none_of(welcome, {type: 'SpecialPost'}).map(&:title)
+  end
+
+  def test_any_of_after_wildcard_query_does_not_crash
+    assert_equal ['David'], Author.where("name like '%av%'").where.any_of({name: 'David'}, {name: 'Mary'}).map(&:name)
+  end
+
+  def test_calling_any_of_with_no_argument_raise_exception
+    assert_raise(ArgumentError) { Author.where.any_of }
+  end
+
+  def test_calling_none_of_with_no_argument_raise_exception
+    assert_raise(ArgumentError) { Author.where.none_of }
+  end
+
   def test_finding_with_order
     topics = Topic.order('id')
     assert_equal 4, topics.to_a.size
