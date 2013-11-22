@@ -197,12 +197,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_no_match(/stylesheet_link_tag\s+"application", media: "all", "data-turbolinks-track" => true/, contents)
-      assert_no_match(/javascript_include_tag\s+"application", "data-turbolinks-track" => true/, contents)
+      assert_no_match('data-turbolinks-track', contents)
     end
 
     assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_no_match %r{^//= require turbolinks}, contents
+      assert_no_match 'turbolinks', contents
     end
   ensure
     template.close
