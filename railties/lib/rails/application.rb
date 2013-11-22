@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
+require 'active_support/message_verifier'
 require 'rails/engine'
 
 module Rails
