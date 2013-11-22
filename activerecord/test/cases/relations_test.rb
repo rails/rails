@@ -231,6 +231,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 3, tags.length
   end
 
+  def test_finding_with_sanitized_order
+    query = Tag.order(["field(id, ?)", [1,3,2]]).to_sql
+    assert_match(/field\(id, 1,3,2\)/, query)
+  end
+
   def test_finding_with_order_limit_and_offset
     entrants = Entrant.order("id ASC").limit(2).offset(1)
 

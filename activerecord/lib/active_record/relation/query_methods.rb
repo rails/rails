@@ -1029,6 +1029,13 @@ module ActiveRecord
     end
 
     def preprocess_order_args(order_args)
+      order_args.map! do |arg|
+        if arg.is_a?(Array) && arg.first.to_s.include?('?')
+          klass.send(:sanitize_sql, arg)
+        else
+          arg
+        end
+      end
       order_args.flatten!
       validate_order_args(order_args)
 
