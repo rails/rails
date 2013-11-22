@@ -13,10 +13,12 @@ class Rails::InfoController < ActionController::Base # :nodoc:
 
   def properties
     @info = Rails::Info.to_html
+    @page_title = 'Properties'
   end
 
   def routes
     @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(_routes.routes)
+    @page_title = 'Routes'
   end
 
   protected
