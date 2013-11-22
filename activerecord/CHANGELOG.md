@@ -1,3 +1,10 @@
+*   Make `validates_uniqueness_of` apply to incoming `accepts_nested_attributes_for`
+    records.
+
+    Fixes #4568
+
+    *Ben Woosley*
+
 *   Make ActiveRecord::Relation#unscope affect relations it is merged in
     to.
 
