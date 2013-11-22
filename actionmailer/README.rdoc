@@ -52,7 +52,7 @@ generated would look like this:
   Subject: [Signed up] Welcome david@loudthinking.com
   Mime-Version: 1.0
   Content-Type: text/plain;
-  	charset="US-ASCII";
+    charset="US-ASCII";
   Content-Transfer-Encoding: 7bit
 
   Hello there,
