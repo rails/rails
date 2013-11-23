@@ -32,6 +32,12 @@ class TestJSONEncoding < ActiveSupport::TestCase
     end
   end
 
+  class OptionsTest
+    def as_json(options = :default)
+      options
+    end
+  end
+
   class HashWithAsJson < Hash
     attr_accessor :as_json_called
 
@@ -330,6 +336,16 @@ class TestJSONEncoding < ActiveSupport::TestCase
     hash = {"foo" => f, "other_hash" => {"foo" => "other_foo", "test" => "other_test"}}
     assert_equal({"foo"=>{"foo"=>"hello","bar"=>"world"},
                   "other_hash" => {"foo"=>"other_foo","test"=>"other_test"}}, ActiveSupport::JSON.decode(hash.to_json))
+  end
+
+  def test_hash_as_json_without_options
+    json = { foo: OptionsTest.new }.as_json
+    assert_equal({"foo" => :default}, json)
+  end
+
+  def test_array_as_json_without_options
+    json = [ OptionsTest.new ].as_json
+    assert_equal([:default], json)
   end
 
   def test_struct_encoding

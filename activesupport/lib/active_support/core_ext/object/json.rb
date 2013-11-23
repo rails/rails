@@ -164,7 +164,7 @@ end
 
 class Array
   def as_json(options = nil) #:nodoc:
-    map { |v| v.as_json(options && options.dup) }
+    map { |v| options ? v.as_json(options.dup) : v.as_json }
   end
 
   def encode_json(encoder) #:nodoc:
@@ -187,7 +187,7 @@ class Hash
       self
     end
 
-    Hash[subset.map { |k, v| [k.to_s, v.as_json(options && options.dup)] }]
+    Hash[subset.map { |k, v| [k.to_s, options ? v.as_json(options.dup) : v.as_json] }]
   end
 
   def encode_json(encoder) #:nodoc:
