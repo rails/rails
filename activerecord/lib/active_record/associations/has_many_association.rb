@@ -108,7 +108,7 @@ module ActiveRecord
         # Deletes the records according to the <tt>:dependent</tt> option.
         def delete_records(records, method)
           if method == :destroy
-            records.each { |r| r.destroy }
+            records.each(&:destroy!)
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
             if records == :all
