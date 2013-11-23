@@ -253,7 +253,7 @@ The helper inside `app/helpers/blorgh/posts_helper.rb` is also namespaced:
 
 ```ruby
 module Blorgh
-  class PostsHelper
+  module PostsHelper
     ...
   end
 end
