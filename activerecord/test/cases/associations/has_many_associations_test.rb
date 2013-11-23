@@ -1770,4 +1770,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb1], car.bulbs
     assert_equal [bulb1, bulb2], car.all_bulbs.sort_by(&:id)
   end
+
+  test "raises RecordNotDestroyed when replaced child can't be destroyed" do
+    car = Car.create!
+    original_child = FailedBulb.create!(car: car)
+
+    assert_raise(ActiveRecord::RecordNotDestroyed) do
+      car.failed_bulbs = [FailedBulb.create!]
+    end
+
+    assert_equal [original_child], car.reload.failed_bulbs
+  end
 end
