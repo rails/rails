@@ -89,6 +89,15 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.execute "DROP TABLE `bar_baz`"
   end
 
+  def test_execute_non_utf8_exception
+    invalid_utf8 = [0x80].pack('C*').force_encoding(Encoding::UTF_8)
+    @connection.instance_variable_get(:@connection).stubs(:query).raises(ActiveRecord::StatementInvalid, invalid_utf8)
+
+    assert_raises(ActiveRecord::StatementInvalid, invalid_utf8) do
+      @connection.execute('SELECT VERSION();')
+    end
+  end
+
   private
 
   def run_without_connection
