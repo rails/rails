@@ -68,6 +68,61 @@ module ActiveRecord
         end
       end
 
+      def test_render_context_helper
+        ActiveRecord::FixtureSet.context_class.class_eval do
+          def fixture_helper
+            "Fixture helper"
+          end
+        end
+        yaml = "one:\n  name: <%= fixture_helper %>\n"
+        tmp_yaml ['curious', 'yml'], yaml do |t|
+          golden =
+              [["one", {"name" => "Fixture helper"}]]
+          assert_equal golden, File.open(t.path) { |fh| fh.to_a }
+        end
+        ActiveRecord::FixtureSet.context_class.class_eval do
+          remove_method :fixture_helper
+        end
+      end
+
+      def test_render_context_lookup_scope
+        yaml = <<END
+one:
+  ActiveRecord: <%= defined? ActiveRecord %>
+  ActiveRecord_FixtureSet: <%= defined? ActiveRecord::FixtureSet %>
+  FixtureSet: <%= defined? FixtureSet %>
+  ActiveRecord_FixtureSet_File: <%= defined? ActiveRecord::FixtureSet::File %>
+  File: <%= File.name %>
+END
+
+        golden = [['one', {
+          'ActiveRecord' => 'constant',
+          'ActiveRecord_FixtureSet' => 'constant',
+          'FixtureSet' => nil,
+          'ActiveRecord_FixtureSet_File' => 'constant',
+          'File' => 'File'
+        }]]
+
+        tmp_yaml ['curious', 'yml'], yaml do |t|
+          assert_equal golden, File.open(t.path) { |fh| fh.to_a }
+        end
+      end
+
+      # Make sure that each fixture gets its own rendering context so that
+      # fixtures are independent.
+      def test_independent_render_contexts
+        yaml1 = "<% def leaked_method; 'leak'; end %>\n"
+        yaml2 = "one:\n  name: <%= leaked_method %>\n"
+        tmp_yaml ['leaky', 'yml'], yaml1 do |t1|
+          tmp_yaml ['curious', 'yml'], yaml2 do |t2|
+            File.open(t1.path) { |fh| fh.to_a }
+            assert_raises(NameError) do
+              File.open(t2.path) { |fh| fh.to_a }
+            end
+          end
+        end
+      end
+
       private
       def tmp_yaml(name, contents)
         t = Tempfile.new name
