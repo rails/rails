@@ -173,7 +173,7 @@ class Class
   #     end
   #   end
   #
-  #   Person.class_variable_get("@@hair_colors") #=> [:brown, :black, :blonde, :red]
+  #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
   def cattr_accessor(*syms, &blk)
     cattr_reader(*syms)
     cattr_writer(*syms, &blk)

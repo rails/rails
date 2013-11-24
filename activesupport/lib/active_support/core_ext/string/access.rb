@@ -8,22 +8,22 @@ class String
   # the beginning of the range is greater than the end of the string.
   #
   #   str = "hello"
-  #   str.at(0)      #=> "h"
-  #   str.at(1..3)   #=> "ell"
-  #   str.at(-2)     #=> "l"
-  #   str.at(-2..-1) #=> "lo"
-  #   str.at(5)      #=> nil
-  #   str.at(5..-1)  #=> ""
+  #   str.at(0)      # => "h"
+  #   str.at(1..3)   # => "ell"
+  #   str.at(-2)     # => "l"
+  #   str.at(-2..-1) # => "lo"
+  #   str.at(5)      # => nil
+  #   str.at(5..-1)  # => ""
   #
   # If a Regexp is given, the matching portion of the string is returned.
   # If a String is given, that given string is returned if it occurs in
   # the string. In both cases, nil is returned if there is no match.
   #
   #   str = "hello"
-  #   str.at(/lo/) #=> "lo"
-  #   str.at(/ol/) #=> nil
-  #   str.at("lo") #=> "lo"
-  #   str.at("ol") #=> nil
+  #   str.at(/lo/) # => "lo"
+  #   str.at(/ol/) # => nil
+  #   str.at("lo") # => "lo"
+  #   str.at("ol") # => nil
   def at(position)
     self[position]
   end
@@ -32,15 +32,15 @@ class String
   # If the position is negative, it is counted from the end of the string.
   #
   #   str = "hello"
-  #   str.from(0)  #=> "hello"
-  #   str.from(3)  #=> "lo"
-  #   str.from(-2) #=> "lo"
+  #   str.from(0)  # => "hello"
+  #   str.from(3)  # => "lo"
+  #   str.from(-2) # => "lo"
   #
   # You can mix it with +to+ method and do fun things like:
   #
   #   str = "hello"
-  #   str.from(0).to(-1) #=> "hello"
-  #   str.from(1).to(-2) #=> "ell"
+  #   str.from(0).to(-1) # => "hello"
+  #   str.from(1).to(-2) # => "ell"
   def from(position)
     self[position..-1]
   end
@@ -49,15 +49,15 @@ class String
   # If the position is negative, it is counted from the end of the string.
   #
   #   str = "hello"
-  #   str.to(0)  #=> "h"
-  #   str.to(3)  #=> "hell"
-  #   str.to(-2) #=> "hell"
+  #   str.to(0)  # => "h"
+  #   str.to(3)  # => "hell"
+  #   str.to(-2) # => "hell"
   #
   # You can mix it with +from+ method and do fun things like:
   #
   #   str = "hello"
-  #   str.from(0).to(-1) #=> "hello"
-  #   str.from(1).to(-2) #=> "ell"
+  #   str.from(0).to(-1) # => "hello"
+  #   str.from(1).to(-2) # => "ell"
   def to(position)
     self[0, position + 1]
   end
@@ -67,11 +67,11 @@ class String
   # given limit is greater than or equal to the string length, returns self.
   #
   #   str = "hello"
-  #   str.first    #=> "h"
-  #   str.first(1) #=> "h"
-  #   str.first(2) #=> "he"
-  #   str.first(0) #=> ""
-  #   str.first(6) #=> "hello"
+  #   str.first    # => "h"
+  #   str.first(1) # => "h"
+  #   str.first(2) # => "he"
+  #   str.first(0) # => ""
+  #   str.first(6) # => "hello"
   def first(limit = 1)
     if limit == 0
       ''
@@ -87,11 +87,11 @@ class String
   # the given limit is greater than or equal to the string length, returns self.
   #
   #   str = "hello"
-  #   str.last    #=> "o"
-  #   str.last(1) #=> "o"
-  #   str.last(2) #=> "lo"
-  #   str.last(0) #=> ""
-  #   str.last(6) #=> "hello"
+  #   str.last    # => "o"
+  #   str.last(1) # => "o"
+  #   str.last(2) # => "lo"
+  #   str.last(0) # => ""
+  #   str.last(6) # => "hello"
   def last(limit = 1)
     if limit == 0
       ''

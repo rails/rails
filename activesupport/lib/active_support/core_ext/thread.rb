@@ -39,8 +39,8 @@ class Thread
   #      Thread.current.thread_variable_set(:cat, 'meow')
   #      Thread.current.thread_variable_set("dog", 'woof')
   #    end
-  #    thr.join               #=> #<Thread:0x401b3f10 dead>
-  #    thr.thread_variables   #=> [:dog, :cat]
+  #    thr.join               # => #<Thread:0x401b3f10 dead>
+  #    thr.thread_variables   # => [:dog, :cat]
   #
   # Note that these are not fiber local variables. Please see Thread#thread_variable_get
   # for more details.
@@ -53,8 +53,8 @@ class Thread
   #
   #    me = Thread.current
   #    me.thread_variable_set(:oliver, "a")
-  #    me.thread_variable?(:oliver)    #=> true
-  #    me.thread_variable?(:stanley)   #=> false
+  #    me.thread_variable?(:oliver)    # => true
+  #    me.thread_variable?(:stanley)   # => false
   #
   # Note that these are not fiber local variables. Please see Thread#thread_variable_get
   # for more details.

@@ -182,18 +182,17 @@ You can swap an existing middleware in the middleware stack using `config.middle
 config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
 ```
 
-#### Middleware Stack is an Enumerable
+#### Deleting a Middleware
 
-The middleware stack behaves just like a normal `Enumerable`. You can use any `Enumerable` methods to manipulate or interrogate the stack. The middleware stack also implements some `Array` methods including `[]`, `unshift` and `delete`. Methods described in the section above are just convenience methods.
-
-Append following lines to your application configuration:
+Add the following lines to your application configuration:
 
 ```ruby
 # config/application.rb
 config.middleware.delete "Rack::Lock"
 ```
 
-And now if you inspect the middleware stack, you'll find that `Rack::Lock` will not be part of it.
+And now if you inspect the middleware stack, you'll find that `Rack::Lock` is
+not a part of it.
 
 ```bash
 $ rake middleware
@@ -318,26 +317,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 * Adds ETag header on all String bodies. ETags are used to validate cache.
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
-
-### Using Rack Builder
-
-The following shows how to replace use `Rack::Builder` instead of the Rails supplied `MiddlewareStack`.
-
-<strong>Clear the existing Rails middleware stack</strong>
-
-```ruby
-# config/application.rb
-config.middleware.clear
-```
-
-<br>
-<strong>Add a `config.ru` file to `Rails.root`</strong>
-
-```ruby
-# config.ru
-use MyOwnStackFromScratch
-run Rails.application
-```
 
 Resources
 ---------

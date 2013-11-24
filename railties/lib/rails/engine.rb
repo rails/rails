@@ -260,7 +260,7 @@ module Rails
   #
   #   class FooController < ApplicationController
   #     def index
-  #       my_engine.root_url #=> /my_engine/
+  #       my_engine.root_url # => /my_engine/
   #     end
   #   end
   #
@@ -269,7 +269,7 @@ module Rails
   #   module MyEngine
   #     class BarController
   #       def index
-  #         main_app.foo_path #=> /foo
+  #         main_app.foo_path # => /foo
   #       end
   #     end
   #   end

@@ -787,12 +787,12 @@ module ActiveRecord
       #     has_many :pets
       #   end
       #
-      #   person.pets.count #=> 1
-      #   person.pets.many? #=> false
+      #   person.pets.count # => 1
+      #   person.pets.many? # => false
       #
       #   person.pets << Pet.new(name: 'Snoopy')
-      #   person.pets.count #=> 2
-      #   person.pets.many? #=> true
+      #   person.pets.count # => 2
+      #   person.pets.many? # => true
       #
       # You can also pass a block to define criteria. The
       # behavior is the same, it returns true if the collection

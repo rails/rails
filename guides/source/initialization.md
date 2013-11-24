@@ -126,7 +126,9 @@ A standard Rails application depends on several gems, specifically:
 
 ### `rails/commands.rb`
 
-Once `config/boot.rb` has finished, the next file that is required is `rails/commands` which will execute a command based on the arguments passed in. In this case, the `ARGV` array simply contains `server` which is extracted into the `command` variable using these lines:
+Once `config/boot.rb` has finished, the next file that is required is
+`rails/commands`, which helps in expanding aliases. In the current case, the
+`ARGV` array simply contains `server` which will be passed over:
 
 ```ruby
 ARGV << '--help' if ARGV.empty?
@@ -142,31 +144,64 @@ aliases = {
 
 command = ARGV.shift
 command = aliases[command] || command
+
+require 'rails/commands/commands_tasks'
+
+Rails::CommandsTasks.new(ARGV).run_command!(command)
 ```
 
 TIP: As you can see, an empty ARGV list will make Rails show the help
 snippet.
 
-If we used `s` rather than `server`, Rails will use the `aliases` defined in the file and match them to their respective commands. With the `server` command, Rails will run this code:
+If we had used `s` rather than `server`, Rails would have used the `aliases`
+defined here to find the matching command.
+
+### `rails/commands/command_tasks.rb`
+
+When one types an incorrect rails command, the `run_command` is responsible for
+throwing an error message. If the command is valid, a method of the same name
+is called.
 
 ```ruby
-when 'server'
-  # Change to the application's path if there is no config.ru file in current directory.
-  # This allows us to run `rails server` from other directories, but still get
-  # the main config.ru and properly set the tmp directory.
-  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
+COMMAND_WHITELIST = %(plugin generate destroy console server dbconsole application runner new version help)
 
-  require 'rails/commands/server'
+def run_command!(command)
+  if COMMAND_WHITELIST.include?(command)
+    send(command)
+  else
+    write_error_message(command)
+  end
+end
+```
+
+With the `server` command, Rails will further run the following code:
+
+```ruby
+def set_application_directory!
+  Dir.chdir(File.expand_path('../../', APP_PATH)) unless
+  File.exist?(File.expand_path("config.ru"))
+end
+
+def server
+  set_application_directory!
+  require_command!("server")
+
   Rails::Server.new.tap do |server|
-    # We need to require application after the server sets environment,
-    # otherwise the --environment option given to the server won't propagate.
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start
   end
+end
+
+def require_command!(command)
+  require "rails/commands/#{command}"
+end
 ```
 
-This file will change into the Rails root directory (a path two directories up from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
+This file will change into the Rails root directory (a path two directories up
+from `APP_PATH` which points at `config/application.rb`), but only if the
+`config.ru` file isn't found. This then requires `rails/commands/server` which
+sets up the `Rails::Server` class.
 
 ```ruby
 require 'fileutils'
@@ -294,37 +329,43 @@ and it's free for you to change based on your needs.
 
 ### `Rails::Server#start`
 
-After `config/application` is loaded, `server.start` is called. This method is defined like this:
+After `config/application` is loaded, `server.start` is called. This method is
+defined like this:
 
 ```ruby
 def start
-  url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
-  puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-  puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
-  puts "=> Run `rails server -h` for more startup options"
+  print_boot_information
   trap(:INT) { exit }
-  puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
+  create_tmp_directories
+  log_to_stdout if options[:log_stdout]
 
-  #Create required tmp directories if not found
-  %w(cache pids sessions sockets).each do |dir_to_make|
-    FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+  super
+  ...
+end
+
+private
+
+  def print_boot_information
+    ...
+    puts "=> Run `rails server -h` for more startup options"
+    puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
   end
 
-  unless options[:daemonize]
+  def create_tmp_directories
+    %w(cache pids sessions sockets).each do |dir_to_make|
+      FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
+    end
+  end
+
+  def log_to_stdout
     wrapped_app # touch the app so the logger is set up
 
     console = ActiveSupport::Logger.new($stdout)
     console.formatter = Rails.logger.formatter
+    console.level = Rails.logger.level
 
     Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
   end
-
-  super
-ensure
-  # The '-h' option calls exit before @options is set.
-  # If we call 'options' with it unset, we get double help banners.
-  puts 'Exiting' unless @options && options[:daemonize]
-end
 ```
 
 This is where the first output of the Rails initialization happens. This
