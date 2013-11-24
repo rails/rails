@@ -4,7 +4,7 @@ module RenderStreaming
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new(
       "render_streaming/basic/hello_world.html.erb" => "Hello world",
-      "render_streaming/basic/boom.html.erb" => "<%= nil.invalid! %>",
+      "render_streaming/basic/boom.html.erb" => "<%= raise 'Ruby was here!' %>",
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
       "layouts/boom.html.erb" => "<body class=\"<%= nil.invalid! %>\"<%= yield %></body>"
     )]
@@ -90,7 +90,7 @@ module RenderStreaming
       begin
         get "/render_streaming/basic/template_exception"
         io.rewind
-        assert_match "(undefined method `invalid!' for nil:NilClass)", io.read
+        assert_match "Ruby was here!", io.read
       ensure
         ActionView::Base.logger = _old
       end
