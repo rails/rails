@@ -5,6 +5,6 @@ module Rails
     TINY  = 0
     PRE   = "beta"
 
-    STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
+    STRING = [MAJOR, MINOR, TINY, PRE].join('.')
   end
 end
