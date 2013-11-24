@@ -27,6 +27,23 @@ Upgrading from Rails 4.0 to Rails 4.1
 
 NOTE: This section is a work in progress.
 
+### Methods defined in Active Record fixtures
+
+Rails 4.1 evaluates each fixture's ERB in a separate context, so helper methods
+defined in a fixture will not be available in other fixtures.
+
+Helper methods that are used in multiple fixtures should be defined on modules
+included in the newly introduced `ActiveRecord::FixtureSet.context_class`, in
+`test_helper.rb`.
+
+```ruby
+class FixtureFileHelpers
+  def file_sha(path)
+    Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
+  end
+end
+ActiveRecord::FixtureSet.context_class.send :include, FixtureFileHelpers
+```
 
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------

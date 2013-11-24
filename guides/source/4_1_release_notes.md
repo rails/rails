@@ -348,6 +348,10 @@ for detailed changes.
   ActiveRecord will now translate aliased attribute names to the actual column
   name used in the database. ([Pull Request](https://github.com/rails/rails/pull/7839))
 
+* The ERB in fixture files is no longer evaluated in the context of the main
+  object. Helper methods used by multiple fixtures should be defined on modules
+  included in `ActiveRecord::FixtureSet.context_class`. ([Pull Request](https://github.com/rails/rails/pull/13022))
+
 Credits
 -------
 

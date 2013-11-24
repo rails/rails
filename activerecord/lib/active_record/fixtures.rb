@@ -119,6 +119,23 @@ module ActiveRecord
   # perhaps you should reexamine whether your application is properly testable. Hence, dynamic values
   # in fixtures are to be considered a code smell.
   #
+  # Helper methods defined in a fixture will not be available in other fixtures, to prevent against
+  # unwanted inter-test dependencies. Methods used by multiple fixtures should be defined in a module
+  # that is included in <tt>ActiveRecord::FixtureSet.context_class</tt>.
+  #
+  # - define a helper method in `test_helper.rb`
+  #     class FixtureFileHelpers
+  #       def file_sha(path)
+  #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
+  #       end
+  #     end
+  #     ActiveRecord::FixtureSet.context_class.send :include, FixtureFileHelpers
+  #
+  # - use the helper method in a fixture
+  #     photo:
+  #       name: kitten.png
+  #       sha: <%= file_sha 'files/kitten.png' %>
+  #
   # = Transactional Fixtures
   #
   # Test cases can use begin+rollback to isolate their changes to the database instead of having to
@@ -527,6 +544,11 @@ module ActiveRecord
     # Identifiers are positive integers less than 2^32.
     def self.identify(label)
       Zlib.crc32(label.to_s) % MAX_ID
+    end
+
+    # Superclass for the evaluation contexts used by ERB fixtures.
+    def self.context_class
+      @context_class ||= Class.new
     end
 
     attr_reader :table_name, :name, :fixtures, :model_class, :config
@@ -987,5 +1009,15 @@ module ActiveRecord
       def load_instances?
         use_instantiated_fixtures != :no_instances
       end
+  end
+end
+
+class ActiveRecord::FixtureSet::RenderContext # :nodoc:
+  def self.create_subclass
+    Class.new ActiveRecord::FixtureSet.context_class do
+      def get_binding
+        binding()
+      end
+    end
   end
 end
