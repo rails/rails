@@ -106,6 +106,10 @@ class ImportantTopic < Topic
   serialize :important, Hash
 end
 
+class DefaultRejectedTopic < Topic
+  default_scope -> { where(approved: false) }
+end
+
 class BlankTopic < Topic
   # declared here to make sure that dynamic finder with a bang can find a model that responds to `blank?`
   def blank?
