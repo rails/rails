@@ -190,7 +190,7 @@ class DateTime
   end
 end
 
-class Process::Status
+class Process::Status #:nodoc:
   def as_json(options = nil)
     { :exitstatus => exitstatus, :pid => pid }
   end
