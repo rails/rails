@@ -128,8 +128,7 @@ A standard Rails application depends on several gems, specifically:
 
 Once `config/boot.rb` has finished, the next file that is required is
 `rails/commands`, which helps in expanding aliases. In the current case, the
-`ARGV` array simply contains `server` which will be passed over to
-`rails/commands_tasks`.
+`ARGV` array simply contains `server` which will be passed over:
 
 ```ruby
 ARGV << '--help' if ARGV.empty?
@@ -160,7 +159,7 @@ defined here to find the matching command.
 ### `rails/commands/command_tasks.rb`
 
 When one types an incorrect rails command, the `run_command` is responsible for
-throwing an error message. If the command is valid, a function of the same name
+throwing an error message. If the command is valid, a method of the same name
 is called.
 
 ```ruby
