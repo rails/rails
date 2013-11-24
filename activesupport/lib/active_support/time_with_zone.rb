@@ -322,6 +322,10 @@ module ActiveSupport
       utc.to_time
     end
 
+    # Converts to a +DateTime+ value.
+    #
+    # Note that unless you have a specific reason to do so, you should prefer using +to_time+
+    # rather than +to_datetime+
     def to_datetime
       utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
