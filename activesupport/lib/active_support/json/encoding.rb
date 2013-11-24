@@ -6,6 +6,7 @@ require 'active_support/core_ext/module/delegation'
 module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
+      :subsecond_fraction_digits, :subsecond_fraction_digits=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
       :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
       :to => :'ActiveSupport::JSON::Encoding'
@@ -68,6 +69,10 @@ module ActiveSupport
         # If true, use ISO 8601 format for dates and times. Otherwise, fall back
         # to the Active Support legacy format.
         attr_accessor :use_standard_json_time_format
+
+        # Configures the inclusion of subsecond resolution when serializing instances
+        # of ActiveSupport::TimeWithZone.
+        attr_accessor :subsecond_fraction_digits
 
         # If false, serializes BigDecimal objects as numeric instead of wrapping
         # them in a string.

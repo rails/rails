@@ -154,7 +154,8 @@ module ActiveSupport
     #   # => "2005/02/01 05:15:10 -1000"
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
-        xmlschema(3)
+        digits = ActiveSupport::JSON::Encoding.subsecond_fraction_digits || 3
+        xmlschema(digits)
       else
         %(#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
       end
