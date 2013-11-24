@@ -79,10 +79,8 @@ platforms :jruby do
 end
 
 platforms :rbx do
-  gem 'psych'
-  gem 'rubysl-mathn'
-  gem 'rubysl-matrix'
-  gem 'rubysl-rexml'
+  gem 'psych', '~> 2.0'
+  gem 'rubysl', '~> 2.0'
 end
 
 # gems that are necessary for ActiveRecord tests with Oracle database
