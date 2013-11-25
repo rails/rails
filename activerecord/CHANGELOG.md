@@ -1,3 +1,7 @@
+*   Only use BINARY for mysql case sensitive uniqueness check when column has a case insensitive collation.
+
+    *Ryuta Kamizono*
+
 *   Fix validation on uniqueness of empty association.
 
     *Evgeny Li*
