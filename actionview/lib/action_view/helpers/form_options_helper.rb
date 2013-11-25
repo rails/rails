@@ -361,7 +361,7 @@ module ActionView
           text, value = option_text_and_value(element).map { |item| item.to_s }
 
           html_attributes[:selected] = option_value_selected?(value, selected)
-          html_attributes[:disabled] = disabled && html_attributes[:selected]
+          html_attributes[:disabled] = disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
           content_tag_string(:option, text, html_attributes)
