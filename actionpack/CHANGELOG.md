@@ -1,3 +1,11 @@
+*   Better error message for typos in assert_response argument.
+
+    When the response type argument to `assert_response` is not a known
+    response type, `assert_response` now throws an ArgumentError with a clear
+    message. This is intended to help debug typos in the response type.
+
+    *Victor Costan*
+
 *   Fix formatting for `rake routes` when a section is shorter than a header.
 
     *Sıtkı Bağdat*
