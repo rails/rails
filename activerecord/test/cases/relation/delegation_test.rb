@@ -32,12 +32,12 @@ module ActiveRecord
     end
 
     [:map, :collect].each do |method|
-      test "##{method} is delgated" do
+      test "##{method} is delegated" do
         assert_responds(target, method)
         assert_equal(target.pluck(:body), target.send(method) {|post| post.body })
       end
 
-      test "##{method}! is not delgated" do
+      test "##{method}! is not delegated" do
         assert_deprecated do
           assert_responds(target, "#{method}!")
         end
@@ -68,12 +68,12 @@ module ActiveRecord
     end
 
     [:map, :collect].each do |method|
-      test "##{method} is delgated" do
+      test "##{method} is delegated" do
         assert_responds(target, method)
         assert_equal(target.pluck(:body), target.send(method) {|post| post.body })
       end
 
-      test "##{method}! is not delgated" do
+      test "##{method}! is not delegated" do
         assert_deprecated do
           assert_responds(target, "#{method}!")
         end
