@@ -358,7 +358,15 @@ module ActiveRecord
           :statement_name => statement_name,
           :binds          => binds) { yield }
       rescue => e
-        message = "#{e.class.name}: #{e.message}: #{sql}"
+        begin
+          message = "#{e.class.name}: #{e.message}: #{sql}"
+        rescue Encoding::CompatibilityError
+          encoding = Encoding.default_internal || Encoding::UTF_8
+          encoding_options = { invalid: :replace, undef: :replace }
+          encoded_message = e.message.encode(encoding, encoding_options)
+          encoded_sql = sql.encode(encoding, encoding_options)
+          message = "#{e.class.name}: #{encoded_message}: #{encoded_sql}"
+        end
         @logger.error message if @logger
         exception = translate_exception(e, message)
         exception.set_backtrace e.backtrace
