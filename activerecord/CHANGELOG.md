@@ -1,3 +1,7 @@
+*   Implement rename_index natively for MySQL > 5.7.
+
+    *Cody Cutrer*
+
 *   Fix bug when validating the uniqueness of an aliased attribute.
 
     Fixes #12402.
