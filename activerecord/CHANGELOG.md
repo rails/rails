@@ -1,3 +1,14 @@
+*   Avoid invalid UTF-8 exception in invalid SQL statement handler.
+
+    The mysql connection adapter tries to provide a helpful message for a
+    certain class of invalid SQL statement exceptions. The logic for detecting
+    if an exception falls into that class is now resilient to exceptions due
+    to UTF-8 encoding errors. This lets the application developer see and debug
+    the original exception instead of a cryptic `invalid byte sequence in
+    UTF-8`.
+
+    *Victor Costan*
+
 *   Fix validation on uniqueness of empty association.
 
     *Evgeny Li*

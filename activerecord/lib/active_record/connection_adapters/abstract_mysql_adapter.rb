@@ -299,7 +299,12 @@ module ActiveRecord
           log(sql, name) { @connection.query(sql) }
         end
       rescue ActiveRecord::StatementInvalid => exception
-        if exception.message.split(":").first =~ /Packets out of order/
+        begin
+          message_start = exception.message.split(":").first
+        rescue ArgumentError  # Most likely an encoding error.
+          message_start = ''
+        end
+        if message_start =~ /Packets out of order/
           raise ActiveRecord::StatementInvalid.new("'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information. If you're on Windows, use the Instant Rails installer to get the updated mysql bindings.", exception.original_exception)
         else
           raise
