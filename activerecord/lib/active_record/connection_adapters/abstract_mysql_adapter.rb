@@ -487,6 +487,14 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
+      def rename_index(table_name, old_name, new_name)
+        if version[0] >= 5 && version[1] >= 7
+          execute "ALTER TABLE #{quote_table_name(table_name)} RENAME INDEX #{quote_table_name(old_name)} TO #{quote_table_name(new_name)}"
+        else
+          super
+        end
+      end
+
       def change_column_default(table_name, column_name, default)
         column = column_for(table_name, column_name)
         change_column table_name, column_name, column.sql_type, :default => default
