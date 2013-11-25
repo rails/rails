@@ -790,6 +790,32 @@ SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
 
 This method accepts **no** arguments.
 
+### `rewhere`
+
+The `rewhere` method overrides an existing, named where condition. For example:
+
+```ruby
+Post.where(trashed: true).rewhere(trashed: false)
+```
+
+The SQL that would be executed:
+
+```sql
+SELECT * FROM posts WHERE `trashed` = 0
+```
+
+In case the `rewhere` clause is not used,
+
+```ruby
+Post.where(trashed: true).where(trashed: false)
+```
+
+the SQL executed would be:
+
+```sql
+SELECT * FROM posts WHERE `trashed` = 1 AND `trashed` = 0
+```
+
 Null Relation
 -------------
 
