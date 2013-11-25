@@ -141,6 +141,55 @@ You have initialized an object!
 => #<User id: 1>
 ```
 
+### `after_touch`
+
+The `after_touch` callback will be called whenever an Active Record object is touched.
+
+```ruby
+class User < ActiveRecord::Base
+  after_touch do |user|
+    puts "You have touched an object"
+  end
+end
+
+>> u = User.create(name: 'Kuldeep')
+=> #<User id: 1, name: "Kuldeep", created_at: "2013-11-25 12:17:49", updated_at: "2013-11-25 12:17:49">
+
+>> u.touch
+You have touched an object
+=> true
+```
+
+It can be used along with `belongs_to`:
+
+```ruby
+class Employee < ActiveRecord::Base
+  belongs_to :company, touch: true
+  after_touch do
+    puts 'An Employee was touched'
+  end
+end
+
+class Company < ActiveRecord::Base
+  has_many :employees
+  after_touch :log_when_employees_or_company_touched
+
+  private
+  def log_when_employees_or_company_touched
+    puts 'Employee/Company was touched'
+  end
+end
+
+>> @employee = Employee.last
+=> #<Employee id: 1, company_id: 1, created_at: "2013-11-25 17:04:22", updated_at: "2013-11-25 17:05:05">
+
+# triggers @employee.company.touch
+>> @employee.touch
+Employee/Company was touched
+An Employee was touched
+=> true
+```
+
 Running Callbacks
 -----------------
 
