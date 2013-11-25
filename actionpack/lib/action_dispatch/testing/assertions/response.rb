@@ -27,6 +27,9 @@ module ActionDispatch
             assert @response.send("#{type}?"), message
           else
             code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
+            if code.nil?
+              raise ArgumentError, "Invalid response type :#{type}"
+            end
             assert_equal code, @response.response_code, message
           end
         else
