@@ -1,3 +1,13 @@
+*   Handle errors in SQL queries with UTF8-incompatible encodings.
+
+    Database errors in response to SQL queries whose encodings aren't
+    compatible with UTF-8 are now logged correctly instead of causing an
+    incompatible encoding exception.
+
+    Fixes #5738.
+
+    *Victor Costan*
+
 *   Fix validation on uniqueness of empty association.
 
     *Evgeny Li*

@@ -89,6 +89,25 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.execute "DROP TABLE `bar_baz`"
   end
 
+  def test_logs_non_utf8_queries
+    iso_name = [0xE9].pack('C*').force_encoding(Encoding::ISO_8859_1)
+    utf8_name = [0xC3, 0xA9].pack('C*').force_encoding(Encoding::UTF_8)
+    sql = "DROP TABLE #{iso_name}"
+
+    logged_error = nil
+    @connection.logger.expects(:error).with { |message| logged_error = message }
+
+    assert_raise(ActiveRecord::StatementInvalid) do
+      @connection.execute sql
+    end
+
+    assert_equal Encoding::UTF_8, logged_error.encoding
+    assert_includes logged_error, utf8_name
+
+    assert_equal Encoding::ISO_8859_1, @subscriber.logged[0][0].encoding
+    assert_includes @subscriber.logged[0][0], iso_name
+  end
+
   private
 
   def run_without_connection
