@@ -104,7 +104,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car = Car.create(:name => 'honda')
     car.funky_bulbs.create!
     assert_nothing_raised { car.reload.funky_bulbs.delete_all }
-    assert_equal 0, Bulb.count, "bulbs should have been deleted using :delete_all strategey"
+    assert_equal 0, Bulb.count, "bulbs should have been deleted using :delete_all strategy"
   end
 
   def test_building_the_associated_object_with_implicit_sti_base_class
