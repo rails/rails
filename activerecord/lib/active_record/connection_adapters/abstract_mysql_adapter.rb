@@ -585,6 +585,14 @@ module ActiveRecord
         Arel::Nodes::Bin.new(node)
       end
 
+      def case_sensitive_comparison(table, attribute, column, value)
+        if column.case_sensitive?
+          table[attribute].eq(value)
+        else
+          super
+        end
+      end
+
       def case_insensitive_comparison(table, attribute, column, value)
         if column.case_sensitive?
           super
