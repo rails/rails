@@ -52,7 +52,7 @@
 
     *Adam Williams*, *Yves Senn*
 
-*   Fix bug where `has_one` associaton record update result in crash, when replaced with itself.
+*   Fix bug where `has_one` association record update result in crash, when replaced with itself.
 
     Fixes #12834.
 
