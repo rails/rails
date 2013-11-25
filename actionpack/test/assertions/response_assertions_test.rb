@@ -50,6 +50,14 @@ module ActionDispatch
           assert_response :success
         }
       end
+
+      def test_assert_response_sym_typo
+        @response = FakeResponse.new 200
+
+        assert_raises(ArgumentError) {
+          assert_response :succezz
+        }
+      end
     end
   end
 end
