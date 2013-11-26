@@ -264,7 +264,7 @@ module AbstractControllerTests
         assert_equal "Overwrite Hello proc!", controller.response_body
       end
 
-      test "when layout is specified as a proc and the proc retuns nil, don't use a layout" do
+      test "when layout is specified as a proc and the proc returns nil, don't use a layout" do
         controller = WithProcReturningNil.new
         controller.process(:index)
         assert_equal "Hello nil!", controller.response_body
