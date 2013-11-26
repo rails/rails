@@ -73,7 +73,7 @@ module ActiveRecord
 
       # base is the base class on which operation is taking place.
       # associations is the list of associations which are joined using hash, symbol or array.
-      # joins is the list of all string join commnads and arel nodes.
+      # joins is the list of all string join commands and arel nodes.
       #
       #  Example :
       #
