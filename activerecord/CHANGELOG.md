@@ -1,8 +1,16 @@
+*   `rename_index` adds the new index before removing the old one. This allows
+    to rename indexes on columns with a foreign key and prevents the following error:
+
+    `Cannot drop index 'index_engines_on_car_id': needed in a foreign key constraint`
+
+    *Cody Cutrer*, *Yves Senn*
+
 *   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child marked with `dependent: destroy` fails to be destroyed.
 
     Fix #12812
 
     *Brian Thomas Storti*
+
 
 *   Fix validation on uniqueness of empty association.
 

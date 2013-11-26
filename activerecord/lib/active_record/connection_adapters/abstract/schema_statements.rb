@@ -558,8 +558,8 @@ module ActiveRecord
         # this is a naive implementation; some DBs may support this more efficiently (Postgres, for instance)
         old_index_def = indexes(table_name).detect { |i| i.name == old_name }
         return unless old_index_def
-        remove_index(table_name, :name => old_name)
-        add_index(table_name, old_index_def.columns, :name => new_name, :unique => old_index_def.unique)
+        add_index(table_name, old_index_def.columns, name: new_name, unique: old_index_def.unique)
+        remove_index(table_name, name: old_name)
       end
 
       def index_name(table_name, options) #:nodoc:
