@@ -1,3 +1,9 @@
+*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child marked with `dependent: destroy` fails to be destroyed.
+
+    Fix #12812
+
+    *Brian Thomas Storti*
+
 *   Fix validation on uniqueness of empty association.
 
     *Evgeny Li*
@@ -1041,11 +1047,5 @@
 *   rake:db:test:prepare falls back to original environment after execution.
 
     *Slava Markevich*
-
-*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child marked with `dependent: destroy` fails to be destroyed.
-
-    Fix #12812
-
-    *Brian Thomas Storti*
 
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activerecord/CHANGELOG.md) for previous changes.
