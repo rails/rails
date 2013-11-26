@@ -455,7 +455,7 @@ class TextHelperTest < ActionView::TestCase
     reset_cycle("colors")
   end
 
-  def test_recet_named_cycle
+  def test_reset_named_cycle
     assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
     assert_equal("red", cycle("red", "blue", :name => "colors"))
     reset_cycle("numbers")
