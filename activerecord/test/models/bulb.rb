@@ -43,3 +43,9 @@ class FunkyBulb < Bulb
     raise "before_destroy was called"
   end
 end
+
+class FailedBulb < Bulb
+  before_destroy do
+    false
+  end
+end

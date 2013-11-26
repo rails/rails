@@ -1,3 +1,9 @@
+*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child marked with `dependent: destroy` fails to be destroyed.
+
+    Fix #12812
+
+    *Brian Thomas Storti*
+
 *   Fix validation on uniqueness of empty association.
 
     *Evgeny Li*
