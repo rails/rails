@@ -16,7 +16,7 @@ module ActionView
           super(object_name, method_name, template_object, options)
         end
 
-        def render(&block)
+        def render
           options = @options.stringify_keys
           tag_value = options.delete("value")
           name_and_id = options.dup
@@ -34,7 +34,7 @@ module ActionView
           options["for"] = name_and_id["id"] unless options.key?("for")
 
           if block_given?
-            content = @template_object.capture(&block)
+            content = @template_object.capture { yield }
           else
             content = if @content.blank?
                         @object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
