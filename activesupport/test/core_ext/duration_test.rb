@@ -158,6 +158,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '172800', 2.days.to_json
   end
 
+  def test_case_when
+    cased = case 1.day when 1.day then "ok" end
+    assert_equal cased, "ok"
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
