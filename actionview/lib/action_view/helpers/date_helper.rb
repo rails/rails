@@ -115,7 +115,7 @@ module ActionView
                 # e.g. if there are 20 leap year days between 2 dates having the same day
                 # and month then the based on 365 days calculation
                 # the distance in years will come out to over 80 years when in written
-                # english it would read better as about 80 years.
+                # English it would read better as about 80 years.
                 minutes_with_offset = distance_in_minutes - minute_offset_for_leap_year
               else
                 minutes_with_offset = distance_in_minutes

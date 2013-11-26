@@ -31,7 +31,7 @@ class ErbUtilTest < ActiveSupport::TestCase
     assert escaped.html_safe?
   end
 
-  def test_html_escape_passes_html_escpe_unmodified
+  def test_html_escape_passes_html_escape_unmodified
     escaped = h("<p>".html_safe)
     assert_equal "<p>", escaped
     assert escaped.html_safe?

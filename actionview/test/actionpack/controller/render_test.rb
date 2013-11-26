@@ -992,7 +992,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_render_formatted_html_erb_template_with_faulty_accepts_header
-    @request.accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, appliction/x-shockwave-flash, */*"
+    @request.accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, */*"
     get :formatted_xml_erb
     assert_equal '<test>passed formatted html erb</test>', @response.body
   end
