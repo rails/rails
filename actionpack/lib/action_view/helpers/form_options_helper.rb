@@ -765,7 +765,7 @@ module ActionView
       # Wraps ActionView::Helpers::FormOptionsHelper#select for form builders:
       #
       #   <%= form_for @post do |f| %>
-      #     <%= f.select :person_id, Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true }) %>
+      #     <%= f.select :person_id, Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true } %>
       #     <%= f.submit %>
       #   <% end %>
       #
