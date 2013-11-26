@@ -381,6 +381,13 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("3", cycle("one", 2, "3"))
   end
 
+  def test_cycle_with_array
+    array = [1, 2, 3]
+    assert_equal("1", cycle(array))
+    assert_equal("2", cycle(array))
+    assert_equal("3", cycle(array))
+  end
+
   def test_cycle_with_no_arguments
     assert_raise(ArgumentError) { cycle }
   end

@@ -1,3 +1,19 @@
+*   A Cycle object should accept an array and cycle through it as it would with a set of comma-separated objects.
+
+        arr = [1,2,3]
+        cycle(arr) # => '1'
+        cycle(arr) # => '2'
+        cycle(arr) # => '3'
+
+    Previously, it would return the array as a string, because it took the array as a single object:
+
+        arr = [1,2,3]
+        cycle(arr) # => '[1,2,3]'
+        cycle(arr) # => '[1,2,3]'
+        cycle(arr) # => '[1,2,3]'
+
+    *Kristian Freeman*
+
 *   Use `set_backtrace` instead of instance variable `@backtrace` in ActionView exceptions
 
     *Shimpei Makimoto*
