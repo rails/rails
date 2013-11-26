@@ -1,3 +1,9 @@
+*   Update counter cache on a has_many relationship regardless of default scope
+
+    Fix #12952.
+
+    *Uku Taht*
+
 *   `rename_index` adds the new index before removing the old one. This allows
     to rename indexes on columns with a foreign key and prevents the following error:
 

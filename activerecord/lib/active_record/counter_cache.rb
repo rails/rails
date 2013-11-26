@@ -77,7 +77,7 @@ module ActiveRecord
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
 
-        where(primary_key => id).update_all updates.join(', ')
+        unscoped.where(primary_key => id).update_all updates.join(', ')
       end
 
       # Increment a numeric field by one, via a direct SQL update.

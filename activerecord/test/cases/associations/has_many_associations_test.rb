@@ -1781,4 +1781,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [original_child], car.reload.failed_bulbs
   end
+  
+  test 'updates counter cache when default scope is given' do
+    topic = DefaultRejectedTopic.create approved: true
+
+    assert_difference "topic.reload.replies_count", 1 do
+      topic.approved_replies.create!
+    end
+  end 
 end
