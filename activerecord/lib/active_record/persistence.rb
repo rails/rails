@@ -496,7 +496,7 @@ module ActiveRecord
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values
-      self.id ||= new_id if self.class.primary_key
+      self.id = new_id if self.class.primary_key
 
       @new_record = false
       id

@@ -185,6 +185,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal("New Topic", topic_reloaded.title)
   end
 
+  def test_create_with_id
+    topic = Topic.new
+    topic.id = "New Topic"
+    topic.save
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal(topic_reloaded.id, topic.id)
+  end
+
   def test_save!
     topic = Topic.new(:title => "New Topic")
     assert topic.save!

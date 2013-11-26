@@ -49,6 +49,8 @@ module ActiveRecord
         end
       end
 
+      primary_key_value = nil if primary_key_value == 0
+
       im = arel.create_insert
       im.into @table
 
