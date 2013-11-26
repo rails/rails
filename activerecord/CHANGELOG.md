@@ -1,3 +1,9 @@
+*   Update counter cache on a has_many relationship regardless of default scope
+
+    Fix #12952.
+
+    *Uku Taht*
+
 *   Fix bug when validating the uniqueness of an aliased attribute.
 
     Fixes #12402.

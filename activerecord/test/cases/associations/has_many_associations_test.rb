@@ -1851,4 +1851,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
     assert_equal 1, speedometer.reload.minivans.to_a.size
   end
+
+  test 'updates counter cache when default scope is given' do
+    topic = DefaultRejectedTopic.create approved: true
+
+    assert_difference "topic.reload.replies_count", 1 do
+      topic.approved_replies.create!
+    end
+  end
 end
