@@ -56,7 +56,15 @@ module ActiveRecord
           value = value.attributes[reflection.primary_key_column.name]
         end
 
-        column = klass.columns_hash[attribute.to_s]
+        attribute_name = attribute.to_s
+
+        # the attribute may be an aliased attribute
+        if klass.attribute_aliases[attribute_name]
+          attribute = klass.attribute_aliases[attribute_name]
+          attribute_name = attribute.to_s
+        end
+
+        column = klass.columns_hash[attribute_name]
         value  = klass.connection.type_cast(value, column)
         value  = value.to_s[0, column.limit] if value && column.limit && column.text?
 

@@ -1,3 +1,9 @@
+*   Fix bug when validating the uniqueness of an aliased attribute.
+
+    Fixes #12402.
+
+    *Lauro Caetano*
+
 *   Checks to see if the record contains the foreign key to set the inverse automatically.
 
     *Edo Balvers*
