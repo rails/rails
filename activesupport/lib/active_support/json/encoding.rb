@@ -5,6 +5,7 @@ module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
+      :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
       :json_encoder, :json_encoder=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
@@ -112,6 +113,32 @@ module ActiveSupport
         # Sets the encoder used by Rails to encode Ruby objects into JSON strings
         # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
         attr_accessor :json_encoder
+
+        def encode_big_decimal_as_string=(as_string)
+          message = \
+            "The JSON encoder in Rails 4.1 no longer supports encoding BigDecimals as JSON numbers. Instead, " \
+            "the new encoder will always encode them as strings.\n\n" \
+            "You are seeing this error because you have 'active_support.encode_big_decimal_as_string' in " \
+            "your configuration file. If you have been setting this to true, you can safely remove it from " \
+            "your configuration. Otherwise, you should add the 'activesupport-json_encoder' gem to your " \
+            "Gemfile in order to restore this functionality."
+
+          raise NotImplementedError, message
+        end
+
+        def encode_big_decimal_as_string
+          message = \
+            "The JSON encoder in Rails 4.1 no longer supports encoding BigDecimals as JSON numbers. Instead, " \
+            "the new encoder will always encode them as strings.\n\n" \
+            "You are seeing this error because you are trying to check the value of the related configuration, " \
+            "'active_support.encode_big_decimal_as_string'. If your application depends on this option, you should " \
+            "add the 'activesupport-json_encoder' gem to your Gemfile. For now, this option will always be true. " \
+            "In the future, it will be removed from Rails, so you should stop checking its value."
+
+          ActiveSupport::Deprecation.warn message
+
+          true
+        end
 
         # Deprecate CircularReferenceError
         def const_missing(name)

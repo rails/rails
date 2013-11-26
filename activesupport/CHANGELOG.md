@@ -19,6 +19,22 @@
 
     *Godfrey Chan*
 
+*   Removed the old pure-Ruby JSON encoder and switched to a new encoder based on the built-in JSON
+    gem.
+
+    Support for encoding `BigDecimal` as a JSON number, as well as defining custom `encode_json`
+    methods to control the JSON output has been **removed from core**. The new encoder will always
+    encode BigDecimals as `String`s and ignore any custom `encode_json` methods.
+
+    The old encoder has been extracted into the `activesupport-json_encoder` gem. Installing that
+    gem will bring back the ability to encode `BigDecimal`s as numbers as well as `encode_json`
+    support.
+
+    Setting the related configuration `ActiveSupport.encode_big_decimal_as_string` without the
+    `activesupport-json_encoder` gem installed will raise an error.
+
+    *Godfrey Chan*
+
 *   Add `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These methods change current
     time to the given time or time difference by stubbing `Time.now` and `Date.today` to return the
     time or date after the difference calculation, or the time or date that got passed into the
