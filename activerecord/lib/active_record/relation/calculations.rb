@@ -150,19 +150,25 @@ module ActiveRecord
         relation.select_values = column_names.map { |cn|
           columns_hash.key?(cn) ? arel_table[cn] : cn
         }
-        result = klass.connection.select_all(relation.arel, nil, bind_values)
-        columns = result.columns.map do |key|
-          klass.column_types.fetch(key) {
-            result.column_types.fetch(key) { result.identity_type }
-          }
+
+        data = klass.connection.select_all(relation.arel, nil, bind_values)
+
+        columns = data.columns.map do |key|
+          klass.column_types[key] || data.column_types[key] || data.identity_type 
+        end
+        coders = data.columns.map do |key|
+          klass.serialized_attributes[key] 
         end
 
-        result = result.map do |attributes|
-          values = klass.initialize_attributes(attributes).values
-
-          columns.zip(values).map { |column, value| column.type_cast value }
+        result = data.rows.map do |attributes|
+          attributes.map.with_index do |value, index|
+            if coder = coders[index]
+              value = AttributeMethods::Serialization::Attribute.new(coder, value, :serialized)
+            end
+            columns[index].type_cast(value)
+          end
         end
-        columns.one? ? result.map!(&:first) : result
+        data.columns.one? ? result.map!(&:first) : result
       end
     end
 
