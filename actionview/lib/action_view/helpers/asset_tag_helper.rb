@@ -258,23 +258,23 @@ module ActionView
       # ==== Examples
       #
       #   video_tag("trailer")
-      #   # => <video src="/videos/trailer" />
+      #   # => <video src="/assets/trailer" />
       #   video_tag("trailer.ogg")
-      #   # => <video src="/videos/trailer.ogg" />
+      #   # => <video src="/assets/trailer.ogg" />
       #   video_tag("trailer.ogg", controls: true, autobuffer: true)
-      #   # => <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
+      #   # => <video autobuffer="autobuffer" controls="controls" src="/assets/trailer.ogg" />
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
-      #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png" />
+      #   # => <video src="/assets/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png" />
       #   video_tag("/trailers/hd.avi", size: "16x16")
       #   # => <video src="/trailers/hd.avi" width="16" height="16" />
       #   video_tag("/trailers/hd.avi", height: '32', width: '32')
       #   # => <video height="32" src="/trailers/hd.avi" width="32" />
       #   video_tag("trailer.ogg", "trailer.flv")
-      #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   # => <video><source src="/assets/trailer.ogg" /><source src="/assets/trailer.flv" /></video>
       #   video_tag(["trailer.ogg", "trailer.flv"])
-      #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   # => <video><source src="/assets/trailer.ogg" /><source src="/assets/trailer.flv" /></video>
       #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
-      #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   # => <video height="120" width="160"><source src="/assets/trailer.ogg" /><source src="/assets/trailer.flv" /></video>
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
           options[:poster] = path_to_image(options[:poster]) if options[:poster]
@@ -290,13 +290,13 @@ module ActionView
       # your public audios directory.
       #
       #   audio_tag("sound")
-      #   # => <audio src="/audios/sound" />
+      #   # => <audio src="/assets/sound" />
       #   audio_tag("sound.wav")
-      #   # => <audio src="/audios/sound.wav" />
+      #   # => <audio src="/assets/sound.wav" />
       #   audio_tag("sound.wav", autoplay: true, controls: true)
-      #   # => <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
+      #   # => <audio autoplay="autoplay" controls="controls" src="/assets/sound.wav" />
       #   audio_tag("sound.wav", "sound.mid")
-      #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
+      #   # => <audio><source src="/assets/sound.wav" /><source src="/assets/sound.mid" /></audio>
       def audio_tag(*sources)
         multiple_sources_tag('audio', sources)
       end

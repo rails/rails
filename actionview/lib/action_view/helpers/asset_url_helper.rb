@@ -113,9 +113,9 @@ module ActionView
       #
       # All other asset *_path helpers delegate through this method.
       #
-      #   asset_path "application.js"                     # => /application.js
-      #   asset_path "application", type: :javascript     # => /javascripts/application.js
-      #   asset_path "application", type: :stylesheet     # => /stylesheets/application.css
+      #   asset_path "application.js"                     # => /assets/application.js
+      #   asset_path "application", type: :javascript     # => /assets/application.js
+      #   asset_path "application", type: :stylesheet     # => /assets/application.css
       #   asset_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
       def asset_path(source, options = {})
         source = source.to_s
@@ -225,8 +225,8 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by javascript_include_tag to build the script path.
       #
-      #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
-      #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
+      #   javascript_path "xmlhr"                              # => /assets/xmlhr.js
+      #   javascript_path "dir/xmlhr.js"                       # => /assets/dir/xmlhr.js
       #   javascript_path "/dir/xmlhr"                         # => /dir/xmlhr.js
       #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
       #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
@@ -247,8 +247,8 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
       #
-      #   stylesheet_path "style"                                  # => /stylesheets/style.css
-      #   stylesheet_path "dir/style.css"                          # => /stylesheets/dir/style.css
+      #   stylesheet_path "style"                                  # => /assets/style.css
+      #   stylesheet_path "dir/style.css"                          # => /assets/dir/style.css
       #   stylesheet_path "/dir/style.css"                         # => /dir/style.css
       #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
       #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
@@ -293,9 +293,9 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +video_tag+ to build the video path.
       #
-      #   video_path("hd")                                            # => /videos/hd
-      #   video_path("hd.avi")                                        # => /videos/hd.avi
-      #   video_path("trailers/hd.avi")                               # => /videos/trailers/hd.avi
+      #   video_path("hd")                                            # => /assets/hd
+      #   video_path("hd.avi")                                        # => /assets/hd.avi
+      #   video_path("trailers/hd.avi")                               # => /assets/trailers/hd.avi
       #   video_path("/trailers/hd.avi")                              # => /trailers/hd.avi
       #   video_path("http://www.example.com/vid/hd.avi")             # => http://www.example.com/vid/hd.avi
       def video_path(source, options = {})
@@ -314,9 +314,9 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +audio_tag+ to build the audio path.
       #
-      #   audio_path("horse")                                            # => /audios/horse
-      #   audio_path("horse.wav")                                        # => /audios/horse.wav
-      #   audio_path("sounds/horse.wav")                                 # => /audios/sounds/horse.wav
+      #   audio_path("horse")                                            # => /assets/horse
+      #   audio_path("horse.wav")                                        # => /assets/horse.wav
+      #   audio_path("sounds/horse.wav")                                 # => /assets/sounds/horse.wav
       #   audio_path("/sounds/horse.wav")                                # => /sounds/horse.wav
       #   audio_path("http://www.example.com/sounds/horse.wav")          # => http://www.example.com/sounds/horse.wav
       def audio_path(source, options = {})
