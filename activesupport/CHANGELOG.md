@@ -1,3 +1,20 @@
+*   Deprecated Numeric#{ago,until,since,from_now}, the user is expected to explicitly
+    convert the value into an AS::Duration, i.e. 5.ago => 5.seconds.ago
+
+    This will help to catch subtle bugs like:
+
+      def recent?(days = 3)
+        self.created_at >= days.ago
+      end
+
+    The above code would check if the model is created within the last 3 **seconds**.
+
+    In the future, Numeric#{ago,until,since,from_now} should be removed completely,
+    or throw some sort of errors to indicate there are no implicit conversion from
+    Numeric to AS::Duration.
+
+    *Godfrey Chan*
+
 *   Add `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These methods change current
     time to the given time or time difference by stubbing `Time.now` and `Date.today` to return the
     time or date after the difference calculation, or the time or date that got passed into the
