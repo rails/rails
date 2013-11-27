@@ -10,9 +10,6 @@ module ActiveRecord
       # The +attributes+ parameter can be either a Hash or an Array of Hashes. These Hashes describe the
       # attributes on the objects that are to be created.
       #
-      # +create+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
-      # in the +options+ parameter.
-      #
       # ==== Examples
       #   # Create a single new object
       #   User.create(first_name: 'Jamie')
