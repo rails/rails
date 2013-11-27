@@ -182,10 +182,6 @@ class String
   #
   #   'egg_and_hams'.classify # => "EggAndHam"
   #   'posts'.classify        # => "Post"
-  #
-  # Singular names are not handled correctly.
-  #
-  #   'business'.classify # => "Business"
   def classify
     ActiveSupport::Inflector.classify(self)
   end
