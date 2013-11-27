@@ -1,3 +1,7 @@
+*   Fix `ActiveSupport::Inflector.singularize` not working for words ending in "series".
+
+    *Lihan Li*
+
 *   Add `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These methods change current
     time to the given time or time difference by stubbing `Time.now` and `Date.today` to return the
     time or date after the difference calculation, or the time or date that got passed into the
