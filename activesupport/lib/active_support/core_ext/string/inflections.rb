@@ -186,6 +186,8 @@ class String
   # Singular names are not handled correctly.
   #
   #   'business'.classify # => "Business"
+  #   'radius'.classify   # => "Radiu"
+  #   'abacus'.classify   # => "Abacu"
   def classify
     ActiveSupport::Inflector.classify(self)
   end
