@@ -24,7 +24,7 @@ module Rails
                   "Default: development") { |v| options[:environment] = v }
           opts.on("-P", "--pid=pid", String,
                   "Specifies the PID file.",
-                  "Default: tmp/pids/server.pid") { |v| options[:pid] = v }
+                  "Default: tmp/pids/server.[PORT].pid") { |v| options[:pid] = v }
 
           opts.separator ""
 
@@ -95,14 +95,18 @@ module Rails
 
     def default_options
       super.merge({
-        Port:               3000,
+        Port:               default_port,
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
         debugger:           false,
-        pid:                File.expand_path("tmp/pids/server.pid"),
+        pid:                File.expand_path("tmp/pids/server.#{default_port}.pid"),
         config:             File.expand_path("config.ru")
       })
+    end
+
+    def default_port
+      3000
     end
 
     private
