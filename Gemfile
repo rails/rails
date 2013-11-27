@@ -45,7 +45,6 @@ group :test do
 end
 
 platforms :ruby do
-  gem 'yajl-ruby'
   gem 'nokogiri', '>= 1.4.5'
 
   # Needed for compiling the ActionDispatch::Journey parser
