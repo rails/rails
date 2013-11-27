@@ -208,8 +208,11 @@ module ActionView
         end
 
         if size = options.delete(:size)
-          options[:width], options[:height] = size.split("x") if size =~ %r{\A\d+x\d+\z}
-          options[:width] = options[:height] = size if size =~ %r{\A\d+\z}
+          if size =~ %r{\A\d+x\d+\z}
+            options[:width], options[:height] = size.split('x')
+          elsif size =~ %r{\A\d+\z}
+            options[:width] = options[:height] = size
+          end
         end
 
         tag("img", options)
