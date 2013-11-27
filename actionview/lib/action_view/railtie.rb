@@ -40,6 +40,8 @@ module ActionView
       ActiveSupport.on_load(:action_controller) do
         ActionController::Base.superclass.send(:include, ActionView::Layouts)
         ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
+        # Support backwards compatibility
+        AbstractController::Rendering.send(:include, ActionView::ViewPaths)
       end
     end
 
