@@ -630,4 +630,10 @@
 
     *Slava Markevich*
 
+*   Handle multiple has_many through polymorphic associations.
+ 
+    Fix #12004
+ 
+    *Adam Klein*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activerecord/CHANGELOG.md) for previous changes.

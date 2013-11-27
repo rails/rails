@@ -1,0 +1,11 @@
+john:
+  id: 1
+  booking_id: 1
+  bookable_id: 1
+  bookable_type: 'Guest'
+
+breakfast:
+  id: 2
+  booking_id: 1
+  bookable_id: 1
+  bookable_type: 'Breakfast'
