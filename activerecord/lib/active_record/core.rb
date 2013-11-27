@@ -129,7 +129,7 @@ module ActiveRecord
       # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
       #
       #   class Post < ActiveRecord::Base
-      #     scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
+      #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
