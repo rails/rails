@@ -35,7 +35,6 @@ module ActiveSupport
     inflect.singular(/(tive)s$/i, '\1')
     inflect.singular(/([lr])ves$/i, '\1f')
     inflect.singular(/([^aeiouy]|qu)ies$/i, '\1y')
-    inflect.singular(/(s)eries$/i, '\1eries')
     inflect.singular(/(m)ovies$/i, '\1ovie')
     inflect.singular(/(x|ch|ss|sh)es$/i, '\1')
     inflect.singular(/^(m|l)ice$/i, '\1ouse')
@@ -59,6 +58,6 @@ module ActiveSupport
     inflect.irregular('move', 'moves')
     inflect.irregular('zombie', 'zombies')
 
-    inflect.uncountable(%w(equipment information rice money species series fish sheep jeans police))
+    inflect.uncountable(%w(equipment information rice money species series subseries miniseries fish sheep jeans police))
   end
 end
