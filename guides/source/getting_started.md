@@ -1077,6 +1077,7 @@ together.
 
 ```html+erb
 <h1>Listing Posts</h1>
+<%= link_to 'New post', new_post_path %>
 <table>
   <tr>
     <th>Title</th>
