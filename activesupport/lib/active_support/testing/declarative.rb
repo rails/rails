@@ -7,11 +7,18 @@ module ActiveSupport
 
           unless method_defined?(:describe)
             def self.describe(text)
-              class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-                def self.name
-                  "#{text}"
-                end
-              RUBY_EVAL
+              if block_given?
+                super
+              else
+                message = "`describe` without a block is deprecated, please switch to: `def self.name; #{text.inspect}; end`\n"
+                ActiveSupport::Deprecation.warn message
+
+                class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+                  def self.name
+                    "#{text}"
+                  end
+                RUBY_EVAL
+              end
             end
           end
 
