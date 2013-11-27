@@ -107,6 +107,8 @@ module InflectorTestCases
 
     "database"    => "databases",
 
+    "miniseries"  => "miniseries",
+
     # regression tests against improper inflection regexes
     "|ice"        => "|ices",
     "|ouse"       => "|ouses",
