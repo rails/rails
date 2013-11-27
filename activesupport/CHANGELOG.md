@@ -1,3 +1,20 @@
+*   Deprecated Numeric#{ago,until,since,from_now}, the user is expected to explicitly
+    convert the value into an AS::Duration, i.e. 5.ago => 5.seconds.ago
+
+    This will help to catch subtle bugs like:
+
+      def recent?(days = 3)
+        self.created_at >= days.ago
+      end
+
+    The above code would check if the model is created within the last 3 **seconds**.
+
+    In the future, Numeric#{ago,until,since,from_now} should be removed completely,
+    or throw some sort of errors to indicate there are no implicit conversion from
+    Numeric to AS::Duration.
+
+    *Godfrey Chan*
+
 *   Requires JSON gem version 1.7.7 or above due to a security issue in older versions.
 
     *Godfrey Chan*
