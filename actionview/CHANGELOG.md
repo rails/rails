@@ -1,3 +1,7 @@
+*   Fixed a long-standing bug in `json_escape` that causes quotation marks to be stripped.
+
+    *Godfrey Chan*
+
 *   `ActionView::MissingTemplate` includes underscore when raised for a partial.
 
     Fixes #13002.
