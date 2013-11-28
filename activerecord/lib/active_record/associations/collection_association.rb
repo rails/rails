@@ -236,11 +236,10 @@ module ActiveRecord
         end
       end
 
-      # Deletes the +records+ and removes them from this association calling
+      # Destroys the +records+ and removes them from this association calling
       # +before_remove+ , +after_remove+ , +before_destroy+ and +after_destroy+ callbacks.
       #
-      # Note that this method removes records from the database ignoring the
-      # +:dependent+ option.
+      # Note that this method destroys records from the database.
       def destroy(*records)
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
