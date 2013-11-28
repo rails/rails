@@ -15,6 +15,11 @@ require 'models/engine'
 require 'models/tyre'
 require 'models/minivan'
 
+class CallbackCancellationAuthor < ActiveRecord::Base
+  self.table_name = 'authors'
+
+  before_destroy { false }
+end
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
@@ -767,6 +772,32 @@ class RelationTest < ActiveRecord::TestCase
     assert_difference('Author.count', -1) { davids.destroy_all }
 
     assert_equal [], davids.to_a
+    assert davids.loaded?
+  end
+
+  def test_destroy_all!
+    davids = Author.where(:name => 'David')
+
+    # Force load
+    assert_equal [authors(:david)], davids.to_a
+    assert davids.loaded?
+
+    assert_difference('Author.count', -1) { davids.destroy_all! }
+
+    assert_equal [], davids.to_a
+    assert davids.loaded?
+  end
+
+  def test_error_destroy_all!
+    davids = CallbackCancellationAuthor.where(:name => 'David')
+
+    # Force load
+    assert_equal 1, davids.to_a.size
+    assert davids.loaded?
+
+    assert_raise(ActiveRecord::RecordNotDestroyed) { davids.destroy_all! }
+
+    assert_equal 1, davids.to_a.size
     assert davids.loaded?
   end
 

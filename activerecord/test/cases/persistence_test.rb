@@ -129,6 +129,18 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_destroy_all!
+    conditions = "author_name = 'Mary'"
+    topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
+    assert ! topics_by_mary.empty?
+
+    assert_difference('Topic.count', -topics_by_mary.size) do
+      destroyed = Topic.destroy_all!(conditions).sort_by(&:id)
+      assert_equal topics_by_mary, destroyed
+      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+    end
+  end
+
   def test_destroy_many
     clients = Client.all.merge!(:order => 'id').find([2, 3])
 
