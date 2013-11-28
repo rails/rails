@@ -63,6 +63,7 @@ module InflectorTestCases
     "news"        => "news",
 
     "series"      => "series",
+    "miniseries"  => "miniseries",
     "species"     => "species",
 
     "quiz"        => "quizzes",
