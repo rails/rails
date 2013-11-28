@@ -1,15 +1,15 @@
-*   Deprecated Numeric#{ago,until,since,from_now}, the user is expected to explicitly
-    convert the value into an AS::Duration, i.e. 5.ago => 5.seconds.ago
+*   Deprecated `Numeric#{ago,until,since,from_now}`, the user is expected to explicitly
+    convert the value into an AS::Duration, i.e. `5.ago` => `5.seconds.ago`
 
     This will help to catch subtle bugs like:
 
-      def recent?(days = 3)
-        self.created_at >= days.ago
-      end
+        def recent?(days = 3)
+          self.created_at >= days.ago
+        end
 
     The above code would check if the model is created within the last 3 **seconds**.
 
-    In the future, Numeric#{ago,until,since,from_now} should be removed completely,
+    In the future, `Numeric#{ago,until,since,from_now}` should be removed completely,
     or throw some sort of errors to indicate there are no implicit conversion from
     Numeric to AS::Duration.
 
@@ -177,7 +177,8 @@
 
     *Simon Coffey*
 
-*   Add String#remove(pattern) as a short-hand for the common pattern of String#gsub(pattern, '')
+*   Add `String#remove(pattern)` as a short-hand for the common pattern of
+    `String#gsub(pattern, '')`.
 
     *DHH*
 
@@ -280,11 +281,12 @@
 
     *Carlos Antonio da Silva*
 
-*   Remove deprecated `BufferedLogger`.
+*   Remove deprecated `BufferedLogger`, use `ActiveSupport::Logger` instead.
 
     *Yves Senn*
 
-*   Remove deprecated `assert_present` and `assert_blank` methods.
+*   Remove deprecated `assert_present` and `assert_blank` methods, use `assert
+    object.blank?` and `assert object.present?` instead.
 
     *Yves Senn*
 

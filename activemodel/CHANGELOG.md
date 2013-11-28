@@ -7,7 +7,7 @@
 
     *William Myers*
 
-*   Added new API methods `reset_changes` and `changed_applied` to `ActiveModel::Dirty`
+*   Added new API methods `reset_changes` and `changes_applied` to `ActiveModel::Dirty`
     that control changes state. Previsously you needed to update internal
     instance variables, but now API methods are available.
 
@@ -23,7 +23,7 @@
     for non-numerical ones.
 
     Fixes range validations like `:a..:f` that used to pass with values like `:be`.
-    Fixes #10593
+    Fixes #10593.
 
     *Charles Bergeron*
 

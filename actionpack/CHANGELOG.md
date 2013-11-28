@@ -130,10 +130,6 @@
 
     *Vasiliy Ermolovich*
 
-*   Separate Action View completely from Action Pack.
-
-    *Łukasz Strzałkowski*
-
 *   Development mode exceptions are rendered in text format in case of XHR request.
 
     *Kir Shatrov*
@@ -234,7 +230,7 @@
 
     *Yves Senn*, *Andrew White*
 
-*   ActionView extracted from ActionPack.
+*   Action View extracted from Action Pack.
 
     *Piotr Sarnacki*, *Łukasz Strzałkowski*
 

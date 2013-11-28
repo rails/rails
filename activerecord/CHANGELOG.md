@@ -23,7 +23,6 @@
 
     *Brian Thomas Storti*
 
-
 *   Fix validation on uniqueness of empty association.
 
     *Evgeny Li*
@@ -850,7 +849,7 @@
 
         class Author < ActiveRecord::Base
           has_many :posts
-          has_many :taggings, :through => :posts
+          has_many :taggings, through: :posts
         end
 
         class Post < ActiveRecord::Base
@@ -865,7 +864,7 @@
 
         class Author < ActiveRecord::Base
           has_many :posts
-          has_many :taggings, :through => :posts, :source => :tagging
+          has_many :taggings, through: :posts, source: :tagging
         end
 
         class Post < ActiveRecord::Base
