@@ -39,6 +39,9 @@ class Topic < ActiveRecord::Base
   has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
   has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
 
+  belongs_to :parent_message, :class_name => "Topic", :foreign_key => "self_parent_id", :inverse_of => :child_messages, :counter_cache => "self_replies_count"
+  has_many :child_messages, :dependent => :destroy, :class_name => "Topic", :foreign_key => "self_parent_id", :inverse_of => :parent_message
+
   serialize :content
 
   before_create  :default_written_on

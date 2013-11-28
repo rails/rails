@@ -489,6 +489,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 17, reply.replies.size
   end
 
+  def test_self_referential_counter_cache
+    parent = Topic.create :title => "Are you there?"
+    assert_equal 0, parent[:self_replies_count]
+
+    Topic.create :title => "Here"
+
+    child = Topic.find_by_title("Here")
+    child.update_attributes(self_parent_id: parent.id)
+    assert_equal 1, parent.reload[:self_replies_count]
+  end
+
   def test_association_assignment_sticks
     post = Post.first
 
