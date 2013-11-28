@@ -22,6 +22,15 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
+Upgrading from Rails 3.2 to Rails 4.0
+-------------------------------------
+
+NOTE: This section is a work in progress.
+
+If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting one to Rails 4.0.
+
+The following changes are meant for upgrading your application to Rails 4.0.
+
 ### HTTP PATCH
 
 Rails 4 now uses `PATCH` as the primary HTTP verb for updates when a RESTful
@@ -119,15 +128,6 @@ As JSON Patch was only recently made into an RFC, there aren't a lot of great
 Ruby libraries yet. Aaron Patterson's
 [hana](https://github.com/tenderlove/hana) is one such gem, but doesn't have
 full support for the last few changes in the specification.
-
-Upgrading from Rails 3.2 to Rails 4.0
--------------------------------------
-
-NOTE: This section is a work in progress.
-
-If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting one to Rails 4.0.
-
-The following changes are meant for upgrading your application to Rails 4.0.
 
 ### Gemfile
 
