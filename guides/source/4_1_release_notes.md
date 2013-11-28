@@ -24,41 +24,6 @@ available in the
 [Upgrading to Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-0-to-rails-4-1)
 guide.
 
-Creating a Rails 4.1 application
---------------------------------
-
-```
-You should have the 'rails' RubyGem installed
-$ rails new myapp
-$ cd myapp
-```
-
-### Vendoring Gems
-
-Rails uses a `Gemfile` in the application root to determine the gems you require
-for your application to start. This `Gemfile` is processed by the
-[Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your
-dependencies. It can even install all the dependencies locally to your
-application so that it doesn't depend on the system gems.
-
-More information: [Bundler homepage](http://gembundler.com)
-
-### Living on the Edge
-
-`Bundler` and `Gemfile` makes freezing your Rails application easy as pie with
-the new dedicated `bundle` command. If you want to bundle straight from the Git
-repository, you can pass the `--edge` flag:
-
-```
-$ rails new myapp --edge
-```
-
-If you have a local checkout of the Rails repository and want to generate an
-application using that, you can pass the `--dev` flag:
-
-```
-$ ruby /path/to/rails/railties/bin/rails new myapp --dev
-```
 
 Major Features
 --------------
