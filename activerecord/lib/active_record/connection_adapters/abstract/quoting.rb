@@ -3,6 +3,7 @@ require 'active_support/core_ext/big_decimal/conversions'
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module Quoting
+      QUOTED_TRUE, QUOTED_FALSE = "'t'", "'f'"
       # Quotes the column value to help prevent
       # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
       def quote(value, column = nil)
@@ -104,11 +105,11 @@ module ActiveRecord
       end
 
       def quoted_true
-        "'t'"
+        QUOTED_TRUE
       end
 
       def quoted_false
-        "'f'"
+        QUOTED_FALSE
       end
 
       def quoted_date(value)
