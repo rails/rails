@@ -25,8 +25,6 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
-NOTE: This section is a work in progress.
-
 If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting one to Rails 4.0.
 
 The following changes are meant for upgrading your application to Rails 4.0.
