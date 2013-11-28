@@ -616,6 +616,21 @@ class BaseTest < ActiveSupport::TestCase
 
     assert_equal('Testing', AfterActionMailer.welcome['X-Special-Header'].to_s)
   end
+  
+  test "accessing the mail message doesn't erase set headers" do
+    class AfterActionMailer < ActionMailer::Base
+      after_action :a_callback!
+
+      def welcome ; mail(subject: 'test me') ; end
+
+      private
+      def a_callback!
+        mail.delivery_method.settings.merge!(some: 'thing')
+      end
+    end
+
+    assert_equal('test me', AfterActionMailer.welcome.subject.to_s)
+  end
 
   test "adding an inline attachment using a before_action" do
     class DefaultInlineAttachmentMailer < ActionMailer::Base
