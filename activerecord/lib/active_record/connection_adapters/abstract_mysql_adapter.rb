@@ -207,9 +207,14 @@ module ActiveRecord
       end
 
       def type_cast(value, column)
-        return super unless value == true || value == false
-
-        value ? 1 : 0
+        case value
+        when TrueClass
+          1
+        when FalseClass
+          0
+        else
+          super
+        end
       end
 
       # MySQL 4 technically support transaction isolation, but it is affected by a bug
