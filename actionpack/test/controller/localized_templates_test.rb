@@ -34,4 +34,13 @@ class LocalizedTemplatesTest < ActionController::TestCase
     get :hello_world
     assert_equal "Gutten Tag", @response.body
   end
+
+  def test_localized_template_has_correct_header
+    old_locale = I18n.locale
+    I18n.locale = :it
+
+    get :hello_world
+    assert_equal "Ciao Mondo", @response.body
+    assert_equal "text/html",  @response.content_type
+  end
 end
