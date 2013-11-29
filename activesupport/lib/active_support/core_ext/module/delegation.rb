@@ -138,6 +138,8 @@ class Module
   #
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
+  # The target method must be public, otherwise it will raise +NoMethodError+.
+  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
