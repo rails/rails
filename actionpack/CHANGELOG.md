@@ -1,3 +1,12 @@
+*   Fix header Content-Type: #<Mime::NullType:...> in localized template
+
+    When localized template has no format in the template name,
+    now the response has the default and correct `content-type`.
+    
+    Fix #13064.
+
+   *Angelo Capilleri*
+
 *   Better error message for typos in assert_response argument.
 
     When the response type argument to `assert_response` is not a known
