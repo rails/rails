@@ -1,4 +1,4 @@
-*   Implement rename_index natively for MySQL > 5.7.
+*   Implement rename_index natively for MySQL >= 5.7.
 
     *Cody Cutrer*
 
