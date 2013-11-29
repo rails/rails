@@ -305,10 +305,6 @@ module ActiveRecord
         "DEFAULT VALUES"
       end
 
-      def case_sensitive_equality_operator
-        "="
-      end
-
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
         "WHERE #{quoted_primary_key} IN (SELECT #{quoted_primary_key} FROM #{quoted_table_name} #{where_sql})"
       end
