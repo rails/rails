@@ -364,7 +364,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_debugger
     run_generator
-    assert_file "Gemfile", /# gem 'debugger'/
+    if defined?(JRUBY_VERSION)
+      assert_file "Gemfile" do |content|
+        assert_no_match(/debugger/, content)
+      end
+    else
+      assert_file "Gemfile", /# gem 'debugger'/
+    end
   end
 
   def test_inclusion_of_lazy_loaded_sdoc
