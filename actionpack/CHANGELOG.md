@@ -1,3 +1,9 @@
+*   Fix stream closing when sending file with `ActionController::Live` included.
+
+    Fixes #12381
+
+    *Alessandro Diaferia*
+
 *   Better error message for typos in assert_response argument.
 
     When the response type argument to `assert_response` is not a known
