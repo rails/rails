@@ -300,6 +300,10 @@ module Mime
       nil
     end
 
+    def to_a
+      []
+    end
+
     def respond_to_missing?(method, include_private = false)
       method.to_s.ends_with? '?'
     end
