@@ -155,7 +155,7 @@ The following methods trigger callbacks:
 * `increment!`
 * `save`
 * `save!`
-* `save(validate: false)`
+* `save(validate: false)` (does not trigger the `*_validation` callbacks)
 * `toggle!`
 * `update_attribute`
 * `update`
