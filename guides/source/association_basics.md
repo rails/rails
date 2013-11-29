@@ -864,8 +864,12 @@ end
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
 
 ##### `:dependent`
+If you set the `:dependent` option to:
 
-If you set the `:dependent` option to `:destroy`, then deleting this object will call the `destroy` method on the associated object to delete that object. If you set the `:dependent` option to `:delete`, then deleting this object will delete the associated object _without_ calling its `destroy` method. If you set the `:dependent` option to `:restrict`, then attempting to delete this object will result in a `ActiveRecord::DeleteRestrictionError` if there are any associated objects.
+* `:destroy`, then on destroying the object, destroy method will be called on its associated objects.
+* `:delete`, then on destroying the object, all its associated objects will be deleted directly from the database _without_ calling their `destroy` method.
+* `:restrict_with_exception`, then on destroying the object will raise `ActiveRecord::DeleteRestrictionError` exception if there are any associated objects.
+* `:restrict_with_error`, then on destroying the object, errors will be added to this object if it has any associated object.
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
