@@ -155,7 +155,7 @@ The following methods trigger callbacks:
 * `increment!`
 * `save`
 * `save!`
-* `save(validate: false)`
+* `save(validate: false)` (does not trigger the `*_validation` callbacks)
 * `toggle!`
 * `update_attribute`
 * `update`
@@ -209,7 +209,7 @@ WARNING. Any exception that is not `ActiveRecord::Rollback` will be re-raised by
 Relational Callbacks
 --------------------
 
-Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many posts. A user's posts should be destroyed if the user is destroyed. Let's add an `after_destroy` callback to the `User` model by way of its relationship to the `Post` model:
+Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many posts. A user's posts should be destroyed if the user is destroyed. Let's add an `after_destroy` callback to the `Post` model by way of its relationship to the `User` model:
 
 ```ruby
 class User < ActiveRecord::Base
