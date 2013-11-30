@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/user'
+require 'models/member'
 require 'models/oauthed_user'
 require 'models/visitor'
 require 'models/administrator'
@@ -9,6 +10,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     ActiveModel::SecurePassword.min_cost = true
 
     @user = User.new
+    @member = Member.new
     @visitor = Visitor.new
     @oauthed_user = OauthedUser.new
   end
@@ -66,6 +68,23 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password = "supersecretpassword"
     assert_nothing_raised do
       @user.run_callbacks :create
+    end
+  end
+
+  test "Member should be created with blank digest" do
+    assert_nothing_raised do
+      @member.run_callbacks :create
+    end
+  end
+
+  test "Member should not be updated with blank digest" do
+    assert_raise RuntimeError do
+      @member.run_callbacks :update
+    end
+
+    @member.password = "sekritpasswerd"
+    assert_nothing_raised do
+      @member.run_callbacks :update
     end
   end
 
