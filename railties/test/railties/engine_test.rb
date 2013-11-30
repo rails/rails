@@ -399,7 +399,7 @@ YAML
       assert $plugin_initializer
     end
 
-    test "midleware referenced in configuration" do
+    test "middleware referenced in configuration" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           def initialize(app)

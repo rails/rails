@@ -93,7 +93,7 @@ class ValidationsTest < ActiveRecord::TestCase
     assert reply.save(:validate => false)
   end
 
-  def test_validates_acceptance_of_with_non_existant_table
+  def test_validates_acceptance_of_with_non_existent_table
     Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base)
 
     assert_nothing_raised ActiveRecord::StatementInvalid do

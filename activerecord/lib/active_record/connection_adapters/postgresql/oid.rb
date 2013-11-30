@@ -311,7 +311,7 @@ module ActiveRecord
           h[k] = OID::Identity.new
         }
 
-        # Register an OID type named +name+ with a typcasting object in
+        # Register an OID type named +name+ with a typecasting object in
         # +type+.  +name+ should correspond to the `typname` column in
         # the `pg_type` table.
         def self.register_type(name, type)
