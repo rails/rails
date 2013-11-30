@@ -549,4 +549,12 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_not_nil author.post
     assert_equal author.post, post
   end
+
+  def test_has_one_relationship_cannot_have_a_counter_cache
+    assert_raise(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_one :thing, counter_cache: true
+      end
+    end
+  end
 end

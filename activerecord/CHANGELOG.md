@@ -1,3 +1,10 @@
+*   Previously, the `has_one` macro incorrectly accepts the `counter_cache`
+    option due to a bug, although that options was never supported nor
+    functional on `has_one` and `has_one ... through` relationships. It now
+    correctly raises an `ArgumentError` when passed that option.
+
+    *Godfrey Chan*
+
 *   Implement rename_index natively for MySQL >= 5.7.
 
     *Cody Cutrer*
