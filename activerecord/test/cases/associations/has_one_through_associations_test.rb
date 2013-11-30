@@ -315,4 +315,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_with_custom_select_on_join_model_default_scope
     assert_equal clubs(:boring_club), members(:groucho).selected_club
   end
+
+  def test_has_one_through_relationship_cannot_have_a_counter_cache
+    assert_raise(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_one :thing, through: :other_thing, counter_cache: true
+      end
+    end
+  end
 end
