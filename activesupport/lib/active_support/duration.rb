@@ -99,6 +99,14 @@ module ActiveSupport
 
     private
 
+      # We define it as a workaround to Ruby 2.0.0-p353 bug.
+      # For more information, check rails/rails#13055.
+      # It should be dropped once a new Ruby patch-level
+      # release after 2.0.0-p353 happens.
+      def ===(other) #:nodoc:
+        value === other
+      end
+
       def method_missing(method, *args, &block) #:nodoc:
         value.send(method, *args, &block)
       end
