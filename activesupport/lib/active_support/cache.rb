@@ -90,10 +90,19 @@ module ActiveSupport
       private
         def retrieve_cache_key(key)
           case
-          when key.respond_to?(:cache_key) then key.cache_key
-          when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
-          when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
-          else                                  key.to_param
+          when key.respond_to?(:cache_key)
+            key.cache_key
+          when key.is_a?(Array)
+           key.map { |element| retrieve_cache_key(element) }.to_param
+          when key.respond_to?(:to_a)
+            result = key.to_a
+            if (result.include? key)
+              key.to_param
+            else
+              retrieve_cache_key(result)
+            end
+          else
+            key.to_param
           end.to_s
         end
 
