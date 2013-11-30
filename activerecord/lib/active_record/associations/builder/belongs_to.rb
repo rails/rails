@@ -5,7 +5,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      super + [:foreign_type, :polymorphic, :touch]
+      super + [:foreign_type, :polymorphic, :touch, :counter_cache]
     end
 
     def constructable?

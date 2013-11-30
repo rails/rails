@@ -1,3 +1,10 @@
+*   Previously, the `has_one` macro incorrectly accepts the `counter_cache`
+    option due to a bug, although that options was never supported nor
+    functional on `has_one` and `has_one ... through` relationships. It now
+    correctly raises an `ArgumentError` when passed that option.
+
+    *Godfrey Chan*
+
 *   Update counter cache on a has_many relationship regardless of default scope
 
     Fix #12952.
