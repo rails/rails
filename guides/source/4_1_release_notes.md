@@ -137,6 +137,17 @@ for detailed changes.
 
 ### Removals
 
+* Removed `MultiJSON` dependency. As a result, `ActiveSupport::JSON.decode`
+  no longer accepts an options hash for `MultiJSON`. ([Pull Request](https://github.com/rails/rails/pull/10576) / [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+
+* Removed support for the `encode_json` hook used for encoding custom objects into
+  JSON. This feature has been extracted into the [activesupport-json_encoder](https://github.com/rails/activesupport-json_encoder)
+  gem.
+  ([Related Pull Request](https://github.com/rails/rails/pull/12183) /
+  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+
+* Removed deprecated `ActiveSupport::JSON::Variable` with no replacement.
+
 * Removed deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
 
 * Removed deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
@@ -171,7 +182,31 @@ for detailed changes.
   explicitly convert the value into an AS::Duration, i.e. `5.ago` => `5.seconds.ago`
   ([Pull Request](https://github.com/rails/rails/pull/12389))
 
+* Deprecated the require path `active_support/core_ext/object/to_json`. Require
+  `active_support/core_ext/object/json` instead. ([Pull Request](https://github.com/rails/rails/pull/12203))
+
+* Deprecated `ActiveSupport::JSON::Encoding::CircularReferenceError`. This feature
+  has been extracted into the [activesupport-json_encoder](https://github.com/rails/activesupport-json_encoder)
+  gem.
+  ([Pull Request](https://github.com/rails/rails/pull/12785) /
+  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+
+* Deprecated `ActiveSupport.encode_big_decimal_as_string` option. This feature has
+  been extracetd into the [activesupport-json_encoder](https://github.com/rails/activesupport-json_encoder)
+  gem.
+  ([Pull Request](https://github.com/rails/rails/pull/13060) /
+  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+
 ### Notable changes
+
+* `ActiveSupport`'s JSON encoder has been rewritten to take advantage of the
+  JSON gem rather than doing custom encoding in pure-Ruby.
+  ([Pull Request](https://github.com/rails/rails/pull/12183) /
+  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+
+* Improved compatibility with the JSON gem.
+  ([Pull Request](https://github.com/rails/rails/pull/12862) /
+  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
 
 * Added `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These
   methods change current time to the given time or time difference by stubbing

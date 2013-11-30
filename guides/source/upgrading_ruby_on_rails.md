@@ -27,6 +27,60 @@ Upgrading from Rails 4.0 to Rails 4.1
 
 NOTE: This section is a work in progress.
 
+### Changes in JSON handling
+
+The are a few major changes related to JSON handling in Rails 4.1.
+
+#### MultiJSON removal
+
+MultiJSON has reached its [end-of-life](https://github.com/rails/rails/pull/10576)
+and has been removed from Rails.
+
+If your application currently depend on MultiJSON directly, you have a few options:
+
+1. Add 'multi_json' to your Gemfile. Note that this might cease to work in the future
+
+2. Migrate away from MultiJSON by using `obj.to_json`, and `JSON.parse(str)` instead.
+
+WARNING: Do not simply replace `MultiJson.dump` and `MultiJson.load` with
+`JSON.dump` and `JSON.load`. These JSON gem APIs are meant for serializing and
+deserializing arbitrary Ruby objects and are generally [unsafe](http://www.ruby-doc.org/stdlib-2.0.0/libdoc/json/rdoc/JSON.html#method-i-load).
+
+#### JSON gem compatibility
+
+Historically, Rails had some compatibility issues with the JSON gem. Using
+`JSON.generate` and `JSON.dump` inside a Rails application could produce
+unexpected errors.
+
+Rails 4.1 fixed these issues by isolating its own encoder from the JSON gem. The
+JSON gem APIs will function as normal, but they will not have access to any
+Rails-specific features. For example:
+
+```ruby
+class FooBar
+  def as_json(options = nil)
+    { foo: "bar" }
+  end
+end
+
+>> FooBar.new.to_json # => "{\"foo\":\"bar\"}"
+>> JSON.generate(FooBar.new, quirks_mode: true) # => "\"#<FooBar:0x007fa80a481610>\""
+```
+
+#### New JSON encoder
+
+The JSON encoder in Rails 4.1 has been rewritten to take advantage of the JSON
+gem. For most applications, this should be a transparent change. However, as
+part of the rewrite, the following features have been removed from the encoder:
+
+1. Circular data structure detection
+2. Support for the `encode_json` hook
+3. Option to encode `BigDecimal` objects as numbers instead of strings
+
+If you application depends on one of these features, you can get them back by
+adding the [`activesupport-json_encoder`](https://github.com/rails/activesupport-json_encoder)
+gem to your Gemfile.
+
 ### Methods defined in Active Record fixtures
 
 Rails 4.1 evaluates each fixture's ERB in a separate context, so helper methods
