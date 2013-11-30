@@ -25,6 +25,10 @@ class SendFileController < ActionController::Base
   end
 end
 
+class SendFileWithActionControllerLive < SendFileController
+  include ActionController::Live
+end
+
 class SendFileTest < ActionController::TestCase
   tests SendFileController
   include TestFileUtils
@@ -195,5 +199,15 @@ class SendFileTest < ActionController::TestCase
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 200, @response.status
     end
+  end
+
+  tests SendFileWithActionControllerLive
+
+  def test_send_file_with_action_controller_live
+    @controller = SendFileWithActionControllerLive.new
+    @controller.options = { :content_type => "application/x-ruby" }
+
+    response = process('file')
+    assert_equal 200, response.status
   end
 end
