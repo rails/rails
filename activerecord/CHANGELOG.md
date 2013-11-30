@@ -1,3 +1,7 @@
+*   Enable support for materialized views on PostgreSQL >= 9.3.
+
+    *Dave Lee*
+
 *   The PostgreSQL adapter supports custom domains. Fixes #14305.
 
     *Yves Senn*
