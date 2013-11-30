@@ -1,11 +1,10 @@
-*   Previously, the `has_one` macro incorrectly accepts the `counter_cache`
-    option due to a bug, although that options was never supported nor
-    functional on `has_one` and `has_one ... through` relationships. It now
-    correctly raises an `ArgumentError` when passed that option.
+*   Previously, the `has_one` macro incorrectly accepted the `counter_cache`
+    option, but never actually supported it. Now it will raise an `ArgumentError`
+    when using `has_one` with `counter_cache`.
 
     *Godfrey Chan*
 
-*   Implement rename_index natively for MySQL >= 5.7.
+*   Implement `rename_index` natively for MySQL >= 5.7.
 
     *Cody Cutrer*
 
@@ -15,16 +14,16 @@
 
     *Lauro Caetano*
 
-*   Update counter cache on a has_many relationship regardless of default scope
+*   Update counter cache on a `has_many` relationship regardless of default scope.
 
     Fix #12952.
 
     *Uku Taht*
 
-*   `rename_index` adds the new index before removing the old one. This allows
-    to rename indexes on columns with a foreign key and prevents the following error:
+*   `rename_index` adds the new index before removing the old one. This allows to
+    rename indexes on columns with a foreign key and prevents the following error:
 
-    `Cannot drop index 'index_engines_on_car_id': needed in a foreign key constraint`
+        Cannot drop index 'index_engines_on_car_id': needed in a foreign key constraint
 
     *Cody Cutrer*, *Yves Senn*
 
