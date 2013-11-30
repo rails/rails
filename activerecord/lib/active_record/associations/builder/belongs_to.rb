@@ -5,7 +5,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def self.valid_options(options)
-      super + [:foreign_type, :polymorphic, :touch]
+      super + [:foreign_type, :polymorphic, :touch, :counter_cache]
     end
 
     def self.valid_dependent_options
