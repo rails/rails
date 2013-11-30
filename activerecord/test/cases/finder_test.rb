@@ -868,6 +868,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.offset("3").to_a }
   end
 
+  def test_find_by_with_null_association
+    assert_nil AuthorFavorite.find_by(author: nil)
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
