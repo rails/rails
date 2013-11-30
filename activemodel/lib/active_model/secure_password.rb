@@ -58,10 +58,11 @@ module ActiveModel
 
         if options.fetch(:validations, true)
           validates_confirmation_of :password, if: :should_confirm_password?
-          validates_presence_of     :password, on: :create
+          validates_presence_of     :password, on: options.fetch(:on, :create)
           validates_presence_of     :password_confirmation, if: :should_confirm_password?
 
-          before_create { raise "Password digest missing on new record" if password_digest.blank? }
+          digest_grammar = options[:on] == :update ? 'updated' : 'new'
+          send "before_#{options.fetch(:on, :create).to_s}", -> { raise "Password digest missing on #{digest_grammar} record" if password_digest.blank? }
         end
 
         if respond_to?(:attributes_protected_by_default)
