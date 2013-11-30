@@ -55,6 +55,24 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_where_with_relation
+      authors = Author.all
+
+      expected = Post.where.not(author_id: 0)
+      actual   = Post.where(author: authors)
+
+      assert_equal expected.to_a, actual.to_a
+    end
+
+    def test_polymorphic_where_with_relation
+      treasures = Treasure.all
+
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: treasures)
+      actual   = PriceEstimate.where(estimate_of: treasures)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
     def test_polymorphic_sti_shallow_where
       treasure = HiddenTreasure.new
       treasure.id = 1
