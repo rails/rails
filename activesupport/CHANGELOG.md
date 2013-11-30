@@ -366,6 +366,10 @@
 
     *Yves Senn*
 
+*   Removed deprecated `ActiveSupport::JSON::Variable` with no replacement.
+
+    *Toshinori Kajihara*
+
 *   Raise an error when multiple `included` blocks are defined for a Concern.
     The old behavior would silently discard previously defined blocks, running
     only the last one.
