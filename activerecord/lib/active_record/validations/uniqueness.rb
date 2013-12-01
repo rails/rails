@@ -209,7 +209,7 @@ module ActiveRecord
       # exception. You can either choose to let this error propagate (which
       # will result in the default Rails exception page being shown), or you
       # can catch it and restart the transaction (e.g. by telling the user
-      # that the title already exists, and asking him to re-enter the title).
+      # that the title already exists, and asking them to re-enter the title).
       # This technique is also known as
       # {optimistic concurrency control}[http://en.wikipedia.org/wiki/Optimistic_concurrency_control].
       #
