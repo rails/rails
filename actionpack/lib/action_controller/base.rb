@@ -99,7 +99,7 @@ module ActionController
   # or you can remove the entire session with +reset_session+.
   #
   # Sessions are stored by default in a browser cookie that's cryptographically signed, but unencrypted.
-  # This prevents the user from tampering with the session but also allows him to see its contents.
+  # This prevents the user from tampering with the session but also allows them to see its contents.
   #
   # Do not put secret information in cookie-based sessions!
   #
