@@ -50,7 +50,18 @@ module ActionView
       @details_keys = Hash.new
 
       def self.get(details)
+        if details[:formats]
+          details = details.dup
+          syms    = Set.new Mime::SET.symbols
+          details[:formats] = details[:formats].select { |v|
+            syms.include? v
+          }
+        end
         @details_keys[details.freeze] ||= new
+      end
+
+      def self.clear
+        @details_keys.clear
       end
 
       def initialize
