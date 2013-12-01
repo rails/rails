@@ -262,7 +262,7 @@ Rails determines the name of the partial to use by looking at the model name in 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 
 ```erb
-<%= render @products, spacer_template: "product_ruler" %>
+<%= render partial: @products, spacer_template: "product_ruler" %>
 ```
 
 Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
