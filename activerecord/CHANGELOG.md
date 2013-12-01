@@ -1,3 +1,21 @@
+*   Fix `PredicateBuilder` to handle nil value passed to `Relation#find_by` in case of an association
+    attribute.
+
+    For example, with:
+
+        class Author < ActiveRecord::Base
+        end
+
+        class Favorite < ActiveRecord::Base
+          belongs_to :author
+        end
+
+    Allows usage of:
+
+        Favorite.find_by(author: nil)
+
+    *Vipul A M*
+
 *   Previously, the `has_one` macro incorrectly accepted the `counter_cache`
     option, but never actually supported it. Now it will raise an `ArgumentError`
     when using `has_one` with `counter_cache`.
