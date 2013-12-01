@@ -48,7 +48,7 @@ module ActiveSupport
           ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
 
           # This class wraps all the strings we see and does the extra escaping
-          class EscapedString < String
+          class EscapedString < String #:nodoc:
             def to_json(*)
               if Encoding.escape_html_entities_in_json
                 super.gsub ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
