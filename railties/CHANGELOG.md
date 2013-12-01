@@ -1,12 +1,10 @@
-## Rails 4.0.2 (unreleased)
+*   Fix default `config/application.rb` template to honor the RAILS_GROUPS env variable.
 
-*  Fix default config/application.rb template to honor the RAILS_GROUPS env variable.
+    *Guillermo Iguaran*
 
-   Guillermo Iguaran
+*   Fix default `config/application.rb` template to remove unused `config.assets.enabled` variable.
 
-*  Fix default config/application.rb template to remove unused `config.assets.enabled` variable
-
-   Guillermo Iguaran
+    *Guillermo Iguaran*
 
 
 ## Rails 4.0.1 (November 01, 2013) ##

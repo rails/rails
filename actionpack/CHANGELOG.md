@@ -2,15 +2,15 @@
 
     *Sıtkı Bağdat*
 
-*   Use `set_backtrace` instead of instance variable `@backtrace` in ActionView exceptions
+*   Use `set_backtrace` instead of instance variable `@backtrace` in ActionView exceptions.
 
     *Shimpei Makimoto*
 
-*   Fix `simple_format` escapes own output when passing `sanitize: true`
+*   Fix `simple_format` escapes own output when passing `sanitize: true`.
 
     *Paul Seidemann*
 
-*   Don't let strong parameters mutate the given hash via `fetch`
+*   Don't let strong parameters mutate the given hash via `fetch`.
 
     Create a new instance if the given parameter is a `Hash` instead of
     passing it to the `convert_hashes_to_parameters` method since it is
