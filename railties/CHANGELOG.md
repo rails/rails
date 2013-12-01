@@ -1,3 +1,14 @@
+## Rails 4.0.2 (unreleased)
+
+*  Fix default config/application.rb template to honor the RAILS_GROUPS env variable.
+
+   Guillermo Iguaran
+
+*  Fix default config/application.rb template to remove unused `config.assets.enabled` variable
+
+   Guillermo Iguaran
+
+
 ## Rails 4.0.1 (November 01, 2013) ##
 
 *   Fix the event name of action_dispatch requests.
