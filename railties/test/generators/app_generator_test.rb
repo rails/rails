@@ -291,7 +291,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
-      assert_match(/config\.assets\.enabled = false/, content)
     end
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
