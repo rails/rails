@@ -1,3 +1,8 @@
+*   Uses .railsrc while creating new plugin if it is available.
+    Fixes #10700.
+
+    *Prathamesh Sonpatki*
+
 *   Remove turbolinks when generating a new application based on a template that skips it.
 
     Example:
