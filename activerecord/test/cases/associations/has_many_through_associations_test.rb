@@ -1098,4 +1098,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_with_includes_in_through_association_scope
     assert_not_empty posts(:welcome).author_address_extra_with_address
   end
+
+  def test_has_many_through_should_delete_in_memory_association_record
+    person = Person.new(first_name: "Peter")
+    post = Post.new(title: "Cats & Dogs", body: "are pets")
+
+    person.posts << post
+    assert person.posts.include?(post)
+
+    person.posts.delete(post)
+    assert_not person.posts.include?(post), "should not contain the post after deletion but did."
+
+    person.save!
+    assert_not person.posts.include?(post)
+  end
 end

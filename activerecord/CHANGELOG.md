@@ -1,3 +1,10 @@
+*   Delete in-memory association record when target record is deleted
+    for hm:t case.
+
+    Fixes #9548.
+
+    *Neeraj Singh*
+
 *   Previously, the `has_one` macro incorrectly accepted the `counter_cache`
     option, but never actually supported it. Now it will raise an `ArgumentError`
     when using `has_one` with `counter_cache`.
