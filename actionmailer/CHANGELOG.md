@@ -1,4 +1,26 @@
+*   Calling `mail()` without arguments serves as getter for the current mail
+    message and keeps previously set headers.
+
+    Example:
+
+        class MailerWithCallback < ActionMailer::Base
+          after_action :a_callback
+
+          def welcome
+            mail subject: "subject", to: ["joe@example.com"]
+          end
+
+          def a_callback
+            mail # => returns the current mail message
+          end
+        end
+
+    *Yves Senn*
+
 ## Rails 4.0.1 (November 01, 2013) ##
+
+*   Instrument the generation of Action Mailer messages. The time it takes to
+    generate a message is written to the log.
 
 *   Invoke mailer defaults as procs only if they are procs, do not convert
     with `to_proc`. That an object is convertible to a proc does not mean it's

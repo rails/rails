@@ -661,6 +661,8 @@ module ActionMailer
     #   end
     #
     def mail(headers = {}, &block)
+      return @_message if @_mail_was_called && headers.blank? && !block
+
       @_mail_was_called = true
       m = @_message
 
