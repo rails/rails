@@ -2,19 +2,7 @@ require "cases/helper"
 
 module ViewTestConcern
   extend ActiveSupport::Concern
-end
 
-class ViewTest < ActiveRecord::TestCase
-  include ViewTestConcern
-end
-
-if ActiveRecord::Base.connection.supports_materialized_views?
-  class MaterializedViewTest < ActiveRecord::TestCase
-    include ViewTestConcern
-  end
-end
-
-module ViewTestConcern
   included do
     self.use_transactional_fixtures = false
   end
@@ -64,4 +52,16 @@ module ViewTestConcern
       end
     end
 
+end
+
+class ViewTest < ActiveRecord::TestCase
+  include ViewTestConcern
+  self.view_type = 'view'
+end
+
+if ActiveRecord::Base.connection.supports_materialized_views?
+  class MaterializedViewTest < ActiveRecord::TestCase
+    include ViewTestConcern
+    self.view_type = 'materialized_view'
+  end
 end
