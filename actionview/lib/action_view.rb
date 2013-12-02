@@ -84,6 +84,7 @@ module ActionView
 
   def self.eager_load!
     super
+    ActionView::Helpers.eager_load!
     ActionView::Template.eager_load!
     HTML.eager_load!
   end
