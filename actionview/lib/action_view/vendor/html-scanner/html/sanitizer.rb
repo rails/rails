@@ -1,6 +1,6 @@
 require 'set'
 require 'cgi'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module HTML
   class Sanitizer
