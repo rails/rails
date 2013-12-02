@@ -41,26 +41,26 @@ for detailed changes.
 
 ### Removals
 
-*   Removed `update:application_controller` rake task.
+* Removed `update:application_controller` rake task.
 
-*   Removed deprecated `Rails.application.railties.engines`.
+* Removed deprecated `Rails.application.railties.engines`.
 
-*   Removed deprecated threadsafe! from Rails Config.
+* Removed deprecated `threadsafe!` from Rails Config.
 
-*   Remove deprecated `ActiveRecord::Generators::ActiveModel#update_attributes` in
-    favor of `ActiveRecord::Generators::ActiveModel#update`
+* Removed deprecated `ActiveRecord::Generators::ActiveModel#update_attributes` in
+  favor of `ActiveRecord::Generators::ActiveModel#update`
 
-*   Remove deprecated `config.whiny_nils` option
+* Removed deprecated `config.whiny_nils` option
 
-*   Removed deprecated rake tasks for running tests: `rake test:uncommitted` and
-    `rake test:recent`.
+* Removed deprecated rake tasks for running tests: `rake test:uncommitted` and
+  `rake test:recent`.
 
 ### Notable changes
 
 * `BACKTRACE` environment variable to show unfiltered backtraces for test
   failures. ([Commit](https://github.com/rails/rails/commit/84eac5dab8b0fe9ee20b51250e52ad7bfea36553))
 
-* Expose MiddlewareStack#unshift to environment configuration. ([Pull Request](https://github.com/rails/rails/pull/12479))
+* Exposed `MiddlewareStack#unshift` to environment configuration. ([Pull Request](https://github.com/rails/rails/pull/12479))
 
 
 Action Mailer
@@ -72,8 +72,8 @@ for detailed changes.
 
 ### Notable changes
 
-*   Instrument the generation of Action Mailer messages. The time it takes to
-    generate a message is written to the log. ([Pull Request](https://github.com/rails/rails/pull/12556))
+* Instrument the generation of Action Mailer messages. The time it takes to
+  generate a message is written to the log. ([Pull Request](https://github.com/rails/rails/pull/12556))
 
 
 Active Model
@@ -104,32 +104,32 @@ for detailed changes.
 
 ### Removals
 
-* Remove deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
+* Removed deprecated `String#encoding_aware?` core extensions (`core_ext/string/encoding`).
 
-* Remove deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
+* Removed deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
 
-* Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
+* Removed deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
 
-* Remove deprecated `Logger` core extensions (`core_ext/logger.rb`).
+* Removed deprecated `Logger` core extensions (`core_ext/logger.rb`).
 
-* Remove deprecated `Time#time_with_datetime_fallback`, `Time#utc_time` and
+* Removed deprecated `Time#time_with_datetime_fallback`, `Time#utc_time` and
   `Time#local_time` in favor of `Time#utc` and `Time#local`.
 
-* Remove deprecated `Hash#diff` with no replacement.
+* Removed deprecated `Hash#diff` with no replacement.
 
-* Remove deprecated `Date#to_time_in_current_zone` in favor of `Date#in_time_zone`.
+* Removed deprecated `Date#to_time_in_current_zone` in favor of `Date#in_time_zone`.
 
-* Remove deprecated `Proc#bind` with no replacement.
+* Removed deprecated `Proc#bind` with no replacement.
 
-* Remove deprecated `Array#uniq_by` and `Array#uniq_by!`, use native
+* Removed deprecated `Array#uniq_by` and `Array#uniq_by!`, use native
   `Array#uniq` and `Array#uniq!` instead.
 
-* Remove deprecated `ActiveSupport::BasicObject`, use
+* Removed deprecated `ActiveSupport::BasicObject`, use
   `ActiveSupport::ProxyObject` instead.
 
-* Remove deprecated `BufferedLogger`, use `ActiveSupport::Logger` instead.
+* Removed deprecated `BufferedLogger`, use `ActiveSupport::Logger` instead.
 
-* Remove deprecated `assert_present` and `assert_blank` methods, use `assert
+* Removed deprecated `assert_present` and `assert_blank` methods, use `assert
   object.blank?` and `assert object.present?` instead.
 
 ### Deprecations
@@ -140,24 +140,24 @@ for detailed changes.
 
 ### Notable changes
 
-* Add `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These
-methods change current time to the given time or time difference by stubbing
-`Time.now` and
-`Date.today`. ([Pull Request](https://github.com/rails/rails/pull/12824))
+* Added `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These
+  methods change current time to the given time or time difference by stubbing
+  `Time.now` and
+  `Date.today`. ([Pull Request](https://github.com/rails/rails/pull/12824))
 
 * Added `Numeric#in_milliseconds`, like `1.hour.in_milliseconds`, so we can feed
   them to JavaScript functions like
   `getTime()`. ([Commit](https://github.com/rails/rails/commit/423249504a2b468d7a273cbe6accf4f21cb0e643))
 
-* Add `Date#middle_of_day`, `DateTime#middle_of_day` and `Time#middle_of_day`
+* Added `Date#middle_of_day`, `DateTime#middle_of_day` and `Time#middle_of_day`
   methods. Also added `midday`, `noon`, `at_midday`, `at_noon` and
   `at_middle_of_day` as
   aliases. ([Pull Request](https://github.com/rails/rails/pull/10879))
 
-* Add `String#remove(pattern)` as a short-hand for the common pattern of
+* Added `String#remove(pattern)` as a short-hand for the common pattern of
   `String#gsub(pattern,'')`. ([Commit](https://github.com/rails/rails/commit/5da23a3f921f0a4a3139495d2779ab0d3bd4cb5f))
 
-* Remove 'cow' => 'kine' irregular inflection from default
+* Removed 'cow' => 'kine' irregular inflection from default
   inflections. ([Commit](https://github.com/rails/rails/commit/c300dca9963bda78b8f358dbcb59cabcdc5e1dc9))
 
 Action Pack
@@ -169,32 +169,32 @@ for detailed changes.
 
 ### Removals
 
-*   Remove deprecated Rails application fallback for integration testing, set
-    `ActionDispatch.test_app` instead.
+* Removed deprecated Rails application fallback for integration testing, set
+  `ActionDispatch.test_app` instead.
 
-*   Remove deprecated `page_cache_extension` config.
+* Removed deprecated `page_cache_extension` config.
 
-*   Remove deprecated constants from Action Controller:
+* Removed deprecated constants from Action Controller:
 
-        ActionController::AbstractRequest  => ActionDispatch::Request
-        ActionController::Request          => ActionDispatch::Request
-        ActionController::AbstractResponse => ActionDispatch::Response
-        ActionController::Response         => ActionDispatch::Response
-        ActionController::Routing          => ActionDispatch::Routing
-        ActionController::Integration      => ActionDispatch::Integration
-        ActionController::IntegrationTest  => ActionDispatch::IntegrationTest
+      ActionController::AbstractRequest  => ActionDispatch::Request
+      ActionController::Request          => ActionDispatch::Request
+      ActionController::AbstractResponse => ActionDispatch::Response
+      ActionController::Response         => ActionDispatch::Response
+      ActionController::Routing          => ActionDispatch::Routing
+      ActionController::Integration      => ActionDispatch::Integration
+      ActionController::IntegrationTest  => ActionDispatch::IntegrationTest
 
 ### Notable changes
 
 * Take a hash with options inside array in
   `#url_for`. ([Pull Request](https://github.com/rails/rails/pull/9599))
 
-* Add `session#fetch` method fetch behaves similarly to
+* Added `session#fetch` method fetch behaves similarly to
   [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch),
   with the exception that the returned value is always saved into the
   session. ([Pull Request](https://github.com/rails/rails/pull/12692))
 
-* Separate Action View completely from Action
+* Separated Action View completely from Action
   Pack. ([Pull Request](https://github.com/rails/rails/pull/11032))
 
 
@@ -207,33 +207,33 @@ for detailed changes.
 
 ### Removals
 
-* Remove deprecated nil-passing to the following `SchemaCache` methods:
+* Removed deprecated nil-passing to the following `SchemaCache` methods:
   `primary_keys`, `tables`, `columns` and `columns_hash`.
 
-* Remove deprecated block filter from `ActiveRecord::Migrator#migrate`.
+* Removed deprecated block filter from `ActiveRecord::Migrator#migrate`.
 
-* Remove deprecated String constructor from `ActiveRecord::Migrator`.
+* Removed deprecated String constructor from `ActiveRecord::Migrator`.
 
-* Remove deprecated `scope` use without passing a callable object.
+* Removed deprecated `scope` use without passing a callable object.
 
-* Remove deprecated `transaction_joinable=` in favor of `begin_transaction`
-  with `:joinable` option.
+* Removed deprecated `transaction_joinable=` in favor of `begin_transaction`
+  with `d:joinable` option.
 
-* Remove deprecated `decrement_open_transactions`.
+* Removed deprecated `decrement_open_transactions`.
 
-* Remove deprecated `increment_open_transactions`.
+* Removed deprecated `increment_open_transactions`.
 
-* Remove deprecated `PostgreSQLAdapter#outside_transaction?`
-  method. You can use `#transaction_open?` instead.
+* Removed deprecated `PostgreSQLAdapter#outside_transaction?`
+  methodd. You can use `#transaction_open?` instead.
 
-* Remove deprecated `ActiveRecord::Fixtures.find_table_name` in favor of
+* Removed deprecated `ActiveRecord::Fixtures.find_table_name` in favor of
   `ActiveRecord::Fixtures.default_fixture_model_name`.
 
 * Removed deprecated `columns_for_remove` from `SchemaStatements`.
 
-* Remove deprecated `SchemaStatements#distinct`.
+* Removed deprecated `SchemaStatements#distinct`.
 
-* Move deprecated `ActiveRecord::TestCase` into the rails test
+* Moved deprecated `ActiveRecord::TestCase` into the rails test
   suite. The class is no longer public and is only used for internal
   Rails tests.
 
@@ -256,12 +256,12 @@ for detailed changes.
 * Removed deprecated options `finder_sql` and `counter_sql` from
   collection association.
 
-* Remove deprecated `ActiveRecord::Base#connection` method.
+* Removed deprecated `ActiveRecord::Base#connection` method.
   Make sure to access it via the class.
 
-* Remove deprecation warning for `auto_explain_threshold_in_seconds`.
+* Removed deprecation warning for `auto_explain_threshold_in_seconds`.
 
-* Remove deprecated `:distinct` option from `Relation#count`.
+* Removed deprecated `:distinct` option from `Relation#count`.
 
 * Removed deprecated methods `partial_updates`, `partial_updates?` and
   `partial_updates=`.
@@ -272,22 +272,22 @@ for detailed changes.
 
 * Remove implicit join references that were deprecated in 4.0.
 
-* Remove `activerecord-deprecated_finders` as a dependency
+* Removed `activerecord-deprecated_finders` as a dependency
 
-* Usage of `implicit_readonly` is being removed`. Please use `readonly` method
+* Usage of `implicit_readonly` is being removed. Please use `readonly` method
   explicitly to mark records as
   `readonly. ([Pull Request](https://github.com/rails/rails/pull/10769))
 
 ### Deprecations
 
-* Deprecate `quoted_locking_column` method, which isn't used anywhere.
+* Deprecated `quoted_locking_column` method, which isn't used anywhere.
 
-* Deprecate the delegation of Array bang methods for associations.
+* Deprecated the delegation of Array bang methods for associations.
   To use them, instead first call `#to_a` on the association to access the
   array to be acted
   on. ([Pull Request](https://github.com/rails/rails/pull/12129))
 
-* Deprecate `ConnectionAdapters::SchemaStatements#distinct`,
+* Deprecated `ConnectionAdapters::SchemaStatements#distinct`,
   as it is no longer used by internals. ([Pull Request](https://github.com/rails/rails/pull/10556))
 
 ### Notable changes
@@ -308,7 +308,7 @@ for detailed changes.
 * Added `ActiveRecord::QueryMethods#rewhere` which will overwrite an existing,
   named where condition. ([Commit](https://github.com/rails/rails/commit/f950b2699f97749ef706c6939a84dfc85f0b05f2))
 
-* Extend `ActiveRecord::Base#cache_key` to take an optional list of timestamp
+* Extended `ActiveRecord::Base#cache_key` to take an optional list of timestamp
   attributes of which the highest will be used. ([Commit](https://github.com/rails/rails/commit/e94e97ca796c0759d8fcb8f946a3bbc60252d329))
 
 * Added `ActiveRecord::Base#enum` for declaring enum attributes where the values
@@ -337,7 +337,7 @@ for detailed changes.
   connection. This means that calling `inspect`, when the database is missing,
   will no longer raise an exception. ([Pull Request](https://github.com/rails/rails/pull/11014))
 
-* Remove column restrictions for `count`, let the database raise if the SQL is
+* Removed column restrictions for `count`, let the database raise if the SQL is
   invalid. ([Pull Request](https://github.com/rails/rails/pull/10710))
 
 * Rails now automatically detects inverse associations. If you do not set the
