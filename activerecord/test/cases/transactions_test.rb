@@ -5,6 +5,7 @@ require 'models/developer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
+require 'models/binary'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -520,6 +521,24 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert !transaction.state.rolledback?
     assert transaction.state.committed?
+  end
+
+  def test_transactions_state_after_rollback
+    binary = Binary.new
+    assert_equal true, binary.instance_eval { @new_record }
+    assert_nil binary.id
+
+    begin
+      Binary.transaction do
+        binary.save!
+        binary.save!
+        raise "exception"
+      end
+    rescue
+    end
+
+    assert_equal true, binary.instance_eval { @new_record }
+    assert_nil binary.id
   end
 
   private
