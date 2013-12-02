@@ -3235,7 +3235,9 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
 
       get "/foo/:id" => redirect("/foo/bar/%{id}")
       get "/bar/:id" => redirect(:path => "/foo/bar/%{id}")
+      get "/baz/:id" => redirect("/baz?id=%{id}&foo=?&bar=1#id-%{id}")
       get "/foo/bar/:id" => ok
+      get "/baz" => ok
     end
   end
 
@@ -3249,6 +3251,14 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
   test "redirect escapes interpolated parameters with option proc" do
     get "/bar/1%3E"
     verify_redirect "http://www.example.com/foo/bar/1%3E"
+  end
+
+  test "path redirect escapes interpolated parameters correctly" do
+    get "/foo/1%201"
+    verify_redirect "http://www.example.com/foo/bar/1%201"
+
+    get "/baz/1%201"
+    verify_redirect "http://www.example.com/baz?id=1+1&foo=?&bar=1#id-1%201"
   end
 
 private

@@ -57,11 +57,33 @@ module ActionDispatch
         def relative_path?(path)
           path && !path.empty? && path[0] != '/'
         end
+
+        def escape(params)
+          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+        end
+
+        def escape_fragment(params)
+          Hash[params.map{ |k,v| [k, Journey::Router::Utils.escape_fragment(v)] }]
+        end
+
+        def escape_path(params)
+          Hash[params.map{ |k,v| [k, Journey::Router::Utils.escape_path(v)] }]
+        end
     end
 
     class PathRedirect < Redirect
+      URL_PARTS = /\A([^?]+)?(\?[^#]+)?(#.+)?\z/
+
       def path(params, request)
-        (params.empty? || !block.match(/%\{\w*\}/)) ? block : (block % escape(params))
+        if block.match(URL_PARTS)
+          path     = interpolation_required?($1, params) ? $1 % escape_path(params)     : $1
+          query    = interpolation_required?($2, params) ? $2 % escape(params)          : $2
+          fragment = interpolation_required?($3, params) ? $3 % escape_fragment(params) : $3
+
+          "#{path}#{query}#{fragment}"
+        else
+          interpolation_required?(block, params) ? block % escape(params) : block
+        end
       end
 
       def inspect
@@ -69,8 +91,8 @@ module ActionDispatch
       end
 
       private
-        def escape(params)
-          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+        def interpolation_required?(string, params)
+          !params.empty? && string && string.match(/%\{\w*\}/)
         end
     end
 
@@ -101,11 +123,6 @@ module ActionDispatch
       def inspect
         "redirect(#{status}, #{options.map{ |k,v| "#{k}: #{v}" }.join(', ')})"
       end
-
-      private
-        def escape_path(params)
-          Hash[params.map{ |k,v| [k, URI.parser.escape(v)] }]
-        end
     end
 
     module Redirection

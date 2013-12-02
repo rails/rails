@@ -1,3 +1,9 @@
+*   Try to escape each part of a url correctly when using a redirect route.
+
+    Fixes #13110.
+
+    *Andrew White*
+
 *   Better error message for typos in assert_response argument.
 
     When the response type argument to `assert_response` is not a known
