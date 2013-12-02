@@ -289,8 +289,18 @@ module ApplicationTests
         app.config.session_store :disabled
       end
 
-      assert_equal Rails.application.message_verifier.object_id, Rails.application.message_verifier.object_id
-      assert_not_equal Rails.application.message_verifier.object_id, Rails.application.message_verifier('text').object_id
+      default_verifier = app.message_verifier
+      text_verifier = app.message_verifier('text')
+
+      message = text_verifier.generate('some_value')
+
+      assert_equal 'some_value', text_verifier.verify(message)
+      assert_raises ActiveSupport::MessageVerifier::InvalidSignature do
+        default_verifier.verify(message)
+      end
+
+      assert_equal default_verifier.object_id, app.message_verifier.object_id
+      assert_not_equal default_verifier.object_id, text_verifier.object_id
     end
 
     test "protect from forgery is the default in a new app" do
