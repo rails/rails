@@ -172,6 +172,7 @@ module ActiveSupport #:nodoc:
         else
           load_without_new_constant_marking(file, *extras)
         end
+        nil
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file
         raise
@@ -180,6 +181,7 @@ module ActiveSupport #:nodoc:
       def require(file, *extras) #:nodoc:
         if Dependencies.load?
           Dependencies.new_constants_in(Object) { super }
+          true
         else
           super
         end
@@ -521,13 +523,13 @@ module ActiveSupport #:nodoc:
       watch_frames = descs.collect do |desc|
         if desc.is_a? Module
           mod_name = desc.name
-          initial_constants = desc.local_constant_names
+          initial_constants = desc.local_constants
         elsif desc.is_a?(String) || desc.is_a?(Symbol)
           mod_name = desc.to_s
 
           # Handle the case where the module has yet to be defined.
           initial_constants = if qualified_const_defined?(mod_name)
-            mod_name.constantize.local_constant_names
+            mod_name.constantize.local_constants
           else
             []
           end
@@ -554,7 +556,7 @@ module ActiveSupport #:nodoc:
 
           mod = mod_name.constantize
           next [] unless mod.is_a? Module
-          new_constants = mod.local_constant_names - prior_constants
+          new_constants = mod.local_constants - prior_constants
 
           # Make sure no other frames takes credit for these constants.
           constant_watch_stack_mutex.synchronize do
@@ -577,7 +579,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      return new_constants
+      # XXX trace callers to this method and make them expect an array of
+      # symbols instead of strings and remove this to_s - charliesome
+      return new_constants.map(&:to_s)
     ensure
       # Remove the stack frames that we added.
       if defined?(watch_frames) && ! watch_frames.blank?
