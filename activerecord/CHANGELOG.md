@@ -1,3 +1,7 @@
+*   Enable support for materialized views on PostgreSQL >= 9.3.
+
+    *Dave Lee*
+
 *   Previously, the `has_one` macro incorrectly accepted the `counter_cache`
     option, but never actually supported it. Now it will raise an `ArgumentError`
     when using `has_one` with `counter_cache`.

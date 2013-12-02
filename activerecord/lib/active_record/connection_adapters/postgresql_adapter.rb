@@ -645,6 +645,10 @@ module ActiveRecord
         postgresql_version >= 90200
       end
 
+      def supports_materialized_views?
+        postgresql_version >= 90300
+      end
+
       def enable_extension(name)
         exec_query("CREATE EXTENSION IF NOT EXISTS \"#{name}\"").tap {
           reload_type_map
