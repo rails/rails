@@ -172,6 +172,7 @@ module ActiveSupport #:nodoc:
         else
           load_without_new_constant_marking(file, *extras)
         end
+        nil
       rescue Exception => exception  # errors from loading file
         exception.blame_file! file
         raise
@@ -180,6 +181,7 @@ module ActiveSupport #:nodoc:
       def require(file, *extras) #:nodoc:
         if Dependencies.load?
           Dependencies.new_constants_in(Object) { super }
+          true
         else
           super
         end
