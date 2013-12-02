@@ -2256,8 +2256,6 @@ The defaults for these options can be localized, their keys are:
 | `:words_connector`     | `support.array.words_connector`     |
 | `:last_word_connector` | `support.array.last_word_connector` |
 
-Options `:connector` and `:skip_last_comma` are deprecated.
-
 NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 #### `to_formatted_s`
