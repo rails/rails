@@ -103,7 +103,7 @@ module ActionView
         }.join("\n").html_safe
       end
 
-      # Returns a link tag that browsers and news readers can use to auto-detect
+      # Returns a link tag that browsers and feed readers can use to auto-detect
       # an RSS or Atom feed. The +type+ can either be <tt>:rss</tt> (default) or
       # <tt>:atom</tt>. Control the link options in url_for format using the
       # +url_options+. You can modify the LINK tag itself in +tag_options+.
