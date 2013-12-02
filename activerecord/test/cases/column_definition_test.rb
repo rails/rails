@@ -137,6 +137,25 @@ module ActiveRecord
           smallint_column = PostgreSQLColumn.new('number', nil, oid, "smallint")
           assert_equal :integer, smallint_column.type
         end
+
+        def test_array_column_should_extract_default
+          oid = PostgreSQLAdapter::OID::Identity.new
+          array_column = PostgreSQLColumn.new('array', "'{1,2,3}'::integer[]", oid, "integer[]")
+          assert_equal '{1,2,3}', array_column.default
+
+          array_column = PostgreSQLColumn.new('array', "ARRAY[1,2,3]", oid, "integer[]")
+          assert_equal '{1,2,3}', array_column.default
+
+          array_column = PostgreSQLColumn.new('array', "ARRAY[]::integer", oid, "integer[]")
+          assert_equal '{}', array_column.default
+
+          array_column = PostgreSQLColumn.new('array', "ARRAY['a'::text, 'b'::text]", oid, "character(1)[]")
+          assert_equal '{a,b}', array_column.default
+
+          raw_default = "ARRAY['Diana''s Horse'::text, 'b'::text]"
+          array_column = PostgreSQLColumn.new('array', raw_default, oid, "character(1)[]")
+          assert_equal "{Diana''s Horse,b}", array_column.default
+        end
       end
     end
   end

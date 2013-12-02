@@ -117,6 +117,8 @@ module ActiveRecord
           # Arrays
           when /\A'(.*)'::"?\D+"?\[\]\z/
             $1
+          when /\AARRAY\[(.*)\](::\D+)?\z/
+            "{#{$1.gsub(/'(.*?)'::[a-z]+(,)?\s?/, '\1\2')}}"
           # Hstore
           when /\A'(.*)'::hstore\z/
             $1
