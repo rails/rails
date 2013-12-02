@@ -309,7 +309,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_creating_plugin_in_app_directory_adds_gemfile_entry
-    # simulate application existance
+    # simulate application existence
     gemfile_path = "#{Rails.root}/Gemfile"
     Object.const_set('APP_PATH', Rails.root)
     FileUtils.touch gemfile_path
@@ -323,7 +323,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_skipping_gemfile_entry
-    # simulate application existance
+    # simulate application existence
     gemfile_path = "#{Rails.root}/Gemfile"
     Object.const_set('APP_PATH', Rails.root)
     FileUtils.touch gemfile_path

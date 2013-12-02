@@ -464,7 +464,7 @@ stylesheet_link_tag :monkey # =>
 
 #### auto_discovery_link_tag
 
-Returns a link tag that browsers and news readers can use to auto-detect an RSS or Atom feed.
+Returns a link tag that browsers and feed readers can use to auto-detect an RSS or Atom feed.
 
 ```ruby
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "RSS Feed"}) # =>
@@ -1143,7 +1143,7 @@ Returns a string of option tags for pretty much any country in the world.
 
 #### country_select
 
-Return select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
+Returns select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
 
 #### option_groups_from_collection_for_select
 
@@ -1242,7 +1242,7 @@ Returns a string of option tags for pretty much any time zone in the world.
 
 #### time_zone_select
 
-Return select and option tags for the given object and method, using `time_zone_options_for_select` to generate the list of option tags.
+Returns select and option tags for the given object and method, using `time_zone_options_for_select` to generate the list of option tags.
 
 ```ruby
 time_zone_select( "user", "time_zone")
@@ -1258,7 +1258,7 @@ date_field("user", "dob")
 
 ### FormTagHelper
 
-Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
+Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
 
 #### check_box_tag
 
