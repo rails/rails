@@ -886,7 +886,7 @@ class User < ActiveRecord::Base
 end
 ```
 
-With that configuration you get a user's name via his profile, `user.profile.name`, but it could be handy to still be able to access such attribute directly:
+With that configuration you get a user's name via their profile, `user.profile.name`, but it could be handy to still be able to access such attribute directly:
 
 ```ruby
 class User < ActiveRecord::Base
