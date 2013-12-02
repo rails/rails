@@ -164,6 +164,7 @@ for detailed changes.
 
 * Exposed `MiddlewareStack#unshift` to environment configuration. ([Pull Request](https://github.com/rails/rails/pull/12479))
 
+* Add `Application#message_verifier` method to return a message verifier. ([Pull Request](https://github.com/rails/rails/pull/12995))
 
 Action Mailer
 -------------
