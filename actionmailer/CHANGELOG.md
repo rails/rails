@@ -1,3 +1,22 @@
+*   Calling `mail()` without arguments serves as getter for the current mail
+    message and keeps previously set headers.
+
+    Example:
+
+        class MailerWithCallback < ActionMailer::Base
+          after_action :a_callback
+
+          def welcome
+            mail subject: "subject", to: ["joe@example.com"]
+          end
+
+          def a_callback
+            mail # => returns the current mail message
+          end
+        end
+
+    *Yves Senn*
+
 *   Instrument the generation of Action Mailer messages. The time it takes to
     generate a message is written to the log.
 
