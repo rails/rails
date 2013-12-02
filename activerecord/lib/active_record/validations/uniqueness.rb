@@ -174,11 +174,11 @@ module ActiveRecord
       #  WHERE title = 'My Post'             |
       #                                      |
       #                                      | # User 2 does the same thing and also
-      #                                      | # infers that his title is unique.
+      #                                      | # infers that their title is unique.
       #                                      | SELECT * FROM comments
       #                                      | WHERE title = 'My Post'
       #                                      |
-      #  # User 1 inserts his comment.       |
+      #  # User 1 inserts their comment.     |
       #  INSERT INTO comments                |
       #  (title, content) VALUES             |
       #  ('My Post', 'hi!')                  |
