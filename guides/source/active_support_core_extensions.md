@@ -624,7 +624,7 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 #### Module Attributes
 
-The macros `mattr_reader`, `mattr_writer`, and `mattr_accessor` are analogous to the `cattr_*` macros defined for class. Check [Class Attributes](#class-attributes).
+The macros `mattr_reader`, `mattr_writer`, and `mattr_accessor` are the same as the `cattr_*` macros defined for class. In fact, the `cattr_*` macros are just aliases for the `mattr_*` macros. Check [Class Attributes](#class-attributes).
 
 For example, the dependencies mechanism uses them:
 
@@ -1119,7 +1119,7 @@ end
 
 A model may find it useful to set `:instance_accessor` to `false` as a way to prevent mass-assignment from setting the attribute.
 
-NOTE: Defined in `active_support/core_ext/class/attribute_accessors.rb`.
+NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`. `active_support/core_ext/module/attribute_accessors.rb` is deprecated and will be removed in Ruby on Rails 4.2.
 
 ### Subclasses & Descendants
 
