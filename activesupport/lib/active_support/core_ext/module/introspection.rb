@@ -79,12 +79,6 @@ module ActiveSupport
           constants(false)
         end
       end
-
-      # Returns the names of the constants defined locally rather than the
-      # constants themselves. See <tt>local_constants</tt>.
-      def local_constant_names
-        local_constants.map { |c| c.to_s }
-      end
     end
   end
 end
