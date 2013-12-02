@@ -5,6 +5,7 @@ module ViewTestConcern
 
   included do
     self.use_transactional_fixtures = false
+    mattr_accessor :view_type
   end
 
   SCHEMA_NAME = 'test_schema'
@@ -20,9 +21,6 @@ module ViewTestConcern
   end
 
   def setup
-    # Derive type of view (view, materialized_view), from class name.
-    view_type = self.class.name.chomp('Test').underscore
-
     ThingView.table_name = "#{SCHEMA_NAME}.#{view_type}_things"
 
     @connection = ActiveRecord::Base.connection
