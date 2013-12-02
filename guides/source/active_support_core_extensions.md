@@ -735,7 +735,7 @@ X.local_constants    # => [:X1, :X2, :Y]
 X::Y.local_constants # => [:Y1, :X1]
 ```
 
-The names are returned as symbols. (The deprecated method `local_constant_names` returns strings.)
+The names are returned as symbols.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
