@@ -366,7 +366,7 @@ Lead Contributor: [Daniel Schierbeck](http://workingwithrails.com/person/5830-da
 * `Inflector#parameterize` produces a URL-ready version of its input, for use in `to_param`.
 * `Time#advance` recognizes fractional days and weeks, so you can do `1.7.weeks.ago`, `1.5.hours.since`, and so on.
 * The included TzInfo library has been upgraded to version 0.3.12.
-* `ActiveSuport::StringInquirer` gives you a pretty way to test for equality in strings: `ActiveSupport::StringInquirer.new("abc").abc? => true`
+* `ActiveSupport::StringInquirer` gives you a pretty way to test for equality in strings: `ActiveSupport::StringInquirer.new("abc").abc? => true`
 
 Railties
 --------
