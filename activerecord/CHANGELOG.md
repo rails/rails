@@ -1,3 +1,14 @@
+*   Fix `last` with `offset` to return the proper record instead of always the last one.
+
+    Example:
+
+        Model.offset(4).last
+        # => returns the 4th record from the end.
+
+    Fixes #7441.
+
+    *kostya*, *Lauro Caetano*
+
 *   `type_to_sql` returns a `String` for unmapped columns. This fixes an error
     when using unmapped array types in combination with PostgreSQL's `array: true`.
 
