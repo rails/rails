@@ -1,7 +1,6 @@
 module ActiveSupport
   module NumberHelper
     class NumberToRoundedConverter < NumberConverter # :nodoc:
-
       self.namespace        = :precision
       self.need_valid_float = true
 
@@ -55,7 +54,6 @@ module ActiveSupport
             number
           end
         end
-
     end
   end
 end

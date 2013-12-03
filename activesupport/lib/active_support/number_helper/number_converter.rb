@@ -7,7 +7,6 @@ require 'active_support/core_ext/class/attribute'
 module ActiveSupport
   module NumberHelper
     class NumberConverter # :nodoc:
-
       # Default and i18n option namespace per class
       class_attribute :namespace
 
@@ -149,9 +148,11 @@ module ActiveSupport
         def i18n_format_options #:nodoc:
           locale = opts[:locale]
           options = I18n.translate(:'number.format', locale: locale, default: {}).dup
+
           if namespace
             options.merge!(I18n.translate(:"number.#{namespace}.format", locale: locale, default: {}))
           end
+
           options
         end
 
@@ -172,7 +173,6 @@ module ActiveSupport
         rescue ArgumentError, TypeError
           false
         end
-
     end
   end
 end

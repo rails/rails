@@ -1,7 +1,6 @@
 module ActiveSupport
   module NumberHelper
     class NumberToHumanSizeConverter < NumberConverter
-
       STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
 
       self.namespace        = :human
@@ -53,7 +52,6 @@ module ActiveSupport
         def base
           opts[:prefix] == :si ? 1000 : 1024
         end
-
     end
   end
 end

@@ -44,7 +44,6 @@ module ActiveSupport
         def phone_ext(ext)
           ext.blank? ? "" : " x #{ext}"
         end
-
     end
   end
 end

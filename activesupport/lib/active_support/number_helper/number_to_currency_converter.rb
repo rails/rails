@@ -1,7 +1,6 @@
 module ActiveSupport
   module NumberHelper
     class NumberToCurrencyConverter < NumberConverter # :nodoc:
-
       self.namespace = :currency
 
       def convert
@@ -42,7 +41,6 @@ module ActiveSupport
           i18n[:negative_format] ||= "-#{i18n[:format]}" if i18n[:format]
           i18n
         end
-
     end
   end
 end

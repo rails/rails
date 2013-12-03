@@ -1,7 +1,6 @@
 module ActiveSupport
   module NumberHelper
     class NumberToDelimitedConverter < NumberConverter #:nodoc:
-
       self.need_valid_float = true
 
       DELIMITED_REGEX = /(\d)(?=(\d\d\d)+(?!\d))/
@@ -17,7 +16,6 @@ module ActiveSupport
           left.gsub!(DELIMITED_REGEX) { "#{$1}#{options[:delimiter]}" }
           [left, right].compact
         end
-
     end
   end
 end
