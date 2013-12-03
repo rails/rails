@@ -384,7 +384,7 @@ module ActiveRecord
         def change_column(table_name, column_name, type, options = {})
           clear_cache!
           quoted_table_name = quote_table_name(table_name)
-          sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale])
+          sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale]).to_s
           sql_type << "[]" if options[:array]
           execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{sql_type}"
 
