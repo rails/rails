@@ -18,7 +18,8 @@ module ActiveSupport
         end
 
         def convert_with_area_code(number)
-          number.gsub(/(\d{1,3})(\d{3})(\d{4}$)/,"(\\1) \\2#{delimiter}\\3")
+          number.gsub!(/(\d{1,3})(\d{3})(\d{4}$)/,"(\\1) \\2#{delimiter}\\3")
+          number
         end
 
         def convert_without_area_code(number)
