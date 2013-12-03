@@ -26,12 +26,15 @@ module ActiveSupport
       private
 
         def digits_and_rounded_number(precision)
-          return [1,0] if number.zero?
-          digits = digit_count(number)
-          multiplier = 10 ** (digits - precision)
-          rounded_number = calculate_rounded_number(multiplier)
-          digits = digit_count(rounded_number) # After rounding, the number of digits may have changed
-          [digits, rounded_number]
+          if number.zero?
+            [1, 0]
+          else
+            digits = digit_count(number)
+            multiplier = 10 ** (digits - precision)
+            rounded_number = calculate_rounded_number(multiplier)
+            digits = digit_count(rounded_number) # After rounding, the number of digits may have changed
+            [digits, rounded_number]
+          end
         end
 
         def calculate_rounded_number(multiplier)
