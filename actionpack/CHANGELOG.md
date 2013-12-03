@@ -1,3 +1,12 @@
+*   Fix header Content-Type: #<Mime::NullType:...> in localized template
+
+    When localized template has no format in the template name,
+    now the response has the default and correct `content-type`.
+    
+    Fix #13064.
+
+   *Angelo Capilleri*
+
 *   Fix formatting for `rake routes` when a section is shorter than a header.
 
     *Sıtkı Bağdat*
