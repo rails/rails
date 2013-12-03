@@ -24,12 +24,12 @@ module ActiveSupport
 
         def convert_without_area_code(number)
           number.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-          number.slice!(0, 1) if begins_with_delimiter?(number)
+          number.slice!(0, 1) if start_with_delimiter?(number)
           number
         end
 
-        def begins_with_delimiter?(number)
-          number.start_with?(delimiter) && !delimiter.blank?
+        def start_with_delimiter?(number)
+          delimiter.present? && number.start_with?(delimiter)
         end
 
         def delimiter
