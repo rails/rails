@@ -89,7 +89,7 @@ module ActionView
             :precision => precision,
             :delimiter => delimiter,
             :separator => separator)
-          value = ERB::Util.html_escape(value)
+          value = ERB::Util.html_escape(value) if value
           unit  = ERB::Util.html_escape(unit)
           format.gsub(/%n/, value).gsub(/%u/, unit).html_safe
         rescue
