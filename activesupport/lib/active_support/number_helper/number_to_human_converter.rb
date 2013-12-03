@@ -9,7 +9,7 @@ module ActiveSupport
       self.validate_float = true
 
       def convert # :nodoc:
-        @number = Float(@number)
+        @number = Float(number)
 
         # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         unless options.key?(:strip_insignificant_zeros)
@@ -18,11 +18,11 @@ module ActiveSupport
 
         units = opts[:units]
         exponent = calculate_exponent(units)
-        @number = @number / (10 ** exponent)
+        @number = number / (10 ** exponent)
 
         unit = determine_unit(units, exponent)
 
-        rounded_number = NumberToRoundedConverter.convert(@number, options)
+        rounded_number = NumberToRoundedConverter.convert(number, options)
         format.gsub(/%n/, rounded_number).gsub(/%u/, unit).strip
       end
 

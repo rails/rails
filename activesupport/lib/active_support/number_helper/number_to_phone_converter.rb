@@ -4,7 +4,7 @@ module ActiveSupport
       def convert
         str = ''
         str << country_code(opts[:country_code])
-        str << convert_to_phone_number(@number.to_s.strip)
+        str << convert_to_phone_number(number.to_s.strip)
         str << phone_ext(opts[:extension])
       end
 

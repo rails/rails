@@ -5,7 +5,7 @@ module ActiveSupport
       self.validate_float = true
 
       def convert
-        @number = Float(@number)
+        @number = Float(number)
 
         precision = options.delete :precision
         significant = options.delete :significant
@@ -15,7 +15,7 @@ module ActiveSupport
           precision -= digits
           precision = 0 if precision < 0 # don't let it be negative
         else
-          rounded_number = BigDecimal.new(@number.to_s).round(precision).to_f
+          rounded_number = BigDecimal.new(number.to_s).round(precision).to_f
           rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
         end
 
@@ -26,8 +26,8 @@ module ActiveSupport
       private
 
         def digits_and_rounded_number(precision)
-          return [1,0] if @number.zero?
-          digits = digit_count(@number)
+          return [1,0] if number.zero?
+          digits = digit_count(number)
           multiplier = 10 ** (digits - precision)
           rounded_number = calculate_rounded_number(multiplier)
           digits = digit_count(rounded_number) # After rounding, the number of digits may have changed
@@ -35,7 +35,7 @@ module ActiveSupport
         end
 
         def calculate_rounded_number(multiplier)
-          (BigDecimal.new(@number.to_s) / BigDecimal.new(multiplier.to_f.to_s)).round.to_f * multiplier
+          (BigDecimal.new(number.to_s) / BigDecimal.new(multiplier.to_f.to_s)).round.to_f * multiplier
         end
 
         def digit_count(number)

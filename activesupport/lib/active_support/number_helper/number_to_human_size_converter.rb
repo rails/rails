@@ -7,7 +7,7 @@ module ActiveSupport
       self.validate_float = true
 
       def convert
-        @number = Float(@number)
+        @number = Float(number)
 
         # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         unless options.key?(:strip_insignificant_zeros)
@@ -15,9 +15,9 @@ module ActiveSupport
         end
 
         if smaller_than_base?
-          number_to_format = @number.to_i.to_s
+          number_to_format = number.to_i.to_s
         else
-          human_size = @number / (base ** exponent)
+          human_size = number / (base ** exponent)
           number_to_format = NumberToRoundedConverter.convert(human_size, options)
         end
         conversion_format.gsub(/%n/, number_to_format).gsub(/%u/, unit)
@@ -30,7 +30,7 @@ module ActiveSupport
         end
 
         def unit
-          translate_number_value_with_default(storage_unit_key, :locale => options[:locale], :count => @number.to_i, :raise => true)
+          translate_number_value_with_default(storage_unit_key, :locale => options[:locale], :count => number.to_i, :raise => true)
         end
 
         def storage_unit_key
@@ -40,13 +40,13 @@ module ActiveSupport
 
         def exponent
           max = STORAGE_UNITS.size - 1
-          exp = (Math.log(@number) / Math.log(base)).to_i
+          exp = (Math.log(number) / Math.log(base)).to_i
           exp = max if exp > max # avoid overflow for the highest unit
           exp
         end
 
         def smaller_than_base?
-          @number.to_i < base
+          number.to_i < base
         end
 
         def base

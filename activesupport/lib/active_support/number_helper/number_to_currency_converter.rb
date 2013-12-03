@@ -4,8 +4,8 @@ module ActiveSupport
       self.namespace = :currency
 
       def convert
-        number  = @number.to_s.strip
-        format  = options[:format]
+        number = self.number.to_s.strip
+        format = options[:format]
 
         if is_negative?(number)
           format = options[:negative_format]

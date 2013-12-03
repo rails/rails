@@ -124,10 +124,10 @@ module ActiveSupport
       end
 
       def execute
-        if !@number
+        if !number
           nil
         elsif validate_float? && !valid_float?
-          @number
+          number
         else
           convert
         end
@@ -173,7 +173,7 @@ module ActiveSupport
         end
 
         def valid_float? #:nodoc:
-          Float(@number)
+          Float(number)
         rescue ArgumentError, TypeError
           false
         end
