@@ -52,6 +52,7 @@ module ActiveSupport
     autoload :MessageEncryptor
     autoload :MessageVerifier
     autoload :Multibyte
+    autoload :NumberHelper
     autoload :OptionMerger
     autoload :OrderedHash
     autoload :OrderedOptions
@@ -63,6 +64,12 @@ module ActiveSupport
   autoload :Rescuable
   autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
+
+  def self.eager_load!
+    super
+
+    NumberHelper.eager_load!
+  end
 end
 
 autoload :I18n, "active_support/i18n"

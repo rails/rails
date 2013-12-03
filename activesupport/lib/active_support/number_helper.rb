@@ -1,14 +1,18 @@
 
 module ActiveSupport
   module NumberHelper
+    extend ActiveSupport::Autoload
 
-    autoload :NumberToRoundedConverter,    "active_support/number_helper/number_to_rounded"
-    autoload :NumberToDelimitedConverter,  "active_support/number_helper/number_to_delimited"
-    autoload :NumberToHumanConverter,      "active_support/number_helper/number_to_human"
-    autoload :NumberToHumanSizeConverter,  "active_support/number_helper/number_to_human_size"
-    autoload :NumberToPhoneConverter,      "active_support/number_helper/number_to_phone"
-    autoload :NumberToCurrencyConverter,   "active_support/number_helper/number_to_currency"
-    autoload :NumberToPercentageConverter, "active_support/number_helper/number_to_percentage"
+    eager_autoload do
+      autoload :NumberConverter
+      autoload :NumberToRoundedConverter
+      autoload :NumberToDelimitedConverter
+      autoload :NumberToHumanConverter
+      autoload :NumberToHumanSizeConverter
+      autoload :NumberToPhoneConverter
+      autoload :NumberToCurrencyConverter
+      autoload :NumberToPercentageConverter
+    end
 
     extend self
 

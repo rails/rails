@@ -1,6 +1,3 @@
-require 'active_support/number_helper/number_converter'
-require 'active_support/number_helper/number_to_rounded'
-
 module ActiveSupport
   module NumberHelper
     class NumberToHumanSizeConverter < NumberConverter

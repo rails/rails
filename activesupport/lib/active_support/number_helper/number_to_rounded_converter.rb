@@ -1,5 +1,3 @@
-require 'active_support/number_helper/number_converter'
-
 module ActiveSupport
   module NumberHelper
     class NumberToRoundedConverter < NumberConverter # :nodoc:
