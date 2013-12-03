@@ -173,6 +173,10 @@ module ActiveRecord
         end
       end
     end
+
+    test "type_to_sql returns a String for unmapped types" do
+      assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
+    end
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase

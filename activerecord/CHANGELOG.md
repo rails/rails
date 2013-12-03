@@ -1,3 +1,14 @@
+*   `type_to_sql` returns a `String` for unmapped columns. This fixes an error
+    when using unmapped array types in combination with PostgreSQL's `array: true`.
+
+    Fixes #13146.
+
+    Example:
+
+        change_colum :table, :column, :bigint, array: true
+
+    *Jens Fahnenbruck*, *Yves Senn*
+
 *   Previously, the `has_one` macro incorrectly accepts the `counter_cache`
     option due to a bug, although that options was never supported nor
     functional on `has_one` and `has_one ... through` relationships. It now

@@ -690,7 +690,7 @@ module ActiveRecord
 
           column_type_sql
         else
-          type
+          type.to_s
         end
       end
 
