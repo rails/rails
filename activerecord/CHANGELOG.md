@@ -1,3 +1,14 @@
+*   `type_to_sql` returns a `String` for unmapped columns. This fixes an error
+    when using unmapped array types in PG
+
+    Example:
+
+        change_colum :table, :column, :bigint, array: true
+
+    Fixes #13146.
+
+    *Jens Fahnenbruck*, *Yves Senn*
+
 *   Fix `QueryCache` to work with nested blocks, so that it will only clear the existing cache
     after leaving the outer block instead of clearing it right after the inner block is finished.
 
