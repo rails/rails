@@ -154,7 +154,10 @@ make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
-Other form controls worth mentioning are textareas, password fields, hidden fields, search fields, telephone fields, date fields, time fields, color fields, datetime fields, datetime-local fields, month fields, week fields, URL fields and email fields:
+Other form controls worth mentioning are textareas, password fields,
+hidden fields, search fields, telephone fields, date fields, time fields,
+color fields, datetime fields, datetime-local fields, month fields, week fields,
+URL fields, email fields, number fields and range fields:
 
 ```erb
 <%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
@@ -171,6 +174,8 @@ Other form controls worth mentioning are textareas, password fields, hidden fiel
 <%= email_field(:user, :address) %>
 <%= color_field(:user, :favorite_color) %>
 <%= time_field(:task, :started_at) %>
+<%= number_field(:product, :price, in: 1.0..20.0, step: 0.5) %>
+<%= range_field(:product, :discount, in: 1..100) %>
 ```
 
 Output:
@@ -190,11 +195,20 @@ Output:
 <input id="user_address" name="user[address]" type="email" />
 <input id="user_favorite_color" name="user[favorite_color]" type="color" value="#000000" />
 <input id="task_started_at" name="task[started_at]" type="time" />
+<input id="product_price" max="20.0" min="1.0" name="product[price]" step="0.5" type="number" />
+<input id="product_discount" max="100" min="1" name="product[discount]" type="range" />
 ```
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
-IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local, month, week, URL, and email inputs are HTML5 controls. If you require your app to have a consistent experience in older browsers, you will need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a couple of popular tools at the moment are [Modernizr](http://www.modernizr.com/) and [yepnope](http://yepnopejs.com/), which provide a simple way to add functionality based on the presence of detected HTML5 features.
+IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local,
+month, week, URL, email, number and range inputs are HTML5 controls.
+If you require your app to have a consistent experience in older browsers,
+you will need an HTML5 polyfill (provided by CSS and/or JavaScript).
+There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a couple of popular tools at the moment are
+[Modernizr](http://www.modernizr.com/) and [yepnope](http://yepnopejs.com/),
+which provide a simple way to add functionality based on the presence of
+detected HTML5 features.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the [Security Guide](security.html#logging).
 

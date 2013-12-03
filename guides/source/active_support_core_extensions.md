@@ -735,7 +735,7 @@ X.local_constants    # => [:X1, :X2, :Y]
 X::Y.local_constants # => [:Y1, :X1]
 ```
 
-The names are returned as symbols. (The deprecated method `local_constant_names` returns strings.)
+The names are returned as symbols.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
@@ -1119,7 +1119,7 @@ end
 
 A model may find it useful to set `:instance_accessor` to `false` as a way to prevent mass-assignment from setting the attribute.
 
-NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`. `active_support/core_ext/module/attribute_accessors.rb` is deprecated and will be removed in Ruby on Rails 4.2.
+NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`. `active_support/core_ext/class/attribute_accessors.rb` is deprecated and will be removed in Ruby on Rails 4.2.
 
 ### Subclasses & Descendants
 
@@ -2284,8 +2284,6 @@ The defaults for these options can be localized, their keys are:
 | `:two_words_connector` | `support.array.two_words_connector` |
 | `:words_connector`     | `support.array.words_connector`     |
 | `:last_word_connector` | `support.array.last_word_connector` |
-
-Options `:connector` and `:skip_last_comma` are deprecated.
 
 NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
