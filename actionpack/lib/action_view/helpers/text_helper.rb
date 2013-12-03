@@ -255,7 +255,7 @@ module ActionView
       #   # => "<p>Unblinkable.</p>"
       #
       #   simple_format("<blink>Blinkable!</blink> It's true.", {}, sanitize: false)
-      #   # => "<p><blink>Blinkable!</span> It's true.</p>"
+      #   # => "<p><blink>Blinkable!</blink> It's true.</p>"
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
 
@@ -266,7 +266,7 @@ module ActionView
           content_tag(wrapper_tag, nil, html_options)
         else
           paragraphs.map { |paragraph|
-            content_tag(wrapper_tag, raw(paragraph), html_options, false)
+            content_tag(wrapper_tag, raw(paragraph), html_options)
           }.join("\n\n").html_safe
         end
       end
