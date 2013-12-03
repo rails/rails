@@ -6,7 +6,7 @@
         Rails.application.message_verifier.verify(message)
         # => 'my sensible data'
 
-    It is recommended not not use the same verifier for different things, so you can get different
+    It is recommended not to use the same verifier for different things, so you can get different
     verifiers passing the name argument.
 
         message = Rails.application.message_verifier('cookies').generate('my sensible cookie data')

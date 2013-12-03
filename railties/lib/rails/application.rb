@@ -160,9 +160,9 @@ module Rails
       end
     end
 
-    # Return a message verifier object.
+    # Returns a message verifier object.
     #
-    # This verify can be used to generate and verify signed messages in the application.
+    # This verifier can be used to generate and verify signed messages in the application.
     #
     # It is recommended not to use the same verifier for different things, so you can get different
     # verifiers passing the +verifier_name+ argument.
