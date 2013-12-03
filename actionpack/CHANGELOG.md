@@ -1,3 +1,5 @@
+*   Ensure simple_format escapes its html attributes. This fixes CVE-2013-6416
+
 *   Deep Munge the parameters for GET and POST Fixes CVE-2013-6417
 
 *   Stop using i18n's built in HTML error handling.  Fixes: CVE-2013-4491
