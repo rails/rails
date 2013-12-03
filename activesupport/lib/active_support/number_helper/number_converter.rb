@@ -11,7 +11,7 @@ module ActiveSupport
       class_attribute :namespace
 
       # Does the object need a number that is a valid float?
-      class_attribute :need_valid_float
+      class_attribute :validate_float
 
       attr_reader :number, :opts
 
@@ -125,7 +125,7 @@ module ActiveSupport
 
       def execute
         return unless @number
-        return @number if need_valid_float? && !valid_float?
+        return @number if validate_float? && !valid_float?
         convert
       end
 

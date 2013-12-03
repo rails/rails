@@ -5,8 +5,8 @@ module ActiveSupport
         -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto }
       INVERTED_DECIMAL_UNITS = DECIMAL_UNITS.invert
 
-      self.namespace        = :human
-      self.need_valid_float = true
+      self.namespace      = :human
+      self.validate_float = true
 
       def convert # :nodoc:
         @number = Float(@number)

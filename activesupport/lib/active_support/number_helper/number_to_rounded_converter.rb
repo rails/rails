@@ -1,8 +1,8 @@
 module ActiveSupport
   module NumberHelper
     class NumberToRoundedConverter < NumberConverter # :nodoc:
-      self.namespace        = :precision
-      self.need_valid_float = true
+      self.namespace      = :precision
+      self.validate_float = true
 
       def convert
         @number = Float(@number)

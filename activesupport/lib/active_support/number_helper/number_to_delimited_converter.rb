@@ -1,7 +1,7 @@
 module ActiveSupport
   module NumberHelper
     class NumberToDelimitedConverter < NumberConverter #:nodoc:
-      self.need_valid_float = true
+      self.validate_float = true
 
       DELIMITED_REGEX = /(\d)(?=(\d\d\d)+(?!\d))/
 

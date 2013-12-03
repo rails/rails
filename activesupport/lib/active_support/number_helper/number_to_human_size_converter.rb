@@ -3,8 +3,8 @@ module ActiveSupport
     class NumberToHumanSizeConverter < NumberConverter
       STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
 
-      self.namespace        = :human
-      self.need_valid_float = true
+      self.namespace      = :human
+      self.validate_float = true
 
       def convert
         @number = Float(@number)
