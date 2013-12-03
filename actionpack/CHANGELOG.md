@@ -1,3 +1,11 @@
+*   Deep Munge the parameters for GET and POST Fixes CVE-2013-6417
+
+*   Stop using i18n's built in HTML error handling.  Fixes: CVE-2013-4491
+
+*   Escape the unit value provided to number_to_currency Fixes CVE-2013-6415
+
+*   Only use valid mime type symbols as cache keys CVE-2013-6414
+
 ## Rails 3.2.15 (Oct 16, 2013) ##
 
 *   Fix `ActionDispatch::RemoteIp::GetIp#calculate_ip` to only check for spoofing
