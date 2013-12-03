@@ -119,9 +119,9 @@ module ActiveSupport
         new(number, options).execute
       end
 
-      def initialize(number, opts = {})
+      def initialize(number, options)
         @number     = number
-        @opts       = opts.symbolize_keys
+        @opts       = options.symbolize_keys
       end
 
       def execute
