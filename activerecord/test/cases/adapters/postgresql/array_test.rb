@@ -28,6 +28,17 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert @column.array
   end
 
+  def test_change_column_with_interger_array_to_bigint_array_with_symbol
+    @connection.add_column :pg_arrays, :some_ids, :integer, array: true
+    @connection.change_column :pg_arrays, :some_ids, :bigint, array: true
+
+    PgArray.reset_column_information
+    column = PgArray.columns.find { |c| c.name == 'some_ids' }
+
+    assert_equal 'bigint', column.sql_type
+    assert column.array
+  end
+
   def test_change_column_with_array
     @connection.add_column :pg_arrays, :snippets, :string, array: true, default: []
     @connection.change_column :pg_arrays, :snippets, :text, array: true, default: "{}"
