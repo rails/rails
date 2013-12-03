@@ -1,3 +1,12 @@
+*   Fix header Content-Type: #<Mime::NullType:...> in localized template
+
+    When localized template has no format in the template name,
+    now the response has the default and correct `content-type`.
+    
+    Fix #13064.
+
+   *Angelo Capilleri*
+
 *   Try to escape each part of a url correctly when using a redirect route.
 
     Fixes #13110.
