@@ -423,13 +423,13 @@ EOM
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_controller.request.query_parameters"] ||= normalize_parameters(super)
+      @env["action_controller.request.query_parameters"] ||= deep_munge(normalize_parameters(super) || {})
     end
     alias_method :query_parameters, :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_controller.request.request_parameters"] ||= normalize_parameters(super)
+      @env["action_controller.request.request_parameters"] ||= deep_munge(normalize_parameters(super) || {})
     end
     alias_method :request_parameters, :POST
 
@@ -467,6 +467,22 @@ EOM
     private
       def named_host?(host)
         !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
+      end
+
+      # Remove nils from the params hash
+      def deep_munge(hash)
+        hash.each do |k, v|
+          case v
+          when Array
+            v.grep(Hash) { |x| deep_munge(x) }
+            v.compact!
+            hash[k] = nil if v.empty?
+          when Hash
+            deep_munge(v)
+          end
+        end
+
+        hash
       end
 
       # Convert nested Hashs to HashWithIndifferentAccess and replace
