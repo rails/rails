@@ -1,3 +1,12 @@
+*   Deep Munge the parameters for GET and POST Fixes CVE-2013-6417
+
+*   Stop using i18n's built in HTML error handling.  Fixes: CVE-2013-4491
+
+*   Escape the unit value provided to number_to_currency Fixes CVE-2013-6415
+
+*   Only use valid mime type symbols as cache keys CVE-2013-6414
+
+
 ## Rails 4.0.1 (November 01, 2013) ##
 
 *   Respect `SCRIPT_NAME` when using `redirect` with a relative path
