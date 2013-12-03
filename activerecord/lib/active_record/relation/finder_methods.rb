@@ -384,7 +384,7 @@ module ActiveRecord
         @records.last
       else
         @last ||=
-          if offset_value || limit_value
+          if limit_value
             to_a.last
           else
             reverse_order.limit(1).to_a.first
