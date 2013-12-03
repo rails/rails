@@ -38,7 +38,8 @@ module ActiveRecord
         end
 
         def render(content)
-          ERB.new(content).result
+          context = ActiveRecord::FixtureSet::RenderContext.create_subclass.new
+          ERB.new(content).result(context.get_binding)
         end
 
         # Validate our unmarshalled data.

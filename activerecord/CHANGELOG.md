@@ -1,3 +1,9 @@
+*   The ERB in fixture files is no longer evaluated in the context of the main
+    object. Helper methods used by multiple fixtures should be defined on the
+    class object returned by `ActiveRecord::FixtureSet.context_class`.
+
+    *Victor Costan*
+
 *   Previously, the `has_one` macro incorrectly accepted the `counter_cache`
     option, but never actually supported it. Now it will raise an `ArgumentError`
     when using `has_one` with `counter_cache`.
