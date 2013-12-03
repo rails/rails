@@ -119,14 +119,18 @@ module ActiveSupport
       end
 
       def initialize(number, options)
-        @number     = number
-        @opts       = options.symbolize_keys
+        @number = number
+        @opts   = options.symbolize_keys
       end
 
       def execute
-        return unless @number
-        return @number if validate_float? && !valid_float?
-        convert
+        if !@number
+          nil
+        elsif validate_float? && !valid_float?
+          @number
+        else
+          convert
+        end
       end
 
       private
