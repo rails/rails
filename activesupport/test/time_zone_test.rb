@@ -89,13 +89,13 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_today
-    Time.stubs(:now).returns(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
+    travel_to(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
     assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
-    Time.stubs(:now).returns(Time.utc(2000, 1, 1, 5)) # midnight Jan 1 EST
+    travel_to(Time.utc(2000, 1, 1, 5)) # midnight Jan 1 EST
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
-    Time.stubs(:now).returns(Time.utc(2000, 1, 2, 4, 59, 59)) # 1 sec before midnight Jan 2 EST
+    travel_to(Time.utc(2000, 1, 2, 4, 59, 59)) # 1 sec before midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
-    Time.stubs(:now).returns(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
+    travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone['Eastern Time (US & Canada)'].today
   end
 
