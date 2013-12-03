@@ -31,7 +31,7 @@ module ActiveSupport
             defaults = default_format_options.merge(i18n_opts)
             # Override negative format if format options is given
             defaults[:negative_format] = "-#{opts[:format]}" if opts[:format]
-            defaults.merge(opts)
+            defaults.merge!(opts)
           end
         end
 
