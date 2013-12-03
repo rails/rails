@@ -181,13 +181,40 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
+    # Formats can have different variants.
+    #
+    # The request variant is a specialization of the request format, like <tt>:tablet</tt>,
+    # <tt>:phone</tt>, or <tt>:desktop<tt>.
+    #
+    # We often want to render different html/json/xml templates for phones,
+    # tablets, and desktop browsers. Variants make it easy.
+    #
+    # You can set the variant in a +before_action+:
+    #
+    #     request.variant = :tablet if request.user_agent =~ /iPad/
+    #
+    # Respond to variants in the action just like you respond to formats:
+    #
+    #   respond_to do |format|
+    #     format.html do |html|
+    #       html.tablet # renders app/views/projects/show.html+tablet.erb
+    #       html.phone { extra_setup; render ... }
+    #     end
+    #   end
+    #
+    # Provide separate templates for each format and variant:
+    #
+    #   app/views/projects/show.html.erb
+    #   app/views/projects/show.html+tablet.erb
+    #   app/views/projects/show.html+phone.erb
+    #
     # Be sure to check the documentation of +respond_with+ and
     # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
       if collector = retrieve_collector_from_mimes(mimes, &block)
-        response = collector.response
+        response = collector.response(request.variant)
         response ? response.call : render({})
       end
     end
@@ -327,7 +354,7 @@ module ActionController #:nodoc:
       if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
         options = options.clone
-        options[:default_response] = collector.response
+        options[:default_response] = collector.response(request.variant)
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end
@@ -417,12 +444,27 @@ module ActionController #:nodoc:
         @responses[mime_type] ||= block
       end
 
-      def response
-        @responses.fetch(format, @responses[Mime::ALL])
+      def response(variant)
+        response = @responses.fetch(format, @responses[Mime::ALL])
+        if response.nil? || response.arity == 0
+          response
+        else
+          lambda { response.call VariantFilter.new(variant) }
+        end
       end
 
       def negotiate_format(request)
         @format = request.negotiate_mime(@responses.keys)
+      end
+
+      class VariantFilter
+        def initialize(variant)
+          @variant = variant
+        end
+
+        def method_missing(name)
+          yield if name == @variant
+        end
       end
     end
   end

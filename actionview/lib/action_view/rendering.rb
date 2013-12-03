@@ -88,10 +88,14 @@ module ActionView
 
     private
 
-      # Find and renders a template based on the options given.
+      # Find and render a template based on the options given.
       # :api: private
       def _render_template(options) #:nodoc:
+        variant = options[:variant]
+
         lookup_context.rendered_format = nil if options[:formats]
+        lookup_context.variants = [variant] if variant
+
         view_renderer.render(view_context, options)
       end
 
