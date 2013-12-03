@@ -1,5 +1,6 @@
 require 'rbconfig'
 require 'tempfile'
+require 'monitor'
 
 module Kernel
   # Sets $VERBOSE to nil for the duration of the block and back to its original
@@ -42,12 +43,17 @@ module Kernel
   #
   #   puts 'But this will'
   def silence_stream(stream)
-    old_stream = stream.dup
-    stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
-    stream.sync = true
-    yield
-  ensure
-    stream.reopen(old_stream)
+    @@stream_monitor ||= Monitor.new
+    @@stream_monitor.synchronize do
+      begin
+        old_stream = stream.dup
+        stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+        stream.sync = true
+        yield
+      ensure
+        stream.reopen(old_stream)
+      end
+    end
   end
 
   # Blocks and ignores any exception passed as argument if raised within the block.

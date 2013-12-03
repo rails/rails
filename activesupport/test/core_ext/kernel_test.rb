@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'active_support/core_ext/kernel'
 
 class KernelTest < ActiveSupport::TestCase
+
   def test_silence_warnings
     silence_warnings { assert_nil $VERBOSE }
     assert_equal 1234, silence_warnings { 1234 }
@@ -14,7 +15,6 @@ class KernelTest < ActiveSupport::TestCase
   rescue
     assert_equal old_verbose, $VERBOSE
   end
-
 
   def test_enable_warnings
     enable_warnings { assert_equal true, $VERBOSE }
@@ -29,6 +29,26 @@ class KernelTest < ActiveSupport::TestCase
     assert_equal old_verbose, $VERBOSE
   end
 
+  def test_silence_stream_is_thread_safe
+    $current_stdout  = STDOUT.dup
+    original_stdout  = $current_stdout.inspect
+
+    threads = []
+    4.times do |i|
+      threads << Thread.new(i) do
+        silence_stream($current_stdout) do
+          $current_stdout.puts "hello silent world"
+          silence_stream($current_stdout) do
+            $current_stdout.puts "Hello inner silent world"
+          end
+        end
+      end
+    end
+
+    assert_nothing_raised { threads.each(&:join) }
+
+    assert_equal $current_stdout.inspect, original_stdout
+  end
 
   def test_silence_stderr
     old_stderr_position = STDERR.tell
