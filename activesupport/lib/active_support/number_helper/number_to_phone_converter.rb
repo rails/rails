@@ -23,10 +23,9 @@ module ActiveSupport
         end
 
         def convert_without_area_code(number)
-          number.tap { |n|
-            n.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
-            n.slice!(0, 1) if begins_with_delimiter?(n)
-          }
+          number.gsub!(/(\d{0,3})(\d{3})(\d{4})$/,"\\1#{delimiter}\\2#{delimiter}\\3")
+          number.slice!(0, 1) if begins_with_delimiter?(number)
+          number
         end
 
         def begins_with_delimiter?(number)
