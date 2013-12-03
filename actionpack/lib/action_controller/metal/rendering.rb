@@ -34,7 +34,7 @@ module ActionController
 
     def _process_format(format)
       super
-      self.content_type ||= format.to_s
+      self.content_type ||= format.to_s unless format.nil?
     end
 
     # Normalize arguments by catching blocks and setting them on :update.
