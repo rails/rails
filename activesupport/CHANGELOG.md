@@ -1,4 +1,4 @@
-*   Added Date#all_week/month/quarter/year for generating date ranges.
+*   Added `Date#all_week/month/quarter/year` for generating date ranges.
 
     *Dmitriy Meremyanin*
 
