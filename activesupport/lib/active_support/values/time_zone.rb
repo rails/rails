@@ -317,6 +317,16 @@ module ActiveSupport
       tzinfo.now.to_date
     end
 
+    # Returns the next date in this time zone.
+    def tomorrow
+      today + 1
+    end
+
+    # Returns the previous date in this time zone.
+    def yesterday
+      today - 1
+    end
+
     # Adjust the given time to the simultaneous time in the time zone
     # represented by +self+. Returns a Time.utc() instance -- if you want an
     # ActiveSupport::TimeWithZone instance, use Time#in_time_zone() instead.
