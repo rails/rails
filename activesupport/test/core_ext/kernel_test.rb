@@ -30,8 +30,8 @@ class KernelTest < ActiveSupport::TestCase
   end
 
   def test_silence_stream_is_thread_safe
-    $current_stdout  = STDOUT.dup
-    original_stdout  = $current_stdout.inspect
+    $current_stdout = STDOUT.dup
+    original_stdout = $current_stdout.inspect
 
     threads = []
     4.times do |i|
@@ -48,6 +48,27 @@ class KernelTest < ActiveSupport::TestCase
     assert_nothing_raised { threads.each(&:join) }
 
     assert_equal $current_stdout.inspect, original_stdout
+  ensure
+    $current_stdout = nil
+  end
+
+  def test_capture_is_thread_safe
+    $stdout_test = STDOUT.dup
+    original_stdout = $stdout_test.inspect
+
+    threads = []
+    4.times do |i|
+      threads << Thread.new(i) do
+        capture(:stdout_test) { $stdout_test.print "hello" }
+        capture(:stdout_test) { $stdout_test.print "hello also" }
+      end
+    end
+
+    assert_nothing_raised { threads.each(&:join) }
+
+    assert_equal $stdout_test.inspect, original_stdout
+  ensure
+    $stdout_test = nil
   end
 
   def test_silence_stderr
