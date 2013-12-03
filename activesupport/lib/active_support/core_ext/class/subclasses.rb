@@ -8,9 +8,9 @@ class Class
     def descendants # :nodoc:
       ObjectSpace.each_object(singleton_class).reject do |k|
         k == self
-      end
+      end.reverse
     end
-  rescue # JRuby 1.6 raises a NameError and JRuby 1.7 a RuntimeError.
+  rescue NameError, RuntimeError # JRuby 1.6, JRuby 1.7 errors, respectively.
     def descendants # :nodoc:
       ObjectSpace.each_object(Class).select do |k|
         k < self
