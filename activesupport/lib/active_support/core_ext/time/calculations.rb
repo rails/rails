@@ -199,27 +199,6 @@ class Time
     beginning_of_day..end_of_day
   end
 
-  # Returns a Range representing the whole week of the current time.
-  # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
-  def all_week(start_day = Date.beginning_of_week)
-    beginning_of_week(start_day)..end_of_week(start_day)
-  end
-
-  # Returns a Range representing the whole month of the current time.
-  def all_month
-    beginning_of_month..end_of_month
-  end
-
-  # Returns a Range representing the whole quarter of the current time.
-  def all_quarter
-    beginning_of_quarter..end_of_quarter
-  end
-
-  # Returns a Range representing the whole year of the current time.
-  def all_year
-    beginning_of_year..end_of_year
-  end
-
   def plus_with_duration(other) #:nodoc:
     if ActiveSupport::Duration === other
       other.since(self)
