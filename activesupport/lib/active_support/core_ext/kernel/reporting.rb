@@ -1,5 +1,6 @@
 require 'rbconfig'
 require 'tempfile'
+require 'monitor'
 
 module Kernel
   # Sets $VERBOSE to nil for the duration of the block and back to its original
@@ -42,12 +43,16 @@ module Kernel
   #
   #   puts 'But this will'
   def silence_stream(stream)
-    old_stream = stream.dup
-    stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
-    stream.sync = true
-    yield
-  ensure
-    stream.reopen(old_stream)
+    stream_monitor.synchronize do
+      begin
+        old_stream = stream.dup
+        stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+        stream.sync = true
+        yield
+      ensure
+        stream.reopen(old_stream)
+      end
+    end
   end
 
   # Blocks and ignores any exception passed as argument if raised within the block.
@@ -79,20 +84,24 @@ module Kernel
   #   stream = capture(:stderr) { system('echo error 1>&2') }
   #   stream # => "error\n"
   def capture(stream)
-    stream = stream.to_s
-    captured_stream = Tempfile.new(stream)
-    stream_io = eval("$#{stream}")
-    origin_stream = stream_io.dup
-    stream_io.reopen(captured_stream)
+    stream_monitor.synchronize do
+      begin
+        stream = stream.to_s
+        captured_stream = Tempfile.new(stream)
+        stream_io = eval("$#{stream}")
+        origin_stream = stream_io.dup
+        stream_io.reopen(captured_stream)
 
-    yield
+        yield
 
-    stream_io.rewind
-    return captured_stream.read
-  ensure
-    captured_stream.close
-    captured_stream.unlink
-    stream_io.reopen(origin_stream)
+        stream_io.rewind
+        return captured_stream.read
+      ensure
+        captured_stream.close
+        captured_stream.unlink
+        stream_io.reopen(origin_stream)
+      end
+    end
   end
   alias :silence :capture
 
@@ -105,5 +114,12 @@ module Kernel
         yield
       end
     end
+  end
+
+  # Shared monitor for stream access (such as STDOUT)
+  #  to ensure thread safe IO.reopen calls
+  #
+  def stream_monitor
+    @stream_monitor ||= Monitor.new
   end
 end
