@@ -52,6 +52,7 @@ module ActionView
       locales
     end
     register_detail(:formats) { ActionView::Base.default_formats || [:html, :text, :js, :css,  :xml, :json] }
+    register_detail(:variants) { [] }
     register_detail(:handlers){ Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:

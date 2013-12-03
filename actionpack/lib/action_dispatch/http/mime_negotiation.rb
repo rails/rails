@@ -10,6 +10,8 @@ module ActionDispatch
         self.ignore_accept_header = false
       end
 
+      attr_reader :variant
+
       # The MIME type of the HTTP request, such as Mime::XML.
       #
       # For backward compatibility, the post \format is extracted from the
@@ -62,6 +64,18 @@ module ActionDispatch
           else
             [Mime::HTML]
           end
+      end
+
+      # Sets the \variant for template
+      def variant=(variant)
+        if variant.is_a? Symbol
+          @variant = variant
+        else
+          raise ArgumentError, "request.variant must be set to a Symbol, not a #{variant.class}. For security reasons," +
+                               "never directly set the variant to a user-provided value, like params[:variant].to_sym." +
+                               "Check user-provided value against a whitelist first, then set the variant:"+
+                               "request.variant = :tablet if params[:some_param] == 'tablet'"
+        end
       end
 
       # Sets the \format by string extension, which can be used to force custom formats

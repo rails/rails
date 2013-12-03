@@ -36,6 +36,11 @@ class LookupContextTest < ActiveSupport::TestCase
     assert @lookup_context.formats.frozen?
   end
 
+  test "provides getters and setters for variants" do
+    @lookup_context.variants = [:mobile]
+    assert_equal [:mobile], @lookup_context.variants
+  end
+
   test "provides getters and setters for formats" do
     @lookup_context.formats = [:html]
     assert_equal [:html], @lookup_context.formats
@@ -254,7 +259,7 @@ class TestMissingTemplate < ActiveSupport::TestCase
 
   test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
     e = assert_raise ActionView::MissingTemplate do
-      details = {:handlers=>[], :formats=>[], :locale=>[]}
+      details = {:handlers=>[], :formats=>[], :variants=>[], :locale=>[]}
       @lookup_context.view_paths.find("foo", "parent", true, details)
     end
     assert_match %r{Missing partial parent/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message

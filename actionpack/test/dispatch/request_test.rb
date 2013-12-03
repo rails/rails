@@ -844,6 +844,19 @@ class RequestTest < ActiveSupport::TestCase
     end
   end
 
+  test "setting variant" do
+    request = stub_request
+    request.variant = :mobile
+    assert_equal :mobile, request.variant
+  end
+
+  test "setting variant with non symbol value" do
+    request = stub_request
+    assert_raise ArgumentError do
+      request.variant = "mobile"
+    end
+  end
+
 protected
 
   def stub_request(env = {})

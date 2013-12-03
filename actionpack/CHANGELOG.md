@@ -1,3 +1,32 @@
+*   Introducing Variants
+
+    We often want to render different html/json/xml templates for phones,
+    tablets, and desktop browsers. Variants make it easy.
+
+    The request variant is a specialization of the request format, like :tablet,
+    :phone, or :desktop.
+
+    You can set the variant in a before_action:
+
+        request.variant = :tablet if request.user_agent =~ /iPad/
+
+    Respond to variants in the action just like you respond to formats:
+
+        respond_to do |format|
+          format.html do |html|
+            html.tablet # renders app/views/projects/show.html+tablet.erb
+            html.phone { extra_setup; render ... }
+          end
+        end
+
+    Provide separate templates for each format and variant:
+
+        app/views/projects/show.html.erb
+        app/views/projects/show.html+tablet.erb
+        app/views/projects/show.html+phone.erb
+
+    *Łukasz Strzałkowski*
+
 *   Fix header `Content-Type: #<Mime::NullType:...>` in localized template.
 
     When localized template has no format in the template name,

@@ -3,6 +3,7 @@ Ruby on Rails 4.1 Release Notes
 
 Highlights in Rails 4.1:
 
+* Variants
 * Action View extracted from Action Pack
 
 These release notes cover only the major changes. To know about various bug
@@ -27,6 +28,38 @@ guide.
 Major Features
 --------------
 
+* Variants
+
+  We often want to render different html/json/xml templates for phones,
+  tablets, and desktop browsers. Variants make it easy.
+
+  The request variant is a specialization of the request format, like :tablet,
+  :phone, or :desktop.
+
+  You can set the variant in a before_action:
+
+  ```ruby
+    request.variant = :tablet if request.user_agent =~ /iPad/
+  ```
+
+  Respond to variants in the action just like you respond to formats:
+
+  ```ruby
+    respond_to do |format|
+      format.html do |html|
+        html.tablet # renders app/views/projects/show.html+tablet.erb
+        html.phone { extra_setup; render ... }
+      end
+    end
+  ```
+
+  Provide separate templates for each format and variant:
+
+  ```
+    app/views/projects/show.html.erb
+    app/views/projects/show.html+tablet.erb
+    app/views/projects/show.html+phone.erb
+  ```
 
 Documentation
 -------------

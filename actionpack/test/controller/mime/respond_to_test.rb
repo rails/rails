@@ -146,6 +146,26 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def variant_with_implicit_rendering
+  end
+
+  def variant_with_format_and_custom_render
+    request.variant = :mobile
+
+    respond_to do |type|
+      type.html { render text: "mobile" }
+    end
+  end
+
+  def multiple_variants_for_format
+    respond_to do |type|
+      type.html do |html|
+        html.tablet { render text: "tablet" }
+        html.phone  { render text: "phone" }
+      end
+    end
+  end
+
   protected
     def set_layout
       case action_name
@@ -489,5 +509,39 @@ class RespondToControllerTest < ActionController::TestCase
     assert_raises(ActionController::UnknownFormat) do
       get :using_defaults, :format => "invalidformat"
     end
+  end
+
+  def test_invalid_variant
+    @request.variant = :invalid
+    assert_raises(ActionView::MissingTemplate) do
+      get :variant_with_implicit_rendering
+    end
+  end
+
+  def test_variant_not_set_regular_template_missing
+    assert_raises(ActionView::MissingTemplate) do
+      get :variant_with_implicit_rendering
+    end
+  end
+
+  def test_variant_with_implicit_rendering
+    @request.variant = :mobile
+    get :variant_with_implicit_rendering
+    assert_equal "text/html", @response.content_type
+    assert_equal "mobile", @response.body
+  end
+
+  def test_variant_with_format_and_custom_render
+    @request.variant = :phone
+    get :variant_with_format_and_custom_render
+    assert_equal "text/html", @response.content_type
+    assert_equal "mobile", @response.body
+  end
+
+  def test_multiple_variants_for_format
+    @request.variant = :tablet
+    get :multiple_variants_for_format
+    assert_equal "text/html", @response.content_type
+    assert_equal "tablet", @response.body
   end
 end

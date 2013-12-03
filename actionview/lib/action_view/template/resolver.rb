@@ -162,8 +162,8 @@ module ActionView
 
   # An abstract class that implements a Resolver with path semantics.
   class PathResolver < Resolver #:nodoc:
-    EXTENSIONS = [:locale, :formats, :handlers]
-    DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{.:handlers,}"
+    EXTENSIONS = { :locale => ".", :formats => ".", :variants => "+", :handlers => "." }
+    DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
     def initialize(pattern=nil)
       @pattern = pattern || DEFAULT_PATTERN
@@ -240,7 +240,9 @@ module ActionView
       end
 
       handler = Template.handler_for_extension(extension)
-      format  = pieces.last && Template::Types[pieces.last]
+      format  = pieces.last && pieces.last.split(EXTENSIONS[:variants], 2).first # remove variant from format
+      format  &&= Template::Types[format]
+
       [handler, format]
     end
   end
@@ -303,12 +305,13 @@ module ActionView
   # An Optimized resolver for Rails' most common case.
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
     def build_query(path, details)
-      exts = EXTENSIONS.map { |ext| details[ext] }
       query = escape_entry(File.join(@path, path))
 
-      query + exts.map { |ext|
-        "{#{ext.compact.uniq.map { |e| ".#{e}," }.join}}"
-      }.join
+      exts = EXTENSIONS.map do |ext, prefix|
+        "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
+      end.join
+
+      query + exts
     end
   end
 
