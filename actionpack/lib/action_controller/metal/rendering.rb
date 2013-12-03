@@ -34,7 +34,8 @@ module ActionController
 
     def _process_format(format)
       super
-      self.content_type ||= format.to_s unless format.nil? #here test if format is Mime::NullTye istance, no if is a NillClass or FalseClass
+      # format is a Mime::NullType instance here then this condition can't be changed to `if format`
+      self.content_type ||= format.to_s unless format.nil?
     end
 
     # Normalize arguments by catching blocks and setting them on :update.
