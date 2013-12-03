@@ -42,7 +42,7 @@ module ActiveSupport
     #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: '.')
     #   # => +1.123.555.1234 x 1343
     def number_to_phone(number, options = {})
-      NumberToPhoneConverter.new(number, options).execute
+      NumberToPhoneConverter.convert(number, options)
     end
 
     # Formats a +number+ into a currency string (e.g., $13.65). You
@@ -84,7 +84,7 @@ module ActiveSupport
     #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
     #   # => 1234567890,50 &pound;
     def number_to_currency(number, options = {})
-      NumberToCurrencyConverter.new(number, options).execute
+      NumberToCurrencyConverter.convert(number, options)
     end
 
     # Formats a +number+ as a percentage string (e.g., 65%). You can
@@ -120,7 +120,7 @@ module ActiveSupport
     #   number_to_percentage('98a')                                # => 98a%
     #   number_to_percentage(100, format: '%n  %')                 # => 100  %
     def number_to_percentage(number, options = {})
-      NumberToPercentageConverter.new(number, options).execute
+      NumberToPercentageConverter.convert(number, options)
     end
 
     # Formats a +number+ with grouped thousands using +delimiter+
@@ -149,7 +149,7 @@ module ActiveSupport
     #   number_to_delimited(98765432.98, delimiter: ' ', separator: ',')
     #   # => 98 765 432,98
     def number_to_delimited(number, options = {})
-      NumberToDelimitedConverter.new(number, options).execute
+      NumberToDelimitedConverter.convert(number, options)
     end
 
     # Formats a +number+ with the specified level of
@@ -192,7 +192,7 @@ module ActiveSupport
     #   number_to_rounded(1111.2345, precision: 2, separator: ',', delimiter: '.')
     #   # => 1.111,23
     def number_to_rounded(number, options = {})
-      NumberToRoundedConverter.new(number, options).execute
+      NumberToRoundedConverter.convert(number, options)
     end
 
     # Formats the bytes in +number+ into a more understandable
@@ -240,7 +240,7 @@ module ActiveSupport
     #   number_to_human_size(1234567890123, precision: 5) # => "1.1229 TB"
     #   number_to_human_size(524288000, precision: 5)     # => "500 MB"
     def number_to_human_size(number, options = {})
-      NumberToHumanSizeConverter.new(number, options).execute
+      NumberToHumanSizeConverter.convert(number, options)
     end
 
     # Pretty prints (formats and approximates) a number in a way it
@@ -341,7 +341,7 @@ module ActiveSupport
     #   number_to_human(1, units: :distance)                 # => "1 meter"
     #   number_to_human(0.34, units: :distance)              # => "34 centimeters"
     def number_to_human(number, options = {})
-      NumberToHumanConverter.new(number, options).execute
+      NumberToHumanConverter.convert(number, options)
     end
 
   end

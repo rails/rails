@@ -19,7 +19,8 @@ module ActiveSupport
           rounded_number = BigDecimal.new(@number.to_s).round(precision).to_f
           rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
         end
-        delimited_number = NumberToDelimitedConverter.new("%01.#{precision}f" % rounded_number, options).execute
+
+        delimited_number = NumberToDelimitedConverter.convert("%01.#{precision}f" % rounded_number, options)
         format_number(delimited_number)
       end
 

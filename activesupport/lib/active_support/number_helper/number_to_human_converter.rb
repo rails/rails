@@ -23,7 +23,7 @@ module ActiveSupport
 
         unit = determine_unit(units, exponent)
 
-        rounded_number = NumberToRoundedConverter.new(@number, options).execute
+        rounded_number = NumberToRoundedConverter.convert(@number, options)
         format.gsub(/%n/, rounded_number).gsub(/%u/, unit).strip
       end
 

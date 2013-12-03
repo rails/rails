@@ -115,6 +115,9 @@ module ActiveSupport
         }
       }
 
+      def self.convert(number, options)
+        new(number, options).execute
+      end
 
       def initialize(number, opts = {})
         @number     = number

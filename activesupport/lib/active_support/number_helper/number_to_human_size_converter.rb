@@ -19,7 +19,7 @@ module ActiveSupport
           number_to_format = @number.to_i.to_s
         else
           human_size = @number / (base ** exponent)
-          number_to_format = NumberToRoundedConverter.new(human_size, options).execute
+          number_to_format = NumberToRoundedConverter.convert(human_size, options)
         end
         conversion_format.gsub(/%n/, number_to_format).gsub(/%u/, unit)
       end
