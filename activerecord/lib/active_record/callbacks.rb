@@ -128,7 +128,7 @@ module ActiveRecord
   #       record.credit_card_number = decrypt(record.credit_card_number)
   #     end
   #
-  #     alias_method :after_find, :after_save
+  #     alias_method :after_initialize, :after_save
   #
   #     private
   #       def encrypt(value)
@@ -163,7 +163,7 @@ module ActiveRecord
   #       record.send("#{@attribute}=", decrypt(record.send("#{@attribute}")))
   #     end
   #
-  #     alias_method :after_find, :after_save
+  #     alias_method :after_initialize, :after_save
   #
   #     private
   #       def encrypt(value)
