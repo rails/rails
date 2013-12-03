@@ -67,7 +67,9 @@ class Hash
   def assert_valid_keys(*valid_keys)
     valid_keys.flatten!
     each_key do |k|
-      raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{valid_keys.map(&:inspect).join(', ')}") unless valid_keys.include?(k)
+      unless valid_keys.include?(k)
+        raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{valid_keys.map(&:inspect).join(', ')}")
+      end
     end
   end
 

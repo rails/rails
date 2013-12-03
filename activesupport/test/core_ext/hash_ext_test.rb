@@ -624,10 +624,15 @@ class HashExtTest < ActiveSupport::TestCase
       { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
 
-    assert_raise(ArgumentError, "Unknown key: :failore. Valid keys are: :failure, :funny") do
+    exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
+    end
+    assert_equal "Unknown key: :failore. Valid keys are: :failure, :funny", exception.message
+
+    exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
+    assert_equal "Unknown key: :failore. Valid keys are: :failure, :funny", exception.message
   end
 
   def test_assorted_keys_not_stringified
