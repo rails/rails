@@ -296,7 +296,7 @@ module Rails
           end
         end
 
-        # Return the default value for the option name given doing a lookup in
+        # Returns the default value for the option name given doing a lookup in
         # Rails::Generators.options.
         def self.default_value_for_option(name, options)
           default_for_option(Rails::Generators.options, name, options, options[:default])
