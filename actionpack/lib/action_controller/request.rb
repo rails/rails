@@ -469,6 +469,7 @@ EOM
         !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
       end
 
+      # Remove nils from the params hash
       def deep_munge(hash)
         hash.each do |k, v|
           case v
@@ -484,7 +485,7 @@ EOM
         hash
       end
 
-        # Convert nested Hashs to HashWithIndifferentAccess and replace
+      # Convert nested Hashs to HashWithIndifferentAccess and replace
       # file upload hashs with UploadedFile objects
       def normalize_parameters(value)
         case value
