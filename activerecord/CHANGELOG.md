@@ -1,3 +1,9 @@
+*   `Model.offset(4).last` now returns the 4th record from the end, not just last record.
+
+    Fixes #7441.
+
+    *kostya*
+
 *   `type_to_sql` returns a `String` for unmapped columns. This fixes an error
     when using unmapped array types in PG
 
