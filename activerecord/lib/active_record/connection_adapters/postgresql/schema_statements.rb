@@ -109,7 +109,7 @@ module ActiveRecord
               FROM pg_class c
               LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
               WHERE c.relkind IN ('r','v','m') -- (r)elation/table, (v)iew, (m)aterialized view
-              AND c.relname = '#{table.gsub(/(^"|"$)/,'')}'
+              AND c.relname = '#{table}'
               AND n.nspname = #{schema ? "'#{schema}'" : 'ANY (current_schemas(false))'}
           SQL
         end
