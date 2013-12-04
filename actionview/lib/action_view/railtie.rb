@@ -42,12 +42,6 @@ module ActionView
       end
     end
 
-    initializer "action_view.setup_action_mailer", before: :add_view_paths do |app|
-      ActiveSupport.on_load(:action_mailer) do
-        ActionMailer::Base.send(:include, ActionView::Layouts)
-      end
-    end
-
     rake_tasks do
       load "action_view/tasks/dependencies.rake"
     end
