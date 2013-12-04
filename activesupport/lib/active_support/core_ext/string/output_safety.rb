@@ -5,6 +5,7 @@ class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003e', '<' => '\u003c', "\u2028" => '\u2028', "\u2029" => '\u2029' }
+    HTML_ESCAPE_REGEXP = /[&"'><]/
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+));)/
     JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
 
@@ -21,7 +22,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(/[&"'><]/, HTML_ESCAPE).html_safe
+        s.gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE).html_safe
       end
     end
 
