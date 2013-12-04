@@ -21,6 +21,11 @@ class TextHelperTest < ActionView::TestCase
     assert simple_format("<b> test with html tags </b>").html_safe?
   end
 
+  def test_simple_format_included_in_isolation
+    helper_klass = Class.new { include ActionView::Helpers::TextHelper }
+    assert helper_klass.new.simple_format("<b> test with html tags </b>").html_safe?
+  end
+
   def test_simple_format
     assert_equal "<p></p>", simple_format(nil)
 

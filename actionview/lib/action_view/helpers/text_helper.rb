@@ -31,6 +31,8 @@ module ActionView
 
       include SanitizeHelper
       include TagHelper
+      include OutputSafetyHelper
+
       # The preferred method of outputting text in your views is to use the
       # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods
       # do not operate as expected in an eRuby code block. If you absolutely must
