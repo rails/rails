@@ -30,17 +30,17 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
-  test "nils are stripped from collections" do
+  test "nils are not stripped from collections" do
     assert_parses(
-      {"person" => nil},
+      {"person" => [nil]},
       "{\"person\":[null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
     assert_parses(
-      {"person" => ['foo']},
+      {"person" => ['foo', nil]},
       "{\"person\":[\"foo\",null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
     assert_parses(
-      {"person" => nil},
+      {"person" => [nil,nil]},
       "{\"person\":[null, null]}", { 'CONTENT_TYPE' => 'application/json' }
     )
   end
