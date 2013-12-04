@@ -608,6 +608,18 @@ class FileStoreTest < ActiveSupport::TestCase
       ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
     end
   end
+
+  def test_cleanup_removes_all_expired_entries
+    time = Time.now
+    @cache.write('foo', 'bar', :expires_in => 10)
+    @cache.write('baz', 'qux')
+    @cache.write('quux', 'corge', :expires_in => 20)
+    Time.stubs(:now).returns(time + 15)
+    @cache.cleanup
+    assert !@cache.exist?('foo')
+    assert @cache.exist?('baz')
+    assert @cache.exist?('quux')
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase

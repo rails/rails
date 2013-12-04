@@ -27,16 +27,17 @@ module ActiveRecord
         merge_relation_method(merged_relation, method, value) if value.present?
       end
 
-      merged_relation.joins_values += r.joins_values
+      merge_joins(merged_relation, r)
 
       merged_wheres = @where_values + r.where_values
 
       unless @where_values.empty?
-        # Remove duplicates, last one wins.
+        # Remove duplicate ARel attributes. Last one wins.
         seen = Hash.new { |h,table| h[table] = {} }
         merged_wheres = merged_wheres.reverse.reject { |w|
           nuke = false
-          if w.respond_to?(:operator) && w.operator == :==
+          if w.respond_to?(:operator) && w.operator == :== &&
+            w.left.respond_to?(:relation)
             name              = w.left.name
             table             = w.left.relation.name
             nuke              = seen[table][name]
@@ -145,6 +146,32 @@ module ActiveRecord
     end
 
     private
+
+      def merge_joins(relation, other)
+        values = other.joins_values
+        return if values.blank?
+
+        if other.klass >= relation.klass
+          relation.joins_values += values
+        else
+          joins_dependency, rest = values.partition do |join|
+            case join
+            when Hash, Symbol, Array
+              true
+            else
+              false
+            end
+          end
+
+          join_dependency = ActiveRecord::Associations::JoinDependency.new(
+            other.klass,
+            joins_dependency,
+            []
+          )
+
+          relation.joins_values += join_dependency.join_associations + rest
+        end
+      end
 
       def merge_relation_method(relation, method, value)
         relation.send(:"#{method}_values=", relation.send(:"#{method}_values") + value)

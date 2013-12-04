@@ -1,6 +1,26 @@
-## unreleased ##
+## Rails 3.2.15 (Oct 16, 2013) ##
 
-*   No changes.
+* No changes.
+
+## Rails 3.2.14 (Jul 22, 2013) ##
+
+*   Fix bugs that crashed `rake test:benchmark`, `rails profiler` and
+    `rails benchmarker`.
+    Fixes #4938.
+    Backport rails/rails-perftest#2.
+
+    *Dmitry Vorotilin + Yves Senn*
+
+*   Add support for runner hook.
+
+    Backport #7695.
+
+    *Ben Holley*
+
+*   Fixes bug with scaffold generator with `--assets=false --resource-route=false`.
+    Fixes #9525.
+
+    *Arun Agrawal*
 
 
 ## Rails 3.2.13 (Mar 18, 2013) ##

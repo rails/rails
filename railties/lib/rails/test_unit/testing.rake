@@ -123,10 +123,13 @@ namespace :test do
     t.pattern = 'test/integration/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:benchmark => 'test:prepare') do |t|
+  task 'test:benchmark_mode' do
+    ENV["BENCHMARK_TESTS"] = '1'
+  end
+
+  Rails::SubTestTask.new(:benchmark => ['test:prepare', 'test:benchmark_mode']) do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
-    t.options = '-- --benchmark'
   end
 
   Rails::SubTestTask.new(:profile => 'test:prepare') do |t|

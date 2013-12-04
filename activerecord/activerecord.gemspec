@@ -7,6 +7,8 @@ Gem::Specification.new do |s|
   s.summary     = 'Object-relational mapper framework (part of Rails).'
   s.description = 'Databases on Rails. Build a persistent domain model by mapping database tables to Ruby classes. Strong conventions for associations, validations, aggregations, migrations, and testing come baked-in.'
 
+  s.license = 'MIT'
+
   s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'

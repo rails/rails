@@ -30,6 +30,7 @@ module ActiveRecord
     )
 
     rake_tasks do
+      require "active_record/base"
       load "active_record/railties/databases.rake"
     end
 
@@ -38,7 +39,12 @@ module ActiveRecord
     # first time. Also, make it output to STDERR.
     console do |app|
       require "active_record/railties/console_sandbox" if app.sandbox?
+      require "active_record/base"
       ActiveRecord::Base.logger = Logger.new(STDERR)
+    end
+
+    runner do |app|
+      require "active_record/base"
     end
 
     initializer "active_record.initialize_timezone" do

@@ -6,6 +6,9 @@ Gem::Specification.new do |s|
   s.version     = version
   s.summary     = 'Web-flow and rendering framework putting the VC in MVC (part of Rails).'
   s.description = 'Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server.'
+
+  s.license = 'MIT'
+
   s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'

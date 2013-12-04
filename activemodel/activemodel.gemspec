@@ -7,6 +7,8 @@ Gem::Specification.new do |s|
   s.summary     = 'A toolkit for building modeling frameworks (part of Rails).'
   s.description = 'A toolkit for building modeling frameworks like Active Record and Active Resource. Rich support for attributes, callbacks, validations, observers, serialization, internationalization, and testing.'
 
+  s.license = 'MIT'
+
   s.required_ruby_version = '>= 1.8.7'
 
   s.author            = 'David Heinemeier Hansson'

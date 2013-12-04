@@ -774,6 +774,82 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal(-1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC'] ))
   end
 
+  def test_at_with_datetime
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0))
+
+    # Only test this if the underlying Time.at raises a TypeError
+    begin
+      Time.at_without_coercion(Time.now, 0)
+    rescue TypeError
+      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0)) }
+    end
+  end
+
+  def test_at_with_datetime_returns_local_time
+    with_env_tz 'US/Eastern' do
+      dt = DateTime.civil(2000, 1, 1, 0, 0, 0, '+0')
+      assert_equal Time.local(1999, 12, 31, 19, 0, 0), Time.at(dt)
+      assert_equal 'EST', Time.at(dt).zone
+      assert_equal(-18000, Time.at(dt).utc_offset)
+
+      # Daylight savings
+      dt = DateTime.civil(2000, 7, 1, 1, 0, 0, '+1')
+      assert_equal Time.local(2000, 6, 30, 20, 0, 0), Time.at(dt)
+      assert_equal 'EDT', Time.at(dt).zone
+      assert_equal(-14400, Time.at(dt).utc_offset)
+    end
+  end
+
+  def test_at_with_time_with_zone
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC']))
+
+    # Only test this if the underlying Time.at raises a TypeError
+    begin
+      Time.at_without_coercion(Time.now, 0)
+    rescue TypeError
+      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['UTC']), 0)) }
+    end
+  end
+
+  def test_at_with_time_with_zone_returns_local_time
+    with_env_tz 'US/Eastern' do
+      twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone['London'])
+      assert_equal Time.local(1999, 12, 31, 19, 0, 0), Time.at(twz)
+      assert_equal 'EST', Time.at(twz).zone
+      assert_equal(-18000, Time.at(twz).utc_offset)
+
+      # Daylight savings
+      twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 7, 1, 0, 0, 0), ActiveSupport::TimeZone['London'])
+      assert_equal Time.local(2000, 6, 30, 20, 0, 0), Time.at(twz)
+      assert_equal 'EDT', Time.at(twz).zone
+      assert_equal(-14400, Time.at(twz).utc_offset)
+    end
+  end
+
+  def test_at_with_time_microsecond_precision
+    assert_equal Time.at(Time.utc(2000, 1, 1, 0, 0, 0, 111)).to_f, Time.utc(2000, 1, 1, 0, 0, 0, 111).to_f
+  end
+
+  def test_at_with_utc_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.utc(2000), Time.at(Time.utc(2000))
+      assert_equal 'UTC', Time.at(Time.utc(2000)).zone
+      assert_equal(0, Time.at(Time.utc(2000)).utc_offset)
+    end
+  end
+
+  def test_at_with_local_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time.local(2000), Time.at(Time.local(2000))
+      assert_equal 'EST', Time.at(Time.local(2000)).zone
+      assert_equal(-18000, Time.at(Time.local(2000)).utc_offset)
+
+      assert_equal Time.local(2000, 7, 1), Time.at(Time.local(2000, 7, 1))
+      assert_equal 'EDT', Time.at(Time.local(2000, 7, 1)).zone
+      assert_equal(-14400, Time.at(Time.local(2000, 7, 1)).utc_offset)
+    end
+  end
+
   def test_eql?
     assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']) )
     assert_equal true, Time.utc(2000).eql?( ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["Hawaii"]) )

@@ -341,6 +341,19 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal num_tagging + 1, Tagging.count
   end
 
+  def test_association_is_not_overwitten_on_autosave
+    firm_1 = Firm.create!(:name => 'Apple')
+    firm_2 = Firm.create!(:name => 'Microsoft')
+    client = Client.create!(:firm => firm_1, :name => 'Business')
+    assert_equal firm_1.id, client.client_of
+
+    client.client_of = firm_2.id
+    assert client.save
+
+    client.reload
+    assert_equal firm_2, client.firm
+  end
+
   def test_build_and_then_save_parent_should_not_reload_target
     client = Client.find(:first)
     apple = client.build_firm(:name => "Apple")
@@ -583,7 +596,7 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
 end
 
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false unless supports_savepoints?
+  self.use_transactional_fixtures = false
 
   def setup
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
@@ -721,6 +734,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     ids.each { |id| assert_nil klass.find_by_id(id) }
   end
 
+  def test_should_not_resave_destroyed_association
+    @pirate.birds.create!(:name => :parrot)
+    @pirate.birds.first.destroy
+    @pirate.save!
+    assert @pirate.reload.birds.empty?
+  end
+
   def test_should_skip_validation_on_has_many_if_marked_for_destruction
     2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
 
@@ -778,6 +798,20 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.save!
 
     assert_equal 2, @pirate.birds.reload.length
+  end
+
+  def test_should_save_new_record_that_has_same_value_as_existing_record_marked_for_destruction_on_field_that_has_unique_index
+    Bird.connection.add_index :birds, :name, :unique => true
+
+    3.times { |i| @pirate.birds.create(:name => "unique_birds_#{i}") }
+
+    @pirate.birds[0].mark_for_destruction
+    @pirate.birds.build(:name => @pirate.birds[0].name)
+    @pirate.save!
+
+    assert_equal 3, @pirate.birds.reload.length
+  ensure
+    Bird.connection.remove_index :birds, :column => :name
   end
 
   # Add and remove callbacks tests for association collections.
@@ -862,8 +896,10 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
     assert @pirate.save
 
-    assert_queries(0) do
-      assert @pirate.save
+    Pirate.transaction do
+      assert_queries(0) do
+        assert @pirate.save
+      end
     end
   end
 

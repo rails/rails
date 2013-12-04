@@ -129,10 +129,10 @@ module ActionView
       #
       #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
       #  # => ($1,234,567,890.50)
-      #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
-      #  # => &pound;1234567890,50
-      #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
-      #  # => 1234567890,50 &pound;
+      #  number_to_currency(1234567890.50, :unit => "R$", :separator => ",", :delimiter => "")
+      #  # => R$1234567890,50
+      #  number_to_currency(1234567890.50, :unit => "R$", :separator => ",", :delimiter => "", :format => "%n %u")
+      #  # => 1234567890,50 R$
       def number_to_currency(number, options = {})
         return unless number
 
@@ -156,7 +156,7 @@ module ActionView
 
         begin
           value = number_with_precision(number, options.merge(:raise => true))
-          format.gsub(/%n/, value).gsub(/%u/, unit).html_safe
+          format.gsub(/%n/, ERB::Util.html_escape(value)).gsub(/%u/, ERB::Util.html_escape(unit)).html_safe
         rescue InvalidNumberError => e
           if options[:raise]
             raise

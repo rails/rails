@@ -40,4 +40,11 @@ class StoreTest < ActiveRecord::TestCase
     @john.remember_login = false
     assert_equal false, @john.remember_login
   end
+
+  test "updating the store will track changes correctly" do
+    @john.color = "blue"
+    assert_equal [{:color => "black"}, {:color => "blue"}], @john.settings_change
+    @john.homepage = "37signals.com"
+    assert_equal [{:color => "black"}, {:color => "blue", :homepage => "37signals.com"}], @john.settings_change
+  end
 end

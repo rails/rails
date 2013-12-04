@@ -383,7 +383,7 @@ ensure
 end
 </ruby>
 
-This is where the first output of the Rails initialization happens. This method creates a trap for +INT+ signals, so if you +CTRL+C+ the server, it will exit the process. As we can see from the code here, it will create the +tmp/cache+, +tmp/pids+, +tmp/sessions+ and +tmp/sockets+ directories if they don't already exist prior to calling +super+. The +super+ method will call +Rack::Server.start+ which begins its definition like this:
+This is where the first output of the Rails initialization happens. This method creates a trap for +INT+ signals, so if you <tt>CTRL+C</tt> the server, it will exit the process. As we can see from the code here, it will create the +tmp/cache+, +tmp/pids+, +tmp/sessions+ and +tmp/sockets+ directories if they don't already exist prior to calling +super+. The +super+ method will call +Rack::Server.start+ which begins its definition like this:
 
 <ruby>
 def start

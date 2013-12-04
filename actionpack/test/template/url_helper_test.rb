@@ -306,6 +306,11 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to_unless(true, "Showing", url_hash) {
         "test"
       }
+
+    assert_equal %{&lt;b&gt;Showing&lt;/b&gt;}, link_to_unless(true, "<b>Showing</b>", url_hash)
+    assert_equal %{<a href="/">&lt;b&gt;Showing&lt;/b&gt;</a>}, link_to_unless(false, "<b>Showing</b>", url_hash)
+    assert_equal %{<b>Showing</b>}, link_to_unless(true, "<b>Showing</b>".html_safe, url_hash)
+    assert_equal %{<a href="/"><b>Showing</b></a>}, link_to_unless(false, "<b>Showing</b>".html_safe, url_hash)
   end
 
   def test_link_to_if

@@ -43,7 +43,7 @@ module ActiveRecord
 
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
-        if loaded? || options[:finder_sql]
+        if owner.new_record? || loaded? || options[:finder_sql]
           load_target.map do |record|
             record.send(reflection.association_primary_key)
           end

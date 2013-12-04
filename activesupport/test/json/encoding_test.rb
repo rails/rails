@@ -100,11 +100,11 @@ class TestJSONEncoding < Test::Unit::TestCase
   def test_utf8_string_encoded_properly_when_kcode_is_utf8
     with_kcode 'UTF8' do
       result = ActiveSupport::JSON.encode('€2.99')
-      assert_equal '"€2.99"', result
+      assert_equal '"\\u20ac2.99"', result
       assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
 
       result = ActiveSupport::JSON.encode('✎☺')
-      assert_equal '"✎☺"', result
+      assert_equal '"\\u270e\\u263a"', result
       assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
     end
   end
@@ -113,22 +113,23 @@ class TestJSONEncoding < Test::Unit::TestCase
     def test_non_utf8_string_transcodes
       s = '二'.encode('Shift_JIS')
       result = ActiveSupport::JSON.encode(s)
-      assert_equal '"二"', result
+      assert_equal '"\\u4e8c"', result
       assert_equal Encoding::UTF_8, result.encoding
     end
-  end
 
-  def test_wide_utf8_chars
-    w = '𠜎'
-    result = ActiveSupport::JSON.encode(w)
-    assert_equal '"𠜎"', result
-  end
+    def test_utf8_hash_key_does_not_change_the_encoding
+      w = { '𠜎' => 'a' }
+      result = ActiveSupport::JSON.encode(w)
+      assert_equal '{"\\u070e":"a"}', result
 
-  def test_wide_utf8_roundtrip
-    hash = { :string => "𐒑" }
-    json = ActiveSupport::JSON.encode(hash)
-    decoded_hash = ActiveSupport::JSON.decode(json)
-    assert_equal "𐒑", decoded_hash['string']
+      if RUBY_VERSION >= '2.0'
+        expected_encoding = Encoding::UTF_8
+      else
+        expected_encoding = Encoding::US_ASCII
+      end
+
+      assert_equal expected_encoding, result.encoding
+    end
   end
 
   def test_exception_raised_when_encoding_circular_reference_in_array

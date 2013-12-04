@@ -93,6 +93,18 @@ class FinderTest < ActiveRecord::TestCase
     assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
   end
 
+  def test_exists_with_distinct_association_includes_and_limit
+    author = Author.first
+    assert !author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
+    assert author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+  end
+
+  def test_exists_with_distinct_association_includes_limit_and_order
+    author = Author.first
+    assert !author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
+    assert author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
+  end
+
   def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
@@ -293,8 +305,22 @@ class FinderTest < ActiveRecord::TestCase
     assert_sql(/LIMIT 5|ROWNUM <= 5/) { Topic.last(5).entries }
   end
 
+  def test_last_should_use_default_order
+    assert_sql(/ORDER BY .topics.\..id. DESC/) { Topic.last }
+  end
+
+  def test_last_with_integer_should_use_default_order
+    assert_sql(/ORDER BY .topics.\..id. DESC/) { Topic.last(5).entries }
+  end
+
   def test_last_with_integer_and_order_should_keep_the_order
     assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
+  end
+
+  def test_last_with_integer_should_work_with_joins
+    assert_nothing_raised do
+      Post.joins(:comments).last(2)
+    end
   end
 
   def test_last_with_integer_and_order_should_not_use_sql_limit

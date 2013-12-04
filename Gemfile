@@ -14,7 +14,7 @@ gem 'jquery-rails'
 if ENV['JOURNEY']
   gem 'journey', :path => ENV['JOURNEY']
 else
-  gem 'journey', :git => 'git://github.com/rails/journey.git', :branch => '1-0-stable'
+  gem 'journey'
 end
 
 # This needs to be with require false to avoid
@@ -53,7 +53,7 @@ end
 
 platforms :ruby do
   gem 'yajl-ruby'
-  gem 'nokogiri', '>= 1.4.5'
+  gem 'nokogiri', '>= 1.4.5', '< 1.6'
 
   # AR
   gem 'sqlite3', '~> 1.3.5'

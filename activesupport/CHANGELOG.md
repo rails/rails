@@ -1,4 +1,38 @@
-## unreleased ##
+## Rails 3.2.15 (Oct 16, 2013) ##
+
+*   Fix ActiveSupport::Cache::FileStore#cleanup to no longer rely on missing each_key method.
+
+    *Murray Steele*
+
+*   Add respond_to_missing? for TaggedLogging which is best practice when overriding method_missing. This permits
+    wrapping TaggedLogging by another log abstraction such as em-logger.
+
+    *Wolfram Arnold*
+
+
+## Rails 3.2.14 (Jul 22, 2013) ##
+
+*   Make `Time.at_with_coercion` retain the second fraction and return local time.
+
+    Fixes #11350
+
+    *Neer Friedman*, *Andrew White*
+
+*   Fix `ActiveSupport::TaggedLogging` incorrectly providing program name the same as log message
+    even when block is not provided.
+
+    *Carson Reinke*
+
+*   Override `Time.at` to support the passing of Time-like values when called with a single argument.
+
+    *Andrew White*
+
+*   Revert the changes on unicode character encoding from `ActiveSupport::JSON.encode`.
+    This was causing a regression where the resulting string is always returning UTF-8.
+    Also it changes the behavior of this method on a stable release.
+    Fixes #9498.
+
+    *Rafael Mendonça França*
 
 *   Fix `ActiveSupport::TimeZone.parse` when time is at a local DST jump.
     Fixes #9678.
@@ -7,7 +41,6 @@
 
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
-
 
 *   Fix DateTime comparison with DateTime::Infinity object.
 

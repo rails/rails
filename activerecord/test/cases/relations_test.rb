@@ -4,6 +4,7 @@ require 'models/tagging'
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
+require 'models/rating'
 require 'models/reply'
 require 'models/author'
 require 'models/comment'
@@ -19,7 +20,7 @@ require 'models/minivan'
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :tags, :taggings, :cars, :minivans
+    :ratings, :tags, :taggings, :cars, :minivans
 
   def test_do_not_double_quote_string_id
     van = Minivan.last
@@ -667,6 +668,21 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
+  def test_relation_merging_with_arel_equalities_keeps_last_equality
+   devs = Developer.where(Developer.arel_table[:salary].eq(80000)).merge(
+     Developer.where(Developer.arel_table[:salary].eq(9000))
+   )
+   assert_equal [developers(:poor_jamis)], devs.to_a
+ end
+
+  def test_relation_merging_with_arel_equalities_with_a_non_attribute_left_hand_ignores_non_attributes_when_discarding_equalities
+    salary_attr = Developer.arel_table[:salary]
+    devs = Developer.where(salary_attr.eq(80000)).merge(
+      Developer.where(salary_attr.eq(9000)).where(Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(9000))
+    )
+    assert_equal [developers(:poor_jamis)], devs.to_a
+ end
+
   def test_relation_merging_with_eager_load
     relations = []
     relations << Post.order('comments.id DESC').merge(Post.eager_load(:last_comment)).merge(Post.scoped)
@@ -694,6 +710,12 @@ class RelationTest < ActiveRecord::TestCase
   def test_relation_merging_with_joins
     comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
     assert_equal 1, comments.count
+  end
+
+  def test_relation_merging_with_merged_joins
+    special_comments_with_ratings = SpecialComment.joins(:ratings)
+    posts_with_special_comments_with_ratings = Post.group('posts.id').joins(:special_comments).merge(special_comments_with_ratings)
+    assert_equal 1, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
   end
 
   def test_count

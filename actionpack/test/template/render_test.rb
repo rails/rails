@@ -54,21 +54,18 @@ module RenderTestCases
     assert_equal "Hello world", @view.render(:template => "test/one", :formats => [:html])
   end
 
-  def test_render_partial_implicitly_use_format_of_the_rendered_partial
-    @view.lookup_context.formats = [:html]
-    assert_equal "Third level", @view.render(:template => "test/html_template")
-  end
-
-  def test_render_partial_use_last_prepended_format_for_partials_with_the_same_names
-    @view.lookup_context.formats = [:html]
-    assert_equal "\nHTML Template, but JSON partial", @view.render(:template => "test/change_priority")
-  end
-
   def test_render_template_with_a_missing_partial_of_another_format
     @view.lookup_context.formats = [:html]
     assert_raise ActionView::Template::Error, "Missing partial /missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
       @view.render(:template => "with_format", :formats => [:json])
     end
+  end
+
+  def test_render_using_context_format_as_default
+    @view.lookup_context.formats = [:html]
+    assert_equal "partial html", @view.render('test/partial')
+    assert_equal "partial js", @view.render(:partial => 'test/partial', :formats => :js)
+    assert_equal "partial html", @view.render('test/partial')
   end
 
   def test_render_file_with_locale

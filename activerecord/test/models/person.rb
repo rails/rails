@@ -27,6 +27,7 @@ class Person < ActiveRecord::Base
 
   has_many :agents_posts,         :through => :agents,       :source => :posts
   has_many :agents_posts_authors, :through => :agents_posts, :source => :author
+  has_many :essays, :primary_key => "first_name", :foreign_key => "writer_id"
 
   scope :males,   :conditions => { :gender => 'M' }
   scope :females, :conditions => { :gender => 'F' }

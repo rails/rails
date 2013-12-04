@@ -236,6 +236,11 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }
   end
 
+  def test_scope_inherited_properly
+    assert_nothing_raised { Company.of_first_firm }
+    assert_nothing_raised { Client.of_first_firm }
+  end
+
   private
     def switch_to_alt_inheritance_column
       # we don't want misleading test results, so get rid of the values in the type column
@@ -288,5 +293,28 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
   ensure
     ActiveRecord::Base.store_full_sti_class = true
+  end
+end
+
+
+class GlobalInheritanceColumnTest < ActiveRecord::TestCase
+  fixtures :companies
+
+  setup do
+    @inheritance_column = ActiveRecord::Base.inheritance_column
+  end
+
+  teardown do
+    ActiveRecord::Base.inheritance_column = @inheritance_column
+  end
+
+  def test_changing_global_inheritance_column
+    ActiveRecord::Base.inheritance_column = 'ruby_type'
+
+    firm = Firm.create('name' => 'FirmWithAltInheritanceColumn')
+    assert_equal 'Firm', firm.ruby_type
+
+    assert_equal 'ruby_type', Company.inheritance_column
+    assert_equal 'ruby_type', Firm.inheritance_column
   end
 end

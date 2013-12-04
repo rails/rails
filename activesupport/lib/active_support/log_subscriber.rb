@@ -118,5 +118,9 @@ module ActiveSupport
       bold  = bold ? BOLD : ""
       "#{bold}#{color}#{text}#{CLEAR}"
     end
+
+    def format_duration(duration)
+      "%.1fms" % duration
+    end
   end
 end

@@ -134,8 +134,8 @@ module ActiveRecord
     def last(*args)
       if args.any?
         if args.first.kind_of?(Integer) || (loaded? && !args.first.kind_of?(Hash))
-          if order_values.empty?
-            order("#{primary_key} DESC").limit(*args).reverse
+          if order_values.empty? && primary_key
+            order("#{quoted_table_name}.#{quoted_primary_key} DESC").limit(*args).reverse
           else
             to_a.last(*args)
           end
@@ -254,6 +254,7 @@ module ActiveRecord
       values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
 
       relation = relation.dup.select(values)
+      relation.uniq_value = nil
 
       id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
       ids_array = id_rows.map {|row| row[primary_key]}

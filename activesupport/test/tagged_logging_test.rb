@@ -4,14 +4,24 @@ require 'active_support/tagged_logging'
 
 class TaggedLoggingTest < ActiveSupport::TestCase
   class MyLogger < ::Logger
+    attr_accessor :last_message
+    attr_accessor :last_progname
+    
     def flush(*)
       info "[FLUSHED]"
+    end
+    
+    def add(severity, message = nil, progname = nil, &block)
+      @last_message = message
+      @last_progname = progname
+      super(severity, message, progname, &block)
     end
   end
 
   setup do
     @output = StringIO.new
-    @logger = ActiveSupport::TaggedLogging.new(MyLogger.new(@output))
+    @my_logger = MyLogger.new(@output)
+    @logger = ActiveSupport::TaggedLogging.new(@my_logger)
   end
 
   test "tagged once" do
@@ -54,6 +64,10 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   test "provides access to the logger instance" do
     @logger.tagged("BCX") { |logger| logger.info "Funky time" }
     assert_equal "[BCX] Funky time\n", @output.string
+  end
+
+  test "correctly answers responds_to_missing? for methods on logger instance" do
+    assert @logger.respond_to?(:debug?)
   end
 
   test "tagged once with blank and nil" do

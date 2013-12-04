@@ -1020,7 +1020,6 @@ class BaseTest < Test::Unit::TestCase
   end
 
   def test_to_json
-    Person.include_root_in_json = true
     joe = Person.find(6)
     encode = joe.encode
     json = joe.to_json
@@ -1030,6 +1029,21 @@ class BaseTest < Test::Unit::TestCase
     assert_match %r{"id":6}, json
     assert_match %r{"name":"Joe"}, json
     assert_match %r{\}\}$}, json
+  end
+
+  def test_to_json_without_root
+    ActiveResource::Base.include_root_in_json = false
+    joe = Person.find(6)
+    encode = joe.encode
+    json = joe.to_json
+
+    assert_equal encode, json
+    assert_no_match %r{^\{"person":\}}, json
+    assert_match %r{"id":6}, json
+    assert_match %r{"name":"Joe"}, json
+    assert_match %r{\}$}, json
+  ensure
+    ActiveResource::Base.include_root_in_json = true
   end
 
   def test_to_json_with_element_name

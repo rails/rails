@@ -332,16 +332,18 @@ module ActiveRecord
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
           begin
-            records_to_destroy = []
+            if autosave
+              records_to_destroy = records.select(&:marked_for_destruction?)
+              records_to_destroy.each { |record| association.proxy.destroy(record) }
+              records -= records_to_destroy
+            end
 
             records.each do |record|
               next if record.destroyed?
 
               saved = true
 
-              if autosave && record.marked_for_destruction?
-                records_to_destroy << record
-              elsif autosave != false && (@new_record_before_save || record.new_record?)
+              if autosave != false && (@new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
                 else
@@ -353,19 +355,14 @@ module ActiveRecord
 
               raise ActiveRecord::Rollback unless saved
             end
-
-            records_to_destroy.each do |record|
-              association.proxy.destroy(record)
-            end
           rescue
             records.each {|x| IdentityMap.remove(x) } if IdentityMap.enabled?
             raise
           end
-
         end
 
         # reconstruct the scope now that we know the owner's id
-        association.send(:reset_scope) if association.respond_to?(:reset_scope)
+        association.reset_scope if association.respond_to?(:reset_scope)
       end
     end
 

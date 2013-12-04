@@ -62,6 +62,13 @@ module ActionView
       @details_keys = Hash.new
 
       def self.get(details)
+        if details[:formats]
+          details = details.dup
+          syms    = Set.new Mime::SET.symbols
+          details[:formats] = details[:formats].select { |v|
+            syms.include? v
+          }
+        end
         @details_keys[details] ||= new
       end
 
@@ -103,7 +110,7 @@ module ActionView
 
     # Helpers related to template lookup using the lookup context information.
     module ViewPaths
-      attr_reader :view_paths, :html_fallback_for_js
+      attr_reader :view_paths
 
       # Whenever setting view paths, makes a copy so we can manipulate then in
       # instance objects as we wish.
@@ -200,10 +207,7 @@ module ActionView
     def formats=(values)
       if values
         values.concat(default_formats) if values.delete "*/*"
-        if values == [:js]
-          values << :html
-          @html_fallback_for_js = true
-        end
+        values << :html if values == [:js]
       end
       super(values)
     end

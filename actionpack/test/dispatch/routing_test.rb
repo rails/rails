@@ -529,6 +529,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           end
         end
       end
+
+      scope '/job', :controller => 'job' do
+        scope ':id', :action => 'manage_applicant' do
+          get "/active"
+        end
+      end
     end
   end
 
@@ -1441,6 +1447,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     with_test_routes do
       get '/api/v3/en/products/list'
       assert_equal 'api/v3/products#list', @response.body
+    end
+  end
+
+  def test_controller_option_with_nesting_and_leading_slash
+    with_test_routes do
+      get '/job/5/active'
+      assert_equal 'job#manage_applicant', @response.body
     end
   end
 

@@ -1336,7 +1336,7 @@ module ActiveResource
     end
 
     def to_json(options={})
-      super({ :root => self.class.element_name }.merge(options))
+      super(include_root_in_json ? { :root => self.class.element_name }.merge(options) : options)
     end
 
     def to_xml(options={})

@@ -1,4 +1,88 @@
-## unreleased ##
+*   Deep Munge the parameters for GET and POST Fixes CVE-2013-6417
+
+*   Stop using i18n's built in HTML error handling.  Fixes: CVE-2013-4491
+
+*   Escape the unit value provided to number_to_currency Fixes CVE-2013-6415
+
+*   Only use valid mime type symbols as cache keys CVE-2013-6414
+
+## Rails 3.2.15 (Oct 16, 2013) ##
+
+*   Fix `ActionDispatch::RemoteIp::GetIp#calculate_ip` to only check for spoofing
+    attacks if both `HTTP_CLIENT_IP` and `HTTP_X_FORWARDED_FOR` are set.
+
+    Fixes #12410
+    Backports #10844
+
+    *Tamir Duberstein*
+
+*   Fix the assert_recognizes test method so that it works when there are
+    constraints on the querystring.
+
+    Issue/Pull Request #9368
+    Backport #5219
+
+    *Brian Hahn*
+
+*   Fix to render partial by context(#11605).
+
+    *Kassio Borges*
+
+*   Fix `ActionDispatch::Assertions::ResponseAssertions#assert_redirected_to`
+    does not show user-supplied message.
+
+    Issue: when `assert_redirected_to` fails due to the response redirect not
+    matching the expected redirect the user-supplied message (second parameter)
+    is not shown. This message is only shown if the response is not a redirect.
+
+    *Alexey Chernenkov*
+
+
+## Rails 3.2.14 (Jul 22, 2013) ##
+
+*   Merge `:action` from routing scope and assign endpoint if both `:controller`
+    and `:action` are present. The endpoint assignment only occurs if there is
+    no `:to` present in the options hash so should only affect routes using the
+    shorthand syntax (i.e. endpoint is inferred from the the path).
+
+    Fixes #9856
+
+    *Yves Senn*, *Andrew White*
+
+*   Always escape the result of `link_to_unless` method.
+
+    Before:
+
+        link_to_unless(true, '<b>Showing</b>', 'github.com')
+        # => "<b>Showing</b>"
+
+    After:
+
+        link_to_unless(true, '<b>Showing</b>', 'github.com')
+        # => "&lt;b&gt;Showing&lt;/b&gt;"
+
+    *dtaniwaki*
+
+*   Use a case insensitive URI Regexp for #asset_path.
+
+    This fix a problem where the same asset path using different case are generating
+    different URIs.
+
+    Before:
+
+        image_tag("HTTP://google.com")
+        # => "<img alt=\"Google\" src=\"/assets/HTTP://google.com\" />"
+        image_tag("http://google.com")
+        # => "<img alt=\"Google\" src=\"http://google.com\" />"
+
+    After:
+
+        image_tag("HTTP://google.com")
+        # => "<img alt=\"Google\" src=\"HTTP://google.com\" />"
+        image_tag("http://google.com")
+        # => "<img alt=\"Google\" src=\"http://google.com\" />"
+
+    *David Celis + Rafael Mendonça França*
 
 *   Fix explicit names on multiple file fields. If a file field tag has
     the multiple option, it is turned into an array field (appending `[]`),
