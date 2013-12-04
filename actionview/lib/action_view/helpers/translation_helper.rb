@@ -38,7 +38,13 @@ module ActionView
 
         # If the user has specified rescue_format then pass it all through, otherwise use
         # raise and do the work ourselves
-        options[:raise] = true unless options.key?(:raise) || options.key?(:rescue_format)
+        if options.key?(:raise) || options.key?(:rescue_format)
+          raise_error = options[:raise] || options[:rescue_format]
+        else
+          raise_error = false
+          options[:raise] = true
+        end
+
         if html_safe_translation_key?(key)
           html_safe_options = options.dup
           options.except(*I18n::RESERVED_KEYS).each do |name, value|
@@ -53,6 +59,8 @@ module ActionView
           I18n.translate(scope_key_by_partial(key), options)
         end
       rescue I18n::MissingTranslationData => e
+        raise e if raise_error
+
         keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
         content_tag('span', keys.last.to_s.titleize, :class => 'translation_missing', :title => "translation missing: #{keys.join('.')}")
       end
