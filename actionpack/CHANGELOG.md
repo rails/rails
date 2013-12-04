@@ -1,3 +1,12 @@
+*   Remove deep_munge
+
+    `deep_munge` is no longer used in Rails code, and functions itself are
+    deprecated.
+
+    Fixes #11044, #8832
+
+    *Bernard Potocki*
+
 *   Introducing Variants
 
     We often want to render different html/json/xml templates for phones,
