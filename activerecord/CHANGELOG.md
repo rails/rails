@@ -1,3 +1,7 @@
+*   two-digit date conversions fixed for ActiveRecord::ConnectionAdapters::Column
+  
+    *Jonathan Chapman*
+
 *   Deprecate unused `ActiveRecord::Base.symbolized_base_class`
     and `ActiveRecord::Base.symbolized_sti_name` without replacement.
 
