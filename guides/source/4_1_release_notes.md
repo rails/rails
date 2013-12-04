@@ -69,11 +69,13 @@ that `bin/rails` and `bin/rake` will automatically take advantage preloaded
 spring environments.
 
 **running rake tasks:**
+
 ```
 bin/rake routes
 ```
 
 **running tests:**
+
 ```
 bin/rake test
 bin/rake test test/models
@@ -81,6 +83,7 @@ bin/rake test test/models/user_test.rb
 ```
 
 **running a console:**
+
 ```
 bin/rails console
 ```
@@ -100,6 +103,26 @@ Have a look at the
 [Spring README](https://github.com/jonleighton/spring/blob/master/README.md) to
 see a all available features.
 
+### Active Record enums
+
+Declare an enum attribute where the values map to integers in the database, but
+can be queried by name.
+
+```ruby
+class Conversation < ActiveRecord::Base
+  enum status: [ :active, :archived ]
+end
+
+conversation.archive!
+conversation.active? # => false
+conversation.status  # => "archived"
+
+Conversation.archived # => Relation for all archived Conversations
+```
+
+See
+[active_record/enum.rb](https://github.com/rails/rails/blob/4-1-stable/activerecord/lib/active_record/enum.rb#L2-L42)
+for a detailed write up.
 
 Documentation
 -------------
