@@ -128,7 +128,7 @@ NOTE: _Apart from stealing a user's session id, the attacker may fix a session i
 This attack focuses on fixing a user's session id known to the attacker, and forcing the user's browser into using this id. It is therefore not necessary for the attacker to steal the session id afterwards. Here is how this attack works:
 
 * The attacker creates a valid session id: They load the login page of the web application where they want to fix the session, and takes the session id in the cookie from the response (see number 1 and 2 in the image).
-* They possibly maintains the session. Expiring sessions, for example every 20 minutes, greatly reduces the time-frame for attack. Therefore they access the web application from time to time in order to keep the session alive.
+* They possibly maintain the session. Expiring sessions, for example every 20 minutes, greatly reduces the time-frame for attack. Therefore they access the web application from time to time in order to keep the session alive.
 * Now the attacker will force the user's browser into using this session id (see number 3 in the image). As you may not change a cookie of another domain (because of the same origin policy), the attacker has to run a JavaScript from the domain of the target web application. Injecting the JavaScript code into the application by XSS accomplishes this attack. Here is an example: `<script>document.cookie="_session_id=16d5b78abb28e3d6206b60f22a03c8d9";</script>`. Read more about XSS and injection later on.
 * The attacker lures the victim to the infected page with the JavaScript code. By viewing the page, the victim's browser will change the session id to the trap session id.
 * As the new trap session is unused, the web application will require the user to authenticate.
