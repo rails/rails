@@ -4,6 +4,7 @@ Ruby on Rails 4.1 Release Notes
 Highlights in Rails 4.1:
 
 * Variants
+* Spring
 * Action View extracted from Action Pack
 
 These release notes cover only the major changes. To know about various bug
@@ -61,6 +62,44 @@ Major Features
     app/views/projects/show.html+phone.erb
   ```
 
+### Spring
+
+New Rails 4.1 applications will ship with "springified" binstubs. This means
+that `bin/rails` and `bin/rake` will automatically take advantage preloaded
+spring environments.
+
+**running rake tasks:**
+```
+bin/rake routes
+```
+
+**running tests:**
+```
+bin/rake test
+bin/rake test test/models
+bin/rake test test/models/user_test.rb
+```
+
+**running a console:**
+```
+bin/rails console
+```
+
+**spring introspection:**
+```
+$ bundle exec spring status
+Spring is running:
+
+ 1182 spring server | my_app | started 29 mins ago
+ 3656 spring app    | my_app | started 23 secs ago | test mode
+ 3746 spring app    | my_app | started 10 secs ago | development mode
+```
+
+Have a look at the
+[Spring README](https://github.com/jonleighton/spring/blob/master/README.md) to
+see a all available features.
+
+
 Documentation
 -------------
 
@@ -89,6 +128,12 @@ for detailed changes.
   `rake test:recent`.
 
 ### Notable changes
+
+* The [Spring application
+  preloader](https://github.com/jonleighton/spring) is now installed
+  by default for new applications. It uses the development group of
+  the Gemfile, so will not be installed in
+  production. ([Pull Request](https://github.com/rails/rails/pull/12958))
 
 * `BACKTRACE` environment variable to show unfiltered backtraces for test
   failures. ([Commit](https://github.com/rails/rails/commit/84eac5dab8b0fe9ee20b51250e52ad7bfea36553))

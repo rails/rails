@@ -27,6 +27,18 @@ Upgrading from Rails 4.0 to Rails 4.1
 
 NOTE: This section is a work in progress.
 
+### Spring
+
+If you want to use Spring as your application preloader you need to:
+
+1. add `gem 'spring', group: :development` to your `Gemfile`.
+2. install spring using `bundle install`.
+3. springify your binstubs with `bundle exec spring binstub --all`.
+
+NOTE: User defined rake tasks will run in the `development` environment by
+default. If you want them to run in other environments consult the
+[Spring README](https://github.com/jonleighton/spring#rake).
+
 ### Changes in JSON handling
 
 The are a few major changes related to JSON handling in Rails 4.1.
