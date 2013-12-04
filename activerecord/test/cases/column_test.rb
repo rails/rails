@@ -64,6 +64,12 @@ module ActiveRecord
           assert_nil column.type_cast(1.0/0.0)
         end
       end
+
+      def test_type_cast_two_digit_date
+        [Column.new("field", nil, "datetime"), Column.new("field", nil, "date")].each do |column|
+          assert_equal Date.parse("10/11/12"), column.type_cast("10/11/12").to_date
+        end
+      end
     end
   end
 end
