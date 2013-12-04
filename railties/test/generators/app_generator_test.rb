@@ -437,6 +437,34 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "foo bar/config/initializers/session_store.rb", /key: '_foo_bar/
   end
 
+  def test_spring
+    run_generator
+    assert_file "Gemfile", /gem 'spring'/
+  end
+
+  def test_spring_binstubs
+    generator.stubs(:bundle_command).with('install')
+    generator.expects(:bundle_command).with('exec spring binstub --all').once
+    quietly { generator.invoke_all }
+  end
+
+  def test_spring_no_fork
+    Process.stubs(:respond_to?).with(:fork).returns(false)
+    run_generator
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/spring/, content)
+    end
+  end
+
+  def test_skip_spring
+    run_generator [destination_root, "--skip-spring"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/spring/, content)
+    end
+  end
+
 protected
 
   def action(*args, &block)

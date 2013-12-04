@@ -1,3 +1,10 @@
+*   The [Spring application
+    preloader](https://github.com/jonleighton/spring) is now installed
+    by default for new applications. It uses the development group of
+    the Gemfile, so will not be installed in production.
+
+    *Jon Leighton*
+
 *   Uses .railsrc while creating new plugin if it is available.
     Fixes #10700.
 
