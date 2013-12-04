@@ -66,15 +66,15 @@ module ActionDispatch
           end
       end
 
-      # Sets the \variant for template
+      # Sets the \variant for template.
       def variant=(variant)
         if variant.is_a? Symbol
           @variant = variant
         else
-          raise ArgumentError, "request.variant must be set to a Symbol, not a #{variant.class}. For security reasons," +
-                               "never directly set the variant to a user-provided value, like params[:variant].to_sym." +
-                               "Check user-provided value against a whitelist first, then set the variant:"+
-                               "request.variant = :tablet if params[:some_param] == 'tablet'"
+          raise ArgumentError, "request.variant must be set to a Symbol, not a #{variant.class}. " \
+            "For security reasons, never directly set the variant to a user-provided value, " \
+            "like params[:variant].to_sym. Check user-provided value against a whitelist first, " \
+            "then set the variant: request.variant = :tablet if params[:variant] == 'tablet'"
         end
       end
 
