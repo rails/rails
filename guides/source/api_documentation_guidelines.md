@@ -45,7 +45,7 @@ Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite databa
 English
 -------
 
-Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc).. See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
+Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Example Code
 ------------
