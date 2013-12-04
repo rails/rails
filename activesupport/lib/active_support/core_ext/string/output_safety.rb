@@ -4,9 +4,9 @@ require 'active_support/core_ext/kernel/singleton_class'
 class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' }
-    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003e', '<' => '\u003c' }
+    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003e', '<' => '\u003c', "\u2028" => '\u2028', "\u2029" => '\u2029' }
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+));)/
-    JSON_ESCAPE_REGEXP = /[&><]/
+    JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
@@ -50,9 +50,11 @@ class ERB
 
     # A utility method for escaping HTML entities in JSON strings. Specifically, the
     # &, > and < characters are replaced with their equivilant unicode escaped form -
-    # \u0026, \u003e, and \u003c. These sequences has identical meaning as the original
-    # characters inside the context of a JSON string, so assuming the input is a valid
-    # and well-formed JSON value, the output will have equivilant meaning when parsed:
+    # \u0026, \u003e, and \u003c. The Unicode sequences \u2028 and \u2029 are also
+    # escaped as then are treated as newline characters in some JavaScript engines. 
+    # These sequences has identical meaning as the original characters inside the
+    # context of a JSON string, so assuming the input is a valid and well-formed
+    # JSON value, the output will have equivilant meaning when parsed:
     # 
     #   json = JSON.generate({ name: "</script><script>alert('PWNED!!!')</script>"})
     #   # => "{\"name\":\"</script><script>alert('PWNED!!!')</script>\"}"

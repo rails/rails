@@ -33,7 +33,8 @@ class ErbUtilTest < ActiveSupport::TestCase
     ['"&"', '"\u0026"'],
     ['"</script>"', '"\u003c/script\u003e"'],
     ['["</script>"]', '["\u003c/script\u003e"]'],
-    ['{"name":"</script>"}', '{"name":"\u003c/script\u003e"}']
+    ['{"name":"</script>"}', '{"name":"\u003c/script\u003e"}'],
+    [%({"name":"d\u2028h\u2029h"}), '{"name":"d\u2028h\u2029h"}']
   ]
 
   def test_html_escape
