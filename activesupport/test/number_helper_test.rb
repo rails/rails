@@ -102,7 +102,6 @@ module ActiveSupport
           assert_equal '12 345 678', number_helper.number_to_delimited(12345678, :delimiter => ' ')
           assert_equal '12,345,678-05', number_helper.number_to_delimited(12345678.05, :separator => '-')
           assert_equal '12.345.678,05', number_helper.number_to_delimited(12345678.05, :separator => ',', :delimiter => '.')
-          assert_equal '12.345.678,05', number_helper.number_to_delimited(12345678.05, :delimiter => '.', :separator => ',')
         end
       end
 
