@@ -191,7 +191,7 @@ module ActionController #:nodoc:
     #
     # You can set the variant in a +before_action+:
     #
-    #     request.variant = :tablet if request.user_agent =~ /iPad/
+    #   request.variant = :tablet if request.user_agent =~ /iPad/
     #
     # Respond to variants in the action just like you respond to formats:
     #
@@ -287,7 +287,7 @@ module ActionController #:nodoc:
     # * for other requests - i.e. data formats such as xml, json, csv etc, if
     #   the resource passed to +respond_with+ responds to <code>to_<format></code>,
     #   the method attempts to render the resource in the requested format
-    #   directly, e.g. for an xml request, the response is equivalent to calling 
+    #   directly, e.g. for an xml request, the response is equivalent to calling
     #   <code>render xml: resource</code>.
     #
     # === Nested resources
@@ -457,7 +457,7 @@ module ActionController #:nodoc:
         @format = request.negotiate_mime(@responses.keys)
       end
 
-      class VariantFilter
+      class VariantFilter #:nodoc:
         def initialize(variant)
           @variant = variant
         end
