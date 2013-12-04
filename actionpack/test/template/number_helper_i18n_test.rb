@@ -7,7 +7,7 @@ class NumberHelperTest < ActionView::TestCase
     I18n.backend.store_translations 'ts',
       :number => {
         :format => { :precision => 3, :delimiter => ',', :separator => '.', :significant => false, :strip_insignificant_zeros => false },
-        :currency => { :format => { :unit => '&$', :format => '%u - %n', :negative_format => '(%u - %n)', :precision => 2 } },
+        :currency => { :format => { :unit => '$$$', :format => '%u - %n', :negative_format => '(%u - %n)', :precision => 2 } },
         :human => {
           :format => {
             :precision => 2,
@@ -42,9 +42,9 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_to_i18n_currency
-    assert_equal("&$ - 10.00", number_to_currency(10, :locale => 'ts'))
-    assert_equal("(&$ - 10.00)", number_to_currency(-10, :locale => 'ts'))
-    assert_equal("-10.00 - &$", number_to_currency(-10, :locale => 'ts', :format => "%n - %u"))
+    assert_equal("$$$ - 10.00", number_to_currency(10, :locale => 'ts'))
+    assert_equal("($$$ - 10.00)", number_to_currency(-10, :locale => 'ts'))
+    assert_equal("-10.00 - $$$", number_to_currency(-10, :locale => 'ts', :format => "%n - %u"))
   end
 
   def test_number_to_currency_with_clean_i18n_settings
