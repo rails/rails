@@ -3,8 +3,8 @@
     We often want to render different html/json/xml templates for phones,
     tablets, and desktop browsers. Variants make it easy.
 
-    The request variant is a specialization of the request format, like :tablet,
-    :phone, or :desktop.
+    The request variant is a specialization of the request format, like `:tablet`,
+    `:phone`, or `:desktop`.
 
     You can set the variant in a before_action:
 
