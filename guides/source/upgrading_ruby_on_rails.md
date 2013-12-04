@@ -433,7 +433,7 @@ Upgrading from Rails 3.1 to Rails 3.2
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.
 
-The following changes are meant for upgrading your application to Rails 3.2.15,
+The following changes are meant for upgrading your application to Rails 3.2.16,
 the last 3.2.x version of Rails.
 
 ### Gemfile
@@ -441,7 +441,7 @@ the last 3.2.x version of Rails.
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '3.2.15'
+gem 'rails', '3.2.16'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.6'
