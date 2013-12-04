@@ -53,7 +53,7 @@ class NumberHelperTest < ActionView::TestCase
       assert_equal("-$10.00", number_to_currency(-10))
     end
   end
-  
+
   def test_number_to_currency_without_currency_negative_format
     clean_i18n do
       I18n.backend.store_translations 'ts', :number => { :currency => { :format => { :unit => '@', :format => '%n %u' } } }
