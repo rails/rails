@@ -100,10 +100,10 @@ module ActionView
       #
       #   number_to_currency(-1234567890.50, negative_format: "(%u%n)")
       #   # => ($1,234,567,890.50)
-      #   number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "")
-      #   # => &pound;1234567890,50
-      #   number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "", format: "%n %u")
-      #   # => 1234567890,50 &pound;
+      #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "")
+      #   # => R$1234567890,50
+      #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "", format: "%n %u")
+      #   # => 1234567890,50 R$
       def number_to_currency(number, options = {})
         delegate_number_helper_method(:number_to_currency, number, options)
       end
