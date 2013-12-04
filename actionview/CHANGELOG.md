@@ -1,3 +1,10 @@
+*   Fixed a long-standing bug in `json_escape` that causes quotation marks to be stripped.
+    This method also escapes the \u2028 and \u2029 unicode newline characters which are
+    treated as \n in JavaScript. This matches the behaviour of the AS::JSON encoder. (The
+    original change in the encoder was introduced in #10534.)
+
+    *Godfrey Chan*
+
 *   `ActionView::MissingTemplate` includes underscore when raised for a partial.
 
     Fixes #13002.
