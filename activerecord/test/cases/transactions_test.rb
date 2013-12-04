@@ -268,6 +268,62 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_dirty_state_rollback
+    assert !@first.approved?
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+    assert @first.approved
+    assert @first.changes["approved"]
+    @first.save!
+    assert @first.reload.approved
+  end
+
+  def test_dirty_state_rollback2
+    assert !@first.approved?
+    @first.approved = true
+    Topic.transaction do
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+    assert @first.changes["approved"]
+    assert @first.approved
+    @first.save!
+    assert @first.reload.approved
+  end
+
+  def test_dirty_state_rollback3
+    assert !@first.approved?
+    @first.approved = true
+    @first.save!
+    Topic.transaction do
+      @first.approved = false
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+    assert !@first.approved
+    assert @first.changes["approved"]
+    @first.save!
+    assert !@first.reload.approved
+  end
+
+  def test_dirty_state_rollback4
+    assert !@first.approved?
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+      @first.approved = false
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+    assert !@first.approved
+    assert !@first.changes["approved"]
+    @first.save!
+    assert !@first.reload.approved
+  end
+
   def test_force_savepoint_in_nested_transaction
     Topic.transaction do
       @first.approved = true

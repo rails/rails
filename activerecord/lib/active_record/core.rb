@@ -428,7 +428,6 @@ module ActiveRecord
       @destroyed_by_association = nil
       @new_record               = true
       @txn                      = nil
-      @_start_transaction_state = {}
       @transaction_state        = nil
       @reflects_state           = [false]
     end
