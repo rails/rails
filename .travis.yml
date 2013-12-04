@@ -4,6 +4,7 @@ before_install:
 rvm:
   - 1.9.3
   - 2.0.0
+  - 2.1.0-preview2
   - jruby-19mode
   - rbx-19mode
 env:
@@ -15,6 +16,7 @@ env:
   - "GEM=ar:postgresql"
 matrix:
   allow_failures:
+    - rvm: 2.1.0-preview2
     - rvm: jruby-19mode
     - rvm: rbx-19mode
 notifications:
