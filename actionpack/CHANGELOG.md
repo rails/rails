@@ -1,3 +1,10 @@
+*   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
+    `options[:raise]`.
+
+    This regression was introduced at ec16ba75a5493b9da972eea08bae630eba35b62f.
+
+    *Shota Fukumori (sora_h)*
+
 *   Fix formatting for `rake routes` when a section is shorter than a header.
 
     *Sıtkı Bağdat*
