@@ -1,5 +1,5 @@
-*   Fix issue with `simple_format` using the `raw` method when included in
-    isolation, introduced with the security fix in Rails 4.0.2.
+*   Fix regression with `simple_format` not having access to the `raw` method
+    when included in isolation, introduced with the security fix in Rails 4.0.2.
 
     *Mario Visic*
 
