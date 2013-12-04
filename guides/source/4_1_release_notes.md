@@ -28,13 +28,13 @@ guide.
 Major Features
 --------------
 
-* Variants
+### Variants
 
   We often want to render different html/json/xml templates for phones,
-  tablets, and desktop browsers. Variants make it easy.
+  tablets, and desktop browsers. Variants makes it easy.
 
-  The request variant is a specialization of the request format, like :tablet,
-  :phone, or :desktop.
+  The request variant is a specialization of the request format, like `:tablet`,
+  `:phone`, or `:desktop`.
 
   You can set the variant in a before_action:
 
@@ -254,8 +254,8 @@ for detailed changes.
 
 ### Notable changes
 
-* Take a hash with options inside array in
-  `#url_for`. ([Pull Request](https://github.com/rails/rails/pull/9599))
+* `#url_for` takes a hash with options inside an
+  array. ([Pull Request](https://github.com/rails/rails/pull/9599))
 
 * Added `session#fetch` method fetch behaves similarly to
   [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch),
@@ -301,28 +301,17 @@ for detailed changes.
 
 * Removed deprecated `SchemaStatements#distinct`.
 
-* Moved deprecated `ActiveRecord::TestCase` into the rails test
+* Moved deprecated `ActiveRecord::TestCase` into the Rails test
   suite. The class is no longer public and is only used for internal
   Rails tests.
 
 * Removed support for deprecated option `:restrict` for `:dependent`
   in associations.
 
-* Removed support for deprecated `delete_sql` in associations.
-
-* Removed support for deprecated `insert_sql` in associations.
-
-* Removed support for deprecated `finder_sql` in associations.
-
-* Removed support for deprecated `counter_sql` in associations.
+* Removed support for deprecated `:delete_sql`, `:insert_sql`, `:finder_sql`
+  and `:counter_sql` options in associations.
 
 * Removed deprecated method `type_cast_code` from Column.
-
-* Removed deprecated options `delete_sql` and `insert_sql` from HABTM
-  association.
-
-* Removed deprecated options `finder_sql` and `counter_sql` from
-  collection association.
 
 * Removed deprecated `ActiveRecord::Base#connection` method.
   Make sure to access it via the class.
@@ -342,9 +331,9 @@ for detailed changes.
 
 * Removed `activerecord-deprecated_finders` as a dependency
 
-* Usage of `implicit_readonly` is being removed. Please use `readonly` method
+* Removed usage of `implicit_readonly`. Please use `readonly` method
   explicitly to mark records as
-  `readonly. ([Pull Request](https://github.com/rails/rails/pull/10769))
+  `readonly`. ([Pull Request](https://github.com/rails/rails/pull/10769))
 
 ### Deprecations
 
