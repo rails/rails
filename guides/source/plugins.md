@@ -3,9 +3,9 @@ The Basics of Creating Rails Plugins
 
 A Rails plugin is either an extension or a modification of the core framework. Plugins provide:
 
-* a way for developers to share bleeding-edge ideas without hurting the stable code base
-* a segmented architecture so that units of code can be fixed or updated on their own release schedule
-* an outlet for the core developers so that they don't have to include every cool new feature under the sun
+* A way for developers to share bleeding-edge ideas without hurting the stable code base.
+* A segmented architecture so that units of code can be fixed or updated on their own release schedule.
+* An outlet for the core developers so that they don't have to include every cool new feature under the sun.
 
 After reading this guide, you will know:
 
@@ -48,7 +48,7 @@ See usage and options by asking for help:
 $ rails plugin --help
 ```
 
-Testing your newly generated plugin
+Testing Your Newly Generated Plugin
 -----------------------------------
 
 You can navigate to the directory that contains the plugin, run the `bundle install` command
@@ -92,7 +92,7 @@ Run `rake` to run the test. This test should fail because we haven't implemented
 
 Great - now you are ready to start development.
 
-Then in `lib/yaffle.rb` add `require "yaffle/core_ext"`:
+In `lib/yaffle.rb`, add `require "yaffle/core_ext"`:
 
 ```ruby
 # yaffle/lib/yaffle.rb
@@ -219,7 +219,7 @@ $ rails generate model Wickwall last_squawk:string last_tweet:string
 ```
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
-and migrating the database. First
+and migrating the database. First, run:
 
 ```bash
 $ cd test/dummy
@@ -245,7 +245,7 @@ end
 
 ```
 
-We will also add code to define the acts_as_yaffle method.
+We will also add code to define the `acts_as_yaffle` method.
 
 ```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb
@@ -286,7 +286,7 @@ You can then return to the root directory (`cd ../..`) of your plugin and rerun 
 
 ```
 
-Getting closer... Now we will implement the code of the acts_as_yaffle method to make the tests pass.
+Getting closer... Now we will implement the code of the `acts_as_yaffle` method to make the tests pass.
 
 ```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb
@@ -310,7 +310,7 @@ end
 ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
 ```
 
-When you run `rake` you should see the tests all pass:
+When you run `rake`, you should see the tests all pass:
 
 ```bash
   5 tests, 5 assertions, 0 failures, 0 errors, 0 skips
@@ -390,7 +390,11 @@ Run `rake` one final time and you should see:
   7 tests, 7 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use `send("#{self.class.yaffle_text_field}=", string.to_squawk)`.
+NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
+
+```ruby
+send("#{self.class.yaffle_text_field}=", string.to_squawk)
+```
 
 Generators
 ----------
@@ -398,7 +402,7 @@ Generators
 Generators can be included in your gem simply by creating them in a lib/generators directory of your plugin. More information about
 the creation of generators can be found in the [Generators Guide](generators.html)
 
-Publishing your Gem
+Publishing Your Gem
 -------------------
 
 Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
@@ -411,12 +415,12 @@ gem 'yaffle', git: 'git://github.com/yaffle_watcher/yaffle.git'
 After running `bundle install`, your gem functionality will be available to the application.
 
 When the gem is ready to be shared as a formal release, it can be published to [RubyGems](http://www.rubygems.org).
-For more information about publishing gems to RubyGems, see: [Creating and Publishing Your First Ruby Gem](http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html)
+For more information about publishing gems to RubyGems, see: [Creating and Publishing Your First Ruby Gem](http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html).
 
 RDoc Documentation
 ------------------
 
-Once your plugin is stable and you are ready to deploy do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
+Once your plugin is stable and you are ready to deploy, do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
 
 The first step is to update the README file with detailed information about how to use your plugin. A few key things to include are:
 
