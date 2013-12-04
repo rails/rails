@@ -2,20 +2,6 @@ require "action_controller/log_subscriber"
 require "action_controller/metal/params_wrapper"
 
 module ActionController
-  # The <tt>metal</tt> anonymous class was introduced to solve issue with including modules in <tt>ActionController::Base</tt>.
-  # Modules needs to be included in particluar order. First we need to have <tt>AbstractController::Rendering</tt> included,
-  # next we should include actuall implementation which would be for example <tt>ActionView::Rendering</tt> and after that
-  # <tt>ActionController::Rendering</tt>. This order must be preserved and as we want to have middle module included dynamicaly
-  # <tt>metal</tt> class was introduced. It has <tt>AbstractController::Rendering</tt> included and is parent class of
-  # <tt>ActionController::Base</tt> which includes <tt>ActionController::Rendering</tt>. If we include <tt>ActionView::Rendering</tt>
-  # beetween them to perserve the required order, we can simply do this by:
-  #
-  #   ActionController::Base.superclass.send(:include, ActionView::Rendering)
-  #
-  metal = Class.new(Metal) do
-    include AbstractController::Rendering
-  end
-
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed
   # on request and then either it renders a template or redirects to another action. An action is defined as a public method
   # on the controller, which will automatically be made accessible to the web-server through \Rails Routes.
@@ -174,7 +160,7 @@ module ActionController
   #     render action: "overthere" # won't be called if monkeys is nil
   #   end
   #
-  class Base < metal
+  class Base < Metal
     abstract!
 
     # We document the request and response methods here because albeit they are
@@ -214,6 +200,7 @@ module ActionController
     end
 
     MODULES = [
+      AbstractController::Rendering,
       AbstractController::Translation,
       AbstractController::AssetPaths,
 
@@ -221,6 +208,7 @@ module ActionController
       HideActions,
       UrlFor,
       Redirecting,
+      ActionView::Layouts,
       Rendering,
       Renderers::All,
       ConditionalGet,

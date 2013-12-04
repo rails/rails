@@ -13,6 +13,7 @@ module AbstractController
 
   module Rendering
     extend ActiveSupport::Concern
+    include ActionView::ViewPaths
 
     # Normalize arguments, options and then delegates render_to_body and
     # sticks the result in self.response_body.
