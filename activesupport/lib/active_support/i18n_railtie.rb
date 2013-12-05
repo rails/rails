@@ -31,6 +31,11 @@ module I18n
 
       fallbacks = app.config.i18n.delete(:fallbacks)
 
+      if app.config.i18n.has_key?(:enforce_available_locales)
+        # this option needs to be set before `default_locale=` to work properly.
+        I18n.enforce_available_locales = app.config.i18n.delete(:enforce_available_locales)
+      end
+
       app.config.i18n.each do |setting, value|
         case setting
         when :railties_load_path
