@@ -1,3 +1,10 @@
+*   Added `ActiveRecord::Calculations#column_name_from_field` to get the correct name
+    of a colum from a field in `ActiveRecord::Calculations#column_for`.
+
+    Fixes #12937
+
+    *Angelo Capilleri*
+
 *   Polymorphic belongs_to associations with the `touch: true` option set update the timestamps of
     the old and new owner correctly when moved between owners of different types.
 
