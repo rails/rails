@@ -1,3 +1,7 @@
+*   Fix file descriptor being leaked on each call to `Kernel.silence_stream`.
+
+    *Mario Visic*
+
 *   Fix `slice!` deleting the default value of the hash.
 
     *Antonio Santos*
