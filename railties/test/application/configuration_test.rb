@@ -494,7 +494,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert ActionView::Resolver.caching?
+      assert_equal true, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading without cache_classes default" do
@@ -502,7 +502,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert !ActionView::Resolver.caching?
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading = false" do
@@ -513,7 +513,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert !ActionView::Resolver.caching?
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading = true" do
@@ -524,7 +524,21 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert ActionView::Resolver.caching?
+      assert_equal true, ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading with cache_classes in an environment" do
+      build_app(initializers: true)
+      add_to_env_config "development", "config.cache_classes = false"
+
+      # These requires are to emulate an engine loading Action View before the application
+      require 'action_view'
+      require 'action_view/railtie'
+      require 'action_view/base'
+
+      require "#{app_path}/config/environment"
+
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_dispatch.show_exceptions is sent in env" do
