@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
+require 'active_support/message_verifier'
 require 'rails/engine'
 
 module Rails
@@ -107,12 +108,13 @@ module Rails
 
     def initialize(initial_variable_values = {}, &block)
       super()
-      @initialized      = false
-      @reloaders        = []
-      @routes_reloader  = nil
-      @app_env_config   = nil
-      @ordered_railties = nil
-      @railties         = nil
+      @initialized       = false
+      @reloaders         = []
+      @routes_reloader   = nil
+      @app_env_config    = nil
+      @ordered_railties  = nil
+      @railties          = nil
+      @message_verifiers = {}
 
       add_lib_to_load_path!
       ActiveSupport.run_load_hooks(:before_configuration, self)
@@ -155,6 +157,31 @@ module Rails
         else
           ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
         end
+      end
+    end
+
+    # Returns a message verifier object.
+    #
+    # This verifier can be used to generate and verify signed messages in the application.
+    #
+    # It is recommended not to use the same verifier for different things, so you can get different
+    # verifiers passing the +verifier_name+ argument.
+    #
+    # ==== Parameters
+    #
+    # * +salt+ - the salt that will be used to generate the secret key of the verifier.
+    #
+    # ==== Examples
+    #
+    #     message = Rails.application.message_verifier('salt').generate('my sensible data')
+    #     Rails.application.message_verifier('salt').verify(message)
+    #     # => 'my sensible data'
+    #
+    # See the +ActiveSupport::MessageVerifier+ documentation for more information.
+    def message_verifier(salt)
+      @message_verifiers[salt] ||= begin
+        secret = key_generator.generate_key(salt)
+        ActiveSupport::MessageVerifier.new(secret)
       end
     end
 

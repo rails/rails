@@ -124,6 +124,17 @@ See
 [active_record/enum.rb](https://github.com/rails/rails/blob/4-1-stable/activerecord/lib/active_record/enum.rb#L2-L42)
 for a detailed write up.
 
+### Application message verifier.
+
+Create a message verifier that can be used to generate and verify signed
+messages in the application.
+
+```ruby
+message = Rails.application.message_verifier('salt').generate('my sensible data')
+Rails.application.message_verifier('salt').verify(message)
+# => 'my sensible data'
+```
+
 Documentation
 -------------
 
@@ -164,6 +175,7 @@ for detailed changes.
 
 * Exposed `MiddlewareStack#unshift` to environment configuration. ([Pull Request](https://github.com/rails/rails/pull/12479))
 
+* Add `Application#message_verifier` method to return a message verifier. ([Pull Request](https://github.com/rails/rails/pull/12995))
 
 Action Mailer
 -------------

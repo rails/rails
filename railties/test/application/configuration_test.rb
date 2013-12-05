@@ -268,6 +268,41 @@ module ApplicationTests
       assert_equal 'some_value', verifier.verify(last_response.body)
     end
 
+    test "application verifier can be used in the entire application" do
+      make_basic_app do |app|
+        app.config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.session_store :disabled
+      end
+
+      message = app.message_verifier('salt').generate("some_value")
+
+      assert_equal 'some_value', Rails.application.message_verifier('salt').verify(message)
+
+      secret = app.key_generator.generate_key('salt')
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      assert_equal 'some_value', verifier.verify(message)
+    end
+
+    test "application verifier can build different verifiers" do
+      make_basic_app do |app|
+        app.config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.session_store :disabled
+      end
+
+      default_verifier = app.message_verifier('salt')
+      text_verifier = app.message_verifier('text')
+
+      message = text_verifier.generate('some_value')
+
+      assert_equal 'some_value', text_verifier.verify(message)
+      assert_raises ActiveSupport::MessageVerifier::InvalidSignature do
+        default_verifier.verify(message)
+      end
+
+      assert_equal default_verifier.object_id, app.message_verifier('salt').object_id
+      assert_not_equal default_verifier.object_id, text_verifier.object_id
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 
