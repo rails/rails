@@ -142,7 +142,7 @@ module ActiveRecord
           fields.each_with_index do |fname, i|
             ftype = result.ftype i
             fmod  = result.fmod i
-            types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
+            types[fname] = type_map.fetch(ftype, fmod) { |oid, mod|
               warn "unknown OID: #{fname}(#{oid}) (#{sql})"
               OID::Identity.new
             }
