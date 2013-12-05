@@ -1,3 +1,10 @@
+*   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
+    `options[:raise]`.
+
+    This regression was introduced at ec16ba75a5493b9da972eea08bae630eba35b62f.
+
+    *Shota Fukumori (sora_h)*
+
 *  Fix header `Content-Type: #<Mime::NullType:...>` in localized template.
 
    When localized template has no format in the template name,
