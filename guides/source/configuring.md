@@ -242,7 +242,13 @@ config.middleware.delete "Rack::MethodOverride"
 
 ### Configuring i18n
 
+All these configuration options are delegated to the `I18n` library.
+
+* `config.i18n.available_locales` whitelists the available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
+
 * `config.i18n.default_locale` sets the default locale of an application used for i18n. Defaults to `:en`.
+
+* `config.i18n.enforce_available_locales` ensures that all locales passed through i18n must be declared in the `available_locales` list, raising an `I18n::InvalidLocale` exception when setting an unavailable locale. Defaults to `true`. It is recommended not to disable this option unless strongly required, since this works as a security measure against setting any invalid locale from user input.
 
 * `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/*.{yml,rb}`.
 
