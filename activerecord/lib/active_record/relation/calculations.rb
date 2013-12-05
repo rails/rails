@@ -338,14 +338,14 @@ module ActiveRecord
     end
 
     def column_for(field)
-      field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
+      field_name =  field.respond_to?(:name) ? field.name.to_s : field.to_s.split(".").detect {|x| @klass.columns_hash[x]}
       @klass.columns_hash[field_name]
     end
 
     def type_cast_calculated_value(value, column, operation = nil)
       case operation
         when 'count'   then value.to_i
-        when 'sum'     then type_cast_using_column(value || 0, column)
+        when 'sum'     then value.nil? ? 0 : value
         when 'average' then value.respond_to?(:to_d) ? value.to_d : value
         else type_cast_using_column(value, column)
       end

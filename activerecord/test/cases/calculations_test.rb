@@ -396,6 +396,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 0, Account.where('1 = 2').sum("2 * credit_limit")
   end
 
+  def test_sum_expression_return_float_when_the_sum_result_is_a_float_and_field_include_table_name
+    assert_equal 667.8, Account.sum("2.1 * accounts.credit_limit")
+    assert_equal 667.8, Account.sum("accounts.credit_limit * 2.1")
+  end
+
   def test_count_with_from_option
     assert_equal Company.count(:all), Company.from('companies').count(:all)
     assert_equal Account.where("credit_limit = 50").count(:all),
