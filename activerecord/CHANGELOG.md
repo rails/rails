@@ -1,3 +1,10 @@
+*   `ActiveRecord::ConnectionAdapters.string_to_time` respects
+    string with timezone (e.g. Wed, 04 Sep 2013 20:30:00 JST).
+
+    Fixes: #12278, #12459
+
+    *kennyj*, *George Guimarães*
+
 *   Polymorphic `belongs_to` associations with the `touch: true` option set update the timestamps of
     the old and new owner correctly when moved between owners of different types.
 
