@@ -177,11 +177,11 @@
     *Paul Nikitochkin*
 
 *   Remove deprecated `ActiveRecord::Generators::ActiveModel#update_attributes` in
-    favor of `ActiveRecord::Generators::ActiveModel#update`
+    favor of `ActiveRecord::Generators::ActiveModel#update`.
 
     *Vipul A M*
 
-*   Remove deprecated `config.whiny_nils` option
+*   Remove deprecated `config.whiny_nils` option.
 
     *Vipul A M*
 

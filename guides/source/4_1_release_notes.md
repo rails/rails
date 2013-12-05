@@ -155,9 +155,9 @@ for detailed changes.
 * Removed deprecated `threadsafe!` from Rails Config.
 
 * Removed deprecated `ActiveRecord::Generators::ActiveModel#update_attributes` in
-  favor of `ActiveRecord::Generators::ActiveModel#update`
+  favor of `ActiveRecord::Generators::ActiveModel#update`.
 
-* Removed deprecated `config.whiny_nils` option
+* Removed deprecated `config.whiny_nils` option.
 
 * Removed deprecated rake tasks for running tests: `rake test:uncommitted` and
   `rake test:recent`.
@@ -173,9 +173,11 @@ for detailed changes.
 * `BACKTRACE` environment variable to show unfiltered backtraces for test
   failures. ([Commit](https://github.com/rails/rails/commit/84eac5dab8b0fe9ee20b51250e52ad7bfea36553))
 
-* Exposed `MiddlewareStack#unshift` to environment configuration. ([Pull Request](https://github.com/rails/rails/pull/12479))
+* Exposed `MiddlewareStack#unshift` to environment
+  configuration. ([Pull Request](https://github.com/rails/rails/pull/12479))
 
-* Add `Application#message_verifier` method to return a message verifier. ([Pull Request](https://github.com/rails/rails/pull/12995))
+* Add `Application#message_verifier` method to return a message
+  verifier. ([Pull Request](https://github.com/rails/rails/pull/12995))
 
 Action Mailer
 -------------
@@ -404,13 +406,13 @@ for detailed changes.
 * Removed deprecated methods `partial_updates`, `partial_updates?` and
   `partial_updates=`.
 
-* Removed deprecated method `scoped`
+* Removed deprecated method `scoped`.
 
-* Removed deprecated method `default_scopes?`
+* Removed deprecated method `default_scopes?`.
 
 * Remove implicit join references that were deprecated in 4.0.
 
-* Removed `activerecord-deprecated_finders` as a dependency
+* Removed `activerecord-deprecated_finders` as a dependency.
 
 * Removed usage of `implicit_readonly`. Please use `readonly` method
   explicitly to mark records as

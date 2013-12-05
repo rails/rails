@@ -772,11 +772,11 @@
 
     *Neeraj Singh*
 
-*   Removed deprecated method `scoped`
+*   Removed deprecated method `scoped`.
 
     *Neeraj Singh*
 
-*   Removed deprecated method `default_scopes?`
+*   Removed deprecated method `default_scopes?`.
 
     *Neeraj Singh*
 
@@ -811,7 +811,7 @@
 
     *Jon Leighton*
 
-*   Remove `activerecord-deprecated_finders` as a dependency
+*   Remove `activerecord-deprecated_finders` as a dependency.
 
     *Łukasz Strzałkowski*
 
