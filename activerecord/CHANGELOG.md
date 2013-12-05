@@ -1,3 +1,17 @@
+*   Polymorphic belongs_to associations with the `touch: true` option set update the timestamps of
+    the old and new owner correctly when moved between owners of different types.
+
+    Example:
+
+        class Rating < ActiveRecord::Base
+          belongs_to :rateable, polymorphic: true, touch: true
+        end
+
+        rating = Rating.create rateable: Song.find(1)
+        rating.update_attributes rateable: Book.find(2) # => timestamps of Song(1) and Book(2) are updated
+
+    *Severin Schoepke*
+
 *   Improve formatting of migration exception messages: make them easier to read
     with line breaks before/after, and improve the error for pending migrations.
 
