@@ -1,3 +1,12 @@
+*   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
+    `options[:raise]`.
+
+    This regression was introduced at ec16ba75a5493b9da972eea08bae630eba35b62f.
+
+    *Shota Fukumori (sora_h)*
+
+## Rails 3.2.16 ##
+
 *   Deep Munge the parameters for GET and POST Fixes CVE-2013-6417
 
 *   Stop using i18n's built in HTML error handling.  Fixes: CVE-2013-4491
