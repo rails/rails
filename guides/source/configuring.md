@@ -246,6 +246,8 @@ config.middleware.delete "Rack::MethodOverride"
 
 * `config.i18n.default_locale` sets the default locale of an application used for i18n. Defaults to `:en`.
 
+* `config.i18n.enforce_available_locales` exposes the [i18n][1] setting of the same name.  If `true`, raises an I18n::InvalidLocale exception when setting an unavailable locale.  Defaults to `false` as of rails 4.0.2, but will default to `true` in the future.
+
 * `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/*.{yml,rb}`.
 
 ### Configuring Active Record
@@ -792,3 +794,5 @@ If you get the above error, you might want to increase the size of connection
 pool by incrementing the `pool` option in `database.yml`
 
 NOTE. If you have enabled `Rails.threadsafe!` mode then there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
+
+[1]: https://github.com/svenfuchs/i18n
