@@ -169,18 +169,18 @@ module Rails
     #
     # ==== Parameters
     #
-    # * +verifier_name+ - the name of verifier you want to get.
+    # * +salt+ - the salt that will be used to generate the secret key of the verifier.
     #
     # ==== Examples
     #
-    #     message = Rails.application.message_verifier.generate('my sensible data')
-    #     Rails.application.message_verifier.verify(message)
+    #     message = Rails.application.message_verifier('salt').generate('my sensible data')
+    #     Rails.application.message_verifier('salt').verify(message)
     #     # => 'my sensible data'
     #
     # See the +ActiveSupport::MessageVerifier+ documentation for more information.
-    def message_verifier(verifier_name = 'default')
-      @message_verifiers[verifier_name] ||= begin
-        secret = key_generator.generate_key(verifier_name)
+    def message_verifier(salt)
+      @message_verifiers[salt] ||= begin
+        secret = key_generator.generate_key(salt)
         ActiveSupport::MessageVerifier.new(secret)
       end
     end
