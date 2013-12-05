@@ -63,4 +63,22 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal 1, Book::STATUS["written"]
     assert_equal 2, Book::STATUS[:published]
   end
+
+  test "implicit mapping with skipped values" do
+    model = Class.new(ActiveRecord::Base) { enum category: [:a, nil, :c, :d, nil] }
+    categories = model.const_get(:CATEGORY)
+    assert_equal 3, categories.size
+    assert_equal 0, categories[:a]
+    assert_equal 2, categories[:c]
+    assert_equal 3, categories[:d]
+  end
+
+  test "explict mapping with skipped values" do
+    model = Class.new(ActiveRecord::Base) { enum category: { a: 0, b: nil, c: 2, d: 3, e: nil } }
+    categories = model.const_get(:CATEGORY)
+    assert_equal 3, categories.size
+    assert_equal 0, categories[:a]
+    assert_equal 2, categories[:c]
+    assert_equal 3, categories[:d]
+  end
 end
