@@ -288,12 +288,22 @@ module ActiveSupport
           key = namespaced_key(name, options)
 
           cached_entry = find_cached_entry(key, name, options) unless options[:force]
-          entry = handle_expired_entry(cached_entry, key, options)
+          entry, move = handle_expired_entry(cached_entry, key, options)
 
           if entry
             get_entry_value(entry, name, options)
           else
-            save_block_result_to_cache(name, options) { |_name| yield _name }
+            if move == :race_update
+              Thread.new do
+                begin
+                  save_block_result_to_cache(name, options) { |_name| yield _name }
+                rescue
+                end
+              end
+              get_entry_value(cached_entry, name, options)
+            else
+              save_block_result_to_cache(name, options) { |_name| yield _name }
+            end
           end
         else
           read(name, options)
@@ -562,6 +572,7 @@ module ActiveSupport
         end
 
         def handle_expired_entry(entry, key, options)
+          move = nil
           if entry && entry.expired?
             race_ttl = options[:race_condition_ttl].to_i
             if race_ttl && (Time.now.to_f - entry.expires_at <= race_ttl)
@@ -569,12 +580,14 @@ module ActiveSupport
               # for a brief period while the entry is begin recalculated.
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, :expires_in => race_ttl * 2)
+              move = :race_update
             else
               delete_entry(key, options)
+              move = :delete
             end
             entry = nil
           end
-          entry
+          [entry, move]
         end
 
         def get_entry_value(entry, name, options)
