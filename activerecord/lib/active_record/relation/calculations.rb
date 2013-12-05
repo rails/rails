@@ -348,8 +348,8 @@ module ActiveRecord
     end
 
     def type_for(field)
-      field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
-      @klass.type_for_attribute(field_name)
+      field = field.name if field.respond_to?(:name)
+      @klass.type_for_attribute(field.to_s)
     end
 
     def type_cast_calculated_value(value, type, operation = nil)

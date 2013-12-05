@@ -416,6 +416,25 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 0, Account.where('1 = 2').sum("2 * credit_limit")
   end
 
+  def test_complex_expression_not_lose_data_when_returns_different_type_than_column_type
+    credit_limit_sum = 318 * 2.112
+    assert_equal credit_limit_sum, Account.sum("credit_limit * 2.112")
+    assert_equal credit_limit_sum, Account.sum("2.112 * accounts.credit_limit")
+    assert_equal credit_limit_sum, Account.sum("accounts.credit_limit * 2.112")
+
+    credit_limit_maximum = 60 * 2.112
+    assert_equal credit_limit_maximum, Account.maximum("accounts.credit_limit * 2.112")
+    assert_equal credit_limit_maximum, Account.maximum("credit_limit * 2.112")
+
+    credit_limit_minimum = 50 * 2.112
+    assert_equal credit_limit_minimum, Account.minimum("accounts.credit_limit * 2.112")
+    assert_equal credit_limit_minimum, Account.minimum("credit_limit * 2.112")
+
+    credit_limit_average = 53 * 2.112
+    assert_equal credit_limit_average, Account.average("accounts.credit_limit * 2.112")
+    assert_equal credit_limit_average, Account.average("credit_limit * 2.112")
+  end
+
   def test_count_with_from_option
     assert_equal Company.count(:all), Company.from('companies').count(:all)
     assert_equal Account.where("credit_limit = 50").count(:all),

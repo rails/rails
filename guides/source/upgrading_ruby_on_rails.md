@@ -52,6 +52,15 @@ Don't forget to review the difference, to see if there were any unexpected chang
 
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
+### Complex expressions in `ActiveRecord::Calculations#calculation`
+
+In Rails 4.2 the aggregate methods in [`ActiveRecord::Calculations#calculation`](http://guides.rubyonrails.org/active_record_querying.html#calculations)
+type cast the result to the column type and the result could be truncated when the fields are complex.
+For example with expressions like `Pet.sum('2.1 * age')` or `Pet.avg('2.1 * age')`
+the result is always an `integer`(given `age` as `integer` column type).
+
+In Rails 5.0 the result is not type casted to the column type when the fields are complex.
+For example `Pet.sum('2.1 * age')` and `Pet.avg('2.1 * age')` returns a `float`.
 
 ### Halting callback chains by returning `false`
 

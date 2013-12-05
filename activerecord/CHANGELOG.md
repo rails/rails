@@ -1,3 +1,19 @@
+*   When the field of aggregate functions in `ActiveRecord::Calculations` have complex expressions
+    their result is not type casted to the `column type`.
+    It allows to get the `result` without unexpected truncation.
+
+    Fixes #12937.
+
+    Example:
+
+        Account.sum(:credit_limit) # => is type casted
+
+        Account.sum("2.1 * accounts.credit_limit") # => is not type casted
+
+        Account.sum("accounts.credit_limit") # => is not type casted
+
+    *Angelo Capilleri*
+
 *   Allow single table inheritance instantiation to work when storing
     demodulized class names.
 
