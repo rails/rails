@@ -584,6 +584,14 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_datetime_attribute_doesnt_change_if_zone_is_modified_in_string
+    time_in_paris = Time.utc(2014, 1, 1, 12, 0, 0).in_time_zone('Paris')
+    pirate = Pirate.create!(:catchphrase => 'rrrr', :created_on => time_in_paris)
+
+    pirate.created_on = pirate.created_on.in_time_zone('Tokyo').to_s
+    assert !pirate.created_on_changed?
+  end
+
   test "partial insert" do
     with_partial_writes Person do
       jon = nil
