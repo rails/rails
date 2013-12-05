@@ -565,7 +565,8 @@ module ActiveRecord
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
-        initialize_type_map
+        @type_map = OID::TypeMap.new
+        initialize_type_map(type_map)
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
@@ -738,39 +739,43 @@ module ActiveRecord
 
       private
 
-        def reload_type_map
-          OID::TYPE_MAP.clear
-          initialize_type_map
+        def type_map
+          @type_map
         end
 
-        def initialize_type_map
+        def reload_type_map
+          type_map.clear
+          initialize_type_map(type_map)
+        end
+
+        def initialize_type_map(type_map)
           result = execute('SELECT oid, typname, typelem, typdelim, typinput FROM pg_type', 'SCHEMA')
           leaves, nodes = result.partition { |row| row['typelem'] == '0' }
 
           # populate the leaf nodes
           leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
-            OID::TYPE_MAP[row['oid'].to_i] = OID::NAMES[row['typname']]
+            type_map[row['oid'].to_i] = OID::NAMES[row['typname']]
           end
 
           arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
           # populate composite types
-          nodes.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
+          nodes.find_all { |row| type_map.key? row['typelem'].to_i }.each do |row|
             if OID.registered_type? row['typname']
               # this composite type is explicitly registered
               vector = OID::NAMES[row['typname']]
             else
               # use the default for composite types
-              vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
+              vector = OID::Vector.new row['typdelim'], type_map[row['typelem'].to_i]
             end
 
-            OID::TYPE_MAP[row['oid'].to_i] = vector
+            type_map[row['oid'].to_i] = vector
           end
 
           # populate array types
-          arrays.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
-            array = OID::Array.new  OID::TYPE_MAP[row['typelem'].to_i]
-            OID::TYPE_MAP[row['oid'].to_i] = array
+          arrays.find_all { |row| type_map.key? row['typelem'].to_i }.each do |row|
+            array = OID::Array.new  type_map[row['typelem'].to_i]
+            type_map[row['oid'].to_i] = array
           end
         end
 
