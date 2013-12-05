@@ -325,6 +325,9 @@ for detailed changes.
 
 * Removed deprecated `page_cache_extension` config.
 
+* Removed deprecated `ActionController::RecordIdentifier`, use
+  `ActionView::RecordIdentifier` instead.
+
 * Removed deprecated constants from Action Controller:
 
       ActionController::AbstractRequest  => ActionDispatch::Request

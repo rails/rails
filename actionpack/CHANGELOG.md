@@ -1,3 +1,8 @@
+*   Remove deprecated `ActionController::RecordIdentifier`, use
+    `ActionView::RecordIdentifier` instead.
+
+    *kennyj*
+
 *   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
     `options[:raise]`.
 
