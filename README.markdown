@@ -111,12 +111,10 @@ Suppose we have a table `products` with prices in different currencies. And we h
 
 ```ruby
 products = Arel::Table.new(:products)
-products.columns
-# => [products[:id], products[:name], products[:price], products[:currency_id]]
+# Attributes: [:id, :name, :price, :currency_id]
 
 currency_rates = Arel::Table.new(:currency_rates)
-currency_rates.columns
-# => [currency_rates[:from_id], currency_rates[:to_id], currency_rates[:date], currency_rates[:rate]]
+# Attributes: [:from_id, :to_id, :date, :rate]
 ```
 
 Now, to order products by price in user preferred currency simply call:
@@ -139,8 +137,7 @@ comments = Arel::Table.new(:comments)
 And this table has the following attributes:
 
 ```ruby
-comments.columns
-# => [comments[:id], comments[:body], comments[:parent_id]]
+# [:id, :body, :parent_id]
 ```
 
 The `parent_id` column is a foreign key from the `comments` table to itself. Now, joining a table to itself requires aliasing in SQL. In fact, you may alias in Arel as well:
