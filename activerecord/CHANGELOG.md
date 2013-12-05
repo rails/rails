@@ -1,3 +1,8 @@
+*   Make it possible to replace unused enum values with `nil`. Also, the implicit mapping
+    of enum values is now part of the public API.
+
+    *Godfrey Chan*
+
 *   Improve formatting of migration exception messages: make them easier to read
     with line breaks before/after, and improve the error for pending migrations.
 

@@ -26,7 +26,16 @@ module ActiveRecord
   #
   # Good practice is to let the first declared status be the default.
   #
-  # Finally, it's also possible to explicitly map the relation between attribute and database integer:
+  # Note that the integer value that get stored in the database is derived from the order these values
+  # appear in the array. The first value (:active in this case) is mapped to 0, and the second value
+  # (:archived in here) is mapped to 1, and in general the i-th element is mapped to i-1.
+  #
+  # Therefore, once a value is added to the enum array, its position in the array must be maintained,
+  # and new values should only be added to the end of the array. If a value is no longer used, it should
+  # be replaced with `nil` to maintain the same ordering of elements.
+  #
+  # Alternatively, it's also possible to explicitly map the relation between attribute and database
+  # integer:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 0, archived: 1 }
@@ -62,16 +71,18 @@ module ActiveRecord
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
-            enum_values[value] = i
+            if value && i
+              enum_values[value] = i
 
-            # scope :incoming, -> { where direction: 0 }
-            klass.scope value, -> { klass.where name => i }
+              # scope :incoming, -> { where direction: 0 }
+              klass.scope value, -> { klass.where name => i }
 
-            # def incoming?() direction == 0 end
-            define_method("#{value}?") { self[name] == i }
+              # def incoming?() direction == 0 end
+              define_method("#{value}?") { self[name] == i }
 
-            # def incoming! update! direction: :incoming end
-            define_method("#{value}!") { update! name => value }
+              # def incoming! update! direction: :incoming end
+              define_method("#{value}!") { update! name => value }
+            end
           end
         end
       end
