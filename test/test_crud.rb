@@ -45,7 +45,7 @@ module Arel
         table = Table.new :users
         fc = FakeCrudder.new
         fc.from table
-        stmt = fc.compile_update [[table[:id], 'foo']], table.primary_key
+        stmt = fc.compile_update [[table[:id], 'foo']], Arel::Attributes::Attribute.new(table, 'id')
         assert_instance_of Arel::UpdateManager, stmt
       end
     end

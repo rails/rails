@@ -921,7 +921,7 @@ module Arel
         manager = Arel::SelectManager.new engine
         manager.from table
         manager.take 1
-        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), table.primary_key)
+        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
         stmt.key = table['id']
 
         stmt.to_sql.must_be_like %{
@@ -936,7 +936,7 @@ module Arel
         manager = Arel::SelectManager.new engine
         manager.from table
         manager.order :foo
-        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), table.primary_key)
+        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
         stmt.key = table['id']
 
         stmt.to_sql.must_be_like %{
@@ -950,7 +950,7 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new engine
         manager.from table
-        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), table.primary_key)
+        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
 
         stmt.to_sql.must_be_like %{ UPDATE "users" SET foo = bar }
       end
@@ -961,7 +961,7 @@ module Arel
         manager = Arel::SelectManager.new engine
         manager.where table[:id].eq 10
         manager.from table
-        stmt = manager.compile_update({table[:id] => 1}, table.primary_key)
+        stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
 
         stmt.to_sql.must_be_like %{
           UPDATE "users" SET "id" = 1 WHERE "users"."id" = 10
@@ -975,7 +975,7 @@ module Arel
         manager.where table[:foo].eq 10
         manager.take 42
         manager.from table
-        stmt = manager.compile_update({table[:id] => 1}, table.primary_key)
+        stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
 
         stmt.to_sql.must_be_like %{
           UPDATE "users" SET "id" = 1 WHERE "users"."id" IN (SELECT "users"."id" FROM "users" WHERE "users"."foo" = 10 LIMIT 42)
@@ -987,7 +987,7 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new engine
         manager.from table
-        stmt = manager.compile_update({table[:id] => 1}, table.primary_key)
+        stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
 
         stmt.to_sql.must_be_like %{
           UPDATE "users" SET "id" = 1

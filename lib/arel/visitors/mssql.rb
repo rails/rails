@@ -62,8 +62,8 @@ module Arel
         x.projections.length == 1 && Arel::Nodes::Count === x.projections.first
       end
 
-      # fixme raise exception of there is no pk?
-      # fixme!! Table.primary_key will be depricated. What is the replacement??
+      # FIXME raise exception of there is no pk?
+      # FIXME!! Table.primary_key will be deprecated. What is the replacement??
       def find_left_table_pk o, a
         return visit o.primary_key, a if o.instance_of? Arel::Table
         find_left_table_pk o.left, a if o.kind_of? Arel::Nodes::Join
