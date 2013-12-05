@@ -1,4 +1,4 @@
-*   Polymorphic belongs_to associations with the `touch: true` option set update the timestamps of
+*   Polymorphic `belongs_to` associations with the `touch: true` option set update the timestamps of
     the old and new owner correctly when moved between owners of different types.
 
     Example:
