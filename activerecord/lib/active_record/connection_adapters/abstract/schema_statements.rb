@@ -831,11 +831,20 @@ module ActiveRecord
           column_name, new_column_name = column_name.to_s, new_column_name.to_s
           indexes(table_name).each do |index|
             next unless index.columns.include?(new_column_name)
+
             old_columns = index.columns.dup
             old_columns[old_columns.index(new_column_name)] = column_name
-            generated_index_name = index_name(table_name, column: old_columns)
-            if generated_index_name == index.name
-              rename_index table_name, generated_index_name, index_name(table_name, column: index.columns)
+            old_index_name = index_name(table_name, column: old_columns)
+            max_index_name_length = allowed_index_name_length - 1
+
+            if old_index_name == index.name
+              new_index_name = index_name(table_name, column: index.columns)
+
+              if new_index_name.size > max_index_name_length
+                new_index_name = new_index_name[0..max_index_name_length]
+              end
+
+              rename_index table_name, old_index_name, new_index_name
             end
           end
         end

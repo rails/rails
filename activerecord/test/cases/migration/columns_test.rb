@@ -49,6 +49,30 @@ module ActiveRecord
         assert_equal ['foo'], TestModel.all.map(&:nick_name)
       end
 
+      def test_rename_column_renames_long_indexes
+        add_column :test_models, :column_with_long_long_long_long_long_name, :string
+        add_index :test_models, :column_with_long_long_long_long_long_name
+
+        rename_column :test_models,
+          :column_with_long_long_long_long_long_name,
+          :column_with_long_long_long_long_long_long_long_long_name
+
+        indexed_column = connection.indexes('test_models').map(&:columns).first
+        assert_equal ['column_with_long_long_long_long_long_long_long_long_name'], indexed_column
+      end
+
+      def test_rename_column_does_not_rename_long_indexes_with_custom_naming
+        add_column :test_models, :column_with_long_long_long_long_long_name, :string
+        add_index :test_models,
+          :column_with_long_long_long_long_long_name, name: :custom_name
+
+        rename_column :test_models,
+          :column_with_long_long_long_long_long_name,
+          :column_with_long_long_long_long_long_long_long_long_name
+
+        assert_equal ['custom_name'], connection.indexes('test_models').map(&:name)
+      end
+
       def test_rename_column_preserves_default_value_not_null
         add_column 'test_models', 'salary', :integer, :default => 70000
 
