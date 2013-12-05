@@ -338,8 +338,12 @@ module ActiveRecord
     end
 
     def column_for(field)
-      field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
+      field_name = field.respond_to?(:name) ? field.name.to_s : column_name_from_field(field)
       @klass.columns_hash[field_name]
+    end
+
+    def column_name_from_field(field)
+      field.to_s.scan(/./) {|f| f if f.respond_to?(:name)}
     end
 
     def type_cast_calculated_value(value, column, operation = nil)
