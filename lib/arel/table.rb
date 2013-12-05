@@ -52,14 +52,6 @@ primary_key (#{caller.first}) is deprecated and will be removed in Arel 4.0.0
       SelectManager.new(@engine, table)
     end
 
-    def joins manager
-      if $VERBOSE
-        warn "joins is deprecated and will be removed in 4.0.0"
-        warn "please remove your call to joins from #{caller.first}"
-      end
-      nil
-    end
-
     def join relation, klass = Nodes::InnerJoin
       return from(self) unless relation
 
