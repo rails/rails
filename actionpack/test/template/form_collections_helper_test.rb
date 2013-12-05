@@ -76,6 +76,32 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'input[type=radio][value=false].special-radio#user_active_false'
   end
 
+  test 'collection radio accepts html options as the last element of array' do
+    collection = [[1, true, {class: 'foo'}], [0, false, {class: 'bar'}]]
+    with_collection_radio_buttons :user, :active, collection, :second, :first
+
+    assert_select 'input[type=radio][value=true].foo#user_active_true'
+    assert_select 'input[type=radio][value=false].bar#user_active_false'
+  end
+
+  test 'collection radio sets the label class defined inside the block' do
+    collection = [[1, true, {class: 'foo'}], [0, false, {class: 'bar'}]]
+    with_collection_radio_buttons :user, :active, collection, :second, :first do |b|
+      b.label(class: "collection_radio_buttons")
+    end
+
+    assert_select 'label.collection_radio_buttons[for=user_active_true]'
+    assert_select 'label.collection_radio_buttons[for=user_active_false]'
+  end
+
+  test 'collection radio does not include the input class in the respective label' do
+    collection = [[1, true, {class: 'foo'}], [0, false, {class: 'bar'}]]
+    with_collection_radio_buttons :user, :active, collection, :second, :first
+
+    assert_no_select 'label.foo[for=user_active_true]'
+    assert_no_select 'label.bar[for=user_active_false]'
+  end
+
   test 'collection radio does not wrap input inside the label' do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s
 
@@ -197,6 +223,32 @@ class FormCollectionsHelperTest < ActionView::TestCase
     with_collection_check_boxes :user, :name, ['$0.99', '$1.99'], :to_s, :to_s
     assert_select 'label[for=user_name_099]', '$0.99'
     assert_select 'label[for=user_name_199]', '$1.99'
+  end
+
+  test 'collection check boxes accepts html options as the last element of array' do
+    collection = [[1, 'Category 1', {class: 'foo'}], [2, 'Category 2', {class: 'bar'}]]
+    with_collection_check_boxes :user, :active, collection, :first, :second
+
+    assert_select 'input[type=checkbox][value=1].foo'
+    assert_select 'input[type=checkbox][value=2].bar'
+  end
+
+  test 'collection check boxes sets the label class defined inside the block' do
+    collection = [[1, 'Category 1', {class: 'foo'}], [2, 'Category 2', {class: 'bar'}]]
+    with_collection_check_boxes :user, :active, collection, :second, :first do |b|
+      b.label(class: 'collection_check_boxes')
+    end
+
+    assert_select 'label.collection_check_boxes[for=user_active_category_1]'
+    assert_select 'label.collection_check_boxes[for=user_active_category_2]'
+  end
+
+  test 'collection check boxes does not include the input class in the respective label' do
+    collection = [[1, 'Category 1', {class: 'foo'}], [2, 'Category 2', {class: 'bar'}]]
+    with_collection_check_boxes :user, :active, collection, :second, :first
+
+    assert_no_select 'label.foo[for=user_active_category_1]'
+    assert_no_select 'label.bar[for=user_active_category_2]'
   end
 
   test 'collection check boxes accepts selected values as :checked option' do
