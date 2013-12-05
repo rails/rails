@@ -748,6 +748,25 @@ module ActiveRecord
           initialize_type_map(type_map)
         end
 
+        def add_oid(row, records_by_oid, type_map)
+          return type_map if type_map.key? row['type_elem'].to_i
+
+          if OID.registered_type? row['typname']
+            # this composite type is explicitly registered
+            vector = OID::NAMES[row['typname']]
+          else
+            # use the default for composite types
+            unless type_map.key? row['typelem'].to_i
+              add_oid records_by_oid[row['typelem']], records_by_oid, type_map
+            end
+
+            vector = OID::Vector.new row['typdelim'], type_map[row['typelem'].to_i]
+          end
+
+          type_map[row['oid'].to_i] = vector
+          type_map
+        end
+
         def initialize_type_map(type_map)
           result = execute('SELECT oid, typname, typelem, typdelim, typinput FROM pg_type', 'SCHEMA')
           leaves, nodes = result.partition { |row| row['typelem'] == '0' }
@@ -757,19 +776,13 @@ module ActiveRecord
             type_map[row['oid'].to_i] = OID::NAMES[row['typname']]
           end
 
+          records_by_oid = result.group_by { |row| row['oid'] }
+
           arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
           # populate composite types
-          nodes.find_all { |row| type_map.key? row['typelem'].to_i }.each do |row|
-            if OID.registered_type? row['typname']
-              # this composite type is explicitly registered
-              vector = OID::NAMES[row['typname']]
-            else
-              # use the default for composite types
-              vector = OID::Vector.new row['typdelim'], type_map[row['typelem'].to_i]
-            end
-
-            type_map[row['oid'].to_i] = vector
+          nodes.each do |row|
+            add_oid row, records_by_oid, type_map
           end
 
           # populate array types
