@@ -181,7 +181,7 @@ module Rails
     # you need to load files in lib/ during the application configuration as well.
     def add_lib_to_load_path! #:nodoc:
       path = File.join config.root, 'lib'
-      $LOAD_PATH.unshift(path) if File.exists?(path)
+      $LOAD_PATH.unshift(path) if File.exist?(path)
     end
 
     def require_environment! #:nodoc:

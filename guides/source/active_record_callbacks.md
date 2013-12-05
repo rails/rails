@@ -288,7 +288,7 @@ Here's an example where we create a class with an `after_destroy` callback for a
 ```ruby
 class PictureFileCallbacks
   def after_destroy(picture_file)
-    if File.exists?(picture_file.filepath)
+    if File.exist?(picture_file.filepath)
       File.delete(picture_file.filepath)
     end
   end
@@ -308,7 +308,7 @@ Note that we needed to instantiate a new `PictureFileCallbacks` object, since we
 ```ruby
 class PictureFileCallbacks
   def self.after_destroy(picture_file)
-    if File.exists?(picture_file.filepath)
+    if File.exist?(picture_file.filepath)
       File.delete(picture_file.filepath)
     end
   end

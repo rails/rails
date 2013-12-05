@@ -31,7 +31,7 @@ module ActiveRecord
       assert_match(/not supported/, message)
     end
   end
- 
+
   class OracleDBDropTest < ActiveRecord::TestCase
     include OracleSetupper
 
@@ -42,7 +42,7 @@ module ActiveRecord
       assert_match(/not supported/, message)
     end
   end
- 
+
   class OracleDBCharsetAndCollationTest < ActiveRecord::TestCase
     include OracleSetupper
 
@@ -71,7 +71,7 @@ module ActiveRecord
     def test_structure_dump
       filename = "oracle.sql"
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
-      assert File.exists?(filename)
+      assert File.exist?(filename)
     ensure
       FileUtils.rm_f(filename)
     end

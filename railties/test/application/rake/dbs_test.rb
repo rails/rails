@@ -33,12 +33,12 @@ module ApplicationTests
         Dir.chdir(app_path) do
           output = `bundle exec rake db:create`
           assert_equal output, ""
-          assert File.exists?(expected[:database])
+          assert File.exist?(expected[:database])
           assert_equal expected[:database],
                         ActiveRecord::Base.connection_config[:database]
           output = `bundle exec rake db:drop`
           assert_equal output, ""
-          assert !File.exists?(expected[:database])
+          assert !File.exist?(expected[:database])
         end
       end
 

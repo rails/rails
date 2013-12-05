@@ -211,7 +211,7 @@ module Rails
         return unless base_name && generator_name
         return unless default_generator_root
         path = File.join(default_generator_root, 'templates')
-        path if File.exists?(path)
+        path if File.exist?(path)
       end
 
       # Returns the base root for a common set of generators. This is used to dynamically
@@ -365,12 +365,12 @@ module Rails
             source_root && File.expand_path("../USAGE", source_root),
             default_generator_root && File.join(default_generator_root, "USAGE")
           ]
-          paths.compact.detect { |path| File.exists? path }
+          paths.compact.detect { |path| File.exist? path }
         end
 
         def self.default_generator_root
           path = File.expand_path(File.join(base_name, generator_name), base_root)
-          path if File.exists?(path)
+          path if File.exist?(path)
         end
 
     end

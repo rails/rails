@@ -2,7 +2,7 @@
 
 git_path = File.join(File.expand_path('../../..', __FILE__), '.git')
 
-if File.exists?(git_path)
+if File.exist?(git_path)
   railties_path = File.expand_path('../../lib', __FILE__)
   $:.unshift(railties_path)
 end

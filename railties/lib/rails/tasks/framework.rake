@@ -46,7 +46,7 @@ namespace :rails do
         require 'rails/generators/rails/app/app_generator'
         gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
                                                              destination_root: Rails.root
-        File.exists?(Rails.root.join("config", "application.rb")) ?
+        File.exist?(Rails.root.join("config", "application.rb")) ?
           gen.send(:app_const) : gen.send(:valid_const?)
         gen
       end
@@ -67,7 +67,7 @@ namespace :rails do
     task :application_controller do
       old_style = Rails.root + '/app/controllers/application.rb'
       new_style = Rails.root + '/app/controllers/application_controller.rb'
-      if File.exists?(old_style) && !File.exists?(new_style)
+      if File.exist?(old_style) && !File.exist?(new_style)
         FileUtils.mv(old_style, new_style)
         puts "#{old_style} has been renamed to #{new_style}, update your SCM as necessary"
       end

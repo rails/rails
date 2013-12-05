@@ -5,7 +5,7 @@ $:.unshift pwd
 def bundler?
   # Note that rake sets the cwd to the one that contains the Rakefile
   # being executed.
-  File.exists?('Gemfile')
+  File.exist?('Gemfile')
 end
 
 begin

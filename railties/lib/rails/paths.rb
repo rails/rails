@@ -203,7 +203,7 @@ module Rails
 
       # Returns all expanded paths but only if they exist in the filesystem.
       def existent
-        expanded.select { |f| File.exists?(f) }
+        expanded.select { |f| File.exist?(f) }
       end
 
       def existent_directories

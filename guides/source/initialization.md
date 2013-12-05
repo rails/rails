@@ -51,7 +51,7 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 # Set up gems listed in the Gemfile.
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
 
-require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
+require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
@@ -117,7 +117,7 @@ when 'server'
   # Change to the application's path if there is no config.ru file in current dir.
   # This allows us to run `rails server` from other directories, but still get
   # the main config.ru and properly set the tmp directory.
-  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
+  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
 
   require 'rails/commands/server'
   Rails::Server.new.tap do |server|

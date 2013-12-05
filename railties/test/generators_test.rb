@@ -15,7 +15,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_simple_invoke
-    assert File.exists?(File.join(@path, 'generators', 'model_generator.rb'))
+    assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     Rails::Generators.invoke("test_unit:model", ["Account"])
   end
@@ -31,7 +31,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_should_give_higher_preference_to_rails_generators
-    assert File.exists?(File.join(@path, 'generators', 'model_generator.rb'))
+    assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
     Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     warnings = capture(:stderr){ Rails::Generators.invoke :model, ["Account"] }
     assert warnings.empty?

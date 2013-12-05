@@ -23,7 +23,7 @@ class File
     yield temp_file
     temp_file.close
 
-    if File.exists?(file_name)
+    if File.exist?(file_name)
       # Get original file permissions
       old_stat = stat(file_name)
     else

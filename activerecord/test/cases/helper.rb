@@ -93,7 +93,7 @@ def load_schema
 
   load SCHEMA_ROOT + "/schema.rb"
 
-  if File.exists?(adapter_specific_schema_file)
+  if File.exist?(adapter_specific_schema_file)
     load adapter_specific_schema_file
   end
 ensure
