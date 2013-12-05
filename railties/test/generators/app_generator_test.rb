@@ -439,7 +439,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_spring
     run_generator
-    assert_file "Gemfile", /gem 'spring'/
+    assert_file "Gemfile", /gem 'spring', \s+group: :development/
   end
 
   def test_spring_binstubs
