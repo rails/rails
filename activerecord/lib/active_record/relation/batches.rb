@@ -86,6 +86,7 @@ module ActiveRecord
     # the batch sizes.
     def find_in_batches(options = {})
       options.assert_valid_keys(:start, :batch_size)
+      return to_enum(:find_in_batches, options) unless block_given?
 
       relation = self
 
