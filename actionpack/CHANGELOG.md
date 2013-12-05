@@ -5,14 +5,14 @@
 
     *Shota Fukumori (sora_h)*
 
-*  Fix header `Content-Type: #<Mime::NullType:...>` in localized template.
+*   Fix header `Content-Type: #<Mime::NullType:...>` in localized template.
 
-   When localized template has no format in the template name,
-   the response now has the default and correct `content-type`.
+    When localized template has no format in the template name,
+    the response now has the default and correct `content-type`.
 
-   Fixes #13064.
+    Fixes #13064.
 
-   *Angelo Capilleri*
+    *Angelo Capilleri*
 
 *   Fix regression with `simple_format` not having access to the `raw` method
     when included in isolation, introduced with the security fix in Rails 4.0.2.
