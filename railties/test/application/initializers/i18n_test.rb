@@ -183,5 +183,16 @@ en:
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :'en-US', :en]
     end
+
+    test "config.i18n.enforce_available_locales is set before config.i18n.default_locale is" do
+      add_to_config <<-RUBY
+        config.i18n.default_locale = :it
+        config.i18n.enforce_available_locales = true
+      RUBY
+
+      assert_raises(I18n::InvalidLocale) do
+        load_app
+      end
+    end
   end
 end

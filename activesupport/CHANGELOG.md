@@ -1,3 +1,8 @@
+*   Ensure `config.i18n.enforce_available_locales` is set before any other
+    configuration option.
+
+    *Yves Senn*
+
 *   Added `Date#all_week/month/quarter/year` for generating date ranges.
 
     *Dmitriy Meremyanin*
