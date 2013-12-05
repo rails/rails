@@ -64,6 +64,14 @@ module ActiveRecord
     #     group.each { |person| person.party_all_night! }
     #   end
     #
+    # If you do not provide a block to #find_in_batches, it will return an Enumerator
+    # for chaining with other methods:
+    #
+    #   Person.find_in_batches.with_index do |group, batch|
+    #     puts "Processing group ##{batch}"
+    #     group.each(&:recover_from_last_night!)
+    #   end
+    #
     # ==== Options
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
     # * <tt>:start</tt> - Specifies the starting point for the batch processing.
@@ -86,6 +94,7 @@ module ActiveRecord
     # the batch sizes.
     def find_in_batches(options = {})
       options.assert_valid_keys(:start, :batch_size)
+      return to_enum(:find_in_batches, options) unless block_given?
 
       relation = self
 

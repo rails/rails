@@ -170,4 +170,17 @@ class EachTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_find_in_batches_should_return_an_enumerator
+    enum = nil
+    assert_queries(0) do
+      enum = Post.find_in_batches(:batch_size => 1)
+    end
+    assert_queries(4) do
+      enum.first(4) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
 end
