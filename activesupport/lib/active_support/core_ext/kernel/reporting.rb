@@ -48,6 +48,7 @@ module Kernel
     yield
   ensure
     stream.reopen(old_stream)
+    old_stream.close
   end
 
   # Blocks and ignores any exception passed as argument if raised within the block.

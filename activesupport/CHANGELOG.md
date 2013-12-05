@@ -1,3 +1,7 @@
+*   Fix file descriptor being leaked on each call to `Kernel.silence_stream`
+
+    *Mario Visic*
+
 *   Ensure `config.i18n.enforce_available_locales` is set before any other
     configuration option.
 
