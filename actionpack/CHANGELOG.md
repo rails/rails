@@ -1,3 +1,7 @@
+*   Add Mime::Type.register "text/vcard", :vcf to the default list of mime types
+
+    *DHH*
+
 *   Remove deprecated `ActionController::RecordIdentifier`, use
     `ActionView::RecordIdentifier` instead.
 
