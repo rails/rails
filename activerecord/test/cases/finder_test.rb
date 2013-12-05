@@ -721,7 +721,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_last_with_offset
-    devs = Developer.order('id').all
+    devs = Developer.order('id')
 
     assert_equal devs[2], Developer.offset(2).first
     assert_equal devs[-3], Developer.offset(2).last
