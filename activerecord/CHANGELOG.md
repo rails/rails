@@ -1,3 +1,8 @@
+*   `find_in_batches` now returns an `Enumerator` when called without a block, so that it
+    can be chained with other `Enumerable` methods.
+
+    *Marc-André Lafortune*
+
 *   Polymorphic belongs_to associations with the `touch: true` option set update the timestamps of
     the old and new owner correctly when moved between owners of different types.
 
