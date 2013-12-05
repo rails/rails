@@ -1,3 +1,15 @@
+*   Add option to skip deep_munge
+
+    Some of users would prefer to skip deep_munge while parsing params.
+    With this flag you can return to pre-3.2.10 behavior:
+
+        config.action_dispatch.perform_deep_munge = false
+
+    Please be aware of possible security issue when using this option:
+    [CVE-2013-0155](https://groups.google.com/forum/#!topic/rubyonrails-security/t1WFuuQyavI)
+
+    *Bernard Potocki*
+
 *   Introducing Variants
 
     We often want to render different html/json/xml templates for phones,
