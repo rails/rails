@@ -148,7 +148,7 @@ module ActiveRecord
       QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
+        :primary_key => "int(11) auto_increment PRIMARY KEY",
         :string      => { :name => "varchar", :limit => 255 },
         :text        => { :name => "text" },
         :integer     => { :name => "int", :limit => 4 },
