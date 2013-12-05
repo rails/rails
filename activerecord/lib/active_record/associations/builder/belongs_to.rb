@@ -73,7 +73,13 @@ module ActiveRecord::Associations::Builder
           old_foreign_id    = changed_attributes[foreign_key_field]
 
           if old_foreign_id
-            klass      = association(#{name.inspect}).klass
+            association = association(:#{name})
+            reflection = association.reflection
+            if reflection.polymorphic?
+              klass = send("#{reflection.foreign_type}_was").constantize
+            else
+              klass = association.klass
+            end
             old_record = klass.find_by(klass.primary_key => old_foreign_id)
 
             if old_record
