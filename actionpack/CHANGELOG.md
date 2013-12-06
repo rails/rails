@@ -1,3 +1,7 @@
+*   `rake routes` shows routes defined under assets prefix.
+
+    *Ryunosuke SATO*
+
 *   Extend cross-site request forgery (CSRF) protection to GET requests with
     JavaScript responses, protecting apps from cross-origin `<script>` tags.
 
