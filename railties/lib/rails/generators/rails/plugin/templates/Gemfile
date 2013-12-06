@@ -39,5 +39,7 @@ end
 <% end -%>
 
 <% end -%>
+<% unless defined?(JRUBY_VERSION) -%>
 # To use debugger
 # gem 'debugger'
+<% end -%>
