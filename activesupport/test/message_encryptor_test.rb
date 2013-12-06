@@ -66,6 +66,17 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     ActiveSupport.use_standard_json_time_format = prev
   end
 
+  def test_message_obeys_strict_encoding
+    bad_encoding_characters = "\n!@#"
+    message, iv = @encryptor.encrypt_and_sign("This is a very \n\nhumble string"+bad_encoding_characters)
+
+    assert_not_decrypted("#{::Base64.encode64 message.to_s}--#{::Base64.encode64 iv.to_s}")
+    assert_not_verified("#{::Base64.encode64 message.to_s}--#{::Base64.encode64 iv.to_s}")
+
+    assert_not_decrypted([iv,  message] * bad_encoding_characters)
+    assert_not_verified([iv,  message] * bad_encoding_characters)
+  end
+
   private
 
   def assert_not_decrypted(value)
@@ -81,7 +92,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def munge(base64_string)
-    bits = ::Base64.decode64(base64_string)
+    bits = ::Base64.strict_decode64(base64_string)
     bits.reverse!
     ::Base64.strict_encode64(bits)
   end
