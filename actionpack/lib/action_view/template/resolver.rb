@@ -42,7 +42,8 @@ module ActionView
       end
 
       # preallocate all the default blocks for performance/memory consumption reasons
-      PARTIAL_BLOCK = lambda {|cache, partial| cache[partial] = SmallCache.new}
+      DETAILS_BLOCK = lambda {|cache, details| cache[details] = SmallCache.new}
+      PARTIAL_BLOCK = lambda {|cache, partial| cache[partial] = SmallCache.new(&DETAILS_BLOCK)}
       PREFIX_BLOCK  = lambda {|cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK)}
       NAME_BLOCK    = lambda {|cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK)}
       KEY_BLOCK     = lambda {|cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK)}
@@ -55,15 +56,15 @@ module ActionView
       end
 
       # Cache the templates returned by the block
-      def cache(key, name, prefix, partial, locals)
+      def cache(key, name, prefix, partial, details, locals)
         if Resolver.caching?
-          @data[key][name][prefix][partial][locals] ||= canonical_no_templates(yield)
+          @data[key][name][prefix][partial][details][locals] ||= canonical_no_templates(yield)
         else
           fresh_templates  = yield
-          cached_templates = @data[key][name][prefix][partial][locals]
+          cached_templates = @data[key][name][prefix][partial][details][locals]
 
           if templates_have_changed?(cached_templates, fresh_templates)
-            @data[key][name][prefix][partial][locals] = canonical_no_templates(fresh_templates)
+            @data[key][name][prefix][partial][details][locals] = canonical_no_templates(fresh_templates)
           else
             cached_templates || NO_TEMPLATES
           end
@@ -141,7 +142,7 @@ module ActionView
       locals = locals.map { |x| x.to_s }.sort!
 
       if key
-        @cache.cache(key, name, prefix, partial, locals) do
+        @cache.cache(key, name, prefix, partial, details, locals) do
           decorate(yield, path_info, details, locals)
         end
       else

@@ -28,4 +28,11 @@ class ResolverPatternsTest < ActiveSupport::TestCase
     assert_equal "Hello custom patterns!", templates[1].source
     assert_equal "custom_pattern/another", templates[1].virtual_path
   end
+
+  def test_should_return_different_templates_per_format_when_cached
+    html_templates = @resolver.find_all("another", "custom_pattern", false, {:locale => [], :formats => [:html], :handlers => [:erb]}, :cache_key)
+    xml_templates  = @resolver.find_all("another", "custom_pattern", false, {:locale => [], :formats => [:xml],  :handlers => [:erb]}, :cache_key)
+    assert_not_equal html_templates, xml_templates
+  end
+
 end
