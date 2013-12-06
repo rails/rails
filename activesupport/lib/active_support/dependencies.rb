@@ -176,12 +176,20 @@ module ActiveSupport #:nodoc:
       end
 
       def const_missing(const_name)
-        # The interpreter does not pass nesting information, and in the
-        # case of anonymous modules we cannot even make the trade-off of
-        # assuming their name reflects the nesting. Resort to Object as
-        # the only meaningful guess we can make.
-        from_mod = anonymous? ? ::Object : self
+        from_mod = anonymous? ? guess_for_anonymous(const_name) : self
         Dependencies.load_missing_constant(from_mod, const_name)
+      end
+
+      # Dependencies assumes the name of the module reflects the nesting (unless
+      # it can be proven that is not the case), and the path to the file that
+      # defines the constant. Anonymous modules cannot follow these conventions
+      # and we assume therefore the user wants to refer to a top-level constant.
+      def guess_for_anonymous(const_name)
+        if Object.const_defined?(const_name)
+          raise NameError, "#{const_name} cannot be autoloaded from an anonymous class or module"
+        else
+          Object
+        end
       end
 
       def unloadable(const_desc = self)
@@ -455,8 +463,6 @@ module ActiveSupport #:nodoc:
       unless qualified_const_defined?(from_mod.name) && Inflector.constantize(from_mod.name).equal?(from_mod)
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
-
-      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name, false)
 
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore

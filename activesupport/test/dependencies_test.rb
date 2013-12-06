@@ -530,29 +530,21 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def test_const_missing_should_not_double_load
-    $counting_loaded_times = 0
+  def test_const_missing_in_anonymous_modules_loads_top_level_constants
     with_autoloading_fixtures do
-      require_dependency '././counting_loader'
-      assert_equal 1, $counting_loaded_times
-      assert_raise(NameError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
-      assert_equal 1, $counting_loaded_times
+      # class_eval STRING pushes the class to the nesting of the eval'ed code.
+      klass = Class.new.class_eval "E"
+      assert_equal E, klass
     end
   end
 
-  def test_const_missing_within_anonymous_module
-    $counting_loaded_times = 0
-    m = Module.new
-    m.module_eval "def a() CountingLoader; end"
-    extend m
+  def test_const_missing_in_anonymous_modules_raises_if_the_constant_belongs_to_Object
     with_autoloading_fixtures do
-      kls = nil
-      assert_nothing_raised { kls = a }
-      assert_equal "CountingLoader", kls.name
-      assert_equal 1, $counting_loaded_times
+      require_dependency 'e'
 
-      assert_nothing_raised { kls = a }
-      assert_equal 1, $counting_loaded_times
+      mod = Module.new
+      msg = 'E cannot be autoloaded from an anonymous class or module'
+      assert_raise(NameError, msg) { mod::E }
     end
   end
 
