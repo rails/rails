@@ -31,9 +31,9 @@ NOTE: This section is a work in progress.
 
 If you want to use Spring as your application preloader you need to:
 
-1. add `gem 'spring', group: :development` to your `Gemfile`.
-2. install spring using `bundle install`.
-3. springify your binstubs with `bundle exec spring binstub --all`.
+1. Add `gem 'spring', group: :development` to your `Gemfile`.
+2. Install spring using `bundle install`.
+3. Springify your binstubs with `bundle exec spring binstub --all`.
 
 NOTE: User defined rake tasks will run in the `development` environment by
 default. If you want them to run in other environments consult the
