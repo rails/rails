@@ -456,7 +456,7 @@ module ActiveSupport #:nodoc:
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
-      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name, false)
+      raise NameError, "'#{from_mod}' is missing constant/module '#{const_name}'!" if from_mod.const_defined?(const_name, false)
 
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
