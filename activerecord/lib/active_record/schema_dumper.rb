@@ -91,7 +91,7 @@ HEADER
       end
 
       def tables(stream)
-        @connection.tables.sort.each do |tbl|
+        @connection.tables.sort.uniq.each do |tbl|
           next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
             case ignored
             when String; remove_prefix_and_suffix(tbl) == ignored
@@ -207,7 +207,7 @@ HEADER
             '  ' + statement_parts.join(', ')
           end
 
-          stream.puts add_index_statements.sort.join("\n")
+          stream.puts add_index_statements.sort.uniq.join("\n")
           stream.puts
         end
       end
