@@ -74,6 +74,11 @@ module ActiveRecord
                                         "Make sure to remove this configuration because it does nothing.")
       end
 
+      ##
+      # Contains modules that extend all relations on this model.
+      class_attribute :relation_extensions, instance_writer: false
+      self.relation_extensions = []
+
       class_attribute :default_connection_handler, instance_writer: false
 
       def self.connection_handler
@@ -142,10 +147,43 @@ module ActiveRecord
           end
       end
 
+      # Extends all relations on this model to include an anonymous module
+      # or one or more named extension modules.
+      #
+      # For example, to create a custom find method which searches posts
+      # by their slug first, then falls back to the default lookup if no
+      # matching slug is found:
+      #
+      #   class Post < ActiveRecord::Base
+      #     extend_relation do
+      #       def find(id)
+      #         where(:slug => id).first or super
+      #       end
+      #     end
+      #   end
+      #
+      #   post = Post.find("my-new-post")
+      #   post.slug # => "my-new-post"
+      #
+      # This will also work with associations where an instance of the model
+      # is the target:
+      #
+      #   class Blog < ActiveRecord::Base
+      #     has_many :posts
+      #   end
+      #
+      #   post = Blog.first.posts.find("my-new-post")
+      #   post.slug # => "my-new-post"
+      #
+      def extend_relation(*modules, &block)
+        modules << Module.new(&block) if block_given?
+        self.relation_extensions += modules.flatten
+      end
+
       private
 
       def relation #:nodoc:
-        relation = Relation.create(self, arel_table)
+        relation = Relation.create(self, arel_table).extending!(relation_extensions)
 
         if finder_needs_type_condition?
           relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
