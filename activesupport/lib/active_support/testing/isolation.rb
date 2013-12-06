@@ -1,5 +1,5 @@
 require 'rbconfig'
-require 'minitest/parallel_each'
+require 'minitest/parallel'
 
 module ActiveSupport
   module Testing
