@@ -39,14 +39,14 @@ module ActiveSupport
         @dbf = DocumentBuilderFactory.new_instance
         # secure processing of java xml
         # http://www.ibm.com/developerworks/xml/library/x-tipcfsx/index.html
-        @dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-        @dbf.setFeature("http://xml.org/sax/features/external-general-entities", false)
-        @dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-        @dbf.setFeature(javax.xml.XMLConstants::FEATURE_SECURE_PROCESSING, true)
+        @dbf.set_feature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+        @dbf.set_feature("http://xml.org/sax/features/external-general-entities", false)
+        @dbf.set_feature("http://xml.org/sax/features/external-parameter-entities", false)
+        @dbf.set_feature(javax.xml.XMLConstants::FEATURE_SECURE_PROCESSING, true)
         xml_string_reader = StringReader.new(data)
         xml_input_source = InputSource.new(xml_string_reader)
         doc = @dbf.new_document_builder.parse(xml_input_source)
-        merge_element!({CONTENT_KEY => ''}, doc.document_element)
+        merge_element!({}, doc.document_element)
       end
     end
 
@@ -72,18 +72,23 @@ module ActiveSupport
     # element::
     #   The document element to be collapsed.
     def collapse(element)
-      hash = get_attributes(element)
-
-      child_nodes = element.child_nodes
-      if child_nodes.length > 0
-        (0...child_nodes.length).each do |i|
-          child = child_nodes.item(i)
-          merge_element!(hash, child) unless child.node_type == Node.TEXT_NODE
+      attrs = get_attributes(element)
+      if element.has_child_nodes?
+        each_child_node(element) do |child|
+          unless child.node_type == Node.TEXT_NODE
+            merge_element!(attrs, child)
+          end
         end
-        merge_texts!(hash, element) unless empty_content?(element)
-        hash
+        empty_content?(element) ? attrs : merge_texts!(attrs, element)
       else
-        merge_texts!(hash, element)
+        merge_texts!(attrs, element)
+      end
+    end
+
+    def each_child_node(element)
+      child_nodes = element.child_nodes
+      child_nodes.length.times do |i|
+        yield child_nodes.item(i)
       end
     end
 
@@ -95,12 +100,12 @@ module ActiveSupport
     #   XML element whose texts are to me merged into the hash
     def merge_texts!(hash, element)
       delete_empty(hash)
-      text_children = texts(element)
-      if text_children.join.empty?
+      inner_text = texts(element).join
+      if inner_text.empty?
         hash
       else
         # must use value to prevent double-escaping
-        merge!(hash, CONTENT_KEY, text_children.join)
+        merge!(hash, CONTENT_KEY, inner_text)
       end
     end
 
@@ -136,12 +141,14 @@ module ActiveSupport
     # element::
     #   XML element to extract attributes from.
     def get_attributes(element)
-      attribute_hash = {}
       attributes = element.attributes
-      (0...attributes.length).each do |i|
-         attribute_hash[CONTENT_KEY] ||= ''
+
+      attribute_hash = { CONTENT_KEY => '' }
+
+      attributes.length.times do |i|
          attribute_hash[attributes.item(i).name] =  attributes.item(i).value
-       end
+      end
+
       attribute_hash
     end
 
@@ -151,9 +158,7 @@ module ActiveSupport
     #   XML element to be checked.
     def texts(element)
       texts = []
-      child_nodes = element.child_nodes
-      (0...child_nodes.length).each do |i|
-        item = child_nodes.item(i)
+      each_child_node(element) do |item|
         if item.node_type == Node.TEXT_NODE
           texts << item.get_data
         end
@@ -166,15 +171,7 @@ module ActiveSupport
     # element::
     #   XML element to be checked.
     def empty_content?(element)
-      text = ''
-      child_nodes = element.child_nodes
-      (0...child_nodes.length).each do |i|
-        item = child_nodes.item(i)
-        if item.node_type == Node.TEXT_NODE
-          text << item.get_data.strip
-        end
-      end
-      text.strip.length == 0
+      texts(element).all?(&:blank?)
     end
   end
 end
