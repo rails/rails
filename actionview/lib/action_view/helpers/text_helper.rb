@@ -316,7 +316,7 @@ module ActionView
         options = values.extract_options!
         name = options.fetch(:name, 'default')
 
-        values.unshift(first_value)
+        values.unshift(*first_value)
 
         cycle = get_cycle(name)
         unless cycle && cycle.values == values
