@@ -269,6 +269,7 @@ module ActionController
     #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)
+      raise ActionController::UnpermittedParameters.new(key) unless permitted?
       convert_hashes_to_parameters(key, super)
     end
 
@@ -284,6 +285,7 @@ module ActionController
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args)
+      raise ActionController::UnpermittedParameters.new(key) unless permitted?
       value = super
       # Don't rely on +convert_hashes_to_parameters+
       # so as to not mutate via a +fetch+
