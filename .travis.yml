@@ -16,7 +16,6 @@ env:
   - "GEM=ar:postgresql"
 matrix:
   allow_failures:
-    - rvm: 2.1.0-preview2
     - rvm: jruby-19mode
     - rvm: rbx-19mode
 notifications:
