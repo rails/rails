@@ -42,6 +42,10 @@ module Arel
       # `getconstant` should be a hash lookup, and no object is duped when the
       # value of the constant is pushed on the stack.  Hence the crazy
       # constants below.
+      #
+      # `matches` and `doesNotMatch` operate case-insensitively via Visitor subclasses
+      # specialized for specific databases when necessary.
+      #
 
       WHERE    = ' WHERE '    # :nodoc:
       SPACE    = ' '          # :nodoc:
