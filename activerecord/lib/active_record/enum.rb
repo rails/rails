@@ -88,12 +88,13 @@ module ActiveRecord
       end
     end
 
-    def _enum_methods_module
-      @_enum_methods_module ||= begin
-        mod = Module.new
-        include mod
-        mod
+    private
+      def _enum_methods_module
+        @_enum_methods_module ||= begin
+          mod = Module.new
+          include mod
+          mod
+        end
       end
-    end
   end
 end
