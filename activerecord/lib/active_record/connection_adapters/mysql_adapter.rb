@@ -167,8 +167,8 @@ module ActiveRecord
       # CONNECTION MANAGEMENT ====================================
 
       def active?
-        if @connection.respond_to?(:stat)
-          @connection.stat
+        if @connection.respond_to?(:ping)
+          @connection.ping
         else
           @connection.query 'select 1'
         end
