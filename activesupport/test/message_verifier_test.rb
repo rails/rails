@@ -55,6 +55,20 @@ class MessageVerifierTest < ActiveSupport::TestCase
     ActiveSupport.use_standard_json_time_format = prev
   end
 
+  def test_raise_error_when_argument_class_is_not_loaded
+    # To generate the valid message below:
+    #
+    #   AutoloadClass = Struct.new(:foo)
+    #   valid_message = @verifier.generate(foo: AutoloadClass.new('foo'))
+    #
+    valid_message = "BAh7BjoIZm9vbzonTWVzc2FnZVZlcmlmaWVyVGVzdDo6QXV0b2xvYWRDbGFzcwY6CUBmb29JIghmb28GOgZFVA==--f3ef39a5241c365083770566dc7a9eb5d6ace914"
+    exception = assert_raise(ArgumentError, NameError) do
+      @verifier.verify(valid_message)
+    end
+    assert_includes ["uninitialized constant MessageVerifierTest::AutoloadClass",
+                    "undefined class/module MessageVerifierTest::AutoloadClass"], exception.message
+  end
+
   def assert_not_verified(message)
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(message)
