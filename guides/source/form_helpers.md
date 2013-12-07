@@ -891,7 +891,7 @@ def new
 end
 ```
 
-The `fields_for` yields a form builder. The parameters' name will be what
+The `fields_for` helper yields a form builder. The parameters' name will be what
 `accepts_nested_attributes_for` expects. For example when creating a user with
 2 addresses, the submitted parameters would look like:
 
