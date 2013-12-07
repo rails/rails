@@ -1,3 +1,7 @@
+*   `rake routes` shows routes defined in under assets prefix.
+
+    *Ryunosuke SATO*
+
 *   Add Mime::Type.register "text/vcard", :vcf to the default list of mime types
 
     *DHH*
