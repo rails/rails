@@ -166,6 +166,15 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def variant_plus_none_for_format
+    respond_to do |format|
+      format.html do |variant|
+        variant.phone { render text: "phone" }
+        variant.none  { render text: "none" }
+      end
+    end
+  end
+
   protected
     def set_layout
       case action_name
@@ -543,5 +552,12 @@ class RespondToControllerTest < ActionController::TestCase
     get :multiple_variants_for_format
     assert_equal "text/html", @response.content_type
     assert_equal "tablet", @response.body
+  end
+
+
+  def test_no_variant_in_variant_setup
+    get :variant_plus_none_for_format
+    assert_equal "text/html", @response.content_type
+    assert_equal "none", @response.body
   end
 end

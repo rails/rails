@@ -196,9 +196,10 @@ module ActionController #:nodoc:
     # Respond to variants in the action just like you respond to formats:
     #
     #   respond_to do |format|
-    #     format.html do |html|
-    #       html.tablet # renders app/views/projects/show.html+tablet.erb
-    #       html.phone { extra_setup; render ... }
+    #     format.html do |variant|
+    #       variant.tablet # renders app/views/projects/show.html+tablet.erb
+    #       variant.phone { extra_setup; render ... }
+    #       variant.none  { special_setup } # executed only if there is no variant set
     #     end
     #   end
     #
@@ -465,7 +466,7 @@ module ActionController #:nodoc:
         end
 
         def method_missing(name)
-          yield if name == @variant
+          yield if name == @variant || (name == :none && @variant.nil?)
         end
       end
     end
