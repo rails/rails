@@ -70,7 +70,7 @@ module ActiveRecord
       # The target is stale if the target no longer points to the record(s) that the
       # relevant foreign_key(s) refers to. If stale, the association accessor method
       # on the owner will reload the target. It's up to subclasses to implement the
-      # state_state method if relevant.
+      # stale_state method if relevant.
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
