@@ -207,4 +207,17 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_no_match %r{"awesome":}, json
     assert_no_match %r{"preferences":}, json
   end
+
+  test "as_json generates serializable hash with cyclical data intact and does not blow the stack when to_json is called" do
+    def @contact.as_json(options = {}); super(options.merge(include: [:friends])); end
+    @contact.class.send(:attr_accessor, :friends)
+    @contact.friends = [@contact]
+
+    assert_equal @contact, @contact.friends.first
+    assert_equal @contact.friends, @contact.friends.first.friends
+
+    assert_nothing_raised do
+      @contact.as_json.to_json
+    end
+  end
 end
