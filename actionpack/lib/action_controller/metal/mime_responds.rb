@@ -215,7 +215,7 @@ module ActionController #:nodoc:
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
       if collector = retrieve_collector_from_mimes(mimes, &block)
-        response = collector.response(request.variant)
+        response = collector.response
         response ? response.call : render({})
       end
     end
@@ -357,7 +357,7 @@ module ActionController #:nodoc:
       if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
         options = options.clone
-        options[:default_response] = collector.response(request.variant)
+        options[:default_response] = collector.response
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end
@@ -390,7 +390,7 @@ module ActionController #:nodoc:
     # is available.
     def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level
-      collector = Collector.new(mimes)
+      collector = Collector.new(mimes, request.variant)
       block.call(collector) if block_given?
       format = collector.negotiate_format(request)
 
@@ -428,9 +428,11 @@ module ActionController #:nodoc:
       include AbstractController::Collector
       attr_accessor :format
 
-      def initialize(mimes)
+      def initialize(mimes, variant = nil)
         @responses = {}
-        mimes.each { |mime| send(mime) }
+        @variant = variant
+
+        mimes.each { |mime| @responses["Mime::#{mime.upcase}".constantize] = nil }
       end
 
       def any(*args, &block)
@@ -444,15 +446,19 @@ module ActionController #:nodoc:
 
       def custom(mime_type, &block)
         mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
-        @responses[mime_type] ||= block
+        @responses[mime_type] ||= if block_given?
+          block
+        else
+          VariantFilter.new(@variant)
+        end
       end
 
-      def response(variant)
+      def response
         response = @responses.fetch(format, @responses[Mime::ALL])
-        if response.nil? || response.arity == 0
+        if response.is_a?(VariantFilter) || response.nil? || response.arity == 0
           response
         else
-          lambda { response.call VariantFilter.new(variant) }
+          lambda { response.call VariantFilter.new(@variant) }
         end
       end
 
