@@ -175,6 +175,12 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def variant_inline_syntax
+    respond_to do |format|
+      format.html.phone { render text: "phone" }
+    end
+  end
+
   protected
     def set_layout
       case action_name
@@ -554,10 +560,16 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "tablet", @response.body
   end
 
-
   def test_no_variant_in_variant_setup
     get :variant_plus_none_for_format
     assert_equal "text/html", @response.content_type
     assert_equal "none", @response.body
+  end
+
+  def test_variant_inline_syntax
+    @request.variant = :phone
+    get :variant_inline_syntax
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
   end
 end
