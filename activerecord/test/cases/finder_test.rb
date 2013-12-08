@@ -847,7 +847,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_with_limiting_with_custom_select
     posts = Post.references(:authors).merge(
-      :includes => :author, :select => ' posts.*, authors.id as "author_id"',
+      :includes => :author, :select => ' posts.*, authors.id as "authors_id"',
       :limit => 3, :order => 'posts.id'
     ).to_a
     assert_equal 3, posts.size
