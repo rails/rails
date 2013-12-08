@@ -466,7 +466,9 @@ module ActionController #:nodoc:
         end
 
         def method_missing(name)
-          yield if name == @variant || (name == :none && @variant.nil?)
+          if block_given?
+            yield if name == @variant || (name == :none && @variant.nil?)
+          end
         end
       end
     end

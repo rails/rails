@@ -170,7 +170,7 @@ class RespondToController < ActionController::Base
     respond_to do |format|
       format.html do |variant|
         variant.phone { render text: "phone" }
-        variant.none  { render text: "none" }
+        variant.none
       end
     end
   end
