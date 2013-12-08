@@ -75,11 +75,11 @@ module ActiveSupport
           # By default, the options hash is not passed to the children data structures
           # to avoid undesiarable result. Develoers must opt-in by implementing
           # custom #as_json methods (e.g. Hash#as_json and Array#as_json).
-          def jsonify(value)
+          def jsonify(value, processed_objects = [])
             if value.is_a?(Hash)
-              Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
+              Hash[value.map { |k, v| [jsonify(k, processed_objects), jsonify(v, processed_objects)] }]
             elsif value.is_a?(Array)
-              value.map { |v| jsonify(v) }
+              value.map { |v| jsonify(v, processed_objects) }
             elsif value.is_a?(String)
               EscapedString.new(value)
             elsif value.is_a?(Numeric)
@@ -90,8 +90,8 @@ module ActiveSupport
               false
             elsif value == nil
               nil
-            else
-              jsonify value.as_json
+            elsif !processed_objects.include?(value)
+              jsonify value.as_json, (processed_objects << value)
             end
           end
 
