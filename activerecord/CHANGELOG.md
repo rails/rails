@@ -1,3 +1,8 @@
+*   Dynamically register PostgreSQL enum OIDs. This prevents "unknown OID"
+    warnings on enum columns.
+
+    *Dieter Komendera*
+
 *   `includes` is able to detect the right preloading strategy when string
     joins are involved.
 
