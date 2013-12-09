@@ -445,12 +445,18 @@ module ActionController #:nodoc:
 
       def custom(mime_type, &block)
         mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
-        @responses[mime_type] ||= block
+        @responses[mime_type] ||= if block_given?
+          block
+        else
+          VariantCollector.new
+        end
       end
 
       def response(variant)
         response = @responses.fetch(format, @responses[Mime::ALL])
-        if response.nil? || response.arity == 0
+        if response.is_a?(VariantCollector)
+          response.variant(variant)
+        elsif response.nil? || response.arity == 0
           response
         else
           lambda { response.call VariantFilter.new(variant) }
@@ -461,6 +467,22 @@ module ActionController #:nodoc:
         @format = request.negotiate_mime(@responses.keys)
       end
 
+      #Used for inline syntax
+      class VariantCollector #:nodoc:
+        def initialize
+          @variants = {}
+        end
+
+        def method_missing(name, *args, &block)
+          @variants[name] = block if block_given?
+        end
+
+        def variant(name)
+          @variants[name.nil? ? :none : name]
+        end
+      end
+
+      #Used for nested block syntax
       class VariantFilter #:nodoc:
         def initialize(variant)
           @variant = variant
