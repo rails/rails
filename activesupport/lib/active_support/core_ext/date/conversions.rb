@@ -37,12 +37,12 @@ class Date
   #   date.to_formatted_s(:rfc822)        # => "10 Nov 2007"
   #   date.to_formatted_s(:iso8601)       # => "2007-11-10"
   #
-  # == Adding your own time formats to to_formatted_s
+  # == Adding your own date formats to to_formatted_s
   # You can add your own formats to the Date::DATE_FORMATS hash.
   # Use the format name as the hash key and either a strftime string
   # or Proc instance that takes a date argument as the value.
   #
-  #   # config/initializers/time_formats.rb
+  #   # config/initializers/date_formats.rb
   #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
   def to_formatted_s(format = :default)
