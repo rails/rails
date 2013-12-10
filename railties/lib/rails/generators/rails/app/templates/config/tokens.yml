@@ -1,0 +1,8 @@
+development:
+  secret_key_base: <%= app_secret %>
+
+test:
+  secret_key_base: <%= app_secret %>
+
+production:
+  secret_key_base: <%= app_secret %>
