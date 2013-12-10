@@ -104,6 +104,7 @@ module ActiveRecord
         when :date                 then klass.value_to_date(value)
         when :binary               then klass.binary_to_string(value)
         when :boolean              then klass.value_to_boolean(value)
+        when :uuid                 then klass.value_to_uuid(value)
         else value
         end
       end
@@ -124,6 +125,10 @@ module ActiveRecord
         # Used to convert from BLOBs to Strings
         def binary_to_string(value)
           value
+        end
+
+        def value_to_uuid(value)
+          value == "" ? nil : value
         end
 
         def value_to_date(value)
