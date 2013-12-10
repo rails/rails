@@ -175,6 +175,22 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def variant_inline_syntax
+    respond_to do |format|
+      format.js         { render text: "js"    }
+      format.html.none  { render text: "none"  }
+      format.html.phone { render text: "phone" }
+    end
+  end
+
+  def variant_inline_syntax_without_block
+    respond_to do |format|
+      format.js
+      format.html.none
+      format.html.phone
+    end
+  end
+
   protected
     def set_layout
       case action_name
@@ -554,10 +570,31 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "tablet", @response.body
   end
 
-
   def test_no_variant_in_variant_setup
     get :variant_plus_none_for_format
     assert_equal "text/html", @response.content_type
     assert_equal "none", @response.body
+  end
+
+  def test_variant_inline_syntax
+    get :variant_inline_syntax, format: :js
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "js", @response.body
+
+    get :variant_inline_syntax
+    assert_equal "text/html", @response.content_type
+    assert_equal "none", @response.body
+
+    @request.variant = :phone
+    get :variant_inline_syntax
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+  end
+
+  def test_variant_inline_syntax_without_block
+    @request.variant = :phone
+    get :variant_inline_syntax_without_block
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
   end
 end
