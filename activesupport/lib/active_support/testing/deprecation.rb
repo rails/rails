@@ -19,18 +19,17 @@ module ActiveSupport
         result
       end
 
-      private
-        def collect_deprecations
-          old_behavior = ActiveSupport::Deprecation.behavior
-          deprecations = []
-          ActiveSupport::Deprecation.behavior = Proc.new do |message, callstack|
-            deprecations << message
-          end
-          result = yield
-          [result, deprecations]
-        ensure
-          ActiveSupport::Deprecation.behavior = old_behavior
+      def collect_deprecations
+        old_behavior = ActiveSupport::Deprecation.behavior
+        deprecations = []
+        ActiveSupport::Deprecation.behavior = Proc.new do |message, callstack|
+          deprecations << message
         end
+        result = yield
+        [result, deprecations]
+      ensure
+        ActiveSupport::Deprecation.behavior = old_behavior
+      end
     end
   end
 end
