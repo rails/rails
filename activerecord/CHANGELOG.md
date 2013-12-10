@@ -1,3 +1,19 @@
+*   Use the right column to type cast grouped calculations with custom expressions.
+
+    Fixes: #13230
+
+    Example:
+
+            # Before
+            Account.group(:firm_name).sum('0.01 * credit_limit')
+            # => { '37signals' => '0.5' }
+
+            # After
+            Account.group(:firm_name).sum('0.01 * credit_limit')
+            # => { '37signals' => 0.5 }
+
+    *Paul Nikitochkin*
+
 *   Polymorphic `belongs_to` associations with the `touch: true` option set update the timestamps of
     the old and new owner correctly when moved between owners of different types.
 
