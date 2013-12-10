@@ -430,7 +430,8 @@ module ActionController #:nodoc:
 
       def initialize(mimes)
         @responses = {}
-        mimes.each { |mime| send(mime) }
+
+        mimes.each { |mime| @responses["Mime::#{mime.upcase}".constantize] = nil }
       end
 
       def any(*args, &block)
