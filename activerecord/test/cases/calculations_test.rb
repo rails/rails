@@ -9,6 +9,7 @@ require 'models/topic'
 require 'models/minivan'
 require 'models/speedometer'
 require 'models/ship_part'
+require 'models/reply'
 
 Company.has_many :accounts
 
@@ -569,5 +570,16 @@ class CalculationsTest < ActiveRecord::TestCase
     taks_relation = Topic.select(:approved, :id).order(:id)
     assert_equal [1,2,3,4], taks_relation.pluck(:id)
     assert_equal [false, true, true, true], taks_relation.pluck(:approved)
+  end
+
+  def test_deprecated_finder_options_on_association_calculation
+    topic = topics(:second)
+    topic.replies.create! title: "lol"
+    topic.replies.create! title: "rofl"
+    assert_equal 2, topic.replies.count
+
+    assert_deprecated do
+      assert_equal 1, topic.replies.count(conditions: { title: "lol" })
+    end
   end
 end

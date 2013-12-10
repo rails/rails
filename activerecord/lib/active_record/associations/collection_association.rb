@@ -193,7 +193,7 @@ module ActiveRecord
             relation = relation.distinct
           end
 
-          value = relation.count(column_name)
+          value = relation.count(column_name, count_options)
 
           limit  = options[:limit]
           offset = options[:offset]

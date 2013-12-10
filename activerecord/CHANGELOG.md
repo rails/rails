@@ -1,3 +1,10 @@
+*   Support deprecated finder options when performing calculations
+    on an association.
+
+    Fixes #13165.
+
+    *Garth Smedley*, *Yves Senn*
+
 *   `ActiveRecord::ConnectionAdapters.string_to_time` respects
     string with timezone (e.g. Wed, 04 Sep 2013 20:30:00 JST).
 
