@@ -42,7 +42,7 @@ class Date
   # Use the format name as the hash key and either a strftime string
   # or Proc instance that takes a date argument as the value.
   #
-  #   # config/initializers/time_formats.rb
+  #   # config/initializers/date_formats.rb
   #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
   def to_formatted_s(format = :default)
