@@ -465,7 +465,7 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
-      #   button_tag "Checkout", data: { disable_with => "Please wait..." }
+      #   button_tag "Checkout", data: { :disable_with => "Please wait..." }
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
