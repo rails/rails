@@ -671,7 +671,8 @@ class FasterFixturesTest < ActiveRecord::TestCase
 end
 
 class FoxyFixturesTest < ActiveRecord::TestCase
-  fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers, :developers, :"admin/accounts", :"admin/users"
+  fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships,
+           :computers, :developers, :"admin/accounts", :"admin/users", :binaries
 
   def test_identifies_strings
     assert_equal(ActiveRecord::FixtureSet.identify("foo"), ActiveRecord::FixtureSet.identify("foo"))
@@ -685,6 +686,12 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_identifies_consistently
     assert_equal 207281424, ActiveRecord::FixtureSet.identify(:ruby)
     assert_equal 1066363776, ActiveRecord::FixtureSet.identify(:sapphire_2)
+  end
+
+  def test_identifies_on_id_fields_with_limit
+    # The id field has a limit of 3
+    fixture = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "binaries")
+    assert Binary.last.id <= 2 ** (3 * 8 - 1)
   end
 
   TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)

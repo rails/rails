@@ -1,3 +1,13 @@
+*   Make fixtures generate IDs according to the defined limit
+
+    If the primary key field's limit was defined at the schema definition
+    level, previously fixtures would generate a random ID which maximum
+    would be 2^30 - 1 and would not take the limit into account.
+
+    Fixes #12901.
+
+    *Robin Dupret*, *Jacob Evan Shreve*, *Anton Kalyaev*
+
 *   Polymorphic `belongs_to` associations with the `touch: true` option set update the timestamps of
     the old and new owner correctly when moved between owners of different types.
 

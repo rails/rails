@@ -541,9 +541,17 @@ module ActiveRecord
     end
 
     # Returns a consistent, platform-independent identifier for +label+.
-    # Identifiers are positive integers less than 2^32.
+    # Identifiers are positive integers less than 2^30.
     def self.identify(label)
-      Zlib.crc32(label.to_s) % MAX_ID
+      if label.kind_of?(ActiveRecord::ConnectionAdapters::Column)
+        name = label.name
+        max_id = 2 ** (label.limit * 8 - 1)
+      else
+        name = label.to_s
+        max_id = MAX_ID
+      end
+
+      Zlib.crc32(name) % max_id
     end
 
     # Superclass for the evaluation contexts used by ERB fixtures.
@@ -634,7 +642,9 @@ module ActiveRecord
 
           # generate a primary key if necessary
           if has_primary_key_column? && !row.include?(primary_key_name)
-            row[primary_key_name] = ActiveRecord::FixtureSet.identify(label)
+            primary_key_column = model_class.columns_hash[primary_key_name]
+
+            row[primary_key_name] = ActiveRecord::FixtureSet.identify(primary_key_column)
           end
 
           # If STI is used, find the correct subclass for association reflection
