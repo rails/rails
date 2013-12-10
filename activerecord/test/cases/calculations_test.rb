@@ -198,6 +198,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 19.83, NumericData.sum(:bank_balance)
   end
 
+  def test_should_return_type_casted_values_with_group_and_expression
+    assert_equal 0.5, Account.group(:firm_name).sum('0.01 * credit_limit')['37signals']
+  end
+
   def test_should_group_by_summed_field_with_conditions
     c = Account.where('firm_id > 1').group(:firm_id).sum(:credit_limit)
     assert_nil        c[1]

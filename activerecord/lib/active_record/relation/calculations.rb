@@ -332,7 +332,9 @@ module ActiveRecord
         }
         key = key.first if key.size == 1
         key = key_records[key] if associated
-        [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
+
+        column_type = calculated_data.column_types.fetch(aggregate_alias) { column_for(column_name) }
+        [key, type_cast_calculated_value(row[aggregate_alias], column_type, operation)]
       end]
     end
 
