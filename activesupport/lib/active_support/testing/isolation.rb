@@ -1,5 +1,4 @@
 require 'rbconfig'
-require 'minitest/parallel'
 
 module ActiveSupport
   module Testing
@@ -7,11 +6,9 @@ module ActiveSupport
       require 'thread'
 
       def self.included(klass) #:nodoc:
-        klass.extend(Module.new {
-          def test_methods
-            ParallelEach.new super
-          end
-        })
+        klass.class_eval do
+          parallelize_me!
+        end
       end
 
       def self.forking_env?
