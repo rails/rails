@@ -4,7 +4,7 @@ module ActiveRecord::Associations::Builder
       :has_one
     end
 
-    def self.valid_options(options)
+    def self.build_valid_options(options)
       valid = super + [:order, :as]
       valid += [:through, :source, :source_type] if options[:through]
       valid

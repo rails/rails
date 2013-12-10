@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/attribute_accessors'
+
 # This is the parent Association class which defines the variables
 # used by all associations.
 #
@@ -16,7 +18,10 @@ module ActiveRecord::Associations::Builder
     end
     self.extensions = []
 
-    VALID_OPTIONS = [:class_name, :class, :foreign_key, :validate]
+    # TODO: This class accessor is needed to make activerecord-deprecated_finders work.
+    # We can move it to a constant in 5.0.
+    cattr_accessor :valid_options, instance_accessor: false
+    self.valid_options = [:class_name, :class, :foreign_key, :validate]
 
     def self.build(model, name, scope, options, &block)
       extension = define_extensions model, name, &block
@@ -63,12 +68,12 @@ module ActiveRecord::Associations::Builder
       raise NotImplementedError
     end
 
-    def self.valid_options(options)
-      VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
+    def self.build_valid_options(options)
+      self.valid_options + Association.extensions.flat_map(&:valid_options)
     end
 
     def self.validate_options(options)
-      options.assert_valid_keys(valid_options(options))
+      options.assert_valid_keys(build_valid_options(options))
     end
 
     def self.define_extensions(model, name)
