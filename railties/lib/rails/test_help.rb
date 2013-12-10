@@ -10,7 +10,9 @@ require 'rails/generators/test_case'
 
 # Config Rails backtrace in tests.
 require 'rails/backtrace_cleaner'
-MiniTest.backtrace_filter = Rails.backtrace_cleaner
+if ENV["BACKTRACE"].nil?
+  MiniTest.backtrace_filter = Rails.backtrace_cleaner
+end
 
 if defined?(ActiveRecord::Base)
   class ActiveSupport::TestCase

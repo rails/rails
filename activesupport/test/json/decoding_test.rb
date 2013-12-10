@@ -4,6 +4,12 @@ require 'active_support/json'
 require 'active_support/time'
 
 class TestJSONDecoding < ActiveSupport::TestCase
+  class Foo
+    def self.json_create(object)
+      "Foo"
+    end
+  end
+
   TESTS = {
     %q({"returnTo":{"\/categories":"\/"}})        => {"returnTo" => {"/categories" => "/"}},
     %q({"return\\"To\\":":{"\/categories":"\/"}}) => {"return\"To\":" => {"/categories" => "/"}},
@@ -52,7 +58,17 @@ class TestJSONDecoding < ActiveSupport::TestCase
     # tests escaping of "\n" char with Yaml backend
     %q({"a":"\n"})  => {"a"=>"\n"},
     %q({"a":"\u000a"}) => {"a"=>"\n"},
-    %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"}
+    %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"},
+    # prevent json unmarshalling
+    %q({"json_class":"TestJSONDecoding::Foo"}) => {"json_class"=>"TestJSONDecoding::Foo"},
+    # json "fragments" - these are invalid JSON, but ActionPack relies on this
+    %q("a string") => "a string",
+    %q(1.1) => 1.1,
+    %q(1) => 1,
+    %q(-1) => -1,
+    %q(true) => true,
+    %q(false) => false,
+    %q(null) => nil
   }
 
   TESTS.each_with_index do |(json, expected), index|
@@ -76,7 +92,14 @@ class TestJSONDecoding < ActiveSupport::TestCase
   end
 
   def test_failed_json_decoding
+    assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%(undefined)) }
+    assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%({a: 1})) }
     assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%({: 1})) }
+    assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%()) }
+  end
+
+  def test_cannot_pass_unsupported_options
+    assert_raise(ArgumentError) { ActiveSupport::JSON.decode("", create_additions: true) }
   end
 end
 

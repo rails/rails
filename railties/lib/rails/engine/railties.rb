@@ -16,8 +16,6 @@ module Rails
       def -(others)
         _all - others
       end
-
-      delegate :engines, to: "self.class"
     end
   end
 end

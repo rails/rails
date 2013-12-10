@@ -12,7 +12,7 @@ module ActiveRecord
                                :adapter => 'sqlite3',
                                :timeout => 100
 
-          assert Dir.exists? dir.join('db')
+          assert Dir.exist? dir.join('db')
           assert File.exist? dir.join('db/foo.sqlite3')
         end
       end

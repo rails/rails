@@ -359,6 +359,17 @@ Notice the 'E' in the output. It denotes a test with error.
 
 NOTE: The execution of each test method stops as soon as any error or an assertion failure is encountered, and the test suite continues with the next method. All test methods are executed in alphabetical order.
 
+When a test fails you are presented with the corresponding backtrace. By default
+Rails filters that backtrace and will only print lines relevant to your
+application. This eliminates the framwork noise and helps to focus on your
+code. However there are situations when you want to see the full
+backtrace. simply set the `BACKTRACE` environment variable to enable this
+behavior:
+
+```bash
+$ BACKTRACE=1 rake test test/models/post_test.rb
+```
+
 ### What to Include in Your Unit Tests
 
 Ideally, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
@@ -438,10 +449,12 @@ Now that we have used Rails scaffold generator for our `Post` resource, it has a
 Let me take you through one such test, `test_should_get_index` from the file `posts_controller_test.rb`.
 
 ```ruby
-test "should get index" do
-  get :index
-  assert_response :success
-  assert_not_nil assigns(:posts)
+class PostsControllerTest < ActionController::TestCase
+  test "should get index" do
+    get :index
+    assert_response :success
+    assert_not_nil assigns(:posts)
+  end
 end
 ```
 
@@ -532,7 +545,7 @@ instance variable:
 
 ```ruby
 # setting a HTTP Header
-@request.headers["Accepts"] = "text/plain, text/html"
+@request.headers["Accept"] = "text/plain, text/html"
 get :index # simulate the request with custom header
 
 # setting a CGI variable
@@ -757,24 +770,24 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 
   private
 
-  module CustomDsl
-    def browses_site
-      get "/products/all"
-      assert_response :success
-      assert assigns(:products)
+    module CustomDsl
+      def browses_site
+        get "/products/all"
+        assert_response :success
+        assert assigns(:products)
+      end
     end
-  end
 
-  def login(user)
-    open_session do |sess|
-      sess.extend(CustomDsl)
-      u = users(user)
-      sess.https!
-      sess.post "/login", username: u.username, password: u.password
-      assert_equal '/welcome', path
-      sess.https!(false)
+    def login(user)
+      open_session do |sess|
+        sess.extend(CustomDsl)
+        u = users(user)
+        sess.https!
+        sess.post "/login", username: u.username, password: u.password
+        assert_equal '/welcome', path
+        sess.https!(false)
+      end
     end
-  end
 end
 ```
 
@@ -785,7 +798,7 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 
 | Tasks                   | Description |
 | ----------------------- | ----------- |
-| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake test` as Rails will run all the tests by default|
+| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake` as Rails will run all the tests by default|
 | `rake test:controllers` | Runs all the controller tests from `test/controllers`|
 | `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
 | `rake test:helpers`     | Runs all the helper tests from `test/helpers`|
@@ -887,10 +900,9 @@ class PostsControllerTest < ActionController::TestCase
 
   private
 
-  def initialize_post
-    @post = posts(:one)
-  end
-
+    def initialize_post
+      @post = posts(:one)
+    end
 end
 ```
 

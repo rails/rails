@@ -73,12 +73,6 @@ module ActiveRecord
     end
   end
 
-  class HasAndBelongsToManyAssociationForeignKeyNeeded < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Cannot create self referential has_and_belongs_to_many association on '#{reflection.class_name rescue nil}##{reflection.name rescue nil}'. :association_foreign_key cannot be the same as the :foreign_key.")
-    end
-  end
-
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       super("Can not eagerly load the polymorphic association #{reflection.name.inspect}")
@@ -114,7 +108,6 @@ module ActiveRecord
 
     autoload :BelongsToAssociation,            'active_record/associations/belongs_to_association'
     autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
-    autoload :HasAndBelongsToManyAssociation,  'active_record/associations/has_and_belongs_to_many_association'
     autoload :HasManyAssociation,              'active_record/associations/has_many_association'
     autoload :HasManyThroughAssociation,       'active_record/associations/has_many_through_association'
     autoload :HasOneAssociation,               'active_record/associations/has_one_association'
@@ -1560,8 +1553,39 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, join_table: "prods_cats"
       #   has_and_belongs_to_many :categories, -> { readonly }
       def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)
-        reflection = Builder::HasAndBelongsToMany.build(self, name, scope, options, &extension)
-        Reflection.add_reflection self, name, reflection
+        if scope.is_a?(Hash)
+          options = scope
+          scope   = nil
+        end
+
+        builder = Builder::HasAndBelongsToMany.new name, self, options
+
+        join_model = builder.through_model
+
+        middle_reflection = builder.middle_reflection join_model
+
+        Builder::HasMany.define_callbacks self, middle_reflection
+        Reflection.add_reflection self, middle_reflection.name, middle_reflection
+
+        include Module.new {
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def destroy_associations
+            association(:#{middle_reflection.name}).delete_all(:delete_all)
+            association(:#{name}).reset
+            super
+          end
+          RUBY
+        }
+
+        hm_options = {}
+        hm_options[:through] = middle_reflection.name
+        hm_options[:source] = join_model.right_reflection.name
+
+        [:before_add, :after_add, :before_remove, :after_remove].each do |k|
+          hm_options[k] = options[k] if options.key? k
+        end
+
+        has_many name, scope, hm_options, &extension
       end
     end
   end

@@ -781,6 +781,24 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 'bender', slice['login']
   end
 
+  def test_slice_bang_does_not_override_default
+    hash = Hash.new(0)
+    hash.update(a: 1, b: 2)
+
+    hash.slice!(:a)
+
+    assert_equal 0, hash[:c]
+  end
+
+  def test_slice_bang_does_not_override_default_proc
+    hash = Hash.new { |h, k| h[k] = [] }
+    hash.update(a: 1, b: 2)
+
+    hash.slice!(:a)
+
+    assert_equal [], hash[:c]
+  end
+
   def test_extract
     original = {:a => 1, :b => 2, :c => 3, :d => 4}
     expected = {:a => 1, :b => 2}

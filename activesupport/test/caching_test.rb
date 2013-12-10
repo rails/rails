@@ -709,6 +709,25 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.send(:read_entry, "winston", {})
     assert @buffer.string.present?
   end
+
+  def test_cleanup_removes_all_expired_entries
+    time = Time.now
+    @cache.write('foo', 'bar', expires_in: 10)
+    @cache.write('baz', 'qux')
+    @cache.write('quux', 'corge', expires_in: 20)
+    Time.stubs(:now).returns(time + 15)
+    @cache.cleanup
+    assert_not @cache.exist?('foo')
+    assert @cache.exist?('baz')
+    assert @cache.exist?('quux')
+  end
+
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaaaaaaaa")
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+    @cache.write(1, nil)
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase

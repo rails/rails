@@ -11,8 +11,9 @@ module ActiveModel
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|
-          next if value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
-          raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
+          unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
+            raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
+          end
         end
       end
 
@@ -43,11 +44,15 @@ module ActiveModel
               record.errors.add(attr_name, option, filtered_options(value))
             end
           else
-            option_value = option_value.call(record) if option_value.is_a?(Proc)
-            option_value = record.send(option_value) if option_value.is_a?(Symbol)
+            case option_value
+            when Proc
+              option_value = option_value.call(record)
+            when Symbol
+              option_value = record.send(option_value)
+            end
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge(count: option_value))
+              record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
             end
           end
         end
@@ -56,16 +61,9 @@ module ActiveModel
     protected
 
       def parse_raw_value_as_a_number(raw_value)
-        case raw_value
-        when /\A0[xX]/
-          nil
-        else
-          begin
-            Kernel.Float(raw_value)
-          rescue ArgumentError, TypeError
-            nil
-          end
-        end
+        Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
+      rescue ArgumentError, TypeError
+        nil
       end
 
       def parse_raw_value_as_an_integer(raw_value)
@@ -73,7 +71,9 @@ module ActiveModel
       end
 
       def filtered_options(value)
-        options.except(*RESERVED_OPTIONS).merge!(value: value)
+        filtered = options.except(*RESERVED_OPTIONS)
+        filtered[:value] = value
+        filtered
       end
     end
 

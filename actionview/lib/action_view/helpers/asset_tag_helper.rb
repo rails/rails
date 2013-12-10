@@ -153,14 +153,14 @@ module ActionView
       #
       # ==== Examples
       #
-      #   favicon_link_tag '/myicon.ico'
+      #   favicon_link_tag 'myicon.ico'
       #   # => <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
       #
       # Mobile Safari looks for a different <link> tag, pointing to an image that
       # will be used if you add the page to the home screen of an iPod Touch, iPhone, or iPad.
       # The following call would generate such a tag:
       #
-      #   favicon_link_tag '/mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
+      #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
@@ -224,14 +224,14 @@ module ActionView
       #
       # ==== Examples
       #
-      #   image_tag('rails.png')
-      #   # => <img alt="Rails" src="/assets/rails.png" />
+      #   image_alt('rails.png')
+      #   # => Rails
       #
-      #   image_tag('hyphenated-file-name.png')
-      #   # => <img alt="Hyphenated file name" src="/assets/hyphenated-file-name.png" />
+      #   image_alt('hyphenated-file-name.png')
+      #   # => Hyphenated file name
       #
-      #   image_tag('underscored_file_name.png')
-      #   # => <img alt="Underscored file name" src="/assets/underscored_file_name.png" />
+      #   image_alt('underscored_file_name.png')
+      #   # => Underscored file name
       def image_alt(src)
         File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').tr('-_', ' ').capitalize
       end

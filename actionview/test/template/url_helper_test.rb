@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'minitest/mock'
 
 class UrlHelperTest < ActiveSupport::TestCase
 
@@ -157,6 +158,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       %{<form method="post" action="http://www.example.com" class="button_to"><div><button type="submit"><span>Hello</span></button></div></form>},
       button_to("http://www.example.com") { content_tag(:span, 'Hello') }
+    )
+  end
+
+  def test_button_to_with_params
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post"><div><input type="submit" value="Hello" /><input type="hidden" name="foo" value="bar" /><input type="hidden" name="baz" value="quux" /></div></form>},
+      button_to("Hello", "http://www.example.com", params: {foo: :bar, baz: "quux"})
     )
   end
 

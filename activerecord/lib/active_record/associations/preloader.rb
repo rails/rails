@@ -42,11 +42,8 @@ module ActiveRecord
         autoload :HasManyThrough,      'active_record/associations/preloader/has_many_through'
         autoload :HasOne,              'active_record/associations/preloader/has_one'
         autoload :HasOneThrough,       'active_record/associations/preloader/has_one_through'
-        autoload :HasAndBelongsToMany, 'active_record/associations/preloader/has_and_belongs_to_many'
         autoload :BelongsTo,           'active_record/associations/preloader/belongs_to'
       end
-
-      attr_reader :records, :associations, :preload_scope, :model
 
       # Eager loads the named associations for the given Active Record record(s).
       #
@@ -82,38 +79,47 @@ module ActiveRecord
       #   [ :books, :author ]
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
-      def initialize(records, associations, preload_scope = nil)
-        @records       = Array.wrap(records).compact.uniq
-        @associations  = Array.wrap(associations)
-        @preload_scope = preload_scope || Relation.create(nil, nil)
-      end
 
-      def run
-        unless records.empty?
-          associations.each { |association| preload(association) }
+      NULL_RELATION = Struct.new(:values).new({})
+
+      def preload(records, associations, preload_scope = nil)
+        records       = Array.wrap(records).compact.uniq
+        associations  = Array.wrap(associations)
+        preload_scope = preload_scope || NULL_RELATION
+
+        if records.empty?
+          []
+        else
+          associations.flat_map { |association|
+            preloaders_on association, records, preload_scope
+          }
         end
       end
 
       private
 
-      def preload(association)
+      def preloaders_on(association, records, scope)
         case association
         when Hash
-          preload_hash(association)
+          preloaders_for_hash(association, records, scope)
         when Symbol
-          preload_one(association)
+          preloaders_for_one(association, records, scope)
         when String
-          preload_one(association.to_sym)
+          preloaders_for_one(association.to_sym, records, scope)
         else
           raise ArgumentError, "#{association.inspect} was not recognised for preload"
         end
       end
 
-      def preload_hash(association)
-        association.each do |parent, child|
-          Preloader.new(records, parent, preload_scope).run
-          Preloader.new(records.map { |record| record.send(parent) }.flatten, child).run
-        end
+      def preloaders_for_hash(association, records, scope)
+        parent, child = association.to_a.first # hash should only be of length 1
+
+        loaders = preloaders_for_one parent, records, scope
+
+        recs = loaders.flat_map(&:preloaded_records).uniq
+        loaders.concat Array.wrap(child).flat_map { |assoc|
+          preloaders_on assoc, recs, scope
+        }
       end
 
       # Not all records have the same class, so group then preload group on the reflection
@@ -123,52 +129,81 @@ module ActiveRecord
       # Additionally, polymorphic belongs_to associations can have multiple associated
       # classes, depending on the polymorphic_type field. So we group by the classes as
       # well.
-      def preload_one(association)
-        grouped_records(association).each do |reflection, klasses|
-          klasses.each do |klass, records|
-            preloader_for(reflection).new(klass, records, reflection, preload_scope).run
+      def preloaders_for_one(association, records, scope)
+        grouped_records(association, records).flat_map do |reflection, klasses|
+          klasses.map do |rhs_klass, rs|
+            loader = preloader_for(reflection, rs, rhs_klass).new(rhs_klass, rs, reflection, scope)
+            loader.run self
+            loader
           end
         end
       end
 
-      def grouped_records(association)
-        Hash[
-          records_by_reflection(association).map do |reflection, records|
-            [reflection, records.group_by { |record| association_klass(reflection, record) }]
-          end
-        ]
+      def grouped_records(association, records)
+        reflection_records = records_by_reflection(association, records)
+
+        reflection_records.each_with_object({}) do |(reflection, r_records),h|
+          h[reflection] = r_records.group_by { |record|
+            association_klass(reflection, record)
+          }
+        end
       end
 
-      def records_by_reflection(association)
+      def records_by_reflection(association, records)
         records.group_by do |record|
-          reflection = record.class.reflections[association]
+          reflection = record.class.reflect_on_association(association)
 
-          unless reflection
-            raise ActiveRecord::ConfigurationError, "Association named '#{association}' was not found; " \
-                                                    "perhaps you misspelled it?"
-          end
-
-          reflection
+          reflection || raise_config_error(record, association)
         end
+      end
+
+      def raise_config_error(record, association)
+        raise ActiveRecord::ConfigurationError,
+              "Association named '#{association}' was not found on #{record.class.name}; " \
+              "perhaps you misspelled it?"
       end
 
       def association_klass(reflection, record)
         if reflection.macro == :belongs_to && reflection.options[:polymorphic]
-          klass = record.send(reflection.foreign_type)
+          klass = record.read_attribute(reflection.foreign_type.to_s)
           klass && klass.constantize
         else
           reflection.klass
         end
       end
 
-      def preloader_for(reflection)
+      class AlreadyLoaded
+        attr_reader :owners, :reflection
+
+        def initialize(klass, owners, reflection, preload_scope)
+          @owners = owners
+          @reflection = reflection
+        end
+
+        def run(preloader); end
+
+        def preloaded_records
+          owners.flat_map { |owner| owner.read_attribute reflection.name }
+        end
+      end
+
+      class NullPreloader
+        def self.new(klass, owners, reflection, preload_scope); self; end
+        def self.run(preloader); end
+      end
+
+      def preloader_for(reflection, owners, rhs_klass)
+        return NullPreloader unless rhs_klass
+
+        if owners.first.association(reflection.name).loaded?
+          return AlreadyLoaded
+        end
+
         case reflection.macro
         when :has_many
           reflection.options[:through] ? HasManyThrough : HasMany
         when :has_one
           reflection.options[:through] ? HasOneThrough : HasOne
-        when :has_and_belongs_to_many
-          HasAndBelongsToMany
         when :belongs_to
           BelongsTo
         end

@@ -214,6 +214,18 @@ class FlashTest < ActionController::TestCase
     get :redirect_with_foo_flash
     assert_equal "for great justice", @controller.send(:flash)[:foo]
   end
+
+  class SubclassesTestController < TestController; end
+
+  def test_add_flash_type_to_subclasses
+    TestController.add_flash_types :foo
+    assert SubclassesTestController._flash_types.include?(:foo)
+  end
+
+  def test_do_not_add_flash_type_to_parent_class
+    SubclassesTestController.add_flash_types :bar
+    assert_not TestController._flash_types.include?(:bar)
+  end
 end
 
 class FlashIntegrationTest < ActionDispatch::IntegrationTest

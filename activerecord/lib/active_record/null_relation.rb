@@ -6,7 +6,7 @@ module ActiveRecord
       @records = []
     end
 
-    def pluck(_column_name)
+    def pluck(*column_names)
       []
     end
 
@@ -42,10 +42,6 @@ module ActiveRecord
       ""
     end
 
-    def where_values_hash
-      {}
-    end
-
     def count(*)
       0
     end
@@ -54,7 +50,7 @@ module ActiveRecord
       0
     end
 
-    def calculate(_operation, _column_name, _options = {})
+    def calculate(_operation, _column_name)
       if _operation == :count
         0
       else

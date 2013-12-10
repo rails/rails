@@ -1,5 +1,391 @@
-*   Fix PredicateBuilder so polymorhic association keys in `where` clause can
-    also accept not only `ActiveRecord::Base` direct descendances (decorated
+*   Fix validation on uniqueness of empty association.
+
+    *Evgeny Li*
+
+*   Make `ActiveRecord::Relation#unscope` affect relations it is merged in to.
+
+    *Jon Leighton*
+
+*   Use strings to represent non-string `order_values`.
+
+    *Yves Senn*
+
+*   Checks to see if the record contains the foreign key to set the inverse automatically.
+
+    *Edo Balvers*
+
+*   Added `ActiveRecord::Base.to_param` for convenient "pretty" URLs derived from a model's attribute or method.
+
+    Example:
+
+        class User < ActiveRecord::Base
+          to_param :name
+        end
+
+        user = User.find_by(name: 'Fancy Pants')
+        user.id       # => 123
+        user.to_param # => "123-fancy-pants"
+
+    *Javan Makhmali*
+
+*   Added `ActiveRecord::Base.no_touching`, which allows ignoring touch on models.
+
+    Example:
+
+        Post.no_touching do
+          Post.first.touch
+        end
+
+    *Sam Stephenson*, *Damien Mathieu*
+
+*   Prevent the counter cache from being decremented twice when destroying
+    a record on a `has_many :through` association.
+
+    Fixes #11079.
+
+    *Dmitry Dedov*
+
+*   Unify boolean type casting for `MysqlAdapter` and `Mysql2Adapter`.
+    `type_cast` will return `1` for `true` and `0` for `false`.
+
+    Fixes #11119.
+
+    *Adam Williams*, *Yves Senn*
+
+*   Fix bug where `has_one` associaton record update result in crash, when replaced with itself.
+
+    Fixes #12834.
+
+    *Denis Redozubov*, *Sergio Cambra*
+
+*   Log bind variables after they are type casted. This makes it more
+    transparent what values are actually sent to the database.
+
+        irb(main):002:0> Event.find("im-no-integer")
+        # Before: ... WHERE "events"."id" = $1 LIMIT 1  [["id", "im-no-integer"]]
+        # After: ... WHERE "events"."id" = $1 LIMIT 1  [["id", 0]]
+
+    *Yves Senn*
+
+*   Fix uninitialized constant `TransactionState` error when `Marshall.load` is used on an Active Record result.
+
+    Fixes #12790.
+
+    *Jason Ayre*
+
+*   `.unscope` now removes conditions specified in `default_scope`.
+
+    *Jon Leighton*
+
+*   Added `ActiveRecord::QueryMethods#rewhere` which will overwrite an existing, named where condition.
+
+    Examples:
+
+        Post.where(trashed: true).where(trashed: false)                       #=> WHERE `trashed` = 1 AND `trashed` = 0
+        Post.where(trashed: true).rewhere(trashed: false)                     #=> WHERE `trashed` = 0
+        Post.where(active: true).where(trashed: true).rewhere(trashed: false) #=> WHERE `active` = 1 AND `trashed` = 0
+
+    *DHH*
+
+*   Extend `ActiveRecord::Base#cache_key` to take an optional list of timestamp attributes of which the highest will be used.
+
+    Example:
+
+        # last_reviewed_at will be used, if that's more recent than updated_at, or vice versa
+        Person.find(5).cache_key(:updated_at, :last_reviewed_at)
+
+    *DHH*
+
+*   Added `ActiveRecord::Base#enum` for declaring enum attributes where the values map to integers in the database, but can be queried by name.
+
+    Example:
+
+        class Conversation < ActiveRecord::Base
+          enum status: [:active, :archived]
+        end
+
+        Conversation::STATUS # => { active: 0, archived: 1 }
+
+        # conversation.update! status: 0
+        conversation.active!
+        conversation.active? # => true
+        conversation.status  # => "active"
+
+        # conversation.update! status: 1
+        conversation.archived!
+        conversation.archived? # => true
+        conversation.status    # => "archived"
+
+        # conversation.update! status: 1
+        conversation.status = :archived
+
+    *DHH*
+
+*   `ActiveRecord::Base#attribute_for_inspect` now truncates long arrays (more than 10 elements).
+
+    *Jan Bernacki*
+
+*   Allow for the name of the `schema_migrations` table to be configured.
+
+    *Jerad Phelps*
+
+*   Do not add to scope includes values from through associations.
+    Fixed bug when providing `includes` in through association scope, and fetching targets.
+
+    Example:
+
+        class Vendor < ActiveRecord::Base
+          has_many :relationships, -> { includes(:user) }
+          has_many :users, through: :relationships
+        end
+
+        vendor = Vendor.first
+
+        # Before
+
+        vendor.users.to_a # => Raises exception: not found `:user` for `User`
+
+        # After
+
+        vendor.users.to_a # => No exception is raised
+
+    Fixes #12242, #9517, #10240.
+
+    *Paul Nikitochkin*
+
+*   Type cast json values on write, so that the value is consistent
+    with reading from the database.
+
+    Example:
+
+        x = JsonDataType.new tags: {"string" => "foo", :symbol => :bar}
+
+        # Before:
+        x.tags # => {"string" => "foo", :symbol => :bar}
+
+        # After:
+        x.tags # => {"string" => "foo", "symbol" => "bar"}
+
+    *Severin Schoepke*
+
+*   `ActiveRecord::Store` works together with PG `hstore` columns.
+
+    Fixes #12452.
+
+    *Yves Senn*
+
+*   Fix bug where `ActiveRecord::Store` used a global `Hash` to keep track of
+    all registered `stored_attributes`. Now every subclass of
+    `ActiveRecord::Base` has it's own `Hash`.
+
+    *Yves Senn*
+
+*   Save `has_one` association when primary key is manually set.
+
+    Fixes #12302.
+
+    *Lauro Caetano*
+
+*    Allow any version of BCrypt when using `has_secure_password`.
+
+     *Mike Perham*
+
+*    Sub-query generated for `Relation` passed as array condition did not take in account
+     bind values and have invalid syntax.
+
+     Generate sub-query with inline bind values.
+
+     Fixes #12586.
+
+     *Paul Nikitochkin*
+
+*   Fix a bug where rake db:structure:load crashed when the path contained
+    spaces.
+
+    *Kevin Mook*
+
+*   `ActiveRecord::QueryMethods#unscope` unscopes negative equality
+
+    Allows you to call `#unscope` on a relation with negative equality
+    operators, i.e. `Arel::Nodes::NotIn` and `Arel::Nodes::NotEqual` that have
+    been generated through the use of `where.not`.
+
+    *Eric Hankins*
+
+*   Raise an exception when model without primary key calls `.find_with_ids`.
+
+    *Shimpei Makimoto*
+
+*   Make `Relation#empty?` use `exists?` instead of `count`.
+
+    *Szymon Nowak*
+
+*   `rake db:structure:dump` no longer crashes when the port was specified as `Fixnum`.
+
+    *Kenta Okamoto*
+
+*   `NullRelation#pluck` takes a list of columns
+
+    The method signature in `NullRelation` was updated to mimic that in
+    `Calculations`.
+
+    *Derek Prior*
+
+*   `scope_chain` should not be mutated for other reflections.
+
+    Currently `scope_chain` uses same array for building different
+    `scope_chain` for different associations. During processing
+    these arrays are sometimes mutated and because of in-place
+    mutation the changed `scope_chain` impacts other reflections.
+
+    Fix is to dup the value before adding to the `scope_chain`.
+
+    Fixes #3882.
+
+    *Neeraj Singh*
+
+*   Prevent the inversed association from being reloaded on save.
+
+    Fixes #9499.
+
+    *Dmitry Polushkin*
+
+*   Generate subquery for `Relation` if it passed as array condition for `where`
+    method.
+
+    Example:
+
+        # Before
+        Blog.where('id in (?)', Blog.where(id: 1))
+        # =>  SELECT "blogs".* FROM "blogs"  WHERE "blogs"."id" = 1
+        # =>  SELECT "blogs".* FROM "blogs"  WHERE (id IN (1))
+
+        # After
+        Blog.where('id in (?)', Blog.where(id: 1).select(:id))
+        # =>  SELECT "blogs".* FROM "blogs"
+        #     WHERE "blogs"."id" IN (SELECT "blogs"."id" FROM "blogs"  WHERE "blogs"."id" = 1)
+
+    Fixes #12415.
+
+    *Paul Nikitochkin*
+
+*   For missed association exception message
+    which is raised in `ActiveRecord::Associations::Preloader` class
+    added owner record class name in order to simplify to find problem code.
+
+    *Paul Nikitochkin*
+
+*   `has_and_belongs_to_many` is now transparently implemented in terms of
+    `has_many :through`.  Behavior should remain the same, if not, it is a bug.
+
+*   `create_savepoint`, `rollback_to_savepoint` and `release_savepoint` accept
+    a savepoint name.
+
+    *Yves Senn*
+
+*   Make `next_migration_number` accessible for third party generators.
+
+    *Yves Senn*
+
+*   Objects instantiated using a null relationship will now retain the
+    attributes of the where clause.
+
+    Fixes #11676, #11675, #11376.
+
+    *Paul Nikitochkin*, *Peter Brown*, *Nthalk*
+
+*   Fixed `ActiveRecord::Associations::CollectionAssociation#find`
+    when using `has_many` association with `:inverse_of` and finding an array of one element,
+    it should return an array of one element too.
+
+    *arthurnn*
+
+*   Callbacks on has_many should access the in memory parent if a inverse_of is set.
+
+    *arthurnn*
+
+*   `ActiveRecord::ConnectionAdapters.string_to_time` respects
+    string with timezone (e.g. Wed, 04 Sep 2013 20:30:00 JST).
+
+    Fixes #12278.
+
+    *kennyj*
+
+*   Calling `update_attributes` will now throw an `ArgumentError` whenever it
+    gets a `nil` argument. More specifically, it will throw an error if the
+    argument that it gets passed does not respond to to `stringify_keys`.
+
+    Example:
+
+        @my_comment.update_attributes(nil)  # => raises ArgumentError
+
+    *John Wang*
+
+*   Deprecate `quoted_locking_column` method, which isn't used anywhere.
+
+    *kennyj*
+
+*   Migration dump UUID default functions to schema.rb.
+
+    Fixes #10751.
+
+    *kennyj*
+
+*   Fixed a bug in `ActiveRecord::Associations::CollectionAssociation#find_by_scan`
+    when using `has_many` association with `:inverse_of` option and UUID primary key.
+
+    Fixes #10450.
+
+    *kennyj*
+
+*   Fix: joins association, with defined in the scope block constraints by using several
+    where constraints and at least of them is not `Arel::Nodes::Equality`,
+    generates invalid SQL expression.
+
+    Fixes #11963.
+
+    *Paul Nikitochkin*
+
+*   Deprecate the delegation of Array bang methods for associations.
+    To use them, instead first call `#to_a` on the association to access the
+    array to be acted on.
+
+    *Ben Woosley*
+
+*   `CollectionAssociation#first`/`#last` (e.g. `has_many`) use a `LIMIT`ed
+    query to fetch results rather than loading the entire collection.
+
+    *Lann Martin*
+
+*   Make possible to run SQLite rake tasks without the `Rails` constant defined.
+
+    *Damien Mathieu*
+
+*   Allow Relation#from to accept other relations with bind values.
+
+    *Ryan Wallace*
+
+*   Fix inserts with prepared statements disabled.
+
+    Fixes #12023.
+
+    *Rafael Mendonça França*
+
+*   Setting a has_one association on a new record no longer causes an empty
+    transaction.
+
+    *Dylan Thacker-Smith*
+
+*   Fix `AR::Relation#merge` sometimes failing to preserve `readonly(false)` flag.
+
+    *thedarkone*
+
+*   Re-use `order` argument pre-processing for `reorder`.
+
+    *Paul Nikitochkin*
+
+*   Fix PredicateBuilder so polymorphic association keys in `where` clause can
+    accept objects other than direct descendants of `ActiveRecord::Base` (decorated
     models, for example).
 
     *Mikhail Dieterle*
@@ -78,6 +464,12 @@
 
     *Yves Senn*
 
+*   Fixes bug when using includes combined with select, the select statement was overwritten.
+
+    Fixes #11773.
+
+    *Edo Balvers*
+
 *   Load fixtures from linked folders.
 
     *Kassio Borges*
@@ -129,13 +521,13 @@
     to allow the connection adapter to properly determine how to quote the value. This was
     affecting certain databases that use specific column types.
 
-    Fixes: #6763
+    Fixes #6763.
 
     *Alfred Wong*
 
 *   rescue from all exceptions in `ConnectionManagement#call`
 
-    Fixes #11497
+    Fixes #11497.
 
     As `ActiveRecord::ConnectionAdapters::ConnectionManagement` middleware does
     not rescue from Exception (but only from StandardError), the Connection
@@ -157,27 +549,27 @@
 
 *   Remove extra decrement of transaction deep level.
 
-    Fixes: #4566
+    Fixes #4566.
 
     *Paul Nikitochkin*
 
 *   Reset @column_defaults when assigning `locking_column`.
     We had a potential problem. For example:
 
-    class Post < ActiveRecord::Base
-      self.column_defaults  # if we call this unintentionally before setting locking_column ...
-      self.locking_column = 'my_locking_column'
-    end
+      class Post < ActiveRecord::Base
+        self.column_defaults  # if we call this unintentionally before setting locking_column ...
+        self.locking_column = 'my_locking_column'
+      end
 
-    Post.column_defaults["my_locking_column"]
-    => nil # expected value is 0 !
+      Post.column_defaults["my_locking_column"]
+      => nil # expected value is 0 !
 
     *kennyj*
 
 *   Remove extra select and update queries on save/touch/destroy ActiveRecord model
     with belongs to reflection with option `touch: true`.
 
-    Fixes: #11288
+    Fixes #11288.
 
     *Paul Nikitochkin*
 
@@ -265,11 +657,11 @@
     Method `delete_all` should not be invoking callbacks and this
     feature was deprecated in Rails 4.0. This is being removed.
     `delete_all` will continue to honor the `:dependent` option. However
-    if `:dependent` value is `:destroy` then the default deletion
+    if `:dependent` value is `:destroy` then the `:delete_all` deletion
     strategy for that collection will be applied.
 
     User can also force a deletion strategy by passing parameter to
-    `delete_all`. For example you can do `@post.comments.delete_all(:nullify)` .
+    `delete_all`. For example you can do `@post.comments.delete_all(:nullify)`.
 
     *Neeraj Singh*
 
@@ -417,7 +809,7 @@
 
     *Neeraj Singh*
 
-*   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
+*   Fixture setup no longer depends on `ActiveRecord::Base.configurations`.
     This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
 
     *Yves Senn*

@@ -169,4 +169,19 @@ class NestedParametersTest < ActiveSupport::TestCase
 
     assert_filtered_out permitted[:book][:authors_attributes]['-1'], :age_of_death
   end
+
+  test "nested number as key" do
+    params = ActionController::Parameters.new({
+      product: {
+        properties: {
+          '0' => "prop0",
+          '1' => "prop1"
+        }
+      }
+    })
+    params = params.require(:product).permit(:properties => ["0"])
+    assert_not_nil        params[:properties]["0"]
+    assert_nil            params[:properties]["1"]
+    assert_equal "prop0", params[:properties]["0"]
+  end
 end

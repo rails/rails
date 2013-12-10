@@ -160,7 +160,7 @@ module ActiveRecord
       end
 
       def type_condition(table = arel_table)
-        sti_column = table[inheritance_column.to_sym]
+        sti_column = table[inheritance_column]
         sti_names  = ([self] + descendants).map { |model| model.sti_name }
 
         sti_column.in(sti_names)

@@ -1,8 +1,6 @@
 The Rails Command Line
 ======================
 
-Rails comes with every command line tool you'll need to
-
 After reading this guide, you will know:
 
 * How to create a Rails application.
@@ -57,8 +55,6 @@ Rails will set you up with what seems like a huge amount of stuff for such a tin
 ### `rails server`
 
 The `rails server` command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to access your application through a web browser.
-
-INFO: WEBrick isn't your only option for serving Rails. We'll get to that [later](#server-with-different-backends).
 
 With no further work, `rails server` will run our new shiny Rails app:
 
@@ -381,13 +377,14 @@ About your application's environment
 Ruby version              1.9.3 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.3
-Rails version             4.0.0
+Rails version             4.1.0
 JavaScript Runtime        Node.js (V8)
-Active Record version     4.0.0
-Action Pack version       4.0.0
-Action Mailer version     4.0.0
-Active Support version    4.0.0
-Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::EncryptedCookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Active Record version     4.1.0
+Action Pack version       4.1.0
+Action View version       4.1.0
+Action Mailer version     4.1.0
+Active Support version    4.1.0
+Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3
@@ -493,7 +490,9 @@ The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` 
 
 ### Custom Rake Tasks
 
-Custom rake tasks have a `.rake` extension and are placed in `Rails.root/lib/tasks`.
+Custom rake tasks have a `.rake` extension and are placed in
+`Rails.root/lib/tasks`. You can create these custom rake tasks with the
+`bin/rails generate task` command.
 
 ```ruby
 desc "I am short, but comprehensive description for my cool task"

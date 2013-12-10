@@ -17,14 +17,14 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   # COLLECTION RADIO BUTTONS
-  test 'collection radio accepts a collection and generate inputs from value method' do
+  test 'collection radio accepts a collection and generates inputs from value method' do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s
 
     assert_select 'input[type=radio][value=true]#user_active_true'
     assert_select 'input[type=radio][value=false]#user_active_false'
   end
 
-  test 'collection radio accepts a collection and generate inputs from label method' do
+  test 'collection radio accepts a collection and generates inputs from label method' do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s
 
     assert_select 'label[for=user_active_true]', 'true'
@@ -38,7 +38,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label[for=user_active_no]', 'No'
   end
 
-  test 'colection radio should sanitize collection values for labels correctly' do
+  test 'collection radio should sanitize collection values for labels correctly' do
     with_collection_radio_buttons :user, :name, ['$0.99', '$1.99'], :to_s, :to_s
     assert_select 'label[for=user_name_099]', '$0.99'
     assert_select 'label[for=user_name_199]', '$1.99'
@@ -179,6 +179,13 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "input[type=hidden][name='user[category_ids][]'][value=]", :count => 1
   end
 
+  test 'collection check boxes generates a hidden field using the given :name in :html_options' do
+    collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
+    with_collection_check_boxes :user, :category_ids, collection, :id, :name, {}, {name: "user[other_category_ids][]"}
+
+    assert_select "input[type=hidden][name='user[other_category_ids][]'][value=]", :count => 1
+  end
+
   test 'collection check boxes accepts a collection and generate a serie of checkboxes with labels for label method' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_check_boxes :user, :category_ids, collection, :id, :name
@@ -194,7 +201,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label[for=user_active_no]', 'No'
   end
 
-  test 'colection check box should sanitize collection values for labels correctly' do
+  test 'collection check box should sanitize collection values for labels correctly' do
     with_collection_check_boxes :user, :name, ['$0.99', '$1.99'], :to_s, :to_s
     assert_select 'label[for=user_name_099]', '$0.99'
     assert_select 'label[for=user_name_199]', '$1.99'

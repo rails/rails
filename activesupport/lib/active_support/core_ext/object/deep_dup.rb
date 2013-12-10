@@ -8,8 +8,8 @@ class Object
   #   dup    = object.deep_dup
   #   dup.instance_variable_set(:@a, 1)
   #
-  #   object.instance_variable_defined?(:@a) #=> false
-  #   dup.instance_variable_defined?(:@a)    #=> true
+  #   object.instance_variable_defined?(:@a) # => false
+  #   dup.instance_variable_defined?(:@a)    # => true
   def deep_dup
     duplicable? ? dup : self
   end
@@ -22,8 +22,8 @@ class Array
   #   dup   = array.deep_dup
   #   dup[1][2] = 4
   #
-  #   array[1][2] #=> nil
-  #   dup[1][2]   #=> 4
+  #   array[1][2] # => nil
+  #   dup[1][2]   # => 4
   def deep_dup
     map { |it| it.deep_dup }
   end
@@ -36,8 +36,8 @@ class Hash
   #   dup  = hash.deep_dup
   #   dup[:a][:c] = 'c'
   #
-  #   hash[:a][:c] #=> nil
-  #   dup[:a][:c]  #=> "c"
+  #   hash[:a][:c] # => nil
+  #   dup[:a][:c]  # => "c"
   def deep_dup
     each_with_object(dup) do |(key, value), hash|
       hash[key.deep_dup] = value.deep_dup

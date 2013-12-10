@@ -7,7 +7,7 @@ module ActiveRecord
 
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :where, :having, :bind, :references,
-                            :extending]
+                            :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
                             :reverse_order, :distinct, :create_with, :uniq]
@@ -71,7 +71,7 @@ module ActiveRecord
 
     def update_record(values, id, id_was) # :nodoc:
       substitutes, binds = substitute_values values
-      um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes)
+      um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes, @klass.primary_key)
 
       @klass.connection.update(
         um,
@@ -244,8 +244,13 @@ module ActiveRecord
     def empty?
       return @records.empty? if loaded?
 
-      c = count(:all)
-      c.respond_to?(:zero?) ? c.zero? : c.empty?
+      if limit_value == 0
+        true
+      else
+        # FIXME: This count is not compatible with #select('authors.*') or other select narrows
+        c = count
+        c.respond_to?(:zero?) ? c.zero? : c.empty?
+      end
     end
 
     # Returns true if there are any records.
@@ -507,8 +512,7 @@ module ActiveRecord
                     visitor    = connection.visitor
 
                     if eager_loading?
-                      join_dependency = construct_join_dependency
-                      relation        = construct_relation_for_association_find(join_dependency)
+                      find_with_associations { |rel| relation = rel }
                     end
 
                     ast   = relation.arel.ast
@@ -599,8 +603,9 @@ module ActiveRecord
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?
+      preloader = ActiveRecord::Associations::Preloader.new
       preload.each do |associations|
-        ActiveRecord::Associations::Preloader.new(@records, associations).run
+        preloader.preload @records, associations
       end
 
       @records.each { |record| record.readonly! } if readonly_value

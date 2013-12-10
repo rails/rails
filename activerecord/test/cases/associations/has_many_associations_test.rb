@@ -45,6 +45,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_anonymous_has_many
+    developer = Class.new(ActiveRecord::Base) {
+      self.table_name = 'developers'
+      dev = self
+
+      developer_project = Class.new(ActiveRecord::Base) {
+        self.table_name = 'developers_projects'
+        belongs_to :developer, :class => dev
+      }
+      has_many :developer_projects, :class => developer_project, :foreign_key => 'developer_id'
+    }
+    dev = developer.first
+    named = Developer.find(dev.id)
+    assert_operator dev.developer_projects.count, :>, 0
+    assert_equal named.projects.map(&:id).sort,
+                 dev.developer_projects.map(&:project_id).sort
+  end
+
   def test_create_from_association_should_respect_default_scope
     car = Car.create(:name => 'honda')
     assert_equal 'honda', car.name
@@ -62,6 +80,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'exotic', bulb.name
   end
 
+  def test_build_from_association_should_respect_scope
+    author = Author.new
+
+    post = author.thinking_posts.build
+    assert_equal 'So I was thinking', post.title
+  end
+
   def test_create_from_association_with_nil_values_should_work
     car = Car.create(:name => 'honda')
 
@@ -76,11 +101,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_do_not_call_callbacks_for_delete_all
-    bulb_count = Bulb.count
     car = Car.create(:name => 'honda')
     car.funky_bulbs.create!
     assert_nothing_raised { car.reload.funky_bulbs.delete_all }
-    assert_equal bulb_count + 1, Bulb.count, "bulbs should have been deleted using :nullify strategey"
+    assert_equal 0, Bulb.count, "bulbs should have been deleted using :delete_all strategey"
   end
 
   def test_building_the_associated_object_with_implicit_sti_base_class
@@ -319,6 +343,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { firm.clients.find(2, 99) }
   end
 
+  def test_find_ids_and_inverse_of
+    force_signal37_to_load_all_clients_of_firm
+
+    firm = companies(:first_firm)
+    client = firm.clients_of_firm.find(3)
+    assert_kind_of Client, client
+
+    client_ary = firm.clients_of_firm.find([3])
+    assert_kind_of Array, client_ary
+    assert_equal client, client_ary.first
+  end
+
   def test_find_all
     firm = Firm.all.merge!(:order => "id").first
     assert_equal 2, firm.clients.where("#{QUOTED_TYPE} = 'Client'").to_a.length
@@ -424,6 +460,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal ['id'], posts(:welcome).comments.select(:id).first.attributes.keys
   end
 
+   def test_select_without_foreign_key
+    assert_equal companies(:first_firm).accounts.first.credit_limit, companies(:first_firm).accounts.select(:credit_limit).first.credit_limit
+   end
+
   def test_adding
     force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")
@@ -497,6 +537,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries do
       firm = Firm.new
       firm.clients_of_firm.concat(Client.new("name" => "Natural Company"))
+    end
+  end
+
+  def test_inverse_on_before_validate
+    firm = companies(:first_firm)
+    assert_queries(1) do
+      firm.clients_of_firm << Client.new("name" => "Natural Company")
     end
   end
 
@@ -738,13 +785,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_delete_all
     force_signal37_to_load_all_clients_of_firm
-    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
-    clients = companies(:first_firm).clients_of_firm.to_a
+    companies(:first_firm).dependent_clients_of_firm.create("name" => "Another Client")
+    clients = companies(:first_firm).dependent_clients_of_firm.to_a
     assert_equal 2, clients.count
-    deleted = companies(:first_firm).clients_of_firm.delete_all
-    assert_equal clients.sort_by(&:id), deleted.sort_by(&:id)
-    assert_equal 0, companies(:first_firm).clients_of_firm.size
-    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+
+    assert_difference "Client.count", -(clients.count) do
+      companies(:first_firm).dependent_clients_of_firm.delete_all
+    end
   end
 
   def test_delete_all_with_not_yet_loaded_association_collection
@@ -820,7 +867,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, firm.dependent_clients_of_firm.size
     assert_equal 1, Client.find_by_id(client_id).client_of
 
-    # :nullify is called on each client
+    # :delete_all is called on each client since the dependent options is :destroy
     firm.dependent_clients_of_firm.clear
 
     assert_equal 0, firm.dependent_clients_of_firm.size
@@ -828,7 +875,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], Client.destroyed_client_ids[firm.id]
 
     # Should be destroyed since the association is dependent.
-    assert_nil Client.find_by_id(client_id).client_of
+    assert_nil Client.find_by_id(client_id)
   end
 
   def test_delete_all_with_option_delete_all
@@ -1396,15 +1443,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_calling_first_or_last_with_integer_on_association_should_load_association
+  def test_calling_first_or_last_with_integer_on_association_should_not_load_association
     firm = companies(:first_firm)
+    firm.clients.create(:name => 'Foo')
+    assert !firm.clients.loaded?
 
-    assert_queries 1 do
+    assert_queries 2 do
       firm.clients.first(2)
       firm.clients.last(2)
     end
 
-    assert firm.clients.loaded?
+    assert !firm.clients.loaded?
   end
 
   def test_calling_many_should_count_instead_of_loading_association
@@ -1590,6 +1639,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
   end
 
+  def test_attributes_are_set_when_initialized_from_has_many_null_relationship
+    car  = Car.new name: 'honda'
+    bulb = car.bulbs.where(name: 'headlight').first_or_initialize
+    assert_equal 'headlight', bulb.name
+  end
+
+  def test_attributes_are_set_when_initialized_from_polymorphic_has_many_null_relationship
+    post    = Post.new title: 'title', body: 'bar'
+    tag     = Tag.create!(name: 'foo')
+
+    tagging = post.taggings.where(tag: tag).first_or_initialize
+
+    assert_equal tag.id, tagging.tag_id
+    assert_equal 'Post', tagging.taggable_type
+  end
+
   def test_replace
     car = Car.create(:name => 'honda')
     bulb1 = car.bulbs.create
@@ -1695,5 +1760,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
     assert_equal 1, speedometer.reload.minivans.to_a.size
+  end
+
+  test "can unscope the default scope of the associated model" do
+    car = Car.create!
+    bulb1 = Bulb.create! name: "defaulty", car: car
+    bulb2 = Bulb.create! name: "other",    car: car
+
+    assert_equal [bulb1], car.bulbs
+    assert_equal [bulb1, bulb2], car.all_bulbs.sort_by(&:id)
   end
 end

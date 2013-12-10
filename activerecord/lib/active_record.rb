@@ -37,6 +37,7 @@ module ActiveRecord
   autoload :ConnectionHandling
   autoload :CounterCache
   autoload :DynamicMatchers
+  autoload :Enum
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
@@ -44,6 +45,7 @@ module ActiveRecord
   autoload :Migrator, 'active_record/migration'
   autoload :ModelSchema
   autoload :NestedAttributes
+  autoload :NoTouching
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
@@ -145,10 +147,6 @@ module ActiveRecord
     autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
     autoload :PostgreSQLDatabaseTasks,
       'active_record/tasks/postgresql_database_tasks'
-
-    autoload :FirebirdDatabaseTasks, 'active_record/tasks/firebird_database_tasks'
-    autoload :SqlserverDatabaseTasks, 'active_record/tasks/sqlserver_database_tasks'
-    autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
   autoload :TestFixtures, 'active_record/fixtures'

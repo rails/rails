@@ -109,7 +109,7 @@ module ActiveModel
       deprecated_setup(options)
     end
 
-    # Return the kind for this validator.
+    # Returns the kind for this validator.
     #
     #   PresenceValidator.new.kind   # => :presence
     #   UniquenessValidator.new.kind # => :uniqueness

@@ -1282,6 +1282,24 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_with_namespace_and_with_collection_radio_buttons
+    post = Post.new
+    def post.active; false; end
+
+    form_for(post, namespace: 'foo') do |f|
+      concat f.collection_radio_buttons(:active, [true, false], :to_s, :to_s)
+    end
+
+    expected = whole_form("/posts", "foo_new_post", "new_post") do
+      "<input id='foo_post_active_true' name='post[active]' type='radio' value='true' />" +
+      "<label for='foo_post_active_true'>true</label>" +
+      "<input checked='checked' id='foo_post_active_false' name='post[active]' type='radio' value='false' />" +
+      "<label for='foo_post_active_false'>false</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_collection_check_boxes
     post = Post.new
     def post.tag_ids; [1, 3]; end
@@ -1356,6 +1374,24 @@ class FormHelperTest < ActionView::TestCase
       "Tag 3</label>" +
       "<input name='post[tag_ids][]' type='hidden' value='' />"+
       "<input id='post_id' name='post[id]' type='hidden' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_namespace_and_with_collection_check_boxes
+    post = Post.new
+    def post.tag_ids; [1]; end
+    collection = [[1, "Tag 1"]]
+
+    form_for(post, namespace: 'foo') do |f|
+      concat f.collection_check_boxes(:tag_ids, collection, :first, :last)
+    end
+
+    expected = whole_form("/posts", "foo_new_post", "new_post") do
+      "<input checked='checked' id='foo_post_tag_ids_1' name='post[tag_ids][]' type='checkbox' value='1' />" +
+      "<label for='foo_post_tag_ids_1'>Tag 1</label>" +
+      "<input name='post[tag_ids][]' type='hidden' value='' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1676,6 +1712,18 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form('/posts/123', 'namespace_edit_post_123', 'edit_post', method: 'patch') do
       "<label for='namespace_post_title'>Title</label>" +
       "<input name='post[title]' type='text' id='namespace_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_with_namespace_and_as_option
+    form_for(@post, namespace: 'namespace', as: 'custom_name') do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form('/posts/123', 'namespace_edit_custom_name', 'edit_custom_name', method: 'patch') do
+      "<input id='namespace_custom_name_title' name='custom_name[title]' type='text' value='Hello World' />"
     end
 
     assert_dom_equal expected, output_buffer

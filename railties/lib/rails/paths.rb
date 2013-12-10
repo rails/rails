@@ -81,34 +81,28 @@ module Rails
       end
 
       def autoload_once
-        filter_by(:autoload_once?)
+        filter_by { |p| p.autoload_once? }
       end
 
       def eager_load
-        filter_by(:eager_load?)
+        filter_by { |p| p.eager_load? }
       end
 
       def autoload_paths
-        filter_by(:autoload?)
+        filter_by { |p| p.autoload? }
       end
 
       def load_paths
-        filter_by(:load_path?)
+        filter_by { |p| p.load_path? }
       end
 
-    protected
+    private
 
-      def filter_by(constraint)
-        all = []
-        all_paths.each do |path|
-          if path.send(constraint)
-            paths  = path.existent
-            paths -= path.children.map { |p| p.send(constraint) ? [] : p.existent }.flatten
-            all.concat(paths)
-          end
-        end
-        all.uniq!
-        all
+      def filter_by(&block)
+        all_paths.find_all(&block).flat_map { |path|
+          paths = path.existent
+          paths - path.children.map { |p| yield(p) ? [] : p.existent }.flatten
+        }.uniq
       end
     end
 
@@ -130,8 +124,9 @@ module Rails
       end
 
       def children
-        keys = @root.keys.select { |k| k.include?(@current) }
-        keys.delete(@current)
+        keys = @root.keys.find_all { |k|
+          k.start_with?(@current) && k != @current
+        }
         @root.values_at(*keys.sort)
       end
 
@@ -203,7 +198,7 @@ module Rails
 
       # Returns all expanded paths but only if they exist in the filesystem.
       def existent
-        expanded.select { |f| File.exists?(f) }
+        expanded.select { |f| File.exist?(f) }
       end
 
       def existent_directories

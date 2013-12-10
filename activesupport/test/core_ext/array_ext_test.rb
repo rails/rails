@@ -212,18 +212,24 @@ class ArraySplitTests < ActiveSupport::TestCase
   end
 
   def test_split_with_argument
-    assert_equal [[1, 2], [4, 5]],  [1, 2, 3, 4, 5].split(3)
-    assert_equal [[1, 2, 3, 4, 5]], [1, 2, 3, 4, 5].split(0)
+    a = [1, 2, 3, 4, 5]
+    assert_equal [[1, 2], [4, 5]],  a.split(3)
+    assert_equal [[1, 2, 3, 4, 5]], a.split(0)
+    assert_equal [1, 2, 3, 4, 5], a
   end
 
   def test_split_with_block
-    assert_equal [[1, 2], [4, 5], [7, 8], [10]], (1..10).to_a.split { |i| i % 3 == 0 }
+    a = (1..10).to_a
+    assert_equal [[1, 2], [4, 5], [7, 8], [10]], a.split { |i| i % 3 == 0 }
+    assert_equal [1, 2, 3, 4, 5, 6, 7, 8, 9 ,10], a
   end
 
   def test_split_with_edge_values
-    assert_equal [[], [2, 3, 4, 5]],  [1, 2, 3, 4, 5].split(1)
-    assert_equal [[1, 2, 3, 4], []],  [1, 2, 3, 4, 5].split(5)
-    assert_equal [[], [2, 3, 4], []], [1, 2, 3, 4, 5].split { |i| i == 1 || i == 5 }
+    a = [1, 2, 3, 4, 5]
+    assert_equal [[], [2, 3, 4, 5]],  a.split(1)
+    assert_equal [[1, 2, 3, 4], []],  a.split(5)
+    assert_equal [[], [2, 3, 4], []], a.split { |i| i == 1 || i == 5 }
+    assert_equal [1, 2, 3, 4, 5], a
   end
 end
 

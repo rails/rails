@@ -326,6 +326,7 @@ module ActionController #:nodoc:
 
       if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
+        options = options.clone
         options[:default_response] = collector.response
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
@@ -364,9 +365,7 @@ module ActionController #:nodoc:
       format = collector.negotiate_format(request)
 
       if format
-        self.content_type ||= format.to_s
-        lookup_context.formats = [format.to_sym]
-        lookup_context.rendered_format = lookup_context.formats.first
+        _process_format(format)
         collector
       else
         raise ActionController::UnknownFormat
@@ -397,10 +396,10 @@ module ActionController #:nodoc:
     # request, with this response then being accessible by calling #response.
     class Collector
       include AbstractController::Collector
-      attr_accessor :order, :format
+      attr_accessor :format
 
       def initialize(mimes)
-        @order, @responses = [], {}
+        @responses = {}
         mimes.each { |mime| send(mime) }
       end
 
@@ -415,7 +414,6 @@ module ActionController #:nodoc:
 
       def custom(mime_type, &block)
         mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
-        @order << mime_type
         @responses[mime_type] ||= block
       end
 
@@ -424,7 +422,7 @@ module ActionController #:nodoc:
       end
 
       def negotiate_format(request)
-        @format = request.negotiate_mime(order)
+        @format = request.negotiate_mime(@responses.keys)
       end
     end
   end

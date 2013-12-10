@@ -46,7 +46,7 @@ module ActiveRecord
         end
 
         # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-        # <tt>:encoding</tt>, <tt>:collation</tt>, <tt>:ctype</tt>,
+        # <tt>:encoding</tt> (defaults to utf8), <tt>:collation</tt>, <tt>:ctype</tt>,
         # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
         # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
         #

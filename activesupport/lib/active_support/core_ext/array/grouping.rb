@@ -53,7 +53,7 @@ class Array
   #   ["4", "5"]
   #   ["6", "7"]
   def in_groups(number, fill_with = nil)
-    # size / number gives minor group size;
+    # size.div number gives minor group size;
     # size % number gives how many objects need extra accommodation;
     # each group hold either division or division + 1 items.
     division = size.div number
@@ -83,10 +83,10 @@ class Array
   #
   #   [1, 2, 3, 4, 5].split(3)              # => [[1, 2], [4, 5]]
   #   (1..10).to_a.split { |i| i % 3 == 0 } # => [[1, 2], [4, 5], [7, 8], [10]]
-  def split(value = nil, &block)
-    if block
+  def split(value = nil)
+    if block_given?
       inject([[]]) do |results, element|
-        if block.call(element)
+        if yield(element)
           results << []
         else
           results.last << element
@@ -95,9 +95,9 @@ class Array
         results
       end
     else
-      results, arr = [[]], self
+      results, arr = [[]], self.dup
       until arr.empty?
-        if (idx = index(value))
+        if (idx = arr.index(value))
           results.last.concat(arr.shift(idx))
           arr.shift
           results << []

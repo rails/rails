@@ -12,8 +12,6 @@ module ActiveRecord
 
     def self.create(macro, name, scope, options, ar)
       case macro
-      when :has_and_belongs_to_many
-        klass = AssociationReflection
       when :has_many, :belongs_to, :has_one
         klass = options[:through] ? ThroughReflection : AssociationReflection
       when :composed_of
@@ -24,11 +22,11 @@ module ActiveRecord
     end
 
     def self.add_reflection(ar, name, reflection)
-      if reflection.class == AggregateReflection
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
-      else
-        ar.reflections = ar.reflections.merge(name => reflection)
-      end
+      ar.reflections = ar.reflections.merge(name => reflection)
+    end
+
+    def self.add_aggregate_reflection(ar, name, reflection)
+      ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
     end
 
     # \Reflection enables to interrogate Active Record classes and objects
@@ -121,6 +119,7 @@ module ActiveRecord
         @scope         = scope
         @options       = options
         @active_record = active_record
+        @klass         = options[:class]
         @plural_name   = active_record.pluralize_table_names ?
                             name.to_s.pluralize : name.to_s
       end
@@ -195,16 +194,21 @@ module ActiveRecord
 
       def initialize(macro, name, scope, options, active_record)
         super
-        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
+        @collection = :has_many == macro
         @automatic_inverse_of = nil
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
+        @constructable = calculate_constructable(macro, options)
       end
 
       # Returns a new, unsaved instance of the associated class. +attributes+ will
       # be passed to the class's constructor.
       def build_association(attributes, &block)
         klass.new(attributes, &block)
+      end
+
+      def constructable? # :nodoc:
+        @constructable
       end
 
       def table_name
@@ -250,10 +254,6 @@ module ActiveRecord
 
       def check_validity!
         check_validity_of_inverse!
-
-        if has_and_belongs_to_many? && association_foreign_key == foreign_key
-          raise HasAndBelongsToManyAssociationForeignKeyNeeded.new(self)
-        end
       end
 
       def check_validity_of_inverse!
@@ -335,10 +335,6 @@ module ActiveRecord
         macro == :belongs_to
       end
 
-      def has_and_belongs_to_many?
-        macro == :has_and_belongs_to_many
-      end
-
       def association_class
         case macro
         when :belongs_to
@@ -347,8 +343,6 @@ module ActiveRecord
           else
             Associations::BelongsToAssociation
           end
-        when :has_and_belongs_to_many
-          Associations::HasAndBelongsToManyAssociation
         when :has_many
           if options[:through]
             Associations::HasManyThroughAssociation
@@ -373,11 +367,23 @@ module ActiveRecord
 
       protected
 
-      def actual_source_reflection # FIXME: this is a horrible name
-        self
-      end
+        def actual_source_reflection # FIXME: this is a horrible name
+          self
+        end
 
       private
+
+        def calculate_constructable(macro, options)
+          case macro
+          when :belongs_to
+            !options[:polymorphic]
+          when :has_one
+            !options[:through]
+          else
+            true
+          end
+        end
+
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
         # nil.
@@ -568,7 +574,7 @@ module ActiveRecord
           # Add to it the scope from this reflection (if any)
           scope_chain.first << scope if scope
 
-          through_scope_chain = through_reflection.scope_chain
+          through_scope_chain = through_reflection.scope_chain.map(&:dup)
 
           if options[:source_type]
             through_scope_chain.first <<
@@ -587,7 +593,7 @@ module ActiveRecord
 
       # A through association is nested if there would be more than one join table
       def nested?
-        chain.length > 2 || through_reflection.has_and_belongs_to_many?
+        chain.length > 2
       end
 
       # We want to use the klass from this reflection, rather than just delegate straight to

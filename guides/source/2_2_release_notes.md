@@ -327,7 +327,7 @@ Other features of memoization include `unmemoize`, `unmemoize_all`, and `memoize
 The `each_with_object` method provides an alternative to `inject`, using a method backported from Ruby 1.9. It iterates over a collection, passing the current element and the memo into the block.
 
 ```ruby
-%w(foo bar).each_with_object({}) { |str, hsh| hsh[str] = str.upcase } #=> {'foo' => 'FOO', 'bar' => 'BAR'}
+%w(foo bar).each_with_object({}) { |str, hsh| hsh[str] = str.upcase } # => {'foo' => 'FOO', 'bar' => 'BAR'}
 ```
 
 Lead Contributor: [Adam Keys](http://therealadam.com/)

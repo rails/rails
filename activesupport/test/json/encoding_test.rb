@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'securerandom'
 require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
@@ -12,7 +13,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   class Hashlike
     def to_hash
-      { :a => 1 }
+      { :foo => "hello", :bar => "world" }
     end
   end
 
@@ -28,6 +29,25 @@ class TestJSONEncoding < ActiveSupport::TestCase
     def as_json(options={})
       options[:only] = %w(foo bar)
       super(options)
+    end
+  end
+
+  class OptionsTest
+    def as_json(options = :default)
+      options
+    end
+  end
+
+  class HashWithAsJson < Hash
+    attr_accessor :as_json_called
+
+    def initialize(*)
+      super
+    end
+
+    def as_json(options={})
+      @as_json_called = true
+      super
     end
   end
 
@@ -60,7 +80,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
                    [ :"a b", %("a b")  ]]
 
   ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
-  HashlikeTests = [[ Hashlike.new, %({\"a\":1}) ]]
+  HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
   CustomTests   = [[ Custom.new, '"custom"' ]]
 
   RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
@@ -70,8 +90,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
   DateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005/02/01 15:15:10 +0000") ]]
 
   StandardDateTests     = [[ Date.new(2005,2,1), %("2005-02-01") ]]
-  StandardTimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005-02-01T15:15:10Z") ]]
-  StandardDateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005-02-01T15:15:10+00:00") ]]
+  StandardTimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005-02-01T15:15:10.000Z") ]]
+  StandardDateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005-02-01T15:15:10.000+00:00") ]]
   StandardStringTests   = [[ 'this is the <string>', %("this is the <string>")]]
 
   def sorted_json(json)
@@ -94,6 +114,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
         ActiveSupport.use_standard_json_time_format = prev
       end
     end
+  end
+
+  def test_process_status
+    # There doesn't seem to be a good way to get a handle on a Process::Status object without actually
+    # creating a child process, hence this to populate $?
+    system("not_a_real_program_#{SecureRandom.hex}")
+    assert_equal %({"exitstatus":#{$?.exitstatus},"pid":#{$?.pid}}), ActiveSupport::JSON.encode($?)
   end
 
   def test_hash_encoding
@@ -138,19 +165,25 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_exception_raised_when_encoding_circular_reference_in_array
     a = [1]
     a << a
-    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    assert_deprecated do
+      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    end
   end
 
   def test_exception_raised_when_encoding_circular_reference_in_hash
     a = { :name => 'foo' }
     a[:next] = a
-    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    assert_deprecated do
+      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    end
   end
 
   def test_exception_raised_when_encoding_circular_reference_in_hash_inside_array
     a = { :name => 'foo', :sub => [] }
     a[:sub] << a
-    assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    assert_deprecated do
+      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
+    end
   end
 
   def test_hash_key_identifiers_are_always_quoted
@@ -170,7 +203,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
     with_env_tz 'US/Eastern' do
-      assert_equal %("2005-02-01T15:15:10-05:00"), ActiveSupport::JSON.encode(Time.local(2005,2,1,15,15,10))
+      assert_equal %("2005-02-01T15:15:10.000-05:00"), ActiveSupport::JSON.encode(Time.local(2005,2,1,15,15,10))
     end
   ensure
     ActiveSupport.use_standard_json_time_format = prev
@@ -194,6 +227,31 @@ class TestJSONEncoding < ActiveSupport::TestCase
       }
       ActiveSupport::JSON.encode(hash)
     end
+  end
+
+  def test_hash_like_with_options
+    h = Hashlike.new
+    json = h.to_json :only => [:foo]
+
+    assert_equal({"foo"=>"hello"}, JSON.parse(json))
+  end
+
+  def test_object_to_json_with_options
+    obj = Object.new
+    obj.instance_variable_set :@foo, "hello"
+    obj.instance_variable_set :@bar, "world"
+    json = obj.to_json :only => ["foo"]
+
+    assert_equal({"foo"=>"hello"}, JSON.parse(json))
+  end
+
+  def test_struct_to_json_with_options
+    struct = Struct.new(:foo, :bar).new
+    struct.foo = "hello"
+    struct.bar = "world"
+    json = struct.to_json :only => [:foo]
+
+    assert_equal({"foo"=>"hello"}, JSON.parse(json))
   end
 
   def test_hash_should_pass_encoding_options_to_children_in_as_json
@@ -277,7 +335,17 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
     hash = {"foo" => f, "other_hash" => {"foo" => "other_foo", "test" => "other_test"}}
     assert_equal({"foo"=>{"foo"=>"hello","bar"=>"world"},
-                  "other_hash" => {"foo"=>"other_foo","test"=>"other_test"}}, JSON.parse(hash.to_json))
+                  "other_hash" => {"foo"=>"other_foo","test"=>"other_test"}}, ActiveSupport::JSON.decode(hash.to_json))
+  end
+
+  def test_hash_as_json_without_options
+    json = { foo: OptionsTest.new }.as_json
+    assert_equal({"foo" => :default}, json)
+  end
+
+  def test_array_as_json_without_options
+    json = [ OptionsTest.new ].as_json
+    assert_equal([:default], json)
   end
 
   def test_struct_encoding
@@ -302,13 +370,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal({"name" => "David",
                   "sub" => {
                     "name" => "David",
-                    "date" => "2010-01-01" }}, JSON.parse(json_custom))
+                    "date" => "2010-01-01" }}, ActiveSupport::JSON.decode(json_custom))
 
     assert_equal({"name" => "David", "email" => "sample@example.com"},
-                 JSON.parse(json_strings))
+                 ActiveSupport::JSON.decode(json_strings))
 
     assert_equal({"name" => "David", "date" => "2010-01-01"},
-                 JSON.parse(json_string_and_date))
+                 ActiveSupport::JSON.decode(json_string_and_date))
   end
 
   def test_opt_out_big_decimal_string_serialization
@@ -326,6 +394,38 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal nil,   nil.as_json
     assert_equal true,  true.as_json
     assert_equal false, false.as_json
+  end
+
+  def test_json_gem_dump_by_passing_active_support_encoder
+    h = HashWithAsJson.new
+    h[:foo] = "hello"
+    h[:bar] = "world"
+
+    assert_equal %({"foo":"hello","bar":"world"}), JSON.dump(h)
+    assert_nil h.as_json_called
+  end
+
+  def test_json_gem_generate_by_passing_active_support_encoder
+    h = HashWithAsJson.new
+    h[:foo] = "hello"
+    h[:bar] = "world"
+
+    assert_equal %({"foo":"hello","bar":"world"}), JSON.generate(h)
+    assert_nil h.as_json_called
+  end
+
+  def test_json_gem_pretty_generate_by_passing_active_support_encoder
+    h = HashWithAsJson.new
+    h[:foo] = "hello"
+    h[:bar] = "world"
+
+    assert_equal <<EXPECTED.chomp, JSON.pretty_generate(h)
+{
+  "foo": "hello",
+  "bar": "world"
+}
+EXPECTED
+    assert_nil h.as_json_called
   end
 
   protected

@@ -442,10 +442,11 @@ module ActionView
         object = convert_to_model(object)
 
         as = options[:as]
+        namespace = options[:namespace]
         action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :patch] : [:new, :post]
         options[:html].reverse_merge!(
           class:  as ? "#{action}_#{as}" : dom_class(object, action),
-          id:     as ? "#{action}_#{as}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,
+          id:     (as ? [namespace, action, as] : [namespace, dom_id(object, action)]).compact.join("_").presence,
           method: method
         )
 
@@ -1172,7 +1173,7 @@ module ActionView
     # methods in the +FormHelper+ module. This class, however, allows you to
     # call methods with the model object you are building the form for.
     #
-    # You can create your own custom FormBuilder templates by subclasses this
+    # You can create your own custom FormBuilder templates by subclassing this
     # class. For example:
     #
     #   class MyFormBuilder < ActionView::Helpers::FormBuilder

@@ -28,6 +28,7 @@ module ApplicationTests
         app_file "app/assets/stylesheets/application.css.less", "// TODO: note in less"
         app_file "app/controllers/application_controller.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in ruby"
         app_file "lib/tasks/task.rake", "# TODO: note in rake"
+        app_file 'app/views/home/index.html.builder', '# TODO: note in builder'
 
         boot_rails
         require 'rake'
@@ -51,8 +52,9 @@ module ApplicationTests
           assert_match(/note in sass/, output)
           assert_match(/note in less/, output)
           assert_match(/note in rake/, output)
+          assert_match(/note in builder/, output)
 
-          assert_equal 11, lines.size
+          assert_equal 12, lines.size
 
           lines.each do |line|
             assert_equal 4, line[0].size

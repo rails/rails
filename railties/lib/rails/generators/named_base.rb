@@ -90,7 +90,7 @@ module Rails
         end
 
         def namespaced_path
-          @namespaced_path ||= namespace.name.split("::").map {|m| m.underscore }[0]
+          @namespaced_path ||= namespace.name.split("::").first.underscore
         end
 
         def class_name

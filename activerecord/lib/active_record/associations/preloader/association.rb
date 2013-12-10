@@ -3,6 +3,7 @@ module ActiveRecord
     class Preloader
       class Association #:nodoc:
         attr_reader :owners, :reflection, :preload_scope, :model, :klass
+        attr_reader :preloaded_records
 
         def initialize(klass, owners, reflection, preload_scope)
           @klass         = klass
@@ -12,15 +13,14 @@ module ActiveRecord
           @model         = owners.first && owners.first.class
           @scope         = nil
           @owners_by_key = nil
+          @preloaded_records = []
         end
 
-        def run
-          unless owners.first.association(reflection.name).loaded?
-            preload
-          end
+        def run(preloader)
+          preload(preloader)
         end
 
-        def preload
+        def preload(preloader)
           raise NotImplementedError
         end
 
@@ -68,36 +68,39 @@ module ActiveRecord
 
         private
 
-        def associated_records_by_owner
+        def associated_records_by_owner(preloader)
           owners_map = owners_by_key
           owner_keys = owners_map.keys.compact
 
           # Each record may have multiple owners, and vice-versa
-          records_by_owner = Hash[owners.map { |owner| [owner, []] }]
+          records_by_owner = owners.each_with_object({}) do |owner,h|
+            h[owner] = []
+          end
 
-          if klass && owner_keys.any?
+          if owner_keys.any?
             # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
             # Make several smaller queries if necessary or make one query if the adapter supports it
             sliced  = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
-            sliced.each { |slice|
-              records = records_for(slice)
-              caster = type_caster(records, association_key_name)
-              records.each do |record|
-                owner_key = caster.call record[association_key_name]
 
-                owners_map[owner_key].each do |owner|
-                  records_by_owner[owner] << record
-                end
+            records = load_slices sliced
+            records.each do |record, owner_key|
+              owners_map[owner_key].each do |owner|
+                records_by_owner[owner] << record
               end
-            }
+            end
           end
 
           records_by_owner
         end
 
-        IDENTITY = lambda { |value| value }
-        def type_caster(results, name)
-          IDENTITY
+        def load_slices(slices)
+          @preloaded_records = slices.flat_map { |slice|
+            records_for(slice)
+          }
+
+          @preloaded_records.map { |record|
+            [record, record[association_key_name]]
+          }
         end
 
         def reflection_scope
@@ -115,6 +118,14 @@ module ActiveRecord
 
           scope.select!   preload_values[:select] || values[:select] || table[Arel.star]
           scope.includes! preload_values[:includes] || values[:includes]
+
+          if preload_values.key? :order
+            scope.order! preload_values[:order]
+          else
+            if values.key? :order
+              scope.order! values[:order]
+            end
+          end
 
           if options[:as]
             scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })

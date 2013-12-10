@@ -147,14 +147,16 @@ module ActionDispatch
             @defaults.merge!(options[:defaults]) if options[:defaults]
 
             options.each do |key, default|
-              next if Regexp === default || IGNORE_OPTIONS.include?(key)
-              @defaults[key] = default
+              unless Regexp === default || IGNORE_OPTIONS.include?(key)
+                @defaults[key] = default
+              end
             end
 
             if options[:constraints].is_a?(Hash)
               options[:constraints].each do |key, default|
-                next unless URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
-                @defaults[key] ||= default
+                if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+                  @defaults[key] ||= default
+                end
               end
             end
 
@@ -166,19 +168,21 @@ module ActionDispatch
           end
 
           def normalize_conditions!
-            @conditions.merge!(:path_info => path)
+            @conditions[:path_info] = path
 
             constraints.each do |key, condition|
-              next if segment_keys.include?(key) || key == :controller
-              @conditions[key] = condition
+              unless segment_keys.include?(key) || key == :controller
+                @conditions[key] = condition
+              end
             end
 
-            @conditions[:required_defaults] = []
+            required_defaults = []
             options.each do |key, required_default|
-              next if segment_keys.include?(key) || IGNORE_OPTIONS.include?(key)
-              next if Regexp === required_default
-              @conditions[:required_defaults] << key
+              unless segment_keys.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
+                required_defaults << key
+              end
             end
+            @conditions[:required_defaults] = required_defaults
 
             via_all = options.delete(:via) if options[:via] == :all
 
@@ -192,8 +196,7 @@ module ActionDispatch
             end
 
             if via = options[:via]
-              list = Array(via).map { |m| m.to_s.dasherize.upcase }
-              @conditions.merge!(:request_method => list)
+              @conditions[:request_method] = Array(via).map { |m| m.to_s.dasherize.upcase }
             end
           end
 
@@ -226,11 +229,13 @@ module ActionDispatch
               action     = action.to_s     unless action.is_a?(Regexp)
 
               if controller.blank? && segment_keys.exclude?(:controller)
-                raise ArgumentError, "missing :controller"
+                message = "Missing :controller key on routes definition, please check your routes."
+                raise ArgumentError, message
               end
 
               if action.blank? && segment_keys.exclude?(:action)
-                raise ArgumentError, "missing :action"
+                message = "Missing :action key on routes definition, please check your routes."
+                raise ArgumentError, message
               end
 
               if controller.is_a?(String) && controller !~ /\A[a-z_0-9\/]*\z/
@@ -362,8 +367,9 @@ module ActionDispatch
         #   # Yes, controller actions are just rack endpoints
         #   match 'photos/:id', to: PhotosController.action(:show)
         #
-        # Because request various HTTP verbs with a single action has security
-        # implications, is recommendable use HttpHelpers[rdoc-ref:HttpHelpers]
+        # Because requesting various HTTP verbs with a single action has security
+        # implications, you must either specify the actions in
+        # the via options or use one of the HtttpHelpers[rdoc-ref:HttpHelpers]
         # instead +match+
         #
         # === Options
@@ -383,7 +389,7 @@ module ActionDispatch
         #   The namespace for :controller.
         #
         #     match 'path', to: 'c#a', module: 'sekret', controller: 'posts'
-        #     #=> Sekret::PostsController
+        #     # => Sekret::PostsController
         #
         #   See <tt>Scoping#namespace</tt> for its scope equivalent.
         #
@@ -432,10 +438,10 @@ module ActionDispatch
         #
         #     match 'json_only', constraints: { format: 'json' }
         #
-        #     class Blacklist
+        #     class Whitelist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path', to: 'c#a', constraints: Blacklist.new
+        #     match 'path', to: 'c#a', constraints: Whitelist.new
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -1066,18 +1072,18 @@ module ActionDispatch
         # a singular resource to map /profile (rather than /profile/:id) to
         # the show action:
         #
-        #   resource :geocoder
+        #   resource :profile
         #
         # creates six different routes in your application, all mapping to
-        # the +GeoCoders+ controller (note that the controller is named after
+        # the +Profiles+ controller (note that the controller is named after
         # the plural):
         #
-        #   GET       /geocoder/new
-        #   POST      /geocoder
-        #   GET       /geocoder
-        #   GET       /geocoder/edit
-        #   PATCH/PUT /geocoder
-        #   DELETE    /geocoder
+        #   GET       /profile/new
+        #   POST      /profile
+        #   GET       /profile
+        #   GET       /profile/edit
+        #   PATCH/PUT /profile
+        #   DELETE    /profile
         #
         # === Options
         # Takes same options as +resources+.

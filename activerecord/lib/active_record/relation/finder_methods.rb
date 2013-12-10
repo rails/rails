@@ -6,11 +6,12 @@ module ActiveRecord
     # If no record can be found for all of the listed ids, then RecordNotFound will be raised. If the primary key
     # is an integer, find by id coerces its arguments using +to_i+.
     #
-    #   Person.find(1)       # returns the object for ID = 1
-    #   Person.find("1")     # returns the object for ID = 1
-    #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
-    #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
-    #   Person.find([1])     # returns an array for the object with ID = 1
+    #   Person.find(1)          # returns the object for ID = 1
+    #   Person.find("1")        # returns the object for ID = 1
+    #   Person.find("31-sarah") # returns the object for ID = 31
+    #   Person.find(1, 2, 6)    # returns an array for objects with IDs in (1, 2, 6)
+    #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17)
+    #   Person.find([1])        # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
     # <tt>ActiveRecord::RecordNotFound</tt> will be raised if one or more ids are not found.
@@ -201,7 +202,7 @@ module ActiveRecord
       conditions = conditions.id if Base === conditions
       return false if !conditions
 
-      relation = construct_relation_for_association_find(construct_join_dependency)
+      relation = apply_join_dependency(self, construct_join_dependency)
       return false if ActiveRecord::NullRelation === relation
 
       relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
@@ -242,17 +243,25 @@ module ActiveRecord
 
     def find_with_associations
       join_dependency = construct_join_dependency
-      relation = construct_relation_for_association_find(join_dependency)
-      if ActiveRecord::NullRelation === relation
-        []
+
+      aliases  = join_dependency.aliases
+      relation = select aliases.columns
+      relation = apply_join_dependency(relation, join_dependency)
+
+      if block_given?
+        yield relation
       else
-        rows = connection.select_all(relation.arel, 'SQL', relation.bind_values.dup)
-        join_dependency.instantiate(rows)
+        if ActiveRecord::NullRelation === relation
+          []
+        else
+          rows = connection.select_all(relation.arel, 'SQL', relation.bind_values.dup)
+          join_dependency.instantiate(rows, aliases)
+        end
       end
     end
 
     def construct_join_dependency(joins = [])
-      including = (eager_load_values + includes_values).uniq
+      including = eager_load_values + includes_values
       ActiveRecord::Associations::JoinDependency.new(@klass, including, joins)
     end
 
@@ -260,14 +269,9 @@ module ActiveRecord
       apply_join_dependency(self, construct_join_dependency(arel.froms.first))
     end
 
-    def construct_relation_for_association_find(join_dependency)
-      relation = except(:select).select(join_dependency.columns)
-      apply_join_dependency(relation, join_dependency)
-    end
-
     def apply_join_dependency(relation, join_dependency)
       relation = relation.except(:includes, :eager_load, :preload)
-      relation = join_dependency.join_relation(relation)
+      relation = relation.joins join_dependency
 
       if using_limitable_reflections?(join_dependency.reflections)
         relation
@@ -297,6 +301,8 @@ module ActiveRecord
     protected
 
     def find_with_ids(*ids)
+      raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
+
       expects_array = ids.first.kind_of?(Array)
       return ids.first if expects_array && ids.first.empty?
 

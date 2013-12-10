@@ -8,6 +8,7 @@ require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/module/qualified_const'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
 require 'active_support/core_ext/string/starts_ends_with'
@@ -198,9 +199,19 @@ module ActiveSupport #:nodoc:
         Dependencies.require_or_load(file_name)
       end
 
+      # Interprets a file using <tt>mechanism</tt> and marks its defined
+      # constants as autoloaded. <tt>file_name</tt> can be either a string or
+      # respond to <tt>to_path</tt>.
+      #
+      # Use this method in code that absolutely needs a certain constant to be
+      # defined at that point. A typical use case is to make constant name
+      # resolution deterministic for constants with the same relative name in
+      # different namespaces whose evaluation would depend on load order
+      # otherwise.
       def require_dependency(file_name, message = "No such file to load -- %s")
+        file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
-          raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
+          raise ArgumentError, "the file name must either be a String or implement #to_path -- you passed #{file_name.inspect}"
         end
 
         Dependencies.depend_on(file_name, message)

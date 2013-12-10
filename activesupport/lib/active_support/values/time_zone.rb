@@ -346,14 +346,14 @@ module ActiveSupport
     class << self
       alias_method :create, :new
 
-      # Return a TimeZone instance with the given name, or +nil+ if no
+      # Returns a TimeZone instance with the given name, or +nil+ if no
       # such TimeZone instance exists. (This exists to support the use of
       # this class with the +composed_of+ macro.)
       def new(name)
         self[name]
       end
 
-      # Return an array of all TimeZone objects. There are multiple
+      # Returns an array of all TimeZone objects. There are multiple
       # TimeZone objects per time zone, in many cases, to make it easier
       # for users to find their own time zone.
       def all

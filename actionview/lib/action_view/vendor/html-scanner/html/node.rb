@@ -71,12 +71,12 @@ module HTML #:nodoc:
       @line, @position = line, pos
     end
 
-    # Return a textual representation of the node.
+    # Returns a textual representation of the node.
     def to_s
       @children.join()
     end
 
-    # Return false (subclasses must override this to provide specific matching
+    # Returns false (subclasses must override this to provide specific matching
     # behavior.) +conditions+ may be of any type.
     def match(conditions)
       false

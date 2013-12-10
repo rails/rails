@@ -68,7 +68,7 @@ Consider the following loop for names:
 ```html+erb
 <h1>Names of all the people</h1>
 <% @people.each do |person| %>
-  Name: <%= person.name %><br/>
+  Name: <%= person.name %><br>
 <% end %>
 ```
 
@@ -269,7 +269,7 @@ Rails will render the `_product_ruler` partial (with no data passed to it) betwe
 
 ### Layouts
 
-Layouts can be used to render a common view template around the results of Rails controller actions. Typically, every Rails has a couple of overall layouts that most pages are rendered within. For example, a site might have a layout for a logged in user, and a layout for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us." You would expect each layout to have a different look and feel. You can read more details about Layouts in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
+Layouts can be used to render a common view template around the results of Rails controller actions. Typically, every Rails application has a couple of overall layouts that most pages are rendered within. For example, a site might have a layout for a logged in user, and a layout for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us." You would expect each layout to have a different look and feel. You can read more details about Layouts in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 Partial Layouts
 ---------------

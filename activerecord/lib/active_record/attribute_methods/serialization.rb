@@ -24,6 +24,9 @@ module ActiveRecord
         # serialized object must be of that class on retrieval or
         # <tt>SerializationTypeMismatch</tt> will be raised.
         #
+        # A notable side effect of serialized attributes is that the model will
+        # be updated on every save, even if it is not dirty.
+        #
         # ==== Parameters
         #
         # * +attr_name+ - The field name that should be serialized.
@@ -65,6 +68,10 @@ module ActiveRecord
 
         def type
           @column.type
+        end
+
+        def accessor
+          ActiveRecord::Store::IndifferentHashAccessor
         end
       end
 

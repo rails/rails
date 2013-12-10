@@ -92,8 +92,9 @@ module ActionView
       # ==== Data attributes
       #
       # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified. If the user accepts, the link is
-      #   processed normally, otherwise no action is taken.
+      #   driver to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>. If the user accepts, the
+      #   link is processed normally, otherwise no action is taken.
       # * <tt>:disable_with</tt> - Value of this parameter will be
       #   used as the value for a disabled version of the submit
       #   button when the form is submitted. This feature is provided
@@ -213,6 +214,7 @@ module ActionView
       # * <tt>:form</tt> - This hash will be form attributes
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
+      # * <tt>:params</tt> - Hash of parameters to be rendered as hidden fields within the form.
       #
       # ==== Data attributes
       #
@@ -287,6 +289,7 @@ module ActionView
 
         url    = options.is_a?(String) ? options : url_for(options)
         remote = html_options.delete('remote')
+        params = html_options.delete('params')
 
         method     = html_options.delete('method').to_s
         method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.html_safe
@@ -310,6 +313,11 @@ module ActionView
         end
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
+        if params
+          params.each do |param_name, value|
+            inner_tags.safe_concat tag(:input, type: "hidden", name: param_name, value: value.to_param)
+          end
+        end
         content_tag('form', content_tag('div', inner_tags), form_options)
       end
 
@@ -454,7 +462,7 @@ module ActionView
         html_options, name = name, nil if block_given?
         html_options = (html_options || {}).stringify_keys
 
-        extras = %w{ cc bcc body subject }.map { |item|
+        extras = %w{ cc bcc body subject }.map! { |item|
           option = html_options.delete(item) || next
           "#{item}=#{Rack::Utils.escape_path(option)}"
         }.compact

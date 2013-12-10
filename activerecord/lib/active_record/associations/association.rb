@@ -13,11 +13,11 @@ module ActiveRecord
     #       BelongsToAssociation
     #         BelongsToPolymorphicAssociation
     #     CollectionAssociation
-    #       HasAndBelongsToManyAssociation
     #       HasManyAssociation
     #         HasManyThroughAssociation + ThroughAssociation
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
+      attr_accessor :inversed
 
       delegate :options, :to => :reflection
 
@@ -43,6 +43,7 @@ module ActiveRecord
         @loaded = false
         @target = nil
         @stale_state = nil
+        @inversed = false
       end
 
       # Reloads the \target and returns +self+ on success.
@@ -60,8 +61,9 @@ module ActiveRecord
 
       # Asserts the \target has been loaded setting the \loaded flag to +true+.
       def loaded!
-        @loaded      = true
+        @loaded = true
         @stale_state = stale_state
+        @inversed = false
       end
 
       # The target is stale if the target no longer points to the record(s) that the
@@ -71,7 +73,7 @@ module ActiveRecord
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        loaded? && @stale_state != stale_state
+        !inversed && loaded? && @stale_state != stale_state
       end
 
       # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
@@ -105,6 +107,7 @@ module ActiveRecord
         if record && invertible_for?(record)
           inverse = record.association(inverse_reflection_for(record).name)
           inverse.target = owner
+          inverse.inversed = true
         end
       end
 
@@ -223,7 +226,12 @@ module ActiveRecord
         # Returns true if inverse association on the given record needs to be set.
         # This method is redefined by subclasses.
         def invertible_for?(record)
-          inverse_reflection_for(record)
+          foreign_key_for?(record) && inverse_reflection_for(record)
+        end
+
+        # Returns true if record contains the foreign_key
+        def foreign_key_for?(record)
+          record.attributes.has_key? reflection.foreign_key
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,

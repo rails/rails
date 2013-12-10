@@ -76,4 +76,10 @@ class Numeric
 
   # Reads best without arguments:  10.minutes.from_now
   alias :from_now :since
+
+  # Used with the standard time durations, like 1.hour.in_milliseconds -- 
+  # so we can feed them to JavaScript functions like getTime().
+  def in_milliseconds
+    self * 1000
+  end
 end

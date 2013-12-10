@@ -175,28 +175,28 @@ class Person < ActiveRecord::Base
 end
 
 >> p = Person.new
-#=> #<Person id: nil, name: nil>
+# => #<Person id: nil, name: nil>
 >> p.errors.messages
-#=> {}
+# => {}
 
 >> p.valid?
-#=> false
+# => false
 >> p.errors.messages
-#=> {name:["can't be blank"]}
+# => {name:["can't be blank"]}
 
 >> p = Person.create
-#=> #<Person id: nil, name: nil>
+# => #<Person id: nil, name: nil>
 >> p.errors.messages
-#=> {name:["can't be blank"]}
+# => {name:["can't be blank"]}
 
 >> p.save
-#=> false
+# => false
 
 >> p.save!
-#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
 >> Person.create!
-#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 `invalid?` is simply the inverse of `valid?`. It triggers your validations,
@@ -438,8 +438,6 @@ provide a personalized message or use `presence: true` instead. When
 `:in` or `:within` have a lower limit of 1, you should either provide a
 personalized message or call `presence` prior to `length`.
 
-The `size` helper is an alias for `length`.
-
 ### `numericality`
 
 This helper validates that your attributes have only numeric values. By
@@ -528,7 +526,7 @@ If you validate the presence of an object associated via a `has_one` or
 Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use `validates :field_name, inclusion: { in: [true, false] }`.
 
-The default error message is _"can't be empty"_.
+The default error message is _"can't be blank"_.
 
 ### `absence`
 
@@ -783,7 +781,7 @@ end
 Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
-There is also an ability to pass custom exception to `:strict` option
+There is also an ability to pass custom exception to `:strict` option.
 
 ```ruby
 class Person < ActiveRecord::Base

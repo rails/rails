@@ -1,4 +1,4 @@
-unless File.exists?('Gemfile')
+unless File.exist?('Gemfile')
   File.write('Gemfile', <<-GEMFILE)
     source 'https://rubygems.org'
     gem 'rails', github: 'rails/rails'
@@ -28,6 +28,8 @@ class TestApp < Rails::Application
 end
 
 class TestController < ActionController::Base
+  include Rails.application.routes.url_helpers
+
   def index
     render text: 'Home'
   end

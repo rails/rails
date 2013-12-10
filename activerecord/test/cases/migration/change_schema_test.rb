@@ -74,8 +74,8 @@ module ActiveRecord
         assert_equal "hello", five.default unless mysql
       end
 
-      def test_add_column_with_array
-        if current_adapter?(:PostgreSQLAdapter)
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_add_column_with_array
           connection.create_table :testings
           connection.add_column :testings, :foo, :string, :array => true
 
@@ -83,13 +83,9 @@ module ActiveRecord
           array_column = columns.detect { |c| c.name == "foo" }
 
           assert array_column.array
-        else
-          skip "array option only supported in PostgreSQLAdapter"
         end
-      end
 
-      def test_create_table_with_array_column
-        if current_adapter?(:PostgreSQLAdapter)
+        def test_create_table_with_array_column
           connection.create_table :testings do |t|
             t.string :foo, :array => true
           end
@@ -98,8 +94,6 @@ module ActiveRecord
           array_column = columns.detect { |c| c.name == "foo" }
 
           assert array_column.array
-        else
-          skip "array option only supported in PostgreSQLAdapter"
         end
       end
 
@@ -211,20 +205,18 @@ module ActiveRecord
         connection.create_table table_name
       end
 
-      def test_add_column_not_null_without_default
-        # Sybase, and SQLite3 will not allow you to add a NOT NULL
-        # column to a table without a default value.
-        if current_adapter?(:SybaseAdapter, :SQLite3Adapter)
-          skip "not supported on #{connection.class}"
-        end
+      # Sybase, and SQLite3 will not allow you to add a NOT NULL
+      # column to a table without a default value.
+      unless current_adapter?(:SybaseAdapter, :SQLite3Adapter)
+        def test_add_column_not_null_without_default
+          connection.create_table :testings do |t|
+            t.column :foo, :string
+          end
+          connection.add_column :testings, :bar, :string, :null => false
 
-        connection.create_table :testings do |t|
-          t.column :foo, :string
-        end
-        connection.add_column :testings, :bar, :string, :null => false
-
-        assert_raise(ActiveRecord::StatementInvalid) do
-          connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+          assert_raise(ActiveRecord::StatementInvalid) do
+            connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+          end
         end
       end
 

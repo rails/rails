@@ -605,16 +605,24 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_join_table_alias
+    # FIXME: `references` has no impact on the aliases generated for the join
+    # query.  The fact that we pass `:developers_projects_join` to `references`
+    # and that the SQL string contains `developers_projects_join` is merely a
+    # coincidence.
     assert_equal(
       3,
       Developer.references(:developers_projects_join).merge(
         :includes => {:projects => :developers},
-        :where => 'developers_projects_join.joined_on IS NOT NULL'
+        :where => 'projects_developers_projects_join.joined_on IS NOT NULL'
       ).to_a.size
     )
   end
 
   def test_join_with_group
+    # FIXME: `references` has no impact on the aliases generated for the join
+    # query.  The fact that we pass `:developers_projects_join` to `references`
+    # and that the SQL string contains `developers_projects_join` is merely a
+    # coincidence.
     group = Developer.columns.inject([]) do |g, c|
       g << "developers.#{c.name}"
       g << "developers_projects_2.#{c.name}"
@@ -624,7 +632,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal(
       3,
       Developer.references(:developers_projects_join).merge(
-        :includes => {:projects => :developers}, :where => 'developers_projects_join.joined_on IS NOT NULL',
+        :includes => {:projects => :developers}, :where => 'projects_developers_projects_join.joined_on IS NOT NULL',
         :group => group.join(",")
       ).to_a.size
     )
@@ -638,12 +646,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_scoped_grouped
-    assert_equal 5, categories(:general).posts_grouped_by_title.size
-    assert_equal 1, categories(:technology).posts_grouped_by_title.size
+    assert_equal 5, categories(:general).posts_grouped_by_title.to_a.size
+    assert_equal 1, categories(:technology).posts_grouped_by_title.to_a.size
   end
 
   def test_find_scoped_grouped_having
-    assert_equal 2, projects(:active_record).well_payed_salary_groups.size
+    assert_equal 2, projects(:active_record).well_payed_salary_groups.to_a.size
     assert projects(:active_record).well_payed_salary_groups.all? { |g| g.salary > 10000 }
   end
 
@@ -708,12 +716,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, developer.projects.size
     assert_equal developer, project.developers.first
     assert_equal project, developer.projects.first
-  end
-
-  def test_self_referential_habtm_without_foreign_key_set_should_raise_exception
-    assert_raise(ActiveRecord::HasAndBelongsToManyAssociationForeignKeyNeeded) {
-      SelfMember.new.friends
-    }
   end
 
   def test_dynamic_find_should_respect_association_include

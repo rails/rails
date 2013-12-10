@@ -77,50 +77,29 @@ module ActionView
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
-    # Render template to response_body
-    # :api: public
-    def render(*args, &block)
-      options = _normalize_render(*args, &block)
-      self.response_body = render_to_body(options)
-    end
-
-    # Raw rendering of a template to a string.
-    # :api: public
-    def render_to_string(*args, &block)
-      options = _normalize_render(*args, &block)
-      render_to_body(options)
-    end
-
-    # Raw rendering of a template.
-    # :api: public
     def render_to_body(options = {})
       _process_options(options)
       _render_template(options)
-    end
-
-    # Find and renders a template based on the options given.
-    # :api: private
-    def _render_template(options) #:nodoc:
-      lookup_context.rendered_format = nil if options[:formats]
-      view_renderer.render(view_context, options)
     end
 
     def rendered_format
       Mime[lookup_context.rendered_format]
     end
 
-    def default_protected_instance_vars
-      super.concat([:@_view_context_class, :@_view_renderer, :@_lookup_context])
-    end
-
     private
 
-      # Normalize args and options.
+      # Find and renders a template based on the options given.
       # :api: private
-      def _normalize_render(*args, &block)
-        options = _normalize_args(*args, &block)
-        _normalize_options(options)
-        options
+      def _render_template(options) #:nodoc:
+        lookup_context.rendered_format = nil if options[:formats]
+        view_renderer.render(view_context, options)
+      end
+
+      # Assign the rendered format to lookup context.
+      def _process_format(format) #:nodoc:
+        super
+        lookup_context.formats = [format.to_sym]
+        lookup_context.rendered_format = lookup_context.formats.first
       end
 
       # Normalize args by converting render "foo" to render :action => "foo" and

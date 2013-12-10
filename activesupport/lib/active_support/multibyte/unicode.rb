@@ -287,6 +287,13 @@ module ActiveSupport
       class Codepoint
         attr_accessor :code, :combining_class, :decomp_type, :decomp_mapping, :uppercase_mapping, :lowercase_mapping
 
+        # Initializing Codepoint object with default values
+        def initialize
+          @combining_class = 0
+          @uppercase_mapping = 0
+          @lowercase_mapping = 0
+        end
+
         def swapcase_mapping
           uppercase_mapping > 0 ? uppercase_mapping : lowercase_mapping
         end

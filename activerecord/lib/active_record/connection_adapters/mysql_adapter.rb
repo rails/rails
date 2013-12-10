@@ -160,12 +160,6 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      def type_cast(value, column)
-        return super unless value == true || value == false
-
-        value ? 1 : 0
-      end
-
       def quote_string(string) #:nodoc:
         @connection.quote(string)
       end
@@ -279,11 +273,7 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        # If the configuration sets prepared_statements:false, binds will
-        # always be empty, since the bind variables will have been already
-        # substituted and removed from binds by BindVisitor, so this will
-        # effectively disable prepared statement usage completely.
-        if binds.empty?
+        if without_prepared_statement?(binds)
           result_set, affected_rows = exec_without_stmt(sql, name)
         else
           result_set, affected_rows = exec_stmt(sql, name, binds)
@@ -472,15 +462,17 @@ module ActiveRecord
 
       def begin_db_transaction #:nodoc:
         exec_query "BEGIN"
-      rescue Mysql::Error
-        # Transactions aren't supported
       end
 
       private
 
       def exec_stmt(sql, name, binds)
         cache = {}
-        log(sql, name, binds) do
+        type_casted_binds = binds.map { |col, val|
+          [col, type_cast(val, col)]
+        }
+
+        log(sql, name, type_casted_binds) do
           if binds.empty?
             stmt = @connection.prepare(sql)
           else
@@ -491,7 +483,7 @@ module ActiveRecord
           end
 
           begin
-            stmt.execute(*binds.map { |col, val| type_cast(val, col) })
+            stmt.execute(*type_casted_binds.map { |_, val| val })
           rescue Mysql::Error => e
             # Older versions of MySQL leave the prepared statement in a bad
             # place when an error occurs. To support older mysql versions, we
@@ -563,7 +555,7 @@ module ActiveRecord
       def set_field_encoding field_name
         field_name.force_encoding(client_encoding)
         if internal_enc = Encoding.default_internal
-          field_name = field_name.encoding(internal_enc)
+          field_name = field_name.encode!(internal_enc)
         end
         field_name
       end

@@ -58,7 +58,11 @@ module ActiveRecord
       def merge
         normal_values.each do |name|
           value = values[name]
-          relation.send("#{name}!", *value) unless value.blank?
+          # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
+          # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
+          # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
+          # don't fall through the cracks.
+          relation.send("#{name}!", *value) unless value.nil? || (value.blank? && false != value)
         end
 
         merge_multi_values
@@ -90,7 +94,7 @@ module ActiveRecord
                                                                            [])
           relation.joins! rest
 
-          @relation = join_dependency.join_relation(relation)
+          @relation = relation.joins join_dependency
         end
       end
 
@@ -107,11 +111,11 @@ module ActiveRecord
         bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
 
         conn = relation.klass.connection
-        bviter = bind_values.each.with_index
+        bv_index = 0
         where_values.map! do |node|
           if Arel::Nodes::Equality === node && Arel::Nodes::BindParam === node.right
-            (column, _), i = bviter.next
-            substitute = conn.substitute_at column, i
+            substitute = conn.substitute_at(bind_values[bv_index].first, bv_index)
+            bv_index += 1
             Arel::Nodes::Equality.new(node.left, substitute)
           else
             node

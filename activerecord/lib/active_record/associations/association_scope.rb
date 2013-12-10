@@ -44,18 +44,6 @@ module ActiveRecord
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
 
-          if reflection.source_macro == :has_and_belongs_to_many
-            join_table = tables.shift
-
-            scope = scope.joins(join(
-              join_table,
-              table[reflection.association_primary_key].
-                eq(join_table[reflection.association_foreign_key])
-            ))
-
-            table, foreign_table = join_table, tables.first
-          end
-
           if reflection.source_macro == :belongs_to
             if reflection.options[:polymorphic]
               key = reflection.association_primary_key(self.klass)
@@ -90,7 +78,8 @@ module ActiveRecord
             scope = scope.joins(join(foreign_table, constraint))
           end
 
-          klass = i == 0 ? self.klass : reflection.klass
+          is_first_chain = i == 0
+          klass = is_first_chain ? self.klass : reflection.klass
 
           # Exclude the scope of the association itself, because that
           # was already merged in the #scope method.
@@ -101,7 +90,10 @@ module ActiveRecord
               scope.merge! item.except(:where, :includes, :bind)
             end
 
-            scope.includes! item.includes_values
+            if is_first_chain
+              scope.includes! item.includes_values
+            end
+
             scope.where_values += item.where_values
             scope.order_values |= item.order_values
           end

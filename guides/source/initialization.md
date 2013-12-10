@@ -29,9 +29,42 @@ quickly.
 Launch!
 -------
 
-Let's start to boot and initialize the app. It all begins with your app's
-`bin/rails` executable. A Rails application is usually started by running
-`rails console` or `rails server`.
+Let's start to boot and initialize the app. A Rails application is usually
+started by running `rails console` or `rails server`.
+
+### `railties/bin/rails`
+
+The `rails` in the command `rails server` is a ruby executable in your load
+path. This executable contains the following lines:
+
+```ruby
+version = ">= 0"
+load Gem.bin_path('railties', 'rails', version)
+```
+
+If you try out this command in a Rails console, you would see that this loads
+`railties/bin/rails`. A part of the file `railties/bin/rails.rb` has the
+following code:
+
+```ruby
+require "rails/cli"
+```
+
+The file `railties/lib/rails/cli` in turn calls
+`Rails::AppRailsLoader.exec_app_rails`.
+
+### `railties/lib/rails/app_rails_loader.rb`
+
+The primary goal of the function `exec_app_rails` is to execute your app's
+`bin/rails`. If the current directory does not have a `bin/rails`, it will
+navigate upwards until it finds a `bin/rails` executable. Thus one can invoke a
+`rails` command from anywhere inside a rails application.
+
+For `rails server` the equivalent of the following command is executed:
+
+```bash
+$ exec ruby bin/rails server
+```
 
 ### `bin/rails`
 
@@ -54,7 +87,7 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 # Set up gems listed in the Gemfile.
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
 
-require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
+require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
@@ -93,7 +126,9 @@ A standard Rails application depends on several gems, specifically:
 
 ### `rails/commands.rb`
 
-Once `config/boot.rb` has finished, the next file that is required is `rails/commands` which will execute a command based on the arguments passed in. In this case, the `ARGV` array simply contains `server` which is extracted into the `command` variable using these lines:
+Once `config/boot.rb` has finished, the next file that is required is
+`rails/commands`, which helps in expanding aliases. In the current case, the
+`ARGV` array simply contains `server` which will be passed over:
 
 ```ruby
 ARGV << '--help' if ARGV.empty?
@@ -109,31 +144,64 @@ aliases = {
 
 command = ARGV.shift
 command = aliases[command] || command
+
+require 'rails/commands/commands_tasks'
+
+Rails::CommandsTasks.new(ARGV).run_command!(command)
 ```
 
 TIP: As you can see, an empty ARGV list will make Rails show the help
 snippet.
 
-If we used `s` rather than `server`, Rails will use the `aliases` defined in the file and match them to their respective commands. With the `server` command, Rails will run this code:
+If we had used `s` rather than `server`, Rails would have used the `aliases`
+defined here to find the matching command.
+
+### `rails/commands/command_tasks.rb`
+
+When one types an incorrect rails command, the `run_command` is responsible for
+throwing an error message. If the command is valid, a method of the same name
+is called.
 
 ```ruby
-when 'server'
-  # Change to the application's path if there is no config.ru file in current directory.
-  # This allows us to run `rails server` from other directories, but still get
-  # the main config.ru and properly set the tmp directory.
-  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exists?(File.expand_path("config.ru"))
+COMMAND_WHITELIST = %(plugin generate destroy console server dbconsole application runner new version help)
 
-  require 'rails/commands/server'
+def run_command!(command)
+  if COMMAND_WHITELIST.include?(command)
+    send(command)
+  else
+    write_error_message(command)
+  end
+end
+```
+
+With the `server` command, Rails will further run the following code:
+
+```ruby
+def set_application_directory!
+  Dir.chdir(File.expand_path('../../', APP_PATH)) unless
+  File.exist?(File.expand_path("config.ru"))
+end
+
+def server
+  set_application_directory!
+  require_command!("server")
+
   Rails::Server.new.tap do |server|
-    # We need to require application after the server sets environment,
-    # otherwise the --environment option given to the server won't propagate.
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start
   end
+end
+
+def require_command!(command)
+  require "rails/commands/#{command}"
+end
 ```
 
-This file will change into the Rails root directory (a path two directories up from `APP_PATH` which points at `config/application.rb`), but only if the `config.ru` file isn't found. This then requires `rails/commands/server` which sets up the `Rails::Server` class.
+This file will change into the Rails root directory (a path two directories up
+from `APP_PATH` which points at `config/application.rb`), but only if the
+`config.ru` file isn't found. This then requires `rails/commands/server` which
+sets up the `Rails::Server` class.
 
 ```ruby
 require 'fileutils'
@@ -217,12 +285,12 @@ With the `default_options` set to this:
 ```ruby
 def default_options
   {
-    :environment => ENV['RACK_ENV'] || "development",
-    :pid         => nil,
-    :Port        => 9292,
-    :Host        => "0.0.0.0",
-    :AccessLog   => [],
-    :config      => "config.ru"
+    environment: ENV['RACK_ENV'] || "development",
+    pid:         nil,
+    Port:        9292,
+    Host:        "0.0.0.0",
+    AccessLog:   [],
+    config:      "config.ru"
   }
 end
 ```
@@ -261,37 +329,43 @@ and it's free for you to change based on your needs.
 
 ### `Rails::Server#start`
 
-After `config/application` is loaded, `server.start` is called. This method is defined like this:
+After `config/application` is loaded, `server.start` is called. This method is
+defined like this:
 
 ```ruby
 def start
-  url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
-  puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-  puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
-  puts "=> Run `rails server -h` for more startup options"
+  print_boot_information
   trap(:INT) { exit }
-  puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
+  create_tmp_directories
+  log_to_stdout if options[:log_stdout]
 
-  #Create required tmp directories if not found
-  %w(cache pids sessions sockets).each do |dir_to_make|
-    FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+  super
+  ...
+end
+
+private
+
+  def print_boot_information
+    ...
+    puts "=> Run `rails server -h` for more startup options"
+    puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
   end
 
-  unless options[:daemonize]
+  def create_tmp_directories
+    %w(cache pids sessions sockets).each do |dir_to_make|
+      FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
+    end
+  end
+
+  def log_to_stdout
     wrapped_app # touch the app so the logger is set up
 
     console = ActiveSupport::Logger.new($stdout)
     console.formatter = Rails.logger.formatter
+    console.level = Rails.logger.level
 
     Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
   end
-
-  super
-ensure
-  # The '-h' option calls exit before @options is set.
-  # If we call 'options' with it unset, we get double help banners.
-  puts 'Exiting' unless @options && options[:daemonize]
-end
 ```
 
 This is where the first output of the Rails initialization happens. This
@@ -468,14 +542,24 @@ def initialize!(group=:default) #:nodoc:
 end
 ```
 
-As you can see, you can only initialize an app once. This is also where the initializers are run.
+As you can see, you can only initialize an app once. The initializers are run through
+the `run_initializers` method which is defined in `railties/lib/rails/initializable.rb`
 
-TODO: review this
+```ruby
+def run_initializers(group=:default, *args)
+  return if instance_variable_defined?(:@ran)
+  initializers.tsort_each do |initializer|
+    initializer.run(*args) if initializer.belongs_to?(group)
+  end
+  @ran = true
+end
+```
 
-The initializers code itself is tricky. What Rails is doing here is it
-traverses all the class ancestors looking for an `initializers` method,
-sorting them and running them. For example, the `Engine` class will make
-all the engines available by providing the `initializers` method.
+The run_initializers code itself is tricky. What Rails is doing here is
+traversing all the class ancestors looking for those that respond to an
+`initializers` method. It then sorts the ancestors by name, and runs them.
+For example, the `Engine` class will make all the engines available by
+providing an `initializers` method on them.
 
 The `Rails::Application` class, as defined in `railties/lib/rails/application.rb`
 defines `bootstrap`, `railtie`, and `finisher` initializers. The `bootstrap` initializers

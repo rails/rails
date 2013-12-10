@@ -50,8 +50,8 @@ module ActiveRecord
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          if record.nil? 
-            owner[reflection.foreign_key] 
+          if record.nil?
+            owner[reflection.foreign_key]
           else
             record.id != owner[reflection.foreign_key]
           end

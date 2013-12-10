@@ -166,4 +166,13 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/render action: 'new'/, content)
     end
   end
+
+  def test_model_name_option
+    run_generator ["Admin::User", "--model-name=User"]
+    assert_file "app/controllers/admin/users_controller.rb" do |content|
+      assert_instance_method :index, content do |m|
+        assert_match("@users = User.all", m)
+      end
+    end
+  end
 end

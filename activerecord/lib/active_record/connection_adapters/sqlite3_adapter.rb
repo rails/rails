@@ -53,6 +53,23 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
+      include Savepoints
+
+      NATIVE_DATABASE_TYPES = {
+        primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
+        string:       { name: "varchar", limit: 255 },
+        text:         { name: "text" },
+        integer:      { name: "integer" },
+        float:        { name: "float" },
+        decimal:      { name: "decimal" },
+        datetime:     { name: "datetime" },
+        timestamp:    { name: "datetime" },
+        time:         { name: "time" },
+        date:         { name: "date" },
+        binary:       { name: "blob" },
+        boolean:      { name: "boolean" }
+      }
+
       class Version
         include Comparable
 
@@ -113,6 +130,7 @@ module ActiveRecord
         @config = config
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
+          @prepared_statements = true
           @visitor = Arel::Visitors::SQLite.new self
         else
           @visitor = unprepared_visitor
@@ -123,14 +141,12 @@ module ActiveRecord
         'SQLite'
       end
 
-      # Returns true
       def supports_ddl_transactions?
         true
       end
 
-      # Returns true if SQLite version is '3.6.8' or greater, false otherwise.
       def supports_savepoints?
-        sqlite_version >= '3.6.8'
+        true
       end
 
       # Returns true, since this connection adapter supports prepared statement
@@ -144,7 +160,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true.
       def supports_primary_key? #:nodoc:
         true
       end
@@ -153,7 +168,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true
       def supports_add_column?
         true
       end
@@ -175,16 +189,6 @@ module ActiveRecord
         @statements.clear
       end
 
-      # Returns true
-      def supports_count_distinct? #:nodoc:
-        true
-      end
-
-      # Returns true
-      def supports_autoincrement? #:nodoc:
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
@@ -197,20 +201,7 @@ module ActiveRecord
       end
 
       def native_database_types #:nodoc:
-        {
-          :primary_key => default_primary_key_type,
-          :string      => { :name => "varchar", :limit => 255 },
-          :text        => { :name => "text" },
-          :integer     => { :name => "integer" },
-          :float       => { :name => "float" },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "datetime" },
-          :timestamp   => { :name => "datetime" },
-          :time        => { :name => "time" },
-          :date        => { :name => "date" },
-          :binary      => { :name => "blob" },
-          :boolean     => { :name => "boolean" }
-        }
+        NATIVE_DATABASE_TYPES
       end
 
       # Returns the current database encoding format as a string, eg: 'UTF-8'
@@ -218,7 +209,6 @@ module ActiveRecord
         @connection.encoding.to_s
       end
 
-      # Returns true.
       def supports_explain?
         true
       end
@@ -291,10 +281,13 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [])
-        log(sql, name, binds) do
+        type_casted_binds = binds.map { |col, val|
+          [col, type_cast(val, col)]
+        }
 
-          # Don't cache statements without bind values
-          if binds.empty?
+        log(sql, name, type_casted_binds) do
+          # Don't cache statements if they are not prepared
+          if without_prepared_statement?(binds)
             stmt    = @connection.prepare(sql)
             cols    = stmt.columns
             records = stmt.to_a
@@ -307,9 +300,7 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params binds.map { |col, val|
-              type_cast(val, col)
-            }
+            stmt.bind_params type_casted_binds.map { |_, val| val }
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)
@@ -348,18 +339,6 @@ module ActiveRecord
 
       def select_rows(sql, name = nil)
         exec_query(sql, name).rows
-      end
-
-      def create_savepoint
-        execute("SAVEPOINT #{current_savepoint_name}")
-      end
-
-      def rollback_to_savepoint
-        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
-      end
-
-      def release_savepoint
-        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
       end
 
       def begin_db_transaction #:nodoc:
@@ -603,14 +582,6 @@ module ActiveRecord
 
         def sqlite_version
           @sqlite_version ||= SQLite3Adapter::Version.new(select_value('select sqlite_version(*)'))
-        end
-
-        def default_primary_key_type
-          if supports_autoincrement?
-            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
-          else
-            'INTEGER PRIMARY KEY NOT NULL'
-          end
         end
 
         def translate_exception(exception, message)

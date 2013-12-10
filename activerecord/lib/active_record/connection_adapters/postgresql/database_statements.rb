@@ -134,35 +134,31 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = 'SQL', binds = [])
-          log(sql, name, binds) do
-            result = binds.empty? ? exec_no_cache(sql, binds) :
-                                    exec_cache(sql, binds)
+          result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
+                                                        exec_cache(sql, name, binds)
 
-            types = {}
-            fields = result.fields
-            fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
-                warn "unknown OID: #{fname}(#{oid}) (#{sql})"
-                OID::Identity.new
-              }
-            end
-
-            ret = ActiveRecord::Result.new(fields, result.values, types)
-            result.clear
-            return ret
+          types = {}
+          fields = result.fields
+          fields.each_with_index do |fname, i|
+            ftype = result.ftype i
+            fmod  = result.fmod i
+            types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
+              warn "unknown OID: #{fname}(#{oid}) (#{sql})"
+              OID::Identity.new
+            }
           end
+
+          ret = ActiveRecord::Result.new(fields, result.values, types)
+          result.clear
+          return ret
         end
 
         def exec_delete(sql, name = 'SQL', binds = [])
-          log(sql, name, binds) do
-            result = binds.empty? ? exec_no_cache(sql, binds) :
-                                    exec_cache(sql, binds)
-            affected = result.cmd_tuples
-            result.clear
-            affected
-          end
+          result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
+                                                        exec_cache(sql, name, binds)
+          affected = result.cmd_tuples
+          result.clear
+          affected
         end
         alias :exec_update :exec_delete
 
@@ -217,18 +213,6 @@ module ActiveRecord
         # Aborts a transaction.
         def rollback_db_transaction
           execute "ROLLBACK"
-        end
-
-        def create_savepoint
-          execute("SAVEPOINT #{current_savepoint_name}")
-        end
-
-        def rollback_to_savepoint
-          execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
-        end
-
-        def release_savepoint
-          execute("RELEASE SAVEPOINT #{current_savepoint_name}")
         end
       end
     end

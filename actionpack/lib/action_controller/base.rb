@@ -3,7 +3,7 @@ require "action_controller/metal/params_wrapper"
 
 module ActionController
   # The <tt>metal</tt> anonymous class was introduced to solve issue with including modules in <tt>ActionController::Base</tt>.
-  # Modules needes to be included in particluar order. First wee need to have <tt>AbstractController::Rendering</tt> included,
+  # Modules needs to be included in particluar order. First we need to have <tt>AbstractController::Rendering</tt> included,
   # next we should include actuall implementation which would be for example <tt>ActionView::Rendering</tt> and after that
   # <tt>ActionController::Rendering</tt>. This order must be preserved and as we want to have middle module included dynamicaly
   # <tt>metal</tt> class was introduced. It has <tt>AbstractController::Rendering</tt> included and is parent class of
@@ -14,7 +14,6 @@ module ActionController
   #
   metal = Class.new(Metal) do
     include AbstractController::Rendering
-    include ActionController::BasicRendering
   end
 
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed
@@ -74,7 +73,7 @@ module ActionController
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
   # A request stemming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
-  # If the address input had been named "post[address][street]", the params would have included
+  # If the address input had been named <tt>post[address][street]</tt>, the params would have included
   # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
   # == Sessions
@@ -261,11 +260,17 @@ module ActionController
       include mod
     end
 
-    def self.default_protected_instance_vars
-      super.concat [
-        :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
-        :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout
-      ]
+    # Define some internal variables that should not be propagated to the view.
+    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [
+      :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
+      :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout ]
+
+    def _protected_ivars # :nodoc:
+      PROTECTED_IVARS
+    end
+
+    def self.protected_instance_variables
+      PROTECTED_IVARS
     end
 
     ActiveSupport.run_load_hooks(:action_controller, self)

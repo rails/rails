@@ -15,6 +15,16 @@ end
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
+  attr_reader :details
+
+  def initialize
+    @details = {}
+  end
+
+  def details_key
+    details.hash
+  end
+
   def find(logical_name, keys, partial, options)
     FixtureTemplate.new("digestor/#{partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name}.#{options[:formats].first}.erb")
   end
@@ -140,6 +150,20 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_details_are_included_in_cache_key
+    # Cache the template digest.
+    old_digest = digest("events/_event")
+
+    # Change the template; the cached digest remains unchanged.
+    change_template("events/_event")
+
+    # The details are changed, so a new cache key is generated.
+    finder.details[:foo] = "bar"
+
+    # The cache is busted.
+    assert_not_equal old_digest, digest("events/_event")
+  end
+
   def test_extra_whitespace_in_render_partial
     assert_digest_difference("messages/edit") do
       change_template("messages/_form")
@@ -193,6 +217,31 @@ class TemplateDigestorTest < ActionView::TestCase
     ActionView::Resolver.caching = resolver_before
   end
 
+  def test_digest_cache_cleanup_with_recursion
+    first_digest = digest("level/_recursion")
+    second_digest = digest("level/_recursion")
+
+    assert first_digest
+
+    # If the cache is cleaned up correctly, subsequent digests should return the same
+    assert_equal first_digest, second_digest
+  end
+
+  def test_digest_cache_cleanup_with_recursion_and_template_caching_off
+    resolver_before = ActionView::Resolver.caching
+    ActionView::Resolver.caching = false
+
+    first_digest = digest("level/_recursion")
+    second_digest = digest("level/_recursion")
+
+    assert first_digest
+
+    # If the cache is cleaned up correctly, subsequent digests should return the same
+    assert_equal first_digest, second_digest
+  ensure
+    ActionView::Resolver.caching = resolver_before
+  end
+
   private
     def assert_logged(message)
       old_logger = ActionView::Base.logger
@@ -220,7 +269,11 @@ class TemplateDigestorTest < ActionView::TestCase
     end
 
     def digest(template_name, options={})
-      ActionView::Digestor.digest(template_name, :html, FixtureFinder.new, options)
+      ActionView::Digestor.digest(template_name, :html, finder, options)
+    end
+
+    def finder
+      @finder ||= FixtureFinder.new
     end
 
     def change_template(template_name)

@@ -189,7 +189,7 @@ The main methods to call are `read`, `write`, `delete`, `exist?`, and `fetch`. T
 
 There are some common options used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
 
-* `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications. The default value will include the application name and Rails environment.
+* `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
 
 * `:compress` - This option can be used to indicate that compression should be used in the cache. This can be useful for transferring large cache entries over a slow network.
 
@@ -225,7 +225,7 @@ This is the default cache store implementation.
 
 ### ActiveSupport::Cache::MemCacheStore
 
-This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very a high performance and redundancy.
+This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very high performance and redundancy.
 
 When initializing the cache, you need to specify the addresses for all memcached servers in your cluster. If none is specified, it will assume memcached is running on the local host on the default port, but this is not an ideal set up for larger sites.
 
@@ -327,7 +327,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Instead of a options hash, you can also simply pass in a model, Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
+Instead of an options hash, you can also simply pass in a model, Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
 
 ```ruby
 class ProductsController < ApplicationController

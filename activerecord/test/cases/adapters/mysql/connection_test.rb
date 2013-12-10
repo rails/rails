@@ -16,15 +16,15 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_connect_with_url
-    run_without_connection do
-      ar_config = ARTest.connection_config['arunit']
+  unless ARTest.connection_config['arunit']['socket']
+    def test_connect_with_url
+      run_without_connection do
+        ar_config = ARTest.connection_config['arunit']
 
-      skip "This test doesn't work with custom socket location" if ar_config['socket']
-
-      url = "mysql://#{ar_config["username"]}@localhost/#{ar_config["database"]}"
-      Klass.establish_connection(url)
-      assert_equal ar_config['database'], Klass.connection.current_database
+        url = "mysql://#{ar_config["username"]}@localhost/#{ar_config["database"]}"
+        Klass.establish_connection(url)
+        assert_equal ar_config['database'], Klass.connection.current_database
+      end
     end
   end
 
@@ -40,6 +40,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.update('set @@wait_timeout=1')
     sleep 2
     assert !@connection.active?
+
+    # Repair all fixture connections so other tests won't break.
+    @fixture_connections.each do |c|
+      c.verify!
+    end
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect

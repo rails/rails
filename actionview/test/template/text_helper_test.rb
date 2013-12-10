@@ -42,6 +42,11 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p><b> test with unsafe string </b></p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
+  def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
+    assert_equal '<p><b> test with unsafe string </b></p>',
+      simple_format('<b> test with unsafe string </b><script>code!</script>', {}, sanitize: true)
+  end
+
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
   end
@@ -314,6 +319,9 @@ class TextHelperTest < ActionView::TestCase
 
     options = { :separator => "\n", :radius => 1 }
     assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", 'long', options))
+
+    assert_equal excerpt('This is a beautiful morning', 'a'),
+                 excerpt('This is a beautiful morning', 'a', separator: nil)
   end
 
   def test_word_wrap

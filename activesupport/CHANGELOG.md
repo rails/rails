@@ -1,3 +1,157 @@
+*   Add `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These methods change current
+    time to the given time or time difference by stubbing `Time.now` and `Date.today` to return the
+    time or date after the difference calculation, or the time or date that got passed into the
+    method respectively. These methods also accept a block, which will return current time back to
+    its original state at the end of the block.
+
+    Example for `#travel`:
+
+        Time.now # => 2013-11-09 15:34:49 -05:00
+        travel 1.day
+        Time.now # => 2013-11-10 15:34:49 -05:00
+        Date.today # => Sun, 10 Nov 2013
+
+    Example for `#travel_to`:
+
+        Time.now # => 2013-11-09 15:34:49 -05:00
+        travel_to Time.new(2004, 11, 24, 01, 04, 44)
+        Time.now # => 2004-11-24 01:04:44 -05:00
+        Date.today # => Wed, 24 Nov 2004
+
+    Both of these methods also accept a block, which will return the current time back to its
+    original state at the end of the block:
+
+        Time.now # => 2013-11-09 15:34:49 -05:00
+
+        travel 1.day do
+          User.create.created_at # => Sun, 10 Nov 2013 15:34:49 EST -05:00
+        end
+
+        travel_to Time.new(2004, 11, 24, 01, 04, 44) do
+          User.create.created_at # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+        end
+
+        Time.now # => 2013-11-09 15:34:49 -05:00
+
+    This module is included in `ActiveSupport::TestCase` automatically.
+
+    *Prem Sichanugrist*, *DHH*
+
+*   Unify `cattr_*` interface: allow to pass a block to `cattr_reader`.
+
+    Example:
+
+        class A
+          cattr_reader(:defr) { 'default_reader_value' }
+        end
+        A.defr # => 'default_reader_value'
+
+    *Alexey Chernenkov*
+
+*   Improved compatibility with the stdlib JSON gem.
+
+    Previously, calling `::JSON.{generate,dump}` sometimes causes unexpected
+    failures such as intridea/multi_json#86.
+
+    `::JSON.{generate,dump}` now bypasses the ActiveSupport JSON encoder
+    completely and yields the same result with or without ActiveSupport. This
+    means that it will **not** call `as_json` and will ignore any options that
+    the JSON gem does not natively understand. To invoke ActiveSupport's JSON
+    encoder instead, use `obj.to_json(options)` or
+    `ActiveSupport::JSON.encode(obj, options)`.
+
+    *Godfrey Chan*
+
+*   Fix Active Support `Time#to_json` and `DateTime#to_json` to return 3 decimal
+    places worth of fractional seconds, similar to `TimeWithZone`.
+
+    *Ryan Glover*
+
+*   Removed circular reference protection in JSON encoder, deprecated
+    `ActiveSupport::JSON::Encoding::CircularReferenceError`.
+
+    *Godfrey Chan*, *Sergio Campamá*
+
+*   Add `capitalize` option to `Inflector.humanize`, so strings can be humanized without being capitalized:
+
+        'employee_salary'.humanize                    # => "Employee salary"
+        'employee_salary'.humanize(capitalize: false) # => "employee salary"
+
+    *claudiob*
+
+*   Fixed `Object#as_json` and `Struct#as_json` not working properly with options. They now take
+    the same options as `Hash#as_json`:
+
+        struct = Struct.new(:foo, :bar).new
+        struct.foo = "hello"
+        struct.bar = "world"
+        json = struct.as_json(only: [:foo]) # => {foo: "hello"}
+
+    *Sergio Campamá*, *Godfrey Chan*
+
+*   Added `Numeric#in_milliseconds`, like `1.hour.in_milliseconds`, so we can feed them to JavaScript functions like `getTime()`.
+
+    *DHH*
+
+*   Calling `ActiveSupport::JSON.decode` with unsupported options now raises an error.
+
+    *Godfrey Chan*
+
+*   Support `:unless_exist` in `FileStore`.
+
+    *Michael Grosser*
+
+*   Fix `slice!` deleting the default value of the hash.
+
+    *Antonio Santos*
+
+*   `require_dependency` accepts objects that respond to `to_path`, in
+    particular `Pathname` instances.
+
+    *Benjamin Fleischer*
+
+*   Disable the ability to iterate over Range of AS::TimeWithZone
+    due to significant performance issues.
+
+    *Bogdan Gusiev*
+
+*   Allow attaching event subscribers to ActiveSupport::Notifications namespaces
+    before they're defined. Essentially, this means instead of this:
+
+        class JokeSubscriber < ActiveSupport::Subscriber
+          def sql(event)
+            puts "A rabbi and a priest walk into a bar..."
+          end
+
+          # This call needs to happen *after* defining the methods.
+          attach_to "active_record"
+        end
+
+    You can do this:
+
+        class JokeSubscriber < ActiveSupport::Subscriber
+          # This is much easier to read!
+          attach_to "active_record"
+
+          def sql(event)
+            puts "A rabbi and a priest walk into a bar..."
+          end
+        end
+
+    This should make it easier to read and understand these subscribers.
+
+    *Daniel Schierbeck*
+
+*   Add `Date#middle_of_day`, `DateTime#middle_of_day` and `Time#middle_of_day` methods.
+
+    Also added `midday`, `noon`, `at_midday`, `at_noon` and `at_middle_of_day` as aliases.
+
+    *Anatoli Makarevich*
+
+*   Fix ActiveSupport::Cache::FileStore#cleanup to no longer rely on missing each_key method.
+
+    *Murray Steele*
+
 *   Ensure that autoloaded constants in all-caps nestings are marked as
     autoloaded.
 

@@ -23,6 +23,7 @@ module ActiveRecord
     #   * +fixtures_path+: a path to fixtures directory.
     #   * +migrations_paths+: a list of paths to directories with migrations.
     #   * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
+    #   * +root+: a path to the root of the application.
     #
     # Example usage of +DatabaseTasks+ outside Rails could look as such:
     #
@@ -37,7 +38,7 @@ module ActiveRecord
 
       attr_writer :current_config
       attr_accessor :database_configuration, :migrations_paths, :seed_loader, :db_dir,
-                    :fixtures_path, :env
+                    :fixtures_path, :env, :root
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
@@ -145,7 +146,7 @@ module ActiveRecord
       end
 
       def check_schema_file(filename)
-        unless File.exists?(filename)
+        unless File.exist?(filename)
           message = %{#{filename} doesn't exist yet. Run `rake db:migrate` to create it, then try again.}
           message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails)
           Kernel.abort message

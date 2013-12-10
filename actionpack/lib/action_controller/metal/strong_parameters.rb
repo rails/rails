@@ -17,7 +17,7 @@ module ActionController
 
     def initialize(param) # :nodoc:
       @param = param
-      super("param not found: #{param}")
+      super("param is missing or the value is empty: #{param}")
     end
   end
 
@@ -284,7 +284,14 @@ module ActionController
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args)
-      convert_hashes_to_parameters(key, super)
+      value = super
+      # Don't rely on +convert_hashes_to_parameters+
+      # so as to not mutate via a +fetch+
+      if value.is_a?(Hash)
+        value = self.class.new(value)
+        value.permit! if permitted?
+      end
+      value
     rescue KeyError
       raise ActionController::ParameterMissing.new(key)
     end
@@ -334,13 +341,17 @@ module ActionController
       def each_element(object)
         if object.is_a?(Array)
           object.map { |el| yield el }.compact
-        elsif object.is_a?(Hash) && object.keys.all? { |k| k =~ /\A-?\d+\z/ }
+        elsif fields_for_style?(object)
           hash = object.class.new
           object.each { |k,v| hash[k] = yield v }
           hash
         else
           yield object
         end
+      end
+
+      def fields_for_style?(object)
+        object.is_a?(Hash) && object.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
       end
 
       def unpermitted_parameters!(params)
@@ -421,7 +432,7 @@ module ActionController
 
         # Slicing filters out non-declared keys.
         slice(*filter.keys).each do |key, value|
-          return unless value
+          next unless value
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.

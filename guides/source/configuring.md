@@ -103,7 +103,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.force_ssl` forces all requests to be under HTTPS protocol by using `ActionDispatch::SSL` middleware.
 
-* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to a instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`.
+* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`.
 
 * `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all modes except production, where it defaults to `:info`.
 
@@ -261,6 +261,8 @@ config.middleware.delete "Rack::MethodOverride"
 
 * `config.active_record.table_name_suffix` lets you set a global string to be appended to table names. If you set this to `_northwest`, then the Customer class will look for `customers_northwest` as its table. The default is an empty string.
 
+* `config.active_record.schema_migrations_table_name` lets you set a string to be used as the name of the schema migrations table.
+
 * `config.active_record.pluralize_table_names` specifies whether Rails will look for singular or plural table names in the database. If set to true (the default), then the Customer class will use the `customers` table. If set to false, then the Customer class will use the `customer` table.
 
 * `config.active_record.default_timezone` determines whether to use `Time.local` (if set to `:local`) or `Time.utc` (if set to `:utc`) when pulling dates and times from the database. The default is `:utc` for Rails, although Active Record defaults to `:local` when used outside of Rails.
@@ -272,6 +274,12 @@ config.middleware.delete "Rack::MethodOverride"
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is true by default.
 
 * `config.active_record.cache_timestamp_format` controls the format of the timestamp value in the cache key. Default is `:number`.
+
+* `config.active_record.record_timestamps` is a boolean value which controls whether or not timestamping of `create` and `update` operations on a model occur. The default value is `true`.
+
+* `config.active_record.partial_writes` is a boolean value and controls whether or not partial writes are used (i.e. whether updates only set attributes that are dirty). Note that when using partial writes, you should also use optimistic locking `config.active_record.lock_optimistically` since concurrent updates may write attributes based on a possibly stale read state. The default value is `true`.
+
+* `config.active_record.attribute_types_cached_by_default` sets the attribute types that `ActiveRecord::AttributeMethods` will cache by default on reads. The default is `[:datetime, :timestamp, :time, :date]`.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -303,7 +311,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
-* `config.action_controller.action_on_unpermitted_params` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
+* `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
 ### Configuring Action Dispatch
 
@@ -528,7 +536,7 @@ Change the username and password in the `development` section as appropriate.
 
 By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.
 
-Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server just by create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
+Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
 That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console staging`, `Rails.env.staging?` works, etc.
 
@@ -604,7 +612,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment.
 
-* `after_initialize`: Run directly after the initialization of the application, but before the application initializers are run.
+* `after_initialize`: Run directly after the initialization of the application, after the application initializers in `config/initializers` are run.
 
 To define an event for these hooks, use the block syntax within a `Rails::Application`, `Rails::Railtie` or `Rails::Engine` subclass:
 
@@ -758,5 +766,16 @@ development:
 Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
 
 Any one request will check out a connection the first time it requires access to the database, after which it will check the connection back in, at the end of the request, meaning that the additional connection slot will be available again for the next request in the queue.
+
+If you try to use more connections than are available, Active Record will block
+and wait for a connection from the pool. When it cannot get connection, a timeout
+error similar to given below will be thrown.
+
+```ruby
+ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5 seconds. The max pool size is currently 5; consider increasing it:
+```
+
+If you get the above error, you might want to increase the size of connection 
+pool by incrementing the `pool` option in `database.yml`
 
 NOTE. If you have enabled `Rails.threadsafe!` mode then there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.

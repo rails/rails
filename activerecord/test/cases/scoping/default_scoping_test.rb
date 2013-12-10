@@ -54,14 +54,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
   end
 
-  def test_default_scoping_with_threads
-    skip "in-memory database mustn't disconnect" if in_memory_db?
-
-    2.times do
-      Thread.new {
-        assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC')
-        DeveloperOrderedBySalary.connection.close
-      }.join
+  unless in_memory_db?
+    def test_default_scoping_with_threads
+      2.times do
+        Thread.new {
+          assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC')
+          DeveloperOrderedBySalary.connection.close
+        }.join
+      end
     end
   end
 
@@ -103,7 +103,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_overrides_default_scope
     expected = Developer.all.collect { |dev| [dev.name, dev.id] }
-    received = Developer.order('name ASC, id DESC').unscope(:order).collect { |dev| [dev.name, dev.id] }
+    received = DeveloperCalledJamis.unscope(:where).collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 
@@ -122,17 +122,25 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_with_where_attributes
-    expected = Developer.order('salary DESC').collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.where(name: 'David').unscope(where: :name).collect { |dev| dev.name }
+    expected = Developer.order('salary DESC').collect(&:name)
+    received = DeveloperOrderedBySalary.where(name: 'David').unscope(where: :name).collect(&:name)
     assert_equal expected, received
 
-    expected_2 = Developer.order('salary DESC').collect { |dev| dev.name }
-    received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({:where => :name}, :select).collect { |dev| dev.name }
+    expected_2 = Developer.order('salary DESC').collect(&:name)
+    received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({:where => :name}, :select).collect(&:name)
     assert_equal expected_2, received_2
 
-    expected_3 = Developer.order('salary DESC').collect { |dev| dev.name }
-    received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect { |dev| dev.name }
+    expected_3 = Developer.order('salary DESC').collect(&:name)
+    received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect(&:name)
     assert_equal expected_3, received_3
+
+    expected_4 = Developer.order('salary DESC').collect(&:name)
+    received_4 = DeveloperOrderedBySalary.where.not("name" => "Jamis").unscope(where: :name).collect(&:name)
+    assert_equal expected_4, received_4
+
+    expected_5 = Developer.order('salary DESC').collect(&:name)
+    received_5 = DeveloperOrderedBySalary.where.not("name" => ["Jamis", "David"]).unscope(where: :name).collect(&:name)
+    assert_equal expected_5, received_5
   end
 
   def test_unscope_multiple_where_clauses
@@ -254,6 +262,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_unscope_merging
+    merged = Developer.where(name: "Jamis").merge(Developer.unscope(:where))
+    assert merged.where_values.empty?
+    assert !merged.where(name: "Jon").where_values.empty?
+  end
+
   def test_order_in_default_scope_should_not_prevail
     expected = Developer.all.merge!(order: 'salary desc').to_a.collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all.merge!(order: 'salary').to_a.collect { |dev| dev.salary }
@@ -354,23 +368,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 1, DeveloperWithIncludes.where(:audit_logs => { :message => 'foo' }).count
   end
 
-  def test_default_scope_is_threadsafe
-    if in_memory_db?
-      skip "in memory db can't share a db between threads"
-    end
+  unless in_memory_db?
+    def test_default_scope_is_threadsafe
+      threads = []
+      assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
 
-    threads = []
-    assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
-
-    threads << Thread.new do
-      Thread.current[:long_default_scope] = true
-      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-      ThreadsafeDeveloper.connection.close
+      threads << Thread.new do
+        Thread.current[:long_default_scope] = true
+        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+        ThreadsafeDeveloper.connection.close
+      end
+      threads << Thread.new do
+        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+        ThreadsafeDeveloper.connection.close
+      end
+      threads.each(&:join)
     end
-    threads << Thread.new do
-      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-      ThreadsafeDeveloper.connection.close
-    end
-    threads.each(&:join)
   end
 end

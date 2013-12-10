@@ -1,6 +1,59 @@
-*   Only cache template digests if `config.cache_template_loading` id true.
+*   Use `set_backtrace` instead of instance variable `@backtrace` in ActionView exceptions
+
+    *Shimpei Makimoto*
+
+*   Fix `simple_format` escapes own output when passing `sanitize: true`
+
+    *Paul Seidemann*
+
+*   Ensure `ActionView::Digestor.cache` is correctly cleaned up when
+    combining recursive templates with `ActionView::Resolver.caching = false`.
+
+    *wyaeld*
+
+*   Fix `collection_check_boxes` generated hidden input to use the name attribute provided
+    in the options hash.
+
+    *Angel N. Sciortino*
+
+*   Fix some edge cases for AV `select` helper with `:selected` option.
+
+    *Bogdan Gusiev*
+
+*   Ability to pass block to `select` helper
+
+        <%= select(report, "campaign_ids") do %>
+          <% available_campaigns.each do |c| -%>
+            <%= content_tag(:option, c.name, value: c.id, data: { tags: c.tags.to_json }) %>
+          <% end -%>
+        <% end -%>
+
+    *Bogdan Gusiev*
+
+*   Handle `:namespace` form option in collection labels.
+
+    *Vasiliy Ermolovich*
+
+*   Fix `form_for` when both `namespace` and `as` options are present.
+
+    `as` option no longer overwrites `namespace` option when generating
+    html id attribute of the form element.
+
+    *Adam Niedzielski*
+
+*   Fix `excerpt` when `:separator` is `nil`.
+
+    *Paul Nikitochkin*
+
+*   Only cache template digests if `config.cache_template_loading` is true.
 
     *Josh Lauer*, *Justin Ridgewell*
+
+*   Fixed a bug where the lookup details were not being taken into account
+    when caching the digest of a template - changes to the details now
+    cause a different cache key to be used.
+
+    *Daniel Schierbeck*
 
 *   Added an `extname` hash option for `javascript_include_tag` method.
 

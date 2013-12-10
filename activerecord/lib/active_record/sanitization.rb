@@ -127,7 +127,17 @@ module ActiveRecord
         raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
         bound = values.dup
         c = connection
-        statement.gsub('?') { quote_bound_value(bound.shift, c) }
+        statement.gsub('?') do
+          replace_bind_variable(bound.shift, c)
+        end
+      end
+
+      def replace_bind_variable(value, c = connection) #:nodoc:
+        if ActiveRecord::Relation === value
+          value.to_sql
+        else
+          quote_bound_value(value, c)
+        end
       end
 
       def replace_named_bind_variables(statement, bind_vars) #:nodoc:
@@ -135,7 +145,7 @@ module ActiveRecord
           if $1 == ':' # skip postgresql casts
             $& # return the whole match
           elsif bind_vars.include?(match = $2.to_sym)
-            quote_bound_value(bind_vars[match])
+            replace_bind_variable(bind_vars[match])
           else
             raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
           end

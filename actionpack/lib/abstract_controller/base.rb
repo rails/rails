@@ -114,11 +114,6 @@ module AbstractController
       end
     end
 
-    # Define some internal variables that should not be propagated to the view.
-    def self.default_protected_instance_vars
-      []
-    end
-
     abstract!
 
     # Calls the action going through the entire action dispatch stack.

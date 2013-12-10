@@ -253,7 +253,7 @@ The helper inside `app/helpers/blorgh/posts_helper.rb` is also namespaced:
 
 ```ruby
 module Blorgh
-  class PostsHelper
+  module PostsHelper
     ...
   end
 end
@@ -307,7 +307,11 @@ create      test/models/blorgh/comment_test.rb
 create      test/fixtures/blorgh/comments.yml
 ```
 
-This generator call will generate just the necessary model files it needs, namespacing the files under a `blorgh` directory and creating a model class called `Blorgh::Comment`.
+This generator call will generate just the necessary model files it needs, namespacing the files under a `blorgh` directory and creating a model class called `Blorgh::Comment`. Now run the migration to create our blorgh_comments table:
+
+```bash
+$ rake db:migrate
+```
 
 To show the comments on a post, edit `app/views/blorgh/posts/show.html.erb` and add this line before the "Edit" link:
 
@@ -399,9 +403,9 @@ def create
 end
 
 private
-def comment_params
-  params.require(:comment).permit(:text)
-end
+  def comment_params
+    params.require(:comment).permit(:text)
+  end
 ```
 
 This is the final part required to get the new comment form working. Displaying the comments however, is not quite right yet. If you were to create a comment right now you would see this error:
@@ -850,7 +854,6 @@ module Blorgh::Concerns::Models::Post
     before_save :set_author
 
     private
-
       def set_author
         self.author = User.find_or_create_by(name: author_name)
       end
@@ -872,7 +875,7 @@ end
 
 When Rails looks for a view to render, it will first look in the `app/views` directory of the application. If it cannot find the view there, then it will check in the `app/views` directories of all engines which have this directory.
 
-In the `blorgh` engine, there is a currently a file at `app/views/blorgh/posts/index.html.erb`. When the engine is asked to render the view for `Blorgh::PostsController`'s `index` action, it will first see if it can find it at `app/views/blorgh/posts/index.html.erb` within the application and then if it cannot it will look inside the engine.
+When the application is asked to render the view for `Blorgh::PostsController`'s index action, it will look the path `app/views/blorgh/posts/index.html.erb`, first within the application. If it cannot find it, it will look inside the engine.
 
 You can override this view in the application by simply creating a new file at `app/views/blorgh/posts/index.html.erb`. Then you can completely change what this view would normally output.
 
@@ -951,7 +954,7 @@ INFO. Remember that in order to use languages like Sass or CoffeeScript, you sho
 
 There are some situations where your engine's assets are not required by the host application. For example, say that you've created
 an admin functionality that only exists for your engine. In this case, the host application doesn't need to require `admin.css`
-or `admin.js`. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include `"blorg/admin.css"` in it's stylesheets. In this situation, you should explicitly define these assets for precompilation.
+or `admin.js`. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include `"blorgh/admin.css"` in it's stylesheets. In this situation, you should explicitly define these assets for precompilation.
 This tells sprockets to add your engine assets when `rake assets:precompile` is ran.
 
 You can define assets for precompilation in `engine.rb`

@@ -1,6 +1,15 @@
 require 'abstract_unit'
 
 module RenderText
+  class MinimalController < ActionController::Metal
+    include AbstractController::Rendering
+    include ActionController::Rendering
+
+    def index
+      render text: "Hello World!"
+    end
+  end
+
   class SimpleController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new]
 
@@ -63,6 +72,12 @@ module RenderText
   end
 
   class RenderTextTest < Rack::TestCase
+    test "rendering text from a minimal controller" do
+      get "/render_text/minimal/index"
+      assert_body "Hello World!"
+      assert_status 200
+    end
+
     test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
         set.draw { get ':controller', :action => 'index' }

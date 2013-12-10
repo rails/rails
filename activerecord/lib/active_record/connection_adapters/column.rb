@@ -13,7 +13,7 @@ module ActiveRecord
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
       end
 
-      attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
+      attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale, :default_function
       attr_accessor :primary, :coder
 
       alias :encoded? :coder
@@ -27,16 +27,17 @@ module ActiveRecord
       # It will be mapped to one of the standard Rails SQL types in the <tt>type</tt> attribute.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
-        @name      = name
-        @sql_type  = sql_type
-        @null      = null
-        @limit     = extract_limit(sql_type)
-        @precision = extract_precision(sql_type)
-        @scale     = extract_scale(sql_type)
-        @type      = simplified_type(sql_type)
-        @default   = extract_default(default)
-        @primary   = nil
-        @coder     = nil
+        @name             = name
+        @sql_type         = sql_type
+        @null             = null
+        @limit            = extract_limit(sql_type)
+        @precision        = extract_precision(sql_type)
+        @scale            = extract_scale(sql_type)
+        @type             = simplified_type(sql_type)
+        @default          = extract_default(default)
+        @default_function = nil
+        @primary          = nil
+        @coder            = nil
       end
 
       # Returns +true+ if the column is either of type string or text.
@@ -203,11 +204,19 @@ module ActiveRecord
             end
           end
 
-          def new_time(year, mon, mday, hour, min, sec, microsec)
+          def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
             # Treat 0000-00-00 00:00:00 as nil.
             return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
 
-            Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+            if offset
+              time = Time.utc(year, mon, mday, hour, min, sec, microsec) rescue nil
+              return nil unless time
+
+              time -= offset
+              Base.default_timezone == :utc ? time : time.getlocal
+            else
+              Time.public_send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+            end
           end
 
           def fast_string_to_date(string)
@@ -232,7 +241,7 @@ module ActiveRecord
             time_hash = Date._parse(string)
             time_hash[:sec_fraction] = microseconds(time_hash)
 
-            new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction))
+            new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :offset))
           end
       end
 

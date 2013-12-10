@@ -67,7 +67,7 @@ module ActiveRecord
           end
         end
 
-        def array_to_string(value, column, adapter, should_be_quoted = false)
+        def array_to_string(value, column, adapter)
           casted_values = value.map do |val|
             if String === val
               if val == "NULL"

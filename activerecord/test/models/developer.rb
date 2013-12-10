@@ -38,6 +38,8 @@ class Developer < ActiveRecord::Base
   has_and_belongs_to_many :special_projects, :join_table => 'developers_projects', :association_foreign_key => 'project_id'
 
   has_many :audit_logs
+  has_many :contracts
+  has_many :firms, :through => :contracts, :source => :firm
 
   scope :jamises, -> { where(:name => 'Jamis') }
 

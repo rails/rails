@@ -10,21 +10,12 @@ module ActiveRecord
       private
 
       def construct_tables
-        tables = []
-        chain.each do |reflection|
-          tables << alias_tracker.aliased_table_for(
+        chain.map do |reflection|
+          alias_tracker.aliased_table_for(
             table_name_for(reflection),
             table_alias_for(reflection, reflection != self.reflection)
           )
-
-          if reflection.source_macro == :has_and_belongs_to_many
-            tables << alias_tracker.aliased_table_for(
-              reflection.source_reflection.join_table,
-              table_alias_for(reflection, true)
-            )
-          end
         end
-        tables
       end
 
       def table_name_for(reflection)

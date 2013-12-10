@@ -219,7 +219,7 @@ When working with documentation, please take into account the [API Documentation
 
 NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. Docrails is only used for isolated documentation improvements.
 
-NOTE: To help our CI servers you can add [ci skip] to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
+NOTE: To help our CI servers you should add [ci skip] to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
 
 WARNING: Docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 
@@ -259,7 +259,7 @@ workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
 
 As a compromise, test what your code obviously affects, and if the change is
 not in railties run the whole test suite of the affected component. If all is
-green that's enough to propose your contribution. We have [Travis CI](https://travis-ci.org/rails/rails)
+green that's enough to propose your contribution. We have [Travis CI](https://travis\-ci.org/rails/rails)
 as a safety net for catching unexpected breakages
 elsewhere.
 
@@ -430,13 +430,18 @@ $ git push origin branch_name
 
 ### Issue a Pull Request
 
-Navigate to the Rails repository you just pushed to (e.g. https://github.com/your-user-name/rails) and press "Pull Request" in the upper right hand corner.
+Navigate to the Rails repository you just pushed to (e.g.
+https://github.com/your-user-name/rails) and click on "Pull Requests" seen in
+the right panel. On the next page, press "New pull request" in the upper right
+hand corner.
 
-Write your branch name in the branch field (this is filled with "master" by default) and press "Update Commit Range".
+Click on "Edit", if you need to change the branches being compared (it compares
+"master" by default) and press "Click to create a pull request for this
+comparison".
 
-Ensure the changesets you introduced are included in the "Commits" tab. Ensure that the "Files Changed" incorporate all of your changes.
-
-Fill in some details about your potential patch including a meaningful title. When finished, press "Send pull request". The Rails core team will be notified about your submission.
+Ensure the changesets you introduced are included. Fill in some details about
+your potential patch including a meaningful title. When finished, press "Send
+pull request". The Rails core team will be notified about your submission.
 
 ### Get some Feedback
 

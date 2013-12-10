@@ -42,7 +42,6 @@ module ActiveRecord
           scope.first.tap { |record| set_inverse_instance(record) }
         end
 
-        # Implemented by subclasses
         def replace(record)
           raise NotImplementedError, "Subclasses must implement a replace(record) method"
         end

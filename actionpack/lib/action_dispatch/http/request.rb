@@ -299,17 +299,24 @@ module ActionDispatch
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
 
-    protected
+    # Extracted into ActionDispatch::Request::Utils.deep_munge, but kept here for backwards compatibility.
+    def deep_munge(hash)
+      ActiveSupport::Deprecation.warn(
+        "This method has been extracted into ActionDispatch::Request::Utils.deep_munge. Please start using that instead."
+      )
 
-    def parse_query(qs)
-      Utils.deep_munge(super)
+      Utils.deep_munge(hash)
     end
+
+    protected
+      def parse_query(qs)
+        Utils.deep_munge(super)
+      end
 
     private
-
-    def check_method(name)
-      HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-      name
-    end
+      def check_method(name)
+        HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+        name
+      end
   end
 end

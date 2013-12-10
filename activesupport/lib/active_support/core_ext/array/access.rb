@@ -48,6 +48,8 @@ class Array
   end
 
   # Equal to <tt>self[41]</tt>. Also known as accessing "the reddit".
+  #
+  #   (1..42).to_a.forty_two # => 42
   def forty_two
     self[41]
   end

@@ -32,7 +32,11 @@ module ActiveRecord
 
   class PendingMigrationError < ActiveRecordError#:nodoc:
     def initialize
-      super("Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=#{::Rails.env}' to resolve this issue.")
+      if defined?(Rails)
+        super("Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=#{::Rails.env}' to resolve this issue.")
+      else
+        super("Migrations are pending; run 'bin/rake db:migrate' to resolve this issue.")
+      end
     end
   end
 
@@ -120,8 +124,8 @@ module ActiveRecord
   #   a column but keeps the type and content.
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_names)</tt>: Removes the column listed in
-  #   +column_names+ from the table called +table_name+.
+  # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
+  #   named +column_name+ from the table called +table_name+.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
   #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
@@ -629,7 +633,7 @@ module ActiveRecord
     def copy(destination, sources, options = {})
       copied = []
 
-      FileUtils.mkdir_p(destination) unless File.exists?(destination)
+      FileUtils.mkdir_p(destination) unless File.exist?(destination)
 
       destination_migrations = ActiveRecord::Migrator.migrations(destination)
       last = destination_migrations.last
@@ -892,7 +896,7 @@ module ActiveRecord
 
       validate(@migrations)
 
-      ActiveRecord::SchemaMigration.create_table
+      Base.connection.initialize_schema_migrations_table
     end
 
     def current_version

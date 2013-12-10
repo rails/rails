@@ -1,3 +1,92 @@
+*   Remove turbolinks when generating a new application based on a template that skips it.
+
+    Example:
+
+        Skips turbolinks adding `add_gem_entry_filter { |gem| gem.name != "turbolinks" }`
+        to the template.
+
+    *Lauro Caetano*
+
+*   Instrument an `load_config_initializer.railties` event on each load of configuration initializer
+    from `config/initializers`. Subscribers should be attached before `load_config_initializers`
+    initializer completed.
+
+    Registering subscriber examples:
+
+        # config/application.rb
+        module RailsApp
+          class Application < Rails::Application
+            ActiveSupport::Notifications.subscribe('load_config_initializer.railties') do |*args|
+              event = ActiveSupport::Notifications::Event.new(*args)
+              puts "Loaded initializer #{event.payload[:initializer]} (#{event.duration}ms)"
+            end
+          end
+        end
+
+        # my_engine/lib/my_engine/engine.rb
+        module MyEngine
+          class Engine < ::Rails::Engine
+            config.before_initialize do
+              ActiveSupport::Notifications.subscribe('load_config_initializer.railties') do |*args|
+                event = ActiveSupport::Notifications::Event.new(*args)
+                puts "Loaded initializer #{event.payload[:initializer]} (#{event.duration}ms)"
+              end
+            end
+          end
+        end
+
+    *Paul Nikitochkin*
+
+*   Support for Pathnames in eager load paths.
+
+    *Mike Pack*
+
+*   Fixed missing line and shadow on service pages(404, 422, 500).
+
+    *Dmitry Korotkov*
+
+*   `BACKTRACE` environment variable to show unfiltered backtraces for
+    test failures.
+
+    Example:
+
+        $ BACKTRACE=1 ruby -Itest ...
+        # or with rake
+        $ BACKTRACE=1 bin/rake
+
+    *Yves Senn*
+
+*   Removal of all javascript stuff (gems and files) when generating a new
+    application using the `--skip-javascript` option.
+
+    *Robin Dupret*
+
+*   Make the application name snake cased when it contains spaces
+
+    The application name is used to fill the `database.yml` and
+    `session_store.rb` files ; previously, if the provided name
+    contained whitespaces, it led to unexpected names in these files.
+
+    *Robin Dupret*
+
+*   Added `--model-name` option to `ScaffoldControllerGenerator`.
+
+    *yalab*
+
+*   Expose MiddlewareStack#unshift to environment configuration.
+
+    *Ben Pickles*
+
+*   `rails server` will only extend the logger to output to STDOUT
+     in development environment.
+
+    *Richard Schneeman*
+
+*   Don't require passing path to app before options in `rails new`
+    and `rails plugin new`
+
+    *Piotr Sarnacki*
+
 *   rake notes now searches *.less files
 
     *Josh Crowder*
@@ -5,21 +94,21 @@
 *   Generate nested route for namespaced controller generated using
     `rails g controller`.
     Fixes #11532.
-    
+
     Example:
-    
+
         rails g controller admin/dashboard index
-        
+
         # Before:
         get "dashboard/index"
-        
+
         # After:
         namespace :admin do
           get "dashboard/index"
         end
-    
+
     *Prathamesh Sonpatki*
-    
+
 *   Fix the event name of action_dispatch requests.
 
     *Rafael Mendonça França*

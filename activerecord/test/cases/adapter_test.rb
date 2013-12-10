@@ -195,22 +195,20 @@ module ActiveRecord
       Klass.remove_connection
     end
 
-    test "transaction state is reset after a reconnect" do
-      skip "in-memory db doesn't allow reconnect" if in_memory_db?
+    unless in_memory_db?
+      test "transaction state is reset after a reconnect" do
+        @connection.begin_transaction
+        assert @connection.transaction_open?
+        @connection.reconnect!
+        assert !@connection.transaction_open?
+      end
 
-      @connection.begin_transaction
-      assert @connection.transaction_open?
-      @connection.reconnect!
-      assert !@connection.transaction_open?
-    end
-
-    test "transaction state is reset after a disconnect" do
-      skip "in-memory db doesn't allow disconnect" if in_memory_db?
-
-      @connection.begin_transaction
-      assert @connection.transaction_open?
-      @connection.disconnect!
-      assert !@connection.transaction_open?
+      test "transaction state is reset after a disconnect" do
+        @connection.begin_transaction
+        assert @connection.transaction_open?
+        @connection.disconnect!
+        assert !@connection.transaction_open?
+      end
     end
   end
 end

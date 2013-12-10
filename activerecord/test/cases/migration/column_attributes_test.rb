@@ -35,12 +35,12 @@ module ActiveRecord
         assert_no_column TestModel, :last_name
       end
 
-      def test_unabstracted_database_dependent_types
-        skip "not supported" unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
-
-        add_column :test_models, :intelligence_quotient, :tinyint
-        TestModel.reset_column_information
-        assert_match(/tinyint/, TestModel.columns_hash['intelligence_quotient'].sql_type)
+      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        def test_unabstracted_database_dependent_types
+          add_column :test_models, :intelligence_quotient, :tinyint
+          TestModel.reset_column_information
+          assert_match(/tinyint/, TestModel.columns_hash['intelligence_quotient'].sql_type)
+        end
       end
 
       # We specifically do a manual INSERT here, and then test only the SELECT
@@ -95,22 +95,22 @@ module ActiveRecord
         assert_equal 7, wealth_column.scale
       end
 
-      def test_change_column_preserve_other_column_precision_and_scale
-        skip "only on sqlite3" unless current_adapter?(:SQLite3Adapter)
+      if current_adapter?(:SQLite3Adapter)
+        def test_change_column_preserve_other_column_precision_and_scale
+          connection.add_column 'test_models', 'last_name', :string
+          connection.add_column 'test_models', 'wealth', :decimal, :precision => 9, :scale => 7
 
-        connection.add_column 'test_models', 'last_name', :string
-        connection.add_column 'test_models', 'wealth', :decimal, :precision => 9, :scale => 7
+          wealth_column = TestModel.columns_hash['wealth']
+          assert_equal 9, wealth_column.precision
+          assert_equal 7, wealth_column.scale
 
-        wealth_column = TestModel.columns_hash['wealth']
-        assert_equal 9, wealth_column.precision
-        assert_equal 7, wealth_column.scale
+          connection.change_column 'test_models', 'last_name', :string, :null => false
+          TestModel.reset_column_information
 
-        connection.change_column 'test_models', 'last_name', :string, :null => false
-        TestModel.reset_column_information
-
-        wealth_column = TestModel.columns_hash['wealth']
-        assert_equal 9, wealth_column.precision
-        assert_equal 7, wealth_column.scale
+          wealth_column = TestModel.columns_hash['wealth']
+          assert_equal 9, wealth_column.precision
+          assert_equal 7, wealth_column.scale
+        end
       end
 
       def test_native_types
@@ -163,13 +163,13 @@ module ActiveRecord
         assert_kind_of BigDecimal, bob.wealth
       end
 
-      def test_out_of_range_limit_should_raise
-        skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+      if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+        def test_out_of_range_limit_should_raise
+          assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, :limit => 10 }
 
-        assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, :limit => 10 }
-
-        unless current_adapter?(:PostgreSQLAdapter)
-          assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, :limit => 0xfffffffff }
+          unless current_adapter?(:PostgreSQLAdapter)
+            assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, :limit => 0xfffffffff }
+          end
         end
       end
     end

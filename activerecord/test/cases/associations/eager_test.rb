@@ -4,6 +4,7 @@ require 'models/tagging'
 require 'models/tag'
 require 'models/comment'
 require 'models/author'
+require 'models/essay'
 require 'models/category'
 require 'models/company'
 require 'models/person'
@@ -24,7 +25,7 @@ require 'models/categorization'
 require 'models/sponsor'
 
 class EagerAssociationTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
+  fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
@@ -747,6 +748,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_default_scope_as_block
+    # warm up the habtm cache
+    EagerDeveloperWithBlockDefaultScope.where(:name => 'David').first.projects
     developer = EagerDeveloperWithBlockDefaultScope.where(:name => 'David').first
     projects = Project.order(:id).to_a
     assert_no_queries do
@@ -1136,6 +1139,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_deep_including_through_habtm
+    # warm up habtm cache
+    posts = Post.all.merge!(:includes => {:categories => :categorizations}, :order => "posts.id").to_a
+    posts[0].categories[0].categorizations.length
+
     posts = Post.all.merge!(:includes => {:categories => :categorizations}, :order => "posts.id").to_a
     assert_no_queries { assert_equal 2, posts[0].categories[0].categorizations.length }
     assert_no_queries { assert_equal 1, posts[0].categories[1].categorizations.length }
@@ -1172,8 +1179,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
   end
 
-  test "works in combination with order(:symbol)" do
-    author = Author.includes(:posts).references(:posts).order(:name).where('posts.title IS NOT NULL').first
+  test "works in combination with order(:symbol) and reorder(:symbol)" do
+    author = Author.includes(:posts).references(:posts).order(:name).find_by('posts.title IS NOT NULL')
     assert_equal authors(:bob), author
+
+    author = Author.includes(:posts).references(:posts).reorder(:name).find_by('posts.title IS NOT NULL')
+    assert_equal authors(:bob), author
+  end
+
+  test "preloading with a polymorphic association and using the existential predicate" do
+    assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
+
+    assert_nothing_raised do
+      authors(:david).essays.includes(:writer).any?
+    end
   end
 end

@@ -289,17 +289,7 @@ module ActiveRecord
     end
 
     def order!(*args) # :nodoc:
-      args.flatten!
-      validate_order_args(args)
-
-      references = args.grep(String)
-      references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
-      references!(references) if references.any?
-
-      # if a symbol is given we prepend the quoted table name
-      args.map! do |arg|
-        arg.is_a?(Symbol) ? Arel::Nodes::Ascending.new(klass.arel_table[arg]) : arg
-      end
+      preprocess_order_args(args)
 
       self.order_values += args
       self
@@ -320,8 +310,7 @@ module ActiveRecord
     end
 
     def reorder!(*args) # :nodoc:
-      args.flatten!
-      validate_order_args(args)
+      preprocess_order_args(args)
 
       self.reordering_value = true
       self.order_values = args
@@ -352,16 +341,19 @@ module ActiveRecord
     #   User.where(name: "John", active: true).unscope(where: :name)
     #       == User.where(active: true)
     #
-    # This method is applied before the default_scope is applied. So the conditions
-    # specified in default_scope will not be removed.
+    # This method is similar to <tt>except</tt>, but unlike
+    # <tt>except</tt>, it persists across merges:
     #
-    # Note that this method is more generalized than ActiveRecord::SpawnMethods#except
-    # because #except will only affect a particular relation's values. It won't wipe
-    # the order, grouping, etc. when that relation is merged. For example:
+    #   User.order('email').merge(User.except(:order))
+    #       == User.order('email')
     #
-    #   Post.comments.except(:order)
+    #   User.order('email').merge(User.unscope(:order))
+    #       == User.all
     #
-    # will still have an order if it comes from the default_scope on Comment.
+    # This means it can be used in association definitions:
+    #
+    #   has_many :comments, -> { unscope where: :trashed }
+    #
     def unscope(*args)
       check_if_method_has_arguments!(:unscope, args)
       spawn.unscope!(*args)
@@ -369,6 +361,7 @@ module ActiveRecord
 
     def unscope!(*args) # :nodoc:
       args.flatten!
+      self.unscope_values += args
 
       args.each do |scope|
         case scope
@@ -564,6 +557,18 @@ module ActiveRecord
       end
     end
 
+    # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
+    #
+    #   Post.where(trashed: true).where(trashed: false)                       # => WHERE `trashed` = 1 AND `trashed` = 0
+    #   Post.where(trashed: true).rewhere(trashed: false)                     # => WHERE `trashed` = 0
+    #   Post.where(active: true).where(trashed: true).rewhere(trashed: false) # => WHERE `active` = 1 AND `trashed` = 0
+    #
+    # This is short-hand for unscope(where: conditions.keys).where(conditions). Note that unlike reorder, we're only unscoping
+    # the named conditions -- not the entire where statement.
+    def rewhere(conditions)
+      unscope(where: conditions.keys).where(conditions)
+    end
+
     # Allows to specify a HAVING clause. Note that you can't use HAVING
     # without also specifying a GROUP clause.
     #
@@ -703,7 +708,7 @@ module ActiveRecord
     # Specifies table from which the records will be fetched. For example:
     #
     #   Topic.select('title').from('posts')
-    #   #=> SELECT title FROM posts
+    #   # => SELECT title FROM posts
     #
     # Can accept other relation objects. For example:
     #
@@ -867,7 +872,7 @@ module ActiveRecord
 
       where_values.reject! do |rel|
         case rel
-        when Arel::Nodes::In, Arel::Nodes::Equality
+        when Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual
           subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
           subrelation.name.to_sym == target_value_sym
         else
@@ -893,19 +898,25 @@ module ActiveRecord
     end
 
     def collapse_wheres(arel, wheres)
-      equalities = wheres.grep(Arel::Nodes::Equality)
-
-      arel.where(Arel::Nodes::And.new(equalities)) unless equalities.empty?
-
-      (wheres - equalities).each do |where|
+      predicates = wheres.map do |where|
+        next where if ::Arel::Nodes::Equality === where
         where = Arel.sql(where) if String === where
-        arel.where(Arel::Nodes::Grouping.new(where))
+        Arel::Nodes::Grouping.new(where)
       end
+
+      arel.where(Arel::Nodes::And.new(predicates)) if predicates.present?
     end
 
     def build_where(opts, other = [])
       case opts
       when String, Array
+        #TODO: Remove duplication with: /activerecord/lib/active_record/sanitization.rb:113
+        values = Hash === other.first ? other.first.values : other
+
+        values.grep(ActiveRecord::Relation) do |rel|
+          self.bind_values += rel.bind_values
+        end
+
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
@@ -926,6 +937,7 @@ module ActiveRecord
       case opts
       when Relation
         name ||= 'subquery'
+        self.bind_values = opts.bind_values + self.bind_values
         opts.arel.as(name.to_s)
       else
         opts
@@ -939,7 +951,7 @@ module ActiveRecord
           :string_join
         when Hash, Symbol, Array
           :association_join
-        when ActiveRecord::Associations::JoinDependency::JoinAssociation
+        when ActiveRecord::Associations::JoinDependency
           :stashed_join
         when Arel::Nodes::Join
           :join_node
@@ -961,10 +973,7 @@ module ActiveRecord
         join_list
       )
 
-      join_dependency.graft(*stashed_association_joins)
-
-      joins = join_dependency.join_associations.map!(&:join_constraints)
-      joins.flatten!
+      joins = join_dependency.join_constraints stashed_association_joins
 
       joins.each { |join| manager.from(join) }
 
@@ -993,12 +1002,6 @@ module ActiveRecord
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end
-        when Symbol
-          { o => :desc }
-        when Hash
-          o.each_with_object({}) do |(field, dir), memo|
-            memo[field] = (dir == :asc ? :desc : :asc )
-          end
         else
           o
         end
@@ -1014,17 +1017,6 @@ module ActiveRecord
       orders.reject!(&:blank?)
       orders = reverse_sql_order(orders) if reverse_order_value
 
-      orders = orders.flat_map do |order|
-        case order
-        when Symbol
-          table[order].asc
-        when Hash
-          order.map { |field, dir| table[field].send(dir) }
-        else
-          order
-        end
-      end
-
       arel.order(*orders) unless orders.empty?
     end
 
@@ -1034,6 +1026,29 @@ module ActiveRecord
           raise ArgumentError, 'Direction should be :asc or :desc'
         end
       end
+    end
+
+    def preprocess_order_args(order_args)
+      order_args.flatten!
+      validate_order_args(order_args)
+
+      references = order_args.grep(String)
+      references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
+      references!(references) if references.any?
+
+      # if a symbol is given we prepend the quoted table name
+      order_args.map! do |arg|
+        case arg
+        when Symbol
+          table[arg].asc
+        when Hash
+          arg.map { |field, dir|
+            table[field].send(dir)
+          }
+        else
+          arg
+        end
+      end.flatten!
     end
 
     # Checks to make sure that the arguments are not blank. Note that if some

@@ -207,7 +207,7 @@ module ActiveSupport
     # Replaces the contents of this hash with other_hash.
     #
     #   h = { "a" => 100, "b" => 200 }
-    #   h.replace({ "c" => 300, "d" => 400 }) #=> {"c"=>300, "d"=>400}
+    #   h.replace({ "c" => 300, "d" => 400 }) # => {"c"=>300, "d"=>400}
     def replace(other_hash)
       super(self.class.new_from_hash_copying_default(other_hash))
     end

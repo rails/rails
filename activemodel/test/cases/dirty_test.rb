@@ -3,11 +3,12 @@ require "cases/helper"
 class DirtyTest < ActiveModel::TestCase
   class DirtyModel
     include ActiveModel::Dirty
-    define_attribute_methods :name, :color
+    define_attribute_methods :name, :color, :size
 
     def initialize
       @name = nil
       @color = nil
+      @size = nil
     end
 
     def name
@@ -28,9 +29,17 @@ class DirtyTest < ActiveModel::TestCase
       @color = val
     end
 
+    def size
+      @size
+    end
+
+    def size=(val)
+      attribute_will_change!(:size) unless val == @size
+      @size = val
+    end
+
     def save
-      @previously_changed = changes
-      @changed_attributes.clear
+      changes_applied
     end
   end
 
@@ -124,5 +133,10 @@ class DirtyTest < ActiveModel::TestCase
     @model.name = "Mr. Manfredgensonton"
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
     assert_equal @model.name_was, "Otto"
+  end
+
+  test "using attribute_will_change! with a symbol" do
+    @model.size = 1
+    assert @model.size_changed?
   end
 end

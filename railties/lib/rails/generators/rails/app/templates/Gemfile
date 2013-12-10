@@ -1,30 +1,35 @@
 source 'https://rubygems.org'
 
-<%= rails_gemfile_entry -%>
+<% max_width = gemfile_entries.map { |g| g.name.length }.max -%>
+<% gemfile_entries.each do |gem| -%>
+<% if gem.comment -%>
 
-<%= database_gemfile_entry -%>
-
-<%= assets_gemfile_entry %>
-<%= javascript_gemfile_entry -%>
-
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-gem 'jbuilder', '~> 1.2'
-
-group :doc do
-  # bundle exec rake doc:rails generates the API under doc/api.
-  gem 'sdoc', require: false
-end
+# <%= gem.comment %>
+<% end -%>
+<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<% if gem.version -%>
+, '<%= gem.version %>'
+<% elsif gem.options.any? -%>
+,<%= gem.padding(max_width) %><%= gem.options.map { |k,v|
+  "#{k}: #{v.inspect}" }.join(', ') %>
+<% else %>
+<% end -%>
+<% end -%>
 
 # Use ActiveModel has_secure_password
-# gem 'bcrypt-ruby', '~> 3.1.0'
+# gem 'bcrypt-ruby', '~> 3.1.2'
 
 # Use unicorn as the app server
 # gem 'unicorn'
 
 # Use Capistrano for deployment
-# gem 'capistrano', group: :development
+# gem 'capistrano-rails', group: :development
 
 <% unless defined?(JRUBY_VERSION) -%>
 # Use debugger
 # gem 'debugger', group: [:development, :test]
+<% end -%>
+
+<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince/) -%>
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem 'tzinfo-data', platforms: [:mingw, :mswin]
 <% end -%>

@@ -170,6 +170,7 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 ```
 
 * Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
+
 * Rails 4.0 has deprecated `ActiveRecord::TestCase` in favor of `ActiveSupport::TestCase`.
 
 * Rails 4.0 has deprecated the old-style hash based finder API. This means that
@@ -338,25 +339,26 @@ config.assets.js_compressor = :uglifier
 
 ### sass-rails
 
-* `asset_url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`
+* `asset-url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`
 
 Upgrading from Rails 3.1 to Rails 3.2
 -------------------------------------
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.
 
-The following changes are meant for upgrading your application to Rails 3.2.12, the latest 3.2.x version of Rails.
+The following changes are meant for upgrading your application to Rails 3.2.15,
+the last 3.2.x version of Rails.
 
 ### Gemfile
 
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '= 3.2.12'
+gem 'rails', '3.2.15'
 
 group :assets do
-  gem 'sass-rails',   '~> 3.2.3'
-  gem 'coffee-rails', '~> 3.2.1'
+  gem 'sass-rails',   '~> 3.2.6'
+  gem 'coffee-rails', '~> 3.2.2'
   gem 'uglifier',     '>= 1.0.3'
 end
 ```
@@ -392,21 +394,21 @@ Upgrading from Rails 3.0 to Rails 3.1
 
 If your application is currently on any version of Rails older than 3.0.x, you should upgrade to Rails 3.0 before attempting an update to Rails 3.1.
 
-The following changes are meant for upgrading your application to Rails 3.1.11, the latest 3.1.x version of Rails.
+The following changes are meant for upgrading your application to Rails 3.1.12, the last 3.1.x version of Rails.
 
 ### Gemfile
 
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '= 3.1.11'
+gem 'rails', '3.1.12'
 gem 'mysql2'
 
 # Needed for the new asset pipeline
 group :assets do
-  gem 'sass-rails',   "~> 3.1.5"
-  gem 'coffee-rails', "~> 3.1.1"
-  gem 'uglifier',     ">= 1.0.3"
+  gem 'sass-rails',   '~> 3.1.7'
+  gem 'coffee-rails', '~> 3.1.1'
+  gem 'uglifier',     '>= 1.0.3'
 end
 
 # jQuery is the default JavaScript library in Rails 3.1

@@ -5,7 +5,12 @@ module ActionView
   #
   # Provides functionality so that Rails can output logs from Action View.
   class LogSubscriber < ActiveSupport::LogSubscriber
-    VIEWS_PATTERN = /^app\/views\//.freeze
+    VIEWS_PATTERN = /^app\/views\//
+
+    def initialize
+      @root = nil
+      super
+    end
 
     def render_template(event)
       return unless logger.info?
@@ -23,8 +28,15 @@ module ActionView
 
   protected
 
+    EMPTY = ''
     def from_rails_root(string)
-      string.sub("#{Rails.root}/", "").sub(VIEWS_PATTERN, "")
+      string = string.sub(rails_root, EMPTY)
+      string.sub!(VIEWS_PATTERN, EMPTY)
+      string
+    end
+
+    def rails_root
+      @root ||= "#{Rails.root}/"
     end
   end
 end

@@ -209,7 +209,7 @@ class PeopleController < ActionController::Base
   # Request reply.
   def update
     person = current_account.people.find(params[:id])
-    person.update_attributes!(person_params)
+    person.update!(person_params)
     redirect_to person
   end
 
@@ -328,9 +328,7 @@ the job done:
 
 ```ruby
 def product_params
-  params.require(:product).permit(:name).tap do |whitelisted|
-    whitelisted[:data] = params[:product][:data]
-  end
+  params.require(:product).permit(:name, data: params[:product][:data].try(:keys))
 end
 ```
 
@@ -350,7 +348,7 @@ For most stores, this ID is used to look up the session data on the server, e.g.
 
 The CookieStore can store around 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
 
-If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using ActionDispatch::Session::CacheStore. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
+If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using `ActionDispatch::Session::CacheStore`. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
 Read more about session storage in the [Security Guide](security.html).
 
@@ -808,11 +806,11 @@ class AdminsController < ApplicationController
 
   private
 
-  def authenticate
-    authenticate_or_request_with_http_digest do |username|
-      USERS[username]
+    def authenticate
+      authenticate_or_request_with_http_digest do |username|
+        USERS[username]
+      end
     end
-  end
 end
 ```
 
@@ -839,13 +837,13 @@ class ClientsController < ApplicationController
 
   private
 
-  def generate_pdf(client)
-    Prawn::Document.new do
-      text client.name, align: :center
-      text "Address: #{client.address}"
-      text "Email: #{client.email}"
-    end.render
-  end
+    def generate_pdf(client)
+      Prawn::Document.new do
+        text client.name, align: :center
+        text "Address: #{client.address}"
+        text "Email: #{client.email}"
+      end.render
+    end
 end
 ```
 
@@ -1048,9 +1046,9 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def record_not_found
-    render text: "404 Not Found", status: 404
-  end
+    def record_not_found
+      render text: "404 Not Found", status: 404
+    end
 end
 ```
 
@@ -1062,10 +1060,10 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def user_not_authorized
-    flash[:error] = "You don't have access to this section."
-    redirect_to :back
-  end
+    def user_not_authorized
+      flash[:error] = "You don't have access to this section."
+      redirect_to :back
+    end
 end
 
 class ClientsController < ApplicationController
@@ -1079,10 +1077,10 @@ class ClientsController < ApplicationController
 
   private
 
-  # If the user is not authorized, just throw the exception.
-  def check_authorization
-    raise User::NotAuthorized unless current_user.admin?
-  end
+    # If the user is not authorized, just throw the exception.
+    def check_authorization
+      raise User::NotAuthorized unless current_user.admin?
+    end
 end
 ```
 

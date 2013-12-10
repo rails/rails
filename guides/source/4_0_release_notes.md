@@ -116,7 +116,7 @@ Documentation
 Railties
 --------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railties/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/railties/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -139,7 +139,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 Action Mailer
 -------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actionmailer/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/actionmailer/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -148,7 +148,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actio
 Active Model
 ------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activemodel/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/activemodel/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -161,19 +161,19 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 Active Support
 --------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activesupport/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
-* Replace deprecated `memcache-client` gem with `dalli` in ActiveSupport::Cache::MemCacheStore.
+* Replace deprecated `memcache-client` gem with `dalli` in `ActiveSupport::Cache::MemCacheStore`.
 
-* Optimize ActiveSupport::Cache::Entry to reduce memory and processing overhead.
+* Optimize `ActiveSupport::Cache::Entry` to reduce memory and processing overhead.
 
 * Inflections can now be defined per locale. `singularize` and `pluralize` accept locale as an extra argument.
 
 * `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method, but you can still get the old behavior by using the new `Object#try!`.
 
-* `String#to_date` now raises `Argument Error: invalid date` instead of `NoMethodError: undefined method 'div' for nil:NilClass`
+* `String#to_date` now raises `ArgumentError: invalid date` instead of `NoMethodError: undefined method 'div' for nil:NilClass`
   when given an invalid date. It is now the same as `Date.parse`, and it accepts more invalid dates than 3.x, such as:
 
   ```
@@ -190,20 +190,20 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 * Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from MiniTest instead.
 
-* ActiveSupport::Benchmarkable#silence has been deprecated due to its lack of thread safety. It will be removed without replacement in Rails 4.1.
+* `ActiveSupport::Benchmarkable#silence` has been deprecated due to its lack of thread safety. It will be removed without replacement in Rails 4.1.
 
 * `ActiveSupport::JSON::Variable` is deprecated. Define your own `#as_json` and `#encode_json` methods for custom JSON string literals.
 
-* Deprecates the compatibility method Module#local_constant_names, use Module#local_constants instead (which returns symbols).
+* Deprecates the compatibility method `Module#local_constant_names`, use `Module#local_constants` instead (which returns symbols).
 
-* BufferedLogger is deprecated. Use ActiveSupport::Logger, or the logger from Ruby standard library.
+* `BufferedLogger` is deprecated. Use `ActiveSupport::Logger`, or the logger from Ruby standard library.
 
 * Deprecate `assert_present` and `assert_blank` in favor of `assert object.blank?` and `assert object.present?`
 
 Action Pack
 -----------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actionpack/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -215,7 +215,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actio
 Active Record
 -------------
 
-Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activerecord/CHANGELOG.md) for detailed changes.
+Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/activerecord/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
 
@@ -266,9 +266,9 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
       * `find_all_by_...` can be rewritten using `where(...)`.
       * `find_last_by_...` can be rewritten using `where(...).last`.
       * `scoped_by_...` can be rewritten using `where(...)`.
-      * `find_or_initialize_by_...` can be rewritten using `where(...).first_or_initialize`.
-      * `find_or_create_by_...` can be rewritten using `find_or_create_by(...)` or `where(...).first_or_create`.
-      * `find_or_create_by_...!` can be rewritten using `find_or_create_by!(...)` or `where(...).first_or_create!`.
+      * `find_or_initialize_by_...` can be rewritten using `find_or_initialize_by(...)`.
+      * `find_or_create_by_...` can be rewritten using `find_or_create_by(...)`.
+      * `find_or_create_by_...!` can be rewritten using `find_or_create_by!(...)`. 
 
 Credits
 -------

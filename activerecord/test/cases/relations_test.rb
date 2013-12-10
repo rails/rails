@@ -42,6 +42,11 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_two_scopes_with_includes_should_not_drop_any_include
+    # heat habtm cache
+    car = Car.incl_engines.incl_tyres.first
+    car.tyres.length
+    car.engines.length
+
     car = Car.incl_engines.incl_tyres.first
     assert_no_queries { car.tyres.length }
     assert_no_queries { car.engines.length }
@@ -137,6 +142,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal relation.to_a, Topic.select('*').from(relation).to_a
     assert_equal relation.to_a, Topic.select('subquery.*').from(relation).to_a
     assert_equal relation.to_a, Topic.select('a.*').from(relation, :a).to_a
+  end
+
+  def test_finding_with_subquery_with_binds
+    relation = Post.first.comments
+    assert_equal relation.to_a, Comment.select('*').from(relation).to_a
+    assert_equal relation.to_a, Comment.select('subquery.*').from(relation).to_a
+    assert_equal relation.to_a, Comment.select('a.*').from(relation, :a).to_a
   end
 
   def test_finding_with_conditions
@@ -262,7 +274,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_none_chained_to_methods_firing_queries_straight_to_db
     assert_no_queries do
-      assert_equal [],    Developer.none.pluck(:id) # => uses select_all
+      assert_equal [],    Developer.none.pluck(:id, :name)
       assert_equal 0,     Developer.none.delete_all
       assert_equal 0,     Developer.none.update_all(:name => 'David')
       assert_equal 0,     Developer.none.delete(1)
@@ -283,7 +295,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_calculations_methods
     assert_no_queries do
       assert_equal 0, Developer.none.count
-      assert_equal 0, Developer.none.calculate(:count, nil, {})
+      assert_equal 0, Developer.none.calculate(:count, nil)
       assert_equal nil, Developer.none.calculate(:average, 'salary')
     end
   end
@@ -291,6 +303,10 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_metadata_methods
     assert_equal "", Developer.none.to_sql
     assert_equal({}, Developer.none.where_values_hash)
+  end
+
+  def test_null_relation_where_values_hash
+    assert_equal({ 'salary' => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
   end
 
   def test_joins_with_nil_argument
@@ -470,6 +486,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Developer.where(name: 'David').map(&:id).sort, developers
   end
 
+  def test_includes_with_select
+    query = Post.select('comments_count AS ranking').order('ranking').includes(:comments)
+      .where(comments: { id: 1 })
+
+    assert_equal ['comments_count AS ranking'], query.select_values
+    assert_equal 1, query.to_a.size
+  end
+
   def test_loading_with_one_association
     posts = Post.preload(:comments)
     post = posts.find { |p| p.id == 1 }
@@ -610,6 +634,36 @@ class RelationTest < ActiveRecord::TestCase
       relation = Author.where(:id => Author.where(:id => david.id))
       assert_equal [david], relation.to_a
     }
+
+    assert_queries(1) {
+      relation = Author.where('id in (?)', Author.where(id: david).select(:id))
+      assert_equal [david], relation.to_a
+    }
+
+    assert_queries(1) do
+      relation = Author.where('id in (:author_ids)', author_ids: Author.where(id: david).select(:id))
+      assert_equal [david], relation.to_a
+    end
+  end
+
+  def test_find_all_using_where_with_relation_with_bound_values
+    david = authors(:david)
+    davids_posts = david.posts.order(:id).to_a
+
+    assert_queries(1) do
+      relation = Post.where(id: david.posts.select(:id))
+      assert_equal davids_posts, relation.order(:id).to_a
+    end
+
+    assert_queries(1) do
+      relation = Post.where('id in (?)', david.posts.select(:id))
+      assert_equal davids_posts, relation.order(:id).to_a, 'should process Relation as bind variables'
+    end
+
+    assert_queries(1) do
+      relation = Post.where('id in (:post_ids)', post_ids: david.posts.select(:id))
+      assert_equal davids_posts, relation.order(:id).to_a, 'should process Relation as named bind variables'
+    end
   end
 
   def test_find_all_using_where_with_relation_and_alternate_primary_key
@@ -718,75 +772,6 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_select_argument_error
     assert_raises(ArgumentError) { Developer.select }
-  end
-
-  def test_relation_merging
-    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order('id ASC').where("id < 3"))
-    assert_equal [developers(:david), developers(:jamis)], devs.to_a
-
-    dev_with_count = Developer.limit(1).merge(Developer.order('id DESC')).merge(Developer.select('developers.*'))
-    assert_equal [developers(:poor_jamis)], dev_with_count.to_a
-  end
-
-  def test_relation_to_sql
-    sql = Post.connection.unprepared_statement do
-      Post.first.comments.to_sql
-    end
-    assert_no_match(/\?/, sql)
-  end
-
-  def test_relation_merging_with_arel_equalities_keeps_last_equality
-    devs = Developer.where(Developer.arel_table[:salary].eq(80000)).merge(
-      Developer.where(Developer.arel_table[:salary].eq(9000))
-    )
-    assert_equal [developers(:poor_jamis)], devs.to_a
-  end
-
-  def test_relation_merging_with_arel_equalities_keeps_last_equality_with_non_attribute_left_hand
-    salary_attr = Developer.arel_table[:salary]
-    devs = Developer.where(
-      Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(80000)
-    ).merge(
-      Developer.where(
-        Arel::Nodes::NamedFunction.new('abs', [salary_attr]).eq(9000)
-      )
-    )
-    assert_equal [developers(:poor_jamis)], devs.to_a
-  end
-
-  def test_relation_merging_with_eager_load
-    relations = []
-    relations << Post.order('comments.id DESC').merge(Post.eager_load(:last_comment)).merge(Post.all)
-    relations << Post.eager_load(:last_comment).merge(Post.order('comments.id DESC')).merge(Post.all)
-
-    relations.each do |posts|
-      post = posts.find { |p| p.id == 1 }
-      assert_equal Post.find(1).last_comment, post.last_comment
-    end
-  end
-
-  def test_relation_merging_with_locks
-    devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
-    assert devs.locked.present?
-  end
-
-  def test_relation_merging_with_preload
-    [Post.all.merge(Post.preload(:author)), Post.preload(:author).merge(Post.all)].each do |posts|
-      assert_queries(2) { assert posts.first.author }
-    end
-  end
-
-  def test_relation_merging_with_joins
-    comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
-    assert_equal 1, comments.count
-  end
-
-  def test_relation_merging_with_association
-    assert_queries(2) do  # one for loading post, and another one merged query
-      post = Post.where(:body => 'Such a lovely day').first
-      comments = Comment.where(:body => 'Thank you for the welcome').merge(post.comments)
-      assert_equal 1, comments.count
-    end
   end
 
   def test_count
@@ -1344,6 +1329,24 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [], scope.references_values
   end
 
+  def test_automatically_added_reorder_references
+    scope = Post.reorder('comments.body')
+    assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder('comments.body', 'yaks.body')
+    assert_equal %w(comments yaks), scope.references_values
+
+    # Don't infer yaks, let's not go down that road again...
+    scope = Post.reorder('comments.body, yaks.body')
+    assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder('comments.body asc')
+    assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder('foo(comments.body)')
+    assert_equal [], scope.references_values
+  end
+
   def test_presence
     topics = Topic.all
 
@@ -1524,57 +1527,5 @@ class RelationTest < ActiveRecord::TestCase
     ensure
       Array.send(:remove_method, :__omg__)
     end
-  end
-
-  test "merge collapses wheres from the LHS only" do
-    left  = Post.where(title: "omg").where(comments_count: 1)
-    right = Post.where(title: "wtf").where(title: "bbq")
-
-    expected = [left.where_values[1]] + right.where_values
-    merged   = left.merge(right)
-
-    assert_equal expected, merged.where_values
-    assert !merged.to_sql.include?("omg")
-    assert merged.to_sql.include?("wtf")
-    assert merged.to_sql.include?("bbq")
-  end
-
-  def test_merging_removes_rhs_bind_parameters
-    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
-    column = Post.columns_hash['id']
-    left.bind_values += [[column, 20]]
-    right   = Post.where(id: 10)
-
-    merged = left.merge(right)
-    assert_equal [], merged.bind_values
-  end
-
-  def test_merging_keeps_lhs_bind_parameters
-    column = Post.columns_hash['id']
-    binds = [[column, 20]]
-
-    right  = Post.where(id: Arel::Nodes::BindParam.new('?'))
-    right.bind_values += binds
-    left   = Post.where(id: 10)
-
-    merged = left.merge(right)
-    assert_equal binds, merged.bind_values
-  end
-
-  def test_merging_reorders_bind_params
-    post         = Post.first
-    id_column    = Post.columns_hash['id']
-    title_column = Post.columns_hash['title']
-
-    bv = Post.connection.substitute_at id_column, 0
-
-    right  = Post.where(id: bv)
-    right.bind_values += [[id_column, post.id]]
-
-    left   = Post.where(title: bv)
-    left.bind_values += [[title_column, post.title]]
-
-    merged = left.merge(right)
-    assert_equal post, merged.first
   end
 end

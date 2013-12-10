@@ -1,8 +1,34 @@
-require 'thread'
-require 'thread_safe'
+require 'active_support/concern'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module Delegation # :nodoc:
+    module DelegateCache
+      def relation_delegate_class(klass) # :nodoc:
+        @relation_delegate_cache[klass]
+      end
+
+      def initialize_relation_delegate_cache # :nodoc:
+        @relation_delegate_cache = cache = {}
+        [
+          ActiveRecord::Relation,
+          ActiveRecord::Associations::CollectionProxy,
+          ActiveRecord::AssociationRelation
+        ].each do |klass|
+          delegate = Class.new(klass) {
+            include ClassSpecificRelation
+          }
+          const_set klass.name.gsub('::', '_'), delegate
+          cache[klass] = delegate
+        end
+      end
+
+      def inherited(child_class)
+        child_class.initialize_relation_delegate_cache
+        super
+      end
+    end
+
     extend ActiveSupport::Concern
 
     # This module creates compiled delegation methods dynamically at runtime, which makes
@@ -58,7 +84,7 @@ module ActiveRecord
         if @klass.respond_to?(method)
           self.class.delegate_to_scoped_klass(method)
           scoping { @klass.send(method, *args, &block) }
-        elsif Array.method_defined?(method)
+        elsif array_delegable?(method)
           self.class.delegate method, :to => :to_a
           to_a.send(method, *args, &block)
         elsif arel.respond_to?(method)
@@ -71,47 +97,39 @@ module ActiveRecord
     end
 
     module ClassMethods # :nodoc:
-      @@subclasses = ThreadSafe::Cache.new(:initial_capacity => 2)
-
       def create(klass, *args)
         relation_class_for(klass).new(klass, *args)
       end
 
       private
-      # Cache the constants in @@subclasses because looking them up via const_get
-      # make instantiation significantly slower.
-      def relation_class_for(klass)
-        if klass && (klass_name = klass.name)
-          my_cache = @@subclasses.compute_if_absent(self) { ThreadSafe::Cache.new }
-          # This hash is keyed by klass.name to avoid memory leaks in development mode
-          my_cache.compute_if_absent(klass_name) do
-            # Cache#compute_if_absent guarantees that the block will only executed once for the given klass_name
-            subclass_name = "#{name.gsub('::', '_')}_#{klass_name.gsub('::', '_')}"
 
-            if const_defined?(subclass_name)
-              const_get(subclass_name)
-            else
-              const_set(subclass_name, Class.new(self) { include ClassSpecificRelation })
-            end
-          end
-        else
-          ActiveRecord::Relation
-        end
+      def relation_class_for(klass)
+        klass.relation_delegate_class(self)
       end
     end
 
     def respond_to?(method, include_private = false)
-      super || Array.method_defined?(method) ||
+      super || array_delegable?(method) ||
         @klass.respond_to?(method, include_private) ||
         arel.respond_to?(method, include_private)
     end
 
     protected
 
+    def array_delegable?(method)
+      defined = Array.method_defined?(method)
+      if defined && method.to_s.ends_with?('!')
+        ActiveSupport::Deprecation.warn(
+          "Association will no longer delegate #{method} to #to_a as of Rails 4.2. You instead must first call #to_a on the association to expose the array to be acted on."
+        )
+      end
+      defined
+    end
+
     def method_missing(method, *args, &block)
       if @klass.respond_to?(method)
         scoping { @klass.send(method, *args, &block) }
-      elsif Array.method_defined?(method)
+      elsif array_delegable?(method)
         to_a.send(method, *args, &block)
       elsif arel.respond_to?(method)
         arel.send(method, *args, &block)

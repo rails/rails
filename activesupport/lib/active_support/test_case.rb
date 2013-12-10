@@ -7,29 +7,13 @@ require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
+require 'active_support/testing/time_helpers'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/deprecation'
 
 begin
   silence_warnings { require 'mocha/setup' }
 rescue LoadError
-end
-
-module Minitest # :nodoc:
-  class << self
-    remove_method :__run
-  end
-
-  def self.__run reporter, options # :nodoc:
-    # FIXME: MT5's runnables is not ordered. This is needed because
-    # we have have tests have cross-class order-dependent bugs.
-    suites = Runnable.runnables.sort_by { |ts| ts.name.to_s }
-
-    parallel, serial = suites.partition { |s| s.test_order == :parallel }
-
-    ParallelEach.new(parallel).map { |suite| suite.run reporter, options } +
-     serial.map { |suite| suite.run reporter, options }
-  end
 end
 
 module ActiveSupport
@@ -44,15 +28,14 @@ module ActiveSupport
     end
 
     # FIXME: we have tests that depend on run order, we should fix that and
-    # remove this method.
-    def self.test_order # :nodoc:
-      :sorted
-    end
+    # remove this method call.
+    self.i_suck_and_my_tests_are_order_dependent!
 
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
+    include ActiveSupport::Testing::TimeHelpers
     extend ActiveSupport::Testing::Declarative
 
     # test/unit backwards compatibility methods

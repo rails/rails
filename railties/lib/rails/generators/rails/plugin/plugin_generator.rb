@@ -176,12 +176,16 @@ task default: :test
                                                  "skip adding entry to Gemfile"
 
       def initialize(*args)
-        raise Error, "Options should be given after the plugin name. For details run: rails plugin new --help" if args[0].blank?
-
         @dummy_path = nil
         super
+
+        unless plugin_path
+          raise Error, "Plugin name should be provided in arguments. For details run: rails plugin new --help"
+        end
       end
 
+      public_task :set_default_accessors!
+      public_task :apply_rails_template
       public_task :create_root
 
       def create_root_files
@@ -238,7 +242,6 @@ task default: :test
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :run_bundle
 
       def name
         @name ||= begin
@@ -251,6 +254,9 @@ task default: :test
           underscored
         end
       end
+
+      public_task :run_bundle
+      public_task :replay_template
 
     protected
 
@@ -317,7 +323,7 @@ task default: :test
         @application_definition ||= begin
 
           dummy_application_path = File.expand_path("#{dummy_path}/config/application.rb", destination_root)
-          unless options[:pretend] || !File.exists?(dummy_application_path)
+          unless options[:pretend] || !File.exist?(dummy_application_path)
             contents = File.read(dummy_application_path)
             contents[(contents.index(/module ([\w]+)\n(.*)class Application/m))..-1]
           end

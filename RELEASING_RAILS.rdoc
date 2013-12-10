@@ -113,7 +113,7 @@ what to do in case anything goes wrong:
     $ git tag -m'tagging rc release' v3.0.10.rc1
     $ git push
     $ git push --tags
-    $ for i in $(ls dist); do gem push $i; done
+    $ for i in $(ls pkg); do gem push $i; done
 
 === Send Rails release announcements
 

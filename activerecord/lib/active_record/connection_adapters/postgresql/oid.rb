@@ -234,6 +234,10 @@ module ActiveRecord
 
             ConnectionAdapters::PostgreSQLColumn.string_to_hstore value
           end
+
+          def accessor
+            ActiveRecord::Store::StringKeyedHashAccessor
+          end
         end
 
         class Cidr < Type
@@ -245,10 +249,18 @@ module ActiveRecord
         end
 
         class Json < Type
+          def type_cast_for_write(value)
+            ConnectionAdapters::PostgreSQLColumn.json_to_string value
+          end
+
           def type_cast(value)
             return if value.nil?
 
             ConnectionAdapters::PostgreSQLColumn.string_to_json value
+          end
+
+          def accessor
+            ActiveRecord::Store::StringKeyedHashAccessor
           end
         end
 

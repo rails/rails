@@ -335,8 +335,18 @@ module ActiveRecord
 
     # Reloads the record from the database.
     #
-    # This method modifies the receiver in-place. Attributes are updated, and
-    # caches busted, in particular the associations cache.
+    # This method finds record by its primary key (which could be assigned manually) and
+    # modifies the receiver in-place:
+    #
+    #   account = Account.new
+    #   # => #<Account id: nil, email: nil>
+    #   account.id = 1
+    #   account.reload
+    #   # Account Load (1.2ms)  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 1]]
+    #   # => #<Account id: 1, email: 'account@example.com'>
+    #
+    # Attributes are reloaded from the database, and caches busted, in
+    # particular the associations cache.
     #
     # If the record no longer exists in the database <tt>ActiveRecord::RecordNotFound</tt>
     # is raised. Otherwise, in addition to the in-place modification the method
@@ -383,14 +393,16 @@ module ActiveRecord
         end
 
       @attributes.update(fresh_object.instance_variable_get('@attributes'))
-      @columns_hash = fresh_object.instance_variable_get('@columns_hash')
 
-      @attributes_cache = {}
+      @column_types           = self.class.column_types
+      @column_types_override  = fresh_object.instance_variable_get('@column_types_override')
+      @attributes_cache       = {}
       self
     end
 
     # Saves the record with the updated_at/on attributes set to the current time.
-    # Please note that no validation is performed and no callbacks are executed.
+    # Please note that no validation is performed and only the +after_touch+
+    # callback is executed.
     # If an attribute name is passed, that attribute is updated along with
     # updated_at/on attributes.
     #
@@ -433,7 +445,7 @@ module ActiveRecord
 
         changes[self.class.locking_column] = increment_lock if locking_enabled?
 
-        @changed_attributes.except!(*changes.keys)
+        changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
         self.class.unscoped.where(primary_key => self[primary_key]).update_all(changes) == 1
       end

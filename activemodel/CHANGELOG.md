@@ -1,3 +1,18 @@
+*   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
+
+    *T.J. Schuck*
+
+*   Updated the `ActiveModel::Dirty#changed_attributes` method to be indifferent between using
+    symbols and strings as keys.
+
+    *William Myers*
+
+*   Added new API methods `reset_changes` and `changed_applied` to `ActiveModel::Dirty`
+    that control changes state. Previsously you needed to update internal
+    instance variables, but now API methods are available.
+
+    *Bogdan Gusiev*
+
 *   Fix has_secure_password. `password_confirmation` validations are triggered
     even if no `password_confirmation` is set.
 

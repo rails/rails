@@ -11,6 +11,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def setup
     @developer = Developer.first
+    @owner = Owner.first
     @developer.update_columns(updated_at: Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
   end
@@ -90,6 +91,53 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_touching_a_record_without_timestamps_is_unexceptional
     assert_nothing_raised { Car.first.touch }
+  end
+
+  def test_touching_a_no_touching_object
+    Developer.no_touching do
+      assert @developer.no_touching?
+      assert !@owner.no_touching?
+      @developer.touch
+    end
+
+    assert !@developer.no_touching?
+    assert !@owner.no_touching?
+    assert_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_touching_related_objects
+    @owner = Owner.first
+    @previously_updated_at = @owner.updated_at
+
+    Owner.no_touching do
+      @owner.pets.first.touch
+    end
+
+    assert_equal @previously_updated_at, @owner.updated_at
+  end
+
+  def test_global_no_touching
+    ActiveRecord::Base.no_touching do
+      assert @developer.no_touching?
+      assert @owner.no_touching?
+      @developer.touch
+    end
+
+    assert !@developer.no_touching?
+    assert !@owner.no_touching?
+    assert_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_no_touching_threadsafe
+    Thread.new do
+      Developer.no_touching do
+        assert @developer.no_touching?
+
+        sleep(1)
+      end
+    end
+
+    assert !@developer.no_touching?
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at
@@ -278,31 +326,31 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_timestamp_attributes_for_create
     toy = Toy.first
-    assert_equal toy.send(:timestamp_attributes_for_create), [:created_at, :created_on]
+    assert_equal [:created_at, :created_on], toy.send(:timestamp_attributes_for_create)
   end
 
   def test_timestamp_attributes_for_update
     toy = Toy.first
-    assert_equal toy.send(:timestamp_attributes_for_update), [:updated_at, :updated_on]
+    assert_equal [:updated_at, :updated_on], toy.send(:timestamp_attributes_for_update)
   end
 
   def test_all_timestamp_attributes
     toy = Toy.first
-    assert_equal toy.send(:all_timestamp_attributes), [:created_at, :created_on, :updated_at, :updated_on]
+    assert_equal [:created_at, :created_on, :updated_at, :updated_on], toy.send(:all_timestamp_attributes)
   end
 
   def test_timestamp_attributes_for_create_in_model
     toy = Toy.first
-    assert_equal toy.send(:timestamp_attributes_for_create_in_model), [:created_at]
+    assert_equal [:created_at], toy.send(:timestamp_attributes_for_create_in_model)
   end
 
   def test_timestamp_attributes_for_update_in_model
     toy = Toy.first
-    assert_equal toy.send(:timestamp_attributes_for_update_in_model), [:updated_at]
+    assert_equal [:updated_at], toy.send(:timestamp_attributes_for_update_in_model)
   end
 
   def test_all_timestamp_attributes_in_model
     toy = Toy.first
-    assert_equal toy.send(:all_timestamp_attributes_in_model), [:created_at, :updated_at]
+    assert_equal [:created_at, :updated_at], toy.send(:all_timestamp_attributes_in_model)
   end
 end

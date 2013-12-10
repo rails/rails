@@ -51,7 +51,7 @@ Use the same typography as in regular text:
 API Documentation Guidelines
 ----------------------------
 
-The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the [API Documentation Guidelines](api_documentation_guidelines.html:)
+The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the [API Documentation Guidelines](api_documentation_guidelines.html):
 
 * [Wording](api_documentation_guidelines.html#wording)
 * [Example Code](api_documentation_guidelines.html#example-code)

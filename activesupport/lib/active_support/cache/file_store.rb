@@ -33,7 +33,8 @@ module ActiveSupport
       # Premptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
-        each_key(options) do |key|
+        search_dir(cache_path) do |fname|
+          key = file_path_key(fname)
           entry = read_entry(key, options)
           delete_entry(key, options) if entry && entry.expired?
         end
@@ -96,6 +97,7 @@ module ActiveSupport
 
         def write_entry(key, entry, options)
           file_name = key_file_path(key)
+          return false if options[:unless_exist] && File.exist?(file_name)
           ensure_cache_path(File.dirname(file_name))
           File.atomic_write(file_name, cache_path) {|f| Marshal.dump(entry, f)}
           true

@@ -7,7 +7,6 @@ module ActiveRecord
     # collections. See the class hierarchy in AssociationProxy.
     #
     #   CollectionAssociation:
-    #     HasAndBelongsToManyAssociation => has_and_belongs_to_many
     #     HasManyAssociation => has_many
     #       HasManyThroughAssociation + ThroughAssociation => has_many :through
     #
@@ -80,14 +79,13 @@ module ActiveRecord
           load_target.find(*args) { |*block_args| yield(*block_args) }
         else
           if options[:inverse_of] && loaded?
-            args = args.flatten
-            raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args.blank?
-
+            args_flatten = args.flatten
+            raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args_flatten.blank?
             result = find_by_scan(*args)
 
             result_size = Array(result).size
-            if !result || result_size != args.size
-              scope.raise_record_not_found_exception!(args, result_size, args.size)
+            if !result || result_size != args_flatten.size
+              scope.raise_record_not_found_exception!(args_flatten, result_size, args_flatten.size)
             else
               result
             end
@@ -153,7 +151,7 @@ module ActiveRecord
 
       # Removes all records from the association without calling callbacks
       # on the associated records. It honors the `:dependent` option. However
-      # if the `:dependent` value is `:destroy` then in that case the default
+      # if the `:dependent` value is `:destroy` then in that case the `:delete_all`
       # deletion strategy for the association is applied.
       #
       # You can force a particular deletion strategy by passing a parameter.
@@ -172,9 +170,7 @@ module ActiveRecord
         dependent = if dependent.present?
                       dependent
                     elsif options[:dependent] == :destroy
-                      # since delete_all should not invoke callbacks so use the default deletion strategy
-                      # for :destroy
-                      reflection.is_a?(ActiveRecord::Reflection::ThroughReflection) ? :delete_all : :nullify
+                      :delete_all
                     else
                       options[:dependent]
                     end
@@ -197,9 +193,7 @@ module ActiveRecord
 
       # Count all records using SQL.  Construct options and pass them with
       # scope to the target class's +count+.
-      def count(column_name = nil, count_options = {})
-        column_name, count_options = nil, column_name if column_name.is_a?(Hash)
-
+      def count(column_name = nil)
         relation = scope
         if association_scope.distinct_value
           # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
@@ -528,21 +522,20 @@ module ActiveRecord
         #   * target already loaded
         #   * owner is new record
         #   * target contains new or changed record(s)
-        #   * the first arg is an integer (which indicates the number of records to be returned)
         def fetch_first_or_last_using_find?(args)
           if args.first.is_a?(Hash)
             true
           else
             !(loaded? ||
               owner.new_record? ||
-              target.any? { |record| record.new_record? || record.changed? } ||
-              args.first.kind_of?(Integer))
+              target.any? { |record| record.new_record? || record.changed? })
           end
         end
 
         def include_in_memory?(record)
           if reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
-            owner.send(reflection.through_reflection.name).any? { |source|
+            assoc = owner.association(reflection.through_reflection.name)
+            assoc.reader.any? { |source|
               target = source.send(reflection.source_reflection.name)
               target.respond_to?(:include?) ? target.include?(record) : target == record
             } || target.include?(record)
@@ -555,14 +548,14 @@ module ActiveRecord
         # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.map{ |arg| arg.to_i }.uniq
+          ids           = args.flatten.compact.map{ |arg| arg.to_s }.uniq
 
           if ids.size == 1
             id = ids.first
-            record = load_target.detect { |r| id == r.id }
+            record = load_target.detect { |r| id == r.id.to_s }
             expects_array ? [ record ] : record
           else
-            load_target.select { |r| ids.include?(r.id) }
+            load_target.select { |r| ids.include?(r.id.to_s) }
           end
         end
 

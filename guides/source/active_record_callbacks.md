@@ -35,11 +35,11 @@ class User < ActiveRecord::Base
   before_validation :ensure_login_has_a_value
 
   protected
-  def ensure_login_has_a_value
-    if login.nil?
-      self.login = email unless email.blank?
+    def ensure_login_has_a_value
+      if login.nil?
+        self.login = email unless email.blank?
+      end
     end
-  end
 end
 ```
 
@@ -65,13 +65,13 @@ class User < ActiveRecord::Base
   after_validation :set_location, on: [ :create, :update ]
 
   protected
-  def normalize_name
-    self.name = self.name.downcase.titleize
-  end
+    def normalize_name
+      self.name = self.name.downcase.titleize
+    end
 
-  def set_location
-    self.location = LocationService.query(self)
-  end
+    def set_location
+      self.location = LocationService.query(self)
+    end
 end
 ```
 
@@ -204,7 +204,7 @@ As you start registering new callbacks for your models, they will be queued for 
 
 The whole callback chain is wrapped in a transaction. If any _before_ callback method returns exactly `false` or raises an exception, the execution chain gets halted and a ROLLBACK is issued; _after_ callbacks can only accomplish that by raising an exception.
 
-WARNING. Raising an arbitrary exception may break code that expects `save` and its friends not to fail like that. The `ActiveRecord::Rollback` exception is thought precisely to tell Active Record a rollback is going on. That one is internally captured but not reraised.
+WARNING. Any exception that is not `ActiveRecord::Rollback` will be re-raised by Rails after the callback chain is halted. Raising an exception other than `ActiveRecord::Rollback` may break code that does not expect methods like `save` and `update_attributes` (which normally try to return `true` or `false`) to raise an exception.
 
 Relational Callbacks
 --------------------
@@ -290,7 +290,7 @@ Here's an example where we create a class with an `after_destroy` callback for a
 ```ruby
 class PictureFileCallbacks
   def after_destroy(picture_file)
-    if File.exists?(picture_file.filepath)
+    if File.exist?(picture_file.filepath)
       File.delete(picture_file.filepath)
     end
   end
@@ -310,7 +310,7 @@ Note that we needed to instantiate a new `PictureFileCallbacks` object, since we
 ```ruby
 class PictureFileCallbacks
   def self.after_destroy(picture_file)
-    if File.exists?(picture_file.filepath)
+    if File.exist?(picture_file.filepath)
       File.delete(picture_file.filepath)
     end
   end

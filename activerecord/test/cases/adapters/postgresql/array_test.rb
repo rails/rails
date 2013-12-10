@@ -113,6 +113,11 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal(PgArray.last.tags, tag_values)
   end
 
+  def test_attribute_for_inspect_for_array_field
+    record = PgArray.new { |a| a.ratings = (1..11).to_a }
+    assert_equal("[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...]", record.attribute_for_inspect(:ratings))
+  end
+
   private
   def assert_cycle field, array
     # test creation

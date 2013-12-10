@@ -77,8 +77,8 @@ module ActiveRecord
     # FIXME: this needs to be refactored so specific database can add their own
     # ignored SQL, or better yet, use a different notification for the queries
     # instead examining the SQL content.
-    oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
-    mysql_ignored      = [/^SHOW TABLES/i, /^SHOW FULL FIELDS/]
+    oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im, /^\s*select .* from all_constraints/im, /^\s*select .* from all_tab_cols/im]
+    mysql_ignored      = [/^SHOW TABLES/i, /^SHOW FULL FIELDS/, /^SHOW CREATE TABLE /i]
     postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im, /^SHOW search_path/i]
     sqlite3_ignored =    [/^\s*SELECT name\b.*\bFROM sqlite_master/im]
 

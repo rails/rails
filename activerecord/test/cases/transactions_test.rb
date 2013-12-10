@@ -375,6 +375,36 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal "Three", @three
   end if Topic.connection.supports_savepoints?
 
+  def test_using_named_savepoints
+    Topic.transaction do
+      @first.approved  = true
+      @first.save!
+      Topic.connection.create_savepoint("first")
+
+      @first.approved  = false
+      @first.save!
+      Topic.connection.rollback_to_savepoint("first")
+      assert @first.reload.approved?
+
+      @first.approved  = false
+      @first.save!
+      Topic.connection.release_savepoint("first")
+      assert_not @first.reload.approved?
+    end
+  end if Topic.connection.supports_savepoints?
+
+  def test_releasing_named_savepoints
+    Topic.transaction do
+      Topic.connection.create_savepoint("another")
+      Topic.connection.release_savepoint("another")
+
+      # The savepoint is now gone and we can't remove it again.
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Topic.connection.release_savepoint("another")
+      end
+    end
+  end
+
   def test_rollback_when_commit_raises
     Topic.connection.expects(:begin_db_transaction)
     Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
@@ -391,7 +421,9 @@ class TransactionTest < ActiveRecord::TestCase
     topic = Topic.new(:title => 'test')
     topic.freeze
     e = assert_raise(RuntimeError) { topic.save }
-    assert_equal "can't modify frozen Hash", e.message
+    assert_match(/frozen/i, e.message) # Not good enough, but we can't do much
+                                       # about it since there is no specific error
+                                       # for frozen objects.
     assert !topic.persisted?, 'not persisted'
     assert_nil topic.id
     assert topic.frozen?, 'not frozen'
@@ -452,6 +484,13 @@ class TransactionTest < ActiveRecord::TestCase
         assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
         raise ActiveRecord::Rollback
       end
+    end
+  ensure
+    begin
+      Topic.connection.remove_column('topics', 'stuff')
+    rescue
+    ensure
+      Topic.reset_column_information
     end
   end
 
@@ -539,23 +578,23 @@ if current_adapter?(:PostgreSQLAdapter)
   class ConcurrentTransactionTest < TransactionTest
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
-    def test_transaction_per_thread
-      skip "in memory db can't share a db between threads" if in_memory_db?
-
-      threads = 3.times.map do
-        Thread.new do
-          Topic.transaction do
-            topic = Topic.find(1)
-            topic.approved = !topic.approved?
-            assert topic.save!
-            topic.approved = !topic.approved?
-            assert topic.save!
+    unless in_memory_db?
+      def test_transaction_per_thread
+        threads = 3.times.map do
+          Thread.new do
+            Topic.transaction do
+              topic = Topic.find(1)
+              topic.approved = !topic.approved?
+              assert topic.save!
+              topic.approved = !topic.approved?
+              assert topic.save!
+            end
+            Topic.connection.close
           end
-          Topic.connection.close
         end
-      end
 
-      threads.each { |t| t.join }
+        threads.each { |t| t.join }
+      end
     end
 
     # Test for dirty reads among simultaneous transactions.

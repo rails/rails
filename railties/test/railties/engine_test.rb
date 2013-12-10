@@ -90,8 +90,8 @@ module RailtiesTest
       Dir.chdir(app_path) do
         output = `bundle exec rake bukkits:install:migrations`
 
-        assert File.exists?("#{app_path}/db/migrate/2_create_users.bukkits.rb")
-        assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.bukkits.rb")
+        assert File.exist?("#{app_path}/db/migrate/2_create_users.bukkits.rb")
+        assert File.exist?("#{app_path}/db/migrate/3_add_last_name_to_users.bukkits.rb")
         assert_match(/Copied migration 2_create_users.bukkits.rb from bukkits/, output)
         assert_match(/Copied migration 3_add_last_name_to_users.bukkits.rb from bukkits/, output)
         assert_match(/NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/, output)
@@ -136,7 +136,7 @@ module RailtiesTest
 
       Dir.chdir(@plugin.path) do
         output = `bundle exec rake app:bukkits:install:migrations`
-        assert File.exists?("#{app_path}/db/migrate/0_add_first_name_to_users.bukkits.rb")
+        assert File.exist?("#{app_path}/db/migrate/0_add_first_name_to_users.bukkits.rb")
         assert_match(/Copied migration 0_add_first_name_to_users.bukkits.rb from bukkits/, output)
         assert_equal 1, Dir["#{app_path}/db/migrate/*.rb"].length
       end
