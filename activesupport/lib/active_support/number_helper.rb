@@ -1,4 +1,3 @@
-
 module ActiveSupport
   module NumberHelper
     extend ActiveSupport::Autoload
@@ -343,6 +342,5 @@ module ActiveSupport
     def number_to_human(number, options = {})
       NumberToHumanConverter.convert(number, options)
     end
-
   end
 end
