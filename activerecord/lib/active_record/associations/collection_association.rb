@@ -194,6 +194,8 @@ module ActiveRecord
       # Count all records using SQL.  Construct options and pass them with
       # scope to the target class's +count+.
       def count(column_name = nil, count_options = {})
+        # TODO: Remove count_options argument as soon we remove support to
+        # activerecord-deprecated_finders.
         column_name, count_options = nil, column_name if column_name.is_a?(Hash)
 
         relation = scope

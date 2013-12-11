@@ -20,6 +20,8 @@ module ActiveRecord
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
     def count(column_name = nil, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
       column_name, options = nil, column_name if column_name.is_a?(Hash)
       calculate(:count, column_name, options)
     end
@@ -29,6 +31,8 @@ module ActiveRecord
     #
     #   Person.average(:age) # => 35.8
     def average(column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
       calculate(:average, column_name, options)
     end
 
@@ -38,6 +42,8 @@ module ActiveRecord
     #
     #   Person.minimum(:age) # => 7
     def minimum(column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
       calculate(:minimum, column_name, options)
     end
 
@@ -47,6 +53,8 @@ module ActiveRecord
     #
     #   Person.maximum(:age) # => 93
     def maximum(column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
       calculate(:maximum, column_name, options)
     end
 
@@ -91,6 +99,8 @@ module ActiveRecord
     #
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
       if column_name.is_a?(Symbol) && attribute_alias?(column_name)
         column_name = attribute_alias(column_name)
       end
@@ -182,6 +192,8 @@ module ActiveRecord
     end
 
     def perform_calculation(operation, column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
       operation = operation.to_s.downcase
 
       # If #count is used with #distinct / #uniq it is considered distinct. (eg. relation.distinct.count)

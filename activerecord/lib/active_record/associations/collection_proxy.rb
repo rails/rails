@@ -670,6 +670,8 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       def count(column_name = nil, options = {})
+        # TODO: Remove options argument as soon we remove support to
+        # activerecord-deprecated_finders.
         @association.count(column_name, options)
       end
 
