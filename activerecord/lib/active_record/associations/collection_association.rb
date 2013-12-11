@@ -193,7 +193,9 @@ module ActiveRecord
 
       # Count all records using SQL.  Construct options and pass them with
       # scope to the target class's +count+.
-      def count(column_name = nil)
+      def count(column_name = nil, count_options = {})
+        column_name, count_options = nil, column_name if column_name.is_a?(Hash)
+
         relation = scope
         if association_scope.distinct_value
           # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
