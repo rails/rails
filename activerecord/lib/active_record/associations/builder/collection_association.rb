@@ -7,9 +7,20 @@ module ActiveRecord::Associations::Builder
 
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
 
-    def self.build_valid_options(options)
+    def valid_options
       super + [:table_name, :before_add,
                :after_add, :before_remove, :after_remove, :extend]
+    end
+
+    attr_reader :block_extension
+
+    def initialize(model, name, scope, options)
+      super
+      @mod = nil
+      if block_given?
+        @mod = Module.new(&Proc.new)
+        @scope = wrap_scope @scope, @mod
+      end
     end
 
     def self.define_callbacks(model, reflection)
@@ -21,11 +32,10 @@ module ActiveRecord::Associations::Builder
       }
     end
 
-    def self.define_extensions(model, name)
-      if block_given?
+    def define_extensions(model)
+      if @mod
         extension_module_name = "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
-        extension = Module.new(&Proc.new)
-        model.parent.const_set(extension_module_name, extension)
+        model.parent.const_set(extension_module_name, @mod)
       end
     end
 
@@ -68,7 +78,9 @@ module ActiveRecord::Associations::Builder
       CODE
     end
 
-    def self.wrap_scope(scope, mod)
+    private
+
+    def wrap_scope(scope, mod)
       if scope
         proc { |owner| instance_exec(owner, &scope).extending(mod) }
       else
