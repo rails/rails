@@ -60,7 +60,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select 'input[type=radio][value=other][disabled=disabled]'
   end
 
-  test 'collection radio accepts single disable item' do
+  test 'collection radio accepts single disabled item' do
     collection = [[1, true], [0, false]]
     with_collection_radio_buttons :user, :active, collection, :last, :first, :disabled => true
 
