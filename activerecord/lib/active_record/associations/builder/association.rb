@@ -37,15 +37,16 @@ module ActiveRecord::Associations::Builder
     def self.create_builder(model, name, scope, options, &block)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
+      new(model, name, scope, options, &block)
+    end
+
+    def initialize(model, name, scope, options)
+      # TODO: Move this to create_builder as soon we drop support to activerecord-deprecated_finders.
       if scope.is_a?(Hash)
         options = scope
         scope   = nil
       end
 
-      new(model, name, scope, options, &block)
-    end
-
-    def initialize(model, name, scope, options)
       # TODO: Remove this model argument as soon we drop support to activerecord-deprecated_finders.
       @name    = name
       @scope   = scope
