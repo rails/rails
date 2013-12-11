@@ -12,6 +12,7 @@ require 'models/developer'
 require 'models/customer'
 require 'models/toy'
 require 'models/matey'
+require 'models/dog'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
@@ -639,6 +640,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_one_attribute_bang
     assert_equal topics(:first), Topic.find_by_title!("The First Topic")
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
+  end
+
+  def test_find_by_on_attribute_that_is_a_reserved_word
+    dog_alias = 'Dog'
+    dog = Dog.create(alias: dog_alias)
+
+    assert_equal dog, Dog.find_by_alias(dog_alias)
   end
 
   def test_find_by_one_attribute_that_is_an_alias
