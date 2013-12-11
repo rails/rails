@@ -309,7 +309,7 @@ Saved the post without a title
 Now to get this test to pass we can add a model level validation for the _title_ field.
 
 ```ruby
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   validates :title, presence: true
 end
 ```

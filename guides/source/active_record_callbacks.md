@@ -29,7 +29,7 @@ Callbacks are methods that get called at certain moments of an object's life cyc
 In order to use the available callbacks, you need to register them. You can implement the callbacks as ordinary methods and use a macro-style class method to register them as callbacks:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   validates :login, :email, presence: true
 
   before_validation :ensure_login_has_a_value
@@ -46,7 +46,7 @@ end
 The macro-style class methods can also receive a block. Consider using this style if the code inside your block is so short that it fits in a single line:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   validates :login, :email, presence: true
 
   before_create do
@@ -58,7 +58,7 @@ end
 Callbacks can also be registered to only fire on certain lifecycle events:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   before_validation :normalize_name, on: :create
 
   # :on takes an array as well
@@ -121,7 +121,7 @@ The `after_find` callback will be called whenever Active Record loads a record f
 The `after_initialize` and `after_find` callbacks have no `before_*` counterparts, but they can be registered just like the other Active Record callbacks.
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   after_initialize do |user|
     puts "You have initialized an object!"
   end
@@ -212,11 +212,11 @@ Relational Callbacks
 Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many posts. A user's posts should be destroyed if the user is destroyed. Let's add an `after_destroy` callback to the `User` model by way of its relationship to the `Post` model:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_many :posts, dependent: :destroy
 end
 
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   after_destroy :log_destroy_action
 
   def log_destroy_action
@@ -243,7 +243,7 @@ As with validations, we can also make the calling of a callback method condition
 You can associate the `:if` and `:unless` options with a symbol corresponding to the name of a predicate method that will get called right before the callback. When using the `:if` option, the callback won't be executed if the predicate method returns false; when using the `:unless` option, the callback won't be executed if the predicate method returns true. This is the most common option. Using this form of registration it is also possible to register several different predicates that should be called to check if the callback should be executed.
 
 ```ruby
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
   before_save :normalize_card_number, if: :paid_with_card?
 end
 ```
@@ -253,7 +253,7 @@ end
 You can also use a string that will be evaluated using `eval` and hence needs to contain valid Ruby code. You should use this option only when the string represents a really short condition:
 
 ```ruby
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
   before_save :normalize_card_number, if: "paid_with_card?"
 end
 ```
@@ -263,7 +263,7 @@ end
 Finally, it is possible to associate `:if` and `:unless` with a `Proc` object. This option is best suited when writing short validation methods, usually one-liners:
 
 ```ruby
-class Order < ActiveRecord::Base
+class Order < ApplicationRecord
   before_save :normalize_card_number,
     if: Proc.new { |order| order.paid_with_card? }
 end
@@ -274,7 +274,7 @@ end
 When writing conditional callbacks, it is possible to mix both `:if` and `:unless` in the same callback declaration:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   after_create :send_email_to_author, if: :author_wants_emails?,
     unless: Proc.new { |comment| comment.post.ignore_comments? }
 end
@@ -300,7 +300,7 @@ end
 When declared inside a class, as above, the callback methods will receive the model object as a parameter. We can now use the callback class in the model:
 
 ```ruby
-class PictureFile < ActiveRecord::Base
+class PictureFile < ApplicationRecord
   after_destroy PictureFileCallbacks.new
 end
 ```
@@ -320,7 +320,7 @@ end
 If the callback method is declared this way, it won't be necessary to instantiate a `PictureFileCallbacks` object.
 
 ```ruby
-class PictureFile < ActiveRecord::Base
+class PictureFile < ApplicationRecord
   after_destroy PictureFileCallbacks
 end
 ```
@@ -344,7 +344,7 @@ end
 By using the `after_commit` callback we can account for this case.
 
 ```ruby
-class PictureFile < ActiveRecord::Base
+class PictureFile < ApplicationRecord
   after_commit :delete_picture_file_from_disk, on: [:destroy]
 
   def delete_picture_file_from_disk

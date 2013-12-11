@@ -1,4 +1,4 @@
-class Minivan < ActiveRecord::Base
+class Minivan < ApplicationRecord
   self.primary_key = :minivan_id
 
   belongs_to :speedometer

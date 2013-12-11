@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class Mixin < ActiveRecord::Base
+class Mixin < ApplicationRecord
 end
 
 # Let us control what Time.now returns for the TouchTest suite

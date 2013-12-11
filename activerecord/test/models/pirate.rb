@@ -1,4 +1,4 @@
-class Pirate < ActiveRecord::Base
+class Pirate < ApplicationRecord
   belongs_to :parrot, :validate => true
   belongs_to :non_validated_parrot, :class_name => 'Parrot'
   has_and_belongs_to_many :parrots, -> { order('parrots.id ASC') }, :validate => true

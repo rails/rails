@@ -130,10 +130,10 @@ Creating Active Record Models
 -----------------------------
 
 It is very easy to create Active Record models. All you have to do is to
-subclass the `ActiveRecord::Base` class and you're good to go:
+subclass the `ApplicationRecord` class and you're good to go:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
 end
 ```
 
@@ -159,6 +159,15 @@ p.name = "Some Book"
 puts p.name # "Some Book"
 ```
 
+Once you subclass `ApplicationRecord`, you get all of the functionality that is
+defined in the `ActiveRecord::Base` class since `ApplicationRecord` is itself a
+subclass of `ActiveRecord::Base`. The `ApplicationRecord` class allows you to
+configure Active Record without stepping over other applications that you would
+possibly be using, since every application you create has its own
+`ApplicationRecord`. Configurations set in `ActiveRecord::Base` are global to all
+applications using Active Record, but configurations set on `ApplicationRecord`
+are local to that application.
+
 Overriding the Naming Conventions
 ---------------------------------
 
@@ -170,7 +179,7 @@ You can use the `ActiveRecord::Base.table_name=` method to specify the table
 name that should be used:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   self.table_name = "PRODUCT"
 end
 ```
@@ -191,7 +200,7 @@ It's also possible to override the column that should be used as the table's
 primary key using the `ActiveRecord::Base.primary_key=` method:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   self.primary_key = "product_id"
 end
 ```
@@ -318,7 +327,7 @@ they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
 A quick example to illustrate:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   validates :name, presence: true
 end
 

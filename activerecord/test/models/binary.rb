@@ -1,2 +1,2 @@
-class Binary < ActiveRecord::Base
+class Binary < ApplicationRecord
 end

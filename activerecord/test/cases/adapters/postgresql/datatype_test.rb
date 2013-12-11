@@ -1,39 +1,39 @@
 require "cases/helper"
 
-class PostgresqlArray < ActiveRecord::Base
+class PostgresqlArray < ApplicationRecord
 end
 
-class PostgresqlRange < ActiveRecord::Base
+class PostgresqlRange < ApplicationRecord
 end
 
-class PostgresqlTsvector < ActiveRecord::Base
+class PostgresqlTsvector < ApplicationRecord
 end
 
-class PostgresqlMoney < ActiveRecord::Base
+class PostgresqlMoney < ApplicationRecord
 end
 
-class PostgresqlNumber < ActiveRecord::Base
+class PostgresqlNumber < ApplicationRecord
 end
 
-class PostgresqlTime < ActiveRecord::Base
+class PostgresqlTime < ApplicationRecord
 end
 
-class PostgresqlNetworkAddress < ActiveRecord::Base
+class PostgresqlNetworkAddress < ApplicationRecord
 end
 
-class PostgresqlBitString < ActiveRecord::Base
+class PostgresqlBitString < ApplicationRecord
 end
 
-class PostgresqlOid < ActiveRecord::Base
+class PostgresqlOid < ApplicationRecord
 end
 
-class PostgresqlTimestampWithZone < ActiveRecord::Base
+class PostgresqlTimestampWithZone < ApplicationRecord
 end
 
-class PostgresqlUUID < ActiveRecord::Base
+class PostgresqlUUID < ApplicationRecord
 end
 
-class PostgresqlLtree < ActiveRecord::Base
+class PostgresqlLtree < ApplicationRecord
 end
 
 class PostgresqlDataTypeTest < ActiveRecord::TestCase

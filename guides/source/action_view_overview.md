@@ -1035,11 +1035,11 @@ Returns `select` and `option` tags for the collection of existing return values 
 Example object structure for use with this method:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   belongs_to :author
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_many :posts
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1071,11 +1071,11 @@ Returns `radio_button` tags for the collection of existing return values of `met
 Example object structure for use with this method:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   belongs_to :author
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_many :posts
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1107,11 +1107,11 @@ Returns `check_box` tags for the collection of existing return values of `method
 Example object structure for use with this method:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   has_and_belongs_to_many :authors
 end
 
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_and_belongs_to_many :posts
   def name_with_initial
     "#{first_name.first}. #{last_name}"
@@ -1152,12 +1152,12 @@ Returns a string of `option` tags, like `options_from_collection_for_select`, bu
 Example object structure for use with this method:
 
 ```ruby
-class Continent < ActiveRecord::Base
+class Continent < ApplicationRecord
   has_many :countries
   # attribs: id, name
 end
 
-class Country < ActiveRecord::Base
+class Country < ApplicationRecord
   belongs_to :continent
   # attribs: id, name, continent_id
 end

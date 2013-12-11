@@ -1,6 +1,6 @@
 # used for OracleSynonymTest, see test/synonym_test_oracle.rb
 #
-class Subject < ActiveRecord::Base
+class Subject < ApplicationRecord
 
   # added initialization of author_email_address in the same way as in Topic class
   # as otherwise synonym test was failing

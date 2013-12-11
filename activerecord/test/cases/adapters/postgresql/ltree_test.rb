@@ -4,7 +4,7 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlLtreeTest < ActiveRecord::TestCase
-  class Ltree < ActiveRecord::Base
+  class Ltree < ApplicationRecord
     self.table_name = 'ltrees'
   end
 

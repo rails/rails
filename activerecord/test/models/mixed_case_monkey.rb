@@ -1,4 +1,4 @@
-class MixedCaseMonkey < ActiveRecord::Base
+class MixedCaseMonkey < ApplicationRecord
   self.primary_key = 'monkeyID'
 
   belongs_to :man

@@ -1,3 +1,3 @@
-class Keyboard < ActiveRecord::Base
+class Keyboard < ApplicationRecord
   self.primary_key = 'key_number'
 end

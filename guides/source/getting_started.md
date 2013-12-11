@@ -758,21 +758,24 @@ and restart the web server when a change is made.
 The model file, `app/models/post.rb` is about as simple as it can get:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
 end
 ```
 
 There isn't much to this file - but note that the `Post` class inherits from
-`ActiveRecord::Base`. Active Record supplies a great deal of functionality to
+`ApplicationRecord`. Active Record supplies a great deal of functionality to
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
-and the ability to relate multiple models to one another.
+and the ability to relate multiple models to one another. All you need to do
+to get all of this functionality is to subclass `ApplicationRecord` (which is
+itself a subclass of `ActiveRecord::Base` where all of the functionality is
+defined).
 
 Rails includes methods to help you validate the data that you send to models.
 Open the `app/models/post.rb` file and edit it:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   validates :title, presence: true,
                     length: { minimum: 5 }
 end
@@ -1181,7 +1184,7 @@ This command will generate four files:
 First, take a look at `app/models/comment.rb`:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :post
 end
 ```
@@ -1239,7 +1242,7 @@ association. You've already seen the line of code inside the `Comment` model (ap
 makes each comment belong to a Post:
 
 ```ruby
-class Comment < ActiveRecord::Base
+class Comment < ApplicationRecord
   belongs_to :post
 end
 ```
@@ -1247,7 +1250,7 @@ end
 You'll need to edit `app/models/post.rb` to add the other side of the association:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   has_many :comments
   validates :title, presence: true,
                     length: { minimum: 5 }
@@ -1612,7 +1615,7 @@ use the `dependent` option of an association to achieve this. Modify the Post
 model, `app/models/post.rb`, as follows:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Post < ApplicationRecord
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }

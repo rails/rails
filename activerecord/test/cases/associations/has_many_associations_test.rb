@@ -46,11 +46,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_anonymous_has_many
-    developer = Class.new(ActiveRecord::Base) {
+    developer = Class.new(ApplicationRecord) {
       self.table_name = 'developers'
       dev = self
 
-      developer_project = Class.new(ActiveRecord::Base) {
+      developer_project = Class.new(ApplicationRecord) {
         self.table_name = 'developers_projects'
         belongs_to :developer, :class => dev
       }
@@ -1508,7 +1508,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_defining_has_many_association_with_delete_all_dependency_lazily_evaluates_target_class
     ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
     class_eval(<<-EOF, __FILE__, __LINE__ + 1)
-      class DeleteAllModel < ActiveRecord::Base
+      class DeleteAllModel < ApplicationRecord
         has_many :nonentities, :dependent => :delete_all
       end
     EOF
@@ -1517,7 +1517,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_defining_has_many_association_with_nullify_dependency_lazily_evaluates_target_class
     ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
     class_eval(<<-EOF, __FILE__, __LINE__ + 1)
-      class NullifyModel < ActiveRecord::Base
+      class NullifyModel < ApplicationRecord
         has_many :nonentities, :dependent => :nullify
       end
     EOF

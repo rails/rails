@@ -520,7 +520,7 @@ The difference between `next` and `step` is that `step` stops at the next line o
 For example, consider this block of code with an included `debugger` statement:
 
 ```ruby
-class Author < ActiveRecord::Base
+class Author < ApplicationRecord
   has_one :editorial
   has_many :comments
 

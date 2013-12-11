@@ -94,7 +94,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_validates_acceptance_of_with_non_existant_table
-    Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base)
+    Object.const_set :IncorporealModel, Class.new(ApplicationRecord)
 
     assert_nothing_raised ActiveRecord::StatementInvalid do
       IncorporealModel.validates_acceptance_of(:incorporeal_column)

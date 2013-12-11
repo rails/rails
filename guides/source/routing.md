@@ -244,11 +244,11 @@ In each of these cases, the named routes remain the same as if you did not use `
 It's common to have resources that are logically children of other resources. For example, suppose your application includes these models:
 
 ```ruby
-class Magazine < ActiveRecord::Base
+class Magazine < ApplicationRecord
   has_many :ads
 end
 
-class Ad < ActiveRecord::Base
+class Ad < ApplicationRecord
   belongs_to :magazine
 end
 ```

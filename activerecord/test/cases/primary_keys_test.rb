@@ -143,18 +143,18 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_quoted_primary_key_after_set_primary_key
-    k = Class.new( ActiveRecord::Base )
+    k = Class.new(ApplicationRecord)
     assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
   def test_two_models_with_same_table_but_different_primary_key
-    k1 = Class.new(ActiveRecord::Base)
+    k1 = Class.new(ApplicationRecord)
     k1.table_name = 'posts'
     k1.primary_key = 'id'
 
-    k2 = Class.new(ActiveRecord::Base)
+    k2 = Class.new(ApplicationRecord)
     k2.table_name = 'posts'
     k2.primary_key = 'title'
 
@@ -170,10 +170,10 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_models_with_same_table_have_different_columns
-    k1 = Class.new(ActiveRecord::Base)
+    k1 = Class.new(ApplicationRecord)
     k1.table_name = 'posts'
 
-    k2 = Class.new(ActiveRecord::Base)
+    k2 = Class.new(ApplicationRecord)
     k2.table_name = 'posts'
 
     k1.columns.zip(k2.columns).each do |col1, col2|
@@ -190,7 +190,7 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
 
     connection = ActiveRecord::Base.remove_connection
 
-    model = Class.new(ActiveRecord::Base)
+    model = Class.new(ApplicationRecord)
     model.primary_key = 'foo'
 
     assert_equal 'foo', model.primary_key

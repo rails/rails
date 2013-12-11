@@ -54,7 +54,7 @@ class SerializationTest < ActiveRecord::TestCase
     original_root_in_json = ActiveRecord::Base.include_root_in_json
     ActiveRecord::Base.include_root_in_json = true
 
-    klazz = Class.new(ActiveRecord::Base)
+    klazz = Class.new(ApplicationRecord)
     klazz.table_name = 'topics'
     assert klazz.include_root_in_json
 

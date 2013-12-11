@@ -854,7 +854,7 @@ She also adds a validation to the `Product` model for the new column:
 ```ruby
 # app/models/product.rb
 
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   validates :flag, inclusion: { in: [true, false] }
 end
 ```
@@ -880,7 +880,7 @@ She also adds a validation to the `Product` model for the new column:
 ```ruby
 # app/models/product.rb
 
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   validates :flag, inclusion: { in: [true, false] }
   validates :fuzz, presence: true
 end
@@ -919,7 +919,7 @@ If Alice had done this instead, there would have been no problem:
 # db/migrate/20100513121110_add_flag_to_product.rb
 
 class AddFlagToProduct < ActiveRecord::Migration
-  class Product < ActiveRecord::Base
+  class Product < ApplicationRecord
   end
 
   def change
@@ -936,7 +936,7 @@ end
 # db/migrate/20100515121110_add_fuzz_to_product.rb
 
 class AddFuzzToProduct < ActiveRecord::Migration
-  class Product < ActiveRecord::Base
+  class Product < ApplicationRecord
   end
 
   def change

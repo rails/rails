@@ -132,7 +132,7 @@ class FixturesTest < ActiveRecord::TestCase
       ActiveRecord::Base.table_name_prefix = 'prefix_'
       ActiveRecord::Base.table_name_suffix = '_suffix'
 
-      other_topic_klass = Class.new(ActiveRecord::Base) do
+      other_topic_klass = Class.new(ApplicationRecord) do
         def self.name
           "OtherTopic"
         end
@@ -271,7 +271,7 @@ end
 
 class HasManyThroughFixture < ActiveSupport::TestCase
   def make_model(name)
-    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+    Class.new(ApplicationRecord) { define_singleton_method(:name) { name } }
   end
 
   def test_has_many_through

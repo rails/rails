@@ -32,7 +32,7 @@ module ActiveRecord
         # ==== Example
         #
         #   # Serialize a preferences attribute.
-        #   class User < ActiveRecord::Base
+        #   class User < ApplicationRecord
         #     serialize :preferences
         #   end
         def serialize(attr_name, class_name = Object)

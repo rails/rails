@@ -742,7 +742,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     def find_post_with_dependency(post_id, association, association_name, dependency)
       class_name = "PostWith#{association.to_s.classify}#{dependency.to_s.classify}"
       Post.find(post_id).update_columns type: class_name
-      klass = Object.const_set(class_name, Class.new(ActiveRecord::Base))
+      klass = Object.const_set(class_name, Class.new(ApplicationRecord))
       klass.table_name = 'posts'
       klass.send(association, association_name, :as => :taggable, :dependent => dependency)
       klass.find(post_id)

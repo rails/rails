@@ -31,6 +31,7 @@ require 'active_record/version'
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :ApplicationConfiguration
   autoload :Base
   autoload :Callbacks
   autoload :Core

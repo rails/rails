@@ -29,37 +29,37 @@ require 'models/car'
 require 'models/bulb'
 require 'rexml/document'
 
-class FirstAbstractClass < ActiveRecord::Base
+class FirstAbstractClass < ApplicationRecord
   self.abstract_class = true
 end
 class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
 end
 class Photo < SecondAbstractClass; end
-class Category < ActiveRecord::Base; end
-class Categorization < ActiveRecord::Base; end
-class Smarts < ActiveRecord::Base; end
-class CreditCard < ActiveRecord::Base
-  class PinNumber < ActiveRecord::Base
-    class CvvCode < ActiveRecord::Base; end
+class Category < ApplicationRecord; end
+class Categorization < ApplicationRecord; end
+class Smarts < ApplicationRecord; end
+class CreditCard < ApplicationRecord
+  class PinNumber < ApplicationRecord
+    class CvvCode < ApplicationRecord; end
     class SubCvvCode < CvvCode; end
   end
   class SubPinNumber < PinNumber; end
   class Brand < Category; end
 end
-class MasterCreditCard < ActiveRecord::Base; end
-class Post < ActiveRecord::Base; end
-class Computer < ActiveRecord::Base; end
-class NonExistentTable < ActiveRecord::Base; end
-class TestOracleDefault < ActiveRecord::Base; end
+class MasterCreditCard < ApplicationRecord; end
+class Post < ApplicationRecord; end
+class Computer < ApplicationRecord; end
+class NonExistentTable < ApplicationRecord; end
+class TestOracleDefault < ApplicationRecord; end
 
 class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
-class Weird < ActiveRecord::Base; end
+class Weird < ApplicationRecord; end
 
-class Boolean < ActiveRecord::Base
+class Boolean < ApplicationRecord
   def has_fun
     super
   end
@@ -68,7 +68,7 @@ end
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
 
-  class LintModel < ActiveRecord::Base; end
+  class LintModel < ApplicationRecord; end
 
   def setup
     @model = LintModel.new
@@ -819,7 +819,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal 'a text field', default.char3
     end
 
-    class Geometric < ActiveRecord::Base; end
+    class Geometric < ApplicationRecord; end
     def test_geometric_content
 
       # accepted format notes:
@@ -907,7 +907,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  class NumericData < ActiveRecord::Base
+  class NumericData < ApplicationRecord
     self.table_name = 'numeric_data'
   end
 
@@ -1064,7 +1064,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_quoted_table_name_after_set_table_name
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
 
     klass.table_name = "foo"
     assert_equal "foo", klass.table_name
@@ -1076,14 +1076,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_set_table_name_with_inheritance
-    k = Class.new( ActiveRecord::Base )
+    k = Class.new(ApplicationRecord)
     def k.name; "Foo"; end
     def k.table_name; super + "ks"; end
     assert_equal "foosks", k.table_name
   end
 
   def test_sequence_name_with_abstract_class
-    ak = Class.new(ActiveRecord::Base)
+    ak = Class.new(ApplicationRecord)
     ak.abstract_class = true
     k = Class.new(ak)
     k.table_name = "projects"
@@ -1288,7 +1288,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_current_scope_is_reset
-    Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
+    Object.const_set :UnloadablePost, Class.new(ApplicationRecord)
     UnloadablePost.send(:current_scope=, UnloadablePost.all)
 
     UnloadablePost.unloadable
@@ -1332,7 +1332,7 @@ class BasicsTest < ActiveRecord::TestCase
       flunk "there should be no post constant"
     end
 
-    self.class.const_set("Post", Class.new(ActiveRecord::Base) {
+    self.class.const_set("Post", Class.new(ApplicationRecord) {
       has_many :comments
     })
 
@@ -1447,7 +1447,7 @@ class BasicsTest < ActiveRecord::TestCase
       scope = mock
       scope.expects(meth).with(:foo, :bar).returns(record)
 
-      klass = Class.new(ActiveRecord::Base)
+      klass = Class.new(ApplicationRecord)
       klass.stubs(:all => scope)
 
       assert_equal record, klass.public_send(meth, :foo, :bar)
@@ -1455,12 +1455,12 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "scoped can take a values hash" do
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
   end
 
   test "connection_handler can be overridden" do
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     thread_connection_handler = nil
@@ -1476,7 +1476,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "new threads get default the default connection handler" do
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     orig_handler = klass.connection_handler
     handler = nil
 
@@ -1491,7 +1491,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "changing a connection handler in a main thread does not poison the other threads" do
-    klass = Class.new(ActiveRecord::Base)
+    klass = Class.new(ApplicationRecord)
     orig_handler = klass.connection_handler
     new_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     after_handler = nil

@@ -143,7 +143,7 @@ end
 class OverridingAggregationsTest < ActiveRecord::TestCase
   class DifferentName; end
 
-  class Person < ActiveRecord::Base
+  class Person < ApplicationRecord
     composed_of :composed_of, :mapping => %w(person_first_name first_name)
   end
 

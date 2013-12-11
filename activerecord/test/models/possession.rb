@@ -1,3 +1,3 @@
-class Possession < ActiveRecord::Base
+class Possession < ApplicationRecord
   self.table_name = 'having'
 end

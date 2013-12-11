@@ -1,3 +1,3 @@
-class Zine < ActiveRecord::Base
+class Zine < ApplicationRecord
   has_many :interests, :inverse_of => :zine
 end

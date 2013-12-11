@@ -45,7 +45,7 @@ module ActiveRecord
       # that correspond to a +composed_of+ relationship with their expanded
       # aggregate attribute values.
       # Given:
-      #     class Person < ActiveRecord::Base
+      #     class Person < ApplicationRecord
       #       composed_of :address, class_name: "Address",
       #         mapping: [%w(address_street street), %w(address_city city)]
       #     end

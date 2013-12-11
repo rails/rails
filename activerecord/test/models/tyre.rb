@@ -1,3 +1,3 @@
-class Tyre < ActiveRecord::Base
+class Tyre < ApplicationRecord
   belongs_to :car
 end

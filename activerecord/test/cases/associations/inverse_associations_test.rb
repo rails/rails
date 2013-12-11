@@ -105,15 +105,15 @@ end
 class InverseAssociationTests < ActiveRecord::TestCase
   def test_should_allow_for_inverse_of_options_in_associations
     assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on has_many') do
-      Class.new(ActiveRecord::Base).has_many(:wheels, :inverse_of => :car)
+      Class.new(ApplicationRecord).has_many(:wheels, :inverse_of => :car)
     end
 
     assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on has_one') do
-      Class.new(ActiveRecord::Base).has_one(:engine, :inverse_of => :car)
+      Class.new(ApplicationRecord).has_one(:engine, :inverse_of => :car)
     end
 
     assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on belongs_to') do
-      Class.new(ActiveRecord::Base).belongs_to(:car, :inverse_of => :driver)
+      Class.new(ApplicationRecord).belongs_to(:car, :inverse_of => :driver)
     end
   end
 

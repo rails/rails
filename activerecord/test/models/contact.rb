@@ -28,11 +28,11 @@ module ContactFakeColumns
   end
 end
 
-class Contact < ActiveRecord::Base
+class Contact < ApplicationRecord
   extend ContactFakeColumns
 end
 
-class ContactSti < ActiveRecord::Base
+class ContactSti < ApplicationRecord
   extend ContactFakeColumns
   column :type, :string
 

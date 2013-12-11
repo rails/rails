@@ -82,7 +82,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_bad_collection_keys
     assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
-      Class.new(ActiveRecord::Base).has_many(:wheels, :name => 'wheels')
+      Class.new(ApplicationRecord).has_many(:wheels, :name => 'wheels')
     end
   end
 
@@ -258,9 +258,9 @@ class AssociationProxyTest < ActiveRecord::TestCase
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
-  class DifferentPerson < ActiveRecord::Base; end
+  class DifferentPerson < ApplicationRecord; end
 
-  class PeopleList < ActiveRecord::Base
+  class PeopleList < ApplicationRecord
     has_and_belongs_to_many :has_and_belongs_to_many, :before_add => :enlist
     has_many :has_many, :before_add => :enlist
     belongs_to :belongs_to

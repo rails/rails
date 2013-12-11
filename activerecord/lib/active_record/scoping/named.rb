@@ -48,7 +48,7 @@ module ActiveRecord
         # represents a narrowing of a database query, such as
         # <tt>where(color: :red).select('shirts.*').includes(:washing_instructions)</tt>.
         #
-        #   class Shirt < ActiveRecord::Base
+        #   class Shirt < ApplicationRecord
         #     scope :red, -> { where(color: 'red') }
         #     scope :dry_clean_only, -> { joins(:washing_instructions).where('washing_instructions.dry_clean_only = ?', true) }
         #   end
@@ -64,7 +64,7 @@ module ActiveRecord
         # Note that this is simply 'syntactic sugar' for defining an actual
         # class method:
         #
-        #   class Shirt < ActiveRecord::Base
+        #   class Shirt < ApplicationRecord
         #     def self.red
         #       where(color: 'red')
         #     end
@@ -91,7 +91,7 @@ module ActiveRecord
         # descendant upon which the \scopes were defined. But they are also
         # available to +has_many+ associations. If,
         #
-        #   class Person < ActiveRecord::Base
+        #   class Person < ApplicationRecord
         #     has_many :shirts
         #   end
         #
@@ -101,7 +101,7 @@ module ActiveRecord
         # \Named scopes can also have extensions, just as with +has_many+
         # declarations:
         #
-        #   class Shirt < ActiveRecord::Base
+        #   class Shirt < ApplicationRecord
         #     scope :red, -> { where(color: 'red') } do
         #       def dom_id
         #         'red_shirts'
@@ -111,7 +111,7 @@ module ActiveRecord
         #
         # Scopes can also be used while creating/building a record.
         #
-        #   class Article < ActiveRecord::Base
+        #   class Article < ApplicationRecord
         #     scope :published, -> { where(published: true) }
         #   end
         #
@@ -121,7 +121,7 @@ module ActiveRecord
         # \Class methods on your model are automatically available
         # on scopes. Assuming the following setup:
         #
-        #   class Article < ActiveRecord::Base
+        #   class Article < ApplicationRecord
         #     scope :published, -> { where(published: true) }
         #     scope :featured, -> { where(featured: true) }
         #

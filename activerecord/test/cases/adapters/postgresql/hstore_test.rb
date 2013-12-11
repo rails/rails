@@ -5,7 +5,7 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlHstoreTest < ActiveRecord::TestCase
-  class Hstore < ActiveRecord::Base
+  class Hstore < ApplicationRecord
     self.table_name = 'hstores'
   end
 

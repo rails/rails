@@ -11,7 +11,8 @@ application into three layers, each with a specific responsibility.
 The _Model layer_ represents your domain model (such as Account, Product,
 Person, Post, etc.) and encapsulates the business logic that is specific to
 your application. In Rails, database-backed model classes are derived from
-`ActiveRecord::Base`. Active Record allows you to present the data from
+`ActiveRecord::Base` through an application specific subclass called
+`ApplicationRecord`. Active Record allows you to present the data from
 database rows as objects and embellish these data objects with business logic
 methods. Although most Rails models are backed by a database, models can also
 be ordinary Ruby classes, or Ruby classes that implement a set of interfaces
@@ -23,7 +24,8 @@ providing a suitable response. Usually this means returning HTML, but Rails cont
 can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
 manipulate models, and render view templates in order to generate the appropriate HTTP response.
 In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
-controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller
+controller classes are derived from `ActionController::Base` through an application specific 
+subclass called `ApplicationController`. Action Dispatch and Action Controller
 are bundled together in Action Pack. You can read more about Action Pack in its
 [README](actionpack/README.rdoc).
 
