@@ -838,13 +838,18 @@ Alice creates a migration for the `products` table which adds a new column and
 initializes it:
 
 ```ruby
-# db/migrate/20100513121110_add_flag_to_product.rb
+# db/migrate/20100513121110_add_feedbacks_count_to_product.rb
 
-class AddFlagToProduct < ActiveRecord::Migration
+class AddColumnFeedbacksCountToProduct < ActiveRecord::Migration
   def change
-    add_column :products, :flag, :boolean
+    add_column :products, :feedbacks_count, :integer
     reversible do |dir|
-      dir.up { Product.update_all flag: false }
+      dir.up do
+        Product.find_each do |product|
+          product.update_attributes \
+            feedbacks_count: product.feedbacks.count
+        end
+      end
     end
   end
 end
@@ -856,7 +861,10 @@ She also adds a validation to the `Product` model for the new column:
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, inclusion: { in: [true, false] }
+  validates :feedbacks_count,
+            numericality: { only_integer: true,
+                            greater_than_or_equal_to: 0
+                          }
 end
 ```
 
@@ -882,7 +890,10 @@ She also adds a validation to the `Product` model for the new column:
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, inclusion: { in: [true, false] }
+  validates :feedbacks_count,
+            numericality: { only_integer: true,
+                            greater_than_or_equal_to: 0
+                          }
   validates :fuzz, presence: true
 end
 ```
@@ -917,17 +928,23 @@ When using a local model, it's a good idea to call
 If Alice had done this instead, there would have been no problem:
 
 ```ruby
-# db/migrate/20100513121110_add_flag_to_product.rb
+# db/migrate/20100513121110_add_feedbacks_count_to_product.rb
 
-class AddFlagToProduct < ActiveRecord::Migration
+class AddColumnFeedbacksCountToProduct < ActiveRecord::Migration
   class Product < ActiveRecord::Base
+    has_many :feedbacks
   end
 
   def change
-    add_column :products, :flag, :boolean
+    add_column :products, :feedbacks_count, :integer
     Product.reset_column_information
     reversible do |dir|
-      dir.up { Product.update_all flag: false }
+      dir.up do
+        Product.find_each do |product|
+          product.update_attributes \
+            feedbacks_count: product.feedbacks.count
+        end
+      end
     end
   end
 end
