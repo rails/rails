@@ -1,3 +1,14 @@
+*   `HTML::Sanitizer#sanitize` now raise an ArgumentError when called with something
+    else than a String.
+
+        sanitize(Object.new) # => ArgumentError
+
+    Previously, it would have failed on `.empty?` and thrown a NoMethodError.
+
+        sanitize(Object.new) # => NoMethodError
+
+    *Christian Blais*
+
 *   A Cycle object should accept an array and cycle through it as it would with a set of
     comma-separated objects.
 

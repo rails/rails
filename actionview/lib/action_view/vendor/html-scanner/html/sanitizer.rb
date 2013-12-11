@@ -11,7 +11,11 @@ module HTML
     end
 
     def sanitizeable?(text)
-      !(text.nil? || text.empty? || !text.index("<"))
+      return false if text.nil?
+      raise ArgumentError, "You should pass a string to sanitize"
+      return false unless text.present?
+      return false unless text.index("<")
+      true
     end
 
   protected
@@ -60,7 +64,11 @@ module HTML
     self.included_tags = Set.new(%w(a href))
 
     def sanitizeable?(text)
-      !(text.nil? || text.empty? || !((text.index("<a") || text.index("<href")) && text.index(">")))
+      return false if text.nil?
+      raise ArgumentError, "You should pass a string to sanitize"
+      return false unless text.present?
+      return false unless (text.index("<a") || text.index("<href")) && text.index(">")
+      true
     end
 
   protected

@@ -101,6 +101,15 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized ''
   end
 
+  def test_should_raise_on_non_string_text
+    sanitizer = HTML::WhiteListSanitizer.new
+    e = assert_raise(ArgumentError) do
+      sanitizer.sanitize(Object.new)
+    end
+
+    assert_equal "You should pass a string to sanitize", e.message
+  end
+
   def test_should_allow_custom_tags
     text = "<u>foo</u>"
     sanitizer = HTML::WhiteListSanitizer.new
