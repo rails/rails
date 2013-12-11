@@ -243,6 +243,7 @@ ActiveRecord::Schema.define do
     t.integer :trainer_id
     t.integer :breeder_id
     t.integer :dog_lover_id
+    t.string  :alias
   end
 
   create_table :edges, :force => true, :id => false do |t|
