@@ -406,10 +406,7 @@ module ActionView
       view, locals, collection_data = @view, @locals, @collection_data
       cache = {}
       keys  = @locals.keys
-
-      index = -1
-      @collection.map do |object|
-        index += 1
+      @collection.map.with_index do |object, index|
         path, as, counter = collection_data[index]
 
         locals[as]      = object
