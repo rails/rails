@@ -33,7 +33,6 @@ after some refactoring or bug fix, so it is important to check if the following 
 are working with the versions that will be released:
 
 * https://github.com/rails/protected_attributes
-* https://github.com/rails/activerecord-deprecated_finders
 
 Do not release red plugins tests.
 

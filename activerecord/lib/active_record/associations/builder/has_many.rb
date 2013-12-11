@@ -1,10 +1,10 @@
 module ActiveRecord::Associations::Builder
   class HasMany < CollectionAssociation #:nodoc:
-    def macro
+    def self.macro
       :has_many
     end
 
-    def valid_options
+    def self.valid_options(options)
       super + [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of, :counter_cache, :join_table, :foreign_type]
     end
 

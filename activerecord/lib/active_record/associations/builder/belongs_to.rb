@@ -1,10 +1,10 @@
 module ActiveRecord::Associations::Builder
   class BelongsTo < SingularAssociation #:nodoc:
-    def macro
+    def self.macro
       :belongs_to
     end
 
-    def valid_options
+    def self.valid_options(options)
       super + [:foreign_type, :polymorphic, :touch, :counter_cache]
     end
 
@@ -22,8 +22,6 @@ module ActiveRecord::Associations::Builder
       super
       add_counter_cache_methods mixin
     end
-
-    private
 
     def self.add_counter_cache_methods(mixin)
       return if mixin.method_defined? :belongs_to_counter_cache_after_update
