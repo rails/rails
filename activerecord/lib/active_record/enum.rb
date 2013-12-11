@@ -12,8 +12,9 @@ module ActiveRecord
   #
   #   # conversation.update! status: 1
   #   conversation.archived!
-  #   conversation.archived? # => true
-  #   conversation.status    # => "archived"
+  #   conversation.archived?  # => true
+  #   conversation.status     # => "archived"
+  #   conversation.status_was # => "active"
   #
   #   # conversation.update! status: 1
   #   conversation.status = "archived"
@@ -70,6 +71,10 @@ module ActiveRecord
 
           # def direction() DIRECTION.key self[:direction] end
           define_method(name) { enum_values.key self[name] }
+          
+          define_method("#{name}_was") {
+            enum_values.key self.changed_attributes["#{name}"]
+          }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|

@@ -63,4 +63,10 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal 1, Book::STATUS["written"]
     assert_equal 2, Book::STATUS[:published]
   end
+  
+  test "enum key_was value be a String" do
+    @book.status = :proposed
+    @book.status = :written
+    assert_equal "proposed", @book.status_was
+  end
 end
