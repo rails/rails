@@ -15,23 +15,26 @@ module ActiveRecord::Associations::Builder
   class Association #:nodoc:
     class << self
       attr_accessor :extensions
+      # TODO: This class accessor is needed to make activerecord-deprecated_finders work.
+      # We can move it to a constant in 5.0.
+      attr_accessor :valid_options
     end
     self.extensions = []
 
-    # TODO: This class accessor is needed to make activerecord-deprecated_finders work.
-    # We can move it to a constant in 5.0.
-    cattr_accessor :valid_options, instance_accessor: false
     self.valid_options = [:class_name, :class, :foreign_key, :validate]
 
+    attr_reader :name, :scope, :options
+
     def self.build(model, name, scope, options, &block)
-      extension = define_extensions model, name, &block
-      reflection = create_reflection model, name, scope, options, extension
+      builder = create_builder model, name, scope, options, &block
+      reflection = builder.build(model)
       define_accessors model, reflection
       define_callbacks model, reflection
+      builder.define_extensions model
       reflection
     end
 
-    def self.create_reflection(model, name, scope, options, extension = nil)
+    def self.create_builder(model, name, scope, options, &block)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
       if scope.is_a?(Hash)
@@ -39,44 +42,39 @@ module ActiveRecord::Associations::Builder
         scope   = nil
       end
 
-      validate_options(options)
+      new(model, name, scope, options, &block)
+    end
 
-      scope = build_scope(scope, extension)
+    def initialize(model, name, scope, options)
+      # TODO: Remove this model argument as soon we drop support to activerecord-deprecated_finders.
+      @name    = name
+      @scope   = scope
+      @options = options
 
+      validate_options
+
+      if scope && scope.arity == 0
+        @scope = proc { instance_exec(&scope) }
+      end
+    end
+
+    def build(model)
       ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
-    def self.build_scope(scope, extension)
-      new_scope = scope
-
-      if scope && scope.arity == 0
-        new_scope = proc { instance_exec(&scope) }
-      end
-
-      if extension
-        new_scope = wrap_scope new_scope, extension
-      end
-
-      new_scope
-    end
-
-    def self.wrap_scope(scope, extension)
-      scope
-    end
-
-    def self.macro
+    def macro
       raise NotImplementedError
     end
 
-    def self.build_valid_options(options)
-      self.valid_options + Association.extensions.flat_map(&:valid_options)
+    def valid_options
+      Association.valid_options + Association.extensions.flat_map(&:valid_options)
     end
 
-    def self.validate_options(options)
-      options.assert_valid_keys(build_valid_options(options))
+    def validate_options
+      options.assert_valid_keys(valid_options)
     end
 
-    def self.define_extensions(model, name)
+    def define_extensions(model)
     end
 
     def self.define_callbacks(model, reflection)
@@ -118,6 +116,8 @@ module ActiveRecord::Associations::Builder
     def self.valid_dependent_options
       raise NotImplementedError
     end
+
+    private
 
     def self.add_before_destroy_callbacks(model, reflection)
       unless valid_dependent_options.include? reflection.options[:dependent]
