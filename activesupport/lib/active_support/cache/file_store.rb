@@ -43,33 +43,13 @@ module ActiveSupport
       # Increments an already existing integer value that is stored in the cache.
       # If the key is not found nothing is done.
       def increment(name, amount = 1, options = nil)
-        file_name = key_file_path(namespaced_key(name, options))
-        lock_file(file_name) do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i + amount
-            write(name, num, options)
-            num
-          else
-            nil
-          end
-        end
+        modify_value(name, amount, options)
       end
 
       # Decrements an already existing integer value that is stored in the cache.
       # If the key is not found nothing is done.
       def decrement(name, amount = 1, options = nil)
-        file_name = key_file_path(namespaced_key(name, options))
-        lock_file(file_name) do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i - amount
-            write(name, num, options)
-            num
-          else
-            nil
-          end
-        end
+        modify_value(name, amount*-1, options)
       end
 
       def delete_matched(matcher, options = nil)
@@ -181,6 +161,20 @@ module ActiveSupport
               search_dir(name, &callback)
             else
               callback.call name
+            end
+          end
+        end
+      
+        #This method performs an action(passed) already existing integer value that is stored in the cache
+        # If the key is not found nothing is done
+        def modify_value(name, amount, options)
+          file_name = key_file_path(namespaced_key(name, options))
+          lock_file(file_name) do
+            options = merged_options(options)
+            if num = read(name, options)
+              num = num.to_i + amount
+              write(name, num, options)
+              num
             end
           end
         end
