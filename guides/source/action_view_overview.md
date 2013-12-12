@@ -1285,7 +1285,7 @@ Creates a field set for grouping HTML form elements.
 Creates a file upload field.
 
 ```html+erb
-<%= form_tag {action: "post"}, {multipart: true} do %>
+<%= form_tag "post", {multipart: true} do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
 <% end %>
