@@ -22,8 +22,8 @@ module ActiveSupport
         extend Strategy::LocalCache
       end
 
-      # Deletes all items from the cache. In this case it deletes all the entries in the specified 
-      # file store directory except for .gitkeep. Be careful which directory is specified in your 
+      # Deletes all items from the cache. In this case it deletes all the entries in the specified
+      # file store directory except for .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
       def clear(options = nil)
         root_dirs = Dir.entries(cache_path).reject {|f| (EXCLUDED_DIRS + [".gitkeep"]).include?(f)}
@@ -49,7 +49,7 @@ module ActiveSupport
       # Decrements an already existing integer value that is stored in the cache.
       # If the key is not found nothing is done.
       def decrement(name, amount = 1, options = nil)
-        modify_value(name, amount*-1, options)
+        modify_value(name, -amount, options)
       end
 
       def delete_matched(matcher, options = nil)
@@ -164,13 +164,15 @@ module ActiveSupport
             end
           end
         end
-      
-        #This method performs an action(passed) already existing integer value that is stored in the cache
-        # If the key is not found nothing is done
+
+        # Modifies the amount of an already existing integer value that is stored in the cache.
+        # If the key is not found nothing is done.
         def modify_value(name, amount, options)
           file_name = key_file_path(namespaced_key(name, options))
+
           lock_file(file_name) do
             options = merged_options(options)
+
             if num = read(name, options)
               num = num.to_i + amount
               write(name, num, options)
