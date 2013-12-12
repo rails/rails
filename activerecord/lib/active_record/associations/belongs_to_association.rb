@@ -40,7 +40,15 @@ module ActiveRecord
         def update_counters(record)
           counter_cache_name = reflection.counter_cache_column
 
-          if counter_cache_name && owner.persisted? && different_target?(record)
+          return unless counter_cache_name && owner.persisted?
+
+          diff_target = if record
+                          different_target?(record)
+                        else
+                          owner[reflection.foreign_key]
+                        end
+
+          if diff_target
             if record
               record.class.increment_counter(counter_cache_name, record.id)
             end
@@ -53,11 +61,7 @@ module ActiveRecord
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          if record.nil?
-            owner[reflection.foreign_key]
-          else
-            record.id != owner[reflection.foreign_key]
-          end
+          record.id != owner[reflection.foreign_key]
         end
 
         def replace_keys(record)
