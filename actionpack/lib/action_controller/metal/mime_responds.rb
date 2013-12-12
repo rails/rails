@@ -209,6 +209,15 @@ module ActionController #:nodoc:
     #   app/views/projects/show.html+tablet.erb
     #   app/views/projects/show.html+phone.erb
     #
+    # When you're not sharing any code within the format, you can simplify defining variants
+    # using the inline syntax:
+    #
+    #   respond_to do |format|
+    #     format.js         { render "trash" }
+    #     format.html.phone { redirect_to progress_path }
+    #     format.html.none  { render "trash" }
+    #   end
+    #
     # Be sure to check the documentation of +respond_with+ and
     # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
     def respond_to(*mimes, &block)

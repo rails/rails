@@ -62,6 +62,16 @@ app/views/projects/show.html+tablet.erb
 app/views/projects/show.html+phone.erb
 ```
 
+You can also simplify the variants definition using the inline syntax:
+
+```ruby
+respond_to do |format|
+  format.js         { render "trash" }
+  format.html.phone { redirect_to progress_path }
+  format.html.none  { render "trash" }
+end
+```
+
 ### Spring
 
 New Rails 4.1 applications will ship with "springified" binstubs. This means
