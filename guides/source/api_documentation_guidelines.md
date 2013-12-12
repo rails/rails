@@ -42,7 +42,21 @@ Spell names correctly: Arel, Test::Unit, RSpec, HTML, MySQL, JavaScript, ERB. Wh
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
-When using pronouns in reference to a hypothetical person, such as "a user with a session cookie", gender neutral pronouns (they/their/them) should be used. Instead of:
+Prefer wordings that avoid "you"s and "your"s. For example, instead of
+
+```markdown
+If you need to use `return` statements in your callbacks, it is recommended that you explicitly define them as methods.
+```
+
+use this style:
+
+```markdown
+If `return` is needed it is recommended to explicitly define a method.
+```
+
+That said, when using pronouns in reference to a hypothetical person, such as "a
+user with a session cookie", gender neutral pronouns (they/their/them) should be
+used. Instead of:
 
 * he or she... use they.
 * him or her... use them.
