@@ -304,7 +304,7 @@ module Rails
     def secrets #:nodoc:
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
-        yaml = config.paths["config/tokens"].first
+        yaml = config.paths["config/secrets"].first
         if File.exist?(yaml)
           require "erb"
           env_secrets = YAML.load(ERB.new(IO.read(yaml)).result)[Rails.env]

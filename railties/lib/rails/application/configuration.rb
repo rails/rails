@@ -76,7 +76,7 @@ module Rails
         @paths ||= begin
           paths = super
           paths.add "config/database",    with: "config/database.yml"
-          paths.add "config/tokens",      with: "config/tokens.yml"
+          paths.add "config/secrets",     with: "config/secrets.yml"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"

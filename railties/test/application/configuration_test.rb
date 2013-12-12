@@ -304,7 +304,7 @@ module ApplicationTests
     end
 
     test "secrets.secret_key_base is used when config/tokens.yml is present" do
-      app_file 'config/tokens.yml', <<-YAML
+      app_file 'config/secrets.yml', <<-YAML
         development:
           secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
       YAML
@@ -314,7 +314,7 @@ module ApplicationTests
     end
 
     test "secret_key_base is copied from config to secrets when not set" do
-      remove_file "config/tokens.yml"
+      remove_file "config/secrets.yml"
       app_file 'config/initializers/secret_token.rb', <<-RUBY
         Rails.application.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
       RUBY
@@ -324,7 +324,7 @@ module ApplicationTests
     end
 
     test "custom secrets saved in config/tokens.yml are loaded in app secrets" do
-      app_file 'config/tokens.yml', <<-YAML
+      app_file 'config/secrets.yml', <<-YAML
         development:
           secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
           aws_access_key_id: myamazonaccesskeyid
