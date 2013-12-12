@@ -1,4 +1,4 @@
-*   Fix file descriptor being leaked on each call to `Kernel.silence_stream`
+*   Fix file descriptor being leaked on each call to `Kernel.silence_stream`.
 
     *Mario Visic*
 

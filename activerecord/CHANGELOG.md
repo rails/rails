@@ -1,16 +1,16 @@
 *   Use the right column to type cast grouped calculations with custom expressions.
 
-    Fixes: #13230
+    Fixes #13230.
 
     Example:
 
-            # Before
-            Account.group(:firm_name).sum('0.01 * credit_limit')
-            # => { '37signals' => '0.5' }
+        # Before
+        Account.group(:firm_name).sum('0.01 * credit_limit')
+        # => { '37signals' => '0.5' }
 
-            # After
-            Account.group(:firm_name).sum('0.01 * credit_limit')
-            # => { '37signals' => 0.5 }
+        # After
+        Account.group(:firm_name).sum('0.01 * credit_limit')
+        # => { '37signals' => 0.5 }
 
     *Paul Nikitochkin*
 

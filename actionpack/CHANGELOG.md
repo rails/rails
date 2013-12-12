@@ -1,8 +1,10 @@
-*   Fix generating a path for engine inside a resources block (#8533)
+*   Fix generating a path for engine inside a resources block.
+
+    Fixes #8533.
 
     *Piotr Sarnacki*
 
-*   Add Mime::Type.register "text/vcard", :vcf to the default list of mime types
+*   Add `Mime::Type.register "text/vcard", :vcf` to the default list of mime types.
 
     *DHH*
 
@@ -26,7 +28,7 @@
     The request variant is a specialization of the request format, like `:tablet`,
     `:phone`, or `:desktop`.
 
-    You can set the variant in a before_action:
+    You can set the variant in a `before_action`:
 
         request.variant = :tablet if request.user_agent =~ /iPad/
 
@@ -85,7 +87,7 @@
 
 *   Add `session#fetch` method
 
-    fetch behaves like [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch).  
+    fetch behaves like [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch).
     It returns a value from the hash for the given key.
     If the key can’t be found, there are several options:
 
