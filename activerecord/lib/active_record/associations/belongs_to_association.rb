@@ -42,20 +42,28 @@ module ActiveRecord
 
           return unless counter_cache_name && owner.persisted?
 
-          diff_target = if record
-                          different_target?(record)
-                        else
-                          owner[reflection.foreign_key]
-                        end
+          if record
+            update_with_record record, counter_cache_name
+          else
+            update_without_record counter_cache_name
+          end
+        end
 
-          if diff_target
-            if record
-              record.class.increment_counter(counter_cache_name, record.id)
-            end
+        def update_with_record record, counter_cache_name
+          return unless different_target? record
 
-            if foreign_key_present?
-              klass.decrement_counter(counter_cache_name, target_id)
-            end
+          record.class.increment_counter(counter_cache_name, record.id)
+
+          decrement_counter counter_cache_name
+        end
+
+        def update_without_record counter_cache_name
+          decrement_counter counter_cache_name
+        end
+
+        def decrement_counter counter_cache_name
+          if foreign_key_present?
+            klass.decrement_counter(counter_cache_name, target_id)
           end
         end
 
