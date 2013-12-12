@@ -95,24 +95,34 @@ gem to your Gemfile.
 
 ### Usage of `return` within inline callback blocks
 
-Previously, Rails allowed you to `return` from an inline callback block:
+Previously, Rails allowed inline callback blocks to use `return` this way:
 
 ```ruby
 class ReadOnlyModel < ActiveRecord::Base
-  before_save { return false }
+  before_save { return false } # BAD
 end
 ```
 
 This behaviour was never intentionally supported. Due to a change in the internals
 of `ActiveSupport::Callbacks`, this is no longer allowed in Rails 4.1. Using a
-`return` statement in an inline callback block will cause a `LocalJumpError` to
-be raised when the callback is executed. If you need to use `return` statements
-in your callbacks, it is recommended that you explicitly define them as methods
-and pass the method name as a symbol instead:
+`return` statement in an inline callback block causes a `LocalJumpError` to
+be raised when the callback is executed.
+
+Inline callback blocks using `return` can be refactored to evaluate to the
+returned value:
 
 ```ruby
 class ReadOnlyModel < ActiveRecord::Base
-  before_save :before_save_callback
+  before_save { false } # GOOD
+end
+```
+
+Alternatively, if `return` is preferred it is recommended to explicitly define
+a method:
+
+```ruby
+class ReadOnlyModel < ActiveRecord::Base
+  before_save :before_save_callback # GOOD
 
   private
     def before_save_callback
@@ -122,9 +132,11 @@ end
 ```
 
 This change applies to most places in Rails where callbacks are used, including
-Active Record and Active Model callbacks, as well as "filters" in Action
-Controller (e.g. `before_action`). See [this pull request](https://github.com/rails/rails/pull/13271)
-for more details.
+Active Record and Active Model callbacks, as well as filters in Action
+Controller (e.g. `before_action`).
+
+See [this pull request](https://github.com/rails/rails/pull/13271) for more
+details.
 
 ### Methods defined in Active Record fixtures
 
