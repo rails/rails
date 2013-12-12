@@ -11,7 +11,11 @@ module ActiveRecord
         raise_on_type_mismatch!(record) if record
 
         update_counters(record)
-        replace_keys(record)
+        if record
+          replace_keys(record)
+        else
+          remove_keys
+        end
         set_inverse_instance(record) if record
 
         @updated = true if record
@@ -58,11 +62,11 @@ module ActiveRecord
         end
 
         def replace_keys(record)
-          if record
-            owner[reflection.foreign_key] = record[reflection.association_primary_key(record.class)]
-          else
-            owner[reflection.foreign_key] = nil
-          end
+          owner[reflection.foreign_key] = record[reflection.association_primary_key(record.class)]
+        end
+
+        def remove_keys
+          owner[reflection.foreign_key] = nil
         end
 
         def foreign_key_present?
