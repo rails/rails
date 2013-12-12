@@ -214,6 +214,43 @@ module ActiveRecord
         def rollback_db_transaction
           execute "ROLLBACK"
         end
+
+        def deconstruct_joins(source)
+          new_source = source.clone
+          new_source.right = []
+          wheres = []
+          source.right.each do |join|
+            case join
+            # only INNER JOINs are supported, by moving the join condition
+            # to the where clause
+            when Arel::Nodes::InnerJoin
+              new_source.right << join.left
+              wheres << join.right.expr
+            else
+              return [nil, nil]
+            end
+          end
+          [new_source, wheres]
+        end
+
+        # PostgreSQL allows multiple tables in UPDATE and DELETE, but not with normal
+        # JOIN syntax, so we have to attempt to break it down and convert it. Also,
+        # limit, offset, and order are not supported natively, so use a subquery
+        def join_to_update(update, select) #:nodoc:
+          return super if select.limit || select.offset || select.orders.any?
+          new_source, join_conditions = deconstruct_joins(select.source)
+          return super unless new_source
+          update.table new_source
+          update.wheres = join_conditions + select.constraints
+        end
+
+        def join_to_delete(delete, select, key) #:nodoc:
+          return super if select.limit || select.offset || select.orders.any?
+          new_source, join_conditions = deconstruct_joins(select.source)
+          return super unless new_source
+          delete.from new_source
+          delete.wheres = join_conditions + select.constraints
+        end
       end
     end
   end

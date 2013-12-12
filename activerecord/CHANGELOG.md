@@ -1,3 +1,7 @@
+*   Use native PostgreSQL syntax for `delete_all` and `update_all` with `joins` when poassible
+
+    *Cody Cutrer*
+
 *   Allow `limit` on `delete_all`. Also use native MySQL syntax for `delete_all` with `joins` or
     `limits`
 
