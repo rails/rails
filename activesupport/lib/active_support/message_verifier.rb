@@ -39,8 +39,9 @@ module ActiveSupport
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
         begin
           @serializer.load(::Base64.strict_decode64(data))
-        rescue ArgumentError
-          raise InvalidSignature
+        rescue ArgumentError => argument_error
+          raise InvalidSignature if argument_error.message =~ %r{invalid base64}
+          raise
         end
       else
         raise InvalidSignature
