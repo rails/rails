@@ -8,6 +8,8 @@ module I18n
     config.i18n.railties_load_path = []
     config.i18n.load_path = []
     config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
+    # Enforce I18n to check the available locales when setting a locale.
+    config.i18n.enforce_available_locales = true
 
     # Set the i18n configuration after initialization since a lot of
     # configuration is still usually done in application initializers.
@@ -31,10 +33,11 @@ module I18n
 
       fallbacks = app.config.i18n.delete(:fallbacks)
 
-      if app.config.i18n.has_key?(:enforce_available_locales)
-        # this option needs to be set before `default_locale=` to work properly.
-        I18n.enforce_available_locales = app.config.i18n.delete(:enforce_available_locales)
-      end
+      # Avoid issues with setting the default_locale by disabling available locales
+      # check while configuring.
+      enforce_available_locales = app.config.i18n.delete(:enforce_available_locales)
+      enforce_available_locales = I18n.enforce_available_locales unless I18n.enforce_available_locales.nil?
+      I18n.enforce_available_locales = false
 
       app.config.i18n.each do |setting, value|
         case setting
@@ -48,6 +51,9 @@ module I18n
       end
 
       init_fallbacks(fallbacks) if fallbacks && validate_fallbacks(fallbacks)
+
+      # Restore avalable locales check so it will take place from now on.
+      I18n.enforce_available_locales = enforce_available_locales
 
       reloader = ActiveSupport::FileUpdateChecker.new(I18n.load_path.dup){ I18n.reload! }
       app.reloaders << reloader

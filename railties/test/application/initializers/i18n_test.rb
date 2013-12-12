@@ -184,14 +184,48 @@ en:
       assert_fallbacks ca: [:ca, :"es-ES", :es, :'en-US', :en]
     end
 
-    test "config.i18n.enforce_available_locales is set before config.i18n.default_locale is" do
+    test "config.i18n.enforce_available_locales is set to true by default and avoids I18n warnings" do
       add_to_config <<-RUBY
         config.i18n.default_locale = :it
-        config.i18n.enforce_available_locales = true
       RUBY
 
-      assert_raises(I18n::InvalidLocale) do
-        load_app
+      output = capture(:stderr) { load_app }
+      assert_no_match %r{deprecated.*enforce_available_locales}, output
+      assert_equal true, I18n.enforce_available_locales
+
+      assert_raise I18n::InvalidLocale do
+        I18n.locale = :es
+      end
+    end
+
+    test "disable config.i18n.enforce_available_locales" do
+      add_to_config <<-RUBY
+        config.i18n.enforce_available_locales = false
+        config.i18n.default_locale = :fr
+      RUBY
+
+      output = capture(:stderr) { load_app }
+      assert_no_match %r{deprecated.*enforce_available_locales}, output
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
+      end
+    end
+
+    test "default config.i18n.enforce_available_locales does not override I18n.enforce_available_locales" do
+      I18n.enforce_available_locales = false
+
+      add_to_config <<-RUBY
+        config.i18n.default_locale = :fr
+      RUBY
+
+      output = capture(:stderr) { load_app }
+      assert_no_match %r{deprecated.*enforce_available_locales}, output
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
       end
     end
   end
