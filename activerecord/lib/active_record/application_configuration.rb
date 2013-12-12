@@ -40,7 +40,7 @@ module ActiveRecord
     # a configuration associated with it, then the method will return the value
     # that would have been returned without any argument. 
     #
-    #   ActiveRecord::Base.application_reocrd('something_with_no_config')
+    #   ActiveRecord::Base.application_record('something_with_no_config')
     #       # => ApplicationRecord
     #
     module ClassMethods
