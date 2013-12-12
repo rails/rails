@@ -15,7 +15,7 @@ module ActiveRecord
           set_inverse_instance(record)
           @updated = true
         else
-          update_counters(record)
+          update_counters_without_record
           remove_keys
         end
 
@@ -42,11 +42,15 @@ module ActiveRecord
 
           return unless counter_cache_name && owner.persisted?
 
-          if record
-            update_with_record record, counter_cache_name
-          else
-            update_without_record counter_cache_name
-          end
+          update_with_record record, counter_cache_name
+        end
+
+        def update_counters_without_record
+          counter_cache_name = reflection.counter_cache_column
+
+          return unless counter_cache_name && owner.persisted?
+
+          update_without_record counter_cache_name
         end
 
         def update_with_record record, counter_cache_name
