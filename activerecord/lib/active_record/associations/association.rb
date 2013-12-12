@@ -104,11 +104,12 @@ module ActiveRecord
 
       # Set the inverse association, if possible
       def set_inverse_instance(record)
-        if record && invertible_for?(record)
+        if invertible_for?(record)
           inverse = record.association(inverse_reflection_for(record).name)
           inverse.target = owner
           inverse.inversed = true
         end
+        record
       end
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the

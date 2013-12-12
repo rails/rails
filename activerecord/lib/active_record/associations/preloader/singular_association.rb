@@ -11,7 +11,7 @@ module ActiveRecord
 
             association = owner.association(reflection.name)
             association.target = record
-            association.set_inverse_instance(record)
+            association.set_inverse_instance(record) if record
           end
         end
 

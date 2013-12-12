@@ -12,7 +12,7 @@ module ActiveRecord
 
         update_counters(record)
         replace_keys(record)
-        set_inverse_instance(record)
+        set_inverse_instance(record) if record
 
         @updated = true if record
 
