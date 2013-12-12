@@ -10,15 +10,15 @@ module ActiveRecord
       method_arity = target.to_a.method(method).arity
 
       if method_arity.zero?
-        target.send(method)
+        target.public_send(method)
       elsif method_arity < 0
         if method == :shuffle!
-          target.send(method)
+          target.public_send(method)
         else
-          target.send(method, 1)
+          target.public_send(method, 1)
         end
        elsif method_arity == 1
-        target.send(method, 1)
+        target.public_send(method, 1)
       else
         raise NotImplementedError
       end

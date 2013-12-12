@@ -68,7 +68,7 @@ module ActiveRecord
               RUBY
             else
               define_method method do |*args, &block|
-                scoping { @klass.send(method, *args, &block) }
+                scoping { @klass.public_send(method, *args, &block) }
               end
             end
           end
@@ -87,10 +87,10 @@ module ActiveRecord
       def method_missing(method, *args, &block)
         if @klass.respond_to?(method)
           self.class.delegate_to_scoped_klass(method)
-          scoping { @klass.send(method, *args, &block) }
+          scoping { @klass.public_send(method, *args, &block) }
         elsif arel.respond_to?(method)
           self.class.delegate method, :to => :arel
-          arel.send(method, *args, &block)
+          arel.public_send(method, *args, &block)
         else
           super
         end
@@ -118,9 +118,9 @@ module ActiveRecord
 
     def method_missing(method, *args, &block)
       if @klass.respond_to?(method)
-        scoping { @klass.send(method, *args, &block) }
+        scoping { @klass.public_send(method, *args, &block) }
       elsif arel.respond_to?(method)
-        arel.send(method, *args, &block)
+        arel.public_send(method, *args, &block)
       else
         super
       end
