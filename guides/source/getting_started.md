@@ -398,7 +398,7 @@ If you refresh <http://localhost:3000/posts/new> now, you'll get a new error:
 
 This error indicates that Rails cannot find the `new` action inside the `PostsController`
 that you just generated. This is because when controllers are generated in Rails
-they are empty by default, unless you tell it you wanted actions during the
+they are empty by default, unless you tell it your wanted actions during the
 generation process.
 
 To manually define an action inside a controller, all you need to do is to
