@@ -6,14 +6,14 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
 
 module ActiveSupport
-  # Callbacks are code hooks that are run at key points in an object's lifecycle.
+  # Callbacks are code hooks that are run at key points in an object's life cycle.
   # The typical use case is to have a base class define a set of callbacks
   # relevant to the other functionality it supplies, so that subclasses can
   # install callbacks that enhance or modify the base functionality without
   # needing to override or redefine methods of the base class.
   #
   # Mixing in this module allows you to define the events in the object's
-  # lifecycle that will support callbacks (via +ClassMethods.define_callbacks+),
+  # life cycle that will support callbacks (via +ClassMethods.define_callbacks+),
   # set the instance methods, procs, or callback objects to be called (via
   # +ClassMethods.set_callback+), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
@@ -495,7 +495,7 @@ module ActiveSupport
         __reset_runner(symbol)
       end
 
-      # Define sets of events in the object lifecycle that support callbacks.
+      # Define sets of events in the object life cycle that support callbacks.
       #
       #   define_callbacks :validate
       #   define_callbacks :initialize, :save, :destroy
