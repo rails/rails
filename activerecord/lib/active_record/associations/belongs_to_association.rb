@@ -37,23 +37,22 @@ module ActiveRecord
           !loaded? && foreign_key_present? && klass
         end
 
-        def update_counters(record)
+        def with_cache_name
           counter_cache_name = reflection.counter_cache_column
-
           return unless counter_cache_name && owner.persisted?
-          return unless different_target? record
+          yield counter_cache_name
+        end
 
-          record.class.increment_counter(counter_cache_name, record.id)
-
-          decrement_counter counter_cache_name
+        def update_counters(record)
+          with_cache_name do |name|
+            return unless different_target? record
+            record.class.increment_counter(name, record.id)
+            decrement_counter name
+          end
         end
 
         def decrement_counters
-          counter_cache_name = reflection.counter_cache_column
-
-          return unless counter_cache_name && owner.persisted?
-
-          decrement_counter counter_cache_name
+          with_cache_name { |name| decrement_counter name }
         end
 
         def decrement_counter counter_cache_name
