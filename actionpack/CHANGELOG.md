@@ -85,9 +85,7 @@
 
 *   Add `session#fetch` method
 
-    fetch behaves similarly to [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch),
-    with the exception that the returned value is always saved into the session.
-
+    fetch behaves like [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch).  
     It returns a value from the hash for the given key.
     If the key can’t be found, there are several options:
 
