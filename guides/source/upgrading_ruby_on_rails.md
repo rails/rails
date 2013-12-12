@@ -93,6 +93,39 @@ If you application depends on one of these features, you can get them back by
 adding the [`activesupport-json_encoder`](https://github.com/rails/activesupport-json_encoder)
 gem to your Gemfile.
 
+### Usage of `return` within inline callback blocks
+
+Previously, Rails allowed you to `return` from an inline callback block:
+
+```ruby
+class ReadOnlyModel < ActiveRecord::Base
+  before_save { return false }
+end
+```
+
+This behaviour was never intentionally supported. Due to a change in the internals
+of `ActiveSupport::Callbacks`, this is no longer allowed in Rails 4.1. Using a
+`return` statement in an inline callback block will cause a `LocalJumpError` to
+be raised when the callback is executed. If you need to use `return` statements
+in your callbacks, it is recommended that you explicitly define them as methods
+and pass the method name as a symbol instead:
+
+```ruby
+class ReadOnlyModel < ActiveRecord::Base
+  before_save :before_save_callback
+
+  private
+    def before_save_callback
+      return false
+    end
+end
+```
+
+This change applies to most places in Rails where callbacks are used, including
+Active Record and Active Model callbacks, as well as "filters" in Action
+Controller (e.g. `before_action`). See [this pull request](https://github.com/rails/rails/pull/13271)
+for more details.
+
 ### Methods defined in Active Record fixtures
 
 Rails 4.1 evaluates each fixture's ERB in a separate context, so helper methods
