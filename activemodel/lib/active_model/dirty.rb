@@ -153,6 +153,14 @@ module ActiveModel
       changed_attributes.include?(attr)
     end
 
+
+    # Returns the original value of attribute of object whether the value changed 
+    # or not before object is saved
+    #   person.age # => 14
+    #   person.name # => "bob"
+    #   person.name = 'robert'
+    #   person.attribute_was('name') => 'bob'
+    #   person.attribute_was('age') => 14
     # Handle <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr)
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
