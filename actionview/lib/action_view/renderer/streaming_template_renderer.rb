@@ -58,7 +58,7 @@ module ActionView
 
     def delayed_render(buffer, template, layout, view, locals)
       # Wrap the given buffer in the StreamingBuffer and pass it to the
-      # underlying template handler. Now, everytime something is concatenated
+      # underlying template handler. Now, every time something is concatenated
       # to the buffer, it is not appended to an array, but streamed straight
       # to the client.
       output  = ActionView::StreamingBuffer.new(buffer)
