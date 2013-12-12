@@ -47,6 +47,14 @@
         app/views/projects/show.html+tablet.erb
         app/views/projects/show.html+phone.erb
 
+    You can also simplify the variants definition using the inline syntax:
+
+        respond_to do |format|
+          format.js         { render "trash" }
+          format.html.phone { redirect_to progress_path }
+          format.html.none  { render "trash" }
+        end
+
     *Łukasz Strzałkowski*
 
 *   Fix header `Content-Type: #<Mime::NullType:...>` in localized template.
