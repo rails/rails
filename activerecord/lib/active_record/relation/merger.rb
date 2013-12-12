@@ -137,8 +137,8 @@ module ActiveRecord
       end
 
       def merge_single_values
-        relation.from_value          = values[:from] unless relation.from_value
-        relation.lock_value          = values[:lock] unless relation.lock_value
+        relation.from_value          ||= values[:from]
+        relation.lock_value          ||= values[:lock]
         relation.reverse_order_value = values[:reverse_order]
 
         unless values[:create_with].blank?
