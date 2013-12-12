@@ -595,7 +595,11 @@ module ActiveRecord
 
         def translate_exception(exception, message)
           case exception.message
-          when /column(s)? .* (is|are) not unique/
+          # SQLite 3.8.2 returns a newly formatted error message:
+          #   UNIQUE constraint failed: *table_name*.*column_name*
+          # Older versions of SQLite return:
+          #   column *column_name* is not unique
+          when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
             RecordNotUnique.new(message, exception)
           else
             super
