@@ -61,7 +61,7 @@ module ActiveModel
   #   end
   #
   # Note that the validator is initialized only once for the whole application
-  # lifecycle, and not on each validation run.
+  # life cycle, and not on each validation run.
   #
   # The easiest way to add custom validators for validating individual attributes
   # is with the convenient <tt>ActiveModel::EachValidator</tt>.

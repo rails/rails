@@ -55,7 +55,7 @@ class User < ActiveRecord::Base
 end
 ```
 
-Callbacks can also be registered to only fire on certain lifecycle events:
+Callbacks can also be registered to only fire on certain life cycle events:
 
 ```ruby
 class User < ActiveRecord::Base
