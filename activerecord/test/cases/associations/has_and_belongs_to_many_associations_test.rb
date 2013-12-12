@@ -570,6 +570,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert !developer.special_projects.include?(other_project)
   end
 
+  def test_symbol_join_table
+    developer = Developer.first
+    sp = developer.sym_special_projects.create("name" => "omg")
+    developer.reload
+    assert_includes developer.sym_special_projects, sp
+  end
+
   def test_update_attributes_after_push_without_duplicate_join_table_rows
     developer = Developer.new("name" => "Kano")
     project = SpecialProject.create("name" => "Special Project")

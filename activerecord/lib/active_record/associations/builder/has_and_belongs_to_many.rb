@@ -20,7 +20,7 @@ module ActiveRecord::Associations::Builder
 
       def self.build(lhs_class, name, options)
         if options[:join_table]
-          KnownTable.new options[:join_table]
+          KnownTable.new options[:join_table].to_s
         else
           class_name = options.fetch(:class_name) {
             name.to_s.camelize.singularize
