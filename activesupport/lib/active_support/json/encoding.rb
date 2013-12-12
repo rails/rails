@@ -63,33 +63,28 @@ module ActiveSupport
           private_constant :ESCAPED_CHARS, :ESCAPE_REGEX_WITH_HTML_ENTITIES, 
             :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, :EscapedString
 
-          # Recursively turn the given object into a "jsonified" Ruby data structure
-          # that the JSON gem understands - i.e. we want only Hash, Array, String,
-          # Numeric, true, false and nil in the final tree. Calls #as_json on it if
-          # it's not from one of these base types.
-          # 
-          # This allows developers to implement #as_json withouth having to worry
-          # about what base types of objects they are allowed to return and having
-          # to remember calling #as_json recursively.
-          # 
-          # By default, the options hash is not passed to the children data structures
-          # to avoid undesiarable result. Develoers must opt-in by implementing
-          # custom #as_json methods (e.g. Hash#as_json and Array#as_json).
+          # Convert an object into a "JSON-ready" representation composed of
+          # primitives like Hash, Array, String, Numeric, and true/false/nil.
+          # Recursively calls #as_json to the object to recursively build a
+          # fully JSON-ready object.
+          #
+          # This allows developers to implement #as_json without having to
+          # worry about what base types of objects they are allowed to return
+          # or having to remember to call #as_json recursively.
+          #
+          # Note: the +options+ hash passed to +object.to_json+ is only passed
+          # to +object.as_json+, not any of this method's recursive +#as_json+
+          # calls.
           def jsonify(value)
-            if value.is_a?(Hash)
-              Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
-            elsif value.is_a?(Array)
-              value.map { |v| jsonify(v) }
-            elsif value.is_a?(String)
+            case value
+            when String
               EscapedString.new(value)
-            elsif value.is_a?(Numeric)
+            when Numeric, NilClass, TrueClass, FalseClass
               value
-            elsif value == true
-              true
-            elsif value == false
-              false
-            elsif value == nil
-              nil
+            when Hash
+              Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
+            when Array
+              value.map { |v| jsonify(v) }
             else
               jsonify value.as_json
             end
