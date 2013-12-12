@@ -89,8 +89,8 @@
   }
 
   // takes an array of elements with a data-regexp attribute and
-  // passes their their parent <tr> into the callback function
-  // if the regexp matchs a given path
+  // passes their parent <tr> into the callback function
+  // if the regexp matches a given path
   function eachElemsForPath(elems, path, func) {
     each(elems, function(e){
       var reg = e.getAttribute("data-regexp");

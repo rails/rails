@@ -41,7 +41,7 @@ module ActiveModel
     end
 
     # Returns an Enumerable of all key attributes if any is set, regardless if
-    # the object is persisted or not. If there no key attributes, returns +nil+.
+    # the object is persisted or not. Returns +nil+ if there are no key attributes.
     #
     #   class Person < ActiveRecord::Base
     #   end

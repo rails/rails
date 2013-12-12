@@ -188,7 +188,7 @@ module ActiveRecord
     end
   end
 
-  # Raised when a primary key is needed, but there is not one specified in the schema or model.
+  # Raised when a primary key is needed, but not specified in the schema or model.
   class UnknownPrimaryKey < ActiveRecordError
     attr_reader :model
 
