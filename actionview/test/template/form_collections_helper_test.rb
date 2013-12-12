@@ -300,7 +300,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select 'input[type=checkbox][value=2][disabled=disabled]'
   end
 
-  test 'collection check boxes accepts single disable item' do
+  test 'collection check boxes accepts single disabled item' do
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :disabled => 1
 
