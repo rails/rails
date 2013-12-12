@@ -147,13 +147,26 @@ module ActiveModel
     def changed_attributes
       @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
     end
-
+    
+    # # Returns +true+ if the attribute have unsaved changes, +false+ otherwise.
+    # and object is not saved
+    #
+    # person.name #=> "bob"
+    # person.name = 'robert'
+    # person.attribute_changed?'name' # =>  true
     # Handle <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr)
       changed_attributes.include?(attr)
     end
 
-    # Handle <tt>*_was</tt> for +method_missing+.
+    # Returns the original value of an attribute
+    #
+    # person.age # => 14
+    # person.name # => "bob"
+    # person.name = 'robert'
+    # person.attribute_was('name') => 'bob'
+    # person.attribute_was('age') => 14
+    # Handle <tt>*_was</tt> for +method_missing+. 
     def attribute_was(attr)
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
