@@ -149,12 +149,12 @@ module ActiveModel
     end
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
-    def attribute_changed?(attr)
+    def attribute_changed?(attr) # :nodoc:
       changed_attributes.include?(attr)
     end
 
     # Handle <tt>*_was</tt> for +method_missing+.
-    def attribute_was(attr)
+    def attribute_was(attr) # :nodoc:
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 
