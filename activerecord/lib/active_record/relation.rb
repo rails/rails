@@ -427,13 +427,7 @@ module ActiveRecord
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     #
-    # If a limit scope is supplied, +delete_all+ raises an ActiveRecord error:
-    #
-    #   Post.limit(100).delete_all
-    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit scope
     def delete_all(conditions = nil)
-      raise ActiveRecordError.new("delete_all doesn't support limit scope") if self.limit_value
-
       if conditions
         where(conditions).delete_all
       else
@@ -443,6 +437,8 @@ module ActiveRecord
         if joins_values.any?
           @klass.connection.join_to_delete(stmt, arel, table[primary_key])
         else
+          stmt.take(arel.limit)
+          stmt.order(*arel.orders)
           stmt.wheres = arel.constraints
         end
 

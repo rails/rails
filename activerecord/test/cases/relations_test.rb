@@ -758,8 +758,11 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
-  def test_delete_all_limit_error
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.limit(10).delete_all }
+  def test_delete_all_limit
+    scope = Author.limit(2)
+
+    assert_difference('Author.count', -2) { scope.delete_all }
+    assert ! scope.loaded?
   end
 
   def test_select_takes_a_variable_list_of_args
@@ -1225,6 +1228,11 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal count, comments.update_all(:post_id => posts(:thinking).id)
     assert_equal posts(:thinking), comments(:greetings).post
+  end
+
+  def test_update_all_with_limit
+    comments = Comment.limit(1)
+    assert_equal 1, comments.update_all(:post_id => posts(:thinking).id)
   end
 
   def test_update_all_with_joins_and_limit

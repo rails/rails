@@ -352,6 +352,15 @@ module ActiveRecord
         end
       end
 
+      def join_to_delete(delete, select, key) #:nodoc:
+        if select.limit || select.offset || select.orders.any?
+          super
+        else
+          delete.from select.source
+          delete.wheres = select.constraints
+        end
+      end
+
       def empty_insert_statement_value
         "VALUES ()"
       end

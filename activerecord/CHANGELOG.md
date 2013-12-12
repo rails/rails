@@ -1,3 +1,8 @@
+*   Allow `limit` on `delete_all`. Also use native MySQL syntax for `delete_all` with `joins` or
+    `limits`
+
+    *Cody Cutrer*
+
 *   Use the right column to type cast grouped calculations with custom expressions.
 
     Fixes #13230.
