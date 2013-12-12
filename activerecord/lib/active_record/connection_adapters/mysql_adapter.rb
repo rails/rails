@@ -420,10 +420,17 @@ module ActiveRecord
           if result
             types = {}
             result.fetch_fields.each { |field|
+              name  = field.name
+              index = 1
+              while types.key?(name)
+                name = "#{field.name}_#{index}"
+                index += 1
+              end
+
               if field.decimals > 0
-                types[field.name] = Fields::Decimal.new
+                types[name] = Fields::Decimal.new
               else
-                types[field.name] = Fields.find_type field
+                types[name] = Fields.find_type field
               end
             }
             result_set = ActiveRecord::Result.new(types.keys, result.to_a, types)
