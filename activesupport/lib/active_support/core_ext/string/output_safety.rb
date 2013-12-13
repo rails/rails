@@ -145,9 +145,9 @@ module ActiveSupport #:nodoc:
     def %(args)
       case args
       when Hash
-        escaped_args = Hash[args.map { |k,arg| [k, _argument_escaper(arg)] }]
+        escaped_args = Hash[args.map { |k,arg| [k, html_escape_interpolated_argument(arg)] }]
       else
-        escaped_args = Array(args).map { |arg| _argument_escaper(arg) }
+        escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
       end
 
       self.class.new(super(escaped_args))
@@ -186,7 +186,7 @@ module ActiveSupport #:nodoc:
 
     private
 
-    def _argument_escaper(arg)
+    def html_escape_interpolated_argument(arg)
       (!html_safe? || arg.html_safe?) ? arg : ERB::Util.h(arg)
     end
   end
