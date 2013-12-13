@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "cases/helper"
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
@@ -31,106 +29,47 @@ if ActiveRecord::Base.connection.supports_ranges?
         return skip "do not test on PG without range"
       end
 
-      @connection.execute <<-SQL
-      INSERT INTO postgresql_ranges (
-        id,
-        date_range,
-        num_range,
-        ts_range,
-        tstz_range,
-        int4_range,
-        int8_range
-      ) VALUES (
-        1,
-        '[''2012-01-02'', ''2012-01-04'']',
-        '[0.1, 0.2]',
-        '[''2010-01-01 14:30'', ''2011-01-01 14:30'']',
-        '[''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'']',
-        '[1, 10]',
-        '[10, 100]'
-      )
-  SQL
+      insert_range(id: 1,
+                   date_range: "[''2012-01-02'', ''2012-01-04'']",
+                   num_range: "[0.1, 0.2]",
+                   ts_range: "[''2010-01-01 14:30'', ''2011-01-01 14:30'']",
+                   tstz_range: "[''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'']",
+                   int4_range: "[1, 10]",
+                   int8_range: "[10, 100]")
 
-      @connection.execute <<-SQL
-      INSERT INTO postgresql_ranges (
-        id,
-        date_range,
-        num_range,
-        ts_range,
-        tstz_range,
-        int4_range,
-        int8_range
-      ) VALUES (
-        2,
-        '(''2012-01-02'', ''2012-01-04'')',
-        '[0.1, 0.2)',
-        '[''2010-01-01 14:30'', ''2011-01-01 14:30'')',
-        '[''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'')',
-        '(1, 10)',
-        '(10, 100)'
-      )
-  SQL
+      insert_range(id: 2,
+                   date_range: "(''2012-01-02'', ''2012-01-04'')",
+                   num_range: "[0.1, 0.2)",
+                   ts_range: "[''2010-01-01 14:30'', ''2011-01-01 14:30'')",
+                   tstz_range: "[''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'')",
+                   int4_range: "(1, 10)",
+                   int8_range: "(10, 100)")
 
-      @connection.execute <<-SQL
-      INSERT INTO postgresql_ranges (
-        id,
-        date_range,
-        num_range,
-        ts_range,
-        tstz_range,
-        int4_range,
-        int8_range
-      ) VALUES (
-        3,
-        '(''2012-01-02'',]',
-        '[0.1,]',
-        '[''2010-01-01 14:30'',]',
-        '[''2010-01-01 14:30:00+05'',]',
-        '(1,]',
-        '(10,]'
-      )
-  SQL
+      insert_range(id: 3,
+                   date_range: "(''2012-01-02'',]",
+                   num_range: "[0.1,]",
+                   ts_range: "[''2010-01-01 14:30'',]",
+                   tstz_range: "[''2010-01-01 14:30:00+05'',]",
+                   int4_range: "(1,]",
+                   int8_range: "(10,]")
 
-      @connection.execute <<-SQL
-      INSERT INTO postgresql_ranges (
-        id,
-        date_range,
-        num_range,
-        ts_range,
-        tstz_range,
-        int4_range,
-        int8_range
-      ) VALUES (
-        4,
-        '[,]',
-        '[,]',
-        '[,]',
-        '[,]',
-        '[,]',
-        '[,]'
-      )
-  SQL
+      insert_range(id: 4,
+                   date_range: "[,]",
+                   num_range: "[,]",
+                   ts_range: "[,]",
+                   tstz_range: "[,]",
+                   int4_range: "[,]",
+                   int8_range: "[,]")
 
-      @connection.execute <<-SQL
-      INSERT INTO postgresql_ranges (
-        id,
-        date_range,
-        num_range,
-        ts_range,
-        tstz_range,
-        int4_range,
-        int8_range
-      ) VALUES (
-        5,
-        '(''2012-01-02'', ''2012-01-02'')',
-        '(0.1, 0.1)',
-        '(''2010-01-01 14:30'', ''2010-01-01 14:30'')',
-        '(''2010-01-01 14:30:00+05'', ''2010-01-01 06:30:00-03'')',
-        '(1, 1)',
-        '(10, 10)'
-      )
-  SQL
+      insert_range(id: 5,
+                   date_range: "(''2012-01-02'', ''2012-01-02'')",
+                   num_range: "(0.1, 0.1)",
+                   ts_range: "(''2010-01-01 14:30'', ''2010-01-01 14:30'')",
+                   tstz_range: "(''2010-01-01 14:30:00+05'', ''2010-01-01 06:30:00-03'')",
+                   int4_range: "(1, 1)",
+                   int8_range: "(10, 10)")
 
+      @new_range = PostgresqlRange.new
       @first_range = PostgresqlRange.find(1)
       @second_range = PostgresqlRange.find(2)
       @third_range = PostgresqlRange.find(3)
@@ -196,125 +135,111 @@ if ActiveRecord::Base.connection.supports_ranges?
 
     def test_create_tstzrange
       tstzrange = Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2011-02-02 14:30:00 CDT')
-      range = PostgresqlRange.new(:tstz_range => tstzrange)
-      assert range.save
-      assert range.reload
-      assert_equal range.tstz_range, tstzrange
-      assert_equal range.tstz_range, Time.parse('2010-01-01 13:30:00 UTC')...Time.parse('2011-02-02 19:30:00 UTC')
+      round_trip(@new_range, :tstz_range, tstzrange)
+      assert_equal @new_range.tstz_range, tstzrange
+      assert_equal @new_range.tstz_range, Time.parse('2010-01-01 13:30:00 UTC')...Time.parse('2011-02-02 19:30:00 UTC')
     end
 
     def test_update_tstzrange
-      new_tstzrange = Time.parse('2010-01-01 14:30:00 CDT')...Time.parse('2011-02-02 14:30:00 CET')
-      @first_range.tstz_range = new_tstzrange
-      assert @first_range.save
-      assert @first_range.reload
-      assert_equal new_tstzrange, @first_range.tstz_range
-      @first_range.tstz_range = Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2010-01-01 13:30:00 +0000')
-      assert @first_range.save
-      assert @first_range.reload
-      assert_nil @first_range.tstz_range
+      assert_equal_round_trip(@first_range, :tstz_range,
+                              Time.parse('2010-01-01 14:30:00 CDT')...Time.parse('2011-02-02 14:30:00 CET'))
+      assert_nil_round_trip(@first_range, :tstz_range,
+                            Time.parse('2010-01-01 14:30:00 +0100')...Time.parse('2010-01-01 13:30:00 +0000'))
     end
 
     def test_create_tsrange
       tz = ::ActiveRecord::Base.default_timezone
-      tsrange = Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 2, 2, 14, 30, 0)
-      range = PostgresqlRange.new(:ts_range => tsrange)
-      assert range.save
-      assert range.reload
-      assert_equal range.ts_range, tsrange
+      assert_equal_round_trip(@new_range, :ts_range,
+                              Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 2, 2, 14, 30, 0))
     end
 
     def test_update_tsrange
       tz = ::ActiveRecord::Base.default_timezone
-      new_tsrange = Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 2, 2, 14, 30, 0)
-      @first_range.ts_range = new_tsrange
-      assert @first_range.save
-      assert @first_range.reload
-      assert_equal new_tsrange, @first_range.ts_range
-      @first_range.ts_range = Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2010, 1, 1, 14, 30, 0)
-      assert @first_range.save
-      assert @first_range.reload
-      assert_nil @first_range.ts_range
+      assert_equal_round_trip(@first_range, :ts_range,
+                              Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 2, 2, 14, 30, 0))
+      assert_nil_round_trip(@first_range, :ts_range,
+                            Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2010, 1, 1, 14, 30, 0))
     end
 
     def test_create_numrange
-      numrange = BigDecimal.new('0.5')...BigDecimal.new('1')
-      range = PostgresqlRange.new(:num_range => numrange)
-      assert range.save
-      assert range.reload
-      assert_equal range.num_range, numrange
+      assert_equal_round_trip(@new_range, :num_range,
+                              BigDecimal.new('0.5')...BigDecimal.new('1'))
     end
 
     def test_update_numrange
-      new_numrange = BigDecimal.new('0.5')...BigDecimal.new('1')
-      @first_range.num_range = new_numrange
-      assert @first_range.save
-      assert @first_range.reload
-      assert_equal new_numrange, @first_range.num_range
-      @first_range.num_range = BigDecimal.new('0.5')...BigDecimal.new('0.5')
-      assert @first_range.save
-      assert @first_range.reload
-      assert_nil @first_range.num_range
+      assert_equal_round_trip(@first_range, :num_range,
+                              BigDecimal.new('0.5')...BigDecimal.new('1'))
+      assert_nil_round_trip(@first_range, :num_range,
+                            BigDecimal.new('0.5')...BigDecimal.new('0.5'))
     end
 
     def test_create_daterange
-      daterange = Range.new(Date.new(2012, 1, 1), Date.new(2013, 1, 1), true)
-      range = PostgresqlRange.new(:date_range => daterange)
-      assert range.save
-      assert range.reload
-      assert_equal range.date_range, daterange
+      assert_equal_round_trip(@new_range, :date_range,
+                              Range.new(Date.new(2012, 1, 1), Date.new(2013, 1, 1), true))
     end
 
     def test_update_daterange
-      new_daterange = Date.new(2012, 2, 3)...Date.new(2012, 2, 10)
-      @first_range.date_range = new_daterange
-      assert @first_range.save
-      assert @first_range.reload
-      assert_equal new_daterange, @first_range.date_range
-      @first_range.date_range = Date.new(2012, 2, 3)...Date.new(2012, 2, 3)
-      assert @first_range.save
-      assert @first_range.reload
-      assert_nil @first_range.date_range
+      assert_equal_round_trip(@first_range, :date_range,
+                              Date.new(2012, 2, 3)...Date.new(2012, 2, 10))
+      assert_nil_round_trip(@first_range, :date_range,
+                            Date.new(2012, 2, 3)...Date.new(2012, 2, 3))
     end
 
     def test_create_int4range
-      int4range = Range.new(3, 50, true)
-      range = PostgresqlRange.new(:int4_range => int4range)
-      assert range.save
-      assert range.reload
-      assert_equal range.int4_range, int4range
+      assert_equal_round_trip(@new_range, :int4_range, Range.new(3, 50, true))
     end
 
     def test_update_int4range
-      new_int4range = 6...10
-      @first_range.int4_range = new_int4range
-      assert @first_range.save
-      assert @first_range.reload
-      assert_equal new_int4range, @first_range.int4_range
-      @first_range.int4_range = 3...3
-      assert @first_range.save
-      assert @first_range.reload
-      assert_nil @first_range.int4_range
+      assert_equal_round_trip(@first_range, :int4_range, 6...10)
+      assert_nil_round_trip(@first_range, :int4_range, 3...3)
     end
 
     def test_create_int8range
-      int8range = Range.new(30, 50, true)
-      range = PostgresqlRange.new(:int8_range => int8range)
-      assert range.save
-      assert range.reload
-      assert_equal range.int8_range, int8range
+      assert_equal_round_trip(@new_range, :int8_range, Range.new(30, 50, true))
     end
 
     def test_update_int8range
-      new_int8range = 60000...10000000
-      @first_range.int8_range = new_int8range
-      assert @first_range.save
-      assert @first_range.reload
-      assert_equal new_int8range, @first_range.int8_range
-      @first_range.int8_range = 39999...39999
-      assert @first_range.save
-      assert @first_range.reload
-      assert_nil @first_range.int8_range
+      assert_equal_round_trip(@first_range, :int8_range, 60000...10000000)
+      assert_nil_round_trip(@first_range, :int8_range, 39999...39999)
     end
+
+    private
+      def assert_equal_round_trip(range, attribute, value)
+        round_trip(range, attribute, value)
+        assert_equal value, range.public_send(attribute)
+      end
+
+      def assert_nil_round_trip(range, attribute, value)
+        round_trip(range, attribute, value)
+        assert_nil range.public_send(attribute)
+      end
+
+      def round_trip(range, attribute, value)
+        range.public_send "#{attribute}=", value
+        assert range.save
+        assert range.reload
+      end
+
+      def insert_range(values)
+        @connection.execute <<-SQL
+          INSERT INTO postgresql_ranges (
+            id,
+            date_range,
+            num_range,
+            ts_range,
+            tstz_range,
+            int4_range,
+            int8_range
+          ) VALUES (
+            #{values[:id]},
+            '#{values[:date_range]}',
+            '#{values[:num_range]}',
+            '#{values[:ts_range]}',
+            '#{values[:tstz_range]}',
+            '#{values[:int4_range]}',
+            '#{values[:int8_range]}'
+          )
+        SQL
+      end
   end
 end
