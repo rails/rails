@@ -25,16 +25,9 @@ module ActiveRecord
     end
   end
 
-  class DelegationAssociationTest < DelegationTest
-    def target
-      Post.first.comments
-    end
-
-    [:&, :+, :[], :all?, :collect, :detect, :each, :each_cons,
-     :each_with_index, :flat_map, :group_by, :include?, :length,
-     :map, :none?, :one?, :reverse, :sample, :second, :sort, :sort_by,
-     :to_ary, :to_set, :to_xml, :to_yaml].each do |method|
-      test "association delegates #{method} to Array" do
+  module DelegationWhitelistBlacklistTests
+    ActiveRecord::Delegation::ARRAY_DELEGATES.each do |method|
+      define_method "test_delegates_#{method}_to_Array" do
         assert_respond_to target, method
       end
     end
@@ -42,34 +35,27 @@ module ActiveRecord
     [:compact!, :flatten!, :reject!, :reverse!, :rotate!,
      :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
      :keep_if, :pop, :shift, :delete_at, :compact].each do |method|
-      test "#{method} is not delegated to Array" do
+      define_method "test_#{method}_is_not_delegated_to_Array" do
         assert_raises(NoMethodError) { call_method(target, method) }
       end
     end
   end
 
+  class DelegationAssociationTest < DelegationTest
+    include DelegationWhitelistBlacklistTests
+
+    def target
+      Post.first.comments
+    end
+  end
+
   class DelegationRelationTest < DelegationTest
+    include DelegationWhitelistBlacklistTests
+
     fixtures :comments
 
     def target
       Comment.all
-    end
-
-    [:&, :+, :[], :all?, :collect, :detect, :each, :each_cons,
-     :each_with_index, :flat_map, :group_by, :include?, :length,
-     :map, :none?, :one?, :reverse, :sample, :second, :sort, :sort_by,
-     :to_ary, :to_set, :to_xml, :to_yaml].each do |method|
-      test "relation delegates #{method} to Array" do
-        assert_respond_to target, method
-      end
-    end
-
-    [:compact!, :flatten!, :reject!, :reverse!, :rotate!,
-     :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
-     :keep_if, :pop, :shift, :delete_at, :compact].each do |method|
-      test "#{method} is not delegated to Array" do
-        assert_raises(NoMethodError) { call_method(target, method) }
-      end
     end
   end
 end

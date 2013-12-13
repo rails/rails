@@ -36,10 +36,18 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    delegate :&, :+, :[], :all?, :collect, :detect, :each, :each_cons,
-             :each_with_index, :flat_map, :group_by, :include?, :length,
-             :map, :none?, :one?, :reverse, :sample, :second, :sort, :sort_by,
-             :to_ary, :to_set, :to_xml, :to_yaml, :to => :to_a
+    # TODO: This is not going to work. Brittle, painful. We'll switch to a blacklist
+    # to disallow mutator methods like map!, pop, and delete_if instead.
+    ARRAY_DELEGATES = [
+      :+, :-, :|, :&, :[],
+      :all?, :collect, :detect, :each, :each_cons, :each_with_index,
+      :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
+      :map, :none?, :one?, :partition, :reject, :reverse,
+      :sample, :second, :sort, :sort_by, :third,
+      :to_ary, :to_set, :to_xml, :to_yaml
+    ]
+
+    delegate *ARRAY_DELEGATES, to: :to_a
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass
