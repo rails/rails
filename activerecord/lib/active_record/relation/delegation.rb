@@ -47,7 +47,7 @@ module ActiveRecord
       :to_ary, :to_set, :to_xml, :to_yaml
     ]
 
-    delegate *ARRAY_DELEGATES, to: :to_a
+    delegate(*ARRAY_DELEGATES, to: :to_a)
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass
