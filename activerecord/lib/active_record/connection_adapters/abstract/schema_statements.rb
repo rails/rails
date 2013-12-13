@@ -131,6 +131,9 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
+      # [<tt>:as]
+      #   SQL to use to generate the table. When this option is used, the block is
+      #   ignored, as are the <tt>:id</tt> and <tt>:primary_key</tt> options.
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #
@@ -169,19 +172,31 @@ module ActiveRecord
       #     supplier_id int
       #   )
       #
+      # ====== Create a temporary table based on a query
+      #
+      #   create_table(:long_query, temporary: true,
+      #     as: "SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id")
+      #
+      # generates:
+      #
+      #   CREATE TEMPORARY TABLE long_query AS
+      #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
+      #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        td = create_table_definition table_name, options[:temporary], options[:options]
+        td = create_table_definition table_name, options[:temporary], options[:options], options[:as]
 
-        unless options[:id] == false
-          pk = options.fetch(:primary_key) {
-            Base.get_primary_key table_name.to_s.singularize
-          }
+        if !options[:as]
+          unless options[:id] == false
+            pk = options.fetch(:primary_key) {
+              Base.get_primary_key table_name.to_s.singularize
+            }
 
-          td.primary_key pk, options.fetch(:id, :primary_key), options
+            td.primary_key pk, options.fetch(:id, :primary_key), options
+          end
+
+          yield td if block_given?
         end
-
-        yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)
@@ -826,8 +841,8 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition(name, temporary, options)
-        TableDefinition.new native_database_types, name, temporary, options
+      def create_table_definition(name, temporary, options, as = nil)
+        TableDefinition.new native_database_types, name, temporary, options, as
       end
 
       def create_alter_table(name)
