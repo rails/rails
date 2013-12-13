@@ -143,12 +143,11 @@ module ActiveSupport #:nodoc:
     end
 
     def %(args)
-      escaper = ->(arg) { (!html_safe? || arg.html_safe?) ? arg : ERB::Util.h(arg) }
       case args
       when Hash
-        escaped_args = Hash[args.map { |k,arg| [k, escaper.call(arg)] }]
+        escaped_args = Hash[args.map { |k,arg| [k, _argument_escaper(arg)] }]
       else
-        escaped_args = Array(args).map { |arg| escaper.call(arg) }
+        escaped_args = Array(args).map { |arg| _argument_escaper(arg) }
       end
 
       self.class.new(super(escaped_args))
@@ -183,6 +182,12 @@ module ActiveSupport #:nodoc:
           end                                       # end
         EOT
       end
+    end
+
+    private
+
+    def _argument_escaper(arg)
+      (!html_safe? || arg.html_safe?) ? arg : ERB::Util.h(arg)
     end
   end
 end
