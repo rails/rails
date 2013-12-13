@@ -183,15 +183,14 @@ module ActiveSupport #:nodoc:
     end
 
     def %(args)
-      args = Array(args).map do |arg|
-        if !html_safe? || arg.html_safe?
-          arg
-        else
-          ERB::Util.h(arg)
-        end
+      case args
+      when Hash
+        escaped_args = Hash[args.map { |k,arg| [k, html_escape_interpolated_argument(arg)] }]
+      else
+        escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
       end
 
-      self.class.new(super(args))
+      self.class.new(super(escaped_args))
     end
 
     def html_safe?
@@ -223,6 +222,12 @@ module ActiveSupport #:nodoc:
           end                                       # end
         EOT
       end
+    end
+
+    private
+
+    def html_escape_interpolated_argument(arg)
+      (!html_safe? || arg.html_safe?) ? arg : ERB::Util.h(arg)
     end
   end
 end
