@@ -143,11 +143,11 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   test 'Should work with interpolation (array argument)' do
     x = 'foo %s bar'.html_safe % ['qux']
-    assert_equal x, 'foo qux bar'
+    assert_equal 'foo qux bar', x
   end
 
   test 'Should work with interpolation (hash argument)' do
     x = 'foo %{x} bar'.html_safe % { x: 'qux' }
-    assert_equal x, 'foo qux bar'
+    assert_equal 'foo qux bar', x
   end
 end
