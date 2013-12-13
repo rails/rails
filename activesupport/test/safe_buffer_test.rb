@@ -150,4 +150,19 @@ class SafeBufferTest < ActiveSupport::TestCase
     x = 'foo %{x} bar'.html_safe % { x: 'qux' }
     assert_equal 'foo qux bar', x
   end
+
+  test 'Should escape unsafe interpolated args' do
+    x = 'foo %{x} bar'.html_safe % { x: '<br/>' }
+    assert_equal 'foo &lt;br/&gt; bar', x
+  end
+
+  test 'Should not escape safe interpolated args' do
+    x = 'foo %{x} bar'.html_safe % { x: '<br/>'.html_safe }
+    assert_equal 'foo <br/> bar', x
+  end
+
+  test 'Should interpolate to a safe string' do
+    x = 'foo %{x} bar'.html_safe % { x: 'qux' }
+    assert x.html_safe?, 'should be safe'
+  end
 end
