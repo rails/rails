@@ -140,4 +140,14 @@ class SafeBufferTest < ActiveSupport::TestCase
     # should still be unsafe
     assert !y.html_safe?, "should not be safe"
   end
+
+  test 'Should work with interpolation (array argument)' do
+    x = 'foo %s bar'.html_safe % ['qux']
+    assert_equal x, 'foo qux bar'
+  end
+
+  test 'Should work with interpolation (hash argument)' do
+    x = 'foo %{x} bar'.html_safe % { x: 'qux' }
+    assert_equal x, 'foo qux bar'
+  end
 end

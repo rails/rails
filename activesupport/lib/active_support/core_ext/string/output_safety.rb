@@ -143,15 +143,15 @@ module ActiveSupport #:nodoc:
     end
 
     def %(args)
-      args = Array(args).map do |arg|
-        if !html_safe? || arg.html_safe?
-          arg
-        else
-          ERB::Util.h(arg)
-        end
+      escaper = ->(arg) { (!html_safe? || arg.html_safe?) ? arg : ERB::Util.h(arg) }
+      case args
+      when Hash
+        escaped_args = Hash[args.map { |k,arg| [k, escaper.call(arg)] }]
+      else
+        escaped_args = Array(args).map { |arg| escaper.call(arg) }
       end
 
-      self.class.new(super(args))
+      self.class.new(super(escaped_args))
     end
 
     def html_safe?
