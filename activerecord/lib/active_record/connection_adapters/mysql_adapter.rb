@@ -419,14 +419,19 @@ module ActiveRecord
 
           if result
             types = {}
+            fields = []
             result.fetch_fields.each { |field|
+              field_name = field.name
+              fields << field_name
+
               if field.decimals > 0
-                types[field.name] = Fields::Decimal.new
+                types[field_name] = Fields::Decimal.new
               else
-                types[field.name] = Fields.find_type field
+                types[field_name] = Fields.find_type field
               end
             }
-            result_set = ActiveRecord::Result.new(types.keys, result.to_a, types)
+
+            result_set = ActiveRecord::Result.new(fields, result.to_a, types)
             result.free
           else
             result_set = ActiveRecord::Result.new([], [])
