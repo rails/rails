@@ -63,6 +63,27 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t2.save, "Should now save t2 as unique"
   end
 
+  def test_validate_uniqueness_with_default_scope
+    Topic.validates_uniqueness_of(:title, :default_scope => true)
+    Topic.class_eval do
+      default_scope { where(:deleted_at => nil) }
+    end
+
+    t = Topic.new("title" => "I'm uniqué!")
+    assert t.save, "Should save t as unique"
+
+
+    t2 = Topic.new("title" => "I'm uniqué!")
+    assert !t2.valid?, "Shouldn't be valid"
+    assert !t2.save, "Shouldn't save t2 as unique"
+    assert_equal ["has already been taken"], t2.errors[:title]
+
+    t.update(:deleted_at => Time.current)
+
+    t2 = Topic.new("title" => "I'm uniqué!")
+    assert t2.save, "Should save t as unique"
+  end
+
   def test_validate_uniqueness_with_alias_attribute
     Topic.alias_attribute :new_title, :title
     Topic.validates_uniqueness_of(:new_title)
