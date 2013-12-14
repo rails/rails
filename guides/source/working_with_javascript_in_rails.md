@@ -169,7 +169,7 @@ This will generate the following HTML:
 </form>
 ```
 
-Note the `data-remote='true'`. Now, the form will be submitted by Ajax rather
+Note the `data-remote="true"`. Now, the form will be submitted by Ajax rather
 than by the browser's normal submit mechanism.
 
 You probably don't want to just sit there with a filled out `<form>`, though.
@@ -194,7 +194,17 @@ is very similar to `form_for`. It has a `:remote` option that you can use like
 this:
 
 ```erb
-<%= form_tag('/posts', remote: true) %>
+<%= form_tag('/posts', remote: true) do %>
+  ...
+<% end %>
+```
+
+This will generate the following HTML:
+
+```html
+<form accept-charset="UTF-8" action="/posts" data-remote="true" method="post">
+  ...
+</form>
 ```
 
 Everything else is the same as `form_for`. See its documentation for full
@@ -299,10 +309,10 @@ The `app/views/users/_user.html.erb` partial contains the following:
 The top portion of the index page displays the users. The bottom portion
 provides a form to create a new user.
 
-The bottom form will call the create action on the Users controller. Because
+The bottom form will call the `create` action on the `UsersController`. Because
 the form's remote option is set to true, the request will be posted to the
-users controller as an Ajax request, looking for JavaScript. In order to
-service that request, the create action of your controller would look like
+`UsersController` as an Ajax request, looking for JavaScript. In order to
+serve that request, the `create` action of your controller would look like
 this:
 
 ```ruby
