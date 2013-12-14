@@ -58,7 +58,7 @@ module ActionController
     #   redirect_to post_url(@post), alert: "Watch it, mister!"
     #   redirect_to post_url(@post), status: :found, notice: "Pay attention to the road"
     #   redirect_to post_url(@post), status: 301, flash: { updated_post_id: @post.id }
-    #   redirect_to { action: 'atom' }, alert: "Something serious happened"
+    #   redirect_to({ action: 'atom' }, alert: "Something serious happened")
     #
     # When using <tt>redirect_to :back</tt>, if there is no referrer, ActionController::RedirectBackError will be raised. You may specify some fallback
     # behavior for this case by rescuing ActionController::RedirectBackError.
