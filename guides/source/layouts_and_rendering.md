@@ -404,7 +404,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-With this declaration, all of the views rendered by the products controller will use `app/views/layouts/inventory.html.erb` as their layout.
+With this declaration, all of the views rendered by the `ProductsController` will use `app/views/layouts/inventory.html.erb` as their layout.
 
 To assign a specific layout for the entire application, use a `layout` declaration in your `ApplicationController` class:
 
