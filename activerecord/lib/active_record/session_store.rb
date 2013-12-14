@@ -9,7 +9,7 @@ module ActiveRecord
   #
   # The default assumes a +sessions+ tables with columns:
   #   +id+ (numeric primary key),
-  #   +session_id+ (text, or longtext if your session data exceeds 65K), and
+  #   +session_id+ (string, :limit => 255), and
   #   +data+ (text or longtext; careful if your session data exceeds 65KB).
   #
   # The +session_id+ column should always be indexed for speedy lookups.
