@@ -136,7 +136,9 @@ numbers. New applications filter out passwords by adding the following `config.f
 * `config.assets.enabled` a flag that controls whether the asset
 pipeline is enabled. It is set to true by default.
 
-* `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/production.rb`.
+*`config.assets.raise_runtime_errors`* Set this flag to `true` to enable additional runtime error checking. Recommended in `config/environments/development.rb` to minimize unexpected behavior when deploying to `production`.
+
+* `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/environments/production.rb`.
 
 * `config.assets.css_compressor` defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
 
@@ -775,7 +777,7 @@ error similar to given below will be thrown.
 ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5 seconds. The max pool size is currently 5; consider increasing it:
 ```
 
-If you get the above error, you might want to increase the size of connection 
+If you get the above error, you might want to increase the size of connection
 pool by incrementing the `pool` option in `database.yml`
 
 NOTE. If you have enabled `Rails.threadsafe!` mode then there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
