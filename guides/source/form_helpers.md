@@ -342,7 +342,7 @@ If you have created namespaced routes, `form_for` has a nifty shorthand for that
 form_for [:admin, @article]
 ```
 
-will create a form that submits to the articles controller inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
+will create a form that submits to the `ArticlesController` inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
 
 ```ruby
 form_for [:admin, :management, @article]
