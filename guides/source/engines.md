@@ -20,7 +20,7 @@ Engines can be considered miniature applications that provide functionality to t
 
 Therefore, engines and applications can be thought of almost the same thing, just with subtle differences, as you'll see throughout this guide. Engines and applications also share a common structure.
 
-Engines are also closely related to plugins where the two share a common `lib` directory structure and are both generated using the `rails plugin new` generator. The difference being that an engine is considered a "full plugin" by Rails as indicated by the `--full` option that's passed to the generator command, but this guide will refer to them simply as "engines" throughout. An engine **can** be a plugin, and a plugin **can** be an engine.
+Engines are also closely related to plugins. The two share a common `lib` directory structure, and are both generated using the `rails plugin new` generator. The difference is that an engine is considered a "full plugin" by Rails (as indicated by the `--full` option that's passed to the generator command). This guide will refer to them simply as "engines" throughout. An engine **can** be a plugin, and a plugin **can** be an engine.
 
 The engine that will be created in this guide will be called "blorgh". The engine will provide blogging functionality to its host applications, allowing for new posts and comments to be created. At the beginning of this guide, you will be working solely within the engine itself, but in later sections you'll see how to hook it into an application.
 
@@ -47,7 +47,7 @@ The full list of options for the plugin generator may be seen by typing:
 $ rails plugin --help
 ```
 
-The `--full` option tells the generator that you want to create an engine, including a skeleton structure by providing the following:
+The `--full` option tells the generator that you want to create an engine, including a skeleton structure that provides the following:
 
   * An `app` directory tree
   * A `config/routes.rb` file:
@@ -56,7 +56,7 @@ The `--full` option tells the generator that you want to create an engine, inclu
     Rails.application.routes.draw do
     end
     ```
-  * A file at `lib/blorgh/engine.rb` which is identical in function to a standard Rails application's `config/application.rb` file:
+  * A file at `lib/blorgh/engine.rb`, which is identical in function to a standard Rails application's `config/application.rb` file:
 
     ```ruby
     module Blorgh
@@ -94,9 +94,9 @@ Additionally, the `--mountable` option tells the generator to mount the engine i
 mount Blorgh::Engine, at: "blorgh"
 ```
 
-### Inside an engine
+### Inside an Engine
 
-#### Critical files
+#### Critical Files
 
 At the root of this brand new engine's directory lives a `blorgh.gemspec` file. When you include the engine into an application later on, you will do so with this line in the Rails application's `Gemfile`:
 
@@ -113,7 +113,7 @@ module Blorgh
 end
 ```
 
-TIP: Some engines choose to use this file to put global configuration options for their engine. It's a relatively good idea, and so if you want to offer configuration options, the file where your engine's `module` is defined is perfect for that. Place the methods inside the module and you'll be good to go.
+TIP: Some engines choose to use this file to put global configuration options for their engine. It's a relatively good idea, so if you want to offer configuration options, the file where your engine's `module` is defined is perfect for that. Place the methods inside the module and you'll be good to go.
 
 Within `lib/blorgh/engine.rb` is the base class for the engine:
 
@@ -127,7 +127,7 @@ end
 
 By inheriting from the `Rails::Engine` class, this gem notifies Rails that there's an engine at the specified path, and will correctly mount the engine inside the application, performing tasks such as adding the `app` directory of the engine to the load path for models, mailers, controllers and views.
 
-The `isolate_namespace` method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace, away from similar components inside the application. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption, or that important engine components could be overridden by similarly named things within the application. One of the examples of such conflicts are helpers. Without calling `isolate_namespace`, engine's helpers would be included in an application's controllers.
+The `isolate_namespace` method here deserves special notice. This call is responsible for isolating the controllers, models, routes and other things into their own namespace, away from similar components inside the application. Without this, there is a possibility that the engine's components could "leak" into the application, causing unwanted disruption, or that important engine components could be overridden by similarly named things within the application. One of the examples of such conflicts is helpers. Without calling `isolate_namespace`, the engine's helpers would be included in an application's controllers.
 
 NOTE: It is **highly** recommended that the `isolate_namespace` line be left within the `Engine` class definition. Without it, classes generated in an engine **may** conflict with an application.
 
@@ -135,31 +135,31 @@ What this isolation of the namespace means is that a model generated by a call t
 
 Finally, routes will also be isolated within the engine. This is one of the most important parts about namespacing, and is discussed later in the [Routes](#routes) section of this guide.
 
-#### `app` directory
+#### `app` Directory
 
-Inside the `app` directory are the standard `assets`, `controllers`, `helpers`, `mailers`, `models` and `views` directories that you should be familiar with from an application. The `helpers`, `mailers` and `models` directories are empty and so aren't described in this section. We'll look more into models in a future section, when we're writing the engine.
+Inside the `app` directory are the standard `assets`, `controllers`, `helpers`, `mailers`, `models` and `views` directories that you should be familiar with from an application. The `helpers`, `mailers` and `models` directories are empty, so they aren't described in this section. We'll look more into models in a future section, when we're writing the engine.
 
-Within the `app/assets` directory, there are the `images`, `javascripts` and `stylesheets` directories which, again, you should be familiar with due to their similarity to an application. One difference here however is that each directory contains a sub-directory with the engine name. Because this engine is going to be namespaced, its assets should be too.
+Within the `app/assets` directory, there are the `images`, `javascripts` and `stylesheets` directories which, again, you should be familiar with due to their similarity to an application. One difference here, however, is that each directory contains a sub-directory with the engine name. Because this engine is going to be namespaced, its assets should be too.
 
-Within the `app/controllers` directory there is a `blorgh` directory and inside that a file called `application_controller.rb`. This file will provide any common functionality for the controllers of the engine. The `blorgh` directory is where the other controllers for the engine will go. By placing them within this namespaced directory, you prevent them from possibly clashing with identically-named controllers within other engines or even within the application.
+Within the `app/controllers` directory there is a `blorgh` directory that contains a file called `application_controller.rb`. This file will provide any common functionality for the controllers of the engine. The `blorgh` directory is where the other controllers for the engine will go. By placing them within this namespaced directory, you prevent them from possibly clashing with identically-named controllers within other engines or even within the application.
 
 NOTE: The `ApplicationController` class inside an engine is named just like a Rails application in order to make it easier for you to convert your applications into engines.
 
-Lastly, the `app/views` directory contains a `layouts` folder which contains a file at `blorgh/application.html.erb` which allows you to specify a layout for the engine. If this engine is to be used as a stand-alone engine, then you would add any customization to its layout in this file, rather than the application's `app/views/layouts/application.html.erb` file.
+Lastly, the `app/views` directory contains a `layouts` folder, which contains a file at `blorgh/application.html.erb`. This file allows you to specify a layout for the engine. If this engine is to be used as a stand-alone engine, then you would add any customization to its layout in this file, rather than the application's `app/views/layouts/application.html.erb` file.
 
 If you don't want to force a layout on to users of the engine, then you can delete this file and reference a different layout in the controllers of your engine.
 
-#### `bin` directory
+#### `bin` Directory
 
-This directory contains one file, `bin/rails`, which enables you to use the `rails` sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine by running commands like this:
+This directory contains one file, `bin/rails`, which enables you to use the `rails` sub-commands and generators just like you would within an application. This means that you will be able to generate new controllers and models for this engine very easily by running commands like this:
 
 ```bash
 rails g model
 ```
 
-Keeping in mind, of course, that anything generated with these commands inside an engine that has `isolate_namespace` inside the `Engine` class will be namespaced.
+Keep in mind, of course, that anything generated with these commands inside of an engine that has `isolate_namespace` in the `Engine` class will be namespaced.
 
-#### `test` directory
+#### `test` Directory
 
 The `test` directory is where tests for the engine will go. To test the engine, there is a cut-down version of a Rails application embedded within it at `test/dummy`. This application will mount the engine in the `test/dummy/config/routes.rb` file:
 
@@ -171,14 +171,14 @@ end
 
 This line mounts the engine at the path `/blorgh`, which will make it accessible through the application only at that path.
 
-In the test directory there is the `test/integration` directory, where integration tests for the engine should be placed. Other directories can be created in the `test` directory as well. For example, you may wish to create a `test/models` directory for your models tests.
+Inside the test directory there is the `test/integration` directory, where integration tests for the engine should be placed. Other directories can be created in the `test` directory as well. For example, you may wish to create a `test/models` directory for your model tests.
 
 Providing engine functionality
 ------------------------------
 
 The engine that this guide covers provides posting and commenting functionality and follows a similar thread to the [Getting Started Guide](getting_started.html), with some new twists.
 
-### Generating a post resource
+### Generating a Post Resource
 
 The first thing to generate for a blog engine is the `Post` model and related controller. To quickly generate this, you can use the Rails scaffold generator.
 
@@ -195,7 +195,8 @@ create    app/models/blorgh/post.rb
 invoke    test_unit
 create      test/models/blorgh/post_test.rb
 create      test/fixtures/blorgh/posts.yml
- route  resources :posts
+invoke  resource_route
+ route    resources :posts
 invoke  scaffold_controller
 create    app/controllers/blorgh/posts_controller.rb
 invoke    erb
@@ -233,7 +234,7 @@ end
 ```
 
 Note here that the routes are drawn upon the `Blorgh::Engine` object rather than the `YourApp::Application` class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the [test directory](#test-directory) section. It also causes the engine's routes to be isolated from those routes that are within the application. The [Routes](#routes) section of
-this guide describes it in details.
+this guide describes it in detail.
 
 Next, the `scaffold_controller` generator is invoked, generating a controller called `Blorgh::PostsController` (at `app/controllers/blorgh/posts_controller.rb`) and its related views at `app/views/blorgh/posts`. This generator also generates a test for the controller (`test/controllers/blorgh/posts_controller_test.rb`) and a helper (`app/helpers/blorgh/posts_controller.rb`).
 
@@ -261,9 +262,9 @@ end
 
 This helps prevent conflicts with any other engine or application that may have a post resource as well.
 
-Finally, two files that are the assets for this resource are generated, `app/assets/javascripts/blorgh/posts.js` and `app/assets/stylesheets/blorgh/posts.css`. You'll see how to use these a little later.
+Finally, the assets for this resource are generated in two files: `app/assets/javascripts/blorgh/posts.js` and `app/assets/stylesheets/blorgh/posts.css`. You'll see how to use these a little later.
 
-By default, the scaffold styling is not applied to the engine as the engine's layout file, `app/views/layouts/blorgh/application.html.erb` doesn't load it. To make this apply, insert this line into the `<head>` tag of this layout:
+By default, the scaffold styling is not applied to the engine because the engine's layout file, `app/views/layouts/blorgh/application.html.erb`, doesn't load it. To make the scaffold styling apply, insert this line into the `<head>` tag of this layout:
 
 ```erb
 <%= stylesheet_link_tag "scaffold" %>
@@ -286,11 +287,11 @@ root to: "posts#index"
 
 Now people will only need to go to the root of the engine to see all the posts, rather than visiting `/posts`. This means that instead of `http://localhost:3000/blorgh/posts`, you only need to go to `http://localhost:3000/blorgh` now.
 
-### Generating a comments resource
+### Generating a Comments Resource
 
 Now that the engine can create new blog posts, it only makes sense to add commenting functionality as well. To do this, you'll need to generate a comment model, a comment controller and then modify the posts scaffold to display comments and allow people to create new ones.
 
-Run the model generator and tell it to generate a `Comment` model, with the related table having two columns: a `post_id` integer and `text` text column.
+From the application root, run the model generator. Tell it to generate a `Comment` model, with the related table having two columns: a `post_id` integer and `text` text column.
 
 ```bash
 $ rails generate model Comment post_id:integer text:text
@@ -367,7 +368,7 @@ end
 
 This creates a nested route for the comments, which is what the form requires.
 
-The route now exists, but the controller that this route goes to does not. To create it, run this command:
+The route now exists, but the controller that this route goes to does not. To create it, run this command from the application root:
 
 ```bash
 $ rails g controller comments
@@ -392,7 +393,7 @@ invoke    css
 create      app/assets/stylesheets/blorgh/comments.css
 ```
 
-The form will be making a `POST` request to `/posts/:post_id/comments`, which will correspond with the `create` action in `Blorgh::CommentsController`. This action needs to be created and can be done by putting the following lines inside the class definition in `app/controllers/blorgh/comments_controller.rb`:
+The form will be making a `POST` request to `/posts/:post_id/comments`, which will correspond with the `create` action in `Blorgh::CommentsController`. This action needs to be created, which can be done by putting the following lines inside the class definition in `app/controllers/blorgh/comments_controller.rb`:
 
 ```ruby
 def create
@@ -408,7 +409,7 @@ private
   end
 ```
 
-This is the final part required to get the new comment form working. Displaying the comments however, is not quite right yet. If you were to create a comment right now you would see this error:
+This is the final step required to get the new comment form working. Displaying the comments, however, is not quite right yet. If you were to create a comment right now, you would see this error:
 
 ```
 Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder], :formats=>[:html], :locale=>[:en, :en]}. Searched in:
@@ -424,16 +425,16 @@ This partial will be responsible for rendering just the comment text, for now. C
 <%= comment_counter + 1 %>. <%= comment.text %>
 ```
 
-The `comment_counter` local variable is given to us by the `<%= render @post.comments %>` call, as it will define this automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
+The `comment_counter` local variable is given to us by the `<%= render @post.comments %>` call, which will define it automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
 
 That completes the comment function of the blogging engine. Now it's time to use it within an application.
 
-Hooking into an application
+Hooking Into an Application
 ---------------------------
 
 Using an engine within an application is very easy. This section covers how to mount the engine into an application and the initial setup required, as well as linking the engine to a `User` class provided by the application to provide ownership for posts and comments within the engine.
 
-### Mounting the engine
+### Mounting the Engine
 
 First, the engine needs to be specified inside the application's `Gemfile`. If there isn't an application handy to test this out in, generate one using the `rails new` command outside of the engine directory like this:
 
@@ -453,7 +454,9 @@ However, because you are developing the `blorgh` engine on your local machine, y
 gem 'blorgh', path: "/path/to/blorgh"
 ```
 
-As described earlier, by placing the gem in the `Gemfile` it will be loaded when Rails is loaded, as it will first require `lib/blorgh.rb` in the engine and then `lib/blorgh/engine.rb`, which is the file that defines the major pieces of functionality for the engine.
+Then run `bundle` to install the gem.
+
+As described earlier, by placing the gem in the `Gemfile` it will be loaded when Rails is loaded. It will first require `lib/blorgh.rb` from the engine, then `lib/blorgh/engine.rb`, which is the file that defines the major pieces of functionality for the engine.
 
 To make the engine's functionality accessible from within an application, it needs to be mounted in that application's `config/routes.rb` file:
 
@@ -463,7 +466,7 @@ mount Blorgh::Engine, at: "/blog"
 
 This line will mount the engine at `/blog` in the application. Making it accessible at `http://localhost:3000/blog` when the application runs with `rails server`.
 
-NOTE: Other engines, such as Devise, handle this a little differently by making you specify custom helpers such as `devise_for` in the routes. These helpers do exactly the same thing, mounting pieces of the engines's functionality at a pre-defined path which may be customizable.
+NOTE: Other engines, such as Devise, handle this a little differently by making you specify custom helpers (such as `devise_for`) in the routes. These helpers do exactly the same thing, mounting pieces of the engines's functionality at a pre-defined path which may be customizable.
 
 ### Engine setup
 
@@ -486,7 +489,7 @@ Copied migration [timestamp_1]_create_blorgh_posts.rb from blorgh
 Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
 ```
 
-The first timestamp (`[timestamp_1]`) will be the current time and the second timestamp (`[timestamp_2]`) will be the current time plus a second. The reason for this is so that the migrations for the engine are run after any existing migrations in the application.
+The first timestamp (`[timestamp_1]`) will be the current time, and the second timestamp (`[timestamp_2]`) will be the current time plus a second. The reason for this is so that the migrations for the engine are run after any existing migrations in the application.
 
 To run these migrations within the context of the application, simply run `rake db:migrate`. When accessing the engine through `http://localhost:3000/blog`, the posts will be empty. This is because the table created inside the application is different from the one created within the engine. Go ahead, play around with the newly mounted engine. You'll find that it's the same as when it was only an engine.
 
@@ -496,21 +499,21 @@ If you would like to run migrations only from one engine, you can do it by speci
 rake db:migrate SCOPE=blorgh
 ```
 
-This may be useful if you want to revert engine's migrations before removing it. In order to revert all migrations from blorgh engine you can run such code:
+This may be useful if you want to revert engine's migrations before removing it. To revert all migrations from blorgh engine you can run code such as:
 
 ```bash
 rake db:migrate SCOPE=blorgh VERSION=0
 ```
 
-### Using a class provided by the application
+### Using a Class Provided by the Application
 
-#### Using a model provided by the application
+#### Using a Model Provided by the Application
 
 When an engine is created, it may want to use specific classes from an application to provide links between the pieces of the engine and the pieces of the application. In the case of the `blorgh` engine, making posts and comments have authors would make a lot of sense.
 
 A typical application might have a `User` class that would be used to represent authors for a post or a comment. But there could be a case where the application calls this class something different, such as `Person`. For this reason, the engine should not hardcode associations specifically for a `User` class.
 
-To keep it simple in this case, the application will have a class called `User` which will represent the users of the application. It can be generated using this command inside the application:
+To keep it simple in this case, the application will have a class called `User` that represents the users of the application. It can be generated using this command inside the application:
 
 ```bash
 rails g model user name:string
@@ -518,7 +521,7 @@ rails g model user name:string
 
 The `rake db:migrate` command needs to be run here to ensure that our application has the `users` table for future use.
 
-Also, to keep it simple, the posts form will have a new text field called `author_name` where users can elect to put their name. The engine will then take this name and create a new `User` object from it or find one that already has that name, and then associate the post with it.
+Also, to keep it simple, the posts form will have a new text field called `author_name`, where users can elect to put their name. The engine will then take this name and either create a new `User` object from it, or find one that already has that name. The engine will then associate the post with the found or created `User` object.
 
 First, the `author_name` text field needs to be added to the `app/views/blorgh/posts/_form.html.erb` partial inside the engine. This can be added above the `title` field with this code:
 
@@ -537,7 +540,7 @@ def post_params
 end
 ```
 
-The `Blorgh::Post` model should then have some code to convert the `author_name` field into an actual `User` object and associate it as that post's `author` before the post is saved. It will also need to have an `attr_accessor` setup for this field so that the setter and getter methods are defined for it.
+The `Blorgh::Post` model should then have some code to convert the `author_name` field into an actual `User` object and associate it as that post's `author` before the post is saved. It will also need to have an `attr_accessor` set up for this field, so that the setter and getter methods are defined for it.
 
 To do all this, you'll need to add the `attr_accessor` for `author_name`, the association for the author and the `before_save` call into `app/models/blorgh/post.rb`. The `author` association will be hard-coded to the `User` class for the time being.
 
@@ -553,7 +556,7 @@ private
   end
 ```
 
-By defining that the `author` association's object is represented by the `User` class a link is established between the engine and the application. There needs to be a way of associating the records in the `blorgh_posts` table with the records in the `users` table. Because the association is called `author`, there should be an `author_id` column added to the `blorgh_posts` table.
+By representing the `author` association's object with the `User` class, a link is established between the engine and the application. There needs to be a way of associating the records in the `blorgh_posts` table with the records in the `users` table. Because the association is called `author`, there should be an `author_id` column added to the `blorgh_posts` table.
 
 To generate this new column, run this command within the engine:
 
@@ -569,7 +572,7 @@ This migration will need to be run on the application. To do that, it must first
 $ rake blorgh:install:migrations
 ```
 
-Notice here that only _one_ migration was copied over here. This is because the first two migrations were copied over the first time this command was run.
+Notice that only _one_ migration was copied over here. This is because the first two migrations were copied over the first time this command was run.
 
 ```
 NOTE Migration [timestamp]_create_blorgh_posts.rb from blorgh has been skipped. Migration with the same name already exists.
@@ -577,7 +580,7 @@ NOTE Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skippe
 Copied migration [timestamp]_add_author_id_to_blorgh_posts.rb from blorgh
 ```
 
-Run this migration using this command:
+Run the migration using:
 
 ```bash
 $ rake db:migrate
@@ -600,7 +603,7 @@ By outputting `@post.author` using the `<%=` tag, the `to_s` method will be call
 #<User:0x00000100ccb3b0>
 ```
 
-This is undesirable and it would be much better to have the user's name there. To do this, add a `to_s` method to the `User` class within the application:
+This is undesirable. It would be much better to have the user's name there. To do this, add a `to_s` method to the `User` class within the application:
 
 ```ruby
 def to_s
@@ -608,44 +611,44 @@ def to_s
 end
 ```
 
-Now instead of the ugly Ruby object output the author's name will be displayed.
+Now instead of the ugly Ruby object output, the author's name will be displayed.
 
-#### Using a controller provided by the application
+#### Using a Controller Provided by the Application
 
-Because Rails controllers generally share code for things like authentication and accessing session variables, by default they inherit from `ApplicationController`. Rails engines, however are scoped to run independently from the main application, so each engine gets a scoped `ApplicationController`. This namespace prevents code collisions, but often engine controllers should access methods in the main application's `ApplicationController`. An easy way to provide this access is to change the engine's scoped `ApplicationController` to inherit from the main application's `ApplicationController`. For our Blorgh engine this would be done by changing `app/controllers/blorgh/application_controller.rb` to look like:
+Because Rails controllers generally share code for things like authentication and accessing session variables, they inherit from `ApplicationController` by default. Rails engines, however are scoped to run independently from the main application, so each engine gets a scoped `ApplicationController`. This namespace prevents code collisions, but often engine controllers need to access methods in the main application's `ApplicationController`. An easy way to provide this access is to change the engine's scoped `ApplicationController` to inherit from the main application's `ApplicationController`. For our Blorgh engine this would be done by changing `app/controllers/blorgh/application_controller.rb` to look like:
 
 ```ruby
 class Blorgh::ApplicationController < ApplicationController
 end
 ```
 
-By default, the engine's controllers inherit from `Blorgh::ApplicationController`. So, after making this change they will have access to the main applications `ApplicationController` as though they were part of the main application.
+By default, the engine's controllers inherit from `Blorgh::ApplicationController`. So, after making this change they will have access to the main application's `ApplicationController`, as though they were part of the main application.
 
 This change does require that the engine is run from a Rails application that has an `ApplicationController`.
 
-### Configuring an engine
+### Configuring an Engine
 
 This section covers how to make the `User` class configurable, followed by general configuration tips for the engine.
 
-#### Setting configuration settings in the application
+#### Setting Configuration Settings in the Application
 
-The next step is to make the class that represents a `User` in the application customizable for the engine. This is because, as explained before, that class may not always be `User`. To make this customizable, the engine will have a configuration setting called `author_class` that will be used to specify what the class representing users is inside the application.
+The next step is to make the class that represents a `User` in the application customizable for the engine. This is because that class may not always be `User`, as previously explained. To make this setting customizable, the engine will have a configuration setting called `author_class` that will be used to specify which class represents users inside the application.
 
-To define this configuration setting, you should use a `mattr_accessor` inside the `Blorgh` module for the engine, located at `lib/blorgh.rb` inside the engine. Inside this module, put this line:
+To define this configuration setting, you should use a `mattr_accessor` inside the `Blorgh` module for the engine. Add this line to `lib/blorgh.rb` inside the engine:
 
 ```ruby
 mattr_accessor :author_class
 ```
 
-This method works like its brothers `attr_accessor` and `cattr_accessor`, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using `Blorgh.author_class`.
+This method works like its brothers, `attr_accessor` and `cattr_accessor`, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using `Blorgh.author_class`.
 
-The next step is switching the `Blorgh::Post` model over to this new setting. For the `belongs_to` association inside this model (`app/models/blorgh/post.rb`), it will now become this:
+The next step is to switch the `Blorgh::Post` model over to this new setting. Change the `belongs_to` association inside this model (`app/models/blorgh/post.rb`) to this:
 
 ```ruby
 belongs_to :author, class_name: Blorgh.author_class
 ```
 
-The `set_author` method also located in this class should also use this class:
+The `set_author` method in the `Blorgh::Post` model should also use this class:
 
 ```ruby
 self.author = Blorgh.author_class.constantize.find_or_create_by(name: author_name)
@@ -675,7 +678,7 @@ in the `Blorgh::Post` model:
 belongs_to :author, class_name: Blorgh.author_class.to_s
 ```
 
-To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and calls the engine's models which may depend on this configuration setting existing.
+To set this configuration setting within the application, an initializer should be used. By using an initializer, the configuration will be set up before the application starts and calls the engine's models, which may depend on this configuration setting existing.
 
 Create a new initializer at `config/initializers/blorgh.rb` inside the application where the `blorgh` engine is installed and put this content in it:
 
@@ -683,15 +686,15 @@ Create a new initializer at `config/initializers/blorgh.rb` inside the applicati
 Blorgh.author_class = "User"
 ```
 
-WARNING: It's very important here to use the `String` version of the class, rather than the class itself. If you were to use the class, Rails would attempt to load that class and then reference the related table, which could lead to problems if the table wasn't already existing. Therefore, a `String` should be used and then converted to a class using `constantize` in the engine later on.
+WARNING: It's very important here to use the `String` version of the class, rather than the class itself. If you were to use the class, Rails would attempt to load that class and then reference the related table. This could lead to problems if the table wasn't already existing. Therefore, a `String` should be used and then converted to a class using `constantize` in the engine later on.
 
 Go ahead and try to create a new post. You will see that it works exactly in the same way as before, except this time the engine is using the configuration setting in `config/initializers/blorgh.rb` to learn what the class is.
 
-There are now no strict dependencies on what the class is, only what the API for the class must be. The engine simply requires this class to define a `find_or_create_by` method which returns an object of that class to be associated with a post when it's created. This object, of course, should have some sort of identifier by which it can be referenced.
+There are now no strict dependencies on what the class is, only what the API for the class must be. The engine simply requires this class to define a `find_or_create_by` method which returns an object of that class, to be associated with a post when it's created. This object, of course, should have some sort of identifier by which it can be referenced.
 
-#### General engine configuration
+#### General Engine Configuration
 
-Within an engine, there may come a time where you wish to use things such as initializers, internationalization or other configuration options. The great news is that these things are entirely possible because a Rails engine shares much the same functionality as a Rails application. In fact, a Rails application's functionality is actually a superset of what is provided by engines!
+Within an engine, there may come a time where you wish to use things such as initializers, internationalization or other configuration options. The great news is that these things are entirely possible, because a Rails engine shares much the same functionality as a Rails application. In fact, a Rails application's functionality is actually a superset of what is provided by engines!
 
 If you wish to use an initializer - code that should run before the engine is
 loaded - the place for it is the `config/initializers` folder. This directory's
@@ -705,11 +708,11 @@ For locales, simply place the locale files in the `config/locales` directory, ju
 Testing an engine
 -----------------
 
-When an engine is generated there is a smaller dummy application created inside it at `test/dummy`. This application is used as a mounting point for the engine to make testing the engine extremely simple. You may extend this application by generating controllers, models or views from within the directory, and then use those to test your engine.
+When an engine is generated, there is a smaller dummy application created inside it at `test/dummy`. This application is used as a mounting point for the engine, to make testing the engine extremely simple. You may extend this application by generating controllers, models or views from within the directory, and then use those to test your engine.
 
 The `test` directory should be treated like a typical Rails testing environment, allowing for unit, functional and integration tests.
 
-### Functional tests
+### Functional Tests
 
 A matter worth taking into consideration when writing functional tests is that the tests are going to be running on an application - the `test/dummy` application - rather than your engine. This is due to the setup of the testing environment; an engine needs an application as a host for testing its main functionality, especially controllers. This means that if you were to make a typical `GET` to a controller in a controller's functional test like this:
 
@@ -717,13 +720,13 @@ A matter worth taking into consideration when writing functional tests is that t
 get :index
 ```
 
-It may not function correctly. This is because the application doesn't know how to route these requests to the engine unless you explicitly tell it **how**. To do this, you must pass the `:use_route` option (as a parameter) on these requests also:
+It may not function correctly. This is because the application doesn't know how to route these requests to the engine unless you explicitly tell it **how**. To do this, you must also pass the `:use_route` option as a parameter on these requests:
 
 ```ruby
 get :index, use_route: :blorgh
 ```
 
-This tells the application that you still want to perform a `GET` request to the `index` action of this controller, just that you want to use the engine's route to get there, rather than the application.
+This tells the application that you still want to perform a `GET` request to the `index` action of this controller, but you want to use the engine's route to get there, rather than the application's one.
 
 Improving engine functionality
 ------------------------------
@@ -734,9 +737,9 @@ This section explains how to add and/or override engine MVC functionality in the
 
 Engine model and controller classes can be extended by open classing them in the main Rails application (since model and controller classes are just Ruby classes that inherit Rails specific functionality). Open classing an Engine class redefines it for use in the main application. This is usually implemented by using the decorator pattern.
 
-For simple class modifications use `Class#class_eval`, and for complex class modifications, consider using `ActiveSupport::Concern`.
+For simple class modifications, use `Class#class_eval`. For complex class modifications, consider using `ActiveSupport::Concern`.
 
-#### A note on Decorators and loading code
+#### A note on Decorators and Loading Code
 
 Because these decorators are not referenced by your Rails application itself,
 Rails' autoloading system will not kick in and load your decorators. This
@@ -764,7 +767,7 @@ that isn't referenced by your main application.
 
 #### Implementing Decorator Pattern Using Class#class_eval
 
-**Adding** `Post#time_since_created`,
+**Adding** `Post#time_since_created`:
 
 ```ruby
 # MyApp/app/decorators/models/blorgh/post_decorator.rb
@@ -785,7 +788,7 @@ end
 ```
 
 
-**Overriding** `Post#summary`
+**Overriding** `Post#summary`:
 
 ```ruby
 # MyApp/app/decorators/models/blorgh/post_decorator.rb
@@ -812,7 +815,7 @@ end
 
 Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html). ActiveSupport::Concern manages load order of interlinked dependent modules and classes at run time allowing you to significantly modularize your code.
 
-**Adding** `Post#time_since_created` and **Overriding** `Post#summary`
+**Adding** `Post#time_since_created` and **Overriding** `Post#summary`:
 
 ```ruby
 # MyApp/app/models/blorgh/post.rb
@@ -845,7 +848,7 @@ module Blorgh::Concerns::Models::Post
   extend ActiveSupport::Concern
 
   # 'included do' causes the included code to be evaluated in the
-  # context where it is included (post.rb), rather than be
+  # context where it is included (post.rb), rather than being
   # executed in the module's context (blorgh/concerns/models/post).
   included do
     attr_accessor :author_name
@@ -871,11 +874,11 @@ module Blorgh::Concerns::Models::Post
 end
 ```
 
-### Overriding views
+### Overriding Views
 
-When Rails looks for a view to render, it will first look in the `app/views` directory of the application. If it cannot find the view there, then it will check in the `app/views` directories of all engines which have this directory.
+When Rails looks for a view to render, it will first look in the `app/views` directory of the application. If it cannot find the view there, it will check in the `app/views` directories of all engines that have this directory.
 
-When the application is asked to render the view for `Blorgh::PostsController`'s index action, it will look the path `app/views/blorgh/posts/index.html.erb`, first within the application. If it cannot find it, it will look inside the engine.
+When the application is asked to render the view for `Blorgh::PostsController`'s index action, it will first look for the path `app/views/blorgh/posts/index.html.erb` within the application. If it cannot find it, it will look inside the engine.
 
 You can override this view in the application by simply creating a new file at `app/views/blorgh/posts/index.html.erb`. Then you can completely change what this view would normally output.
 
@@ -894,7 +897,7 @@ Try this now by creating a new file at `app/views/blorgh/posts/index.html.erb` a
 
 ### Routes
 
-Routes inside an engine are, by default, isolated from the application. This is done by the `isolate_namespace` call inside the `Engine` class. This essentially means that the application and its engines can have identically named routes and they will not clash.
+Routes inside an engine are isolated from the application by default. This is done by the `isolate_namespace` call inside the `Engine` class. This essentially means that the application and its engines can have identically named routes and they will not clash.
 
 Routes inside an engine are drawn on the `Engine` class within `config/routes.rb`, like this:
 
@@ -904,7 +907,7 @@ Blorgh::Engine.routes.draw do
 end
 ```
 
-By having isolated routes such as this, if you wish to link to an area of an engine from within an application, you will need to use the engine's routing proxy method. Calls to normal routing methods such as `posts_path` may end up going to undesired locations if both the application and the engine both have such a helper defined.
+By having isolated routes such as this, if you wish to link to an area of an engine from within an application, you will need to use the engine's routing proxy method. Calls to normal routing methods such as `posts_path` may end up going to undesired locations if both the application and the engine have such a helper defined.
 
 For instance, the following example would go to the application's `posts_path` if that template was rendered from the application, or the engine's `posts_path` if it was rendered from the engine:
 
@@ -926,13 +929,13 @@ If you wish to reference the application inside the engine in a similar way, use
 
 If you were to use this inside an engine, it would **always** go to the application's root. If you were to leave off the `main_app` "routing proxy" method call, it could potentially go to the engine's or application's root, depending on where it was called from.
 
-If a template is rendered from within an engine and it's attempting to use one of the application's routing helper methods, it may result in an undefined method call. If you encounter such an issue, ensure that you're not attempting to call the application's routing methods without the `main_app` prefix from within the engine.
+If a template rendered from within an engine attempts to use one of the application's routing helper methods, it may result in an undefined method call. If you encounter such an issue, ensure that you're not attempting to call the application's routing methods without the `main_app` prefix from within the engine.
 
 ### Assets
 
-Assets within an engine work in an identical way to a full application. Because the engine class inherits from `Rails::Engine`, the application will know to look up in the engine's `app/assets` and `lib/assets` directories for potential assets.
+Assets within an engine work in an identical way to a full application. Because the engine class inherits from `Rails::Engine`, the application will know to look up assets in the engine's 'app/assets' and 'lib/assets' directories.
 
-Much like all the other components of an engine, the assets should also be namespaced. This means if you have an asset called `style.css`, it should be placed at `app/assets/stylesheets/[engine name]/style.css`, rather than `app/assets/stylesheets/style.css`. If this asset wasn't namespaced, then there is a possibility that the host application could have an asset named identically, in which case the application's asset would take precedence and the engine's one would be all but ignored.
+Like all of the other components of an engine, the assets should be namespaced. This means that if you have an asset called `style.css`, it should be placed at `app/assets/stylesheets/[engine name]/style.css`, rather than `app/assets/stylesheets/style.css`. If this asset isn't namespaced, there is a possibility that the host application could have an asset named identically, in which case the application's asset would take precedence and the engine's one would be ignored.
 
 Imagine that you did have an asset located at `app/assets/stylesheets/blorgh/style.css` To include this asset inside an application, just use `stylesheet_link_tag` and reference the asset as if it were inside the engine:
 
@@ -940,7 +943,7 @@ Imagine that you did have an asset located at `app/assets/stylesheets/blorgh/sty
 <%= stylesheet_link_tag "blorgh/style.css" %>
 ```
 
-You can also specify these assets as dependencies of other assets using the Asset Pipeline require statements in processed files:
+You can also specify these assets as dependencies of other assets using Asset Pipeline require statements in processed files:
 
 ```
 /*
@@ -954,10 +957,10 @@ INFO. Remember that in order to use languages like Sass or CoffeeScript, you sho
 
 There are some situations where your engine's assets are not required by the host application. For example, say that you've created
 an admin functionality that only exists for your engine. In this case, the host application doesn't need to require `admin.css`
-or `admin.js`. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include `"blorgh/admin.css"` in it's stylesheets. In this situation, you should explicitly define these assets for precompilation.
-This tells sprockets to add your engine assets when `rake assets:precompile` is ran.
+or `admin.js`. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include `"blorgh/admin.css"` in its stylesheets. In this situation, you should explicitly define these assets for precompilation.
+This tells sprockets to add your engine assets when `rake assets:precompile` is triggered.
 
-You can define assets for precompilation in `engine.rb`
+You can define assets for precompilation in `engine.rb`:
 
 ```ruby
 initializer "blorgh.assets.precompile" do |app|
@@ -965,9 +968,9 @@ initializer "blorgh.assets.precompile" do |app|
 end
 ```
 
-For more information, read the [Asset Pipeline guide](asset_pipeline.html)
+For more information, read the [Asset Pipeline guide](asset_pipeline.html).
 
-### Other gem dependencies
+### Other Gem Dependencies
 
 Gem dependencies inside an engine should be specified inside the
 `.gemspec` file at the root of the engine. The reason is that the engine may
@@ -983,7 +986,7 @@ inside the `.gemspec` file in the engine:
 s.add_dependency "moo"
 ```
 
-To specify a dependency that should only be installed as a development
+To specify a dependency that should only be installed as a development 
 dependency of the application, specify it like this:
 
 ```ruby
