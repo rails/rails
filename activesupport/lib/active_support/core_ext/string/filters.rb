@@ -14,9 +14,8 @@ class String
 
   # Performs a destructive squish. See String#squish.
   def squish!
-    gsub!(/\A[[:space:]]+/, '')
-    gsub!(/[[:space:]]+\z/, '')
     gsub!(/[[:space:]]+/, ' ')
+    strip!
     self
   end
 
