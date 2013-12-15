@@ -1,3 +1,7 @@
+*   Use MySQL's ping method to check status of connection for mysql adapter.
+
+    *TroySK*
+
 *   Create a whitelist of delegable methods to `Array`.
 
     Currently `Relation` directly delegates methods to `Array`. With this change,
