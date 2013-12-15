@@ -34,9 +34,10 @@ module ActiveRecord
 
           def visit_TableDefinition(o)
             create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
-            create_sql << "#{quote_table_name(o.name)} ("
-            create_sql << o.columns.map { |c| accept c }.join(', ')
-            create_sql << ") #{o.options}"
+            create_sql << "#{quote_table_name(o.name)} "
+            create_sql << "(#{o.columns.map { |c| accept c }.join(', ')}) " unless o.as
+            create_sql << "#{o.options}"
+            create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
             create_sql
           end
 

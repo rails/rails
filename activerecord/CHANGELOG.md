@@ -1,3 +1,13 @@
+*   Respect temporary option when dropping tables with MySQL
+
+    Normal DROP TABLE also works, but commits the transaction.
+
+    *Cody Cutrer*
+
+*   Add option to create tables from a query.
+
+    *Cody Cutrer*
+
 *   Create a whitelist of delegable methods to `Array`.
 
     Currently `Relation` directly delegates methods to `Array`. With this change,
