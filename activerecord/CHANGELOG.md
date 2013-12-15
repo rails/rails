@@ -1,3 +1,10 @@
+*   db:test:clone and db:test:prepare must load Rails environment
+
+    db:test:clone and db:test:prepare use ActiveRecord::Base. configurations,
+    so we need to load the rails environment, otherwise the config wont be in place.
+
+    *arthurnn*
+
 *   Create a whitelist of delegable methods to `Array`.
 
     Currently `Relation` directly delegates methods to `Array`. With this change,
