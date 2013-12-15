@@ -49,7 +49,7 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.hair_colors # => [:brown, :black, :blonde, :red] +  #
+  #   Person.hair_colors # => [:brown, :black, :blonde, :red]
   def mattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
@@ -181,7 +181,7 @@ class Module
   # Or pass <tt>instance_accessor: false</tt>, to opt out both instance methods.
   #
   #   module HairColors
-  #     mattr_accessor :hair_colors, instance_acessor: false
+  #     mattr_accessor :hair_colors, instance_accessor: false
   #   end
   #
   #   class Person
