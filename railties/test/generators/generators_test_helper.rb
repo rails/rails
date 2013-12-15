@@ -1,10 +1,14 @@
 require 'abstract_unit'
+require 'active_support/core_ext/module/remove_method'
 require 'rails/generators'
 require 'rails/generators/test_case'
 
 module Rails
-  def self.root
-    @root ||= File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
+  class << self
+    remove_possible_method :root
+    def root
+      @root ||= File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
+    end
   end
 end
 Rails.application.config.root = Rails.root
