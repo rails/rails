@@ -344,7 +344,7 @@ db_namespace = namespace :db do
     end
 
     # desc "Recreate the test database from a fresh schema"
-    task :clone do
+    task :clone => :environment do
       case ActiveRecord::Base.schema_format
         when :ruby
           db_namespace["test:clone_schema"].invoke
@@ -365,7 +365,7 @@ db_namespace = namespace :db do
     end
 
     # desc 'Check for pending migrations and load the test schema'
-    task :prepare => :load_config do
+    task :prepare => [:environment, :load_config] do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace['test:load'].invoke
       end
@@ -402,4 +402,3 @@ namespace :railties do
 end
 
 task 'test:prepare' => ['db:test:prepare', 'db:test:load', 'db:abort_if_pending_migrations']
-
