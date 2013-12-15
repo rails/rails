@@ -1,7 +1,7 @@
-*   db:test:clone and db:test:prepare must load Rails environment
+*   `db:test:clone` and `db:test:prepare` must load Rails environment.
 
-    db:test:clone and db:test:prepare use ActiveRecord::Base. configurations,
-    so we need to load the rails environment, otherwise the config wont be in place.
+    `db:test:clone` and `db:test:prepare` use `ActiveRecord::Base`. configurations,
+    so we need to load the Rails environment, otherwise the config wont be in place.
 
     *arthurnn*
 
