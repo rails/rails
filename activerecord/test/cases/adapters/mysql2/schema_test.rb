@@ -65,6 +65,15 @@ module ActiveRecord
         assert_nil index_c.using
         assert_equal :fulltext, index_c.type
       end
+
+      def test_drop_temporary_table
+        @connection.transaction do
+          @connection.create_table(:temp_table, temporary: true)
+          # if it doesn't properly say DROP TEMPORARY TABLE, the transaction commit
+          # will complain that no transaction is active
+          @connection.drop_table(:temp_table, temporary: true)
+        end
+      end
     end
   end
 end

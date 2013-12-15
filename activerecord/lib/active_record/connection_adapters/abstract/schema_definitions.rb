@@ -49,14 +49,15 @@ module ActiveRecord
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
       attr_accessor :indexes
-      attr_reader :name, :temporary, :options
+      attr_reader :name, :temporary, :options, :as
 
-      def initialize(types, name, temporary, options)
+      def initialize(types, name, temporary, options, as = nil)
         @columns_hash = {}
         @indexes = {}
         @native = types
         @temporary = temporary
         @options = options
+        @as = as
         @name = name
       end
 

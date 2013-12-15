@@ -443,6 +443,32 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :binary_testings rescue nil
   end
 
+  def test_create_table_with_query
+    Person.connection.drop_table :table_from_query_testings rescue nil
+    Person.connection.create_table(:person, force: true)
+
+    Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
+
+    columns = Person.connection.columns(:table_from_query_testings)
+    assert_equal 1, columns.length
+    assert_equal "id", columns.first.name
+
+    Person.connection.drop_table :table_from_query_testings rescue nil
+  end
+
+  def test_create_table_with_query_from_relation
+    Person.connection.drop_table :table_from_query_testings rescue nil
+    Person.connection.create_table(:person, force: true)
+
+    Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
+
+    columns = Person.connection.columns(:table_from_query_testings)
+    assert_equal 1, columns.length
+    assert_equal "id", columns.first.name
+
+    Person.connection.drop_table :table_from_query_testings rescue nil
+  end
+
   if current_adapter? :OracleAdapter
     def test_create_table_with_custom_sequence_name
       # table name is 29 chars, the standard sequence name will

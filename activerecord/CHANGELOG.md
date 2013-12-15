@@ -1,3 +1,13 @@
+*   Respect temporary option when dropping tables with MySQL.
+
+    Normal DROP TABLE also works, but commits the transaction.
+
+    *Cody Cutrer*
+
+*   Add option to create tables from a query.
+
+    *Cody Cutrer*
+
 *   `db:test:clone` and `db:test:prepare` must load Rails environment.
 
     `db:test:clone` and `db:test:prepare` use `ActiveRecord::Base`. configurations,
