@@ -30,7 +30,7 @@ module ActionDispatch
   #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
-  #   # The cookie is signed by your app's <tt>config.secret_key_base</tt> value.
+  #   # The cookie is signed by your app's <tt>secrets.secret_key_base</tt> value.
   #   # It can be read using the signed method <tt>cookies.signed[:name]</tt>
   #   cookies.signed[:user_id] = current_user.id
   #
@@ -117,10 +117,10 @@ module ActionDispatch
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
       # cookie was tampered with by the user (or a 3rd party), nil will be returned.
       #
-      # If +config.secret_key_base+ and +config.secret_token+ (deprecated) are both set,
+      # If +secrets.secret_key_base+ and +config.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
+      # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
       #
       # Example:
       #
@@ -140,10 +140,10 @@ module ActionDispatch
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
       # If the cookie was tampered with by the user (or a 3rd party), nil will be returned.
       #
-      # If +config.secret_key_base+ and +config.secret_token+ (deprecated) are both set,
+      # If +secrets.secret_key_base+ and +config.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
+      # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
       #
       # Example:
       #
@@ -409,7 +409,7 @@ module ActionDispatch
     end
 
     # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if
-    # config.secret_token and config.secret_key_base are both set. It reads
+    # config.secret_token and secrets.secret_key_base are both set. It reads
     # legacy cookies signed with the old dummy key generator and re-saves
     # them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
@@ -427,7 +427,7 @@ module ActionDispatch
 
       def initialize(parent_jar, key_generator, options = {})
         if ActiveSupport::LegacyKeyGenerator === key_generator
-          raise "You didn't set config.secret_key_base, which is required for this cookie jar. " +
+          raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
             "Read the upgrade documentation to learn more about this new config option."
         end
 
@@ -465,7 +465,7 @@ module ActionDispatch
     end
 
     # UpgradeLegacyEncryptedCookieJar is used by ActionDispatch::Session::CookieStore
-    # instead of EncryptedCookieJar if config.secret_token and config.secret_key_base
+    # instead of EncryptedCookieJar if config.secret_token and secrets.secret_key_base
     # are both set. It reads legacy cookies signed with the old dummy key generator and
     # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:

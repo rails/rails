@@ -31,9 +31,10 @@ module ActionDispatch
     #
     #   Myapp::Application.config.session_store :cookie_store, key: '_your_app_session'
     #
-    # Configure your secret key in config/initializers/secret_token.rb:
+    # Configure your secret key in config/secrets.yml:
     #
-    #   Myapp::Application.config.secret_key_base 'secret key'
+    #   development:
+    #     secret_key_base: 'secret key'
     #
     # To generate a secret key for an existing application, run `rake secret`.
     #
