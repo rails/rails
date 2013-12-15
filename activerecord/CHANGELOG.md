@@ -2,9 +2,19 @@
 
     Normal DROP TABLE also works, but commits the transaction.
 
+        drop_table :temporary_table, temporary: true
+
     *Cody Cutrer*
 
 *   Add option to create tables from a query.
+
+        create_table(:long_query, temporary: true,
+          as: "SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id")
+
+    Generates:
+
+        CREATE TEMPORARY TABLE long_query AS
+          SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
 
     *Cody Cutrer*
 
