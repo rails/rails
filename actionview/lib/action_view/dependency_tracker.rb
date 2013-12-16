@@ -1,7 +1,7 @@
 require 'thread_safe'
 
 module ActionView
-  class DependencyTracker
+  class DependencyTracker # :nodoc:
     @trackers = ThreadSafe::Cache.new
 
     def self.find_dependencies(name, template)
@@ -23,8 +23,35 @@ module ActionView
       @trackers.delete(handler)
     end
 
-    class ERBTracker
+    class ERBTracker # :nodoc:
       EXPLICIT_DEPENDENCY = /# Template Dependency: (\S+)/
+
+      # A valid ruby identifier - suitable for class, method and specially variable names
+      IDENTIFIER = /
+        [[:alpha:]_] # at least one uppercase letter, lowercase letter or underscore
+        [[:word:]]*  # followed by optional letters, numbers or underscores
+      /x
+
+      # Any kind of variable name. e.g. @instance, @@class, $global or local.
+      # Possibly following a method call chain
+      VARIABLE_OR_METHOD_CHAIN = /
+        (?:\$|@{1,2})?            # optional global, instance or class variable indicator
+        (?:#{IDENTIFIER}\.)*      # followed by an optional chain of zero-argument method calls
+        (?<dynamic>#{IDENTIFIER}) # and a final valid identifier, captured as DYNAMIC
+      /x
+
+      # A simple string literal. e.g. "School's out!"
+      STRING = /
+        (?<quote>['"]) # an opening quote
+        (?<static>.*?) # with anything inside, captured as STATIC
+        \k<quote>      # and a matching closing quote
+      /x
+
+      # Part of any hash containing the :partial key
+      PARTIAL_HASH_KEY = /
+        (?:\bpartial:|:partial\s*=>) # partial key in either old or new style hash syntax
+        \s*                          # followed by optional spaces
+      /x
 
       # Matches:
       #   render partial: "comments/comment", collection: commentable.comments
@@ -36,11 +63,13 @@ module ActionView
       #   render(topics)         => render("topics/topic")
       #   render(message.topics) => render("topics/topic")
       RENDER_DEPENDENCY = /
-        render\s*                     # render, followed by optional whitespace
-        \(?                           # start an optional parenthesis for the render call
-        (partial:|:partial\s+=>)?\s*  # naming the partial, used with collection -- 1st capture
-        ([@a-z"'][@\w\/\."']+)        # the template name itself -- 2nd capture
-      /x
+        \brender\b                                  # render, the whole word
+        \s*\(?\s*                                   # optional opening paren surrounded by spaces
+        (?:
+          (?:.*?#{PARTIAL_HASH_KEY})?               # optional hash, up to the partial key declaration
+          (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN}) # finally, the dependency name of interest
+        )
+      /xm
 
       def self.call(name, template)
         new(name, template).dependencies
@@ -68,19 +97,30 @@ module ActionView
         end
 
         def render_dependencies
-          source.scan(RENDER_DEPENDENCY).
-            collect(&:second).uniq.
+          render_dependencies = []
 
-            # render(@topic)         => render("topics/topic")
-            # render(topics)         => render("topics/topic")
-            # render(message.topics) => render("topics/topic")
-            collect { |name| name.sub(/\A@?([a-z_]+\.)*([a-z_]+)\z/) { "#{$2.pluralize}/#{$2.singularize}" } }.
+          source.scan(RENDER_DEPENDENCY) do
+            add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
+            add_static_dependency(render_dependencies, Regexp.last_match[:static])
+          end
 
-            # render("headline") => render("message/headline")
-            collect { |name| name.include?("/") ? name : "#{directory}/#{name}" }.
+          render_dependencies.uniq
+        end
 
-            # replace quotes from string renders
-            collect { |name| name.gsub(/["']/, "") }
+        def add_dynamic_dependency(dependencies, dependency)
+          if dependency
+            dependencies << "#{dependency.pluralize}/#{dependency.singularize}"
+          end
+        end
+
+        def add_static_dependency(dependencies, dependency)
+          if dependency
+            if dependency.include?('/')
+              dependencies << dependency
+            else
+              dependencies << "#{directory}/#{dependency}"
+            end
+          end
         end
 
         def explicit_dependencies
