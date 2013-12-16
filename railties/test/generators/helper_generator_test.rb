@@ -33,6 +33,12 @@ class HelperGeneratorTest < Rails::Generators::TestCase
     assert_match(/The name 'AnotherObjectHelperTest' is either already used in your application or reserved/, content)
   end
 
+  def test_helper_with_namespace
+    run_generator ["admin/account"]
+    assert_file "app/helpers/admin.rb", /module Admin/
+    assert_file "app/helpers/admin/account_helper.rb", /module Admin::Account/
+  end
+
   def test_namespaced_and_not_namespaced_helpers
     run_generator ["products"]
 

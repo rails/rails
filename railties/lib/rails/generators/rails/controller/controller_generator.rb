@@ -8,6 +8,11 @@ module Rails
         template 'controller.rb', File.join('app/controllers', class_path, "#{file_name}_controller.rb")
       end
 
+      def create_module_file
+        return if regular_class_path.empty?
+        template 'module.rb', File.join('app/controllers', "#{class_path.join('/')}.rb") if behavior == :invoke
+      end
+
       def add_routes
         actions.reverse.each do |action|
           route generate_routing_code(action)

@@ -7,6 +7,11 @@ module Rails
         template 'helper.rb', File.join('app/helpers', class_path, "#{file_name}_helper.rb")
       end
 
+      def create_module_file
+        return if regular_class_path.empty?
+        template 'module.rb', File.join('app/helpers', "#{class_path.join('/')}.rb") if behavior == :invoke
+      end
+
       hook_for :test_framework
     end
   end
