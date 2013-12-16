@@ -78,7 +78,7 @@ end
 
 Adds the given source to the generated application's `Gemfile`.
 
-For example, if you need to source a gem from "http://code.whytheluckystiff.net":
+For example, if you need to source a gem from "[http://code.whytheluckystiff.net](http://code.whytheluckystiff.net)":
 
 ```ruby
 add_source "http://code.whytheluckystiff.net"
