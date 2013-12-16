@@ -1,3 +1,7 @@
+*   Add `ENV['DATABASE_URL']` support in `rails dbconsole`. Fixes #13320.
+
+    *Huiming Teo*
+
 *   Add `Application#message_verifier` method to return a message verifier.
 
     This verifier can be used to generate and verify signed messages in the application.

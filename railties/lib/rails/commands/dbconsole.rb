@@ -81,14 +81,11 @@ module Rails
 
     def config
       @config ||= begin
-        cfg = begin
-          YAML.load(ERB.new(IO.read("config/database.yml")).result)
-        rescue SyntaxError, StandardError
-          require APP_PATH
-          Rails.application.config.database_configuration
-        end
-
-        cfg[environment] || abort("No database is configured for the environment '#{environment}'")
+        require APP_PATH
+        ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(
+          ENV['DATABASE_URL'],
+          (Rails.application.config.database_configuration || {})
+        ).spec.config.stringify_keys
       end
     end
 
