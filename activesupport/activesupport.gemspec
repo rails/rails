@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.rdoc_options.concat ['--encoding',  'UTF-8']
 
-  s.add_dependency 'i18n',       '~> 0.6', '>= 0.6.4'
+  s.add_dependency 'i18n',       '~> 0.6', '>= 0.6.9'
   s.add_dependency 'json',       '~> 1.7', '>= 1.7.7'
   s.add_dependency 'tzinfo',     '~> 1.1'
   s.add_dependency 'minitest',   '~> 5.1'
