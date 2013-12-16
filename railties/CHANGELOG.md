@@ -1,3 +1,7 @@
+*   Add `ENV['DATABASE_URL']` support in `rails dbconsole`. Fixes #13320.
+
+    *Huiming Teo*
+
 *   Fix default `config/application.rb` template to honor the RAILS_GROUPS env variable.
 
     *Guillermo Iguaran*
