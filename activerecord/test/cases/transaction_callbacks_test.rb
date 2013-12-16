@@ -250,8 +250,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_after_transaction_callbacks_should_prevent_callbacks_from_being_called
     def @first.last_after_transaction_error=(e); @last_transaction_error = e; end
     def @first.last_after_transaction_error; @last_transaction_error; end
-    @first.after_commit_block{|r| r.last_after_transaction_error = :commit; raise "fail!";}
-    @first.after_rollback_block{|r| r.last_after_transaction_error = :rollback; raise "fail!";}
+    @first.after_commit_block{|r| r.last_after_transaction_error = :commit}
+    @first.after_rollback_block{|r| r.last_after_transaction_error = :rollback}
     @second.after_commit_block{|r| r.history << :after_commit}
     @second.after_rollback_block{|r| r.history << :after_rollback}
 
@@ -270,6 +270,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
     assert_equal :rollback, @first.last_after_transaction_error
     assert_equal [:after_rollback], @second.history
+  end
+
+  def test_after_commit_callbacks_should_raise_block_errors
+    @first.after_commit_block{|r| 42/0}
+    assert_raise(ZeroDivisionError){@first.save!}
   end
 
   def test_after_rollback_callbacks_should_validate_on_condition
