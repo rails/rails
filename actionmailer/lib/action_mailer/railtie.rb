@@ -40,5 +40,13 @@ module ActionMailer
         config.compile_methods! if config.respond_to?(:compile_methods!)
       end
     end
+
+    initializer "action_mailer.configure_mailer_previews", before: :set_autoload_paths do |app|
+      if Rails.env.development?
+        options = app.config.action_mailer
+        options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
+        app.config.autoload_paths << options.preview_path
+      end
+    end
   end
 end

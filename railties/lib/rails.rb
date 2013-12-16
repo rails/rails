@@ -25,6 +25,7 @@ module Rails
 
   autoload :Info
   autoload :InfoController
+  autoload :MailersController
   autoload :WelcomeController
 
   class << self
