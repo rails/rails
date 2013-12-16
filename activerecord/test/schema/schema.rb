@@ -1,21 +1,19 @@
 # encoding: utf-8
+require 'active_record/schema'
 
 ActiveRecord::Schema.define do
-  def except(adapter_names_to_exclude)
-    unless [adapter_names_to_exclude].flatten.include?(adapter_name)
-      yield
-    end
+  def except(*adapter_names)
+    yield unless adapter_names.include?(adapter_name)
   end
 
-  #put adapter specific setup here
-  case adapter_name
-    # For Firebird, set the sequence values 10000 when create_table is called;
-    # this prevents primary key collisions between "normally" created records
-    # and fixture-based (YAML) records.
-  when "Firebird"
+  # TODO: remove. Long outdated.
+  # For Firebird, set the sequence values 10000 when create_table is called;
+  # this prevents primary key collisions between "normally" created records
+  # and fixture-based (YAML) records.
+  if adapter_name == "Firebird"
     def create_table(*args, &block)
-      ActiveRecord::Base.connection.create_table(*args, &block)
-      ActiveRecord::Base.connection.execute "SET GENERATOR #{args.first}_seq TO 10000"
+      super
+      execute "SET GENERATOR #{args.first}_seq TO 10000"
     end
   end
 

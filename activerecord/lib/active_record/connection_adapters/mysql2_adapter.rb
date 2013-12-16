@@ -45,11 +45,11 @@ module ActiveRecord
       end
 
       MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191
-      def initialize_schema_migrations_table
+      def initialize_schema_migrations_table(options = {})
         if @config[:encoding] == 'utf8mb4'
-          ActiveRecord::SchemaMigration.create_table(MAX_INDEX_LENGTH_FOR_UTF8MB4)
+          super options.merge(limit: MAX_INDEX_LENGTH_FOR_UTF8MB4)
         else
-          ActiveRecord::SchemaMigration.create_table
+          super
         end
       end
 

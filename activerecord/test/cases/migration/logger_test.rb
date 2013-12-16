@@ -7,9 +7,20 @@ module ActiveRecord
       self.use_transactional_fixtures = false
 
       Migration = Struct.new(:name, :version) do
-        def disable_ddl_transaction; false end
+        def disable_ddl_transaction
+          false
+        end
+
         def migrate direction
           # do nothing
+        end
+
+        def connection
+          schema_migration_class.connection
+        end
+
+        def schema_migration_class
+          ActiveRecord::SchemaMigration
         end
       end
 

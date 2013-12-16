@@ -1,3 +1,4 @@
+require 'active_record/migration'
 
 module ActiveRecord
   # = Active Record Schema

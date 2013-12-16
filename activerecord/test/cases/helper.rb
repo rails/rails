@@ -138,8 +138,8 @@ def load_schema
   original_stdout = $stdout
   $stdout = StringIO.new
 
-  adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
-  adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
+  ar_adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
+  adapter_specific_schema_file = SCHEMA_ROOT + "/#{ar_adapter_name}_specific_schema.rb"
 
   load SCHEMA_ROOT + "/schema.rb"
 

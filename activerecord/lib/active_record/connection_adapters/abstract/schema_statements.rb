@@ -643,17 +643,16 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       def dump_schema_information #:nodoc:
-        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
-
-        ActiveRecord::SchemaMigration.order('version').map { |sm|
-          "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
+        sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
+        select_values("SELECT version FROM #{sm_table}").map { |version|
+          "INSERT INTO #{sm_table} (version) VALUES ('#{version}');"
         }.join "\n\n"
       end
 
       # Should not be called normally, but this operation is non-destructive.
       # The migrations module handles this automatically.
-      def initialize_schema_migrations_table
-        ActiveRecord::SchemaMigration.create_table
+      def initialize_schema_migrations_table(options = {})
+        ActiveRecord::SchemaMigration.create_table({ connection: self }.merge(options))
       end
 
       def assume_migrated_upto_version(version, migrations_paths = ActiveRecord::Migrator.migrations_paths)

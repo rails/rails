@@ -420,6 +420,9 @@ module ActiveRecord
       self.class.disable_ddl_transaction
     end
 
+    class_attribute :schema_migration_class
+    self.schema_migration_class = ::ActiveRecord::SchemaMigration
+
     cattr_accessor :verbose
     attr_accessor :name, :version
 
@@ -574,7 +577,7 @@ module ActiveRecord
       end
 
       time   = nil
-      ActiveRecord::Base.connection_pool.with_connection do |conn|
+      schema_migration_class.connection_pool.with_connection do |conn|
         time = Benchmark.measure do
           exec_migration(conn, direction)
         end
@@ -631,8 +634,13 @@ module ActiveRecord
       self.verbose = save
     end
 
+    # Override in Schema subclasses to provide your own db connection
     def connection
-      @connection || ActiveRecord::Base.connection
+      @connection || schema_migration_class.connection
+    end
+
+    def schema_migration_class
+      self.class.schema_migration_class
     end
 
     def method_missing(method, *arguments, &block)
@@ -749,7 +757,7 @@ module ActiveRecord
       File.mtime filename
     end
 
-    delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
+    delegate :migrate, :announce, :write, :disable_ddl_transaction, :schema_migration_class, :connection, to: :migration
 
     private
 
@@ -822,18 +830,18 @@ module ActiveRecord
         self.new(:up, migrations(migrations_paths), nil)
       end
 
+      # TODO: Unused?
       def schema_migrations_table_name
-        SchemaMigration.table_name
+        ::ActiveRecord::SchemaMigration.table_name
       end
 
-      def get_all_versions
-        SchemaMigration.all.map { |x| x.version.to_i }.sort
+      def get_all_versions(schema_migration_class = ::ActiveRecord::SchemaMigration)
+        schema_migration_class.all.map { |x| x.version.to_i }.sort
       end
 
-      def current_version(connection = Base.connection)
-        sm_table = schema_migrations_table_name
-        if connection.table_exists?(sm_table)
-          get_all_versions.max || 0
+      def current_version(schema_migration_class = ::ActiveRecord::SchemaMigration)
+        if schema_migration_class.table_exists?
+          get_all_versions(schema_migration_class).max || 0
         else
           0
         end
@@ -907,8 +915,6 @@ module ActiveRecord
     end
 
     def initialize(direction, migrations, target_version = nil)
-      raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
-
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
@@ -916,7 +922,7 @@ module ActiveRecord
 
       validate(@migrations)
 
-      Base.connection.initialize_schema_migrations_table
+      @migrations.first.connection.initialize_schema_migrations_table
     end
 
     def current_version
@@ -979,7 +985,7 @@ module ActiveRecord
     end
 
     def migrated
-      @migrated_versions ||= Set.new(self.class.get_all_versions)
+      @migrated_versions ||= Set.new(self.class.get_all_versions(@migrations.first.schema_migration_class))
     end
 
     private
@@ -990,7 +996,7 @@ module ActiveRecord
     def execute_migration_in_transaction(migration, direction)
       ddl_transaction(migration) do
         migration.migrate(direction)
-        record_version_state_after_migrating(migration.version)
+        record_version_state_after_migrating(migration)
       end
     end
 
@@ -1007,6 +1013,16 @@ module ActiveRecord
     end
 
     def validate(migrations)
+      connections = migrations.map(&:connection).uniq
+
+      if connections.size > 1
+        raise MigrationError.new("These migrations are on separate database connections")
+      end
+
+      if !connections.all?(&:supports_migrations?)
+        raise StandardError.new("This database does not yet support migrations")
+      end
+
       name ,= migrations.group_by(&:name).find { |_,v| v.length > 1 }
       raise DuplicateMigrationNameError.new(name) if name
 
@@ -1014,13 +1030,13 @@ module ActiveRecord
       raise DuplicateMigrationVersionError.new(version) if version
     end
 
-    def record_version_state_after_migrating(version)
+    def record_version_state_after_migrating(migration)
       if down?
-        migrated.delete(version)
-        ActiveRecord::SchemaMigration.where(:version => version.to_s).delete_all
+        migrated.delete(migration.version)
+        migration.schema_migration_class.where(version: migration.version.to_s).delete_all
       else
-        migrated << version
-        ActiveRecord::SchemaMigration.create!(:version => version.to_s)
+        migrated << migration.version
+        migration.schema_migration_class.create!(version: migration.version.to_s)
       end
     end
 
@@ -1035,14 +1051,14 @@ module ActiveRecord
     # Wrap the migration in a transaction only if supported by the adapter.
     def ddl_transaction(migration)
       if use_transaction?(migration)
-        Base.transaction { yield }
+        migration.connection.transaction { yield }
       else
         yield
       end
     end
 
     def use_transaction?(migration)
-      !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+      !migration.disable_ddl_transaction && migration.connection.supports_ddl_transactions?
     end
   end
 end

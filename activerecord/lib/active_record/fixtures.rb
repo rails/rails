@@ -496,7 +496,8 @@ module ActiveRecord
       class_names = ClassCache.new class_names, config
 
       # FIXME: Apparently JK uses this.
-      connection = block_given? ? yield : ActiveRecord::Base.connection
+      custom_connection = yield if block_given?
+      connection = custom_connection || ActiveRecord::Base.connection
 
       files_to_read = fixture_set_names.reject { |fs_name|
         fixture_is_cached?(connection, fs_name)
@@ -508,7 +509,7 @@ module ActiveRecord
 
           fixture_sets = files_to_read.map do |fs_name|
             klass = class_names[fs_name]
-            conn = klass ? klass.connection : connection
+            conn = custom_connection || (klass ? klass.connection : connection)
             fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
               conn,
               fs_name,
@@ -520,7 +521,7 @@ module ActiveRecord
 
           connection.transaction(:requires_new => true) do
             fixture_sets.each do |fs|
-              conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
+              conn = custom_connection || (fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection)
               table_rows = fs.table_rows
 
               table_rows.keys.each do |table|
