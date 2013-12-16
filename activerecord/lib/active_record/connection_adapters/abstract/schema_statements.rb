@@ -131,7 +131,7 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
-      # [<tt>:as]
+      # [<tt>:as</tt>]
       #   SQL to use to generate the table. When this option is used, the block is
       #   ignored, as are the <tt>:id</tt> and <tt>:primary_key</tt> options.
       #
