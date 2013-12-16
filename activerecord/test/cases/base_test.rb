@@ -121,6 +121,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.limit(1).to_a.length
   end
 
+  def test_limit_should_take_value_of_last_limit
+    assert_equal 1, Topic.limit(2).limit(1).to_a.length
+  end
+
   def test_invalid_limit
     assert_raises(ArgumentError) do
       Topic.limit("asdfadf").to_a
