@@ -1,3 +1,58 @@
+*   Better support for `where()` conditions that use a `belongs_to`
+    association name.
+
+    Using the name of an association in `where` previously worked only
+    if the value was a single `ActiveRecord::Base` object. e.g.
+
+        Post.where(author: Author.first)
+
+    Any other values, including `nil`, would cause invalid SQL to be
+    generated. This change supports arguments in the `where` query
+    conditions where the key is a `belongs_to` association name and the
+    value is `nil`, an `Array` of `ActiveRecord::Base` objects, or an
+    `ActiveRecord::Relation` object.
+
+        class Post < ActiveRecord::Base
+          belongs_to :author
+        end
+
+    `nil` value finds records where the association is not set:
+
+        Post.where(author: nil)
+        # SELECT "posts".* FROM "posts" WHERE "posts"."author_id" IS NULL
+
+    `Array` values find records where the association foreign key
+    matches the ids of the passed ActiveRecord models, resulting
+    in the same query as `Post.where(author_id: [1,2])`:
+
+        authors_array = [Author.find(1), Author.find(2)]
+        Post.where(author: authors_array)
+        # SELECT "posts".* FROM "posts" WHERE "posts"."author_id" IN (1, 2)
+
+    `ActiveRecord::Relation` values find records using the same
+    query as `Post.where(author_id: Author.where(last_name: "Emde"))`
+
+        Post.where(author: Author.where(last_name: "Emde"))
+        # SELECT "posts".* FROM "posts"
+        # WHERE "posts"."author_id" IN (
+        #   SELECT "authors"."id" FROM "authors"
+        #   WHERE "authors"."last_name" = 'Emde')
+
+    Polymorphic `belongs_to` associations will continue to be handled
+    appropriately, with the polymorphic `association_type` field added
+    to the query to match the base class of the value. This feature
+    previously only worked when the value was a single `ActveRecord::Base`.
+
+        class Post < ActiveRecord::Base
+          belongs_to :author, polymorphic: true
+        end
+
+        Post.where(author: Author.where(last_name: "Emde"))
+        # Generates a query similar to:
+        Post.where(author_id: Author.where(last_name: "Emde"), author_type: "Author")
+
+    *Martin Emde*
+
 *   Respect temporary option when dropping tables with MySQL.
 
     Normal DROP TABLE also works, but commits the transaction.
