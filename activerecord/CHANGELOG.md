@@ -1,3 +1,32 @@
+*   Support for `where()` queries that use `has_one` and `has_many` keys
+
+    Support for association names in `where` queries previously worked
+    for `belongs_to` associations, but not for `has_many` or `has_one`
+    associations.
+
+    Given:
+
+        class Author < ActiveRecord::Base
+          has_many :posts
+          has_one :post
+        end
+
+    The existing behavior is as follows:
+    In master, we are currently unable to select based on has_one association
+    names, because it uses the wrong table name for the table.
+
+        authors_of_published_posts = Author.where(
+          posts: { id: Post.where(published: true) }
+        ).joins(:posts)
+        authors_has_one_post = Author.where(
+          post: { id: Post.where(published: true) }
+        ).joins(:posts) # => invalid sql
+
+    This commit adds support for this style of where conditions:
+
+        Author.where(posts: Post.where(published: true)).joins(:posts)
+        Author.where(post: Post.where(published: true)).joins(:posts)
+
 *   Better support for `where()` conditions that use a `belongs_to`
     association name.
 
