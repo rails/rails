@@ -156,6 +156,23 @@ end
 ActiveRecord::FixtureSet.context_class.send :include, FixtureFileHelpers
 ```
 
+### I18n enforcing available locales
+
+Rails 4.1 now defaults the I18n option `enforce_available_locales` to `true`,
+meaning that it will make sure that all locales passed to it must be declared in
+the `available_locales` list.
+
+To disable it (and allow I18n to accept *any* locale option) add the following
+configuration to your application:
+
+```ruby
+config.i18n.enforce_available_locales = false
+```
+
+Note that this option was added as a security measure, to ensure user input could
+not be used as locale information unless previously known, so it's recommended not
+to disable this option unless you have a strong reason for doing so.
+
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 

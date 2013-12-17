@@ -1,3 +1,16 @@
+*   Default the new `I18n.enforce_available_locales` config to `true`, meaning
+    `I18n` will make sure that all locales passed to it must be declared in the
+    `available_locales` list.
+
+    To disable it add the following configuration to your application:
+
+        config.i18n.enforce_available_locales = false
+
+    This also ensures I18n configuration is properly initialized taking the new
+    option into account, to avoid their deprecations while booting up the app.
+
+    *Carlos Antonio da Silva*, *Yves Senn*
+
 *   Introduce Module#concerning: a natural, low-ceremony way to separate
     responsibilities within a class.
 
@@ -48,11 +61,6 @@
 *   Fix file descriptor being leaked on each call to `Kernel.silence_stream`.
 
     *Mario Visic*
-
-*   Ensure `config.i18n.enforce_available_locales` is set before any other
-    configuration option.
-
-    *Yves Senn*
 
 *   Added `Date#all_week/month/quarter/year` for generating date ranges.
 
