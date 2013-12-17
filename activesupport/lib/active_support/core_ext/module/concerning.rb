@@ -124,7 +124,6 @@ class Module
     #
     #     ...
     #   end
-    #   include EventTracking
     def concern(topic, &module_definition)
       const_set topic, Module.new {
         extend ::ActiveSupport::Concern
