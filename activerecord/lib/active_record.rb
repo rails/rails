@@ -66,8 +66,10 @@ module ActiveRecord
   autoload :Validations
 
   eager_autoload do
-    autoload :ActiveRecordError, 'active_record/errors'
-    autoload :ConnectionNotEstablished, 'active_record/errors'
+    autoload_at 'active_record/errors' do
+      autoload :ActiveRecordError
+      autoload :ConnectionNotEstablished
+    end
     autoload :ConnectionAdapters, 'active_record/connection_adapters/abstract_adapter'
 
     autoload :Aggregations
