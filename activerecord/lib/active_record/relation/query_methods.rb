@@ -982,8 +982,10 @@ module ActiveRecord
     end
 
     def build_select(arel, selects)
-      unless selects.empty?
+      if !selects.empty?
         arel.project(*selects)
+      elsif from_value
+        arel.project(Arel.star)
       else
         arel.project(@klass.arel_table[Arel.star])
       end
