@@ -5,14 +5,24 @@ module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
   end
 
+  class InvalidCrossOriginRequest < ActionControllerError #:nodoc:
+  end
+
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
   # by including a token in the rendered html for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
   # access. When a request reaches your application, \Rails verifies the received
   # token with the token in the session. Only HTML and JavaScript requests are checked,
   # so this will not protect your XML API (presumably you'll have a different
-  # authentication scheme there anyway). Also, GET requests are not protected as these
-  # should be idempotent.
+  # authentication scheme there anyway).
+  #
+  # GET requests are not protected since they don't have side effects like writing
+  # to the database and don't leak sensitive information. JavaScript requests are
+  # an exception: a third-party site can use a <script> tag to reference a JavaScript
+  # URL on your site. When your JavaScript response loads on their site, it executes.
+  # With carefully crafted JavaScript on their end, sensitive data in your JavaScript
+  # response may be extracted. To prevent this, only XmlHttpRequest (known as XHR or
+  # Ajax) requests are allowed to make GET requests for JavaScript responses.
   #
   # It's important to remember that XML or JSON requests are also affected and if
   # you're building an API you'll need something like:
@@ -65,16 +75,15 @@ module ActionController #:nodoc:
     module ClassMethods
       # Turn on request forgery protection. Bear in mind that only non-GET, HTML/JavaScript requests are checked.
       #
+      #   class ApplicationController < ActionController::Base
+      #     protect_from_forgery
+      #   end
+      #
       #   class FooController < ApplicationController
       #     protect_from_forgery except: :index
       #
-      # You can disable csrf protection on controller-by-controller basis:
-      #
+      # You can disable CSRF protection on controller by skipping the verification before_action:
       #   skip_before_action :verify_authenticity_token
-      #
-      # It can also be disabled for specific controller actions:
-      #
-      #   skip_before_action :verify_authenticity_token, except: [:create]
       #
       # Valid Options:
       #
@@ -89,6 +98,7 @@ module ActionController #:nodoc:
         self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
         prepend_before_action :verify_authenticity_token, options
+        append_after_action :verify_same_origin_request
       end
 
       private
@@ -169,16 +179,54 @@ module ActionController #:nodoc:
     end
 
     protected
+      # The actual before_action that is used to verify the CSRF token.
+      # Don't override this directly. Provide your own forgery protection
+      # strategy instead. If you override, you'll disable same-origin
+      # `<script>` verification.
+      #
+      # Lean on the protect_from_forgery declaration to mark which actions are
+      # due for same-origin request verification. If protect_from_forgery is
+      # enabled on an action, this before_action flags its after_action to
+      # verify that JavaScript responses are for XHR requests, ensuring they
+      # follow the browser's same-origin policy.
+      def verify_authenticity_token
+        @marked_for_same_origin_verification = true
+
+        if !verified_request?
+          logger.warn "Can't verify CSRF token authenticity" if logger
+          handle_unverified_request
+        end
+      end
+
       def handle_unverified_request
         forgery_protection_strategy.new(self).handle_unverified_request
       end
 
-      # The actual before_action that is used. Modify this to change how you handle unverified requests.
-      def verify_authenticity_token
-        unless verified_request?
-          logger.warn "Can't verify CSRF token authenticity" if logger
-          handle_unverified_request
+      CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
+        "<script> tag on another site requested protected JavaScript. " \
+        "If you know what you're doing, go ahead and disable forgery " \
+        "protection on this action to permit cross-origin JavaScript embedding."
+      private_constant :CROSS_ORIGIN_JAVASCRIPT_WARNING
+
+      # If `verify_authenticity_token` was run (indicating that we have
+      # forgery protection enabled for this request) then also verify that
+      # we aren't serving an unauthorized cross-origin response.
+      def verify_same_origin_request
+        if marked_for_same_origin_verification? && non_xhr_javascript_response?
+          logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING if logger
+          raise ActionController::InvalidCrossOriginRequest, CROSS_ORIGIN_JAVASCRIPT_WARNING
         end
+      end
+
+      # If the `verify_authenticity_token` before_action ran, verify that
+      # JavaScript responses are only served to same-origin GET requests.
+      def marked_for_same_origin_verification?
+        defined? @marked_for_same_origin_verification
+      end
+
+      # Check for cross-origin JavaScript responses.
+      def non_xhr_javascript_response?
+        content_type =~ %r(\Atext/javascript) && !request.xhr?
       end
 
       # Returns true or false if a request is verified. Checks:

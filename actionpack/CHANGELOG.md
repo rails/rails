@@ -1,3 +1,8 @@
+*   Extend cross-site request forgery (CSRF) protection to GET requests with
+    JavaScript responses, protecting apps from cross-origin `<script>` tags.
+
+    *Jeremy Kemper*
+
 *   Fix generating a path for engine inside a resources block.
 
     Fixes #8533.
