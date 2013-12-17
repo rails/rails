@@ -48,22 +48,36 @@ module ActiveRecord
     end
 
     def self.expand(klass, table, column, value)
-      queries = []
-
-      # Find the foreign key when using queries such as:
-      # Post.where(author: author)
-      #
-      # For polymorphic relationships, find the foreign key and type:
-      # PriceEstimate.where(estimate_of: treasure)
-      if klass && reflection = klass.reflect_on_association(column.to_sym)
-        if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
-          queries << build(table[reflection.foreign_type], base_class)
-        end
-
-        column = reflection.foreign_key
+      if klass && association = klass.reflect_on_association(column.to_sym)
+        expand_association(association, table, column, value)
+      else
+        [build(table[column], value)]
       end
+    end
 
-      queries << build(table[column], value)
+    # Find the foreign key when using queries such as:
+    # Post.where(author: author)
+    #
+    # For polymorphic relationships, find the foreign key and type:
+    # PriceEstimate.where(estimate_of: treasure)
+    #
+    # Attempt to build a query that makes sense for an association name
+    # in the query, but if we can't generate a propery query, fallback
+    # to using the original key we received.
+    def self.expand_association(association, table, column, value)
+      queries = []
+      case association.macro
+      when :belongs_to
+        if association.polymorphic? && base_class = polymorphic_base_class_from_value(value)
+          queries << build(table[association.foreign_type], base_class)
+        end
+        queries << build(table[association.foreign_key], value)
+      when :has_many, :has_one
+        table = Arel::Table.new(association.klass.table_name, table.engine)
+        queries << build(table[association.klass.primary_key], value)
+      else
+        queries << build(table[column], value)
+      end
       queries
     end
 

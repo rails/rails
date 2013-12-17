@@ -144,6 +144,36 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_has_one_where
+      post = Post.new
+      post.id = 1
+
+      expected = Author.where(posts: { id: post.id }).joins(:posts).to_sql
+      actual   = Author.where(post: post).joins(:posts).to_sql
+
+      assert_equal expected, actual
+    end
+
+    def test_has_many_where
+      post = Post.new
+      post.id = 1
+
+      expected = Author.where(posts: { id: post.id }).joins(:posts).to_sql
+      actual   = Author.where(posts: post).joins(:posts).to_sql
+
+      assert_equal expected, actual
+    end
+
+    def test_has_many_polymorphic_where
+      estimate = PriceEstimate.new
+      estimate.id = 1
+
+      expected = Treasure.where(price_estimates: { id: estimate }).joins(:price_estimates).to_sql
+      actual   = Treasure.where(price_estimates: estimate).joins(:price_estimates).to_sql
+
+      assert_equal expected, actual
+    end
+
     def test_aliased_attribute
       expected = Topic.where(heading: 'The First Topic')
       actual   = Topic.where(title: 'The First Topic')
