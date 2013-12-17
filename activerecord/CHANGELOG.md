@@ -1,3 +1,20 @@
+*   `Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
+    to an `Array` by calling `#to_a` before using these methods.
+
+    It intends to prevent odd bugs and confusion in code that call mutator
+    methods directly on the `Relation`.
+
+    Example:
+
+        # Instead of this
+        Author.where(name: 'Hank Moody').compact!
+
+        # Now you have to do this
+        authors = Author.where(name: 'Hank Moody').to_a
+        authors.compact!
+
+    *Lauro Caetano*
+
 *   Better support for `where()` conditions that use a `belongs_to`
     association name.
 
@@ -79,21 +96,6 @@
     so we need to load the Rails environment, otherwise the config wont be in place.
 
     *arthurnn*
-
-*   Create a whitelist of delegable methods to `Array`.
-
-    Currently `Relation` directly delegates methods to `Array`. With this change,
-    only the methods present in this whitelist will be delegated.
-
-    The whitelist contains:
-
-        #&, #+, #[], #all?, #collect, #detect, #each, #each_cons, #each_with_index,
-        #flat_map, #group_by, #include?, #length, #map, #none?, :one?, #reverse, #sample,
-        #second, #sort, #sort_by, #to_ary, #to_set, #to_xml, #to_yaml
-
-    To use any other method, instead first call `#to_a` on the association.
-
-    *Lauro Caetano*
 
 *   Use the right column to type cast grouped calculations with custom expressions.
 

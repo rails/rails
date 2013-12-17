@@ -26,15 +26,22 @@ module ActiveRecord
   end
 
   module DelegationWhitelistBlacklistTests
-    ActiveRecord::Delegation::ARRAY_DELEGATES.each do |method|
+    ARRAY_DELEGATES = [
+      :+, :-, :|, :&, :[],
+      :all?, :collect, :detect, :each, :each_cons, :each_with_index,
+      :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
+      :map, :none?, :one?, :partition, :reject, :reverse,
+      :sample, :second, :sort, :sort_by, :third,
+      :to_ary, :to_set, :to_xml, :to_yaml
+    ]
+
+    ARRAY_DELEGATES.each do |method|
       define_method "test_delegates_#{method}_to_Array" do
         assert_respond_to target, method
       end
     end
 
-    [:compact!, :flatten!, :reject!, :reverse!, :rotate!,
-     :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
-     :keep_if, :pop, :shift, :delete_at, :compact].each do |method|
+    ActiveRecord::Delegation::BLACKLISTED_ARRAY_METHODS.each do |method|
       define_method "test_#{method}_is_not_delegated_to_Array" do
         assert_raises(NoMethodError) { call_method(target, method) }
       end

@@ -156,6 +156,23 @@ end
 ActiveRecord::FixtureSet.context_class.send :include, FixtureFileHelpers
 ```
 
+### Mutator methods called on Relation
+
+`Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
+to an `Array` by calling `#to_a` before using these methods.
+
+It intends to prevent odd bugs and confusion in code that call mutator
+methods directly on the `Relation`.
+
+```ruby
+# Instead of this
+Author.where(name: 'Hank Moody').compact!
+
+# Now you have to do this
+authors = Author.where(name: 'Hank Moody').to_a
+authors.compact!
+```
+
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
