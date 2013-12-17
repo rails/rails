@@ -22,7 +22,7 @@ module ActiveSupport
   # <tt>BacktraceCleaner#remove_silencers!</tt>, which will restore the
   # backtrace to a pristine state. If you need to reconfigure an existing
   # BacktraceCleaner so that it does not filter or modify the paths of any lines
-  # of the backtrace, you can call <tt>BacktraceCleaner#remove_filters!<tt>
+  # of the backtrace, you can call <tt>BacktraceCleaner#remove_filters!</tt>
   # These two methods will give you a completely untouched backtrace.
   #
   # Inspired by the Quiet Backtrace gem by Thoughtbot.

@@ -39,6 +39,33 @@ NOTE: User defined rake tasks will run in the `development` environment by
 default. If you want them to run in other environments consult the
 [Spring README](https://github.com/jonleighton/spring#rake).
 
+### `config/secrets.yml`
+
+If you want to use the new `secrets.yml` convention to store your application's
+secrets, you need to:
+
+1. Create a `secrets.yml` file in your `config` folder with the following content:
+
+    ```yaml
+    development:
+      secret_key_base:
+
+    test:
+      secret_key_base:
+
+    production:
+      secret_key_base:
+    ```
+
+2. Copy the existing `secret_key_base` from the `secret_token.rb` initializer to
+   `secrets.yml` under the `production` section.
+
+3. Remove the `secret_token.rb` initializer.
+
+4. Use `rake secret` to generate new keys for the `development` and `test` sections.
+
+5. Restart your server.
+
 ### Changes in JSON handling
 
 The are a few major changes related to JSON handling in Rails 4.1.
