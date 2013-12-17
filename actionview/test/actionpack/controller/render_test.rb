@@ -971,7 +971,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_implicitly_render_js_template_without_layout
-    get :render_implicit_js_template_without_layout, :format => :js
+    xhr :get, :render_implicit_js_template_without_layout, :format => :js
     assert_no_match %r{<html>}, @response.body
   end
 
