@@ -101,7 +101,7 @@ bin/rails console
 **spring introspection:**
 
 ```
-$ bundle exec spring status
+$ bin/spring status
 Spring is running:
 
  1182 spring server | my_app | started 29 mins ago
