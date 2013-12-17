@@ -1,3 +1,4 @@
+require 'set'
 require 'active_support/concern'
 require 'active_support/deprecation'
 
@@ -36,18 +37,13 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    # TODO: This is not going to work. Brittle, painful. We'll switch to a blacklist
-    # to disallow mutator methods like map!, pop, and delete_if instead.
-    ARRAY_DELEGATES = [
-      :+, :-, :|, :&, :[],
-      :all?, :collect, :detect, :each, :each_cons, :each_with_index,
-      :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
-      :map, :none?, :one?, :partition, :reject, :reverse,
-      :sample, :second, :sort, :sort_by, :third,
-      :to_ary, :to_set, :to_xml, :to_yaml
-    ]
+    BLACKLISTED_ARRAY_METHODS = [
+      :compact!, :flatten!, :reject!, :reverse!, :rotate!, :map!,
+      :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
+      :keep_if, :pop, :shift, :delete_at, :compact
+    ].to_set # :nodoc:
 
-    delegate(*ARRAY_DELEGATES, to: :to_a)
+    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, to: :to_a
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass
@@ -119,14 +115,21 @@ module ActiveRecord
 
     def respond_to?(method, include_private = false)
       super || @klass.respond_to?(method, include_private) ||
+        array_delegable?(method) ||
         arel.respond_to?(method, include_private)
     end
 
     protected
 
+    def array_delegable?(method)
+      Array.method_defined?(method) && BLACKLISTED_ARRAY_METHODS.exclude?(method)
+    end
+
     def method_missing(method, *args, &block)
       if @klass.respond_to?(method)
         scoping { @klass.public_send(method, *args, &block) }
+      elsif array_delegable?(method)
+        to_a.public_send(method, *args, &block)
       elsif arel.respond_to?(method)
         arel.public_send(method, *args, &block)
       else
