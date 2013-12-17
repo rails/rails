@@ -513,6 +513,12 @@ module ActiveRecord
       #
       #   CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE active
       #
+      #   add_index(:accounts, [:branch_id, :party_id], where: ["created_at > ?", Time.new(2014, 1, 1)]
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE created_at > '2014-01-01 00:00:00Z'
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
@@ -876,8 +882,8 @@ module ActiveRecord
 
         using = "USING #{options[:using]}" if options[:using].present?
 
-        if supports_partial_index?
-          index_options = options[:where] ? " WHERE #{options[:where]}" : ""
+        if supports_partial_index? && options[:where]
+          index_options = " WHERE #{partial_index_conditions(options[:where], table_name)}"
         end
 
         if index_name.length > max_index_length
@@ -919,6 +925,10 @@ module ActiveRecord
 
         def options_include_default?(options)
           options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+        end
+
+        def partial_index_conditions(where, table_name)
+          ActiveRecord::Base.send(:sanitize_sql_for_conditions, where, table_name, table_name)
         end
 
         def index_name_for_remove(table_name, options = {})
