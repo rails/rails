@@ -1,3 +1,7 @@
+*   Allow hash or array syntax for the conditions in a partial index
+
+    *Cody Cutrer*
+
 *   Currently Active Record can be configured via the environment variable
     `DATABASE_URL` or by manually injecting a hash of values which is what Rails does,
     reading in `database.yml` and setting Active Record appropriately. Active Record

@@ -182,13 +182,13 @@ module ActiveRecord
 
     test 'merging a hash interpolates conditions' do
       klass = Class.new(FakeKlass) do
-        def self.sanitize_sql(args)
+        def self.sanitize_sql(args, table)
           raise unless args == ['foo = ?', 'bar']
           'foo = bar'
         end
       end
 
-      relation = Relation.new(klass, :b)
+      relation = Relation.new(klass, Arel::Table.new(:b))
       relation.merge!(where: ['foo = ?', 'bar'])
       assert_equal ['foo = bar'], relation.where_values
     end
