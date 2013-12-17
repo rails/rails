@@ -3,32 +3,32 @@
 
     Imported from https://github.com/37signals/concerning#readme
 
-      class Todo < ActiveRecord::Base
-        concerning :EventTracking do
-          included do
-            has_many :events
-          end
+        class Todo < ActiveRecord::Base
+          concerning :EventTracking do
+            included do
+              has_many :events
+            end
 
-          def latest_event
-            ...
-          end
-
-          private
-            def some_internal_method
+            def latest_event
               ...
             end
-        end
 
-        concerning :Trashable do
-          def trashed?
-            ...
+            private
+              def some_internal_method
+                ...
+              end
           end
 
-          def latest_event
-            super some_option: true
+          concerning :Trashable do
+            def trashed?
+              ...
+            end
+
+            def latest_event
+              super some_option: true
+            end
           end
         end
-      end
 
     is equivalent to defining these modules inline, extending them into
     concerns, then mixing them in to the class.
