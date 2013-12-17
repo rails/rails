@@ -41,6 +41,8 @@ module ActionMailer
   autoload :Base
   autoload :DeliveryMethods
   autoload :MailHelper
+  autoload :Preview
+  autoload :Previews, 'action_mailer/preview'
   autoload :TestCase
   autoload :TestHelper
 end

@@ -1,3 +1,7 @@
+*   Add mailer previews feature based on 37 Signals mail_view gem
+
+    *Andrew White*
+
 *   Calling `mail()` without arguments serves as getter for the current mail
     message and keeps previously set headers.
 

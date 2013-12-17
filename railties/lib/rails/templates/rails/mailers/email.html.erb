@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width" />
+<style type="text/css">
+  header {
+    width: 100%;
+    padding: 10px 0 0 0;
+    margin: 0;
+    background: white;
+    font: 12px "Lucida Grande", sans-serif;
+    border-bottom: 1px solid #dedede;
+    overflow: hidden;
+  }
+
+  dl {
+    margin: 0 0 10px 0;
+    padding: 0;
+  }
+
+  dt {
+    width: 80px;
+    padding: 1px;
+    float: left;
+    clear: left;
+    text-align: right;
+    color: #7f7f7f;
+  }
+
+  dd {
+    margin-left: 90px; /* 80px + 10px */
+    padding: 1px;
+  }
+
+  iframe {
+    border: 0;
+    width: 100%;
+    height: 800px;
+  }
+</style>
+</head>
+
+<body>
+<header>
+  <dl>
+    <% if @email.respond_to?(:smtp_envelope_from) && Array(@email.from) != Array(@email.smtp_envelope_from) %>
+      <dt>SMTP-From:</dt>
+      <dd><%= @email.smtp_envelope_from %></dd>
+    <% end %>
+
+    <% if @email.respond_to?(:smtp_envelope_to) && @email.to != @email.smtp_envelope_to %>
+      <dt>SMTP-To:</dt>
+      <dd><%= @email.smtp_envelope_to %></dd>
+    <% end %>
+
+    <dt>From:</dt>
+    <dd><%= @email.header['from'] %></dd>
+
+    <% if @email.reply_to %>
+      <dt>Reply-To:</dt>
+      <dd><%= @email.header['reply-to'] %></dd>
+    <% end %>
+
+    <dt>To:</dt>
+    <dd><%= @email.header['to'] %></dd>
+
+    <% if @email.cc %>
+      <dt>CC:</dt>
+      <dd><%= @email.header['cc'] %></dd>
+    <% end %>
+
+    <dt>Date:</dt>
+    <dd><%= Time.current.rfc2822 %></dd>
+
+    <dt>Subject:</dt>
+    <dd><strong><%= @email.subject %></strong></dd>
+
+    <% unless @email.attachments.nil? || @email.attachments.empty? %>
+      <dt>Attachments:</dt>
+      <dd>
+        <%= @email.attachments.map { |a| a.respond_to?(:original_filename) ? a.original_filename : a.filename }.inspect %>
+      </dd>
+    <% end %>
+
+    <% if @email.multipart? %>
+      <dd>
+        <select onchange="document.getElementsByName('messageBody')[0].src=this.options[this.selectedIndex].value;">
+          <option <%= request.format == Mime::HTML ? 'selected' : '' %> value="?part=text%2Fhtml">View as HTML email</option>
+          <option <%= request.format == Mime::TEXT ? 'selected' : '' %> value="?part=text%2Fplain">View as plain-text email</option>
+        </select>
+      </dd>
+    <% end %>
+  </dl>
+</header>
+
+<iframe seamless name="messageBody" src="?part=<%= Rack::Utils.escape(@part.mime_type) %>"></iframe>
+
+</body>
+</html>

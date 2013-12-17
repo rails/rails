@@ -1,7 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/mailer/mailer_generator'
 
-
 class MailerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(notifier foo bar)
@@ -23,8 +22,11 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_check_class_collision
-    content = capture(:stderr){ run_generator ["object"] }
-    assert_match(/The name 'Object' is either already used in your application or reserved/, content)
+    Object.send :const_set, :Notifier, Class.new
+    content = capture(:stderr){ run_generator }
+    assert_match(/The name 'Notifier' is either already used in your application or reserved/, content)
+  ensure
+    Object.send :remove_const, :Notifier
   end
 
   def test_invokes_default_test_framework
@@ -34,6 +36,31 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(/test "foo"/, test)
       assert_match(/test "bar"/, test)
     end
+    assert_file "test/mailers/previews/notifier_preview.rb" do |mailer|
+      assert_match(/class NotifierPreview < ActionMailer::Preview/, mailer)
+      assert_instance_method :foo, mailer do |foo|
+        assert_match(/Notifier.foo/, foo)
+      end
+      assert_instance_method :bar, mailer do |bar|
+        assert_match(/Notifier.bar/, bar)
+      end
+    end
+  end
+
+  def test_check_test_class_collision
+    Object.send :const_set, :NotifierTest, Class.new
+    content = capture(:stderr){ run_generator }
+    assert_match(/The name 'NotifierTest' is either already used in your application or reserved/, content)
+  ensure
+    Object.send :remove_const, :NotifierTest
+  end
+
+  def test_check_preview_class_collision
+    Object.send :const_set, :NotifierPreview, Class.new
+    content = capture(:stderr){ run_generator }
+    assert_match(/The name 'NotifierPreview' is either already used in your application or reserved/, content)
+  ensure
+    Object.send :remove_const, :NotifierPreview
   end
 
   def test_invokes_default_template_engine
@@ -64,6 +91,9 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/mailers/farm/animal.rb" do |mailer|
       assert_match(/class Farm::Animal < ActionMailer::Base/, mailer)
       assert_match(/en\.farm\.animal\.moos\.subject/, mailer)
+    end
+    assert_file "test/mailers/previews/farm/animal_preview.rb" do |mailer|
+      assert_match(/class Farm::AnimalPreview < ActionMailer::Preview/, mailer)
     end
     assert_file "app/views/farm/animal/moos.text.erb"
   end
