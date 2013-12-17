@@ -27,6 +27,31 @@ Upgrading from Rails 4.0 to Rails 4.1
 
 NOTE: This section is a work in progress.
 
+### CSRF protection from remote `<script>` tags
+
+Or, "whaaat my tests are failing!!!?"
+
+Cross-site request forgery (CSRF) protection now covers GET requests with
+JavaScript responses, too. That prevents a third-party site from referencing
+your JavaScript URL and attempting to run it to extract sensitive data.
+
+This means that your functional and integration tests that use
+
+```ruby
+get :index, format: :js
+```
+
+will now trigger CSRF protection. Switch to
+
+```ruby
+xhr :get, :index, format: :js
+```
+
+to explicitly test an XmlHttpRequest.
+
+If you really mean to load JavaScript from remote `<script>` tags, skip CSRF
+protection on that action.
+
 ### Spring
 
 If you want to use Spring as your application preloader you need to:
@@ -68,7 +93,7 @@ secrets, you need to:
 
 ### Changes in JSON handling
 
-The are a few major changes related to JSON handling in Rails 4.1.
+There are a few major changes related to JSON handling in Rails 4.1.
 
 #### MultiJSON removal
 
