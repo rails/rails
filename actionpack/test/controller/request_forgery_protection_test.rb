@@ -305,6 +305,16 @@ module RequestForgeryProtectionTests
     end
   end
 
+  # Allow non-GET requests since GET is all a remote <script> tag can muster.
+  def test_should_allow_non_get_js_without_xhr_header
+    assert_cross_origin_not_blocked { post :same_origin_js, custom_authenticity_token: @token }
+    assert_cross_origin_not_blocked { post :same_origin_js, format: 'js', custom_authenticity_token: @token }
+    assert_cross_origin_not_blocked do
+      @request.accept = 'text/javascript'
+      post :negotiate_same_origin, custom_authenticity_token: @token
+    end
+  end
+
   def test_should_only_allow_cross_origin_js_get_without_xhr_header_if_protection_disabled
     assert_cross_origin_not_blocked { get :cross_origin_js }
     assert_cross_origin_not_blocked { get :cross_origin_js, format: 'js' }

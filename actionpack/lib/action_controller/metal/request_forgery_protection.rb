@@ -190,7 +190,7 @@ module ActionController #:nodoc:
       # verify that JavaScript responses are for XHR requests, ensuring they
       # follow the browser's same-origin policy.
       def verify_authenticity_token
-        @marked_for_same_origin_verification = true
+        mark_for_same_origin_verification!
 
         if !verified_request?
           logger.warn "Can't verify CSRF token authenticity" if logger
@@ -218,10 +218,15 @@ module ActionController #:nodoc:
         end
       end
 
+      # GET requests are checked for cross-origin JavaScript after rendering.
+      def mark_for_same_origin_verification!
+        @marked_for_same_origin_verification = request.get?
+      end
+
       # If the `verify_authenticity_token` before_action ran, verify that
       # JavaScript responses are only served to same-origin GET requests.
       def marked_for_same_origin_verification?
-        defined? @marked_for_same_origin_verification
+        @marked_for_same_origin_verification ||= false
       end
 
       # Check for cross-origin JavaScript responses.
