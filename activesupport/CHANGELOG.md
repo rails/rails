@@ -1,3 +1,50 @@
+*   Introduce Module#concerning: a natural, low-ceremony way to separate
+    responsibilities within a class.
+
+    Imported from https://github.com/37signals/concerning#readme
+
+      class Todo < ActiveRecord::Base
+        concerning :EventTracking do
+          included do
+            has_many :events
+          end
+
+          def latest_event
+            ...
+          end
+
+          private
+            def some_internal_method
+              ...
+            end
+        end
+
+        concerning :Trashable do
+          def trashed?
+            ...
+          end
+
+          def latest_event
+            super some_option: true
+          end
+        end
+      end
+
+    is equivalent to defining these modules inline, extending them into
+    concerns, then mixing them in to the class.
+
+    Inline concerns tame "junk drawer" classes that intersperse many unrelated
+    class-level declarations, public instance methods, and private
+    implementation. Coalesce related bits and give them definition.
+    These are a stepping stone toward future growth & refactoring.
+
+    When to move on from an inline concern:
+     * Encapsulating state? Extract collaborator object.
+     * Encompassing more public behavior or implementation? Move to separate file.
+     * Sharing behavior among classes? Move to separate file.
+
+    *Jeremy Kemper*
+
 *   Fix file descriptor being leaked on each call to `Kernel.silence_stream`.
 
     *Mario Visic*
