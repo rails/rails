@@ -131,7 +131,7 @@ Conversation.archived # => Relation for all archived Conversations
 ```
 
 See
-[active_record/enum.rb](https://github.com/rails/rails/blob/4-1-stable/activerecord/lib/active_record/enum.rb#L2-L42)
+[active_record/enum.rb](api.rubyonrails.org/v4.1.0/classes/ActiveRecord/Enum.html)
 for a detailed write up.
 
 ### Application message verifier.
