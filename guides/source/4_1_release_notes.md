@@ -3,9 +3,10 @@ Ruby on Rails 4.1 Release Notes
 
 Highlights in Rails 4.1:
 
-* Variants
-* Spring
-* Action View extracted from Action Pack
+* Spring application preloader
+* `config/secrets.yml`
+* Action Pack variants
+* Action Mailer previews
 
 These release notes cover only the major changes. To know about various bug
 fixes and changes, please refer to the change logs or check out the
@@ -22,60 +23,21 @@ coverage before going in. You should also first upgrade to Rails 4.0 in case you
 haven't and make sure your application still runs as expected before attempting
 an update to Rails 4.1. A list of things to watch out for when upgrading is
 available in the
-[Upgrading to Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-0-to-rails-4-1)
+[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-0-to-rails-4-1)
 guide.
 
 
 Major Features
 --------------
 
-### Variants
+### Spring application preloader
 
-We often want to render different html/json/xml templates for phones,
-tablets, and desktop browsers. Variants makes it easy.
-
-The request variant is a specialization of the request format, like `:tablet`,
-`:phone`, or `:desktop`.
-
-You can set the variant in a before_action:
-
-```ruby
-request.variant = :tablet if request.user_agent =~ /iPad/
-```
-
-Respond to variants in the action just like you respond to formats:
-
-```ruby
-respond_to do |format|
-  format.html do |html|
-    html.tablet # renders app/views/projects/show.html+tablet.erb
-    html.phone { extra_setup; render ... }
-  end
-end
-```
-
-Provide separate templates for each format and variant:
-
-```
-app/views/projects/show.html.erb
-app/views/projects/show.html+tablet.erb
-app/views/projects/show.html+phone.erb
-```
-
-You can also simplify the variants definition using the inline syntax:
-
-```ruby
-respond_to do |format|
-  format.js         { render "trash" }
-  format.html.phone { redirect_to progress_path }
-  format.html.none  { render "trash" }
-end
-```
-
-### Spring
+Spring is a Rails application preloader. It speeds up development by keeping
+your application running in the background so you don't need to boot it every
+time you run a test, rake task or migration.
 
 New Rails 4.1 applications will ship with "springified" binstubs. This means
-that `bin/rails` and `bin/rake` will automatically take advantage preloaded
+that `bin/rails` and `bin/rake` will automatically take advantage of preloaded
 spring environments.
 
 **running rake tasks:**
@@ -111,7 +73,95 @@ Spring is running:
 
 Have a look at the
 [Spring README](https://github.com/jonleighton/spring/blob/master/README.md) to
-see a all available features.
+see all available features.
+
+See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#spring)
+guide on how to migrate existing applications to use this feature.
+
+### `config/secrets.yml`
+
+Rails 4.1 will generate a new `secrets.yml` file in the `config` folder for new
+applications. By default, this file contains the application's `secret_key_base`,
+but it could also be used to store other secrets such as access keys for external
+APIs.
+
+The secrets added to this file will be accessible via `Rails.application.secrets`.
+For example, with the following `secrets.yml`:
+
+```yaml
+development:
+  secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+  some_api_key: SOMEKEY
+```
+
+`Rails.application.secrets.some_api_key` will return `SOMEKEY` in the development
+environment.
+
+See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#config-secrets-yml)
+guide on how to migrate existing applications to use this feature.
+
+### Action Pack variants
+
+We often want to render different html/json/xml templates for phones,
+tablets, and desktop browsers. Variants makes it easy.
+
+The request variant is a specialization of the request format, like `:tablet`,
+`:phone`, or `:desktop`.
+
+You can set the variant in a `before_action`:
+
+```ruby
+request.variant = :tablet if request.user_agent =~ /iPad/
+```
+
+Respond to variants in the action just like you respond to formats:
+
+```ruby
+respond_to do |format|
+  format.html do |html|
+    html.tablet # renders app/views/projects/show.html+tablet.erb
+    html.phone { extra_setup; render ... }
+  end
+end
+```
+
+Provide separate templates for each format and variant:
+
+```
+app/views/projects/show.html.erb
+app/views/projects/show.html+tablet.erb
+app/views/projects/show.html+phone.erb
+```
+
+You can also simplify the variants definition using the inline syntax:
+
+```ruby
+respond_to do |format|
+  format.js         { render "trash" }
+  format.html.phone { redirect_to progress_path }
+  format.html.none  { render "trash" }
+end
+```
+
+### Action Mailer previews
+
+Preview email templates in the browser without delivering them.
+
+```ruby
+class NotifierPreview < ActionMailer::Preview
+  # Accessible from http://localhost:3000/rails/mailers/notifier/welcome
+  def welcome
+    Notifier.welcome(User.first)
+  end
+end
+```
+
+By default, these preview files live in <tt>test/mailers/previews</tt>.
+This can be configured using the <tt>preview_path</tt> option.
+
+See
+[action_mailer/base.rb](api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
+for a detailed write up.
 
 ### Active Record enums
 
@@ -123,7 +173,7 @@ class Conversation < ActiveRecord::Base
   enum status: [ :active, :archived ]
 end
 
-conversation.archive!
+conversation.archived!
 conversation.active? # => false
 conversation.status  # => "archived"
 
@@ -134,7 +184,7 @@ See
 [active_record/enum.rb](api.rubyonrails.org/v4.1.0/classes/ActiveRecord/Enum.html)
 for a detailed write up.
 
-### Application message verifier.
+### Application message verifier
 
 Create a message verifier that can be used to generate and verify signed
 messages in the application.
@@ -145,9 +195,32 @@ Rails.application.message_verifier('salt').verify(message)
 # => 'my sensible data'
 ```
 
-Documentation
--------------
+### Module#concerning
 
+A natural, low-ceremony way to separate responsibilities within a class:
+
+```ruby
+class Todo < ActiveRecord::Base
+  concerning :EventTracking do
+    included do
+      has_many :events
+    end
+
+    def latest_event
+      ...
+    end
+
+    private
+      def some_internal_method
+        ...
+      end
+  end
+end
+```
+
+This example is equivalent to defining a `EventTracking` module inline,
+extending it with `ActiveSupport::Concern`, then mixing it in to the
+`Todo` class.
 
 Railties
 --------
