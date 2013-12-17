@@ -33,16 +33,19 @@ module ActiveRecord
       extend ActiveSupport::Autoload
 
       eager_autoload do
-        autoload :Association,           'active_record/associations/preloader/association'
-        autoload :SingularAssociation,   'active_record/associations/preloader/singular_association'
-        autoload :CollectionAssociation, 'active_record/associations/preloader/collection_association'
-        autoload :ThroughAssociation,    'active_record/associations/preloader/through_association'
+        autoload_under nil do
+          autoload :Association
+          autoload :SingularAssociation
+          autoload :CollectionAssociation
+          autoload :ThroughAssociation
 
-        autoload :HasMany,             'active_record/associations/preloader/has_many'
-        autoload :HasManyThrough,      'active_record/associations/preloader/has_many_through'
-        autoload :HasOne,              'active_record/associations/preloader/has_one'
-        autoload :HasOneThrough,       'active_record/associations/preloader/has_one_through'
-        autoload :BelongsTo,           'active_record/associations/preloader/belongs_to'
+          autoload :HasMany
+          autoload :HasManyThrough
+          autoload :HasOne
+          autoload :HasOneThrough
+          autoload :BelongsTo
+        end
+
       end
 
       # Eager loads the named associations for the given Active Record record(s).

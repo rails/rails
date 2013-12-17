@@ -40,8 +40,10 @@ module ActionController
     autoload :UrlFor
   end
 
-  autoload :TestCase,           'action_controller/test_case'
-  autoload :TemplateAssertions, 'action_controller/test_case'
+  autoload_at 'action_controller/test_case' do
+    autoload :TestCase
+    autoload :TemplateAssertions
+  end
 
   def self.eager_load!
     super
