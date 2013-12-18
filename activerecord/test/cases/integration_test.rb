@@ -46,6 +46,12 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal '4-ab-ab-ab-ab-ab-ab', firm.to_param
   end
 
+  def test_to_param_class_method_multibyte_character
+    firm = Firm.find(4)
+    firm.name = "戦場ヶ原 ひたぎ"
+    assert_equal '4', firm.to_param
+  end
+
   def test_to_param_class_method_uses_default_if_blank
     firm = Firm.find(4)
     firm.name = nil
