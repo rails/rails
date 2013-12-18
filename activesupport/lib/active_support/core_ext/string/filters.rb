@@ -1,5 +1,5 @@
 class String
-  # Returns the string, first removing all whitespace on both ends of
+  # Returns the string, first removing all whitespaces on both ends of
   # the string, and then changing remaining consecutive whitespace
   # groups into one space each.
   #
