@@ -51,7 +51,7 @@ module Enumerable
         cnt > 1
       end
     else
-      any? { (cnt += 1) > 1 }
+      count > 1
     end
   end
 
