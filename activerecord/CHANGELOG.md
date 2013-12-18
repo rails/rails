@@ -1,3 +1,9 @@
+*   Fix regression that assigning nil to a polymorphic belongs_to should nullify its _type column
+
+    This regression was introduced at 1678e959e973de32287b65c52ebc6cce87148951
+
+    *Vipul A M*
+
 *   `Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
     to an `Array` by calling `#to_a` before using these methods.
 
