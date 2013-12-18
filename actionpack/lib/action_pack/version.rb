@@ -1,7 +1,7 @@
 module ActionPack
   # Returns the version of the currently loaded ActionPack as a Gem::Version
   def self.version
-    Gem::Version.new "4.1.0.beta"
+    Gem::Version.new "4.1.0.beta1"
   end
 
   module VERSION #:nodoc:
