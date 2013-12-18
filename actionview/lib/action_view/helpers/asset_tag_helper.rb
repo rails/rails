@@ -251,9 +251,9 @@ module ActionView
       #
       # * <tt>:poster</tt> - Set an image (like a screenshot) to be shown
       #   before the video loads. The path is calculated like the +src+ of +image_tag+.
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}", so "30x45" becomes
-      #   width="30" and height="45". <tt>:size</tt> will be ignored if the
-      #   value is not in the correct format.
+      # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
+      #   width="30" and height="45", and "50" becomes width="50" and height="50".
+      #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       #
       # ==== Examples
       #
@@ -267,6 +267,8 @@ module ActionView
       #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png" />
       #   video_tag("/trailers/hd.avi", size: "16x16")
       #   # => <video src="/trailers/hd.avi" width="16" height="16" />
+      #   video_tag("/trailers/hd.avi", size: "16")
+      #   # => <video height="16" src="/trailers/hd.avi" width="16" />
       #   video_tag("/trailers/hd.avi", height: '32', width: '32')
       #   # => <video height="32" src="/trailers/hd.avi" width="32" />
       #   video_tag("trailer.ogg", "trailer.flv")
@@ -280,7 +282,11 @@ module ActionView
           options[:poster] = path_to_image(options[:poster]) if options[:poster]
 
           if size = options.delete(:size)
-            options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
+            if size =~ %r{\A\d+x\d+\z}
+              options[:width], options[:height] = size.split('x')
+            elsif size =~ %r{\A\d+\z}
+              options[:width] = options[:height] = size
+            end
           end
         end
       end
