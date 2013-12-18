@@ -138,6 +138,23 @@ module ActiveRecord
       end
     end
 
+    def test_overlapping_queries
+      # We invert roles here; the newly spawned thread will act like it
+      # "owns" the connection, while our current thread will emulate the
+      # reaper.
+      sleepy = Thread.new do
+        # We're deliberately using another thread's connection here,
+        # because that's what the reaper does. Outside of that behavior,
+        # sharing a connection between threads IS NOT SUPPORTED.
+        @connection.query('select 42, pg_sleep(1)').first.first.to_i
+      end
+      while sleepy.alive?
+        sleepy.run
+        assert @connection.active?
+      end
+      assert_equal 42, sleepy.value
+    end
+
     def test_set_session_variable_true
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:debug_print_plan => true}}))
