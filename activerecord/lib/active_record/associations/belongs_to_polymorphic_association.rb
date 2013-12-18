@@ -14,6 +14,11 @@ module ActiveRecord
           owner[reflection.foreign_type] = record.class.base_class.name
         end
 
+        def remove_keys
+          super
+          owner[reflection.foreign_type] = nil
+        end
+
         def different_target?(record)
           super || record.class != klass
         end
