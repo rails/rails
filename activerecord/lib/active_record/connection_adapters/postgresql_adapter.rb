@@ -557,28 +557,34 @@ module ActiveRecord
         @local_tz = nil
         @table_alias_length = nil
 
-        connect
-        @statements = StatementPool.new @connection,
-                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
+        synchronize do
+          connect
+          @statements = StatementPool.new @connection,
+                                          self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
-        if postgresql_version < 80200
-          raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
+          if postgresql_version < 80200
+            raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
+          end
+
+          @type_map = OID::TypeMap.new
+          initialize_type_map(type_map)
+          @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
+          @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
         end
-
-        @type_map = OID::TypeMap.new
-        initialize_type_map(type_map)
-        @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
-        @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
       # Clears the prepared statements cache.
       def clear_cache!
-        @statements.clear
+        synchronize do
+          @statements.clear
+        end
       end
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.query 'SELECT 1'
+        synchronize do
+          @connection.query 'SELECT 1'
+        end
         true
       rescue PGError
         false
@@ -586,21 +592,27 @@ module ActiveRecord
 
       # Close then reopen the connection.
       def reconnect!
-        super
-        @connection.reset
-        configure_connection
+        synchronize do
+          super
+          @connection.reset
+          configure_connection
+        end
       end
 
       def reset!
-        clear_cache!
-        super
+        synchronize do
+          clear_cache!
+          super
+        end
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        super
-        @connection.close rescue nil
+        synchronize do
+          super
+          @connection.close rescue nil
+        end
       end
 
       def native_database_types #:nodoc:
@@ -796,7 +808,9 @@ module ActiveRecord
         FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def exec_no_cache(sql, name, binds)
-          log(sql, name, binds) { @connection.async_exec(sql) }
+          synchronize do
+            log(sql, name, binds) { @connection.async_exec(sql) }
+          end
         end
 
         def exec_cache(sql, name, binds)
@@ -805,10 +819,12 @@ module ActiveRecord
             [col, type_cast(val, col)]
           }
 
-          log(sql, name, type_casted_binds, stmt_key) do
-            @connection.send_query_prepared(stmt_key, type_casted_binds.map { |_, val| val })
-            @connection.block
-            @connection.get_last_result
+          synchronize do
+            log(sql, name, type_casted_binds, stmt_key) do
+              @connection.send_query_prepared(stmt_key, type_casted_binds.map { |_, val| val })
+              @connection.block
+              @connection.get_last_result
+            end
           end
         rescue ActiveRecord::StatementInvalid => e
           pgerror = e.original_exception
@@ -823,7 +839,9 @@ module ActiveRecord
             raise e
           end
           if FEATURE_NOT_SUPPORTED == code
-            @statements.delete sql_key(sql)
+            synchronize do
+              @statements.delete sql_key(sql)
+            end
             retry
           else
             raise e
@@ -842,10 +860,12 @@ module ActiveRecord
           sql_key = sql_key(sql)
           unless @statements.key? sql_key
             nextkey = @statements.next_key
-            @connection.prepare nextkey, sql
-            # Clear the queue
-            @connection.get_last_result
-            @statements[sql_key] = nextkey
+            synchronize do
+              @connection.prepare nextkey, sql
+              # Clear the queue
+              @connection.get_last_result
+              @statements[sql_key] = nextkey
+            end
           end
           @statements[sql_key]
         end
@@ -858,14 +878,16 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
-          @connection = PGconn.connect(@connection_parameters)
+          synchronize do
+            @connection = PGconn.connect(@connection_parameters)
 
-          # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
-          # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
-          # should know about this but can't detect it there, so deal with it here.
-          PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
+            # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
+            # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
+            # should know about this but can't detect it there, so deal with it here.
+            PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
 
-          configure_connection
+            configure_connection
+          end
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
