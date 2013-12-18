@@ -327,6 +327,9 @@ module ActionMailer
   #
   #     config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
   #
+  # An overview of all previews is accessible at <tt>http://localhost:3000/rails/mailers</tt>
+  # on a running development server instance.
+  #
   # = Configuration options
   #
   # These options are specified on the class level, like
