@@ -207,14 +207,7 @@ module ActionView
           options[:alt] = options.fetch(:alt){ image_alt(src) }
         end
 
-        if size = options.delete(:size)
-          if size =~ %r{\A\d+x\d+\z}
-            options[:width], options[:height] = size.split('x')
-          elsif size =~ %r{\A\d+\z}
-            options[:width] = options[:height] = size
-          end
-        end
-
+        options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         tag("img", options)
       end
 
@@ -280,14 +273,7 @@ module ActionView
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
           options[:poster] = path_to_image(options[:poster]) if options[:poster]
-
-          if size = options.delete(:size)
-            if size =~ %r{\A\d+x\d+\z}
-              options[:width], options[:height] = size.split('x')
-            elsif size =~ %r{\A\d+\z}
-              options[:width] = options[:height] = size
-            end
-          end
+          options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         end
       end
 
@@ -321,6 +307,14 @@ module ActionView
           else
             options[:src] = send("path_to_#{type}", sources.first)
             content_tag(type, nil, options)
+          end
+        end
+
+        def extract_dimensions(size)
+          if size =~ %r{\A\d+x\d+\z}
+            size.split('x')
+          elsif size =~ %r{\A\d+\z}
+            [size, size]
           end
         end
     end
