@@ -6,8 +6,8 @@ rvm:
   - 1.9.3
   - 2.0.0
   - 2.1.0-preview2
-  - rbx-2.2.1
-  - jruby-19mode
+  - rbx
+  - jruby
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as,av"
@@ -17,8 +17,8 @@ env:
   - "GEM=ar:postgresql"
 matrix:
   allow_failures:
-    - rvm: rbx-2.2.1
-    - rvm: jruby-19mode
+    - rvm: rbx
+    - rvm: jruby
 notifications:
   email: false
   irc:
