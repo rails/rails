@@ -255,8 +255,15 @@ This is not reliable and will be removed in the future.
 
           def type_cast(value)
             return if value.nil?
+            return value unless ::String === value
 
-            value.to_f
+            case value
+              when 'Infinity' then ::Float::INFINITY
+              when '-Infinity' then -::Float::INFINITY
+              when 'NaN' then ::Float::NAN
+            else
+              value.to_f
+            end
           end
         end
 
