@@ -81,24 +81,34 @@ module ActiveRecord
       assert_equal 'SCHEMA', @connection.logged[0][1]
     end
 
-    # Must have with_manual_interventions set to true for this
-    # test to run.
+    # Must have PostgreSQL >= 9.2, or with_manual_interventions set to
+    # true for this test to run.
+    #
     # When prompted, restart the PostgreSQL server with the
     # "-m fast" option or kill the individual connection assuming
     # you know the incantation to do that.
     # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
-      skip "with_manual_interventions is false in configuration" unless ARTest.config['with_manual_interventions']
-
       original_connection_pid = @connection.query('select pg_backend_pid()')
 
       # Sanity check.
       assert @connection.active?
 
-      puts 'Kill the connection now (e.g. by restarting the PostgreSQL ' +
-           'server with the "-m fast" option) and then press enter.'
-      $stdin.gets
+      if @connection.send(:postgresql_version) >= 90200
+        secondary_connection = ActiveRecord::Base.connection_pool.checkout
+        secondary_connection.query("select pg_terminate_backend(#{original_connection_pid.first.first})")
+        ActiveRecord::Base.connection_pool.checkin(secondary_connection)
+      elsif ARTest.config['with_manual_interventions']
+        puts 'Kill the connection now (e.g. by restarting the PostgreSQL ' +
+          'server with the "-m fast" option) and then press enter.'
+        $stdin.gets
+      else
+        # We're not capable of terminating the backend ourselves, and
+        # we're not allowed to seek assistance; bail out without
+        # actually testing anything.
+        return
+      end
 
       @connection.verify!
 
