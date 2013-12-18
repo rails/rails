@@ -159,8 +159,8 @@ end
 By default, these preview files live in <tt>test/mailers/previews</tt>.
 This can be configured using the <tt>preview_path</tt> option.
 
-See
-[action_mailer/base.rb](api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
+See its
+[documentation](api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
 for a detailed write up.
 
 ### Active Record enums
@@ -180,8 +180,8 @@ conversation.status  # => "archived"
 Conversation.archived # => Relation for all archived Conversations
 ```
 
-See
-[active_record/enum.rb](api.rubyonrails.org/v4.1.0/classes/ActiveRecord/Enum.html)
+See its
+[documentation](api.rubyonrails.org/v4.1.0/classes/ActiveRecord/Enum.html)
 for a detailed write up.
 
 ### Application message verifier
@@ -221,6 +221,10 @@ end
 This example is equivalent to defining a `EventTracking` module inline,
 extending it with `ActiveSupport::Concern`, then mixing it in to the
 `Todo` class.
+
+See its
+[documentation](api.rubyonrails.org/v4.1.0/classes/Module/Concerning.html)
+for a detailed write up and the intended use cases.
 
 ### CSRF protection from remote `<script>` tags
 
