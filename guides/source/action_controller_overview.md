@@ -794,7 +794,7 @@ class AdminsController < ApplicationController
 end
 ```
 
-With this in place, you can create namespaced controllers that inherit from `AdminController`. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
+With this in place, you can create namespaced controllers that inherit from `AdminsController`. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
 ### HTTP Digest Authentication
 
