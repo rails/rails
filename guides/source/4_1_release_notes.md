@@ -23,7 +23,7 @@ coverage before going in. You should also first upgrade to Rails 4.0 in case you
 haven't and make sure your application still runs as expected before attempting
 an update to Rails 4.1. A list of things to watch out for when upgrading is
 available in the
-[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-0-to-rails-4-1)
+[Upgrading Ruby on Rails](upgrading_ruby_on_rails.md#upgrading-from-rails-4-0-to-rails-4-1)
 guide.
 
 
@@ -75,7 +75,7 @@ Have a look at the
 [Spring README](https://github.com/jonleighton/spring/blob/master/README.md) to
 see all available features.
 
-See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#spring)
+See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.md#spring)
 guide on how to migrate existing applications to use this feature.
 
 ### `config/secrets.yml`
@@ -97,7 +97,7 @@ development:
 `Rails.application.secrets.some_api_key` will return `SOMEKEY` in the development
 environment.
 
-See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#config-secrets-yml)
+See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.md#config-secrets-yml)
 guide on how to migrate existing applications to use this feature.
 
 ### Action Pack variants
@@ -142,7 +142,7 @@ respond_to do |format|
   format.html.none  { render "trash" }
 end
 ```
-
+.
 ### Action Mailer previews
 
 Preview email templates in the browser without delivering them.
@@ -504,13 +504,13 @@ for detailed changes.
 ### Removals
 
 * Removed `MultiJSON` dependency. As a result, `ActiveSupport::JSON.decode`
-  no longer accepts an options hash for `MultiJSON`. ([Pull Request](https://github.com/rails/rails/pull/10576) / [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+  no longer accepts an options hash for `MultiJSON`. ([Pull Request](https://github.com/rails/rails/pull/10576) / [More Details](upgrading_ruby_on_rails.md#changes-in-json-handling))
 
 * Removed support for the `encode_json` hook used for encoding custom objects into
   JSON. This feature has been extracted into the [activesupport-json_encoder](https://github.com/rails/activesupport-json_encoder)
   gem.
   ([Related Pull Request](https://github.com/rails/rails/pull/12183) /
-  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+  [More Details](upgrading_ruby_on_rails.md#changes-in-json-handling))
 
 * Removed deprecated `ActiveSupport::JSON::Variable` with no replacement.
 
@@ -555,24 +555,24 @@ for detailed changes.
   has been extracted into the [activesupport-json_encoder](https://github.com/rails/activesupport-json_encoder)
   gem.
   ([Pull Request](https://github.com/rails/rails/pull/12785) /
-  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+  [More Details](upgrading_ruby_on_rails.md#changes-in-json-handling))
 
 * Deprecated `ActiveSupport.encode_big_decimal_as_string` option. This feature has
   been extracetd into the [activesupport-json_encoder](https://github.com/rails/activesupport-json_encoder)
   gem.
   ([Pull Request](https://github.com/rails/rails/pull/13060) /
-  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+  [More Details](upgrading_ruby_on_rails.md#changes-in-json-handling))
 
 ### Notable changes
 
 * `ActiveSupport`'s JSON encoder has been rewritten to take advantage of the
   JSON gem rather than doing custom encoding in pure-Ruby.
   ([Pull Request](https://github.com/rails/rails/pull/12183) /
-  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+  [More Details](upgrading_ruby_on_rails.md#changes-in-json-handling))
 
 * Improved compatibility with the JSON gem.
   ([Pull Request](https://github.com/rails/rails/pull/12862) /
-  [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+  [More Details](upgrading_ruby_on_rails.md#changes-in-json-handling))
 
 * Added `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These
   methods change current time to the given time or time difference by stubbing
