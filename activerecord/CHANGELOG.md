@@ -1,3 +1,18 @@
+*   Fix `PostgreSQLAdapter::OID::Float#type_cast` to convert Infinity and
+    NaN PostgreSQL values into a native Ruby `Float::INFINITY` and `Float::NAN`
+
+    Example:
+
+        # Before
+        Point.create(value: 1.0/0)
+        Point.last.value # => 0.0
+
+        # After
+        Point.create(value: 1.0/0)
+        Point.last.value # => Infinity
+
+    *Innokenty Mikhailov*
+
 *   The PostgreSQL adapter supports custom domains. Fixes #14305.
 
     *Yves Senn*
