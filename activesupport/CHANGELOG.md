@@ -347,7 +347,7 @@
 
     *Arun Agrawal*
 
-*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
+*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_format`.
 
     *Arun Agrawal*
 
