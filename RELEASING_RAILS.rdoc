@@ -110,7 +110,7 @@ what to do in case anything goes wrong:
 
     $ rake all:build
     $ git commit -am'updating RAILS_VERSION'
-    $ git tag -m'tagging rc release' v3.0.10.rc1
+    $ git tag -a -m'tagging rc release' v3.0.10.rc1
     $ git push
     $ git push --tags
     $ for i in $(ls pkg); do gem push $i; done
