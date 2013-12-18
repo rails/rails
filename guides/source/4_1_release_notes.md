@@ -518,7 +518,7 @@ for detailed changes.
 
 * Removed deprecated `Module#local_constant_names` in favor of `Module#local_constants`.
 
-* Removed deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
+* Removed deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_format`.
 
 * Removed deprecated `Logger` core extensions (`core_ext/logger.rb`).
 
