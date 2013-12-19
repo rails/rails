@@ -14,7 +14,7 @@ module ActionController
     def render(*args) #:nodoc:
       raise ::AbstractController::DoubleRenderError if response_body
       super
-      _process_format(lookup_context.rendered_format)
+      self.content_type ||= Mime[lookup_context.rendered_format].to_s
       response_body
     end
 
@@ -34,11 +34,6 @@ module ActionController
     end
 
     private
-
-    def _process_format(format)
-      # format is a Mime::NullType instance here then this condition can't be changed to `if format`
-      self.content_type ||= Mime[format] unless format.nil?
-    end
 
     # Normalize arguments by catching blocks and setting them on :update.
     def _normalize_args(action=nil, options={}, &blk) #:nodoc:
