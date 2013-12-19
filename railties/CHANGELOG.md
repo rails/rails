@@ -35,14 +35,14 @@
 
     This verifier can be used to generate and verify signed messages in the application.
 
-        message = Rails.application.message_verifier('sensitive_data').generate('my sensible data')
-        Rails.application.message_verifier('sensitive_data').verify(message)
+        message = Rails.application.message_verifier(:sensitive_data).generate('my sensible data')
+        Rails.application.message_verifier(:sensitive_data).verify(message)
         # => 'my sensible data'
 
     It is recommended not to use the same verifier for different things, so you can get different
     verifiers passing the name argument.
 
-        message = Rails.application.message_verifier('cookies').generate('my sensible cookie data')
+        message = Rails.application.message_verifier(:cookies).generate('my sensible cookie data')
 
     See the `ActiveSupport::MessageVerifier` documentation for more information.
 

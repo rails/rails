@@ -274,11 +274,11 @@ module ApplicationTests
         app.config.session_store :disabled
       end
 
-      message = app.message_verifier('salt').generate("some_value")
+      message = app.message_verifier(:sensitive_value).generate("some_value")
 
-      assert_equal 'some_value', Rails.application.message_verifier('salt').verify(message)
+      assert_equal 'some_value', Rails.application.message_verifier(:sensitive_value).verify(message)
 
-      secret = app.key_generator.generate_key('salt')
+      secret = app.key_generator.generate_key('sensitive_value')
       verifier = ActiveSupport::MessageVerifier.new(secret)
       assert_equal 'some_value', verifier.verify(message)
     end
@@ -289,8 +289,8 @@ module ApplicationTests
         app.config.session_store :disabled
       end
 
-      default_verifier = app.message_verifier('salt')
-      text_verifier = app.message_verifier('text')
+      default_verifier = app.message_verifier(:sensitive_value)
+      text_verifier = app.message_verifier(:text)
 
       message = text_verifier.generate('some_value')
 
@@ -299,7 +299,7 @@ module ApplicationTests
         default_verifier.verify(message)
       end
 
-      assert_equal default_verifier.object_id, app.message_verifier('salt').object_id
+      assert_equal default_verifier.object_id, app.message_verifier(:sensitive_value).object_id
       assert_not_equal default_verifier.object_id, text_verifier.object_id
     end
 

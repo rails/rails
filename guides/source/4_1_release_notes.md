@@ -197,7 +197,6 @@ Rails.application.message_verifier(:remember_me).verify(signed_token) # => token
 
 Rails.application.message_verifier(:remember_me).verify(tampered_token)
 # raises ActiveSupport::MessageVerifier::InvalidSignature
-
 ```
 
 ### Module#concerning
