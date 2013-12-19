@@ -830,6 +830,8 @@ You can specify unicode character routes directly. For example:
 get 'こんにちは', to: 'welcome#index'
 ```
 
+NOTE: You should add "# encoding: UTF-8" in the route file.
+
 Customizing Resourceful Routes
 ------------------------------
 
