@@ -33,7 +33,7 @@ class Thread
     _locals[key.to_sym] = value
   end
 
-  # Returns an an array of the names of the thread-local variables (as Symbols).
+  # Returns an array of the names of the thread-local variables (as Symbols).
   #
   #    thr = Thread.new do
   #      Thread.current.thread_variable_set(:cat, 'meow')
