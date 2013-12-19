@@ -7,6 +7,10 @@ Highlights in Rails 4.1:
 * `config/secrets.yml`
 * Action Pack variants
 * Action Mailer previews
+* Active Record enums
+* Application message verifier
+* Module#concerning
+* CSRF protection from remote `<script>` tags
 
 These release notes cover only the major changes. To know about various bug
 fixes and changes, please refer to the change logs or check out the
