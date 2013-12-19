@@ -1,4 +1,4 @@
-Rails.application.message_verifier(:remember_me).generaterequire 'thread_safe'
+require 'thread_safe'
 require 'openssl'
 
 module ActiveSupport
