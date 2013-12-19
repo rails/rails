@@ -30,7 +30,7 @@ guide.
 Major Features
 --------------
 
-### Spring application preloader
+### Spring Application Preloader
 
 Spring is a Rails application preloader. It speeds up development by keeping
 your application running in the background so you don't need to boot it every
@@ -40,27 +40,19 @@ New Rails 4.1 applications will ship with "springified" binstubs. This means
 that `bin/rails` and `bin/rake` will automatically take advantage of preloaded
 spring environments.
 
-**running rake tasks:**
+**Running rake tasks:**
 
 ```
-bin/rake routes
+bin/rake test:units
 ```
 
-**running tests:**
-
-```
-bin/rake test
-bin/rake test test/models
-bin/rake test test/models/user_test.rb
-```
-
-**running a console:**
+**Running a Rails command:**
 
 ```
 bin/rails console
 ```
 
-**spring introspection:**
+**Spring introspection:**
 
 ```
 $ bin/spring status
@@ -80,13 +72,12 @@ guide on how to migrate existing applications to use this feature.
 
 ### `config/secrets.yml`
 
-Rails 4.1 will generate a new `secrets.yml` file in the `config` folder for new
-applications. By default, this file contains the application's `secret_key_base`,
-but it could also be used to store other secrets such as access keys for external
-APIs.
+Rails 4.1 generates a new `secrets.yml` file in the `config` folder. By default,
+this file contains the application's `secret_key_base`, but it could also be
+used to store other secrets such as access keys for external APIs.
 
-The secrets added to this file will be accessible via `Rails.application.secrets`.
-For example, with the following `secrets.yml`:
+The secrets added to this file are accessible via `Rails.application.secrets`.
+For example, with the following `config/secrets.yml`:
 
 ```yaml
 development:
@@ -94,16 +85,16 @@ development:
   some_api_key: SOMEKEY
 ```
 
-`Rails.application.secrets.some_api_key` will return `SOMEKEY` in the development
+`Rails.application.secrets.some_api_key` returns `SOMEKEY` in the development
 environment.
 
 See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#config-secrets-yml)
 guide on how to migrate existing applications to use this feature.
 
-### Action Pack variants
+### Action Pack Variants
 
-We often want to render different html/json/xml templates for phones,
-tablets, and desktop browsers. Variants makes it easy.
+We often want to render different HTML/JSON/XML templates for phones,
+tablets, and desktop browsers. Variants make it easy.
 
 The request variant is a specialization of the request format, like `:tablet`,
 `:phone`, or `:desktop`.
@@ -143,24 +134,30 @@ respond_to do |format|
 end
 ```
 
-### Action Mailer previews
+### Action Mailer Previews
 
-Preview email templates in the browser without delivering them.
+Action Mailer previews provide a way to visually see how emails look by visiting
+a special URL that renders them.
+
+You implement a preview class whose methods return the mail object you'd like
+to check:
 
 ```ruby
 class NotifierPreview < ActionMailer::Preview
-  # Accessible from http://localhost:3000/rails/mailers/notifier/welcome
   def welcome
     Notifier.welcome(User.first)
   end
 end
 ```
 
-By default, these preview files live in `test/mailers/previews`.
-This can be configured using the `preview_path` option.
+The preview is available in http://localhost:3000/rails/mailers/notifier/welcome,
+and a list of them in http://localhost:3000/rails/mailers.
+
+By default, these preview classes live in <tt>test/mailers/previews</tt>.
+This can be configured using the <tt>preview_path</tt> option.
 
 See its
-[documentation](api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
+[documentation](http://api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
 for a detailed write up.
 
 ### Active Record enums
@@ -181,18 +178,23 @@ Conversation.archived # => Relation for all archived Conversations
 ```
 
 See its
-[documentation](api.rubyonrails.org/v4.1.0/classes/ActiveRecord/Enum.html)
+[documentation](http://api.rubyonrails.org/v4.1.0/classes/ActiveRecord/Enum.html)
 for a detailed write up.
 
-### Application message verifier
+### Application Message Verifier
 
-Create a message verifier that can be used to generate and verify signed
-messages in the application.
+The application message verifier that can be used to generate and verify signed
+messages in the application. This can be useful for remember-me tokens and
+friends:
 
 ```ruby
-message = Rails.application.message_verifier('salt').generate('my sensible data')
-Rails.application.message_verifier('salt').verify(message)
+signed_message = Rails.application.message_verifier('salt').generate('my sensible data')
+Rails.application.message_verifier('salt').verify(signed_message)
 # => 'my sensible data'
+
+Rails.application.message_verifier('salt').verify(tampered_message)
+# raises ActiveSupport::MessageVerifier::InvalidSignature
+
 ```
 
 ### Module#concerning
@@ -223,7 +225,7 @@ extending it with `ActiveSupport::Concern`, then mixing it in to the
 `Todo` class.
 
 See its
-[documentation](api.rubyonrails.org/v4.1.0/classes/Module/Concerning.html)
+[documentation](http://api.rubyonrails.org/v4.1.0/classes/Module/Concerning.html)
 for a detailed write up and the intended use cases.
 
 ### CSRF protection from remote `<script>` tags
