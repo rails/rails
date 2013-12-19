@@ -181,18 +181,21 @@ See its
 [documentation](http://api.rubyonrails.org/v4.1.0/classes/ActiveRecord/Enum.html)
 for a detailed write up.
 
-### Application Message Verifier
+### Message Verifiers
 
-The application message verifier can be used to generate and verify signed
-messages in the application. This can be useful for remember-me tokens and
-friends:
+Message verifiers can be used to generate and verify signed messages. This can
+be useful to safely transport sensitive data like remember-me tokens and
+friends.
+
+The method `Rails.application.message_verifier` returns a new message verifier
+that signs messages with a key derived from secret_key_base and the given
+message verifier name:
 
 ```ruby
-signed_message = Rails.application.message_verifier('salt').generate('my sensible data')
-Rails.application.message_verifier('salt').verify(signed_message)
-# => 'my sensible data'
+signed_token = Rails.application.message_verifier(:remember_me).generate(token)
+Rails.application.message_verifier(:remember_me).verify(signed_token) # => token
 
-Rails.application.message_verifier('salt').verify(tampered_message)
+Rails.application.message_verifier(:remember_me).verify(tampered_token)
 # raises ActiveSupport::MessageVerifier::InvalidSignature
 
 ```
