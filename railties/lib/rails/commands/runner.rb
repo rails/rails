@@ -9,7 +9,7 @@ if ARGV.first.nil?
 end
 
 ARGV.clone.options do |opts|
-  opts.banner = "Usage: rails runner [options] ('Some.ruby(code)' or a filename)"
+  opts.banner = "Usage: rails runner [options] [<'Some.ruby(code)'> | <filename.rb>]"
 
   opts.separator ""
 
@@ -22,14 +22,23 @@ ARGV.clone.options do |opts|
   opts.on("-h", "--help",
           "Show this help message.") { $stdout.puts opts; exit }
 
+    opts.separator ""
+    opts.separator "Examples: "
+
+    opts.separator "    rails runner 'puts Rails.env'"
+    opts.separator "        This runs the code `puts Rails.env` after loading the app"
+    opts.separator ""
+    opts.separator "    rails runner path/to/filename.rb"
+    opts.separator "        This runs the Ruby file located at `path/to/filename.rb` after loading the app"
+
   if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
     opts.separator ""
     opts.separator "You can also use runner as a shebang line for your executables:"
-    opts.separator "-------------------------------------------------------------"
-    opts.separator "#!/usr/bin/env #{File.expand_path($0)} runner"
+    opts.separator "    -------------------------------------------------------------"
+    opts.separator "    #!/usr/bin/env #{File.expand_path($0)} runner"
     opts.separator ""
-    opts.separator "Product.all.each { |p| p.price *= 2 ; p.save! }"
-    opts.separator "-------------------------------------------------------------"
+    opts.separator "    Product.all.each { |p| p.price *= 2 ; p.save! }"
+    opts.separator "    -------------------------------------------------------------"
   end
 
   opts.order! { |o| code_or_file ||= o } rescue retry
