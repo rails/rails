@@ -1,3 +1,28 @@
+*   Fixed `update_column`, `update_columns`, and `update_all` to correctly serialize
+    values for `array`, `hstore` and `json` column types in PostgreSQL.
+
+    Fixes #12261.
+
+    *Tadas Tamosauskas*, *Carlos Antonio da Silva*
+
+*   Do not consider PostgreSQL array columns as number or text columns.
+
+    The code uses these checks in several places to know what to do with a
+    particular column, for instance AR attribute query methods has a branch
+    like this:
+
+        if column.number?
+          !value.zero?
+        end
+
+    This should never be true for array columns, since it would be the same
+    as running [].zero?, which results in a NoMethodError exception.
+
+    Fixing this by ensuring that array columns in PostgreSQL never return
+    true for number?/text? checks.
+
+    *Carlos Antonio da Silva*
+
 *   Fix a bug when assigning an array containing string numbers to a
     PostgreSQL integer array column.
 

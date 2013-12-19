@@ -96,4 +96,14 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     x.payload = ['v1', {'k2' => 'v2'}, 'v3']
     assert x.save!
   end
+
+  def test_update_all
+    json = JsonDataType.create! payload: { "one" => "two" }
+
+    JsonDataType.update_all payload: { "three" => "four" }
+    assert_equal({ "three" => "four" }, json.reload.payload)
+
+    JsonDataType.update_all payload: { }
+    assert_equal({ }, json.reload.payload)
+  end
 end
