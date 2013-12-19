@@ -12,12 +12,6 @@ class Ab
   Constant3 = "Goodbye World"
 end
 
-module Xy
-  class Bc
-    include One
-  end
-end
-
 module Yz
   module Zy
     class Cd
