@@ -318,9 +318,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_sanity
     c = Client.new
-    assert_nil c.firm
-
-    flunk "belongs_to failed if check" if c.firm
+    assert_nil c.firm, "belongs_to failed sanity check on new object"
   end
 
   def test_find_ids
@@ -1781,12 +1779,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [original_child], car.reload.failed_bulbs
   end
-  
+
   test 'updates counter cache when default scope is given' do
     topic = DefaultRejectedTopic.create approved: true
 
     assert_difference "topic.reload.replies_count", 1 do
       topic.approved_replies.create!
     end
-  end 
+  end
 end

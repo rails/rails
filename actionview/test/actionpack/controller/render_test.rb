@@ -693,9 +693,9 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_line_offset
-    get :render_line_offset
-    flunk "the action should have raised an exception"
-  rescue StandardError => exc
+    exc = assert_raises ActionView::Template::Error do
+      get :render_line_offset
+    end
     line = exc.backtrace.first
     assert(line =~ %r{:(\d+):})
     assert_equal "1", $1,
