@@ -43,7 +43,7 @@ spring environments.
 **Running rake tasks:**
 
 ```
-bin/rake test:units
+bin/rake test:models
 ```
 
 **Running a Rails command:**
@@ -183,7 +183,7 @@ for a detailed write up.
 
 ### Application Message Verifier
 
-The application message verifier that can be used to generate and verify signed
+The application message verifier can be used to generate and verify signed
 messages in the application. This can be useful for remember-me tokens and
 friends:
 
