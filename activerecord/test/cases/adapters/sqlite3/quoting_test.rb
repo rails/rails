@@ -87,14 +87,14 @@ module ActiveRecord
         def test_quoted_id
           quoted_id_obj = Class.new {
             def quoted_id
-              "'zomg'"
+              "'10'"
             end
 
             def id
               10
             end
           }.new
-          assert_equal 10, @conn.type_cast(quoted_id_obj, nil)
+          assert_equal "'10'", @conn.type_cast(quoted_id_obj, nil)
         end
       end
     end
