@@ -1,3 +1,18 @@
+*   Fix `PostgreSQL` insert to properly extract table name from multiline string SQL.
+
+    Previously, executing an insert SQL in `PostgreSQL` with a command like this:
+
+        insert into articles(
+          number)
+        values(
+          5152
+        )
+
+    would not work because the adapter was unable to extract the correct `articles`
+    table name.
+
+    *Kuldeep Aggarwal*
+
 *   `Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
     to an `Array` by calling `#to_a` before using these methods.
 

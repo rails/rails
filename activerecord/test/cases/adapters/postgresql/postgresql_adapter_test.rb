@@ -62,6 +62,18 @@ module ActiveRecord
         assert_equal expect, id
       end
 
+      def test_multiline_insert_sql
+        id = @connection.insert_sql(<<-SQL)
+        insert into ex(
+          number)
+        values(
+          5152
+        )
+        SQL
+        expect = @connection.query('select max(id) from ex').first.first
+        assert_equal expect, id
+      end
+
       def test_insert_sql_with_returning_disabled
         connection = connection_without_insert_returning
         id = connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")

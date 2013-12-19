@@ -969,7 +969,7 @@ module ActiveRecord
         end
 
         def extract_table_ref_from_insert_sql(sql)
-          sql[/into\s+([^\(]*).*values\s*\(/i]
+          sql[/into\s+([^\(]*).*values\s*\(/im]
           $1.strip if $1
         end
 
