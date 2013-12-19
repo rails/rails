@@ -156,8 +156,8 @@ class NotifierPreview < ActionMailer::Preview
 end
 ```
 
-By default, these preview files live in <tt>test/mailers/previews</tt>.
-This can be configured using the <tt>preview_path</tt> option.
+By default, these preview files live in `test/mailers/previews`.
+This can be configured using the `preview_path` option.
 
 See its
 [documentation](api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
