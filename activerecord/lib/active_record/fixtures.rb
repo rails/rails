@@ -604,7 +604,7 @@ module ActiveRecord
       }
     end
 
-    # Return a hash of rows to be inserted. The key is the table, the value is
+    # Returns a hash of rows to be inserted. The key is the table, the value is
     # a list of rows to insert to that table.
     def table_rows
       now = config.default_timezone == :utc ? Time.now.utc : Time.now

@@ -401,7 +401,7 @@ module ActiveSupport
         end
       end
 
-      # Return +true+ if the cache contains an entry for the given key.
+      # Returns +true+ if the cache contains an entry for the given key.
       #
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)

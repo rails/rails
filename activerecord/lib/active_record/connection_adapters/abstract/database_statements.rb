@@ -346,7 +346,7 @@ module ActiveRecord
 
       protected
 
-        # Return a subquery for the given key using the join information.
+        # Returns a subquery for the given key using the join information.
         def subquery_for(key, select)
           subselect = select.clone
           subselect.projections = [key]

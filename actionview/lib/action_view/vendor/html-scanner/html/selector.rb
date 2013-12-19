@@ -488,7 +488,7 @@ module HTML
     end
 
 
-    # Return the next element after this one. Skips sibling text nodes.
+    # Returns the next element after this one. Skips sibling text nodes.
     #
     # With the +name+ argument, returns the next element with that name,
     # skipping other sibling elements.

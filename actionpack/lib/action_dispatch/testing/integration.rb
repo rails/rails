@@ -242,7 +242,7 @@ module ActionDispatch
         @https = flag
       end
 
-      # Return +true+ if the session is mimicking a secure HTTPS request.
+      # Returns +true+ if the session is mimicking a secure HTTPS request.
       #
       #   if session.https?
       #     ...

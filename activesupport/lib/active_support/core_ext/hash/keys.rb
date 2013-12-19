@@ -1,5 +1,5 @@
 class Hash
-  # Return a new hash with all keys converted using the block operation.
+  # Returns a new hash with all keys converted using the block operation.
   #
   #  hash = { name: 'Rob', age: '28' }
   #
@@ -22,7 +22,7 @@ class Hash
     self
   end
 
-  # Return a new hash with all keys converted to strings.
+  # Returns a new hash with all keys converted to strings.
   #
   #   hash = { name: 'Rob', age: '28' }
   #
@@ -38,7 +38,7 @@ class Hash
     transform_keys!{ |key| key.to_s }
   end
 
-  # Return a new hash with all keys converted to symbols, as long as
+  # Returns a new hash with all keys converted to symbols, as long as
   # they respond to +to_sym+.
   #
   #   hash = { 'name' => 'Rob', 'age' => '28' }
@@ -73,7 +73,7 @@ class Hash
     end
   end
 
-  # Return a new hash with all keys converted by the block operation.
+  # Returns a new hash with all keys converted by the block operation.
   # This includes the keys from the root hash and from all
   # nested hashes.
   #
@@ -100,7 +100,7 @@ class Hash
     self
   end
 
-  # Return a new hash with all keys converted to strings.
+  # Returns a new hash with all keys converted to strings.
   # This includes the keys from the root hash and from all
   # nested hashes.
   #
@@ -119,7 +119,7 @@ class Hash
     deep_transform_keys!{ |key| key.to_s }
   end
 
-  # Return a new hash with all keys converted to symbols, as long as
+  # Returns a new hash with all keys converted to symbols, as long as
   # they respond to +to_sym+. This includes the keys from the root hash
   # and from all nested hashes.
   #
