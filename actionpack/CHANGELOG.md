@@ -66,14 +66,15 @@
 
     *Łukasz Strzałkowski*
 
-*   Fix header `Content-Type: #<Mime::NullType:...>` in localized template.
+*   Fix render of localized templates without an explicit format using wrong
+    content header and not passing correct formats to template due to the
+    introduction of the `NullType` for mimes.
 
-    When localized template has no format in the template name,
-    the response now has the default and correct `content-type`.
+    Templates like `hello.it.erb` were subject to this issue.
 
     Fixes #13064.
 
-    *Angelo Capilleri*
+    *Angelo Capilleri*, *Carlos Antonio da Silva*
 
 *   Try to escape each part of a url correctly when using a redirect route.
 
