@@ -95,6 +95,13 @@ module ActiveRecord
             end
           }.new
           assert_equal 10, @conn.type_cast(quoted_id_obj, nil)
+
+          quoted_id_obj = Class.new {
+            def quoted_id
+              "'zomg'"
+            end
+          }
+          assert_raise(TypeError) { @conn.type_cast(quoted_id_obj, nil) }
         end
       end
     end
