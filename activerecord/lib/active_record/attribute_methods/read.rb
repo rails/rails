@@ -102,7 +102,7 @@ module ActiveRecord
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after
-      # it has been typecast (for example, "2004-12-12" in a data column is cast
+      # it has been typecast (for example, "2004-12-12" in a date column is cast
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         # If it's cached, just return it
