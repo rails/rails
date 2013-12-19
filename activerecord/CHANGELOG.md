@@ -1,18 +1,16 @@
-*   Improve the default select when from is used.
+*   Improve the default select when `from` is used.
 
     Previously, if you did something like Topic.from(:temp_topics), it
     would generate SQL like:
 
-      SELECT topics.* FROM temp_topics;
+        SELECT topics.* FROM temp_topics;
 
-    Which is useless, cause obviously there's not a topics table to select
-    from. So one would always have to include a select to override the
-    default behavior. Now the default if you use from is just *:
+    Which is will cause an error since there's not a topics table to select
+    from.
 
-      SELECT * FROM temp_topics;
+    Now the default if you use from is just `*`:
 
-    Which may not be what you want in all cases, but is at least usable
-    in some cases.
+        SELECT * FROM temp_topics;
 
     *Cody Cutrer*
 
