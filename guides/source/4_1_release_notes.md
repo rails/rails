@@ -90,11 +90,11 @@ For example, with the following `secrets.yml`:
 
 ```yaml
 development:
-  secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
-  some_api_key: SOMEKEY
+  secret_key_base: "3b7cd727ee24e8444053437c36cc66c3"
+  some_api_key: "SOMEKEY"
 ```
 
-`Rails.application.secrets.some_api_key` will return `SOMEKEY` in the development
+`Rails.application.secrets.some_api_key` will return `"SOMEKEY"` in the development
 environment.
 
 See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#config-secrets-yml)
