@@ -95,10 +95,18 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
         config_accessor "invalid attribute name"
       end
     end
+
     assert_raises NameError do
       Class.new do
         include ActiveSupport::Configurable
-        config_accessor "invalid attribute\nname"
+        config_accessor "invalid\nattribute"
+      end
+    end
+
+    assert_raises NameError do
+      Class.new do
+        include ActiveSupport::Configurable
+        config_accessor "invalid\n"
       end
     end
   end
