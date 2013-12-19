@@ -543,8 +543,8 @@ class DependenciesTest < ActiveSupport::TestCase
       require_dependency 'e'
 
       mod = Module.new
-      msg = 'E cannot be autoloaded from an anonymous class or module'
-      assert_raise(NameError, msg) { mod::E }
+      e = assert_raise(NameError) { mod::E }
+      assert_equal 'E cannot be autoloaded from an anonymous class or module', e.message
     end
   end
 
