@@ -22,7 +22,7 @@ module AbstractController
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
-      _process_format(rendered_format)
+      _process_format(rendered_format) if rendered_format
       self.response_body
     end
 

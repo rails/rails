@@ -28,7 +28,7 @@ module Mime
   class << self
     def [](type)
       return type if type.is_a?(Type)
-      Type.lookup_by_extension(type) || NullType.instance
+      Type.lookup_by_extension(type)
     end
 
     def fetch(type)
