@@ -153,8 +153,8 @@ end
 The preview is available in http://localhost:3000/rails/mailers/notifier/welcome,
 and a list of them in http://localhost:3000/rails/mailers.
 
-By default, these preview classes live in <tt>test/mailers/previews</tt>.
-This can be configured using the <tt>preview_path</tt> option.
+By default, these preview classes live in `test/mailers/previews`.
+This can be configured using the `preview_path` option.
 
 See its
 [documentation](http://api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
