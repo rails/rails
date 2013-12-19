@@ -43,7 +43,7 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value, column)
-        return value.id if value.respond_to?(:quoted_id)
+        return value.quoted_id if value.respond_to?(:quoted_id)
 
         case value
         when String, ActiveSupport::Multibyte::Chars
