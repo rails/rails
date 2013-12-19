@@ -31,9 +31,13 @@ module Kernel
 
   # For compatibility
   def silence_stderr #:nodoc:
+    ActiveSupport::Deprecation.warn(
+      "#silence_stderr is deprecated and will be removed in the next release"
+    ) #not thread-safe
     silence_stream(STDERR) { yield }
   end
 
+  # Deprecated : this method is not thread safe
   # Silences any stream for the duration of the block.
   #
   #   silence_stream(STDOUT) do
@@ -80,6 +84,9 @@ module Kernel
   #   stream = capture(:stderr) { system('echo error 1>&2') }
   #   stream # => "error\n"
   def capture(stream)
+    ActiveSupport::Deprecation.warn(
+      "#capture(stream) is deprecated and will be removed in the next release"
+    ) #not thread-safe
     stream = stream.to_s
     captured_stream = Tempfile.new(stream)
     stream_io = eval("$#{stream}")
@@ -101,6 +108,9 @@ module Kernel
   #
   #   quietly { system 'bundle install' }
   def quietly
+    ActiveSupport::Deprecation.warn(
+      "#quietly is deprecated and will be removed in the next release"
+    ) #not thread-safe
     silence_stream(STDOUT) do
       silence_stream(STDERR) do
         yield
