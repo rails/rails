@@ -16,7 +16,7 @@ if ActiveRecord::Base.connection.supports_ranges?
       @connection = ActiveRecord::Base.connection
       begin
         @connection.transaction do
-          @connection.create_table('json_data_type') do |t|
+          @connection.create_table('postgresql_ranges') do |t|
             t.daterange :date_range
             t.numrange :num_range
             t.tsrange :ts_range
@@ -29,7 +29,7 @@ if ActiveRecord::Base.connection.supports_ranges?
         return skip "do not test on PG without range"
       end
 
-      insert_range(id: 1,
+      insert_range(id: 101,
                    date_range: "[''2012-01-02'', ''2012-01-04'']",
                    num_range: "[0.1, 0.2]",
                    ts_range: "[''2010-01-01 14:30'', ''2011-01-01 14:30'']",
@@ -37,7 +37,7 @@ if ActiveRecord::Base.connection.supports_ranges?
                    int4_range: "[1, 10]",
                    int8_range: "[10, 100]")
 
-      insert_range(id: 2,
+      insert_range(id: 102,
                    date_range: "(''2012-01-02'', ''2012-01-04'')",
                    num_range: "[0.1, 0.2)",
                    ts_range: "[''2010-01-01 14:30'', ''2011-01-01 14:30'')",
@@ -45,7 +45,7 @@ if ActiveRecord::Base.connection.supports_ranges?
                    int4_range: "(1, 10)",
                    int8_range: "(10, 100)")
 
-      insert_range(id: 3,
+      insert_range(id: 103,
                    date_range: "(''2012-01-02'',]",
                    num_range: "[0.1,]",
                    ts_range: "[''2010-01-01 14:30'',]",
@@ -53,7 +53,7 @@ if ActiveRecord::Base.connection.supports_ranges?
                    int4_range: "(1,]",
                    int8_range: "(10,]")
 
-      insert_range(id: 4,
+      insert_range(id: 104,
                    date_range: "[,]",
                    num_range: "[,]",
                    ts_range: "[,]",
@@ -61,7 +61,7 @@ if ActiveRecord::Base.connection.supports_ranges?
                    int4_range: "[,]",
                    int8_range: "[,]")
 
-      insert_range(id: 5,
+      insert_range(id: 105,
                    date_range: "(''2012-01-02'', ''2012-01-02'')",
                    num_range: "(0.1, 0.1)",
                    ts_range: "(''2010-01-01 14:30'', ''2010-01-01 14:30'')",
@@ -70,11 +70,11 @@ if ActiveRecord::Base.connection.supports_ranges?
                    int8_range: "(10, 10)")
 
       @new_range = PostgresqlRange.new
-      @first_range = PostgresqlRange.find(1)
-      @second_range = PostgresqlRange.find(2)
-      @third_range = PostgresqlRange.find(3)
-      @fourth_range = PostgresqlRange.find(4)
-      @empty_range = PostgresqlRange.find(5)
+      @first_range = PostgresqlRange.find(101)
+      @second_range = PostgresqlRange.find(102)
+      @third_range = PostgresqlRange.find(103)
+      @fourth_range = PostgresqlRange.find(104)
+      @empty_range = PostgresqlRange.find(105)
     end
 
     def test_data_type_of_range_types
