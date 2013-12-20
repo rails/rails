@@ -208,9 +208,13 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     end
 
     def test_update_all
-      Hstore.create! tags: { "one" => "two" }
+      hstore = Hstore.create! tags: { "one" => "two" }
+
       Hstore.update_all tags: { "three" => "four" }
-      assert_equal({ "three" => "four" }, Hstore.first.tags)
+      assert_equal({ "three" => "four" }, hstore.reload.tags)
+
+      Hstore.update_all tags: { }
+      assert_equal({ }, hstore.reload.tags)
     end
   end
 
