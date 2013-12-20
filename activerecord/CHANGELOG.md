@@ -1,3 +1,25 @@
+*   Add the ability to nullify the `enum` column.
+
+     Example:
+
+         class Conversation < ActiveRecord::Base
+           enum gender: [:female, :male]
+         end
+
+         Conversation::GENDER # => { female: 0, male: 1 }
+
+         # conversation.update! gender: 0
+         conversation.female!
+         conversation.female? # => true
+         conversation.gender  # => "female"
+
+         # conversation.update! gender: nil
+         conversation.gender = nil
+         conversation.gender.nil? # => true
+         conversation.gender      # => nil
+
+     *Amr Tamimi*
+
 *   Connection specification now accepts a "url" key. The value of this
     key is expected to contain a database URL. The database URL will be
     expanded into a hash and merged.
