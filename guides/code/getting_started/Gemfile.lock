@@ -40,7 +40,7 @@ GEM
       multi_json (~> 1.0)
     hike (1.2.3)
     i18n (0.6.4)
-    jbuilder (1.4.2)
+    jbuilder (2.0.0)
       activesupport (>= 3.0.0)
       multi_json (>= 1.2.0)
     jquery-rails (3.0.2)
@@ -110,7 +110,7 @@ PLATFORMS
 
 DEPENDENCIES
   coffee-rails
-  jbuilder (~> 1.2)
+  jbuilder (~> 2.0)
   jquery-rails
   rails (= 4.0.0)
   sass-rails
