@@ -577,6 +577,33 @@ would generate this HTML:
 
 The `body` param is required by Sprockets.
 
+### Runtime Error Checking
+
+By default the asset pipeline will check for potential errors in development mode during
+runtime. To disable this behavior you can set:
+
+```ruby
+config.assets.raise_runtime_errors = false
+```
+
+When `raise_runtime_errors` is set to `false` sprockets will not check that dependencies of assets are declared properly. Here is a scenario where you must tell the asset pipeline about a dependency:
+
+If you have `application.css.erb` that references `logo.png` like this:
+
+```css
+#logo { background: url(<%= asset_data_uri 'logo.png' %>) }
+```
+
+Then you must declare that `logo.png` is a dependency of `application.css.erb`, so when the image gets re-compiled, the css file does as well. You can do this using the `//= depend_on_asset` declaration:
+
+```css
+//= depend_on_asset "logo.png"
+#logo { background: url(<%= asset_data_uri 'logo.png' %>) }
+```
+
+Without this declaration you may experience strange behavior when pushing to production that is difficult to debug. When you have `raise_runtime_errors` set to `true`, dependencies will be checked at runtime so you can ensure that all dependencies are met.
+
+
 ### Turning Debugging Off
 
 You can turn off debug mode by updating `config/environments/development.rb` to
