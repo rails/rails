@@ -1,3 +1,14 @@
+*   Fixed Float related error in NumberHelper with large precisions.
+
+    before:
+        ActiveSupport::NumberHelper.number_to_rounded '3.14159', precision: 50
+        #=> "3.14158999999999988261834005243144929409027099609375"
+    after:
+        ActiveSupport::NumberHelper.number_to_rounded '3.14159', precision: 50
+        #=> "3.14159000000000000000000000000000000000000000000000"
+
+    *Kenta Murata*, *Akira Matsuda*
+
 *   Default the new `I18n.enforce_available_locales` config to `true`, meaning
     `I18n` will make sure that all locales passed to it must be declared in the
     `available_locales` list.

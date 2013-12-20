@@ -123,6 +123,12 @@ module ActiveSupport
           assert_equal("10.00", number_helper.number_to_rounded(9.995, :precision => 2))
           assert_equal("11.00", number_helper.number_to_rounded(10.995, :precision => 2))
           assert_equal("0.00", number_helper.number_to_rounded(-0.001, :precision => 2))
+
+          assert_equal("111.23460000000000000000", number_helper.number_to_rounded(111.2346, :precision => 20))
+          assert_equal("111.23460000000000000000", number_helper.number_to_rounded(Rational(1112346, 10000), :precision => 20))
+          assert_equal("111.23460000000000000000", number_helper.number_to_rounded('111.2346', :precision => 20))
+          assert_equal("111.23460000000000000000", number_helper.number_to_rounded(BigDecimal(111.2346, Float::DIG), :precision => 20))
+          assert_equal("111.2346" + "0"*96, number_helper.number_to_rounded('111.2346', :precision => 100))
         end
       end
 
@@ -155,6 +161,14 @@ module ActiveSupport
           assert_equal "10.0", number_helper.number_to_rounded(9.995, :precision => 3, :significant => true)
           assert_equal "9.99", number_helper.number_to_rounded(9.994, :precision => 3, :significant => true)
           assert_equal "11.0", number_helper.number_to_rounded(10.995, :precision => 3, :significant => true)
+
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(9775, :precision => 20, :significant => true )
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(9775.0, :precision => 20, :significant => true )
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(Rational(9775, 1), :precision => 20, :significant => true )
+          assert_equal "97.750000000000000000", number_helper.number_to_rounded(Rational(9775, 100), :precision => 20, :significant => true )
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded(BigDecimal(9775), :precision => 20, :significant => true )
+          assert_equal "9775.0000000000000000", number_helper.number_to_rounded("9775", :precision => 20, :significant => true )
+          assert_equal "9775." + "0"*96, number_helper.number_to_rounded("9775", :precision => 100, :significant => true )
         end
       end
 
