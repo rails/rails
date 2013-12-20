@@ -220,6 +220,17 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
   end
 
+  def test_should_not_remove_associations_when_passed_nil_nested_attributes
+    original_ship = @pirate.ship
+
+    @pirate.update(ship_attributes: nil)
+    assert_equal @pirate.ship, original_ship
+  end
+
+  def test_should_accept_nil_attributes_for_nested_attributes
+    assert_nothing_raised{ @pirate.update(ship_attributes: nil) }
+  end
+
   def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
     assert_raise_with_message ArgumentError, "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?" do
       Treasure.new(:name => 'pearl', :looter_attributes => {:catchphrase => "Arrr"})
@@ -411,6 +422,10 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     @ship.save!
   end
 
+  def test_should_accept_nil_attributes_for_nested_attributes
+    assert_nothing_raised { @ship.update(pirate_attributes:nil) }
+  end
+
   def test_should_define_an_attribute_writer_method_for_the_association
     assert_respond_to @ship, :pirate_attributes=
   end
@@ -576,10 +591,26 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     Ship.accepts_nested_attributes_for :update_only_pirate, :update_only => true, :allow_destroy => false
   end
+
+  def test_should_replace_nil_nested_attributes_with_empty_collection
+    @ship = Ship.new
+    assert_nothing_raised { @ship.update(parts_attributes:nil) }
+
+  end
 end
 
 module NestedAttributesOnACollectionAssociationTests
   include AssertRaiseWithMessage
+
+  def test_should_not_remove_associations_when_passed_nil_nested_attributes
+    association_count = @pirate.send(@association_name).count
+    @pirate.update("#{@association_name}_attributes" => nil)
+    assert_equal @pirate.send(@association_name).count, association_count
+  end
+
+  def test_should_accept_nil_attributes_for_nested_attributes
+    assert_nothing_raised{ @pirate.update("#{@association_name}_attributes" => nil) }
+  end
 
   def test_should_define_an_attribute_writer_method_for_the_association
     assert_respond_to @pirate, association_setter
@@ -865,6 +896,7 @@ class TestNestedAttributesOnAHasAndBelongsToManyAssociation < ActiveRecord::Test
       }
     }
   end
+
 
   include NestedAttributesOnACollectionAssociationTests
 end
