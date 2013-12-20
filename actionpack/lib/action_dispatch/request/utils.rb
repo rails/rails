@@ -15,7 +15,6 @@ module ActionDispatch
             when Array
               v.grep(Hash) { |x| deep_munge(x) }
               v.compact!
-              hash[k] = nil if v.empty?
             when Hash
               deep_munge(v)
             end
