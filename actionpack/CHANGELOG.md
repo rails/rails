@@ -1,3 +1,13 @@
+*   New config option to opt out of params "deep munging" that was used to
+    address security vulnerability CVE-2013-0155. In your app config:
+
+        config.action_dispatch.perform_deep_munge = false
+
+    Take care to understand the security risk involved before disabling this.
+    [Read more.](https://groups.google.com/forum/#!topic/rubyonrails-security/t1WFuuQyavI)
+
+    *Bernard Potocki*
+
 *   `rake routes` shows routes defined under assets prefix.
 
     *Ryunosuke SATO*
