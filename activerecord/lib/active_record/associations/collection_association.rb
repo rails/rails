@@ -4,7 +4,7 @@ module ActiveRecord
     #
     # CollectionAssociation is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
-    # collections. See the class hierarchy in AssociationProxy.
+    # collections. See the class hierarchy in Association.
     #
     #   CollectionAssociation:
     #     HasManyAssociation => has_many
