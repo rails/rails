@@ -14,6 +14,9 @@ module ActiveRecord
 
         class_attribute :partial_writes, instance_writer: false
         self.partial_writes = true
+
+        class_attribute :safe_serialized_attributes, instance_writer: false
+        self.safe_serialized_attributes = true
       end
 
       # Attempts to +save+ the record and clears changed attributes if successful.
@@ -38,6 +41,18 @@ module ActiveRecord
         end
       end
 
+      # Returns +true+ if there are any serialized attributes that may have changed, +false+ otherwise.
+      #
+      def maybe_changed?
+        maybe_changed.present?
+      end
+
+      # Returns an array with the name of the attributes that are serialized
+      # These attributes have possibly changed.
+      #
+      def maybe_changed
+        safe_serialized_attributes? ? (attributes.keys & self.class.serialized_attributes.keys) : []
+      end
     private
       # Wrap write_attribute to remember original attribute value.
       def write_attribute(attr, value)
@@ -67,7 +82,7 @@ module ActiveRecord
       # Serialized attributes should always be written in case they've been
       # changed in place.
       def keys_for_partial_write
-        changed | (attributes.keys & self.class.serialized_attributes.keys)
+        changed | maybe_changed
       end
 
       def _field_changed?(attr, old, value)
