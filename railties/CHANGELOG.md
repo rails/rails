@@ -1,3 +1,7 @@
+*   Generates `html` and `text` templates for mailers by default.
+
+    *Kassio Borges*
+
 *   Move `secret_key_base` from `config/initializers/secret_token.rb`
     to `config/secrets.yml`.
 

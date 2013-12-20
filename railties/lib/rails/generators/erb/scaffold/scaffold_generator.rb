@@ -14,8 +14,10 @@ module Erb # :nodoc:
 
       def copy_view_files
         available_views.each do |view|
-          filename = filename_with_extensions(view)
-          template filename, File.join("app/views", controller_file_path, filename)
+          Array(formats).each do |format|
+            filename = filename_with_extensions(view, format)
+            template filename, File.join("app/views", controller_file_path, filename)
+          end
         end
       end
 

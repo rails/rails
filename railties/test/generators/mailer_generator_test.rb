@@ -63,7 +63,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     Object.send :remove_const, :NotifierPreview
   end
 
-  def test_invokes_default_template_engine
+  def test_invokes_default_text_template_engine
     run_generator
     assert_file "app/views/notifier/foo.text.erb" do |view|
       assert_match(%r(app/views/notifier/foo\.text\.erb), view)
@@ -72,6 +72,19 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/views/notifier/bar.text.erb" do |view|
       assert_match(%r(app/views/notifier/bar\.text\.erb), view)
+      assert_match(/<%= @greeting %>/, view)
+    end
+  end
+
+  def test_invokes_default_html_template_engine
+    run_generator
+    assert_file "app/views/notifier/foo.html.erb" do |view|
+      assert_match(%r(app/views/notifier/foo\.html\.erb), view)
+      assert_match(/<%= @greeting %>/, view)
+    end
+
+    assert_file "app/views/notifier/bar.html.erb" do |view|
+      assert_match(%r(app/views/notifier/bar\.html\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
   end
@@ -96,6 +109,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class Farm::AnimalPreview < ActionMailer::Preview/, mailer)
     end
     assert_file "app/views/farm/animal/moos.text.erb"
+    assert_file "app/views/farm/animal/moos.html.erb"
   end
 
   def test_actions_are_turned_into_methods
