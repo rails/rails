@@ -34,6 +34,18 @@ module ActiveRecord
             encoding: "utf8" }, spec)
         end
 
+        def test_url_host_db_for_sqlite
+          spec = resolve 'sqlite3://foo:bar@dburl:9000/foo_test?encoding=utf8'
+          assert_equal({
+            adapter:  "sqlite3",
+            username: 'foo',
+            password: 'bar',
+            port: 9000,
+            database: "foo_test",
+            host:     "dburl",
+            encoding: "utf8" }, spec)
+        end
+
         def test_url_port
           spec = resolve 'abstract://foo:123?encoding=utf8'
           assert_equal({
