@@ -14,11 +14,11 @@ module ActiveModel
   class MissingAttributeError < NoMethodError
   end
 
-  # == Active Model Attribute Methods
+  # == Active \Model \Attribute \Methods
   #
-  # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and
-  # suffixes to your methods as well as handling the creation of
-  # <tt>ActiveRecord::Base</tt>-like class methods such as +table_name+.
+  # Provides a way to add prefixes and suffixes to your methods as
+  # well as handling the creation of <tt>ActiveRecord::Base</tt>-like
+  # class methods such as +table_name+.
   #
   # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
   #
@@ -27,7 +27,9 @@ module ActiveModel
   #   or +attribute_method_prefix+.
   # * Call +define_attribute_methods+ after the other methods are called.
   # * Define the various generic +_attribute+ methods that you have declared.
-  # * Define an +attributes+ method, see below.
+  # * Define an +attributes+ method which returns a hash with each
+  #   attribute name in your model as hash key and the attribute value as hash value.
+  #   Hash keys must be strings.
   #
   # A minimal implementation could be:
   #
@@ -42,7 +44,7 @@ module ActiveModel
   #     attr_accessor :name
   #
   #     def attributes
-  #       {'name' => @name}
+  #       { 'name' => @name }
   #     end
   #
   #     private
@@ -59,13 +61,6 @@ module ActiveModel
   #       send("#{attr}=", 'Default Name')
   #     end
   #   end
-  #
-  # Note that whenever you include <tt>ActiveModel::AttributeMethods</tt> in
-  # your class, it requires you to implement an +attributes+ method which
-  # returns a hash with each attribute name in your model as hash key and the
-  # attribute value as hash value.
-  #
-  # Hash keys must be strings.
   module AttributeMethods
     extend ActiveSupport::Concern
 
@@ -173,14 +168,14 @@ module ActiveModel
       #     private
       #
       #     def reset_attribute_to_default!(attr)
-      #       ...
+      #       send("#{attr}=", 'Default Name')
       #     end
       #   end
       #
       #   person = Person.new
       #   person.name                         # => 'Gem'
       #   person.reset_name_to_default!
-      #   person.name                         # => 'Gemma'
+      #   person.name                         # => 'Default Name'
       def attribute_method_affix(*affixes)
         self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix] }
         undefine_attribute_methods
@@ -250,7 +245,7 @@ module ActiveModel
       #     private
       #
       #     def clear_attribute(attr)
-      #       ...
+      #       send("#{attr}", nil)
       #     end
       #   end
       def define_attribute_methods(*attr_names)
