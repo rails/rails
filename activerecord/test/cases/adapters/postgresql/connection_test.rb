@@ -91,41 +91,68 @@ module ActiveRecord
       assert_operator plan.length, :>, 0
     end
 
-    # Must have with_manual_interventions set to true for this
-    # test to run.
+    # Must have PostgreSQL >= 9.2, or with_manual_interventions set to
+    # true for this test to run.
+    #
     # When prompted, restart the PostgreSQL server with the
     # "-m fast" option or kill the individual connection assuming
     # you know the incantation to do that.
     # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
-    if ARTest.config['with_manual_interventions']
-      def test_reconnection_after_actual_disconnection_with_verify
-        original_connection_pid = @connection.query('select pg_backend_pid()')
+    def test_reconnection_after_actual_disconnection_with_verify
+      original_connection_pid = @connection.query('select pg_backend_pid()')
 
-        # Sanity check.
-        assert @connection.active?
+      # Sanity check.
+      assert @connection.active?
 
+      if @connection.send(:postgresql_version) >= 90200
+        secondary_connection = ActiveRecord::Base.connection_pool.checkout
+        secondary_connection.query("select pg_terminate_backend(#{original_connection_pid.first.first})")
+        ActiveRecord::Base.connection_pool.checkin(secondary_connection)
+      elsif ARTest.config['with_manual_interventions']
         puts 'Kill the connection now (e.g. by restarting the PostgreSQL ' +
           'server with the "-m fast" option) and then press enter.'
         $stdin.gets
-
-        @connection.verify!
-
-        assert @connection.active?
-
-        # If we get no exception here, then either we re-connected successfully, or
-        # we never actually got disconnected.
-        new_connection_pid = @connection.query('select pg_backend_pid()')
-
-        assert_not_equal original_connection_pid, new_connection_pid,
-          "umm -- looks like you didn't break the connection, because we're still " +
-          "successfully querying with the same connection pid."
-
-        # Repair all fixture connections so other tests won't break.
-        @fixture_connections.each do |c|
-          c.verify!
-        end
+      else
+        # We're not capable of terminating the backend ourselves, and
+        # we're not allowed to seek assistance; bail out without
+        # actually testing anything.
+        return
       end
+
+      @connection.verify!
+
+      assert @connection.active?
+
+      # If we get no exception here, then either we re-connected successfully, or
+      # we never actually got disconnected.
+      new_connection_pid = @connection.query('select pg_backend_pid()')
+
+      assert_not_equal original_connection_pid, new_connection_pid,
+        "umm -- looks like you didn't break the connection, because we're still " +
+        "successfully querying with the same connection pid."
+
+      # Repair all fixture connections so other tests won't break.
+      @fixture_connections.each do |c|
+        c.verify!
+      end
+    end
+
+    def test_overlapping_queries
+      # We invert roles here; the newly spawned thread will act like it
+      # "owns" the connection, while our current thread will emulate the
+      # reaper.
+      sleepy = Thread.new do
+        # We're deliberately using another thread's connection here,
+        # because that's what the reaper does. Outside of that behavior,
+        # sharing a connection between threads IS NOT SUPPORTED.
+        @connection.query('select 42, pg_sleep(1)').first.first.to_i
+      end
+      while sleepy.alive?
+        sleepy.run
+        assert @connection.active?
+      end
+      assert_equal 42, sleepy.value
     end
 
     def test_set_session_variable_true
