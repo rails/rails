@@ -1,3 +1,11 @@
+*   The `video_tag` helper accepts a number as `:size`
+
+    The `:size` option of the `video_tag` helper now can be specified
+    with a stringified number. The `width` and `height` attributes of
+    the generated tag will be the same.
+
+    *Kuldeep Aggarwal*
+
 *   A Cycle object should accept an array and cycle through it as it would with a set of
     comma-separated objects.
 
