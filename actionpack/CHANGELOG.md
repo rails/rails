@@ -1,3 +1,9 @@
+*   Converts hashes in arrays of unfiltered params to unpermitted params.
+
+    Fixes #13382
+
+    *Xavier Noria*
+
 *   New config option to opt out of params "deep munging" that was used to
     address security vulnerability CVE-2013-0155. In your app config:
 

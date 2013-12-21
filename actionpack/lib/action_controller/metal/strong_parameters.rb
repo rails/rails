@@ -330,11 +330,18 @@ module ActionController
 
     private
       def convert_hashes_to_parameters(key, value)
-        if value.is_a?(Parameters) || !value.is_a?(Hash)
+        converted = convert_value_to_parameters(value)
+        self[key] = converted unless converted.equal?(value)
+        converted
+      end
+
+      def convert_value_to_parameters(value)
+        if value.is_a?(Array)
+          value.map { |_| convert_value_to_parameters(_) }
+        elsif value.is_a?(Parameters) || !value.is_a?(Hash)
           value
         else
-          # Convert to Parameters on first access
-          self[key] = self.class.new(value)
+          self.class.new(value)
         end
       end
 
