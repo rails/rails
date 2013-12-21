@@ -577,7 +577,7 @@ module ActiveSupport
       # The callback can be specified as a symbol naming an instance method; as a
       # proc, lambda, or block; as a string to be instance evaluated; or as an
       # object that responds to a certain method determined by the <tt>:scope</tt>
-      # argument to +define_callback+.
+      # argument to +define_callbacks+.
       #
       # If a proc, lambda, or block is given, its body is evaluated in the context
       # of the current object. It can also optionally accept the current object as
