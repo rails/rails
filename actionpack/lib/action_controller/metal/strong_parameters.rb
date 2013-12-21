@@ -3,6 +3,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
 require 'stringio'
+require 'set'
 
 module ActionController
   # Raised when a required parameter is missing.
@@ -123,6 +124,13 @@ module ActionController
     def initialize(attributes = nil)
       super(attributes)
       @permitted = self.class.permit_all_parameters
+    end
+
+    # Attribute that keeps track of converted arrays, if any, to avoid double
+    # looping in the common use case permit + mass-assignment. Defined in a
+    # method to instantiate it only if needed.
+    def converted_arrays
+      @converted_arrays ||= Set.new
     end
 
     # Returns +true+ if the parameter is permitted, +false+ otherwise.
@@ -324,8 +332,10 @@ module ActionController
       end
 
       def convert_value_to_parameters(value)
-        if value.is_a?(Array)
-          value.map { |_| convert_value_to_parameters(_) }
+        if value.is_a?(Array) && !converted_arrays.member?(value)
+          converted = value.map { |_| convert_value_to_parameters(_) }
+          converted_arrays << converted
+          converted
         elsif value.is_a?(Parameters) || !value.is_a?(Hash)
           value
         else
