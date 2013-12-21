@@ -284,14 +284,7 @@ module ActionController
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args)
-      value = super
-      # Don't rely on +convert_hashes_to_parameters+
-      # so as to not mutate via a +fetch+
-      if value.is_a?(Hash)
-        value = self.class.new(value)
-        value.permit! if permitted?
-      end
-      value
+      convert_hashes_to_parameters(key, super, false)
     rescue KeyError
       raise ActionController::ParameterMissing.new(key)
     end
@@ -329,9 +322,9 @@ module ActionController
       end
 
     private
-      def convert_hashes_to_parameters(key, value)
+      def convert_hashes_to_parameters(key, value, assign_if_converted=true)
         converted = convert_value_to_parameters(value)
-        self[key] = converted unless converted.equal?(value)
+        self[key] = converted if assign_if_converted && !converted.equal?(value)
         converted
       end
 
