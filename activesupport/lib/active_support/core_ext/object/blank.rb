@@ -23,6 +23,10 @@ class Object
   # Returns object if it's <tt>present?</tt> otherwise returns +nil+.
   # <tt>object.presence</tt> is equivalent to <tt>object.present? ? object : nil</tt>.
   #
+  # If a block is given and the object is <tt>present?</tt> the
+  # object is yielded into the block and the return value of
+  # <tt>object.presence</tt>> is the return value of the block
+  #
   # This is handy for any representation of objects where blank is the same
   # as not present at all. For example, this simplifies a common check for
   # HTTP POST/query parameters:
@@ -35,7 +39,13 @@ class Object
   #
   #   region = params[:state].presence || params[:country].presence || 'US'
   def presence
-    self if present?
+    return nil if blank?
+
+    if block_given?
+      yield self
+    else
+      self
+    end
   end
 end
 
