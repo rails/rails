@@ -153,6 +153,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal nil, params[:foo]
   end
 
+  test 'hashes in array values get wrapped' do
+    params = ActionController::Parameters.new(foo: [{}, {}])
+    params[:foo].each do |hash|
+      assert !hash.permitted?
+    end
+  end
+
   test "fetch doesnt raise ParameterMissing exception if there is a default" do
     assert_equal "monkey", @params.fetch(:foo, "monkey")
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }

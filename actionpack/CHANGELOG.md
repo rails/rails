@@ -1,3 +1,9 @@
+*   Converts hashes in arrays of unfiltered params to unpermitted params.
+
+    Fixes #13382
+
+    *Xavier Noria*
+
 *   `rake routes` shows routes defined under assets prefix.
 
     *Ryunosuke SATO*
