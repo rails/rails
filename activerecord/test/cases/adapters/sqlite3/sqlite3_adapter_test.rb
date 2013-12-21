@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "cases/helper"
 require 'models/owner'
+require 'tempfile'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -23,6 +24,27 @@ module ActiveRecord
 
         @subscriber = SQLSubscriber.new
         ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+      end
+
+      def test_connect_with_url
+        original_connection = ActiveRecord::Base.remove_connection
+        tf = Tempfile.open 'whatever'
+        url = "sqlite3://#{tf.path}"
+        ActiveRecord::Base.establish_connection(url)
+        assert ActiveRecord::Base.connection
+      ensure
+        tf.close
+        tf.unlink
+        ActiveRecord::Base.establish_connection(original_connection)
+      end
+
+      def test_connect_memory_with_url
+        original_connection = ActiveRecord::Base.remove_connection
+        url = "sqlite3:///:memory:"
+        ActiveRecord::Base.establish_connection(url)
+        assert ActiveRecord::Base.connection
+      ensure
+        ActiveRecord::Base.establish_connection(original_connection)
       end
 
       def test_valid_column

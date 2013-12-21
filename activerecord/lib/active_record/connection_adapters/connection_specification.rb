@@ -69,11 +69,22 @@ module ActiveRecord
           config = URI.parse url
           adapter = config.scheme
           adapter = "postgresql" if adapter == "postgres"
+
+          database = if adapter == 'sqlite3'
+                       if '/:memory:' == config.path
+                         ':memory:'
+                       else
+                         config.path
+                       end
+                     else
+                       config.path.sub(%r{^/},"")
+                     end
+
           spec = { :adapter  => adapter,
                    :username => config.user,
                    :password => config.password,
                    :port     => config.port,
-                   :database => config.path.sub(%r{^/},""),
+                   :database => database,
                    :host     => config.host }
 
           spec.reject!{ |_,value| value.blank? }
