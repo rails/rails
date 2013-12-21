@@ -68,6 +68,17 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
     assert_no_file "app/views/layouts/product_lines.html.erb"
 
+    # Views local variables
+    assert_file "app/views/product_lines/_form.html.erb" do |test|
+      assert_no_match(/@product_line/, test)
+    end
+
+    %w(edit new).each do |view|
+      assert_file "app/views/product_lines/#{view}.html.erb" do |test|
+        assert_match(/product_line: @product_line/, test)
+      end
+    end
+
     # Helpers
     assert_file "app/helpers/product_lines_helper.rb"
     assert_file "test/helpers/product_lines_helper_test.rb"
