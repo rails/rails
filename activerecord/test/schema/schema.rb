@@ -96,6 +96,7 @@ ActiveRecord::Schema.define do
     t.column :name, :string
     t.column :status, :integer, default: 0
     t.column :read_status, :integer, default: 0
+    t.column :nested_status, :integer, default: 0
   end
 
   create_table :booleans, force: true do |t|

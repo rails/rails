@@ -14,16 +14,19 @@ class EnumTest < ActiveRecord::TestCase
     assert_not @book.published?
 
     assert @book.unread?
+    assert @book.nested_status_proposed?
   end
 
   test "query state with symbol" do
     assert_equal "proposed", @book.status
     assert_equal "unread", @book.read_status
+    assert_equal "proposed", @book.nested_status
   end
 
   test "find via scope" do
     assert_equal @book, Book.proposed.first
     assert_equal @book, Book.unread.first
+    assert_equal @book, Book.nested_status_proposed.first
   end
 
   test "update by declaration" do

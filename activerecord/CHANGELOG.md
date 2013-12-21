@@ -334,7 +334,7 @@
     Example:
 
         class Conversation < ActiveRecord::Base
-          enum status: [:active, :archived]
+          enum :status, [:active, :archived]
         end
 
         Conversation::STATUS # => { active: 0, archived: 1 }
