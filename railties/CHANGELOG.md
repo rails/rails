@@ -1,3 +1,11 @@
+*   `config.assets.raise_runtime_errors` is set to true by default
+
+    This option has been introduced in
+    [sprockets-rails#100][https://github.com/rails/sprockets-rails/pull/100]
+    and defaults to true in new applications in development.
+
+    *Richard Schneeman*
+
 *   Generates `html` and `text` templates for mailers by default.
 
     *Kassio Borges*
