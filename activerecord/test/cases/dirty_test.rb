@@ -341,6 +341,29 @@ class DirtyTest < ActiveRecord::TestCase
     assert !topic.approved_changed?
   end
 
+  def test_attribute_hash_mutation
+    topic = Topic.create!(:content => {:a => "a"})
+    assert !topic.content_changed?
+    assert !topic.changed?
+    assert_equal [], topic.changed_hashes
+    assert !topic.changed_hashes?
+
+    topic.content[:a] = "b"
+    assert topic.changed_hash?("content")
+    assert_equal ["content"], topic.changed_hashes
+    assert topic.changed_hashes?
+    assert topic.changed?
+
+    topic.content[:a] = "a"
+    assert !topic.changed_hash?("content")
+    assert !topic.changed?
+
+    topic = Topic.find_by_id!(topic.id)
+    assert !topic.changed_hashes?
+    topic.content[:a] = "b"
+    assert topic.changed_hash?("content")
+  end
+
   def test_partial_update
     pirate = Pirate.new(:catchphrase => 'foo')
     old_updated_on = 1.hour.ago.beginning_of_day
@@ -446,7 +469,7 @@ class DirtyTest < ActiveRecord::TestCase
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
+      assert topic.changed?
       topic.save!
       assert_equal "b", topic.content[:b]
       topic.reload
