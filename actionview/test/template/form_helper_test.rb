@@ -615,6 +615,18 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_checkbox_with_explicit_boolean_id
+    assert_dom_equal(
+      '<input form="new_form" name="post[secret][]" type="hidden" value="0" /><input checked="checked" form="new_form" id="false" name="post[secret][]" type="checkbox" value="1" />',
+      check_box("post", "secret", form: "new_form", id: false, multiple: true)
+    )
+
+    assert_dom_equal(
+      '<input form="new_form" name="post[secret][]" type="hidden" value="0" /><input checked="checked" form="new_form" id="true" name="post[secret][]" type="checkbox" value="1" />',
+      check_box("post", "secret", form: "new_form", id: true, multiple: true)
+    )
+  end
+
   def test_radio_button
     assert_dom_equal('<input checked="checked" id="post_title_hello_world" name="post[title]" type="radio" value="Hello World" />',
       radio_button("post", "title", "Hello World")
@@ -641,6 +653,16 @@ class FormHelperTest < ActionView::TestCase
   def test_radio_button_respects_passed_in_id
      assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
        radio_button("post", "secret", "1", id: "foo")
+    )
+  end
+
+  def test_radio_button_respects_passed_in_boolean_id
+    assert_dom_equal('<input checked="checked" id="false" name="post[secret]" type="radio" value="1" />',
+       radio_button("post", "secret", "1", id: false)
+    )
+
+    assert_dom_equal('<input checked="checked" id="true" name="post[secret]" type="radio" value="1" />',
+       radio_button("post", "secret", "1", id: true)
     )
   end
 

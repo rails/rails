@@ -65,7 +65,7 @@ module ActionView
             specified_id = options["id"]
             add_default_name_and_id(options)
 
-            if specified_id.blank? && options["id"].present?
+            if (specified_id.blank? && specified_id != false) && options["id"].present?
               options["id"] += "_#{sanitized_value(tag_value)}"
             end
           end
