@@ -2,7 +2,7 @@ module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database, but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [ :active, :archived ]
+  #     enum :status, [ :active, :archived ]
   #   end
   #
   #   # conversation.update! status: 0
@@ -30,7 +30,7 @@ module ActiveRecord
   # database integer with a +Hash+:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: { active: 0, archived: 1 }
+  #     enum :status, { active: 0, archived: 1 }
   #   end
   #
   # Note that when an +Array+ is used, the implicit mapping from the values to database
@@ -51,39 +51,53 @@ module ActiveRecord
   # Use that constant when you need to know the ordinal value of an enum:
   #
   #   Conversation.where("status <> ?", Conversation::STATUS[:archived])
+  #
+  # In some cases you need to avoid conflicts between two or more enums with the same
+  # values. In such situations you can force creation of nested scopes and methods:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ], nested: true
+  #   end
+  #
+  #   Conversation.status_active
+  #
+  #   conversation.status_active!
+  #   conversation.status_active? # => true
+  #   conversation.status  # => "active"
+  #   Conversation::STATUS # => { "active" => 0, "archived" => 1 }
   module Enum
-    def enum(definitions)
+    def enum(name, values, opts = {})
       klass = self
-      definitions.each do |name, values|
-        # DIRECTION = { }
-        enum_values = _enum_methods_module.const_set name.to_s.upcase, ActiveSupport::HashWithIndifferentAccess.new
-        name        = name.to_sym
+      # DIRECTION = { }
+      enum_values = _enum_methods_module.const_set name.to_s.upcase, ActiveSupport::HashWithIndifferentAccess.new
+      name        = name.to_sym
 
-        _enum_methods_module.module_eval do
-          # def direction=(value) self[:direction] = DIRECTION[value] end
-          define_method("#{name}=") { |value|
-            unless enum_values.has_key?(value)
-              raise ArgumentError, "'#{value}' is not a valid #{name}"
-            end
-            self[name] = enum_values[value]
-          }
-
-          # def direction() DIRECTION.key self[:direction] end
-          define_method(name) { enum_values.key self[name] }
-
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
-          pairs.each do |value, i|
-            enum_values[value] = i
-
-            # scope :incoming, -> { where direction: 0 }
-            klass.scope value, -> { klass.where name => i }
-
-            # def incoming?() direction == 0 end
-            define_method("#{value}?") { self[name] == i }
-
-            # def incoming! update! direction: :incoming end
-            define_method("#{value}!") { update! name => value }
+      _enum_methods_module.module_eval do
+        # def direction=(value) self[:direction] = DIRECTION[value] end
+        define_method("#{name}=") { |value|
+          unless enum_values.has_key?(value)
+            raise ArgumentError, "'#{value}' is not a valid #{name}"
           end
+          self[name] = enum_values[value]
+        }
+
+        # def direction() DIRECTION.key self[:direction] end
+        define_method(name) { enum_values.key self[name] }
+
+        pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+        pairs.each do |value, i|
+          enum_values[value] = i
+
+          value_name = opts[:nested] ? "#{name}_#{value}" : value
+
+          # scope :incoming, -> { where direction: 0 }
+          klass.scope value_name, -> { klass.where name => i }
+
+          # def incoming?() direction == 0 end
+          define_method("#{value_name}?") { self[name] == i }
+
+          # def incoming! update! direction: :incoming end
+          define_method("#{value_name}!") { update! name => value }
         end
       end
     end
