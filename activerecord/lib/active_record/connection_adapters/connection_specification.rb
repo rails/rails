@@ -74,7 +74,7 @@ module ActiveRecord
                        if '/:memory:' == config.path
                          ':memory:'
                        else
-                         config.path
+                         config.path.sub(%r{^/}, "")
                        end
                      else
                        config.path.sub(%r{^/},"")
