@@ -36,12 +36,15 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(/test "foo"/, test)
       assert_match(/test "bar"/, test)
     end
-    assert_file "test/mailers/previews/notifier_preview.rb" do |mailer|
-      assert_match(/class NotifierPreview < ActionMailer::Preview/, mailer)
-      assert_instance_method :foo, mailer do |foo|
+    assert_file "test/mailers/previews/notifier_preview.rb" do |preview|
+      assert_match(/\# Preview all emails at http:\/\/localhost\:3000\/rails\/mailers\/notifier/, preview)
+      assert_match(/class NotifierPreview < ActionMailer::Preview/, preview)
+      assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/notifier\/foo/, preview)
+      assert_instance_method :foo, preview do |foo|
         assert_match(/Notifier.foo/, foo)
       end
-      assert_instance_method :bar, mailer do |bar|
+      assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/notifier\/bar/, preview)
+      assert_instance_method :bar, preview do |bar|
         assert_match(/Notifier.bar/, bar)
       end
     end
@@ -105,8 +108,10 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class Farm::Animal < ActionMailer::Base/, mailer)
       assert_match(/en\.farm\.animal\.moos\.subject/, mailer)
     end
-    assert_file "test/mailers/previews/farm/animal_preview.rb" do |mailer|
-      assert_match(/class Farm::AnimalPreview < ActionMailer::Preview/, mailer)
+    assert_file "test/mailers/previews/farm/animal_preview.rb" do |preview|
+      assert_match(/\# Preview all emails at http:\/\/localhost\:3000\/rails\/mailers\/farm\/animal/, preview)
+      assert_match(/class Farm::AnimalPreview < ActionMailer::Preview/, preview)
+      assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/farm\/animal\/moos/, preview)
     end
     assert_file "app/views/farm/animal/moos.text.erb"
     assert_file "app/views/farm/animal/moos.html.erb"
