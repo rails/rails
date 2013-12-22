@@ -1,3 +1,7 @@
+*   Removed default length on string columns in PostgreSQL.
+
+    *Toms Mikoss*
+
 *   Improve the default select when `from` is used.
 
     Previously, if you did something like Topic.from(:temp_topics), it

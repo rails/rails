@@ -408,7 +408,7 @@ module ActiveRecord
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "serial primary key",
-        string:      { name: "character varying", limit: 255 },
+        string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer" },
         float:       { name: "float" },
