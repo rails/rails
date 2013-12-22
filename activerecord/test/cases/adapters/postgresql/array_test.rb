@@ -66,6 +66,12 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal([nil], @column.type_cast('{NULL}'))
   end
 
+  def test_type_cast_integers
+    x = PgArray.new(ratings: ['1', '2'])
+    assert x.save!
+    assert_equal(['1', '2'], x.ratings)
+  end
+
   def test_rewrite
     @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
     x = PgArray.first
