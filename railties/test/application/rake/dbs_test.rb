@@ -16,11 +16,11 @@ module ApplicationTests
       end
 
       def database_url_db_name
-        "db/database_url_db.sqlite3"
+        File.join(app_path, "db/database_url_db.sqlite3")
       end
 
       def set_database_url
-        ENV['DATABASE_URL'] = "sqlite3://:@localhost/#{database_url_db_name}"
+        ENV['DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
@@ -60,7 +60,7 @@ module ApplicationTests
           `rails generate model book title:string;
            bundle exec rake db:migrate`
           output = `bundle exec rake db:migrate:status`
-          assert_match(/database:\s+\S+#{expected[:database]}/, output)
+          assert_match(%r{database:\s+\S*#{Regexp.escape(expected[:database])}}, output)
           assert_match(/up\s+\d{14}\s+Create books/, output)
         end
       end
