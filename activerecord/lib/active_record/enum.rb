@@ -68,8 +68,8 @@ module ActiveRecord
             self[name] = enum_values[value]
           }
 
-          # def status() STATUS.key self[:status] end
-          define_method(name) { enum_values.key self[name] }
+          # def status() STATUS.key(self[:status]).try(:to_sym) end
+          define_method(name) { enum_values.key(self[name]).try(:to_sym) }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
