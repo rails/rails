@@ -55,12 +55,12 @@ module ActiveRecord
     def enum(definitions)
       klass = self
       definitions.each do |name, values|
-        # DIRECTION = { }
+        # STATUS = { }
         enum_values = _enum_methods_module.const_set name.to_s.upcase, ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
 
         _enum_methods_module.module_eval do
-          # def direction=(value) self[:direction] = DIRECTION[value] end
+          # def status=(value) self[:status] = STATUS[value] end
           define_method("#{name}=") { |value|
             unless enum_values.has_key?(value)
               raise ArgumentError, "'#{value}' is not a valid #{name}"
@@ -68,20 +68,20 @@ module ActiveRecord
             self[name] = enum_values[value]
           }
 
-          # def direction() DIRECTION.key self[:direction] end
+          # def status() STATUS.key self[:status] end
           define_method(name) { enum_values.key self[name] }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value] = i
 
-            # scope :incoming, -> { where direction: 0 }
+            # scope :active, -> { where status: 0 }
             klass.scope value, -> { klass.where name => i }
 
-            # def incoming?() direction == 0 end
+            # def active?() status == 0 end
             define_method("#{value}?") { self[name] == i }
 
-            # def incoming! update! direction: :incoming end
+            # def active! update! status: :active end
             define_method("#{value}!") { update! name => value }
           end
         end
