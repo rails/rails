@@ -1,3 +1,20 @@
+*   Enum accessors now returns symbols instead of strings.
+
+        class Conversation < ActiveRecord::Base
+          enum status: [:active, :archived]
+        end
+
+        conversation = Conversation.new
+        conversation.active!
+
+        # Before
+        conversation.status # => "active"
+
+        # After
+        conversation.status # => :active
+
+    *Godfrey Chan*
+
 *   Improve the default select when `from` is used.
 
     Previously, if you did something like Topic.from(:temp_topics), it
