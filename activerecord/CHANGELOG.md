@@ -1,3 +1,16 @@
+*   Fix a bug when assigning an array containing string numbers to a
+    PostgreSQL integer array column.
+
+    Fixes #13444.
+
+    Example:
+
+        # Given Book#ratings is of type :integer, array: true
+        Book.new(ratings: [1, 2]) # worked before
+        Book.new(ratings: ['1', '2']) # now works as well
+
+    *Damien Mathieu*
+
 *   Improve the default select when `from` is used.
 
     Previously, if you did something like Topic.from(:temp_topics), it
