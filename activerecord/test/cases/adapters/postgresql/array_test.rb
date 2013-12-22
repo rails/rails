@@ -12,7 +12,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
       @connection.transaction do
         @connection.create_table('pg_arrays') do |t|
-          t.string 'tags', :array => true
+          t.string 'tags', array: true
+          t.integer 'ratings', array: true
         end
       end
     @column = PgArray.columns.find { |c| c.name == 'tags' }
