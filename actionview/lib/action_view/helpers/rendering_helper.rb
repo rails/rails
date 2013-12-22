@@ -82,7 +82,7 @@ module ActionView
         if block && !name.is_a?(Symbol)
           capture(*args, &block)
         else
-          super
+          super(name)
         end
       end
     end

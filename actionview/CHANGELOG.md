@@ -1,3 +1,9 @@
+*   Make possible rendering of a block with a layout and a collection
+
+    Fixes #13354.
+
+    *Alex Tsukernik*
+
 *   The `video_tag` helper accepts a number as `:size`
 
     The `:size` option of the `video_tag` helper now can be specified

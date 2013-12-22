@@ -412,6 +412,15 @@ module RenderTestCases
       @view.render(:layout => "layouts/yield_with_params") { |param| "#{param} Content from block!" }
   end
 
+  def test_render_layout_with_collection_and_block_and_yield_with_params
+    assert_equal %(Yield! Content from block! item1:0\nYield! Content from block! item2:1\n),
+                 @view.render(:layout => "layouts/yield_with_params",
+                              collection: %w[item1 item2],
+                              as: :item ) { |param, locals|
+                   "#{param} Content from block! #{locals[:item]}:#{locals[:item_counter]}"
+                 }
+  end
+
   def test_render_layout_with_block_which_renders_another_partial_and_yields
     assert_equal %(partial html\nContent from block!\n),
       @view.render(:layout => "layouts/partial_and_yield") { "Content from block!" }

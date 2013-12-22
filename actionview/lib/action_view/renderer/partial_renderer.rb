@@ -387,7 +387,7 @@ module ActionView
       view, locals, template = @view, @locals, @template
       as, counter = @variable, @variable_counter
 
-      if layout = @options[:layout]
+      if !@block && (layout = @options[:layout])
         layout = find_template(layout, @template_keys)
       end
 
@@ -396,7 +396,10 @@ module ActionView
         locals[as]      = object
         locals[counter] = (index += 1)
 
-        content = template.render(view, locals)
+        content = template.render(view, locals) do |*name|
+          name << name.extract_options!.merge!(locals)
+          view._layout_for(*name, &@block)
+        end
         content = layout.render(view, locals) { content } if layout
         content
       end
