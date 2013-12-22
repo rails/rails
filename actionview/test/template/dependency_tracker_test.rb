@@ -147,12 +147,34 @@ class ERBTrackerTest < Minitest::Test
   end
 
   def test_finds_dependencies_with_quotes_within
-    template = FakeTemplate.new("
-      <%# render \"single/quote's\" %>
-      <%# render 'double/quote\"s' %>
-    ", :erb)
+    template = FakeTemplate.new(%{
+      <%# render "single/quote's" %>
+      <%# render 'double/quote"s' %>
+    }, :erb)
+
     tracker = make_tracker("quotes/_single_and_double", template)
 
     assert_equal ["single/quote's", 'double/quote"s'], tracker.dependencies
+  end
+
+  def test_finds_dependencies_with_extra_spaces
+    template = FakeTemplate.new(%{
+      <%= render              "header" %>
+      <%= render    partial:  "form" %>
+      <%= render              @message %>
+      <%= render ( @message.events ) %>
+      <%= render    :collection => @message.comments,
+                    :partial =>    "comments/comment" %>
+    }, :erb)
+
+    tracker = make_tracker("spaces/_extra", template)
+
+    assert_equal [
+      "spaces/header",
+      "spaces/form",
+      "messages/message",
+      "events/event",
+      "comments/comment"
+    ], tracker.dependencies
   end
 end

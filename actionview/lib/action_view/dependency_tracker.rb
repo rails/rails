@@ -54,21 +54,20 @@ module ActionView
       /x
 
       # Matches:
-      #   render partial: "comments/comment", collection: commentable.comments
-      #   render "comments/comments"
-      #   render 'comments/comments'
-      #   render('comments/comments')
+      #   partial: "comments/comment", collection: @all_comments => "comments/comment"
+      #   (object: @single_comment, partial: "comments/comment") => "comments/comment"
       #
-      #   render(@topic)         => render("topics/topic")
-      #   render(topics)         => render("topics/topic")
-      #   render(message.topics) => render("topics/topic")
-      RENDER_DEPENDENCY = /
-        \brender\b                                  # render, the whole word
-        \s*\(?\s*                                   # optional opening paren surrounded by spaces
-        (?:
-          (?:.*?#{PARTIAL_HASH_KEY})?               # optional hash, up to the partial key declaration
-          (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN}) # finally, the dependency name of interest
-        )
+      #   "comments/comments"
+      #   'comments/comments'
+      #   ('comments/comments')
+      #
+      #   (@topic)         => "topics/topic"
+      #    topics          => "topics/topic"
+      #   (message.topics) => "topics/topic"
+      RENDER_ARGUMENTS = /\A
+        (?:\s*\(?\s*)                             # optional opening paren surrounded by spaces
+        (?:.*?#{PARTIAL_HASH_KEY})?               # optional hash, up to the partial key declaration
+        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN}) # finally, the dependency name of interest
       /xm
 
       def self.call(name, template)
@@ -98,10 +97,13 @@ module ActionView
 
         def render_dependencies
           render_dependencies = []
+          render_calls = source.split(/\brender\b/).drop(1)
 
-          source.scan(RENDER_DEPENDENCY) do
-            add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
-            add_static_dependency(render_dependencies, Regexp.last_match[:static])
+          render_calls.each do |arguments|
+            arguments.scan(RENDER_ARGUMENTS) do
+              add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
+              add_static_dependency(render_dependencies, Regexp.last_match[:static])
+            end
           end
 
           render_dependencies.uniq
