@@ -323,17 +323,22 @@ module ApplicationTests
       assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_key_base
     end
 
-    test "custom secrets saved in config/tokens.yml are loaded in app secrets" do
+    test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
       app_file 'config/secrets.yml', <<-YAML
         development:
           secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
           aws_access_key_id: myamazonaccesskeyid
           aws_secret_access_key: myamazonsecretaccesskey
+          twitter:
+            access_token: mytwitteraccesstoken
+            access_token_secret: mytwitteraccesstokensecret
       YAML
 
       require "#{app_path}/config/environment"
       assert_equal 'myamazonaccesskeyid', app.secrets.aws_access_key_id
       assert_equal 'myamazonsecretaccesskey', app.secrets.aws_secret_access_key
+      assert_equal 'mytwitteraccesstoken', app.secrets.twitter.access_token
+      assert_equal 'mytwitteraccesstokensecret', app.secrets.twitter.access_token_secret
     end
 
     test "protect from forgery is the default in a new app" do

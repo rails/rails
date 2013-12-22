@@ -26,6 +26,22 @@ module ActiveSupport
       super(key.to_sym)
     end
 
+    def deep_transform_values
+      result = ActiveSupport::OrderedOptions.new
+      each do |key, value|
+        result[key] = value.is_a?(Hash) ? ActiveSupport::OrderedOptions[value].deep_transform_values : value
+      end
+      result
+    end
+
+    def deep_transform_values!
+      keys.each do |key|
+        value = delete(key)
+        self[key] = value.is_a?(Hash) ? ActiveSupport::OrderedOptions[value].deep_transform_values! : value
+      end
+      self
+    end
+
     def method_missing(name, *args)
       name_string = name.to_s
       if name_string.chomp!('=')
