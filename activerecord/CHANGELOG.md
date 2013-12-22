@@ -1,3 +1,16 @@
+*   Do not raise `'can not touch on a new record object'` exception on destroying already destroyed
+    `belongs_to` association with `touch: true` option
+
+    Fixes: #13445
+
+    Example:
+
+        # Given Comment has belongs_to :post, touch: true
+        comment.post.destroy
+        comment.destroy # no longer raises an error
+
+    *Paul Nikitochkin*
+
 *   Fix a bug when assigning an array containing string numbers to a
     PostgreSQL integer array column.
 

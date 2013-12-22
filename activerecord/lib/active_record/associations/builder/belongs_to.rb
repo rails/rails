@@ -112,7 +112,7 @@ module ActiveRecord::Associations::Builder
       end
 
       record = o.send name
-      unless record.nil? || record.new_record?
+      if record && record.persisted?
         if touch != true
           record.touch touch
         else
