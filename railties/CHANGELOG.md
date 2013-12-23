@@ -1,3 +1,8 @@
+*   Configure `secrets.yml` and `database.yml` to read configuration
+    from the system environment by default for production.
+
+    *José Valim*
+
 *   `config.assets.raise_runtime_errors` is set to true by default
 
     This option has been introduced in

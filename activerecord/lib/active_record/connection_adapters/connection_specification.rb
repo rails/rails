@@ -16,34 +16,43 @@ module ActiveRecord
       ##
       # Builds a ConnectionSpecification from user input
       class Resolver # :nodoc:
-        attr_reader :config, :klass, :configurations
+        attr_reader :configurations
 
-        def initialize(config, configurations)
-          @config         = config
+        def initialize(configurations)
           @configurations = configurations
         end
 
-        def spec
-          case config
-          when nil
-            raise AdapterNotSpecified unless defined?(Rails.env)
-            resolve_string_connection Rails.env
-          when Symbol, String
-            resolve_string_connection config.to_s
-          when Hash
-            resolve_hash_connection config
+        def resolve(config)
+          if config
+            resolve_connection config
+          elsif defined?(Rails.env)
+            resolve_env_connection Rails.env
+          else
+            raise AdapterNotSpecified
           end
         end
 
         private
-        def resolve_string_connection(spec) # :nodoc:
-          hash = configurations.fetch(spec) do |k|
-            connection_url_to_hash(k)
+
+        def resolve_connection(spec) #:nodoc:
+          case spec
+          when Symbol, String
+            resolve_env_connection spec.to_s
+          when Hash
+            resolve_hash_connection spec
           end
+        end
 
-          raise(AdapterNotSpecified, "#{spec} database is not configured") unless hash
-
-          resolve_hash_connection hash
+        def resolve_env_connection(spec) # :nodoc:
+          # Rails has historically accepted a string to mean either
+          # an environment key or a url spec. So we support both for
+          # now but it would be nice to limit the environment key only
+          # for symbols.
+          spec = configurations.fetch(spec.to_s) do
+            resolve_string_connection(spec) if spec.is_a?(String)
+          end
+          raise(AdapterNotSpecified, "#{spec} database is not configured") unless spec
+          resolve_connection spec
         end
 
         def resolve_hash_connection(spec) # :nodoc:
@@ -65,8 +74,8 @@ module ActiveRecord
           ConnectionSpecification.new(spec, adapter_method)
         end
 
-        def connection_url_to_hash(url) # :nodoc:
-          config = URI.parse url
+        def resolve_string_connection(spec) # :nodoc:
+          config = URI.parse spec
           adapter = config.scheme
           adapter = "postgresql" if adapter == "postgres"
 
