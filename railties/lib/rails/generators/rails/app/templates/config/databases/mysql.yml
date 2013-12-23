@@ -32,6 +32,10 @@ test:
   <<: *default
   database: <%= app_name %>_test
 
-# Do not keep production credentials in the repository,
+# Avoid production credentials in the repository,
 # instead read the configuration from the environment.
-production: <%%= ENV["DATABASE_URL"] %>
+#
+# Example:
+#   mysql2://myuser:mypass@localhost/somedatabase
+#
+production: <%%= ENV["RAILS_DATABASE_URL"] %>
