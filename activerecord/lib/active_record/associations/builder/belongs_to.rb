@@ -88,7 +88,7 @@ module ActiveRecord::Associations::Builder
           end
 
           record = #{name}
-          unless record.nil? || record.new_record?
+          if record && record.persisted?
             record.touch #{options[:touch].inspect if options[:touch] != true}
           end
         end

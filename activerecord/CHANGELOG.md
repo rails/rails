@@ -1,3 +1,16 @@
+*   Fix bug in `belongs_to` association with `touch: true`.
+    Associated records are no longer touched, when they are already destroyed.
+
+    Fixes #13445.
+
+    Example:
+
+        # Given Comment has belongs_to :post, touch: true
+        comment.post.destroy
+        comment.destroy # no longer touches post
+
+    *Paul Nikitochkin*
+
 *   Fixed `update_column`, `update_columns`, and `update_all` to correctly serialize
     values for `array`, `hstore` and `json` column types in PostgreSQL.
 
