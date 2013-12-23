@@ -52,6 +52,21 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal 56, a.else_where
   end
 
+  def test_deep_transform_values
+    hash = { b: { c: 3 } }
+    a = ActiveSupport::OrderedOptions[hash].deep_transform_values
+
+    assert_equal 3, a.b.c
+  end
+
+  def test_deep_transform_values!
+    hash = { b: { c: 3 } }
+    a = ActiveSupport::OrderedOptions[hash]
+    a.deep_transform_values!
+
+    assert_equal 3, a.b.c
+  end
+
   def test_inheritable_options_continues_lookup_in_parent
     parent = ActiveSupport::OrderedOptions.new
     parent[:foo] = true

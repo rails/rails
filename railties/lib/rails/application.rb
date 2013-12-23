@@ -308,7 +308,7 @@ module Rails
         if File.exist?(yaml)
           require "erb"
           env_secrets = YAML.load(ERB.new(IO.read(yaml)).result)[Rails.env]
-          secrets.merge!(env_secrets.symbolize_keys) if env_secrets
+          secrets.merge!(env_secrets).deep_transform_values! if env_secrets
         end
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
