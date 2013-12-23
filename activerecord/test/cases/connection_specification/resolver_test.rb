@@ -57,6 +57,16 @@ module ActiveRecord
 
           assert_match "Could not load 'active_record/connection_adapters/non-existing_adapter'", error.message
         end
+
+        def test_url_host_db_for_sqlite3
+          spec = resolve 'sqlite3://foo:bar@dburl:9000/foo_test'
+          assert_equal('/foo_test', spec[:database])
+        end
+
+        def test_url_host_memory_db_for_sqlite3
+          spec = resolve 'sqlite3://foo:bar@dburl:9000/:memory:'
+          assert_equal(':memory:', spec[:database])
+        end
       end
     end
   end
