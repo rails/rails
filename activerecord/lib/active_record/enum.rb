@@ -81,7 +81,7 @@ module ActiveRecord
             # def active?() status == 0 end
             define_method("#{value}?") { self[name] == i }
 
-            # def active! update! status: :active end
+            # def active!() update! status: :active end
             define_method("#{value}!") { update! name => value }
           end
         end
