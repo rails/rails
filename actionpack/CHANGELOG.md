@@ -1,3 +1,7 @@
+*   `ActionController::Parameters#permit!` permits hashes in array values.
+
+    *Xavier Noria*
+
 *   Converts hashes in arrays of unfiltered params to unpermitted params.
 
     Fixes #13382

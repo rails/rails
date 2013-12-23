@@ -157,8 +157,10 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        convert_hashes_to_parameters(key, value)
-        self[key].permit! if self[key].respond_to? :permit!
+        value = convert_hashes_to_parameters(key, value)
+        Array.wrap(value).each do |_|
+          _.permit! if _.respond_to? :permit!
+        end
       end
 
       @permitted = true

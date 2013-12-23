@@ -8,9 +8,16 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   setup do
-    @params = ActionController::Parameters.new({ person: {
-      age: "32", name: { first: "David", last: "Heinemeier Hansson" }
-    }})
+    @params = ActionController::Parameters.new(
+      person: {
+        age: '32',
+        name: {
+          first: 'David',
+          last: 'Heinemeier Hansson'
+        },
+        addresses: [{city: 'Chicago', state: 'Illinois'}]
+      }
+    )
 
     @struct_fields = []
     %w(0 1 12).each do |number|
@@ -233,6 +240,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert @params.permitted?
     assert @params[:person].permitted?
     assert @params[:person][:name].permitted?
+    assert @params[:person][:addresses][0].permitted?
   end
 
   test "permitted takes a default value when Parameters.permit_all_parameters is set" do
