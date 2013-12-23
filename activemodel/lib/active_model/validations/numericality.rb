@@ -8,6 +8,24 @@ module ActiveModel
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
+      def initialize(options)
+        if options[:in]
+          unless options[:in].is_a?(Range) && options[:in].first.is_a?(Numeric)
+            raise ArgumentError, ":in must be a range of numeric"
+          end
+
+          if options[:in].exclude_end?
+            options.merge!(less_than: options[:in].last)
+          else
+            options.merge!(less_than_or_equal_to: options[:in].last)
+          end
+          options.merge!(greater_than_or_equal_to: options[:in].first)
+          options.delete(:in)
+        end
+
+        super
+      end
+
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|

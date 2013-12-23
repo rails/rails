@@ -160,12 +160,46 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Person.reset_callbacks(:validate)
   end
 
+  def test_validates_numericality_with_range_values
+    Topic.validates_numericality_of :approved, in: 1..4
+
+    invalid!([0], 'must be greater than or equal to 1')
+    invalid!([5], 'must be less than or equal to 4')
+    valid!([1, 2, 3, 4])
+  end
+
+  def test_validates_numericality_with_range_values_excluded
+    Topic.validates_numericality_of :approved, in: 1...4
+
+    invalid!([0], 'must be greater than or equal to 1')
+    invalid!([4], 'must be less than 4')
+    valid!([1, 2, 3])
+  end
+
+  def test_validates_numericality_with_range_values_and_only_integer
+    Topic.validates_numericality_of :approved, in: 1..4, only_integer: true
+
+    invalid!([0.5], 'must be an integer')
+    valid!([1, 2, 3, 4])
+  end
+
+  def test_validates_numericality_with_priority_range
+    Topic.validates_numericality_of :approved,
+      in: 1...4, greater_than_or_equal_to: 0, less_than_or_equal_to: 4
+
+    invalid!([0], 'must be greater than or equal to 1')
+    invalid!([4], 'must be less than 4')
+    valid!([1, 2, 3])
+  end
+
   def test_validates_numericality_with_invalid_args
     assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, greater_than_or_equal_to: "foo" }
     assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, less_than_or_equal_to: "foo" }
     assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, greater_than: "foo" }
     assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, less_than: "foo" }
     assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, equal_to: "foo" }
+    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, in: "foo" }
+    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, in: 'f'..'o' }
   end
 
   private
