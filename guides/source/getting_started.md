@@ -1703,8 +1703,8 @@ Deleting Comments
 -----------------
 
 Another important feature of a blog is being able to delete spam comments. To do
-this, we need to implement a link of some sort in the view and a `DELETE` action
-in the `CommentsController`.
+this, we need to implement a link of some sort in the view and a `destroy`
+action in the `CommentsController`.
 
 So first, let's add the delete link in the
 `app/views/comments/_comment.html.erb` partial:
@@ -1729,7 +1729,7 @@ So first, let's add the delete link in the
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE
 /posts/:post_id/comments/:id` to our `CommentsController`, which can then use
-this to find the comment we want to delete, so let's add a destroy action to our
+this to find the comment we want to delete, so let's add a `destroy` action to our
 controller (`app/controllers/comments_controller.rb`):
 
 ```ruby
