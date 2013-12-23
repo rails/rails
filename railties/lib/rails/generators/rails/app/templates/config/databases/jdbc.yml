@@ -53,6 +53,6 @@ test:
   <<: *default
   url: jdbc:db://localhost/<%= app_name %>_test
 
-production:
-  <<: *default
-  url: jdbc:db://localhost/<%= app_name %>_production
+# Do not keep production credentials in the repository,
+# instead read the configuration from the environment.
+production: <%%= ENV["DATABASE_URL"] %>
