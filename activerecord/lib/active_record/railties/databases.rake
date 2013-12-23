@@ -14,11 +14,7 @@ db_namespace = namespace :db do
 
   desc 'Create the database from DATABASE_URL or config/database.yml for the current Rails.env (use db:create:all to create all databases in the config)'
   task :create => [:load_config] do
-    if ENV['DATABASE_URL']
-      ActiveRecord::Tasks::DatabaseTasks.create_database_url
-    else
-      ActiveRecord::Tasks::DatabaseTasks.create_current
-    end
+    ActiveRecord::Tasks::DatabaseTasks.create_current
   end
 
   namespace :drop do
@@ -29,11 +25,7 @@ db_namespace = namespace :db do
 
   desc 'Drops the database using DATABASE_URL or the current Rails.env (use db:drop:all to drop all databases)'
   task :drop => [:load_config] do
-    if ENV['DATABASE_URL']
-      ActiveRecord::Tasks::DatabaseTasks.drop_database_url
-    else
-      ActiveRecord::Tasks::DatabaseTasks.drop_current
-    end
+    ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."

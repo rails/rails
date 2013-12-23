@@ -4,8 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification
       class ResolverTest < ActiveRecord::TestCase
-        def resolve(spec)
-          Resolver.new(spec, {}).spec.config
+        def resolve(spec, config={})
+          Resolver.new(config).resolve(spec).config
         end
 
         def test_url_invalid_adapter
@@ -16,6 +16,14 @@ module ActiveRecord
 
         # The abstract adapter is used simply to bypass the bit of code that
         # checks that the adapter file can be required in.
+
+        def test_url_from_environment
+          spec = resolve :production, 'production' => 'abstract://foo?encoding=utf8'
+          assert_equal({
+            adapter:  "abstract",
+            host:     "foo",
+            encoding: "utf8" }, spec)
+        end
 
         def test_url_host_no_db
           spec = resolve 'abstract://foo?encoding=utf8'

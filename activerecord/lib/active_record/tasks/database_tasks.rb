@@ -56,11 +56,7 @@ module ActiveRecord
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= if ENV['DATABASE_URL']
-                                database_url_config
-                              else
-                                ActiveRecord::Base.configurations[options[:env]]
-                              end
+          @current_config ||= ActiveRecord::Base.configurations[options[:env]]
         end
       end
 
@@ -85,10 +81,6 @@ module ActiveRecord
         ActiveRecord::Base.establish_connection environment
       end
 
-      def create_database_url
-        create database_url_config
-      end
-
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).drop
@@ -105,10 +97,6 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           drop configuration
         }
-      end
-
-      def drop_database_url
-        drop database_url_config
       end
 
       def charset_current(environment = env)
@@ -164,11 +152,6 @@ module ActiveRecord
       end
 
       private
-
-      def database_url_config
-        @database_url_config ||=
-               ConnectionAdapters::ConnectionSpecification::Resolver.new(ENV["DATABASE_URL"], {}).spec.config.stringify_keys
-      end
 
       def class_for_adapter(adapter)
         key = @tasks.keys.detect { |pattern| adapter[pattern] }
