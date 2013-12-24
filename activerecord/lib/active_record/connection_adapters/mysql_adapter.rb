@@ -34,6 +34,12 @@ module ActiveRecord
       default_flags |= Mysql::CLIENT_FOUND_ROWS if Mysql.const_defined?(:CLIENT_FOUND_ROWS)
       options = [host, username, password, database, port, socket, default_flags]
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, options, config)
+    rescue Mysql::Error => error
+      if error.message.include?("Unknown database")
+        raise ActiveRecord::NoDatabaseError.new(error.message)
+      else
+        raise error
+      end
     end
   end
 
