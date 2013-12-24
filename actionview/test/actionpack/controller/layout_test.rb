@@ -215,12 +215,6 @@ class LayoutSetInResponseTest < ActionController::TestCase
   end
 end
 
-class RenderWithTemplateOptionController < LayoutTest
-  def hello
-    render :template => 'alt/hello'
-  end
-end
-
 class SetsNonExistentLayoutFile < LayoutTest
   layout "nofile"
 end

@@ -4,7 +4,3 @@ class Developer < ActiveRecord::Base
   has_many :topics, :through => :replies
   accepts_nested_attributes_for :projects
 end
-
-class DeVeLoPeR < ActiveRecord::Base
-  self.table_name = "developers"
-end

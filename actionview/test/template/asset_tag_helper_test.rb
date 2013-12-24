@@ -2,14 +2,6 @@ require 'zlib'
 require 'abstract_unit'
 require 'active_support/ordered_options'
 
-class FakeController
-  attr_accessor :request
-
-  def config
-    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config)
-  end
-end
-
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
