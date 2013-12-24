@@ -217,6 +217,24 @@ module ActionController #:nodoc:
     #     format.html.phone { redirect_to progress_path }
     #     format.html.none  { render "trash" }
     #   end
+    # 
+    # Variants also support common `any`/`all` block that formats have.
+    #
+    # It works for both inline:
+    #
+    #   respond_to do |format|
+    #     format.html.any   { render text: "any"   }
+    #     format.html.phone { render text: "phone" }
+    #   end
+    #
+    # and block syntax:
+    #
+    #   respond_to do |format|
+    #     format.html do |variant|
+    #       variant.any(:tablet, :phablet){ render text: "any" }
+    #       variant.phone { render text: "phone" }
+    #     end
+    #   end
     #
     # Be sure to check the documentation of +respond_with+ and
     # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
@@ -224,7 +242,7 @@ module ActionController #:nodoc:
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
       if collector = retrieve_collector_from_mimes(mimes, &block)
-        response = collector.response(request.variant)
+        response = collector.response
         response ? response.call : render({})
       end
     end
@@ -366,7 +384,7 @@ module ActionController #:nodoc:
       if collector = retrieve_collector_from_mimes(&block)
         options = resources.size == 1 ? {} : resources.extract_options!
         options = options.clone
-        options[:default_response] = collector.response(request.variant)
+        options[:default_response] = collector.response
         (options.delete(:responder) || self.class.responder).call(self, resources, options)
       end
     end
@@ -399,7 +417,7 @@ module ActionController #:nodoc:
     # is available.
     def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level
-      collector = Collector.new(mimes)
+      collector = Collector.new(mimes, request.variant)
       block.call(collector) if block_given?
       format = collector.negotiate_format(request)
 
@@ -437,8 +455,9 @@ module ActionController #:nodoc:
       include AbstractController::Collector
       attr_accessor :format
 
-      def initialize(mimes)
+      def initialize(mimes, variant = nil)
         @responses = {}
+        @variant = variant
 
         mimes.each { |mime| @responses["Mime::#{mime.upcase}".constantize] = nil }
       end
@@ -457,18 +476,20 @@ module ActionController #:nodoc:
         @responses[mime_type] ||= if block_given?
           block
         else
-          VariantCollector.new
+          VariantCollector.new(@variant)
         end
       end
 
-      def response(variant)
+      def response
         response = @responses.fetch(format, @responses[Mime::ALL])
-        if response.is_a?(VariantCollector)
-          response.variant(variant)
-        elsif response.nil? || response.arity == 0
+        if response.is_a?(VariantCollector) # `format.html.phone` - variant inline syntax
+          response.variant
+        elsif response.nil? || response.arity == 0 # `format.html` - just a format, call its block
           response
-        else
-          lambda { response.call VariantFilter.new(variant) }
+        else # `format.html{ |variant| variant.phone }` - variant block syntax
+          variant_collector = VariantCollector.new(@variant)
+          response.call(variant_collector) #call format block with variants collector
+          variant_collector.variant
         end
       end
 
@@ -476,31 +497,37 @@ module ActionController #:nodoc:
         @format = request.negotiate_mime(@responses.keys)
       end
 
-      #Used for inline syntax
       class VariantCollector #:nodoc:
-        def initialize
+        def initialize(variant = nil)
+          @variant = variant
           @variants = {}
         end
+
+        def any(*args, &block)
+          if block_given?
+            if args.any? && args.none?{ |a| a == @variant }
+              args.each{ |v| @variants[v] = block }
+            else
+              @variants[:any] = block
+            end
+          end
+        end
+        alias :all :any
 
         def method_missing(name, *args, &block)
           @variants[name] = block if block_given?
         end
 
-        def variant(name)
-          @variants[name.nil? ? :none : name]
-        end
-      end
-
-      #Used for nested block syntax
-      class VariantFilter #:nodoc:
-        def initialize(variant)
-          @variant = variant
-        end
-
-        def method_missing(name)
-          if block_given?
-            yield if name == @variant || (name == :none && @variant.nil?)
+        def variant
+          key = if @variant.nil?
+            :none
+          elsif @variants.has_key?(@variant)
+            @variant
+          else
+            :any
           end
+
+          @variants[key]
         end
       end
     end

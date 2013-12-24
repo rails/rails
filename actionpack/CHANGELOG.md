@@ -84,6 +84,24 @@
           format.html.none  { render "trash" }
         end
 
+    Variants also support common `any`/`all` block that formats have.
+
+    It works for both inline:
+
+        respond_to do |format|
+          format.html.any   { render text: "any"   }
+          format.html.phone { render text: "phone" }
+        end
+
+    and block syntax:
+
+        respond_to do |format|
+          format.html do |variant|
+            variant.any(:tablet, :phablet){ render text: "any" }
+            variant.phone { render text: "phone" }
+          end
+        end
+
     *Łukasz Strzałkowski*
 
 *   Fix render of localized templates without an explicit format using wrong
