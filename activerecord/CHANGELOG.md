@@ -1,3 +1,7 @@
+*   Deprecated use of string argument as a configuration lookup in `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
+
+    *José Valim*
+
 *   Fixed `update_column`, `update_columns`, and `update_all` to correctly serialize
     values for `array`, `hstore` and `json` column types in PostgreSQL.
 

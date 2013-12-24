@@ -26,7 +26,7 @@ module ActiveRecord
           if config
             resolve_connection config
           elsif defined?(Rails.env)
-            resolve_env_connection Rails.env
+            resolve_env_connection Rails.env.to_sym
           else
             raise AdapterNotSpecified
           end
@@ -55,7 +55,7 @@ module ActiveRecord
         def resolve_connection(spec) #:nodoc:
           case spec
           when Symbol, String
-            resolve_env_connection spec.to_s
+            resolve_env_connection spec
           when Hash
             resolve_hash_connection spec
           end
@@ -63,14 +63,21 @@ module ActiveRecord
 
         def resolve_env_connection(spec) # :nodoc:
           # Rails has historically accepted a string to mean either
-          # an environment key or a url spec. So we support both for
-          # now but it would be nice to limit the environment key only
-          # for symbols.
-          config = configurations.fetch(spec.to_s) do
-            resolve_string_connection(spec) if spec.is_a?(String)
+          # an environment key or a url spec, so we have deprecated
+          # this ambiguous behaviour and in the future this function
+          # can be removed in favor of resolve_string_connection and
+          # resolve_symbol_connection.
+          if config = configurations[spec.to_s]
+            if spec.is_a?(String)
+              ActiveSupport::Deprecation.warn "Passing a string to ActiveRecord::Base.establish_connection " \
+                "for a configuration lookup is deprecated, please pass a symbol (#{spec.to_sym.inspect}) instead"
+            end
+            resolve_connection(config)
+          elsif spec.is_a?(String)
+            resolve_string_connection(spec)
+          else
+            raise(AdapterNotSpecified, "#{spec} database is not configured")
           end
-          raise(AdapterNotSpecified, "#{spec} database is not configured") unless config
-          resolve_connection(config)
         end
 
         def resolve_hash_connection(spec) # :nodoc:
