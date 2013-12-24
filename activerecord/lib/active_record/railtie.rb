@@ -56,7 +56,7 @@ module ActiveRecord
           resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(configuration)
 
           configuration.each do |key, value|
-            configuration[key] = resolver.resolve(value) if value
+            configuration[key] = resolver.resolve(value).config.stringify_keys if value
           end
 
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = configuration

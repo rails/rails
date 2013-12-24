@@ -48,11 +48,11 @@ module ActiveRecord
           # an environment key or a url spec. So we support both for
           # now but it would be nice to limit the environment key only
           # for symbols.
-          spec = configurations.fetch(spec.to_s) do
+          config = configurations.fetch(spec.to_s) do
             resolve_string_connection(spec) if spec.is_a?(String)
           end
-          raise(AdapterNotSpecified, "#{spec} database is not configured") unless spec
-          resolve_connection spec
+          raise(AdapterNotSpecified, "#{spec} database is not configured") unless config
+          resolve_connection config
         end
 
         def resolve_hash_connection(spec) # :nodoc:
