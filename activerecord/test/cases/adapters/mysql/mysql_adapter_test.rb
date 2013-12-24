@@ -16,6 +16,20 @@ module ActiveRecord
         eosql
       end
 
+      def test_bad_connection_mysql
+        assert_raise ActiveRecord::NoDatabaseError do
+          connection = ActiveRecord::Base.mysql_connection(adapter: "mysql", database: "should_not_exist-cinco-dog-db")
+          connection.exec_query('drop table if exists ex')
+        end
+      end
+
+      def test_bad_connection_mysql2
+        assert_raise ActiveRecord::NoDatabaseError do
+          connection = ActiveRecord::Base.mysql2_connection(adapter: "mysql2", database: "should_not_exist-cinco-dog-db")
+          connection.exec_query('drop table if exists ex')
+        end
+      end
+
       def test_valid_column
         column = @conn.columns('ex').find { |col| col.name == 'id' }
         assert @conn.valid_type?(column.type)

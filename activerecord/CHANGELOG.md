@@ -27,10 +27,10 @@
 
     *Carlos Antonio da Silva*
 
-*   When connecting to a non-existant postgresql database, the error:
+*   When connecting to a non-existant database, the error:
     `ActiveRecord::NoDatabaseError` will now be raised. When being used with Rails
     the error message will include information on how to create a database:
-    `rake db:create`
+    `rake db:create`. Supported adapters: postgresql, mysql, mysql2, sqlite3
 
     *Richard Schneeman*
 

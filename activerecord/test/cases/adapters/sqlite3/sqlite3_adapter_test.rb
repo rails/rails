@@ -26,6 +26,13 @@ module ActiveRecord
         ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
       end
 
+      def test_bad_connection
+        assert_raise ActiveRecord::NoDatabaseError do
+          connection = ActiveRecord::Base.sqlite3_connection(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
+          connection.exec_query('drop table if exists ex')
+        end
+      end
+
       def test_connect_with_url
         original_connection = ActiveRecord::Base.remove_connection
         tf = Tempfile.open 'whatever'
