@@ -32,6 +32,24 @@ module ActiveRecord
           end
         end
 
+        def spec(config)
+          spec = resolve(config).symbolize_keys
+
+          raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
+
+          path_to_adapter = "active_record/connection_adapters/#{spec[:adapter]}_adapter"
+          begin
+            require path_to_adapter
+          rescue Gem::LoadError => e
+            raise Gem::LoadError, "Specified '#{spec[:adapter]}' for database adapter, but the gem is not loaded. Add `gem '#{e.name}'` to your Gemfile (and ensure its version is at the minimum required by ActiveRecord)."
+          rescue LoadError => e
+            raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/database.yml is valid. If you use an adapter other than 'mysql', 'mysql2', 'postgresql' or 'sqlite3' add the necessary adapter gem to the Gemfile.", e.backtrace
+          end
+
+          adapter_method = "#{spec[:adapter]}_connection"
+          ConnectionSpecification.new(spec, adapter_method)
+        end
+
         private
 
         def resolve_connection(spec) #:nodoc:
@@ -52,30 +70,15 @@ module ActiveRecord
             resolve_string_connection(spec) if spec.is_a?(String)
           end
           raise(AdapterNotSpecified, "#{spec} database is not configured") unless config
-          resolve_connection config
+          resolve_connection(config)
         end
 
         def resolve_hash_connection(spec) # :nodoc:
-          spec = spec.symbolize_keys
-
-          raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
-
-          path_to_adapter = "active_record/connection_adapters/#{spec[:adapter]}_adapter"
-          begin
-            require path_to_adapter
-          rescue Gem::LoadError => e
-            raise Gem::LoadError, "Specified '#{spec[:adapter]}' for database adapter, but the gem is not loaded. Add `gem '#{e.name}'` to your Gemfile (and ensure its version is at the minimum required by ActiveRecord)."
-          rescue LoadError => e
-            raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/database.yml is valid. If you use an adapter other than 'mysql', 'mysql2', 'postgresql' or 'sqlite3' add the necessary adapter gem to the Gemfile.", e.backtrace
-          end
-
-          adapter_method = "#{spec[:adapter]}_connection"
-
-          ConnectionSpecification.new(spec, adapter_method)
+          spec
         end
 
         def resolve_string_connection(spec) # :nodoc:
-          config = URI.parse spec
+          config  = URI.parse spec
           adapter = config.scheme
           adapter = "postgresql" if adapter == "postgres"
 
@@ -89,12 +92,12 @@ module ActiveRecord
                        config.path.sub(%r{^/},"")
                      end
 
-          spec = { :adapter  => adapter,
-                   :username => config.user,
-                   :password => config.password,
-                   :port     => config.port,
-                   :database => database,
-                   :host     => config.host }
+          spec = { "adapter"  => adapter,
+                   "username" => config.user,
+                   "password" => config.password,
+                   "port"     => config.port,
+                   "database" => database,
+                   "host"     => config.host }
 
           spec.reject!{ |_,value| value.blank? }
 
@@ -103,8 +106,7 @@ module ActiveRecord
           spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
 
           if config.query
-            options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
-
+            options = Hash[config.query.split("&").map{ |pair| pair.split("=") }]
             spec.merge!(options)
           end
 

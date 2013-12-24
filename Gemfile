@@ -36,9 +36,9 @@ group :test do
     gem 'ruby-prof', '~> 0.11.2'
   end
 
-  platforms :mri_19, :mri_20 do
-    gem 'debugger'
-  end
+  # platforms :mri_19, :mri_20 do
+  #   gem 'debugger'
+  # end
 
   gem 'benchmark-ips'
 end

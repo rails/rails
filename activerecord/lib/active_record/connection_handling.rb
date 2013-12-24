@@ -36,7 +36,7 @@ module ActiveRecord
     # may be returned on an error.
     def establish_connection(spec = ENV["DATABASE_URL"])
       resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
-      spec = resolver.resolve(spec)
+      spec = resolver.spec(spec)
 
       unless respond_to?(spec.adapter_method)
         raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
