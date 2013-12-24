@@ -7,7 +7,7 @@ module ActiveModel
   # == Active \Model \Errors
   #
   # Provides a modified +Hash+ that you can include in your object
-  # for handling error messages and interacting with Action Pack helpers.
+  # for handling error messages and interacting with Action View helpers.
   #
   # A minimal implementation could be:
   #
@@ -279,7 +279,7 @@ module ActiveModel
     # If +message+ is a proc, it will be called, allowing for things like
     # <tt>Time.now</tt> to be used within an error.
     #
-    # If the <tt>:strict</tt> option is set to true will raise
+    # If the <tt>:strict</tt> option is set to +true+, it will raise
     # ActiveModel::StrictValidationFailed instead of adding the error.
     # <tt>:strict</tt> option can also be set to any other exception.
     #
