@@ -414,7 +414,7 @@ module Rails
 
     def validate_secret_key_config! #:nodoc:
       if secrets.secret_key_base.blank? && config.secret_token.blank?
-        raise "You must set secret_key_base in your app's config"
+        raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
       end
     end
   end
