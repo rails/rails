@@ -75,28 +75,21 @@ module ActiveSupport
 
       # Increment an integer value in the cache.
       def increment(name, amount = 1, options = nil)
+        modify_values(name, amount, option)
+      end
+
+      # Decrement an integer value in the cache.
+      def decrement(name, amount = 1, options = nil)
+        modify_values(name, amount*-1, option)
+      end
+
+      def modify_values(name, amount,option)
         synchronize do
           options = merged_options(options)
           if num = read(name, options)
             num = num.to_i + amount
             write(name, num, options)
             num
-          else
-            nil
-          end
-        end
-      end
-
-      # Decrement an integer value in the cache.
-      def decrement(name, amount = 1, options = nil)
-        synchronize do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i - amount
-            write(name, num, options)
-            num
-          else
-            nil
           end
         end
       end
