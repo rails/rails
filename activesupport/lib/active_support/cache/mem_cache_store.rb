@@ -81,13 +81,7 @@ module ActiveSupport
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
       def increment(name, amount = 1, options = nil) # :nodoc:
-        options = merged_options(options)
-        instrument(:increment, name, :amount => amount) do
-          @data.incr(escape_key(namespaced_key(name, options)), amount)
-        end
-      rescue Dalli::DalliError => e
-        logger.error("DalliError (#{e}): #{e.message}") if logger
-        nil
+        add_value(name, amount, :increment, options)
       end
 
       # Decrement a cached value. This method uses the memcached decr atomic
@@ -95,9 +89,13 @@ module ActiveSupport
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
       def decrement(name, amount = 1, options = nil) # :nodoc:
+        add_value(name, -amount, :decrement, options)
+      end
+
+      def add_value(name, amount, operation, options)
         options = merged_options(options)
-        instrument(:decrement, name, :amount => amount) do
-          @data.decr(escape_key(namespaced_key(name, options)), amount)
+        instrument(operation, name, :amount => amount) do
+          @data.incr(escape_key(namespaced_key(name, options)), amount)
         end
       rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
