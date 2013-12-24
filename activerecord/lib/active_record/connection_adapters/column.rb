@@ -120,6 +120,10 @@ module ActiveRecord
         type_cast(default)
       end
 
+      def case_sensitive?
+        true
+      end
+
       class << self
         # Used to convert from BLOBs to Strings
         def binary_to_string(value)

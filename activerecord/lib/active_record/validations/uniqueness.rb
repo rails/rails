@@ -6,7 +6,7 @@ module ActiveRecord
           raise ArgumentError, "#{options[:conditions]} was passed as :conditions but is not callable. " \
                                "Pass a callable instead: `conditions: -> { where(approved: true) }`"
         end
-        super({ case_sensitive: true }.merge!(options))
+        super(options)
         @klass = options[:class]
       end
 
@@ -63,7 +63,12 @@ module ActiveRecord
         value  = klass.connection.type_cast(value, column)
         value  = value.to_s[0, column.limit] if value && column.limit && column.text?
 
-        if !options[:case_sensitive] && value && column.text?
+        if options.key?(:case_sensitive)
+          case_sensitive = options[:case_sensitive]
+        else
+          case_sensitive = column.case_sensitive?
+        end
+        if !case_sensitive && value && column.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
