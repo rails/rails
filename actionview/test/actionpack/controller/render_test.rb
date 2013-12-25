@@ -44,8 +44,6 @@ module Quiz
     end
   end
 
-  class Store < Question; end
-
   # Controller
   class QuestionsController < ApplicationController
     def new
