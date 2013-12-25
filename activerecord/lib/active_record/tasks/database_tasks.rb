@@ -78,7 +78,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           create configuration
         }
-        ActiveRecord::Base.establish_connection environment
+        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def drop(*arguments)
