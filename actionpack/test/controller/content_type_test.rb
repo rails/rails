@@ -60,6 +60,14 @@ class ContentTypeTest < ActionController::TestCase
     @controller.logger = ActiveSupport::Logger.new(nil)
   end
 
+  def test_set_content_type_for_implicit_render
+    get :render_default_content_types_for_respond_to, :format => :js
+    assert_equal "text/javascript", @response.content_type
+
+    get :render_default_for_erb, :format => :html
+    assert_equal "text/html", @response.content_type
+  end
+
   # :ported:
   def test_render_defaults
     get :render_defaults

@@ -2,7 +2,10 @@ module ActionController
   module ImplicitRender
     def send_action(method, *args)
       ret = super
-      default_render unless performed?
+      unless performed?
+        lookup_context.rendered_format = nil
+        default_render
+      end
       ret
     end
 
