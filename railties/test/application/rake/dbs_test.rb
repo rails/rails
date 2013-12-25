@@ -129,7 +129,7 @@ module ApplicationTests
            bundle exec rake db:migrate db:structure:dump`
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE \"books\"/, structure_dump)
-          `bundle exec rake db:drop db:structure:load`
+          `bundle exec rake environment db:drop db:structure:load`
           assert_match(/#{expected[:database]}/,
                         ActiveRecord::Base.connection_config[:database])
           require "#{app_path}/app/models/book"
