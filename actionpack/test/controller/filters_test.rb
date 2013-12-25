@@ -893,17 +893,6 @@ class ControllerWithFilterInstance < PostsController
   around_filter YieldingFilter.new, :only => :raises_after
 end
 
-class ControllerWithFilterMethod < PostsController
-  class YieldingFilter < DefaultFilter
-    def around(controller)
-      yield
-      raise After
-    end
-  end
-
-  around_filter YieldingFilter.new.method(:around), :only => :raises_after
-end
-
 class ControllerWithProcFilter < PostsController
   around_filter(:only => :no_raise) do |c,b|
     c.instance_variable_set(:"@before", true)
