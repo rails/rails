@@ -361,7 +361,7 @@ module ActiveRecord
     #   assert_equal 25, account.credit        # check it is updated in memory
     #   assert_equal 25, account.reload.credit # check it is also persisted
     #
-    # Another commom use case is optimistic locking handling:
+    # Another common use case is optimistic locking handling:
     #
     #   def with_optimistic_retry
     #     begin
