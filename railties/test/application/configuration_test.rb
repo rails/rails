@@ -303,7 +303,7 @@ module ApplicationTests
       assert_not_equal default_verifier.object_id, text_verifier.object_id
     end
 
-    test "secrets.secret_key_base is used when config/tokens.yml is present" do
+    test "secrets.secret_key_base is used when config/secrets.yml is present" do
       app_file 'config/secrets.yml', <<-YAML
         development:
           secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
@@ -323,7 +323,7 @@ module ApplicationTests
       assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_key_base
     end
 
-    test "custom secrets saved in config/tokens.yml are loaded in app secrets" do
+    test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
       app_file 'config/secrets.yml', <<-YAML
         development:
           secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
