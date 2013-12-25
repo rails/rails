@@ -20,9 +20,12 @@ module ApplicationTests
       end
 
       def set_database_url
-        ENV['DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
+        ENV['RAILS_DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
+        File.open("#{app_path}/config/database.yml", 'w') do |f|
+          f << {ENV['RAILS_ENV'] => '<%= ENV["RAILS_DATABASE_URL"] %>'}.to_yaml
+        end
       end
 
       def expected
