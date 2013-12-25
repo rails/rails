@@ -137,6 +137,7 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) do
 
         class ActiveRecord::NoDatabaseError
+          remove_possible_method :extend_message
           def extend_message(message)
             message << "Run `$ bin/rake db:create db:migrate` to create your database"
             message
