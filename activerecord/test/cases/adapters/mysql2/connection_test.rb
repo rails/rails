@@ -13,6 +13,13 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     super
   end
 
+  def test_bad_connection
+    assert_raise ActiveRecord::NoDatabaseError do
+      connection = ActiveRecord::Base.mysql2_connection(adapter: "mysql2", database: "should_not_exist-cinco-dog-db")
+      connection.exec_query('drop table if exists ex')
+    end
+  end
+
   def test_no_automatic_reconnection_after_timeout
     assert @connection.active?
     @connection.update('set @@wait_timeout=1')
