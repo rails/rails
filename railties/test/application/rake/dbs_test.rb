@@ -153,7 +153,7 @@ module ApplicationTests
           `rails generate model book title:string;
            bundle exec rake db:migrate db:structure:dump db:test:load_structure`
           ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-          ActiveRecord::Base.establish_connection 'test'
+          ActiveRecord::Base.establish_connection :test
           require "#{app_path}/app/models/book"
           #if structure is not loaded correctly, exception would be raised
           assert Book.count, 0
