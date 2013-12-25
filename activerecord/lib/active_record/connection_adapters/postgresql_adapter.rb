@@ -46,7 +46,7 @@ module ActiveRecord
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       attr_accessor :array
-      # Instantiates a new PostgreSQL column definition in a table.
+
       def initialize(name, default, oid_type, sql_type = nil, null = true)
         @oid_type = oid_type
         default_value     = self.class.extract_value_from_default(default)
@@ -60,6 +60,14 @@ module ActiveRecord
         end
 
         @default_function = default if has_default_function?(default_value, default)
+      end
+
+      def number?
+        !array && super
+      end
+
+      def text?
+        !array && super
       end
 
       # :stopdoc:
@@ -865,6 +873,12 @@ module ActiveRecord
           PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
 
           configure_connection
+        rescue ::PG::Error => error
+          if error.message.include?("does not exist")
+            raise ActiveRecord::NoDatabaseError.new(error.message)
+          else
+            raise error
+          end
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.

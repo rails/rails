@@ -28,8 +28,8 @@ if ActiveRecord::Base.connection.supports_transaction_isolation?
     end
 
     setup do
-      Tag.establish_connection 'arunit'
-      Tag2.establish_connection 'arunit'
+      Tag.establish_connection :arunit
+      Tag2.establish_connection :arunit
       Tag.destroy_all
     end
 

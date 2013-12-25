@@ -50,7 +50,7 @@ module ActionDispatch
       #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first
       #
       def format(view_path = [])
-        formats.first
+        formats.first || Mime::NullType.instance
       end
 
       def formats

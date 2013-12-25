@@ -93,7 +93,8 @@ module TestHelpers
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
       @prev_rails_env = ENV['RAILS_ENV']
-      ENV['RAILS_ENV'] = 'development'
+      ENV['RAILS_ENV']             = 'development'
+      ENV['RAILS_SECRET_KEY_BASE'] ||= SecureRandom.hex(16)
 
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(app_template_path, app_path)
@@ -115,6 +116,24 @@ module TestHelpers
         File.open("#{app_path}/config/routes.rb", 'w') do |f|
           f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)', via: :all\n" + $1
         end
+      end
+
+      File.open("#{app_path}/config/database.yml", "w") do |f|
+        f.puts <<-YAML
+        default: &default
+          adapter: sqlite3
+          pool: 5
+          timeout: 5000
+        development:
+          <<: *default
+          database: db/development.sqlite3
+        test:
+          <<: *default
+          database: db/test.sqlite3
+        production:
+          <<: *default
+          database: db/production.sqlite3
+        YAML
       end
 
       add_to_config <<-RUBY

@@ -83,9 +83,8 @@ module Rails
       @config ||= begin
         require APP_PATH
         ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(
-          ENV['DATABASE_URL'],
-          (Rails.application.config.database_configuration || {})
-        ).spec.config.stringify_keys
+          Rails.application.config.database_configuration || {}
+        ).resolve(ENV["DATABASE_URL"])
       end
     end
 

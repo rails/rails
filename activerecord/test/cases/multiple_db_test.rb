@@ -101,7 +101,7 @@ class MultipleDbTest < ActiveRecord::TestCase
           College.first.courses.first
         end
       ensure
-        ActiveRecord::Base.establish_connection 'arunit'
+        ActiveRecord::Base.establish_connection :arunit
       end
     end
   end

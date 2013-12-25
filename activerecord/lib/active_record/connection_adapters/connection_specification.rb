@@ -16,38 +16,24 @@ module ActiveRecord
       ##
       # Builds a ConnectionSpecification from user input
       class Resolver # :nodoc:
-        attr_reader :config, :klass, :configurations
+        attr_reader :configurations
 
-        def initialize(config, configurations)
-          @config         = config
+        def initialize(configurations)
           @configurations = configurations
         end
 
-        def spec
-          case config
-          when nil
-            raise AdapterNotSpecified unless defined?(Rails.env)
-            resolve_string_connection Rails.env
-          when Symbol, String
-            resolve_string_connection config.to_s
-          when Hash
-            resolve_hash_connection config
+        def resolve(config)
+          if config
+            resolve_connection config
+          elsif defined?(Rails.env)
+            resolve_env_connection Rails.env.to_sym
+          else
+            raise AdapterNotSpecified
           end
         end
 
-        private
-        def resolve_string_connection(spec) # :nodoc:
-          hash = configurations.fetch(spec) do |k|
-            connection_url_to_hash(k)
-          end
-
-          raise(AdapterNotSpecified, "#{spec} database is not configured") unless hash
-
-          resolve_hash_connection hash
-        end
-
-        def resolve_hash_connection(spec) # :nodoc:
-          spec = spec.symbolize_keys
+        def spec(config)
+          spec = resolve(config).symbolize_keys
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
 
@@ -61,20 +47,64 @@ module ActiveRecord
           end
 
           adapter_method = "#{spec[:adapter]}_connection"
-
           ConnectionSpecification.new(spec, adapter_method)
         end
 
-        def connection_url_to_hash(url) # :nodoc:
-          config = URI.parse url
+        private
+
+        def resolve_connection(spec) #:nodoc:
+          case spec
+          when Symbol, String
+            resolve_env_connection spec
+          when Hash
+            resolve_hash_connection spec
+          end
+        end
+
+        def resolve_env_connection(spec) # :nodoc:
+          # Rails has historically accepted a string to mean either
+          # an environment key or a url spec, so we have deprecated
+          # this ambiguous behaviour and in the future this function
+          # can be removed in favor of resolve_string_connection and
+          # resolve_symbol_connection.
+          if config = configurations[spec.to_s]
+            if spec.is_a?(String)
+              ActiveSupport::Deprecation.warn "Passing a string to ActiveRecord::Base.establish_connection " \
+                "for a configuration lookup is deprecated, please pass a symbol (#{spec.to_sym.inspect}) instead"
+            end
+            resolve_connection(config)
+          elsif spec.is_a?(String)
+            resolve_string_connection(spec)
+          else
+            raise(AdapterNotSpecified, "#{spec} database is not configured")
+          end
+        end
+
+        def resolve_hash_connection(spec) # :nodoc:
+          spec
+        end
+
+        def resolve_string_connection(spec) # :nodoc:
+          config  = URI.parse spec
           adapter = config.scheme
           adapter = "postgresql" if adapter == "postgres"
-          spec = { :adapter  => adapter,
-                   :username => config.user,
-                   :password => config.password,
-                   :port     => config.port,
-                   :database => config.path.sub(%r{^/},""),
-                   :host     => config.host }
+
+          database = if adapter == 'sqlite3'
+                       if '/:memory:' == config.path
+                         ':memory:'
+                       else
+                         config.path
+                       end
+                     else
+                       config.path.sub(%r{^/},"")
+                     end
+
+          spec = { "adapter"  => adapter,
+                   "username" => config.user,
+                   "password" => config.password,
+                   "port"     => config.port,
+                   "database" => database,
+                   "host"     => config.host }
 
           spec.reject!{ |_,value| value.blank? }
 
@@ -83,8 +113,7 @@ module ActiveRecord
           spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
 
           if config.query
-            options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
-
+            options = Hash[config.query.split("&").map{ |pair| pair.split("=") }]
             spec.merge!(options)
           end
 

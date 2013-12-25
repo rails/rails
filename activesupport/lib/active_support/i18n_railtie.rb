@@ -52,7 +52,7 @@ module I18n
 
       init_fallbacks(fallbacks) if fallbacks && validate_fallbacks(fallbacks)
 
-      # Restore avalable locales check so it will take place from now on.
+      # Restore available locales check so it will take place from now on.
       I18n.enforce_available_locales = enforce_available_locales
 
       reloader = ActiveSupport::FileUpdateChecker.new(I18n.load_path.dup){ I18n.reload! }

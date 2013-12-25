@@ -356,6 +356,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(2) { line_item.destroy }
   end
 
+  def test_belongs_to_with_touch_option_on_destroy_with_destroyed_parent
+    line_item = LineItem.create!
+    invoice   = Invoice.create!(line_items: [line_item])
+    invoice.destroy
+
+    assert_queries(1) { line_item.destroy }
+  end
+
   def test_belongs_to_with_touch_option_on_touch_and_reassigned_parent
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])

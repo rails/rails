@@ -1,3 +1,65 @@
+*   Deprecated use of string argument as a configuration lookup in `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
+
+    *José Valim*
+
+*   Fixed `update_column`, `update_columns`, and `update_all` to correctly serialize
+    values for `array`, `hstore` and `json` column types in PostgreSQL.
+
+    Fixes #12261.
+
+    *Tadas Tamosauskas*, *Carlos Antonio da Silva*
+
+*   Do not consider PostgreSQL array columns as number or text columns.
+
+    The code uses these checks in several places to know what to do with a
+    particular column, for instance AR attribute query methods has a branch
+    like this:
+
+        if column.number?
+          !value.zero?
+        end
+
+    This should never be true for array columns, since it would be the same
+    as running [].zero?, which results in a NoMethodError exception.
+
+    Fixing this by ensuring that array columns in PostgreSQL never return
+    true for number?/text? checks.
+
+    *Carlos Antonio da Silva*
+
+*   When connecting to a non-existant database, the error:
+    `ActiveRecord::NoDatabaseError` will now be raised. When being used with Rails
+    the error message will include information on how to create a database:
+    `rake db:create`. Supported adapters: postgresql, mysql, mysql2, sqlite3
+
+    *Richard Schneeman*
+
+*   Do not raise `'can not touch on a new record object'` exception on destroying already destroyed
+    `belongs_to` association with `touch: true` option
+
+    Fixes: #13445
+
+    Example:
+
+        # Given Comment has belongs_to :post, touch: true
+        comment.post.destroy
+        comment.destroy # no longer raises an error
+
+    *Paul Nikitochkin*
+
+*   Fix a bug when assigning an array containing string numbers to a
+    PostgreSQL integer array column.
+
+    Fixes #13444.
+
+    Example:
+
+        # Given Book#ratings is of type :integer, array: true
+        Book.new(ratings: [1, 2]) # worked before
+        Book.new(ratings: ['1', '2']) # now works as well
+
+    *Damien Mathieu*
+
 *   Improve the default select when `from` is used.
 
     Previously, if you did something like Topic.from(:temp_topics), it

@@ -32,11 +32,18 @@ module ActiveRecord
     #     "postgres://myuser:mypass@localhost/somedatabase"
     #   )
     #
+    # In case <tt>ActiveRecord::Base.configurations</tt> is set (Rails
+    # automatically loads the contents of config/database.yml into it),
+    # a symbol can also be given as argument, representing a key in the
+    # configuration hash:
+    #
+    #   ActiveRecord::Base.establish_connection(:production)
+    #
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
     def establish_connection(spec = ENV["DATABASE_URL"])
-      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new spec, configurations
-      spec = resolver.spec
+      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
+      spec = resolver.spec(spec)
 
       unless respond_to?(spec.adapter_method)
         raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"

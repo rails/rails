@@ -61,6 +61,6 @@ test:
   <<: *default
   database: <%= app_name[0,4] %>_tst
 
-production:
-  <<: *default
-  database: <%= app_name[0,8] %>
+# Do not keep production credentials in the repository,
+# instead read the configuration from the environment.
+production: <%%= ENV["RAILS_DATABASE_URL"] %>

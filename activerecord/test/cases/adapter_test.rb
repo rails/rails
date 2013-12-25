@@ -191,7 +191,7 @@ module ActiveRecord
     end
 
     def setup
-      Klass.establish_connection 'arunit'
+      Klass.establish_connection :arunit
       @connection = Klass.connection
     end
 
