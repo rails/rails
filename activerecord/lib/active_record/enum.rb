@@ -52,12 +52,30 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation::STATUS[:archived])
   module Enum
+
+    def enum_attribute?(attr_name)
+      klass = self
+      return false unless defined?(klass::ENUMS)
+      klass::ENUMS.key? attr_name
+    end
+
+    def enum_value?(enum_value)
+      klass = self
+      return false unless defined?(klass::ENUMS)
+      klass::ENUMS.any? do |enum_name, values|
+        values.key? enum_value
+      end
+    end
+
     def enum(definitions)
       klass = self
+      klass.const_set("ENUMS", ActiveSupport::HashWithIndifferentAccess.new) unless defined?(klass::ENUMS)
       definitions.each do |name, values|
         # STATUS = { }
         enum_values = _enum_methods_module.const_set name.to_s.upcase, ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
+
+        klass::ENUMS[name] = enum_values
 
         _enum_methods_module.module_eval do
           # def status=(value) self[:status] = STATUS[value] end
@@ -69,29 +87,45 @@ module ActiveRecord
           }
 
           # def status() STATUS.key self[:status] end
-          define_method(name) { enum_values.key self[name] }
+          define_method(name) { self[name] }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
+
+            if klass.enum_value?(value)
+              raise ArgumentError, "'#{value}' enum value has already been used"
+            end
+
             enum_values[value] = i
 
             # scope :active, -> { where status: 0 }
             klass.scope value, -> { klass.where name => i }
 
             # def active?() status == 0 end
-            define_method("#{value}?") { self[name] == i }
+            define_method("#{value}?") { self[name] == value.to_s }
 
             # def active!() update! status: :active end
             define_method("#{value}!") { update! name => value }
           end
         end
+
       end
     end
 
     private
       def _enum_methods_module
         @_enum_methods_module ||= begin
-          mod = Module.new
+          mod = Module.new do
+
+            def read_attribute(attr_name)
+              if self.class.enum_attribute?(attr_name)
+                (self.class)::ENUMS[attr_name].key(super)
+              else
+                super
+              end
+            end
+
+          end
           include mod
           mod
         end
