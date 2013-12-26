@@ -366,7 +366,7 @@ for detailed changes.
 * Removed deprecated `increment_open_transactions`.
 
 * Removed deprecated `PostgreSQLAdapter#outside_transaction?`
-  methodd. You can use `#transaction_open?` instead.
+  method. You can use `#transaction_open?` instead.
 
 * Removed deprecated `ActiveRecord::Fixtures.find_table_name` in favor of
   `ActiveRecord::Fixtures.default_fixture_model_name`.
