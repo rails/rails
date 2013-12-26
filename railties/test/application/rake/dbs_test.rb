@@ -20,9 +20,12 @@ module ApplicationTests
       end
 
       def set_database_url
-        ENV['DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
+        ENV['RAILS_DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
+        File.open("#{app_path}/config/database.yml", 'w') do |f|
+          f << {ENV['RAILS_ENV'] => %Q{<%= ENV['RAILS_DATABASE_URL'] %>}}.to_yaml
+        end
       end
 
       def expected
@@ -126,7 +129,7 @@ module ApplicationTests
            bundle exec rake db:migrate db:structure:dump`
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE \"books\"/, structure_dump)
-          `bundle exec rake db:drop db:structure:load`
+          `bundle exec rake environment db:drop db:structure:load`
           assert_match(/#{expected[:database]}/,
                         ActiveRecord::Base.connection_config[:database])
           require "#{app_path}/app/models/book"

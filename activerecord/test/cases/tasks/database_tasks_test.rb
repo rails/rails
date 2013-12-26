@@ -143,7 +143,7 @@ module ActiveRecord
     def test_establishes_connection_for_the_given_environment
       ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
 
-      ActiveRecord::Base.expects(:establish_connection).with('development')
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
