@@ -29,7 +29,7 @@ end
 require 'minitest/autorun'
 require 'rack/test'
 
-class BugTest < Minitest::Unit::TestCase
+class BugTest < Minitest::Test
   include Rack::Test::Methods
 
   def test_returns_success
