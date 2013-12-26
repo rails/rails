@@ -9,7 +9,7 @@ module Rails
         @in_group = nil
       end
 
-      # Adds an entry into Gemfile for the supplied gem.
+      # Adds an entry into +Gemfile+ for the supplied gem.
       #
       #   gem "rspec", group: :test
       #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
@@ -61,7 +61,7 @@ module Rails
         end
       end
 
-      # Add the given source to Gemfile
+      # Add the given source to +Gemfile+
       #
       #   add_source "http://gems.github.com/"
       def add_source(source, options={})
@@ -72,10 +72,10 @@ module Rails
         end
       end
 
-      # Adds a line inside the Application class for config/application.rb.
+      # Adds a line inside the Application class for <tt>config/application.rb</tt>.
       #
-      # If options :env is specified, the line is appended to the corresponding
-      # file in config/environments.
+      # If options <tt>:env</tt> is specified, the line is appended to the corresponding
+      # file in <tt>config/environments</tt>.
       #
       #   environment do
       #     "config.autoload_paths += %W(#{config.root}/extras)"
@@ -116,7 +116,7 @@ module Rails
         end
       end
 
-      # Create a new file in the vendor/ directory. Code can be specified
+      # Create a new file in the <tt>vendor/</tt> directory. Code can be specified
       # in a block or a data string can be given.
       #
       #   vendor("sekrit.rb") do
@@ -143,7 +143,7 @@ module Rails
         create_file("lib/#{filename}", data, verbose: false, &block)
       end
 
-      # Create a new Rakefile with the provided code (either in a block or a string).
+      # Create a new +Rakefile+ with the provided code (either in a block or a string).
       #
       #   rakefile("bootstrap.rake") do
       #     project = ask("What is the UNIX name of your project?")
@@ -213,7 +213,7 @@ module Rails
         in_root { run("#{extify(:capify)} .", verbose: false) }
       end
 
-      # Make an entry in Rails routing file config/routes.rb
+      # Make an entry in Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
       def route(routing_code)
