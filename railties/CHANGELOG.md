@@ -1,3 +1,12 @@
+*   Update the files under the public directory when upgrading
+
+    While running `bin/rake rails:update`, the files under the public
+    directory should be updated as the ones under config or bin.
+
+    Fixes #13499.
+
+    *Robin Dupret*
+
 *   Configure `secrets.yml` and `database.yml` to read configuration
     from the system environment by default for production.
 
