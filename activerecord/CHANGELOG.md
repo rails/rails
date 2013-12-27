@@ -408,8 +408,9 @@
 
         # conversation.update! status: 1
         conversation.archived!
-        conversation.archived? # => true
-        conversation.status    # => "archived"
+        conversation.archived?  # => true
+        conversation.status     # => "archived"
+        conversation.status_was # => "active"
 
         # conversation.update! status: 1
         conversation.status = :archived
