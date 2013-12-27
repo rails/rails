@@ -152,6 +152,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal original_errors, client.errors
   end
 
+  def test_becomes_includes_changed_attributes
+    company = Company.new(:name => "Three's")
+    client = company.becomes(Client)
+    assert_includes client.changed_attributes, 'type'
+    assert_includes client.changed_attributes, 'name'
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])

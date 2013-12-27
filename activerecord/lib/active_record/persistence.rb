@@ -184,6 +184,23 @@ module ActiveRecord
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
+
+      became_changed_attributes =
+        if became.instance_variable_defined?("@changed_attributes")
+          became.instance_variable_get("@changed_attributes")
+        end
+      changed_attributes =
+        if instance_variable_defined?("@changed_attributes")
+          @changed_attributes
+        end
+      if changed_attributes && became_changed_attributes
+        changed_attributes.merge!(became_changed_attributes)
+      elsif became_changed_attributes
+        changed_attributes = became_changed_attributes
+      end
+      @changed_attributes = changed_attributes
+      became.instance_variable_set("@changed_attributes", @changed_attributes)
+
       became
     end
 
