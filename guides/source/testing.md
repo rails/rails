@@ -784,7 +784,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
         u = users(user)
         sess.https!
         sess.post "/login", username: u.username, password: u.password
-        assert_equal '/welcome', path
+        assert_equal '/welcome', sess.path
         sess.https!(false)
       end
     end
