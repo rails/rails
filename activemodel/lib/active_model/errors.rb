@@ -214,7 +214,7 @@ module ActiveModel
     #   person.errors.full_messages # => ["name can not be nil"]
     #   person.errors.empty?        # => false
     def empty?
-      all? { |k, v| v && v.empty? && !v.is_a?(String) }
+      values.flatten.empty?
     end
     # aliases empty?
     alias_method :blank?, :empty?
