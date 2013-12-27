@@ -1,6 +1,6 @@
 namespace :rails do
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
-  task update: [ "update:configs", "update:bin" ]
+  task update: [ "update:configs", "update:bin", "update:public" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task :template do
@@ -61,6 +61,11 @@ namespace :rails do
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
       invoke_from_app_generator :create_bin_files
+    end
+
+    # desc "Update the static files under the public/ directory"
+    task :public do
+      invoke_from_app_generator :create_public_files
     end
   end
 end
