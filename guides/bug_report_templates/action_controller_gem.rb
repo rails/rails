@@ -29,6 +29,9 @@ end
 require 'minitest/autorun'
 require 'rack/test'
 
+# Ensure backward compatibility with Minitest 4
+Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
+
 class BugTest < Minitest::Test
   include Rack::Test::Methods
 
