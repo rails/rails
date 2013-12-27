@@ -2,7 +2,7 @@ require 'active_support/json'
 
 module ActiveModel
   module Serializers
-    # == Active Model JSON Serializer
+    # == Active \Model \JSON \Serializer
     module JSON
       extend ActiveSupport::Concern
       include ActiveModel::Serialization
