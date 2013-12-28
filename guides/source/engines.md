@@ -959,8 +959,8 @@ self.author = Blorgh.author_class.find_or_create_by(name: author_name)
 Resulting in something a little shorter, and more implicit in its behavior. The
 `author_class` method should always return a `Class` object.
 
-Since we changed the `author_class` method to return a `String` instead of a
-`Class`, we must also modify our `belongs_to` definition in the `Blorgh::Post`
+Since we changed the `author_class` method to return a `Class` instead of a
+`String`, we must also modify our `belongs_to` definition in the `Blorgh::Post`
 model:
 
 ```ruby
@@ -1014,7 +1014,8 @@ application. The same thing goes if you want to use a standard initializer.
 For locales, simply place the locale files in the `config/locales` directory,
 just like you would in an application.
 
-Testing an engine -----------------
+Testing an engine
+-----------------
 
 When an engine is generated, there is a smaller dummy application created inside
 it at `test/dummy`. This application is used as a mounting point for the engine,
