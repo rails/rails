@@ -92,7 +92,7 @@ class String
   #   '　'.blank?               # => true
   #   ' something here '.blank? # => false
   def blank?
-    self =~ BLANK_MATCHER
+    BLANK_MATCHER === self
   end
 end
 
