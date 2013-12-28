@@ -93,6 +93,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     create
   end
 
+  # DELETE /users/1..10
   def destroy_many
     @<%= plural_table_name %> = <%= orm_class.destroy(class_name, "#{plural_table_name}_ids") %>
   end
