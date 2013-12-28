@@ -83,6 +83,8 @@ class Hash
 end
 
 class String
+  BLANK_MATCHER = /\A[[:space:]]*\z/
+
   # A string is blank if it's empty or contains whitespaces only:
   #
   #   ''.blank?                 # => true
@@ -90,7 +92,7 @@ class String
   #   '　'.blank?               # => true
   #   ' something here '.blank? # => false
   def blank?
-    self =~ /\A[[:space:]]*\z/
+    self =~ BLANK_MATCHER
   end
 end
 
