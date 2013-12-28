@@ -1,3 +1,7 @@
+*   `blank?` and `present?` commit to return singletons.
+
+    *Xavier Noria*, *Pavel Pravosud*
+
 *   Fixed Float related error in NumberHelper with large precisions.
 
     before:
