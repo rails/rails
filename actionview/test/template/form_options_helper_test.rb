@@ -574,7 +574,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_with_multiple_to_add_hidden_input
     output_buffer =  select(:post, :category, "", {}, :multiple => true)
     assert_dom_equal(
-      "<input type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select>",
+      "<select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\"></select><input type=\"hidden\" name=\"post[category][]\" value=\"\"/>",
       output_buffer
     )
   end
@@ -598,7 +598,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_with_multiple_and_disabled_to_add_disabled_hidden_input
     output_buffer =  select(:post, :category, "", {}, :multiple => true, :disabled => true)
     assert_dom_equal(
-      "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
+      "<select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select><input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\"/>",
       output_buffer
     )
   end
@@ -729,7 +729,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_required_select_with_multiple_option
     assert_dom_equal(
-      %(<input name="post[category][]" type="hidden" value=""/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
+      %(<select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select><input name="post[category][]" type="hidden" value=""/>),
       select("post", "category", %w(abe mus hest), {}, required: true, multiple: true)
     )
   end
@@ -813,7 +813,7 @@ class FormOptionsHelperTest < ActionView::TestCase
       select("post", "category", %w( one two ), :selected => 'two', :prompt => true)
     )
   end
-  
+
   def test_select_with_disabled_array
     @post = Post.new
     @post.category = "<mus>"
@@ -909,7 +909,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.author_name = "Babe"
 
-    expected = "<input type=\"hidden\" name=\"post[author_name][]\" value=\"\"/><select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>"
+    expected = "<select id=\"post_author_name\" name=\"post[author_name][]\" multiple=\"multiple\"><option value=\"\"></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select><input type=\"hidden\" name=\"post[author_name][]\" value=\"\"/>"
 
     # Should suffix default name with [].
     assert_dom_equal expected, collection_select("post", "author_name", dummy_posts, "author_name", "author_name", { :include_blank => true }, :multiple => true)
