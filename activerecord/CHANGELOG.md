@@ -1,3 +1,7 @@
+*   Changed read_attribute to return string version of enum so `ActiveModel::Dirty` methods work as expected.
+
+    *Sean Devine*
+
 *   Deprecated use of string argument as a configuration lookup in `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
 
     *José Valim*

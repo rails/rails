@@ -51,6 +51,36 @@ class EnumTest < ActiveRecord::TestCase
     assert @book.written?
   end
 
+  test "raises ArgumentError if duplicate enum value" do
+    assert_raises ArgumentError do
+      class Boook < ActiveRecord::Base
+        enum status: [:duplicate, :duplicate]
+      end
+    end
+  end
+
+  test "enum_was" do
+    old_status = @book.status
+    @book.status = :published
+    assert_equal old_status, @book.changed_attributes[:status]
+  end
+
+  test "enum_value? when false" do
+    assert_equal false, Book.enum_value?(:dream)
+  end
+
+  test "enum_value? when true" do
+    assert_equal true, Book.enum_value?(:published)
+  end
+
+  test "enum_attribute? when true" do
+    assert_equal true, Book.enum_attribute?(:status)
+  end
+
+  test "enum_attribute? when false" do
+    assert_equal false, Book.enum_attribute?(:marital_status)
+  end
+
   test "assign non existing value raises an error" do
     e = assert_raises(ArgumentError) do
       @book.status = :unknown
