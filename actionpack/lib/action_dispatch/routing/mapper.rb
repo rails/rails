@@ -3,6 +3,7 @@ require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/module/remove_method'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 
@@ -546,11 +547,11 @@ module ActionDispatch
             _routes = @set
             app.routes.define_mounted_helper(name)
             app.routes.singleton_class.class_eval do
-              define_method :mounted? do
+              redefine_method :mounted? do
                 true
               end
 
-              define_method :_generate_prefix do |options|
+              redefine_method :_generate_prefix do |options|
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
                 _route.segment_keys.each { |k| options.delete(k) }
