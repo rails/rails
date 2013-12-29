@@ -1,3 +1,18 @@
+*   Fix `Encoding::CompatibilityError` when public path is UTF-8
+
+    In #5337 we forced the path encoding to ASCII-8BIT to prevent static file handling
+    from blowing up before an application has had chance to deal with possibly invalid
+    urls. However this has a negative side effect of making it an incompatible encoding
+    if the application's public path has UTF-8 characters in it.
+
+    To work around the problem we check to see if the path has a valid encoding once
+    it has been unescaped. If it is not valid then we can return early since it will
+    not match any file anyway.
+
+    Fixes #13518
+
+    *Andrew White*
+
 *   `ActionController::Parameters#permit!` permits hashes in array values.
 
     *Xavier Noria*
