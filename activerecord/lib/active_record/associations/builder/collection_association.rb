@@ -61,8 +61,10 @@ module ActiveRecord::Associations::Builder
     def self.define_readers(mixin, name)
       super
 
+      _method_name = "#{name.to_s.singularize}_ids"
+      mixin.remove_possible_method _method_name
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name.to_s.singularize}_ids
+        def #{ _method_name }
           association(:#{name}).ids_reader
         end
       CODE
@@ -71,8 +73,10 @@ module ActiveRecord::Associations::Builder
     def self.define_writers(mixin, name)
       super
 
+      _method_name = "#{name.to_s.singularize}_ids="
+      mixin.remove_possible_method _method_name
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name.to_s.singularize}_ids=(ids)
+        def #{ _method_name }(ids)
           association(:#{name}).ids_writer(ids)
         end
       CODE
