@@ -5,6 +5,8 @@ end
 class Company < AbstractCompany
   self.sequence_name = :companies_nonstd_seq
 
+  attr_accessor :alias_name
+
   validates_presence_of :name
 
   has_one :dummy_account, :foreign_key => "firm_id", :class_name => "Account"

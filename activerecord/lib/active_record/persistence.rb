@@ -177,7 +177,7 @@ module ActiveRecord
     #
     # Note: The new instance will share a link to the same attributes as the original class.
     # So any change to the attributes in either instance will affect the other.
-    def becomes(klass)
+    def becomes(klass, *virtual_attributes)
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@attributes_cache", @attributes_cache)
@@ -185,6 +185,9 @@ module ActiveRecord
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
+      virtual_attributes.each do |attr|
+        became.public_send("#{ attr }=", send(attr))
+      end
       became
     end
 
@@ -194,8 +197,8 @@ module ActiveRecord
     #
     # Note: The old instance's sti column value will be changed too, as both objects
     # share the same set of attributes.
-    def becomes!(klass)
-      became = becomes(klass)
+    def becomes!(klass, *virtual_attributes)
+      became = becomes(klass, *virtual_attributes)
       became.public_send("#{klass.inheritance_column}=", klass.sti_name) unless self.class.descends_from_active_record?
       became
     end
