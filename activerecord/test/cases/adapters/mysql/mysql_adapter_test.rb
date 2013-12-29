@@ -18,7 +18,8 @@ module ActiveRecord
 
       def test_bad_connection_mysql
         assert_raise ActiveRecord::NoDatabaseError do
-          connection = ActiveRecord::Base.mysql_connection(adapter: "mysql", database: "should_not_exist-cinco-dog-db")
+          configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'should_not_exist-cinco-dog-db')
+          connection = ActiveRecord::Base.mysql_connection(configuration)
           connection.exec_query('drop table if exists ex')
         end
       end

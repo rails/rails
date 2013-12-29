@@ -12,7 +12,8 @@ module ActiveRecord
 
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
-          connection = ActiveRecord::Base.postgresql_connection(database: "should_not_exist-cinco-dog-db", adapter: "postgresql")
+          configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'should_not_exist-cinco-dog-db')
+          connection = ActiveRecord::Base.postgresql_connection(configuration)
           connection.exec_query('drop table if exists ex')
         end
       end
