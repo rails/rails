@@ -562,7 +562,6 @@ module Rails
       ActiveSupport::Dependencies.autoload_once_paths.unshift(*_all_autoload_once_paths)
 
       # Freeze so future modifications will fail rather than do nothing mysteriously
-      config.autoload_paths.freeze
       config.eager_load_paths.freeze
       config.autoload_once_paths.freeze
     end

@@ -41,11 +41,15 @@ module ActionMailer
       end
     end
 
-    initializer "action_mailer.configure_mailer_previews", before: :set_autoload_paths do |app|
+    initializer "action_mailer.configure_mailer_previews", before: :set_routes_reloader_hook do |app|
       if Rails.env.development?
         options = app.config.action_mailer
         options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
         app.config.autoload_paths << options.preview_path
+        # Ensure preview path is autoloaded
+        ActiveSupport::Dependencies.autoload_paths << options.preview_path
+        # Freeze so future modifications will fail rather than do nothing mysteriously
+        app.config.autoload_paths.freeze
       end
     end
   end
