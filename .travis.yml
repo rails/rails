@@ -2,6 +2,7 @@ script: 'ci/travis.rb'
 before_install:
   - travis_retry gem install bundler
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
+install: "bundle install --without test"
 rvm:
   - 1.9.3
   - 2.0.0
