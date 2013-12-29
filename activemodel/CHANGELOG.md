@@ -1,3 +1,8 @@
+*   Fixed `validates_numericality_of` validation. It behaves as expected when receives
+    not true values for `even` and `odd` options (not validate that option).
+
+   *Ancor Cruz*
+
 *   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
 
     *T.J. Schuck*
