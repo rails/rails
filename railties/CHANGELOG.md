@@ -1,3 +1,9 @@
+*   `test_help.rb` now automatically checks/maintains your test datbase
+    schema. (Use `config.active_record.maintain_test_schema = false` to
+    disable.)
+
+    *Jon Leighton*
+
 *   Configure `secrets.yml` and `database.yml` to read configuration
     from the system environment by default for production.
 

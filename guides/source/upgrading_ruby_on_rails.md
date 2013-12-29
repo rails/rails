@@ -91,6 +91,13 @@ secrets, you need to:
 
 5. Restart your server.
 
+### Changes to test helper
+
+If your test helper contains a call to
+`ActiveRecord::Migration.check_pending!` this can be removed. The check
+is now done automatically when you `require 'test_help'`, although
+leaving this line in your helper is not harmful in any way.
+
 ### Changes in JSON handling
 
 There are a few major changes related to JSON handling in Rails 4.1.

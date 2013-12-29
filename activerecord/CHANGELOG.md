@@ -1,3 +1,12 @@
+*   Since the `test_help.rb` in Railties now automatically maintains
+    your test schema, the `rake db:test:*` tasks are deprecated. This
+    doesn't stop you manually running other tasks on your test database
+    if needed:
+
+        rake db:schema:load RAILS_ENV=test
+
+    *Jon Leighton*
+
 *   Fix presence validator for association when the associated record responds to `to_a`.
 
     *gmarik*
@@ -53,6 +62,8 @@
 
 *   Deprecated use of string argument as a configuration lookup in
     `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
+
+*   Deprecated use of string argument as a configuration lookup in `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
 
     *José Valim*
 

@@ -211,31 +211,9 @@ This line of code is called an _assertion_. An assertion is a line of code that 
 
 Every test contains one or more assertions. Only when all the assertions are successful will the test pass.
 
-### Preparing your Application for Testing
+### Maintaining the test database schema
 
-Before you can run your tests, you need to ensure that the test database structure is current. For this you can use the following rake commands:
-
-```bash
-$ rake db:migrate
-...
-$ rake db:test:load
-```
-
-The `rake db:migrate` above runs any pending migrations on the _development_ environment and updates `db/schema.rb`. The `rake db:test:load` recreates the test database from the current `db/schema.rb`. On subsequent attempts, it is a good idea to first run `db:test:prepare`, as it first checks for pending migrations and warns you appropriately.
-
-NOTE: `db:test:prepare` will fail with an error if `db/schema.rb` doesn't exist.
-
-#### Rake Tasks for Preparing your Application for Testing
-
-| Tasks                          | Description                                                               |
-| ------------------------------ | ------------------------------------------------------------------------- |
-| `rake db:test:clone`           | Recreate the test database from the current environment's database schema |
-| `rake db:test:clone_structure` | Recreate the test database from the development structure                 |
-| `rake db:test:load`            | Recreate the test database from the current `schema.rb`                   |
-| `rake db:test:prepare`         | Check for pending migrations and load the test schema                     |
-| `rake db:test:purge`           | Empty the test database.                                                  |
-
-TIP: You can see all these rake tasks and their descriptions by running `rake --tasks --describe`
+In order to run your tests, your test database will need to have the current structure. The test helper checks whether your test database has any pending migrations. If so, it will try to load your `db/schema.rb` or `db/structure.sql` into the test database. If migrations are still pending, an error will be raised.
 
 ### Running Tests
 
