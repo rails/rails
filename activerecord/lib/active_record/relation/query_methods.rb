@@ -37,6 +37,8 @@ module ActiveRecord
       def not(opts, *rest)
         where_value = @scope.send(:build_where, opts, rest).map do |rel|
           case rel
+          when NilClass
+            raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
           when Arel::Nodes::In
             Arel::Nodes::NotIn.new(rel.left, rel.right)
           when Arel::Nodes::Equality
