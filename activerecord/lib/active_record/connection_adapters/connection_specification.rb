@@ -13,6 +13,83 @@ module ActiveRecord
         @config = original.config.dup
       end
 
+      # Expands a connection string into a hash
+      class ConnectionUrlResolver # :nodoc:
+
+        # == Example
+        #   url = 'postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000'
+        #   ConnectionUrlResolver.new(url).to_hash
+        #   # => {
+        #     "adapter"  => "postgresql",
+        #     "host"     => "localhost",
+        #     "port"     => 9000,
+        #     "database" => "foo_test",
+        #     "username" => "foo",
+        #     "password" => "bar",
+        #     "pool"     => "5",
+        #     "timeout"  => "3000"
+        #   }
+        def initialize(url)
+          raise "Database URL cannot be empty" if url.blank?
+          @uri     = URI.parse(url)
+          @adapter = @uri.scheme
+          @adapter = "postgresql" if @adapter == "postgres"
+          @query   = @uri.query || ''
+        end
+
+        # Converts the given url to a full connection hash
+        def to_hash
+          config = raw_config.reject { |_,value| value.blank? }
+          config.map { |key,value| config[key] = uri_parser.unescape(value) if value.is_a? String }
+          config
+        end
+
+        private
+
+        def uri
+          @uri
+        end
+
+        def uri_parser
+          @uri_parser ||= URI::Parser.new
+        end
+
+        # Converts the query parameters of the uri into a hash
+        #   "localhost?pool=5&reap_frequency=2"
+        #   # => {"pool" => "5", "reap_frequency" => "2"}
+        #
+        # returns empty hash if no query present
+        #   "localhost"
+        #   # => {}
+        def query_hash
+          Hash[@query.split("&").map { |pair| pair.split("=") }]
+        end
+
+        def raw_config
+          query_hash.merge({
+            "adapter"  => @adapter,
+            "username" => uri.user,
+            "password" => uri.password,
+            "port"     => uri.port,
+            "database" => database,
+            "host"     => uri.host })
+        end
+
+        # Returns name of the database
+        # sqlite3 expects this to be a full path or `:memory`
+        def database
+          if @adapter == 'sqlite3'
+            if '/:memory:' == uri.path
+              ':memory:'
+            else
+              uri.path
+            end
+          else
+            uri.path.sub(%r{^/},"")
+          end
+        end
+      end
+
       ##
       # Builds a ConnectionSpecification from user input
       class Resolver # :nodoc:
@@ -84,40 +161,8 @@ module ActiveRecord
           spec
         end
 
-        def resolve_string_connection(spec) # :nodoc:
-          config  = URI.parse spec
-          adapter = config.scheme
-          adapter = "postgresql" if adapter == "postgres"
-
-          database = if adapter == 'sqlite3'
-                       if '/:memory:' == config.path
-                         ':memory:'
-                       else
-                         config.path
-                       end
-                     else
-                       config.path.sub(%r{^/},"")
-                     end
-
-          spec = { "adapter"  => adapter,
-                   "username" => config.user,
-                   "password" => config.password,
-                   "port"     => config.port,
-                   "database" => database,
-                   "host"     => config.host }
-
-          spec.reject!{ |_,value| value.blank? }
-
-          uri_parser = URI::Parser.new
-
-          spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
-
-          if config.query
-            options = Hash[config.query.split("&").map{ |pair| pair.split("=") }]
-            spec.merge!(options)
-          end
-
-          spec
+        def resolve_string_connection(url) # :nodoc:
+          ConnectionUrlResolver.new(url).to_hash
         end
       end
     end
