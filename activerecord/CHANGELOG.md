@@ -1,3 +1,10 @@
+*   Fixed regression on preload/includes with multiple arguments failing in certain conditions,
+    raising a NoMethodError internally by calling `reflect_on_association` for `NilClass:Class`.
+
+    Fixes #13437.
+
+    *Vipul A M*, *khustochka*
+
 *   Deprecated use of string argument as a configuration lookup in `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
 
     *José Valim*
