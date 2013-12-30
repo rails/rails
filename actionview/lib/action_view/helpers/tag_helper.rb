@@ -23,6 +23,8 @@ module ActionView
         :textarea => "\n"
       }
 
+      HASHLIKE_ATTRIBUTE_KEYS = ['data', 'aria']
+
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
       # with HTML 4.0 and below. Add HTML attributes by passing an attributes
@@ -138,28 +140,37 @@ module ActionView
         end
 
         def tag_options(options, escape = true)
-          return if options.blank?
-          attrs = []
-          options.each_pair do |key, value|
-            if key.to_s == 'data' && value.is_a?(Hash)
-              value.each_pair do |k, v|
-                attrs << data_tag_option(k, v, escape)
-              end
-            elsif BOOLEAN_ATTRIBUTES.include?(key)
-              attrs << boolean_tag_option(key) if value
-            elsif !value.nil?
-              attrs << tag_option(key, value, escape)
-            end
+          unless options.blank?
+            attributes = ordered_options(options, escape)
+            " #{attributes.join(" ")}" unless attributes.empty?
           end
-          " #{attrs.sort! * ' '}" unless attrs.empty?
         end
 
-        def data_tag_option(key, value, escape)
-          key   = "data-#{key.to_s.dasherize}"
-          unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
-            value = value.to_json
+        def ordered_options(options, escape)
+          options.map { |key, value| pair_to_attrs(key, value, escape) }.flatten.compact.sort!
+        end
+
+        def pair_to_attrs(key, value, escape)
+          if value.is_a?(Hash) && HASHLIKE_ATTRIBUTE_KEYS.include?(key.to_s)
+            value.map do |k, v|
+              tag_option(hashlike_key(key, k), hashlike_value(v), escape)
+            end
+          elsif BOOLEAN_ATTRIBUTES.include?(key)
+            boolean_tag_option(key) if value
+          elsif !value.nil? then tag_option(key, value, escape)
           end
-          tag_option(key, value, escape)
+        end
+
+        def hashlike_key(hashlike, key)
+          "#{hashlike}-#{key.to_s.dasherize}"
+        end
+
+        def hashlike_value(value)
+          unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
+            value.to_json
+          else
+            value
+          end
         end
 
         def boolean_tag_option(key)

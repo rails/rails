@@ -1,3 +1,7 @@
+*   Support for aria-* style attributes similar to data-* HTML element attributes.
+
+    *Kurtis Rainbolt-Greene*
+
 *   Add mailer previews feature based on 37 Signals mail_view gem
 
     *Andrew White*
