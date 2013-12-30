@@ -18,6 +18,11 @@ class RangeTest < ActiveSupport::TestCase
     assert_instance_of Range, DateTime::Infinity.new..DateTime::Infinity.new
   end
 
+  def test_sample
+    sample = (5..10).sample
+    assert(sample => 5 && sample <= 10)
+  end
+
   def test_overlaps_last_inclusive
     assert((1..5).overlaps?(5..10))
   end
