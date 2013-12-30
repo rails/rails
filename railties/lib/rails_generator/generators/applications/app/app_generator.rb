@@ -1,6 +1,6 @@
 require 'rbconfig'
 require File.dirname(__FILE__) + '/template_runner'
-require 'digest/md5' 
+require 'digest/md5'
 require 'active_support/secure_random'
 
 class AppGenerator < Rails::Generator::Base
@@ -110,12 +110,12 @@ class AppGenerator < Rails::Generator::Base
         tmp/pids
       ).each { |path| m.directory(path) }
     end
-    
+
     def create_root_files(m)
       m.file "fresh_rakefile", "Rakefile"
       m.file "README",         "README"
     end
-    
+
     def create_app_files(m)
       m.file "helpers/application_controller.rb", "app/controllers/application_controller.rb"
       m.file "helpers/application_helper.rb",     "app/helpers/application_helper.rb"
@@ -138,7 +138,7 @@ class AppGenerator < Rails::Generator::Base
       %w( server production development test ).each do |file|
         m.file "configs/empty.log", "log/#{file}.log", :chmod => 0666
       end
-    end    
+    end
 
     def create_public_files(m)
       create_dispatch_files(m)
@@ -148,14 +148,14 @@ class AppGenerator < Rails::Generator::Base
       create_rails_image(m)
       create_javascript_files(m)
     end
-    
+
     def create_script_files(m)
-      %w( 
+      %w(
         about console dbconsole destroy generate runner server plugin
         performance/benchmarker performance/profiler
       ).each do |file|
-        m.file "bin/#{file}", "script/#{file}", { 
-          :chmod => 0755, 
+        m.file "bin/#{file}", "script/#{file}", {
+          :chmod => 0755,
           :shebang => options[:shebang] == DEFAULT_SHEBANG ? nil : options[:shebang]
         }
       end
@@ -172,7 +172,7 @@ class AppGenerator < Rails::Generator::Base
         :app_name => @app_name,
         :socket   => options[:db] == "mysql" ? mysql_socket_location : nil }
     end
-    
+
     def create_routes_file(m)
       m.file "configs/routes.rb", "config/routes.rb"
     end
@@ -182,19 +182,19 @@ class AppGenerator < Rails::Generator::Base
     end
 
     def create_initializer_files(m)
-      %w( 
-        backtrace_silencers 
-        inflections 
-        mime_types 
+      %w(
+        backtrace_silencers
+        inflections
+        mime_types
         new_rails_defaults
       ).each do |initializer|
         m.file "configs/initializers/#{initializer}.rb", "config/initializers/#{initializer}.rb"
       end
 
-      m.template "configs/initializers/session_store.rb", "config/initializers/session_store.rb", 
+      m.template "configs/initializers/session_store.rb", "config/initializers/session_store.rb",
         :assigns => { :app_name => @app_name, :app_secret => ActiveSupport::SecureRandom.hex(64) }
 
-      m.template "configs/initializers/cookie_verification_secret.rb", "config/initializers/cookie_verification_secret.rb", 
+      m.template "configs/initializers/cookie_verification_secret.rb", "config/initializers/cookie_verification_secret.rb",
         :assigns => { :app_secret => ActiveSupport::SecureRandom.hex(64) }
     end
 
@@ -203,7 +203,7 @@ class AppGenerator < Rails::Generator::Base
     end
 
     def create_environment_files(m)
-      m.template "environments/environment.rb", "config/environment.rb", 
+      m.template "environments/environment.rb", "config/environment.rb",
         :assigns => { :freeze => options[:freeze] }
 
       m.file "environments/boot.rb",        "config/boot.rb"
@@ -218,9 +218,6 @@ class AppGenerator < Rails::Generator::Base
         dispatcher_options = { :chmod => 0755, :shebang => options[:shebang] }
 
         m.file "dispatches/config.ru",     "config.ru"
-        m.file "dispatches/dispatch.rb",   "public/dispatch.rb",   dispatcher_options
-        m.file "dispatches/dispatch.rb",   "public/dispatch.cgi",  dispatcher_options
-        m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", dispatcher_options
       end
     end
 
