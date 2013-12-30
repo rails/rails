@@ -159,13 +159,8 @@ end
 
 desc "Make copies of all the default content of ties"
 task :copy_ties_content => [
-  :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_application,
+  :copy_rootfiles, :copy_html_files, :copy_application,
   :copy_configs, :copy_binfiles, :copy_test_helpers, :copy_app_doc_readme ]
-
-task :copy_dispatches do
-  copy_with_rewritten_ruby_path("dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi")
-  chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
-end
 
 task :copy_html_files do
   HTML_FILES.each { |file| cp File.join('html', file), File.join(PKG_DESTINATION, 'public', file) }

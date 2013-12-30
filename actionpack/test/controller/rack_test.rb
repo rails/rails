@@ -5,7 +5,6 @@ class BaseRackTest < ActiveSupport::TestCase
     @env = {
       "HTTP_MAX_FORWARDS" => "10",
       "SERVER_NAME" => "glu.ttono.us",
-      "FCGI_ROLE" => "RESPONDER",
       "AUTH_TYPE" => "Basic",
       "HTTP_X_FORWARDED_HOST" => "glu.ttono.us",
       "HTTP_ACCEPT_CHARSET" => "UTF-8",
