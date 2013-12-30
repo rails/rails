@@ -1,3 +1,15 @@
+*   An `ArgumentError` is now raised on a call to `Relation#where.not(nil)`.
+
+        User.where.not(nil)
+
+        # Before
+        # => 'SELECT `users`.* FROM `users`  WHERE (NOT (NULL))'
+
+        # After
+        # => ArgumentError, 'Invalid argument for .where.not(), got nil.'
+
+    *Kuldeep Aggarwal*
+
 *   Deprecated use of string argument as a configuration lookup in `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
 
     *José Valim*
