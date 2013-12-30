@@ -223,7 +223,15 @@ module ActiveRecord
           end
         end
 
+        # Accepts a hash. Expands the "url" key that contains a
+        # URL database connection to a full connection
+        # hash and merges with the rest of the hash.
+        # Connection details inside of the "url" key win any merge conflicts
         def resolve_hash_connection(spec)
+          if url = spec.delete("url")
+            connection_hash = resolve_string_connection(url)
+            spec.merge!(connection_hash)
+          end
           spec
         end
 
