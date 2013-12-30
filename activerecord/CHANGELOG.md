@@ -1,3 +1,21 @@
+*   Fixed wrong sql generated when querying an array field with empty array values.
+
+    Example:
+
+         With a table as
+         create_table :figures do |t|
+           t.string :spheres, array: true, null: false, default: []
+         end
+
+         Figure.where(spheres: []).to_sql
+         Figure.where.not(spheres: []).to_sql
+         Figure.where(spheres: [[]]).to_sql
+         all now handle and generate proper SQL queries.
+
+    Fixes #13479 .
+
+    *Vipul A M*, *Robert Fruchtman*, *Tadas Tamošauskas*
+
 *   Deprecated use of string argument as a configuration lookup in `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
 
     *José Valim*

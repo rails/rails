@@ -5,7 +5,7 @@ module ActiveRecord
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         ranges, values = values.partition { |v| v.is_a?(Range) }
 
-        values_predicate = if values.include?(nil)
+        values_predicate = if values.empty? || values.include?(nil)
           values = values.compact
 
           case values.length

@@ -138,6 +138,14 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal [], pg_array.reload.tags
   end
 
+  def test_querying_with_empty_array
+    refute_match /WHERE 1=0/, PgArray.where(tags: []).to_sql
+    refute_match /WHERE \(1=1\)/, PgArray.where.not(tags: []).to_sql
+    assert_no_raise do
+      PgArray.where.not(tags: [[]]).to_sql
+    end
+  end
+
   private
   def assert_cycle field, array
     # test creation
