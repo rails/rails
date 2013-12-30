@@ -1,4 +1,6 @@
 require 'delegate'
+require 'cgi'
+require 'cgi/cookie'
 
 CGI.module_eval { remove_const "Cookie" }
 
@@ -24,7 +26,7 @@ class CGI #:nodoc:
     # * <tt>:secure</tt> - Whether this cookie is a secure cookie or not (defaults to
     #   +false+). Secure cookies are only transmitted to HTTPS servers.
     # * <tt>:http_only</tt> - Whether this cookie can be accessed by client side scripts (e.g. document.cookie) or only over HTTP.
-    #   More details in http://msdn2.microsoft.com/en-us/library/system.web.httpcookie.httponly.aspx. Defaults to +false+. 
+    #   More details in http://msdn2.microsoft.com/en-us/library/system.web.httpcookie.httponly.aspx. Defaults to +false+.
     #
     # These keywords correspond to attributes of the cookie object.
     def initialize(name = '', *value)
