@@ -22,11 +22,6 @@ module ActionController
         end
       end
 
-      # DEPRECATE: Remove CGI support
-      def dispatch(cgi = nil, session_options = CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
-        new(output).dispatch_cgi(cgi, session_options)
-      end
-
       # Add a preparation callback. Preparation callbacks are run before every
       # request in development mode, and before the first request in production
       # mode.
@@ -75,8 +70,7 @@ module ActionController
     include ActiveSupport::Callbacks
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
-    # DEPRECATE: Remove arguments, since they are only used by CGI
-    def initialize(output = $stdout, request = nil, response = nil)
+    def initialize(output = $stdout)
       @output = output
       build_middleware_stack
     end
@@ -94,11 +88,6 @@ module ActionController
       ensure
         run_callbacks :after_dispatch, :enumerator => :reverse_each
       end
-    end
-
-    # DEPRECATE: Remove CGI support
-    def dispatch_cgi(cgi, session_options)
-      CGIHandler.dispatch_cgi(self, cgi, @output)
     end
 
     def call(env)
