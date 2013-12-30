@@ -37,13 +37,7 @@ module ActionController
       end
 
       def run_prepare_callbacks
-        if defined?(Rails) && Rails.logger
-          logger = Rails.logger
-        else
-          logger = Logger.new($stderr)
-        end
-
-        new(logger).send :run_callbacks, :prepare_dispatch
+        new.send :run_callbacks, :prepare_dispatch
       end
 
       def reload_application
@@ -70,8 +64,7 @@ module ActionController
     include ActiveSupport::Callbacks
     define_callbacks :prepare_dispatch, :before_dispatch, :after_dispatch
 
-    def initialize(output = $stdout)
-      @output = output
+    def initialize
       build_middleware_stack
     end
 
