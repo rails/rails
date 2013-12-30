@@ -78,7 +78,7 @@ module ActionController
     # DEPRECATE: Remove arguments, since they are only used by CGI
     def initialize(output = $stdout, request = nil, response = nil)
       @output = output
-      build_middleware_stack if @@cache_classes
+      build_middleware_stack
     end
 
     def dispatch
@@ -106,11 +106,6 @@ module ActionController
         @app.call(env)
       else
         Reloader.run do
-          # When class reloading is turned on, we will want to rebuild the
-          # middleware stack every time we process a request. If we don't
-          # rebuild the middleware stack, then the stack may contain references
-          # to old classes metal classes, which will b0rk class reloading.
-          build_middleware_stack
           @app.call(env)
         end
       end

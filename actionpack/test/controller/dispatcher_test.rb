@@ -45,7 +45,7 @@ class DispatcherTest < Test::Unit::TestCase
   def test_rebuilds_middleware_stack_on_every_request_if_in_loading_mode
     dispatcher = create_dispatcher(false)
     dispatcher.instance_variable_set(:"@app", lambda { |env| })
-    dispatcher.expects(:build_middleware_stack).twice
+    dispatcher.expects(:build_middleware_stack).never
     dispatcher.call(nil)
     Reloader.default_lock.unlock
     dispatcher.call(nil)
