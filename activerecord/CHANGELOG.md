@@ -1,5 +1,7 @@
 *   An `ArgumentError` is now raised on a call to `Relation#where.not(nil)`.
 
+    Example:
+
         User.where.not(nil)
 
         # Before
@@ -10,7 +12,8 @@
 
     *Kuldeep Aggarwal*
 
-*   Deprecated use of string argument as a configuration lookup in `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
+*   Deprecated use of string argument as a configuration lookup in
+    `ActiveRecord::Base.establish_connection`. Instead, a symbol must be given.
 
     *José Valim*
 
@@ -46,10 +49,10 @@
 
     *Richard Schneeman*
 
-*   Do not raise `'can not touch on a new record object'` exception on destroying already destroyed
-    `belongs_to` association with `touch: true` option
+*   Do not raise `'can not touch on a new record object'` exception on destroying
+    already destroyed `belongs_to` association with `touch: true` option.
 
-    Fixes: #13445
+    Fixes #13445.
 
     Example:
 
