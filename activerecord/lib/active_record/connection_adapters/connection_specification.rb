@@ -13,11 +13,12 @@ module ActiveRecord
         @config = original.config.dup
       end
 
-      # Expands a connection string into a hash
+      # Expands a connection string into a hash.
       class ConnectionUrlResolver # :nodoc:
 
         # == Example
-        #   url = 'postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000'
+        #
+        #   url = "postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000"
         #   ConnectionUrlResolver.new(url).to_hash
         #   # => {
         #     "adapter"  => "postgresql",
@@ -37,7 +38,7 @@ module ActiveRecord
           @query   = @uri.query || ''
         end
 
-        # Converts the given url to a full connection hash
+        # Converts the given URL to a full connection hash.
         def to_hash
           config = raw_config.reject { |_,value| value.blank? }
           config.map { |key,value| config[key] = uri_parser.unescape(value) if value.is_a? String }
@@ -54,11 +55,13 @@ module ActiveRecord
           @uri_parser ||= URI::Parser.new
         end
 
-        # Converts the query parameters of the uri into a hash
-        #   "localhost?pool=5&reap_frequency=2"
-        #   # => {"pool" => "5", "reap_frequency" => "2"}
+        # Converts the query parameters of the URI into a hash.
         #
-        # returns empty hash if no query present
+        #   "localhost?pool=5&reap_frequency=2"
+        #   # => { "pool" => "5", "reap_frequency" => "2" }
+        #
+        # returns empty hash if no query present.
+        #
         #   "localhost"
         #   # => {}
         def query_hash
@@ -75,8 +78,8 @@ module ActiveRecord
             "host"     => uri.host })
         end
 
-        # Returns name of the database
-        # sqlite3 expects this to be a full path or `:memory`
+        # Returns name of the database.
+        # Sqlite3 expects this to be a full path or `:memory`.
         def database
           if @adapter == 'sqlite3'
             if '/:memory:' == uri.path
@@ -91,14 +94,32 @@ module ActiveRecord
       end
 
       ##
-      # Builds a ConnectionSpecification from user input
+      # Builds a ConnectionSpecification from user input.
       class Resolver # :nodoc:
         attr_reader :configurations
 
+        # Accepts a hash two layers deep, keys on the first layer represent
+        # environments such as "production". Keys must be strings.
         def initialize(configurations)
           @configurations = configurations
         end
 
+        # Returns a hash with database connection information.
+        #
+        # == Examples
+        #
+        # Full hash Configuration.
+        #
+        #   configurations = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
+        #   Resolver.new(configurations).resolve(:production)
+        #   # => {host: "localhost", database: "foo", adapter: "sqlite3"}
+        #
+        # Initialized with URL configuration strings.
+        #
+        #   configurations = { "production" => "postgresql://localhost/foo" }
+        #   Resolver.new(configurations).resolve(:production)
+        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+        #
         def resolve(config)
           if config
             resolve_connection config
@@ -109,6 +130,18 @@ module ActiveRecord
           end
         end
 
+        # Returns an instance of ConnectionSpecification for a given adapter.
+        # Accepts a hash one layer deep that contains all connection information.
+        #
+        # == Example
+        #
+        #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
+        #   spec = Resolver.new(config).spec(:production)
+        #   spec.adapter_method
+        #   # => "sqlite3"
+        #   spec.config
+        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
+        #
         def spec(config)
           spec = resolve(config).symbolize_keys
 
@@ -129,7 +162,27 @@ module ActiveRecord
 
         private
 
-        def resolve_connection(spec) #:nodoc:
+        # Returns fully resolved connection, accepts hash, string or symbol.
+        # Always returns a hash.
+        #
+        # == Examples
+        #
+        # Symbol representing current environment.
+        #
+        #   Resolver.new("production" => {}).resolve_connection(:production)
+        #   # => {}
+        #
+        # One layer deep hash of connection values.
+        #
+        #   Resolver.new({}).resolve_connection("adapter" => "sqlite3")
+        #   # => { "adapter" => "sqlite3" }
+        #
+        # Connection URL.
+        #
+        #   Resolver.new({}).resolve_connection("postgresql://localhost/foo")
+        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+        #
+        def resolve_connection(spec)
           case spec
           when Symbol, String
             resolve_env_connection spec
@@ -138,9 +191,22 @@ module ActiveRecord
           end
         end
 
-        def resolve_env_connection(spec) # :nodoc:
+        # Takes the environment such as `:production` or `:development`.
+        # This requires that the @configurations was initialized with a key that
+        # matches.
+        #
+        #
+        #   Resolver.new("production" => {}).resolve_env_connection(:production)
+        #   # => {}
+        #
+        # Takes a connection URL.
+        #
+        #   Resolver.new({}).resolve_env_connection("postgresql://localhost/foo")
+        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+        #
+        def resolve_env_connection(spec)
           # Rails has historically accepted a string to mean either
-          # an environment key or a url spec, so we have deprecated
+          # an environment key or a URL spec, so we have deprecated
           # this ambiguous behaviour and in the future this function
           # can be removed in favor of resolve_string_connection and
           # resolve_symbol_connection.
@@ -157,11 +223,11 @@ module ActiveRecord
           end
         end
 
-        def resolve_hash_connection(spec) # :nodoc:
+        def resolve_hash_connection(spec)
           spec
         end
 
-        def resolve_string_connection(url) # :nodoc:
+        def resolve_string_connection(url)
           ConnectionUrlResolver.new(url).to_hash
         end
       end
