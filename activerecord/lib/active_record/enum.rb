@@ -67,7 +67,7 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           # def status=(value) self[:status] = STATUS[value] end
           define_method("#{name}=") { |value|
-            unless enum_values.has_key?(value) || value.blank?
+            unless enum_values.has_key?(value) || enum_values.has_value?(value) || value.blank?
               raise ArgumentError, "'#{value}' is not a valid #{name}"
             end
             self[name] = enum_values[value]
