@@ -179,9 +179,6 @@ db_namespace = namespace :db do
       require 'active_record/fixtures'
 
       base_dir = if ENV['FIXTURES_PATH']
-        STDERR.puts "Using FIXTURES_PATH env variable is deprecated, please use " +
-                    "ActiveRecord::Tasks::DatabaseTasks.fixtures_path = '/path/to/fixtures' " +
-                    "instead."
         File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}].flatten
       else
         ActiveRecord::Tasks::DatabaseTasks.fixtures_path
@@ -204,9 +201,6 @@ db_namespace = namespace :db do
       puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::FixtureSet.identify(label)}.) if label
 
       base_dir = if ENV['FIXTURES_PATH']
-        STDERR.puts "Using FIXTURES_PATH env variable is deprecated, please use " +
-                    "ActiveRecord::Tasks::DatabaseTasks.fixtures_path = '/path/to/fixtures' " +
-                    "instead."
         File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}].flatten
       else
         ActiveRecord::Tasks::DatabaseTasks.fixtures_path
