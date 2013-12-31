@@ -1,3 +1,9 @@
+*   `attribute_changed?` now accepts parameters which check the old and new value of the attribute
+
+    `model.name_changed?(from: "Pete", to: "Ringo")`
+
+    *Tejas Dinkar*
+
 *   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
 
     *T.J. Schuck*
