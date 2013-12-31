@@ -300,4 +300,16 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.expects(:generate_message).with(:name, :blank, { message: 'custom' })
     person.errors.add_on_blank :name, message: 'custom'
   end
+
+  test "can add error to non-attribute and use translation key as message" do
+    person = Person.new
+    person.errors.add(:not_an_attribute, :invalid)
+    assert_equal ['is invalid'], person.errors[:not_an_attribute]
+  end
+
+  test "non-attribute translations get correct options" do
+    person = Person.new
+    I18n.expects(:translate).with(:"errors.attributes.not_an_attribute.invalid", has_entries(attribute: :not_an_attribute, value: nil))
+    person.errors.add(:not_an_attribute, :invalid)
+  end
 end
