@@ -18,6 +18,11 @@ module ActiveRecord
   #   # conversation.update! status: 1
   #   conversation.status = "archived"
   #
+  #   # conversation.update! status: nil
+  #   conversation.status = nil
+  #   conversation.status.nil? # => true
+  #   conversation.status      # => nil
+  #
   # You can set the default value from the database declaration, like:
   #
   #   create_table :conversations do |t|
@@ -62,7 +67,7 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           # def status=(value) self[:status] = STATUS[value] end
           define_method("#{name}=") { |value|
-            unless enum_values.has_key?(value)
+            unless enum_values.has_key?(value) || value.blank?
               raise ArgumentError, "'#{value}' is not a valid #{name}"
             end
             self[name] = enum_values[value]
