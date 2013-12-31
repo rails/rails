@@ -9,7 +9,7 @@ module ActiveModel
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
-      # This mechanism requires you to have a password_digest attribute.
+      # This mechanism requires you to have a +password_digest+ attribute.
       #
       # Validations for presence of password on create, confirmation of password
       # (using a +password_confirmation+ attribute) are automatically added. If
