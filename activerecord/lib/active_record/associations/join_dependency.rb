@@ -114,7 +114,7 @@ module ActiveRecord
             walk join_root, oj.join_root
           else
             oj.join_root.children.flat_map { |child|
-              make_outer_joins join_root, child
+              make_outer_joins oj.join_root, child
             }
           end
         }
