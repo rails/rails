@@ -212,10 +212,9 @@ module ActiveRecord
       comment = post.comments.create!(body: "hu")
       3.times { comment.ratings.create! }
 
-      relation = Post.joins Associations::JoinDependency.new(Post, :comments, [])
-      relation = relation.joins Associations::JoinDependency.new(Comment, :ratings, [])
+      relation = Post.joins(:comments).merge Comment.joins(:ratings)
 
-      assert_equal 3, relation.pluck(:id).select { |id| id == post.id }.count
+      assert_equal 3, relation.where(id: post.id).pluck(:id).size
     end
 
     def test_respond_to_for_non_selected_element
