@@ -207,6 +207,17 @@ module ActiveRecord
       assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
 
+    def test_relation_merging_with_joins_as_join_dependency_pick_proper_parent
+      post = Post.create!(title: "haha", body: "huhu")
+      comment = post.comments.create!(body: "hu")
+      3.times { comment.ratings.create! }
+
+      relation = Post.joins Associations::JoinDependency.new(Post, :comments, [])
+      relation = relation.joins Associations::JoinDependency.new(Comment, :ratings, [])
+
+      assert_equal 3, relation.pluck(:id).select { |id| id == post.id }.count
+    end
+
     def test_respond_to_for_non_selected_element
       post = Post.select(:title).first
       assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
@@ -221,6 +232,5 @@ module ActiveRecord
       posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
       assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
-
   end
 end
