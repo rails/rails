@@ -1,3 +1,9 @@
+*   Connection specification now accepts a "url" key. The value of this
+    key is expected to contain a database URL. The database URL will be
+    expanded into a hash and merged.
+
+    *Richard Schneeman*
+
 *   An `ArgumentError` is now raised on a call to `Relation#where.not(nil)`.
 
     Example:

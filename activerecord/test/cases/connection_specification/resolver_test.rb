@@ -31,6 +31,24 @@ module ActiveRecord
             "encoding" => "utf8" }, spec)
         end
 
+        def test_url_sub_key
+          spec = resolve :production, 'production' => {"url" => 'abstract://foo?encoding=utf8'}
+          assert_equal({
+            "adapter"  => "abstract",
+            "host"     => "foo",
+            "encoding" => "utf8" }, spec)
+        end
+
+        def test_url_sub_key_merges_correctly
+          hash = {"url" => 'abstract://foo?encoding=utf8&', "adapter" => "sqlite3", "host" => "bar", "pool" => "3"}
+          spec = resolve :production, 'production' => hash
+          assert_equal({
+            "adapter"  => "abstract",
+            "host"     => "foo",
+            "encoding" => "utf8",
+            "pool"     => "3" }, spec)
+        end
+
         def test_url_host_no_db
           spec = resolve 'abstract://foo?encoding=utf8'
           assert_equal({
