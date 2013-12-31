@@ -52,20 +52,20 @@ module ActionDispatch
 
       # Convert nested Hash to HashWithIndifferentAccess
       # and UTF-8 encode both keys and values in nested Hash.
-      #
-      # TODO: Validate that the characters are UTF-8. If they aren't,
-      # you'll get a weird error down the road, but our form handling
-      # should really prevent that from happening
       def normalize_encode_params(params)
         case params
-        when String
-          params.force_encoding(Encoding::UTF_8).encode!
-        when Hash
+          when String
+            encode_string(params)
+          when Hash
           if params.has_key?(:tempfile)
             UploadedFile.new(params)
           else
             params.each_with_object({}) do |(key, val), new_hash|
-              new_key = key.is_a?(String) ? key.dup.force_encoding(Encoding::UTF_8).encode! : key
+              if key.is_a?(String)
+                new_key = encode_string(key.dup)
+              else
+                new_key = key
+              end
               new_hash[new_key] = if val.is_a?(Array)
                 val.map! { |el| normalize_encode_params(el) }
               else
@@ -75,6 +75,16 @@ module ActionDispatch
           end
         else
           params
+        end
+      end
+
+      def encode_string(params)
+        begin
+          # try it as UTF-8 directly
+          params.force_encoding(Encoding::UTF_8).encode!
+        rescue EncodingError
+          # Force it to UTF-8, throwing out invalid bits
+          params.encode!( 'UTF-8', invalid: :replace, undef: :replace )
         end
       end
     end
