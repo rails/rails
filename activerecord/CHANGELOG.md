@@ -1,3 +1,10 @@
+*   Truncate the index name if it exceeds the `allowed_index_name_length` while
+    renaming a column.
+
+    Fixes #12585
+
+    *Lauro Caetano*
+
 *   An `ArgumentError` is now raised on a call to `Relation#where.not(nil)`.
 
     Example:
