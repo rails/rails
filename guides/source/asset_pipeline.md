@@ -26,14 +26,14 @@ been extracted out of the framework into the
 
 The asset pipeline is enabled by default.
 
-You can disable the asset pipeline while creating a new application by 
+You can disable the asset pipeline while creating a new application by
 passing the `--skip-sprockets` option.
 
 ```bash
 rails new appname --skip-sprockets
 ```
 
-Rails 4 automatically adds the `sass-rails`, `coffee-rails` and `uglifier` 
+Rails 4 automatically adds the `sass-rails`, `coffee-rails` and `uglifier`
 gems to your Gemfile, which are used by Sprockets for asset compression:
 
 ```ruby
@@ -42,7 +42,7 @@ gem 'uglifier'
 gem 'coffee-rails'
 ```
 
-Using the `--skip-sprockets` option will prevent Rails 4 from adding 
+Using the `--skip-sprockets` option will prevent Rails 4 from adding
 `sass-rails` and `uglifier` to Gemfile, so if you later want to enable
 the asset pipeline you will have to add those gems to your Gemfile. Also,
 creating an application with the `--skip-sprockets` option will generate
@@ -54,7 +54,7 @@ the comment operator on that line to later enable the asset pipeline:
 # require "sprockets/railtie"
 ```
 
-To set asset compression methods, set the appropriate configuration options 
+To set asset compression methods, set the appropriate configuration options
 in `production.rb` - `config.assets.css_compressor` for your CSS and
 `config.assets.js_compressor` for your Javascript:
 
@@ -228,7 +228,7 @@ Pipeline assets can be placed inside an application in one of three locations:
 * `app/assets` is for assets that are owned by the application, such as custom
 images, JavaScript files or stylesheets.
 
-* `lib/assets` is for your own libraries' code that doesn't really fit into the 
+* `lib/assets` is for your own libraries' code that doesn't really fit into the
 scope of the application or those libraries which are shared across applications.
 
 * `vendor/assets` is for assets that are owned by outside entities, such as
@@ -350,8 +350,8 @@ Alternatively, a request for a file with an MD5 hash such as
 way. How these hashes are generated is covered in the [In
 Production](#in-production) section later on in this guide.
 
-Sprockets will also look through the paths specified in `config.assets.paths`, 
-which includes the standard application paths and any paths added by Rails 
+Sprockets will also look through the paths specified in `config.assets.paths`,
+which includes the standard application paths and any paths added by Rails
 engines.
 
 Images can also be organized into subdirectories if required, and then can be
@@ -503,7 +503,7 @@ of these Sprockets directives. Using Sprockets directives all Sass files exist
 within their own scope, making variables or mixins only available within the
 document they were defined in. You can do file globbing as well using
 `@import "*"`, and `@import "**/*"` to add the whole tree equivalent to how
-`require_tree` works. Check the [sass-rails 
+`require_tree` works. Check the [sass-rails
 documentation](https://github.com/rails/sass-rails#features) for more info and
 important caveats.
 
@@ -532,7 +532,7 @@ and CSS file. The example used before was a controller called "projects", which
 generated an `app/assets/javascripts/projects.js.coffee` and an
 `app/assets/stylesheets/projects.css.scss` file.
 
-In development mode, or if the asset pipeline is disabled, when these files are 
+In development mode, or if the asset pipeline is disabled, when these files are
 requested they are processed by the processors provided by the `coffee-script`
 and `sass` gems and then sent back to the browser as JavaScript and CSS
 respectively. When asset pipelining is enabled, these files are preprocessed and
@@ -638,7 +638,7 @@ Debug mode can also be enabled in Rails helper methods:
 
 The `:debug` option is redundant if debug mode is already on.
 
-You can also enable compression in development mode as a sanity check, and 
+You can also enable compression in development mode as a sanity check, and
 disable it on-demand as required for debugging.
 
 In Production
