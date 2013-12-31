@@ -545,9 +545,14 @@ WARNING
     #    User.joins(:posts).where("posts.created_at < ?", Time.now)
     #
     # For hash conditions, you can either use the table name in the key, or use a sub-hash.
+    # The name of the sub-hash can be the table name or the relation name.
     #
     #    User.joins(:posts).where({ "posts.published" => true })
-    #    User.joins(:posts).where({ posts: { published: true } })
+    #
+    #    # Sub-hashes can either be the table name or the relation name
+    #    User.joins(:commented_on_posts).where({ posts: { published: true } })
+    #    # or
+    #    User.joins(:commented_on_posts).where({ commented_on_posts: { published: true } })
     #
     # === no argument
     #
@@ -950,6 +955,7 @@ WARNING
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
+        opts = PredicateBuilder.resolve_relation_names(klass, self, opts)
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
         bv_len = bind_values.length
