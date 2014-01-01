@@ -1,3 +1,8 @@
+*   Use `remove_possible_method` instead of `remove_method` to avoid
+    a `NameError` to be thrown on FreeBSD with the `Date` object.
+
+    *Rafael Mendonça França*, *Robin Dupret*
+
 *   Default the new `I18n.enforce_available_locales` config to `true`, meaning
     `I18n` will make sure that all locales passed to it must be declared in the
     `available_locales` list.
