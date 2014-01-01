@@ -1227,12 +1227,9 @@ Then do the same for the `app/views/posts/edit.html.erb` view:
 ### Deleting Posts
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
-database. Following the REST convention, the route for
-deleting posts as per output of `rake routes` is:
+database. 
 
-```ruby
-DELETE /posts/:id(.:format)      posts#destroy
-```
+NOTE. Following the REST convention, the route for deleting posts as per the output of `rake routes` is: `DELETE /posts/:id(.:format)      posts#destroy`.
 
 The `delete` routing method should be used for routes that destroy
 resources. If this was left as a typical `get` route, it could be possible for
