@@ -32,12 +32,18 @@ module TestGenerationPrefix
             get "/conflicting_url", :to => "inside_engine_generating#conflicting"
             get "/foo", :to => "never#invoked", :as => :named_helper_that_should_be_invoked_only_in_respond_to_test
 
-            get "/relative_path_redirect", :to => redirect("foo")
+            get "/relative_path_root",       :to => redirect("")
+            get "/relative_path_redirect",   :to => redirect("foo")
+            get "/relative_option_root",     :to => redirect(:path => "")
             get "/relative_option_redirect", :to => redirect(:path => "foo")
+            get "/relative_custom_root",     :to => redirect { |params, request| "" }
             get "/relative_custom_redirect", :to => redirect { |params, request| "foo" }
 
-            get "/absolute_path_redirect", :to => redirect("/foo")
+            get "/absolute_path_root",       :to => redirect("/")
+            get "/absolute_path_redirect",   :to => redirect("/foo")
+            get "/absolute_option_root",     :to => redirect(:path => "/")
             get "/absolute_option_redirect", :to => redirect(:path => "/foo")
+            get "/absolute_custom_root",     :to => redirect { |params, request| "/" }
             get "/absolute_custom_redirect", :to => redirect { |params, request| "/foo" }
           end
 
@@ -190,46 +196,64 @@ module TestGenerationPrefix
       assert_equal "engine", last_response.body
     end
 
+    test "[ENGINE] relative path root uses SCRIPT_NAME from request" do
+      get "/awesome/blog/relative_path_root"
+      verify_redirect "http://example.org/awesome/blog"
+    end
+
     test "[ENGINE] relative path redirect uses SCRIPT_NAME from request" do
       get "/awesome/blog/relative_path_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/awesome/blog/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/awesome/blog/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/awesome/blog/foo"
+    end
+
+    test "[ENGINE] relative option root uses SCRIPT_NAME from request" do
+      get "/awesome/blog/relative_option_root"
+      verify_redirect "http://example.org/awesome/blog"
     end
 
     test "[ENGINE] relative option redirect uses SCRIPT_NAME from request" do
       get "/awesome/blog/relative_option_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/awesome/blog/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/awesome/blog/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/awesome/blog/foo"
+    end
+
+    test "[ENGINE] relative custom root uses SCRIPT_NAME from request" do
+      get "/awesome/blog/relative_custom_root"
+      verify_redirect "http://example.org/awesome/blog"
     end
 
     test "[ENGINE] relative custom redirect uses SCRIPT_NAME from request" do
       get "/awesome/blog/relative_custom_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/awesome/blog/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/awesome/blog/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/awesome/blog/foo"
+    end
+
+    test "[ENGINE] absolute path root doesn't use SCRIPT_NAME from request" do
+      get "/awesome/blog/absolute_path_root"
+      verify_redirect "http://example.org/"
     end
 
     test "[ENGINE] absolute path redirect doesn't use SCRIPT_NAME from request" do
       get "/awesome/blog/absolute_path_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
+    end
+
+    test "[ENGINE] absolute option root doesn't use SCRIPT_NAME from request" do
+      get "/awesome/blog/absolute_option_root"
+      verify_redirect "http://example.org/"
     end
 
     test "[ENGINE] absolute option redirect doesn't use SCRIPT_NAME from request" do
       get "/awesome/blog/absolute_option_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
+    end
+
+    test "[ENGINE] absolute custom root doesn't use SCRIPT_NAME from request" do
+      get "/awesome/blog/absolute_custom_root"
+      verify_redirect "http://example.org/"
     end
 
     test "[ENGINE] absolute custom redirect doesn't use SCRIPT_NAME from request" do
       get "/awesome/blog/absolute_custom_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
     end
 
     # Inside Application
@@ -320,6 +344,17 @@ module TestGenerationPrefix
       path = engine_object.polymorphic_url(Post.new, :host => "www.example.com")
       assert_equal "http://www.example.com/awesome/blog/posts/1", path
     end
+    
+    private
+      def verify_redirect(url, status = 301)
+        assert_equal status, last_response.status
+        assert_equal url, last_response.headers["Location"]
+        assert_equal expected_redirect_body(url), last_response.body
+      end
+      
+      def expected_redirect_body(url)
+        %(<html><body>You are being <a href="#{url}">redirected</a>.</body></html>)
+      end
   end
 
   class EngineMountedAtRoot < ActionDispatch::IntegrationTest
@@ -332,12 +367,18 @@ module TestGenerationPrefix
           routes.draw do
             get "/posts/:id", :to => "posts#show", :as => :post
 
-            get "/relative_path_redirect", :to => redirect("foo")
+            get "/relative_path_root",       :to => redirect("")
+            get "/relative_path_redirect",   :to => redirect("foo")
+            get "/relative_option_root",     :to => redirect(:path => "")
             get "/relative_option_redirect", :to => redirect(:path => "foo")
+            get "/relative_custom_root",     :to => redirect { |params, request| "" }
             get "/relative_custom_redirect", :to => redirect { |params, request| "foo" }
 
-            get "/absolute_path_redirect", :to => redirect("/foo")
+            get "/absolute_path_root",       :to => redirect("/")
+            get "/absolute_path_redirect",   :to => redirect("/foo")
+            get "/absolute_option_root",     :to => redirect(:path => "/")
             get "/absolute_option_redirect", :to => redirect(:path => "/foo")
+            get "/absolute_custom_root",     :to => redirect { |params, request| "/" }
             get "/absolute_custom_redirect", :to => redirect { |params, request| "/foo" }
           end
 
@@ -390,46 +431,75 @@ module TestGenerationPrefix
       assert_equal "/posts/1", last_response.body
     end
 
+    test "[ENGINE] relative path root uses SCRIPT_NAME from request" do
+      get "/relative_path_root"
+      verify_redirect "http://example.org/"
+    end
+
     test "[ENGINE] relative path redirect uses SCRIPT_NAME from request" do
       get "/relative_path_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
+    end
+
+    test "[ENGINE] relative option root uses SCRIPT_NAME from request" do
+      get "/relative_option_root"
+      verify_redirect "http://example.org/"
     end
 
     test "[ENGINE] relative option redirect uses SCRIPT_NAME from request" do
       get "/relative_option_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
+    end
+
+    test "[ENGINE] relative custom root uses SCRIPT_NAME from request" do
+      get "/relative_custom_root"
+      verify_redirect "http://example.org/"
     end
 
     test "[ENGINE] relative custom redirect uses SCRIPT_NAME from request" do
       get "/relative_custom_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
+    end
+
+    test "[ENGINE] absolute path root doesn't use SCRIPT_NAME from request" do
+      get "/absolute_path_root"
+      verify_redirect "http://example.org/"
     end
 
     test "[ENGINE] absolute path redirect doesn't use SCRIPT_NAME from request" do
       get "/absolute_path_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
+    end
+
+    test "[ENGINE] absolute option root doesn't use SCRIPT_NAME from request" do
+      get "/absolute_option_root"
+      verify_redirect "http://example.org/"
     end
 
     test "[ENGINE] absolute option redirect doesn't use SCRIPT_NAME from request" do
       get "/absolute_option_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
+    end
+
+    test "[ENGINE] absolute custom root doesn't use SCRIPT_NAME from request" do
+      get "/absolute_custom_root"
+      verify_redirect "http://example.org/"
     end
 
     test "[ENGINE] absolute custom redirect doesn't use SCRIPT_NAME from request" do
       get "/absolute_custom_redirect"
-      assert_equal 301, last_response.status
-      assert_equal "http://example.org/foo", last_response.headers["Location"]
-      assert_equal %(<html><body>You are being <a href="http://example.org/foo">redirected</a>.</body></html>), last_response.body
+      verify_redirect "http://example.org/foo"
     end
+    
+    private
+      def verify_redirect(url, status = 301)
+        assert_equal status, last_response.status
+        assert_equal url, last_response.headers["Location"]
+        assert_equal expected_redirect_body(url), last_response.body
+      end
+      
+      def expected_redirect_body(url)
+        %(<html><body>You are being <a href="#{url}">redirected</a>.</body></html>)
+      end
   end
 end

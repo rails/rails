@@ -1,3 +1,23 @@
+*   Allow engine root relative redirects using an empty string.
+
+    Example:
+
+        # application routes.rb
+        mount BlogEngine => '/blog'
+
+        # engine routes.rb
+        get '/welcome' => redirect('')
+
+    This now redirects to the path `/blog`, whereas before it would redirect
+    to the application root path. In the case of a path redirect or a custom
+    redirect if the path returned contains a host then the path is treated as
+    absolute. Similarly for option redirects, if the options hash returned
+    contains a `:host` or `:domain` key then the path is treated as absolute.
+
+    Fixes #7977
+
+    *Andrew White*
+
 *   Fix `Encoding::CompatibilityError` when public path is UTF-8
 
     In #5337 we forced the path encoding to ASCII-8BIT to prevent static file handling
