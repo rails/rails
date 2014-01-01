@@ -802,11 +802,8 @@ Visit <http://localhost:3000/posts/new> and give it a try!
 ### Listing all posts
 
 We still need a way to list all our posts, so let's do that.
-The route for this as per output of `rake routes` is:
 
-```ruby
-posts GET    /posts(.:format)          posts#index
-```
+NOTE. The route for this as per output of `rake routes` is: `posts GET    /posts(.:format)          posts#index`.
 
 Add the corresponding `index` action for that route inside the `PostsController` in the `app/controllers/posts_controller.rb` file:
 
@@ -816,7 +813,7 @@ def index
 end
 ```
 
-And then finally a view for this action, located at `app/views/posts/index.html.erb`:
+And then finally, create a view for this action, located at `app/views/posts/index.html.erb`:
 
 ```html+erb
 <h1>Listing posts</h1>
