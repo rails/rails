@@ -1,5 +1,6 @@
 module ActiveRecord
-  # Declare an enum attribute where the values map to integers in the database, but can be queried by name. Example:
+  # Declare an enum attribute where the values map to integers in the database,
+  # but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: [ :active, :archived ]
@@ -22,6 +23,10 @@ module ActiveRecord
   #   conversation.status = nil
   #   conversation.status.nil? # => true
   #   conversation.status      # => nil
+  #
+  # Scopes based on the allowed values of the enum field will be provided
+  # as well. With the above example, it will create an +active+ and +archived+
+  # scope.
   #
   # You can set the default value from the database declaration, like:
   #
@@ -67,7 +72,7 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           # def status=(value) self[:status] = STATUS[value] end
           define_method("#{name}=") { |value|
-            unless enum_values.has_key?(value) || value.blank?
+            unless enum_values.has_key?(value) || enum_values.has_value?(value) || value.blank?
               raise ArgumentError, "'#{value}' is not a valid #{name}"
             end
             self[name] = enum_values[value]
