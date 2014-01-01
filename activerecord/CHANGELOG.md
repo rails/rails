@@ -1,3 +1,10 @@
+*   Fixed regression on preload/includes with multiple arguments failing in certain conditions,
+    raising a NoMethodError internally by calling `reflect_on_association` for `NilClass:Class`.
+
+    Fixes #13437.
+
+    *Vipul A M*, *khustochka*
+
 *   Add the ability to nullify the `enum` column.
 
      Example:
