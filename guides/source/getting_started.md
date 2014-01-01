@@ -802,11 +802,8 @@ Visit <http://localhost:3000/posts/new> and give it a try!
 ### Listing all posts
 
 We still need a way to list all our posts, so let's do that.
-The route for this as per output of `rake routes` is:
 
-```ruby
-posts GET    /posts(.:format)          posts#index
-```
+NOTE. The route for this as per output of `rake routes` is: `posts GET    /posts(.:format)          posts#index`.
 
 Add the corresponding `index` action for that route inside the `PostsController` in the `app/controllers/posts_controller.rb` file:
 
@@ -816,7 +813,7 @@ def index
 end
 ```
 
-And then finally a view for this action, located at `app/views/posts/index.html.erb`:
+And then finally, create a view for this action, located at `app/views/posts/index.html.erb`:
 
 ```html+erb
 <h1>Listing posts</h1>
@@ -1230,12 +1227,9 @@ Then do the same for the `app/views/posts/edit.html.erb` view:
 ### Deleting Posts
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
-database. Following the REST convention, the route for
-deleting posts as per output of `rake routes` is:
+database. 
 
-```ruby
-DELETE /posts/:id(.:format)      posts#destroy
-```
+NOTE. Following the REST convention, the route for deleting posts as per the output of `rake routes` is: `DELETE /posts/:id(.:format)      posts#destroy`.
 
 The `delete` routing method should be used for routes that destroy
 resources. If this was left as a typical `get` route, it could be possible for
