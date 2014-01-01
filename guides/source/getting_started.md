@@ -754,15 +754,7 @@ If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
 `show` action before proceeding.
 
-As we have seen in the output of `rake routes`, the route for `show` action is
-as follows:
-
-```ruby
-post GET    /posts/:id(.:format)      posts#show
-```
-
-The special syntax `:id` tells rails that this route expects an `:id`
-parameter, which in our case will be the id of the post.
+NOTE. As we have seen in the output of `rake routes`, the route for `show` action is: `post GET    /posts/:id(.:format)      posts#show`. The special syntax `:id` tells rails that this route expects an `:id` parameter, which in our case will be the id of the post.
 
 As we did before, we need to add the `show` action in
 `app/controllers/posts_controller.rb` and its respective view.
