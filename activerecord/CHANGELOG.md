@@ -1,3 +1,7 @@
+*   Fix presence validator for association when the associated record responds to `to_a`.
+
+    *gmarik*
+
 *   Fix bug in `belongs_to` association with `touch: true`.
     Associated records are no longer touched, when they are already destroyed.
 
