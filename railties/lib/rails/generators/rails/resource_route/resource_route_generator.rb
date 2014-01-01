@@ -9,7 +9,7 @@ module Rails
       # should give you
       #
       #   namespace :admin do
-      #     namespace :users
+      #     namespace :users do
       #       resources :products
       #     end
       #   end
