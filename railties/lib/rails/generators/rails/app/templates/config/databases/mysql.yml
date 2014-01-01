@@ -38,4 +38,5 @@ test:
 # Example:
 #   mysql2://myuser:mypass@localhost/somedatabase
 #
-production: <%%= ENV["RAILS_DATABASE_URL"] %>
+production:
+  url: <%%= ENV["RAILS_DATABASE_URL"] %>
