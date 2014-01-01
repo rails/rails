@@ -37,6 +37,7 @@ module ActionDispatch
         end
         engine.routes.draw do
           get '/cart', :to => 'cart#show'
+          get '/view-cart', :to => 'cart#show'
         end
 
         output = draw do
@@ -50,7 +51,8 @@ module ActionDispatch
           "         blog      /blog                    Blog::Engine",
           "",
           "Routes for Blog::Engine:",
-          "  cart GET  /cart(.:format) cart#show"
+          "     cart GET  /cart(.:format)      cart#show",
+          "view_cart GET  /view-cart(.:format) cart#show"
         ], output
       end
 

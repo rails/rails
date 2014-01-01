@@ -1,3 +1,16 @@
+*   Add ability to set a prefix name for routes which have hyphen(s).
+
+        get '/contact-us' => 'pages#contact'
+        get '/about-us'   => 'pages#about_us'
+
+    The above routes will inspected to
+
+            Prefix Verb URI Pattern           Controller#Action
+        contact_us GET  /contact-us(.:format) pages#contact
+          about_us GET  /about-us(.:format)   pages#about_us
+
+    *Amr Tamimi*
+
 *   Fix `Encoding::CompatibilityError` when public path is UTF-8
 
     In #5337 we forced the path encoding to ASCII-8BIT to prevent static file handling
