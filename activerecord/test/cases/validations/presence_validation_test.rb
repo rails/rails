@@ -3,6 +3,8 @@ require "cases/helper"
 require 'models/man'
 require 'models/face'
 require 'models/interest'
+require 'models/speedometer'
+require 'models/dashboard'
 
 class PresenceValidationTest < ActiveRecord::TestCase
   class Boy < Man; end
@@ -47,5 +49,20 @@ class PresenceValidationTest < ActiveRecord::TestCase
 
     i2.mark_for_destruction
     assert b.invalid?
+  end
+
+
+  def test_validates_presence_doesnt_convert_to_array
+    Speedometer.validates_presence_of :dashboard
+
+    dash = Dashboard.new
+
+    # dashboard has to_a method
+    def dash.to_a; ['(/)', '(\)']; end
+
+    s = Speedometer.new
+    s.dashboard = dash
+
+    assert_nothing_raised { s.valid? }
   end
 end
