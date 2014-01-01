@@ -816,7 +816,7 @@ def index
 end
 ```
 
-And then finally a view for this action, located at `app/views/posts/index.html.erb`:
+And then finally, add view for this action, located at `app/views/posts/index.html.erb`:
 
 ```html+erb
 <h1>Listing posts</h1>
