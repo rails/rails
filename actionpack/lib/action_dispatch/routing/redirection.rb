@@ -26,13 +26,18 @@ module ActionDispatch
         end
 
         uri = URI.parse(path(req.symbolized_path_parameters, req))
+        
+        unless uri.host
+          if relative_path?(uri.path)
+            uri.path = "#{req.script_name}/#{uri.path}"
+          elsif uri.path.empty?
+            uri.path = req.script_name.empty? ? "/" : req.script_name
+          end
+        end
+          
         uri.scheme ||= req.scheme
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
-
-        if relative_path?(uri.path)
-          uri.path = "#{req.script_name}/#{uri.path}"
-        end
 
         body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
 
@@ -90,11 +95,16 @@ module ActionDispatch
           url_options[:path] = (url_options[:path] % escape_path(params))
         end
 
-        if relative_path?(url_options[:path])
-          url_options[:path] = "/#{url_options[:path]}"
-          url_options[:script_name] = request.script_name
+        unless options[:host] || options[:domain]
+          if relative_path?(url_options[:path])
+            url_options[:path] = "/#{url_options[:path]}"
+            url_options[:script_name] = request.script_name
+          elsif url_options[:path].empty?
+            url_options[:path] = request.script_name.empty? ? "/" : ""
+            url_options[:script_name] = request.script_name
+          end
         end
-
+        
         ActionDispatch::Http::URL.url_for url_options
       end
 
