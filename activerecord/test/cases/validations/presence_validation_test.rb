@@ -51,7 +51,6 @@ class PresenceValidationTest < ActiveRecord::TestCase
     assert b.invalid?
   end
 
-
   def test_validates_presence_doesnt_convert_to_array
     Speedometer.validates_presence_of :dashboard
 

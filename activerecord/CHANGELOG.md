@@ -1,3 +1,7 @@
+*   Fix presence validator for association when the associated record responds to `to_a`.
+
+    *gmarik*
+
 *   Fixed regression on preload/includes with multiple arguments failing in certain conditions,
     raising a NoMethodError internally by calling `reflect_on_association` for `NilClass:Class`.
 
