@@ -86,7 +86,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.0.0p353
+ruby 2.1.0p0
 ```
 
 To install Rails, use the `gem install` command provided by RubyGems:
@@ -106,7 +106,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 4.0.0", you are ready to continue.
+If it says something like "Rails 4.0.2", you are ready to continue.
 
 ### Creating the Blog Application
 
