@@ -176,10 +176,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_cascaded_interdependent_one_level_and_two_levels
-    authors_relation = Author.all.merge!(:includes => [:comments, {:posts => :categorizations}], :order => "authors.id")
-    assert_nothing_raised do
-      authors_relation.to_a
-    end
+    authors_relation = Author.all.merge!(includes: [:comments, { posts: :categorizations }], order: "authors.id")
     authors = authors_relation.to_a
     assert_equal 3, authors.size
     assert_equal 10, authors[0].comments.size
