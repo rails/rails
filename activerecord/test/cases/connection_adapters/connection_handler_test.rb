@@ -2,6 +2,133 @@ require "cases/helper"
 
 module ActiveRecord
   module ConnectionAdapters
+
+    class MergeAndResolveDefaultUrlConfigTest < ActiveRecord::TestCase
+
+      def klass
+        ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig
+      end
+
+      def setup
+        @previous_database_url = ENV.delete("DATABASE_URL")
+      end
+
+      def teardown
+        ENV["DATABASE_URL"] = @previous_database_url if @previous_database_url
+      end
+
+      def test_string_connection
+        config   = { "production" => "postgres://localhost/foo" }
+        actual   = klass.new(config).resolve
+        expected = { "production" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+
+      def test_url_sub_key
+        config   = { "production" => { "url" => "postgres://localhost/foo" } }
+        actual   = klass.new(config).resolve
+        expected = { "production" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+
+      def test_hash
+        config = { "production" => { "adapter" => "postgres", "database" => "foo" } }
+        actual = klass.new(config).resolve
+        assert_equal config, actual
+      end
+
+      def test_blank
+        config = {}
+        actual = klass.new(config).resolve
+        assert_equal config, actual
+      end
+
+      def test_blank_with_database_url
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+
+        config   = {}
+        actual   = klass.new(config).resolve
+        expected = { "adapter"  => "postgresql",
+                     "database" => "foo",
+                     "host"     => "localhost" }
+        assert_equal expected, actual["production"]
+        assert_equal expected, actual["development"]
+        assert_equal expected, actual["test"]
+        assert_equal nil,      actual[:production]
+        assert_equal nil,      actual[:development]
+        assert_equal nil,      actual[:test]
+      end
+
+      def test_sting_with_database_url
+        ENV['DATABASE_URL'] = "NOT-POSTGRES://localhost/NOT_FOO"
+
+        config   = { "production" => "postgres://localhost/foo" }
+        actual   = klass.new(config).resolve
+
+        expected = { "production" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+
+      def test_url_sub_key_with_database_url
+        ENV['DATABASE_URL'] = "NOT-POSTGRES://localhost/NOT_FOO"
+
+        config   = { "production" => { "url" => "postgres://localhost/foo" } }
+        actual   = klass.new(config).resolve
+        expected = { "production" =>
+                    { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+
+      def test_merge_no_conflicts_with_database_url
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+
+        config   = {"production" => { "pool" => "5" } }
+        actual   = klass.new(config).resolve
+        expected = { "production" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost",
+                       "pool"     => "5"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+
+      def test_merge_conflicts_with_database_url
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+
+        config   = {"production" => { "adapter" => "NOT-POSTGRES", "database" => "NOT-FOO", "pool" => "5" } }
+        actual   = klass.new(config).resolve
+        expected = { "production" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost",
+                       "pool"     => "5"
+                      }
+                    }
+        assert_equal expected, actual
+      end
+    end
+
     class ConnectionHandlerTest < ActiveRecord::TestCase
       def setup
         @klass    = Class.new(Base)   { def self.name; 'klass';    end }
