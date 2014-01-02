@@ -36,9 +36,8 @@ module ActiveRecord
     module DatabaseTasks
       extend self
 
-      attr_writer :current_config
-      attr_accessor :database_configuration, :migrations_paths, :seed_loader, :db_dir,
-                    :fixtures_path, :env, :root
+      attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
+      attr_accessor :database_configuration
 
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
@@ -50,6 +49,30 @@ module ActiveRecord
       register_task(/mysql/,        ActiveRecord::Tasks::MySQLDatabaseTasks)
       register_task(/postgresql/,   ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
       register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
+
+      def db_dir
+        @db_dir ||= Rails.application.config.paths["db"].first
+      end
+
+      def migrations_paths
+        @migrations_paths ||= Rails.application.paths['db/migrate'].to_a
+      end
+
+      def fixtures_path
+        @fixtures_path ||= File.join(root, 'test', 'fixtures')
+      end
+
+      def root
+        @root ||= Rails.root
+      end
+
+      def env
+        @env ||= Rails.env
+      end
+
+      def seed_loader
+        @seed_loader ||= Rails.application
+      end
 
       def current_config(options = {})
         options.reverse_merge! :env => env
@@ -131,6 +154,21 @@ module ActiveRecord
         configuration = arguments.first
         filename = arguments.delete_at 1
         class_for_adapter(configuration['adapter']).new(*arguments).structure_load(filename)
+      end
+
+      def load_schema(format = ActiveRecord::Base.schema_format, file = nil)
+        case format
+        when :ruby
+          file ||= File.join(db_dir, "schema.rb")
+          check_schema_file(file)
+          load(file)
+        when :sql
+          file ||= File.join(db_dir, "structure.sql")
+          check_schema_file(file)
+          structure_load(current_config, file)
+        else
+          raise ArgumentError, "unknown format #{format.inspect}"
+        end
       end
 
       def check_schema_file(filename)
