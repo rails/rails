@@ -39,4 +39,4 @@ test:
 #   mysql2://myuser:mypass@localhost/somedatabase
 #
 production:
-  url: <%%= ENV["RAILS_DATABASE_URL"] %>
+  url: <%%= ENV["DATABASE_URL"] %>
