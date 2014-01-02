@@ -11,6 +11,14 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     store_accessor :settings, :language, :timezone
   end
 
+  class HstoreMigration < ActiveRecord::Migration
+      def change
+        change_table("hstores") do |t|
+          t.hstore :keys
+        end
+      end
+    end
+
   def setup
     @connection = ActiveRecord::Base.connection
 
@@ -69,6 +77,18 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     ensure
       Hstore.reset_column_information
     end
+
+   def test_hstore_migration
+       hstore_migration = HstoreMigration.new
+       hstore_migration.suppress_messages do
+         hstore_migration.migrate(:up)
+         Hstore.reset_column_information
+         assert_not_nil Hstore.columns.find { |c| c.name == 'keys' }
+         hstore_migration.migrate(:down)
+         Hstore.reset_column_information
+         assert_nil Hstore.columns.find { |c| c.name == 'keys' }
+       end
+     end
 
     def test_cast_value_on_write
       x = Hstore.new tags: {"bool" => true, "number" => 5}
