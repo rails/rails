@@ -170,8 +170,10 @@ module ActionView
       # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
       #   Note: You can also use Rails' i18n functionality for this.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
-      # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt>.
-      # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt>.
+      # * <tt>:start_year</tt>        - Set the start year for the year select.  While creating a new record, the default is
+      #   <tt>Date.today.year - 5</tt>, otherwise <tt>:start_year</tt> defaults to <tt>current_selected_year - 5</tt>.
+      # * <tt>:end_year</tt>          - Set the end year for the year select. While creating a new record, the default is
+      #   <tt>Date.today.year + 5</tt>, otherwise <tt>:end_year</tt> defaults to <tt>current_selected_year + 5</tt>.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
