@@ -56,4 +56,4 @@ test:
 # Do not keep production credentials in the repository,
 # instead read the configuration from the environment.
 production:
-  url: <%%= ENV["RAILS_DATABASE_URL"] %>
+  url: <%%= ENV["DATABASE_URL"] %>
