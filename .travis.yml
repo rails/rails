@@ -1,6 +1,6 @@
 script: 'ci/travis.rb'
 before_install:
-  - travis_retry gem install bundler -v 1.3.5
+  - travis_retry gem install bundler
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
 rvm:
   - 1.9.3
