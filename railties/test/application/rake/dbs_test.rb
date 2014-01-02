@@ -24,7 +24,11 @@ module ApplicationTests
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
         File.open("#{app_path}/config/database.yml", 'w') do |f|
-          f << {ENV['RAILS_ENV'] => %Q{<%= ENV['RAILS_DATABASE_URL'] %>}}.to_yaml
+          yaml = <<-YAML.strip_heredoc
+            #{ENV['RAILS_ENV']}:
+              url: <%= ENV['RAILS_DATABASE_URL'] %>
+          YAML
+          f << yaml
         end
       end
 

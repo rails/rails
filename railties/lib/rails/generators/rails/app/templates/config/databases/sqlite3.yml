@@ -24,6 +24,7 @@ test:
 # instead read the configuration from the environment.
 #
 # Example:
-#   sqlite3://myuser:mypass@localhost/somedatabase
+#   sqlite3://myuser:mypass@localhost/full/path/to/somedatabase
 #
-production: <%%= ENV["RAILS_DATABASE_URL"] %>
+production:
+  url: <%%= ENV["RAILS_DATABASE_URL"] %>
