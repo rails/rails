@@ -21,19 +21,22 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or newer
-* The [RubyGems](http://rubygems.org) packaging system
-* To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org)
-* A working installation of the [SQLite3 Database](http://www.sqlite.org)
+* The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or newer.
+* The [RubyGems](http://rubygems.org) packaging system, which is installed with Ruby
+  versions 1.9 and later. To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org).
+* A working installation of the [SQLite3 Database](http://www.sqlite.org).
 
 Rails is a web application framework running on the Ruby programming language.
 If you have no prior experience with Ruby, you will find a very steep learning
-curve diving straight into Rails. There are some good free resources on the
-Internet for learning Ruby, including:
+curve diving straight into Rails. There are several curated lists of online resources
+for learning Ruby:
 
-* [Mr. Neighborly's Humble Little Ruby Book](http://www.humblelittlerubybook.com)
-* [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/)
-* [Why's (Poignant) Guide to Ruby](http://mislav.uniqpath.com/poignant-guide/)
+* [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
+* [reSRC's List of Free Programming Books](http://resrc.io/list/10/list-of-free-programming-books/#ruby)
+
+Be aware that some resources, while still excellent, cover versions of Ruby as old as
+1.6, and commonly 1.8, and will not include some syntax that you will see in day-to-day
+development with Rails.
 
 What is Rails?
 --------------
@@ -54,11 +57,13 @@ learned elsewhere, you may have a less happy experience.
 
 The Rails philosophy includes two major guiding principles:
 
-* DRY - "Don't Repeat Yourself" - suggests that writing the same code over and
-  over again is a bad thing.
-* Convention Over Configuration - means that Rails makes assumptions about what
-  you want to do and how you're going to do it, rather than requiring you to
-  specify every little thing through endless configuration files.
+* **Don't Repeat Yourself:** DRY is a principle of software development which 
+  states that "Every piece of knowledge must have a single, unambiguous, authoritative
+  representation within a system." By not writing the same information over and over 
+  again, our code is more maintainable, more extensible, and less buggy.
+* **Convention Over Configuration:** Rails has opinions about the best way to do many
+  things in a web application, and defaults to this set of conventions, rather than
+  require that you specify every minutiae through endless configuration files.
 
 Creating a New Rails Project
 ----------------------------
@@ -73,9 +78,9 @@ By following along with this guide, you'll create a Rails project called
 (very) simple weblog. Before you can start building the application, you need to
 make sure that you have Rails itself installed.
 
-TIP: The examples below use `#` and `$` to denote superuser and regular
-user terminal prompts respectively in a UNIX-like OS. If you are using
-Windows, your prompt will look something like `c:\source_code>`
+TIP: The examples below use `$` to represent your terminal prompt in a UNIX-like OS,
+though it may have been customized to appear differently. If you are using Windows,
+your prompt will look something like `c:\source_code>`
 
 ### Installing Rails
 
@@ -96,6 +101,16 @@ ruby 2.0.0p353
 If you don't have Ruby installed have a look at
 [ruby-lang.org](https://www.ruby-lang.org/en/downloads/) for possible ways to
 install Ruby on your platform.
+
+Many popular UNIX-like OSes ship with an acceptable version of SQLite3. Windows
+users and others can find installation instructions at [the SQLite3 website](http://www.sqlite.org).
+Verify that it is correctly installed and in your PATH:
+
+```bash
+$ sqlite3 --version
+```
+
+The program should report its version.
 
 To install Rails, use the `gem install` command provided by RubyGems:
 
