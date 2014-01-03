@@ -162,4 +162,8 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal [:color], first_model.stored_attributes[:data]
     assert_equal [:width, :height], second_model.stored_attributes[:data]
   end
+
+  test "store empty YAML coder case it's nil" do
+    assert_not_nil @john.params
+  end
 end
