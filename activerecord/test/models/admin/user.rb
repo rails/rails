@@ -14,7 +14,6 @@ class Admin::User < ActiveRecord::Base
   end
 
   belongs_to :account
-  store :params, accessors: [ :color ], coder: YAML
   store :settings, :accessors => [ :color, :homepage ]
   store_accessor :settings, :favorite_food
   store :preferences, :accessors => [ :remember_login ]

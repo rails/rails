@@ -1,10 +1,3 @@
-*   Fixed ActiveRecord::Store nil conversion TypeError when using YAML coder.
-    In case the YAML passed as paramter is nil, uses an empty string
-
-    Fixes #13570
-
-    *Thales Oliveira*
-
 *   Since the `test_help.rb` in Railties now automatically maintains
     your test schema, the `rake db:test:*` tasks are deprecated. This
     doesn't stop you manually running other tasks on your test database
