@@ -63,7 +63,15 @@ module ActiveRecord
           end
         }
       end
+
     private
+
+    def set_original_value(*args)
+      attr = args.first
+      args << clone_attribute_value(:read_attribute, attr) if args.length < 2
+      super(*args)
+    end
+
       def update_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end
