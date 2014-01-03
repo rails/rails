@@ -172,10 +172,10 @@ module ActionView
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
       # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt>if
       #   you are creating new record. While editing existing record, <tt>:start_year</tt> defaults to
-      #   <tt>current selected year minus 5</tt>.
+      #   the current selected year minus 5.
       # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
-      #   <tt>current selected year plus 5</tt>.
+      #   the current selected year plus 5.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
