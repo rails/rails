@@ -41,17 +41,15 @@ module ActiveSupport
       #
       # If no addresses are specified, then MemCacheStore will connect to
       # localhost port 11211 (the default memcached port).
-      #
-      # Instead of addresses one can pass in a MemCache-like object. For example:
-      #
-      #   require 'memcached' # gem install memcached; uses C bindings to libmemcached
-      #   ActiveSupport::Cache::MemCacheStore.new(Memcached::Rails.new("localhost:11211"))
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
         super(options)
 
-        if addresses.first.respond_to?(:get)
+        unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
+          raise ArgumentError, "First argument must be an empty array, an array of hosts or a Dalli::Client instance."
+        end
+        if addresses.first.is_a?(Dalli::Client)
           @data = addresses.first
         else
           mem_cache_options = options.dup

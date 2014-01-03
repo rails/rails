@@ -110,12 +110,12 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
-  def test_mem_cache_fragment_cache_store_with_given_mem_cache_like_object
+  def test_mem_cache_fragment_cache_store_with_not_dalli_client
     Dalli::Client.expects(:new).never
     memcache = Object.new
-    def memcache.get() true end
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
-    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    assert_raises(ArgumentError) do
+      ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
+    end
   end
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
