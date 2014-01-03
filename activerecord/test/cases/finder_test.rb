@@ -883,6 +883,35 @@ class FinderTest < ActiveRecord::TestCase
     assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.offset("3").to_a }
   end
 
+  def test_group_by_with_no_args
+    assert_kind_of Enumerator, Company.all.group_by
+  end
+
+  def test_group_by_with_symbol
+    groups = Company.all.group_by(:type)
+    assert_kind_of Hash, groups
+
+    keys = groups.keys
+    assert_equal 5, keys.size
+    assert_equal [nil, 'Client', 'DependentFirm', 'ExclusivelyDependentFirm', 'Firm'].to_set, keys.to_set
+
+    assert_equal [2, 3, 5, 10], groups['Client'].map(&:id).sort
+    assert_equal [1, 4], groups['Firm'].map(&:id).sort
+    assert_equal nil, groups['Nonexistent']
+  end
+
+  def test_group_by_with_block
+    groups = Company.all.group_by { |c| c.firm_id }
+
+    group = groups[4]
+    assert_kind_of Array, group
+    assert_equal [5, 10], group.map(&:id).sort
+  end
+
+  def test_group_by_with_no_args
+    assert_kind_of Enumerable, Company.all.group_by
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)

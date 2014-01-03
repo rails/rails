@@ -1,3 +1,15 @@
+*   Add `ActiveRecord::FinderMethods#group_by` method, which collects records
+    into sets, grouped by distinct values for the specified `field`. This patch
+    leverages `ActiveRecord::Relation` to be far more efficient than
+    `Enumerable#group_by` when selecting based on a column name.
+
+    Example:
+
+        User.group_by(:role)
+        # => {"normal" => #<ActiveRecord::Relation [...]>, "admin" => #<ActiveRecord::Relation [...]>}
+
+    *Aidan Feldman*
+
 *   Since the `test_help.rb` in Railties now automatically maintains
     your test schema, the `rake db:test:*` tasks are deprecated. This
     doesn't stop you manually running other tasks on your test database

@@ -217,6 +217,27 @@ module ActiveRecord
       connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
     end
 
+    # Collect records into sets, grouped by distinct values for the specified +field+.
+    #
+    #   User.select([:id, :name])
+    #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">
+    #
+    #   User.group_by(:name)
+    #   => {"Foo" => #<ActiveRecord::Relation [...]>, "Oscar" => #<ActiveRecord::Relation [...]>}
+    def group_by(field = nil, &block)
+      if field.nil? || block_given?
+        super(&block)
+      else
+        result = {}
+        select(field).distinct.each do |item|
+          value = item[field]
+          result[value] = where(field => value)
+        end
+
+        result
+      end
+    end
+
     # This method is called whenever no records are found with either a single
     # id or multiple ids and raises a +ActiveRecord::RecordNotFound+ exception.
     #

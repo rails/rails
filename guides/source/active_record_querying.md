@@ -638,8 +638,10 @@ will return instead a maximum of 5 clients beginning with the 31st. The SQL look
 SELECT * FROM clients LIMIT 5 OFFSET 30
 ```
 
-Group
------
+Grouping
+--------
+
+### `group`
 
 To apply a `GROUP BY` clause to the SQL fired by the finder, you can specify the `group` method on the find.
 
@@ -658,6 +660,25 @@ SELECT date(created_at) as ordered_date, sum(price) as total_price
 FROM orders
 GROUP BY date(created_at)
 ```
+
+### `group_by`
+
+Similar to [Ruby's `Enumerable#group_by`](http://ruby-doc.org/core/Enumerable.html#method-i-group_by), Active Record's `group_by` method provides a way to retrieve all records that correspond to each distinct value.
+
+For example, to get the list of users with each role:
+
+```ruby
+Address.group_by(:state)
+# => {"AL" => #<ActiveRecord::Relation [...]>, "AK" => #<ActiveRecord::Relation [...]>, ...}
+```
+
+Under the hood, it will execute the SQL to retrieve the distinct values of the column:
+
+```sql
+# SELECT DISTINCT state FROM addresses
+```
+
+Without loading the full records from the database.
 
 Having
 ------
