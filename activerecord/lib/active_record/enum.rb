@@ -75,7 +75,7 @@ module ActiveRecord
             if enum_values.has_key?(value) || value.blank?
               self[name] = enum_values[value]
             elsif enum_values.has_value?(value)
-              # Assigning a value directly is not a end-user fetaure, hence it's not documented.
+              # Assigning a value directly is not a end-user feature, hence it's not documented.
               # This is used internally to make building objects from the generated scopes work
               # as expected, i.e. +Conversation.archived.build.archived?+ should be true.
               self[name] = value
