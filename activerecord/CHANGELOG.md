@@ -1,3 +1,8 @@
+*   Deprecate unused `ActiveRecord::Base.symbolized_base_class`
+    and `ActiveRecord::Base.symbolized_sti_name` without replacement.
+
+    *Yves Senn*
+
 *   Since the `test_help.rb` in Railties now automatically maintains
     your test schema, the `rake db:test:*` tasks are deprecated. This
     doesn't stop you manually running other tasks on your test database
