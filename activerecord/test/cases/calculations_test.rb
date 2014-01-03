@@ -451,6 +451,18 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
 
+  def test_multiple_calculations
+    assert_equal({ :average => 53.0, :sum => 318, :count => 6 },
+        Account.calculate([:average, :sum, :count], :credit_limit))
+  end
+
+  def test_multiple_grouped_calculations
+    c = Account.group(:firm_id).calculate([:average, :sum, :count], :credit_limit)
+    assert_equal({ :average => 50, :sum => 50, :count => 1 }, c[1])
+    assert_equal({ :average => 52.5, :sum => 105, :count => 2 }, c[6])
+    assert_equal({ :average => 60, :sum => 60, :count => 1 }, c[2])
+  end
+
   def test_from_option_with_specified_index
     if Edge.connection.adapter_name == 'MySQL' or Edge.connection.adapter_name == 'Mysql2'
       assert_equal Edge.count(:all), Edge.from('edges USE INDEX(unique_edge_index)').count(:all)

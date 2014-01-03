@@ -1,3 +1,11 @@
+*   Support for multiple calculations in a single query
+
+     Example:
+
+       File.calculate([:count, :sum], :file_size) # => { count: 125, sum: 124098 }
+
+    *Cody Cutrer*
+
 *   Deprecate unused `ActiveRecord::Base.symbolized_base_class`
     and `ActiveRecord::Base.symbolized_sti_name` without replacement.
 
