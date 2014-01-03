@@ -85,7 +85,7 @@ module ActionView
       #   # => "&lt;p&gt;Once upon a time in a wo..."
       #
       #   truncate("<p>Once upon a time in a world far far away</p>", escape: false)
-      #   # => "<p>Once upon a time in a wo...
+      #   # => "<p>Once upon a time in a wo..."
       #
       #   truncate("Once upon a time in a world far far away") { link_to "Continue", "#" }
       #   # => "Once upon a time in a wo...<a href="#">Continue</a>"
