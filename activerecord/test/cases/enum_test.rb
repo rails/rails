@@ -79,12 +79,13 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal 2, Book::STATUS[:published]
   end
 
-  test "first_or_initialize with enums' scopes" do
-    class Issue < ActiveRecord::Base
-      enum status: [:open, :closed]
-    end
+  test "building new objects with enum scopes" do
+    assert Book.written.build.written?
+    assert Book.read.build.read?
+  end
 
-    assert Issue.open.empty?
-    assert Issue.open.first_or_initialize
+  test "creating new objects with enum scopes" do
+    assert Book.written.create.written?
+    assert Book.read.create.read?
   end
 end

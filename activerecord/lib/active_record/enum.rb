@@ -72,10 +72,16 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           # def status=(value) self[:status] = STATUS[value] end
           define_method("#{name}=") { |value|
-            unless enum_values.has_key?(value) || enum_values.has_value?(value) || value.blank?
+            if enum_values.has_key?(value)|| value.blank?
+              self[name] = enum_values[value]
+            elsif enum_values.has_value?(value)
+              # Assigning a value directly is not a end-user fetaure, hence it's not documented.
+              # This is used internally to make building objects from the generated scopes work
+              # as expected, i.e. +Conversation.archived.build.archived?+ should be true.
+              self[name] = value
+            else
               raise ArgumentError, "'#{value}' is not a valid #{name}"
             end
-            self[name] = enum_values[value]
           }
 
           # def status() STATUS.key self[:status] end

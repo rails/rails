@@ -327,10 +327,6 @@ ActiveRecord::Schema.define do
     t.string     :color
   end
 
-  create_table :issues, force: true do |t|
-    t.integer :status
-  end
-
   create_table :items, force: true do |t|
     t.column :name, :string
   end
