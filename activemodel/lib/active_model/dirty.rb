@@ -212,8 +212,9 @@ module ActiveModel
         set_original_value(attr)
       end
 
+      # attr, old_value (optional), new_value (optional)
       def set_original_value(*args)
-        attr = args.first
+        attr = args.first.to_s
         begin
           value = args.length < 2 ? __send__(attr) : args[1]
           value = value.duplicable? ? value.clone : value
@@ -223,7 +224,7 @@ module ActiveModel
         if ! original_values.key?(attr)
           original_values[attr] = value
         end
-        if ! changed_attributes.key?(attr) && (args.length < 3 || value != args[2])
+        if ! changed_attributes.key?(attr) && (args.length < 3 || _field_changed?(attr, value, args[2]))
           changed_attributes[attr] = value
         end
       end
