@@ -104,7 +104,7 @@
 
     *Richard Schneeman*
 
-*   Do not raise `'can not touch on a new record object'` exception on destroying
+*   Do not raise `'cannot touch on a new record object'` exception on destroying
     already destroyed `belongs_to` association with `touch: true` option.
 
     Fixes #13445.

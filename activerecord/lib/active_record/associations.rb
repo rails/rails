@@ -75,13 +75,13 @@ module ActiveRecord
 
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      super("Can not eagerly load the polymorphic association #{reflection.name.inspect}")
+      super("Cannot eagerly load the polymorphic association #{reflection.name.inspect}")
     end
   end
 
   class ReadOnlyAssociation < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      super("Can not add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")
+      super("Cannot add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")
     end
   end
 
