@@ -38,7 +38,6 @@ module ActiveRecord
         end
       end
 
-    private
       # Wrap write_attribute to remember original attribute value.
       def write_attribute(attr, value)
         attr = attr.to_s
@@ -46,16 +45,17 @@ module ActiveRecord
         # The attribute already has an unsaved change.
         if attribute_changed?(attr)
           old = changed_attributes[attr]
-          changed_attributes.delete(attr) unless _field_changed?(attr, old, value)
+          reset_change(attr) unless _field_changed?(attr, old, value)
         else
           old = clone_attribute_value(:read_attribute, attr)
-          changed_attributes[attr] = old if _field_changed?(attr, old, value)
+          set_original_value(attr, old) if _field_changed?(attr, old, value)
         end
 
         # Carry on.
         super(attr, value)
       end
 
+    private
       def update_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end

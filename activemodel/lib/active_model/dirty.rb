@@ -162,6 +162,11 @@ module ActiveModel
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 
+    # mark a column as not changed (but don't change the value)
+    def reset_change(attr)
+      changed_attributes.delete(attr)
+    end
+
     private
 
       # Removes current changes and makes them accessible through +previous_changes+.
@@ -184,9 +189,13 @@ module ActiveModel
       # Handle <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
         return if attribute_changed?(attr)
+        set_original_value(attr)
+      end
 
+      def set_original_value(*args)
+        attr = args.first
         begin
-          value = __send__(attr)
+          value = args.length < 2 ? __send__(attr) : args[1]
           value = value.duplicable? ? value.clone : value
         rescue TypeError, NoMethodError
         end
@@ -198,7 +207,7 @@ module ActiveModel
       def reset_attribute!(attr)
         if attribute_changed?(attr)
           __send__("#{attr}=", changed_attributes[attr])
-          changed_attributes.delete(attr)
+          reset_change(attr)
         end
       end
   end

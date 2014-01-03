@@ -441,7 +441,7 @@ module ActiveRecord
       # optimistic locking) won't get written unless they get marked as changed
       self.class.columns.each do |c|
         attr, orig_value = c.name, c.default
-        changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
+        set_original_value(attr, orig_value) if _field_changed?(attr, orig_value, @attributes[attr])
       end
     end
 
