@@ -1,3 +1,7 @@
+*   MemCacheStore should only accept a Dalli::Client, or create one.
+
+    *arthurnn*
+
 *   Don't lazy load the `tzinfo` library as it causes problems on Windows.
 
     Fixes #13553

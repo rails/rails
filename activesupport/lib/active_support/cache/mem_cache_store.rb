@@ -46,6 +46,9 @@ module ActiveSupport
         options = addresses.extract_options!
         super(options)
 
+        unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
+          raise ArgumentError, "First argument must be an empty array, an array of hosts or a Dalli::Client instance."
+        end
         if addresses.first.is_a?(Dalli::Client)
           @data = addresses.first
         else

@@ -110,6 +110,14 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
+  def test_mem_cache_fragment_cache_store_with_not_dalli_client
+    Dalli::Client.expects(:new).never
+    memcache = Object.new
+    assert_raises(ArgumentError) do
+      ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
+    end
+  end
+
   def test_mem_cache_fragment_cache_store_with_multiple_servers
     Dalli::Client.expects(:new).with(%w[localhost 192.168.1.1], {})
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1'
