@@ -87,12 +87,6 @@ All operators are chainable in this way, and they are chainable any number of ti
 users.where(users[:name].eq('bob')).where(users[:age].lt(25))
 ```
 
-Of course, many of the operators take multiple arguments, so the last example can be written more tersely:
-
-```ruby
-users.where(users[:name].eq('bob'), users[:age].lt(25))
-```
-
 The `OR` operator works like this:
 
 ```ruby
