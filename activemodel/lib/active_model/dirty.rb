@@ -158,8 +158,8 @@ module ActiveModel
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, options = {}) #:nodoc:
-      value_pairs = [original_values[attr], __send__(attr)]
-      result = changed_attributes.key?(attr)
+      value_pairs = attribute_change(attr)
+      result = ! value_pairs.nil?
       result &&= options[:to].hash == value_pairs.last.hash if options.key?(:to)
       result &&= options[:from].hash == value_pairs.first.hash if options.key?(:from)
       result
@@ -178,6 +178,10 @@ module ActiveModel
     end
 
     private
+
+      def _field_changed?(attr, old, value)
+        old != value
+      end
 
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied
@@ -199,7 +203,7 @@ module ActiveModel
         if original_values.key?(attr)
           old = original_values[attr]
           value = __send__(attr)
-          [old, value] if attribute_changed?(attr)
+          [old, value] if changed_attributes.key?(attr)
         end
       end
 
@@ -227,7 +231,7 @@ module ActiveModel
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
         attr = attr.to_s
-        if attribute_changed?(attr)
+        if original_values.key?(attr)
           __send__("#{attr}=", original_values[attr])
           reset_change(attr)
         end

@@ -48,13 +48,21 @@ module ActiveRecord
           reset_change(attr) unless _field_changed?(attr, old, value)
         else
           old = clone_attribute_value(:read_attribute, attr)
-          set_original_value(attr, old) if _field_changed?(attr, old, value)
+          set_original_value(attr, old, value)
         end
 
         # Carry on.
         super(attr, value)
       end
 
+      def read_attribute(attr)
+        super.tap { |value|
+          attr = attr.to_s
+          if attr != "" && attribute_names.include?(attr)
+            set_original_value(attr, value, value)
+          end
+        }
+      end
     private
       def update_record(*)
         partial_writes? ? super(keys_for_partial_write) : super

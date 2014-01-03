@@ -313,7 +313,7 @@ class DirtyTest < ActiveRecord::TestCase
     assert pirate.catchphrase_will_change!
     pirate.catchphrase << '!'
     assert pirate.catchphrase_changed?
-    assert_equal ['arr matey', 'arr matey!'], pirate.catchphrase_change
+    assert_equal ['arr', 'arr matey!'], pirate.catchphrase_change
   end
 
   def test_association_assignment_changes_foreign_key
