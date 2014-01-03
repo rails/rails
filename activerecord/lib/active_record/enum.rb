@@ -72,7 +72,7 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           # def status=(value) self[:status] = STATUS[value] end
           define_method("#{name}=") { |value|
-            if enum_values.has_key?(value)|| value.blank?
+            if enum_values.has_key?(value) || value.blank?
               self[name] = enum_values[value]
             elsif enum_values.has_value?(value)
               # Assigning a value directly is not a end-user fetaure, hence it's not documented.
