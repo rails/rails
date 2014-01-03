@@ -107,7 +107,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      changed_attributes.present?
+      changes.present?
     end
 
     # Returns an array with the name of the attributes with unsaved changes.
@@ -116,7 +116,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed # => ["name"]
     def changed
-      changed_attributes.keys
+      changes.keys
     end
 
     # Returns a hash of changed attributes indicating their original
@@ -126,7 +126,10 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changes # => { "name" => ["bill", "bob"] }
     def changes
-      ActiveSupport::HashWithIndifferentAccess[changed.map { |attr| [attr, attribute_change(attr)] }]
+      original_values.keys.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |attr, hash|
+        change = attribute_change(attr)
+        hash[attr] = change if change
+      end
     end
 
     # Returns a hash of attributes that were changed before the model was saved.
@@ -137,6 +140,10 @@ module ActiveModel
     #   person.previous_changes # => {"name" => ["bob", "robert"]}
     def previous_changes
       @previously_changed ||= {}
+    end
+
+    def original_values
+      @original_values ||= {}
     end
 
     # Returns a hash of the attributes with unsaved changes indicating their original
@@ -151,20 +158,23 @@ module ActiveModel
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, options = {}) #:nodoc:
-      result = changed_attributes.include?(attr)
-      result &&= options[:to] == __send__(attr) if options.key?(:to)
-      result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
+      value_pairs = [changed_attributes[attr], __send__(attr)]
+      result = changed_attributes.key?(attr)
+      result &&= options[:to].hash == value_pairs.last.hash if options.key?(:to)
+      result &&= options[:from].hash == value_pairs.first.hash if options.key?(:from)
       result
     end
 
     # Handle <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr) # :nodoc:
+      attr = attr.to_s
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 
     # mark a column as not changed (but don't change the value)
     def reset_change(attr)
       changed_attributes.delete(attr)
+      original_values.delete(attr)
     end
 
     private
@@ -173,17 +183,24 @@ module ActiveModel
       def changes_applied
         @previously_changed = changes
         @changed_attributes = {}
+        @original_values = nil
       end
 
       # Removes all dirty data: current changes and previous changes
       def reset_changes
         @previously_changed = {}
         @changed_attributes = {}
+        @original_values = nil
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
-        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+        attr = attr.to_s
+        if original_values.key?(attr)
+          old = original_values[attr]
+          value = __send__(attr)
+          [changed_attributes[attr], value] if attribute_changed?(attr) ##
+        end
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
@@ -201,10 +218,12 @@ module ActiveModel
         end
 
         changed_attributes[attr] = value
+        original_values[attr] = value
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
+        attr = attr.to_s
         if attribute_changed?(attr)
           __send__("#{attr}=", changed_attributes[attr])
           reset_change(attr)
