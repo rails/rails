@@ -16,7 +16,7 @@ module ActiveRecord
       # instance of the given subclass instead of the base class.
       def new(*args, &block)
         if abstract_class? || self == Base
-          raise NotImplementedError, "#{self} is an abstract class and can not be instantiated."
+          raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
         if (attrs = args.first).is_a?(Hash)
           if subclass = subclass_from_attrs(attrs)

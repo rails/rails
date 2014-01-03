@@ -11,7 +11,7 @@ class ErrorsTest < ActiveModel::TestCase
     attr_reader   :errors
 
     def validate!
-      errors.add(:name, "can not be nil") if name == nil
+      errors.add(:name, "cannot be nil") if name == nil
     end
 
     def read_attribute_for_validation(attr)
@@ -104,8 +104,8 @@ class ErrorsTest < ActiveModel::TestCase
   test "adding errors using conditionals with Person#validate!" do
     person = Person.new
     person.validate!
-    assert_equal ["name can not be nil"], person.errors.full_messages
-    assert_equal ["can not be nil"], person.errors[:name]
+    assert_equal ["name cannot be nil"], person.errors.full_messages
+    assert_equal ["cannot be nil"], person.errors[:name]
   end
 
   test "assign error" do
@@ -116,8 +116,8 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add an error message on a specific attribute" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
-    assert_equal ["can not be blank"], person.errors[:name]
+    person.errors.add(:name, "cannot be blank")
+    assert_equal ["cannot be blank"], person.errors[:name]
   end
 
   test "add an error with a symbol" do
@@ -129,15 +129,15 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "add an error with a proc" do
     person = Person.new
-    message = Proc.new { "can not be blank" }
+    message = Proc.new { "cannot be blank" }
     person.errors.add(:name, message)
-    assert_equal ["can not be blank"], person.errors[:name]
+    assert_equal ["cannot be blank"], person.errors[:name]
   end
 
   test "added? detects if a specific error was added to the object" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
-    assert person.errors.added?(:name, "can not be blank")
+    person.errors.add(:name, "cannot be blank")
+    assert person.errors.added?(:name, "cannot be blank")
   end
 
   test "added? handles symbol message" do
@@ -148,7 +148,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "added? handles proc messages" do
     person = Person.new
-    message = Proc.new { "can not be blank" }
+    message = Proc.new { "cannot be blank" }
     person.errors.add(:name, message)
     assert person.errors.added?(:name, message)
   end
@@ -161,9 +161,9 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "added? matches the given message when several errors are present for the same attribute" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "cannot be blank")
     person.errors.add(:name, "is invalid")
-    assert person.errors.added?(:name, "can not be blank")
+    assert person.errors.added?(:name, "cannot be blank")
   end
 
   test "added? returns false when no errors are present" do
@@ -174,52 +174,52 @@ class ErrorsTest < ActiveModel::TestCase
   test "added? returns false when checking a nonexisting error and other errors are present for the given attribute" do
     person = Person.new
     person.errors.add(:name, "is invalid")
-    assert !person.errors.added?(:name, "can not be blank")
+    assert !person.errors.added?(:name, "cannot be blank")
   end
 
   test "size calculates the number of error messages" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "cannot be blank")
     assert_equal 1, person.errors.size
   end
 
   test "to_a returns the list of errors with complete messages containing the attribute names" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
-    person.errors.add(:name, "can not be nil")
-    assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
+    person.errors.add(:name, "cannot be blank")
+    person.errors.add(:name, "cannot be nil")
+    assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.to_a
   end
 
   test "to_hash returns the error messages hash" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
-    assert_equal({ name: ["can not be blank"] }, person.errors.to_hash)
+    person.errors.add(:name, "cannot be blank")
+    assert_equal({ name: ["cannot be blank"] }, person.errors.to_hash)
   end
 
   test "full_messages creates a list of error messages with the attribute name included" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
-    person.errors.add(:name, "can not be nil")
-    assert_equal ["name can not be blank", "name can not be nil"], person.errors.full_messages
+    person.errors.add(:name, "cannot be blank")
+    person.errors.add(:name, "cannot be nil")
+    assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.full_messages
   end
 
   test "full_messages_for contains all the error messages for the given attribute" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
-    person.errors.add(:name, "can not be nil")
-    assert_equal ["name can not be blank", "name can not be nil"], person.errors.full_messages_for(:name)
+    person.errors.add(:name, "cannot be blank")
+    person.errors.add(:name, "cannot be nil")
+    assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.full_messages_for(:name)
   end
 
   test "full_messages_for does not contain error messages from other attributes" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
-    person.errors.add(:email, "can not be blank")
-    assert_equal ["name can not be blank"], person.errors.full_messages_for(:name)
+    person.errors.add(:name, "cannot be blank")
+    person.errors.add(:email, "cannot be blank")
+    assert_equal ["name cannot be blank"], person.errors.full_messages_for(:name)
   end
 
   test "full_messages_for returns an empty list in case there are no errors for the given attribute" do
     person = Person.new
-    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "cannot be blank")
     assert_equal [], person.errors.full_messages_for(:email)
   end
 
@@ -230,22 +230,22 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "full_message returns the given message with the attribute name included" do
     person = Person.new
-    assert_equal "name can not be blank", person.errors.full_message(:name, "can not be blank")
-    assert_equal "name_test can not be blank", person.errors.full_message(:name_test, "can not be blank")
+    assert_equal "name cannot be blank", person.errors.full_message(:name, "cannot be blank")
+    assert_equal "name_test cannot be blank", person.errors.full_message(:name_test, "cannot be blank")
   end
 
   test "as_json creates a json formatted representation of the errors hash" do
     person = Person.new
     person.validate!
 
-    assert_equal({ name: ["can not be nil"] }, person.errors.as_json)
+    assert_equal({ name: ["cannot be nil"] }, person.errors.as_json)
   end
 
   test "as_json with :full_messages option creates a json formatted representation of the errors containing complete messages" do
     person = Person.new
     person.validate!
 
-    assert_equal({ name: ["name can not be nil"] }, person.errors.as_json(full_messages: true))
+    assert_equal({ name: ["name cannot be nil"] }, person.errors.as_json(full_messages: true))
   end
 
   test "generate_message works without i18n_scope" do

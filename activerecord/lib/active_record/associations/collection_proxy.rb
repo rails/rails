@@ -112,7 +112,7 @@ module ActiveRecord
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as <tt>ActiveRecord::Base.find</tt>. Returns <tt>ActiveRecord::RecordNotFound</tt>
-      # error if the object can not be found.
+      # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets

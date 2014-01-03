@@ -23,7 +23,7 @@ module ActiveModel
   #     attr_reader   :errors
   #
   #     def validate!
-  #       errors.add(:name, "can not be nil") if name == nil
+  #       errors.add(:name, "cannot be nil") if name == nil
   #     end
   #
   #     # The following methods are needed to be minimally implemented
@@ -51,8 +51,8 @@ module ActiveModel
   # The above allows you to do:
   #
   #   person = Person.new
-  #   person.validate!            # => ["can not be nil"]
-  #   person.errors.full_messages # => ["name can not be nil"]
+  #   person.validate!            # => ["cannot be nil"]
+  #   person.errors.full_messages # => ["name cannot be nil"]
   #   # etc..
   class Errors
     include Enumerable
@@ -80,7 +80,7 @@ module ActiveModel
 
     # Clear the error messages.
     #
-    #   person.errors.full_messages # => ["name can not be nil"]
+    #   person.errors.full_messages # => ["name cannot be nil"]
     #   person.errors.clear
     #   person.errors.full_messages # => []
     def clear
@@ -90,7 +90,7 @@ module ActiveModel
     # Returns +true+ if the error messages include an error for the given key
     # +attribute+, +false+ otherwise.
     #
-    #   person.errors.messages        # => {:name=>["can not be nil"]}
+    #   person.errors.messages        # => {:name=>["cannot be nil"]}
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
@@ -101,8 +101,8 @@ module ActiveModel
 
     # Get messages for +key+.
     #
-    #   person.errors.messages   # => {:name=>["can not be nil"]}
-    #   person.errors.get(:name) # => ["can not be nil"]
+    #   person.errors.messages   # => {:name=>["cannot be nil"]}
+    #   person.errors.get(:name) # => ["cannot be nil"]
     #   person.errors.get(:age)  # => nil
     def get(key)
       messages[key]
@@ -110,7 +110,7 @@ module ActiveModel
 
     # Set messages for +key+ to +value+.
     #
-    #   person.errors.get(:name) # => ["can not be nil"]
+    #   person.errors.get(:name) # => ["cannot be nil"]
     #   person.errors.set(:name, ["can't be nil"])
     #   person.errors.get(:name) # => ["can't be nil"]
     def set(key, value)
@@ -119,8 +119,8 @@ module ActiveModel
 
     # Delete messages for +key+. Returns the deleted messages.
     #
-    #   person.errors.get(:name)    # => ["can not be nil"]
-    #   person.errors.delete(:name) # => ["can not be nil"]
+    #   person.errors.get(:name)    # => ["cannot be nil"]
+    #   person.errors.delete(:name) # => ["cannot be nil"]
     #   person.errors.get(:name)    # => nil
     def delete(key)
       messages.delete(key)
@@ -129,8 +129,8 @@ module ActiveModel
     # When passed a symbol or a name of a method, returns an array of errors
     # for the method.
     #
-    #   person.errors[:name]  # => ["can not be nil"]
-    #   person.errors['name'] # => ["can not be nil"]
+    #   person.errors[:name]  # => ["cannot be nil"]
+    #   person.errors['name'] # => ["cannot be nil"]
     def [](attribute)
       get(attribute.to_sym) || set(attribute.to_sym, [])
     end
@@ -175,15 +175,15 @@ module ActiveModel
 
     # Returns all message values.
     #
-    #   person.errors.messages # => {:name=>["can not be nil", "must be specified"]}
-    #   person.errors.values   # => [["can not be nil", "must be specified"]]
+    #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
+    #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
       messages.values
     end
 
     # Returns all message keys.
     #
-    #   person.errors.messages # => {:name=>["can not be nil", "must be specified"]}
+    #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
       messages.keys
@@ -211,7 +211,7 @@ module ActiveModel
     # Returns +true+ if no errors are found, +false+ otherwise.
     # If the error message is a string it can be empty.
     #
-    #   person.errors.full_messages # => ["name can not be nil"]
+    #   person.errors.full_messages # => ["name cannot be nil"]
     #   person.errors.empty?        # => false
     def empty?
       all? { |k, v| v && v.empty? && !v.is_a?(String) }
@@ -238,8 +238,8 @@ module ActiveModel
     # object. You can pass the <tt>:full_messages</tt> option. This determines
     # if the json object should contain full messages or not (false by default).
     #
-    #   person.errors.as_json                      # => {:name=>["can not be nil"]}
-    #   person.errors.as_json(full_messages: true) # => {:name=>["name can not be nil"]}
+    #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
+    #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
     def as_json(options=nil)
       to_hash(options && options[:full_messages])
     end
@@ -247,8 +247,8 @@ module ActiveModel
     # Returns a Hash of attributes with their error messages. If +full_messages+
     # is +true+, it will contain full messages (see +full_message+).
     #
-    #   person.errors.to_hash       # => {:name=>["can not be nil"]}
-    #   person.errors.to_hash(true) # => {:name=>["name can not be nil"]}
+    #   person.errors.to_hash       # => {:name=>["cannot be nil"]}
+    #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     def to_hash(full_messages = false)
       if full_messages
         messages = {}

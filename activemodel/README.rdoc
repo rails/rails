@@ -109,7 +109,7 @@ behavior out of the box:
       attr_reader   :errors
 
       def validate!
-        errors.add(:name, "can not be nil") if name.nil?
+        errors.add(:name, "cannot be nil") if name.nil?
       end
 
       def self.human_attribute_name(attr, options = {})
@@ -118,7 +118,7 @@ behavior out of the box:
     end
 
     person.errors.full_messages
-    # => ["Name can not be nil"]
+    # => ["Name cannot be nil"]
 
   {Learn more}[link:classes/ActiveModel/Errors.html]
 
