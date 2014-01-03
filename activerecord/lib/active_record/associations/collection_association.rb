@@ -66,11 +66,11 @@ module ActiveRecord
         @target = []
       end
 
-      def select(select = nil)
+      def select(*fields)
         if block_given?
           load_target.select.each { |e| yield e }
         else
-          scope.select(select)
+          scope.select(*fields)
         end
       end
 

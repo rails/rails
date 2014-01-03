@@ -75,7 +75,7 @@ module ActiveRecord
       #   #      #<Pet id: nil, name: "Choo-Choo">
       #   #    ]
       #
-      #   person.pets.select([:id, :name])
+      #   person.pets.select(:id, :name )
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy">,
       #   #      #<Pet id: 2, name: "Spook">,
@@ -106,8 +106,8 @@ module ActiveRecord
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
       #   #    ]
-      def select(select = nil, &block)
-        @association.select(select, &block)
+      def select(*fields, &block)
+        @association.select(*fields, &block)
       end
 
       # Finds an object in the collection responding to the +id+. Uses the same
