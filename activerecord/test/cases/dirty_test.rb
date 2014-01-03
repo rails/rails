@@ -310,12 +310,7 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.create!(:catchphrase => 'arr')
 
     pirate.catchphrase << ' matey'
-    assert !pirate.catchphrase_changed?
-
     assert pirate.catchphrase_will_change!
-    assert pirate.catchphrase_changed?
-    assert_equal ['arr matey', 'arr matey'], pirate.catchphrase_change
-
     pirate.catchphrase << '!'
     assert pirate.catchphrase_changed?
     assert_equal ['arr matey', 'arr matey!'], pirate.catchphrase_change

@@ -158,7 +158,7 @@ module ActiveModel
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, options = {}) #:nodoc:
-      value_pairs = [changed_attributes[attr], __send__(attr)]
+      value_pairs = [original_values[attr], __send__(attr)]
       result = changed_attributes.key?(attr)
       result &&= options[:to].hash == value_pairs.last.hash if options.key?(:to)
       result &&= options[:from].hash == value_pairs.first.hash if options.key?(:from)
@@ -168,7 +168,7 @@ module ActiveModel
     # Handle <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr) # :nodoc:
       attr = attr.to_s
-      attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+      original_values.key?(attr) ? original_values[attr] : __send__(attr)
     end
 
     # mark a column as not changed (but don't change the value)
@@ -199,13 +199,12 @@ module ActiveModel
         if original_values.key?(attr)
           old = original_values[attr]
           value = __send__(attr)
-          [changed_attributes[attr], value] if attribute_changed?(attr) ##
+          [old, value] if attribute_changed?(attr)
         end
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
-        return if attribute_changed?(attr)
         set_original_value(attr)
       end
 
@@ -217,15 +216,19 @@ module ActiveModel
         rescue TypeError, NoMethodError
         end
 
-        changed_attributes[attr] = value
-        original_values[attr] = value
+        if ! original_values.key?(attr)
+          original_values[attr] = value
+        end
+        if ! changed_attributes.key?(attr) && (args.length < 3 || value != args[2])
+          changed_attributes[attr] = value
+        end
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
         attr = attr.to_s
         if attribute_changed?(attr)
-          __send__("#{attr}=", changed_attributes[attr])
+          __send__("#{attr}=", original_values[attr])
           reset_change(attr)
         end
       end
