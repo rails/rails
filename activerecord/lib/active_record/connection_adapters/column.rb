@@ -234,7 +234,7 @@ module ActiveRecord
           end
 
           def fallback_string_to_date(string)
-            new_date(*::Date._parse(string, false).values_at(:year, :mon, :mday))
+            new_date(*::Date._parse(string, true).values_at(:year, :mon, :mday))
           end
 
           def fallback_string_to_time(string)

@@ -466,6 +466,18 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
   end
 
+  def test_two_digit_date_string_to_date
+    assert_equal Date.new(2013, 12, 4), "13/12/4".to_date
+  end
+
+  def test_two_digit_date_string_to_time
+    assert_equal Date.new(2013, 12, 4), "13/12/4".to_time.to_date
+  end
+
+  def test_two_digit_date_string_to_datetime
+    assert_equal Date.new(2013, 12, 4), "13/12/4".to_datetime.to_date
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz

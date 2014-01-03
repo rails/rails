@@ -1,3 +1,7 @@
+*   Fix two-digit date conversions for String and TimeZone extensions
+
+    *Jonathan Chapman*
+
 *   Don't lazy load the `tzinfo` library as it causes problems on Windows.
 
     Fixes #13553
