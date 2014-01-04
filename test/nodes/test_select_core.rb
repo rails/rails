@@ -2,7 +2,7 @@ require 'helper'
 
 module Arel
   module Nodes
-    class TestSelectCore < MiniTest::Unit::TestCase
+    class TestSelectCore < Minitest::Test
       def test_clone
         core = Arel::Nodes::SelectCore.new
         core.froms       = %w[a b c]

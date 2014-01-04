@@ -2,7 +2,7 @@ require 'helper'
 
 module Arel
   module Nodes
-    class TestBin < MiniTest::Unit::TestCase
+    class TestBin < Minitest::Test
       def test_new
         assert Arel::Nodes::Bin.new('zomg')
       end

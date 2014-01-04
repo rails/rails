@@ -4,7 +4,7 @@ require 'support/fake_record'
 
 module Arel
   module Visitors
-    class TestBindVisitor < MiniTest::Unit::TestCase 
+    class TestBindVisitor < Minitest::Test
       
       ##
       # Tests visit_Arel_Nodes_Assignment correctly

@@ -2,7 +2,7 @@ require 'helper'
 
 module Arel
   module FactoryMethods
-    class TestFactoryMethods < MiniTest::Unit::TestCase
+    class TestFactoryMethods < Minitest::Test
       class Factory
         include Arel::FactoryMethods
       end

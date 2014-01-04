@@ -2,7 +2,7 @@ require 'helper'
 
 module Arel
   module Nodes
-    class TestInfixOperation < MiniTest::Unit::TestCase
+    class TestInfixOperation < Minitest::Test
       def test_construct
         operation = InfixOperation.new :+, 1, 2
         assert_equal :+, operation.operator

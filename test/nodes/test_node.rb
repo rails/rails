@@ -1,7 +1,7 @@
 require 'helper'
 
 module Arel
-  class TestNode < MiniTest::Unit::TestCase
+  class TestNode < Minitest::Test
     def test_includes_factory_methods
       assert Node.new.respond_to?(:create_join)
     end
