@@ -1074,7 +1074,7 @@ module ActionView
       # Wraps ActionView::Helpers::DateHelper#datetime_select for form builders:
       #
       #   <%= form_for @person do |f| %>
-      #     <%= f.time_select :last_request_at %>
+      #     <%= f.datetime_select :last_request_at %>
       #     <%= f.submit %>
       #   <% end %>
       #
