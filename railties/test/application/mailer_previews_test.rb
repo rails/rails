@@ -225,6 +225,46 @@ module ApplicationTests
       assert_no_match '<li><a href="/rails/mailers/notifier/bar">bar</a></li>', last_response.body
     end
 
+    test "mailer previews are reloaded from a custom preview_path" do
+      add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
+
+      app('development')
+
+      get "/rails/mailers"
+      assert_no_match '<h3><a href="/rails/mailers/notifier">Notifier</a></h3>', last_response.body
+
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      app_file 'lib/mailer_previews/notifier_preview.rb', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      get "/rails/mailers"
+      assert_match '<h3><a href="/rails/mailers/notifier">Notifier</a></h3>', last_response.body
+
+      remove_file 'lib/mailer_previews/notifier_preview.rb'
+      sleep(1)
+
+      get "/rails/mailers"
+      assert_no_match '<h3><a href="/rails/mailers/notifier">Notifier</a></h3>', last_response.body
+    end
+
     test "mailer preview not found" do
       app('development')
       get "/rails/mailers/notifier"
@@ -366,7 +406,7 @@ module ApplicationTests
     private
       def build_app
         super
-        app_file 'config/routes.rb', "Rails.application.routes.draw do; end"
+        app_file "config/routes.rb", "Rails.application.routes.draw do; end"
       end
 
       def mailer(name, contents)
