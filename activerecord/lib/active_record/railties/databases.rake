@@ -344,7 +344,7 @@ db_namespace = namespace :db do
     task :clone_schema => %w(db:test:deprecated db:schema:dump db:test:load_schema)
 
     # desc "Recreate the test database from a fresh structure.sql file"
-    task :clone_structure => %w(db:structure:dump db:test:load_structure)
+    task :clone_structure => %w(db:test:deprecated db:structure:dump db:test:load_structure)
 
     # desc "Empty the test database"
     task :purge => %w(db:test:deprecated environment load_config) do
