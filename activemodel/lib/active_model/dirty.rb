@@ -181,6 +181,7 @@ module ActiveModel
 
     # mark a column as not changed (but don't change the value)
     def reset_change(attr)
+      #remove:
       changed_attributes_on_way_out.delete(attr)
       original_values.delete(attr)
     end
@@ -194,6 +195,7 @@ module ActiveModel
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied
         @previously_changed = changes
+        #remove:
         @changed_attributes = {}
         @original_values = nil
       end
@@ -201,6 +203,7 @@ module ActiveModel
       # Removes all dirty data: current changes and previous changes
       def reset_changes
         @previously_changed = {}
+        #remove:
         @changed_attributes = {}
         @original_values = nil
       end

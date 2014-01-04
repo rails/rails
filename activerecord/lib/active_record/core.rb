@@ -248,6 +248,7 @@ module ActiveRecord
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
+      #remove:
       @changed_attributes = {}
       @original_values = nil
       init_changed_attributes

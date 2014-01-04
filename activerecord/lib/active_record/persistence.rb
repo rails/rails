@@ -181,6 +181,7 @@ module ActiveRecord
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@attributes_cache", @attributes_cache)
+      #remove:
       became.instance_variable_set("@changed_attributes", @changed_attributes) if defined?(@changed_attributes)
       became.instance_variable_set("@original_values", @original_values) if defined?(@original_values)
       became.instance_variable_set("@new_record", new_record?)
