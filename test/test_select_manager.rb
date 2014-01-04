@@ -1,58 +1,6 @@
 require 'helper'
 
 module Arel
-  class EngineProxy
-    attr_reader :executed
-    attr_reader :connection_pool
-    attr_reader :spec
-    attr_reader :config
-
-    def initialize engine
-      @engine = engine
-      @executed = []
-      @connection_pool = self
-      @spec = self
-      @config = { :adapter => 'sqlite3' }
-    end
-
-    def with_connection
-      yield self
-    end
-
-    def connection
-      self
-    end
-
-    def quote_table_name thing; @engine.connection.quote_table_name thing end
-    def quote_column_name thing; @engine.connection.quote_column_name thing end
-    def quote thing, column; @engine.connection.quote thing, column end
-    def columns table, message = nil
-      @engine.connection.columns table, message
-    end
-
-    def columns_hash
-      @engine.connection.columns_hash
-    end
-
-    def table_exists? name
-      @engine.connection.table_exists? name
-    end
-
-    def tables
-      @engine.connection.tables
-    end
-
-    def visitor
-      @engine.connection.visitor
-    end
-
-    def execute sql, name = nil, *args
-      @executed << sql
-    end
-    alias :update :execute
-    alias :delete :execute
-    alias :insert :execute
-  end
 
   describe 'select manager' do
     def test_join_sources
@@ -874,9 +822,8 @@ module Arel
 
     describe 'delete' do
       it "copies from" do
-        engine  = EngineProxy.new Table.engine
         table   = Table.new :users
-        manager = Arel::SelectManager.new engine
+        manager = Arel::SelectManager.new Table.engine
         manager.from table
         stmt = manager.compile_delete
 
@@ -884,9 +831,8 @@ module Arel
       end
 
       it "copies where" do
-        engine  = EngineProxy.new Table.engine
         table   = Table.new :users
-        manager = Arel::SelectManager.new engine
+        manager = Arel::SelectManager.new Table.engine
         manager.from table
         manager.where table[:id].eq 10
         stmt = manager.compile_delete
@@ -916,9 +862,8 @@ module Arel
 
     describe 'update' do
       it 'copies limits' do
-        engine  = EngineProxy.new Table.engine
         table   = Table.new :users
-        manager = Arel::SelectManager.new engine
+        manager = Arel::SelectManager.new Table.engine
         manager.from table
         manager.take 1
         stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
@@ -931,9 +876,8 @@ module Arel
       end
 
       it 'copies order' do
-        engine  = EngineProxy.new Table.engine
         table   = Table.new :users
-        manager = Arel::SelectManager.new engine
+        manager = Arel::SelectManager.new Table.engine
         manager.from table
         manager.order :foo
         stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
@@ -946,9 +890,8 @@ module Arel
       end
 
       it 'takes a string' do
-        engine  = EngineProxy.new Table.engine
         table   = Table.new :users
-        manager = Arel::SelectManager.new engine
+        manager = Arel::SelectManager.new Table.engine
         manager.from table
         stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
 
@@ -956,9 +899,8 @@ module Arel
       end
 
       it 'copies where clauses' do
-        engine  = EngineProxy.new Table.engine
         table   = Table.new :users
-        manager = Arel::SelectManager.new engine
+        manager = Arel::SelectManager.new Table.engine
         manager.where table[:id].eq 10
         manager.from table
         stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
@@ -969,9 +911,8 @@ module Arel
       end
 
       it 'copies where clauses when nesting is triggered' do
-        engine  = EngineProxy.new Table.engine
         table   = Table.new :users
-        manager = Arel::SelectManager.new engine
+        manager = Arel::SelectManager.new Table.engine
         manager.where table[:foo].eq 10
         manager.take 42
         manager.from table
@@ -983,9 +924,8 @@ module Arel
       end
 
       it 'executes an update statement' do
-        engine  = EngineProxy.new Table.engine
         table   = Table.new :users
-        manager = Arel::SelectManager.new engine
+        manager = Arel::SelectManager.new Table.engine
         manager.from table
         stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
 
