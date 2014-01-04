@@ -44,7 +44,7 @@ module ActiveRecord
 
         # The attribute already has an unsaved change.
         if attribute_changed?(attr)
-          old = changed_attributes[attr]
+          old = original_values[attr]
           reset_change(attr) unless _field_changed?(attr, old, value)
         else
           old = clone_attribute_value(:read_attribute, attr)
@@ -83,7 +83,7 @@ module ActiveRecord
       # Serialized attributes should always be written in case they've been
       # changed in place.
       def keys_for_partial_write
-        changed | (attributes.keys & self.class.serialized_attributes.keys)
+        changed
       end
 
       def _field_changed?(attr, old, value)

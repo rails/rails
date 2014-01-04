@@ -203,7 +203,7 @@ module ActiveModel
         if original_values.key?(attr)
           old = original_values[attr]
           value = __send__(attr)
-          [old, value] if changed_attributes.key?(attr)
+          [old, value] if _field_changed?(attr, old, value) || (changed_attributes.key?(attr))
         end
       end
 

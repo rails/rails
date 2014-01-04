@@ -131,10 +131,7 @@ module ActiveRecord
 
         def self.write(object, attribute, key, value)
           prepare(object, attribute)
-          if value != read(object, attribute, key)
-            object.public_send :"#{attribute}_will_change!"
-            object.public_send(attribute)[key] = value
-          end
+          object.public_send(attribute)[key] = value
         end
 
         def self.prepare(object, attribute)
