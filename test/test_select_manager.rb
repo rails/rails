@@ -1005,16 +1005,14 @@ module Arel
 
       it 'takes strings' do
         manager = Arel::SelectManager.new Table.engine
-        manager.project Nodes::SqlLiteral.new('*')
+        manager.project '*'
         manager.to_sql.must_be_like %{ SELECT * }
       end
 
       it "takes sql literals" do
         manager = Arel::SelectManager.new Table.engine
         manager.project Nodes::SqlLiteral.new '*'
-        manager.to_sql.must_be_like %{
-          SELECT *
-        }
+        manager.to_sql.must_be_like %{ SELECT * }
       end
     end
 
