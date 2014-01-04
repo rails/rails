@@ -4,7 +4,7 @@ require 'fileutils'
 require 'arel'
 
 require 'support/fake_record'
-Arel::Table.engine = Arel::Sql::Engine.new(FakeRecord::Base.new)
+Arel::Table.engine = FakeRecord::Base.new
 
 class Object
   def must_be_like other
