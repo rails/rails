@@ -153,6 +153,14 @@ module ActiveModel
     #   person.name = 'robert'
     #   person.changed_attributes # => {"name" => "bob"}
     def changed_attributes
+      changes.tap do |ch|
+        ch.keys.each do |attr|
+          ch[attr] = ch[attr].first
+        end
+      end
+    end
+
+    def changed_attributes_on_way_out
       @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
@@ -173,7 +181,7 @@ module ActiveModel
 
     # mark a column as not changed (but don't change the value)
     def reset_change(attr)
-      changed_attributes.delete(attr)
+      changed_attributes_on_way_out.delete(attr)
       original_values.delete(attr)
     end
 
@@ -203,7 +211,7 @@ module ActiveModel
         if original_values.key?(attr)
           old = original_values[attr]
           value = __send__(attr)
-          [old, value] if _field_changed?(attr, old, value) || (changed_attributes.key?(attr))
+          [old, value] if _field_changed?(attr, old, value)
         end
       end
 
@@ -224,8 +232,8 @@ module ActiveModel
         if ! original_values.key?(attr)
           original_values[attr] = value
         end
-        if ! changed_attributes.key?(attr) && (args.length < 3 || _field_changed?(attr, value, args[2]))
-          changed_attributes[attr] = value
+        if ! changed_attributes_on_way_out.key?(attr) && (args.length < 3 || _field_changed?(attr, value, args[2]))
+          changed_attributes_on_way_out[attr] = value
         end
       end
 

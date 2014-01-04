@@ -86,6 +86,15 @@ module ActiveRecord
         changed
       end
 
+      def attribute_change(attr)
+        attr = attr.to_s
+        if original_values.key?(attr)
+          old = original_values[attr]
+          value = __send__(attr)
+          [old, value] if _field_changed?(attr, old, value) || (changed_attributes_on_way_out.key?(attr))
+        end
+      end
+
       def _field_changed?(attr, old, value)
         if column = column_for_attribute(attr)
           if column.number? && (changes_from_nil_to_empty_string?(column, old, value) ||
