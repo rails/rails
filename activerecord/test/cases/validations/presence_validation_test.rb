@@ -2,6 +2,7 @@
 require "cases/helper"
 require 'models/man'
 require 'models/face'
+require 'models/zine'
 require 'models/interest'
 require 'models/speedometer'
 require 'models/dashboard'

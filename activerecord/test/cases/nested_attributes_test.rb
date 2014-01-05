@@ -7,6 +7,7 @@ require "models/parrot"
 require "models/treasure"
 require "models/man"
 require "models/interest"
+require 'models/zine'
 require "models/owner"
 require "models/pet"
 require 'active_support/hash_with_indifferent_access'

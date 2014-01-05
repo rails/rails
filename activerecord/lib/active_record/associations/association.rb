@@ -102,6 +102,15 @@ module ActiveRecord
         @association_scope = nil
       end
 
+      # Returns if a reversible instance has been set
+      def inverse_instance_set?(record)
+        if invertible_for?(record)
+          record.association(inverse_reflection_for(record).name).inversed
+        else
+          false
+        end
+      end
+
       # Set the inverse association, if possible
       def set_inverse_instance(record)
         if invertible_for?(record)

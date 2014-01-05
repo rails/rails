@@ -388,7 +388,7 @@ module ActiveRecord
         callback(:before_add, record) unless skip_callbacks
         yield(record) if block_given?
 
-        if association_scope.distinct_value && index = @target.index(record)
+        if (inverse_instance_set?(record) || association_scope.distinct_value) && index = @target.index(record)
           @target[index] = record
         else
           @target << record
