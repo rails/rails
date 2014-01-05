@@ -42,7 +42,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_join_association_conditions_support_string_and_arel_expressions
-    assert_equal 0, Author.joins(:welcome_posts_with_comment).count
+    assert_equal 0, Author.joins(:welcome_posts_with_one_comment).count
     assert_equal 1, Author.joins(:welcome_posts_with_comments).count
   end
 
