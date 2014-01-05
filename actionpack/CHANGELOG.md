@@ -1,3 +1,7 @@
+*   Use a custom route visitor for optimized url generation. Fixes #13349.
+
+    *Andrew White*
+
 *   Allow engine root relative redirects using an empty string.
 
     Example:

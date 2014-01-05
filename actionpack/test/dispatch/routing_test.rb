@@ -3327,6 +3327,8 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
       get '/foo' => ok, as: :foo
       get '/post(/:action(/:id))' => ok, as: :posts
+      get '/:foo/:foo_type/bars/:id' => ok, as: :bar
+      get '/projects/:id.:format' => ok, as: :project
     end
   end
 
@@ -3348,6 +3350,16 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   test 'nested optional segments are removed' do
     assert_equal '/post', Routes.url_helpers.posts_path
     assert_equal '/post', posts_path
+  end
+
+  test 'segments with same prefix are replaced correctly' do
+    assert_equal '/foo/baz/bars/1', Routes.url_helpers.bar_path('foo', 'baz', '1')
+    assert_equal '/foo/baz/bars/1', bar_path('foo', 'baz', '1')
+  end
+
+  test 'segments separated with a period are replaced correctly' do
+    assert_equal '/projects/1.json', Routes.url_helpers.project_path(1, :json)
+    assert_equal '/projects/1.json', project_path(1, :json)
   end
 end
 

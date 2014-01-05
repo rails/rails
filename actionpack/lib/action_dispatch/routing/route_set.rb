@@ -163,9 +163,10 @@ module ActionDispatch
 
             def initialize(route, options)
               super
-              @path_parts   = @route.required_parts
-              @arg_size     = @path_parts.size
-              @string_route = @route.optimized_path
+              @klass          = Journey::Router::Utils
+              @required_parts = @route.required_parts
+              @arg_size       = @required_parts.size
+              @optimized_path = @route.optimized_path
             end
 
             def call(t, args)
@@ -182,42 +183,39 @@ module ActionDispatch
             private
 
             def optimized_helper(args)
-              path = @string_route.dup
-              klass = Journey::Router::Utils
+              params = Hash[parameterize_args(args)]
+              missing_keys = missing_keys(params)
 
-              @path_parts.zip(args) do |part, arg|
-                parameterized_arg = arg.to_param
-
-                if parameterized_arg.nil? || parameterized_arg.empty?
-                  raise_generation_error(args)
-                end
-
-                # Replace each route parameter
-                # e.g. :id for regular parameter or *path for globbing
-                # with ruby string interpolation code
-                path.gsub!(/(\*|:)#{part}/, klass.escape_fragment(parameterized_arg))
+              unless missing_keys.empty?
+                raise_generation_error(params, missing_keys)
               end
-              path
+
+              @optimized_path.map{ |segment| replace_segment(params, segment) }.join
+            end
+
+            def replace_segment(params, segment)
+              Symbol === segment ? @klass.escape_fragment(params[segment]) : segment
             end
 
             def optimize_routes_generation?(t)
               t.send(:optimize_routes_generation?)
             end
 
-            def raise_generation_error(args)
-              parts, missing_keys = [], []
-
-              @path_parts.zip(args) do |part, arg|
-                parameterized_arg = arg.to_param
-
-                if parameterized_arg.nil? || parameterized_arg.empty?
-                  missing_keys << part
+            def parameterize_args(args)
+              [].tap do |parameterized_args|
+                @required_parts.zip(args) do |part, arg|
+                  parameterized_arg = arg.to_param
+                  parameterized_args << [part, parameterized_arg]
                 end
-
-                parts << [part, arg]
               end
+            end
 
-              message = "No route matches #{Hash[parts].inspect}"
+            def missing_keys(args)
+              args.select{ |part, arg| arg.nil? || arg.empty? }.keys
+            end
+
+            def raise_generation_error(args, missing_keys)
+              message = "No route matches #{args.inspect}"
               message << " missing required keys: #{missing_keys.inspect}"
 
               raise ActionController::UrlGenerationError, message
