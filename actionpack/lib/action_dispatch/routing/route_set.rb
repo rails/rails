@@ -210,8 +210,9 @@ module ActionDispatch
             end
 
             def raise_generation_error(args, missing_keys)
-              message = "No route matches #{args.inspect}"
-              message << " missing required keys: #{missing_keys.inspect}"
+              constraints = Hash[@route.requirements.merge(args).sort]
+              message = "No route matches #{constraints.inspect}"
+              message << " missing required keys: #{missing_keys.sort.inspect}"
 
               raise ActionController::UrlGenerationError, message
             end
