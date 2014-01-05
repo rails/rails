@@ -432,20 +432,21 @@ module ActiveRecord
 
         # Maps logical Rails types to PostgreSQL-specific data types.
         def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-          case type.to_s
+          type_string = type.to_s
+          case type_string
           when 'binary'
             # PostgreSQL doesn't support limits on binary (bytea) columns.
-            # The hard limit is 1Gb, because of a 32-bit size field, and TOAST.
+            # The hard limit is 1 GB, because of a 32-bit size field, and TOAST.
             case limit
             when nil, 0..0x3fffffff; super(type)
             else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
             end
           when 'text'
             # PostgreSQL doesn't support limits on text columns.
-            # The hard limit is 1Gb, according to section 8.3 in the manual.
+            # The hard limit is 1 GB, according to section 8.3 in the manual.
             case limit
             when nil, 0..0x3fffffff; super(type)
-            else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
+            else raise(ActiveRecordError, "The limit on text can be at most 1 GB - 1 byte.")
             end
           when 'integer'
             return 'integer' unless limit
@@ -456,12 +457,18 @@ module ActiveRecord
               when 5..8; 'bigint'
               else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
             end
-          when 'datetime'
+          when /^(?:datetime|timestamp)$/
             return super unless precision
 
             case precision
-              when 0..6; "timestamp(#{precision})"
-              else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
+            when 0..6
+              if type_string == 'datetime'
+                "timestamp(#{precision}) without time zone"
+              else
+                "timestamp(#{precision}) with time zone"
+              end
+            else
+              raise(ActiveRecordError, "No datetime or timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6.")
             end
           else
             super

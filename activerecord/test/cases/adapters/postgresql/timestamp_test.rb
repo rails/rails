@@ -2,8 +2,12 @@ require 'cases/helper'
 require 'models/developer'
 require 'models/topic'
 
-class TimestampTest < ActiveRecord::TestCase
+class PostgresqlTimestampTest < ActiveRecord::TestCase
   fixtures :topics
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+  end
 
   def test_group_by_date
     keys = Topic.group("date_trunc('month', created_at)").count.keys
@@ -29,23 +33,28 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal(-1.0 / 0.0, d.updated_at)
   end
 
-  def test_default_datetime_precision
-    ActiveRecord::Base.connection.create_table(:foos)
-    ActiveRecord::Base.connection.add_column :foos, :created_at, :datetime
-    ActiveRecord::Base.connection.add_column :foos, :updated_at, :datetime
+  def test_default_datetime_and_timestamp_precision
+    @connection.create_table(:foos)
+    @connection.add_column :foos, :created_at, :timestamp
+    @connection.add_column :foos, :birth_date, :datetime
     assert_nil activerecord_column_option('foos', 'created_at', 'precision')
+    assert_nil activerecord_column_option('foos', 'birth_date', 'precision')
   end
 
-  def test_timestamp_data_type_with_precision
-    ActiveRecord::Base.connection.create_table(:foos)
-    ActiveRecord::Base.connection.add_column :foos, :created_at, :datetime, :precision => 0
-    ActiveRecord::Base.connection.add_column :foos, :updated_at, :datetime, :precision => 5
-    assert_equal 0, activerecord_column_option('foos', 'created_at', 'precision')
-    assert_equal 5, activerecord_column_option('foos', 'updated_at', 'precision')
+  def test_datetime_and_timestamp_with_precision
+    @connection.create_table(:foos)
+    @connection.add_column :foos, :created_at,  :timestamp, :precision => 0
+    @connection.add_column :foos, :updated_at,  :timestamp, :precision => 5
+    @connection.add_column :foos, :birth_date,  :datetime,  :precision => 0
+    @connection.add_column :foos, :anniversary, :datetime,  :precision => 5
+    assert_equal 0, activerecord_column_option('foos', 'created_at',  'precision')
+    assert_equal 5, activerecord_column_option('foos', 'updated_at',  'precision')
+    assert_equal 0, activerecord_column_option('foos', 'birth_date',  'precision')
+    assert_equal 5, activerecord_column_option('foos', 'anniversary', 'precision')
   end
 
   def test_timestamps_helper_with_custom_precision
-    ActiveRecord::Base.connection.create_table(:foos) do |t|
+    @connection.create_table(:foos) do |t|
       t.timestamps :precision => 4
     end
     assert_equal 4, activerecord_column_option('foos', 'created_at', 'precision')
@@ -53,27 +62,35 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_passing_precision_to_timestamp_does_not_set_limit
-    ActiveRecord::Base.connection.create_table(:foos) do |t|
+    @connection.create_table(:foos) do |t|
       t.timestamps :precision => 4
     end
-    assert_nil activerecord_column_option("foos", "created_at", "limit")
-    assert_nil activerecord_column_option("foos", "updated_at", "limit")
+    assert_nil activerecord_column_option('foos', 'created_at', 'limit')
+    assert_nil activerecord_column_option('foos', 'updated_at', 'limit')
   end
 
   def test_invalid_timestamp_precision_raises_error
     assert_raises ActiveRecord::ActiveRecordError do
-      ActiveRecord::Base.connection.create_table(:foos) do |t|
-        t.timestamps :precision => 7
+      @connection.create_table(:foos) do |t|
+        t.timestamp :created_at, :precision => 7
+      end
+    end
+  end
+
+  def test_invalid_datetime_precision_raises_error
+    assert_raises ActiveRecord::ActiveRecordError do
+      @connection.create_table(:foos) do |t|
+        t.datetime :birth_date, :precision => 7
       end
     end
   end
 
   def test_postgres_agrees_with_activerecord_about_precision
-    ActiveRecord::Base.connection.create_table(:foos) do |t|
+    @connection.create_table(:foos) do |t|
       t.timestamps :precision => 4
     end
-    assert_equal '4', pg_datetime_precision('foos', 'created_at')
-    assert_equal '4', pg_datetime_precision('foos', 'updated_at')
+    assert_equal '4', pg_datetime_precision("foos", "created_at")
+    assert_equal '4', pg_datetime_precision("foos", "updated_at")
   end
 
   def test_bc_timestamp
@@ -82,10 +99,18 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal date, Developer.find_by_name("aaron").updated_at
   end
 
+  def test_datetime_and_timestamp_types
+    @connection.create_table(:foos)
+    @connection.add_column :foos, :birth_date, :datetime
+    @connection.add_column :foos, :created_at, :timestamp
+    assert_equal :datetime,  activerecord_column_option('foos', 'birth_date', 'type')
+    assert_equal :timestamp, activerecord_column_option('foos', 'created_at', 'type')
+  end
+
   private
 
     def pg_datetime_precision(table_name, column_name)
-      results = ActiveRecord::Base.connection.execute("SELECT column_name, datetime_precision FROM information_schema.columns WHERE table_name ='#{table_name}'")
+      results = @connection.execute("SELECT column_name, datetime_precision FROM information_schema.columns WHERE table_name ='#{table_name}'")
       result = results.find do |result_hash|
         result_hash["column_name"] == column_name
       end
@@ -93,7 +118,7 @@ class TimestampTest < ActiveRecord::TestCase
     end
 
     def activerecord_column_option(tablename, column_name, option)
-      result = ActiveRecord::Base.connection.columns(tablename).find do |column|
+      result = @connection.columns(tablename).find do |column|
         column.name == column_name
       end
       result && result.send(option)
