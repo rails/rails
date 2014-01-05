@@ -205,7 +205,7 @@ module ActionDispatch
             end
 
             def raise_generation_error(args)
-              parts, missing_keys = [], []
+              parts, missing_keys = @route.requirements.to_a, []
 
               @path_parts.zip(args) do |part, arg|
                 parameterized_arg = arg.to_param
@@ -217,8 +217,8 @@ module ActionDispatch
                 parts << [part, arg]
               end
 
-              message = "No route matches #{Hash[parts].inspect}"
-              message << " missing required keys: #{missing_keys.inspect}"
+              message = "No route matches #{Hash[parts.sort].inspect}"
+              message << " missing required keys: #{missing_keys.sort.inspect}"
 
               raise ActionController::UrlGenerationError, message
             end

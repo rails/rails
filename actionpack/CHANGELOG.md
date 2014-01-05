@@ -1,3 +1,13 @@
+*   Show full route constraints in error message
+
+    When an optimized helper fails to generate, show the full route constraints
+    in the error message. Previously it would only show the contraints that were
+    required as part of the path.
+
+    Fixes #13592
+
+    *Andrew White*
+
 *   Allow engine root relative redirects using an empty string.
 
     Example:

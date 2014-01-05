@@ -3673,3 +3673,28 @@ class TestRedirectRouteGeneration < ActionDispatch::IntegrationTest
     end
   end
 end
+
+class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      get "/products/:id" => 'products#show', :as => :product
+    end
+  end
+
+  def app; Routes end
+
+  include Routes.url_helpers
+
+  test "url helpers raise a helpful error message whem generation fails" do
+    url, missing = { action: 'show', controller: 'products', id: nil }, [:id]
+    message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
+
+    # Optimized url helper
+    error = assert_raises(ActionController::UrlGenerationError){ product_path(nil) }
+    assert_equal message, error.message
+
+    # Non-optimized url helper
+    error = assert_raises(ActionController::UrlGenerationError, message){ product_path(id: nil) }
+    assert_equal message, error.message
+  end
+end
