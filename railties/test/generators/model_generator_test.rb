@@ -356,6 +356,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_does_nothing_when_migration_was_already_removed
+    run_generator
+    run_generator ["Account"], behavior: :revoke
+
+    output = run_generator ["Account"], behavior: :revoke
+
+    assert_no_match(/create_accounts/, output)
+  end
+
   private
     def assert_generated_fixture(path, parsed_contents)
       fixture_file = File.new File.expand_path(path, destination_root)

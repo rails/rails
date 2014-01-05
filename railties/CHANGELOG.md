@@ -1,3 +1,10 @@
+*   When trying to remove a previously deleted migration,
+    does nothing.
+
+    Fixes #13588
+
+    *Thales Oliveira*
+
 *   `test_help.rb` now automatically checks/maintains your test datbase
     schema. (Use `config.active_record.maintain_test_schema = false` to
     disable.)
