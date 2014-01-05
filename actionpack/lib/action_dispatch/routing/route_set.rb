@@ -226,7 +226,7 @@ module ActionDispatch
 
           def initialize(route, options)
             @options      = options
-            @segment_keys = route.segment_keys
+            @segment_keys = route.segment_keys.uniq
             @route        = route
           end
 

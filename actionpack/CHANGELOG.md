@@ -1,3 +1,15 @@
+*   Unique the segment keys array for non-optimized url helpers
+
+    In Rails 3.2 you only needed pass an argument for dynamic segment once so
+    unique the segment keys array to match the number of args. Since the number
+    of args is less than required parts the non-optimized code path is selected.
+    This means to benefit from optimized url generation the arg needs to be
+    specified as many times as it appears in the path.
+
+    Fixes #12808
+
+    *Andrew White*
+
 *   Show full route constraints in error message
 
     When an optimized helper fails to generate, show the full route constraints

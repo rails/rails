@@ -2851,6 +2851,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert !@request.params[:action].frozen?
   end
 
+  def test_multiple_positional_args_with_the_same_name
+    draw do
+      get '/downloads/:id/:id.tar' => 'downloads#show', as: :download, format: false
+    end
+
+    expected_params = {
+      controller: 'downloads',
+      action:     'show',
+      id:         '1'
+    }
+
+    get '/downloads/1/1.tar'
+    assert_equal 'downloads#show', @response.body
+    assert_equal expected_params, @request.symbolized_path_parameters
+    assert_equal '/downloads/1/1.tar', download_path('1')
+    assert_equal '/downloads/1/1.tar', download_path('1', '1')
+  end
+
 private
 
   def draw(&block)
