@@ -77,12 +77,32 @@ module ActionDispatch
         end
       end
 
-      class OptimizedPath < String # :nodoc:
+      class OptimizedPath < Visitor # :nodoc:
+        def accept(node)
+          Array(visit(node))
+        end
+
         private
 
-        def visit_GROUP(node)
-          ""
-        end
+          def visit_CAT(node)
+            [visit(node.left), visit(node.right)].flatten
+          end
+
+          def visit_SYMBOL(node)
+            node.left[1..-1].to_sym
+          end
+
+          def visit_STAR(node)
+            visit(node.left)
+          end
+
+          def visit_GROUP(node)
+            []
+          end
+
+          %w{ LITERAL SLASH DOT }.each do |t|
+            class_eval %{ def visit_#{t}(n); n.left; end }, __FILE__, __LINE__
+          end
       end
 
       # Used for formatting urls (url_for)

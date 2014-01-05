@@ -1,3 +1,7 @@
+*   Use a custom route visitor for optimized url generation. Fixes #13349.
+
+    *Andrew White*
+
 *   Set the `:shallow_path` scope option as each scope is generated rather than
     waiting until the `shallow` option is set. Also make the behavior of the
     `:shallow` resource option consistent with the behavior of the `shallow` method.
