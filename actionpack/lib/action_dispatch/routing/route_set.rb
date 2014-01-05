@@ -202,12 +202,7 @@ module ActionDispatch
             end
 
             def parameterize_args(args)
-              [].tap do |parameterized_args|
-                @required_parts.zip(args) do |part, arg|
-                  parameterized_arg = arg.to_param
-                  parameterized_args << [part, parameterized_arg]
-                end
-              end
+              @required_parts.zip(args.map(&:to_param))
             end
 
             def missing_keys(args)
