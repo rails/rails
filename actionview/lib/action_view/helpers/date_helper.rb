@@ -47,6 +47,7 @@ module ActionView
       #   60-89 secs      # => 1 minute
       #
       #   from_time = Time.now
+      #   distance_of_time_in_words(nil)                                                              # => none
       #   distance_of_time_in_words(from_time, from_time + 50.minutes)                                # => about 1 hour
       #   distance_of_time_in_words(from_time, 50.minutes.from_now)                                   # => about 1 hour
       #   distance_of_time_in_words(from_time, from_time + 15.seconds)                                # => less than a minute
@@ -71,12 +72,19 @@ module ActionView
 
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
-        from_time, to_time = to_time, from_time if from_time > to_time
-        distance_in_minutes = ((to_time - from_time)/60.0).round
-        distance_in_seconds = (to_time - from_time).round
+
+        distance_in_minutes, distance_in_seconds = nil
+
+        if from_time.present? && to_time.present?
+          from_time, to_time = to_time, from_time if from_time > to_time
+          distance_in_minutes = ((to_time - from_time)/60.0).round
+          distance_in_seconds = (to_time - from_time).round
+        end
 
         I18n.with_options :locale => options[:locale], :scope => options[:scope] do |locale|
           case distance_in_minutes
+            when nil then
+              return locale.t(:none)
             when 0..1
               return distance_in_minutes == 0 ?
                      locale.t(:less_than_x_minutes, :count => 1) :

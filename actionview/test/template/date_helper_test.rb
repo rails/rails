@@ -191,6 +191,10 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "1 minute", distance_of_time_in_words(60.seconds, 0, :include_seconds => true)
   end
 
+  def test_distance_in_words_with_no_dates
+    assert_equal "none", distance_of_time_in_words(nil)
+  end
+
   def test_time_ago_in_words
     assert_equal "about 1 year", time_ago_in_words(1.year.ago - 1.day)
   end
