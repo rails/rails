@@ -180,13 +180,17 @@ module ActiveRecord
         begin
           if block_given?
             if requires_new || open_transactions == 0
+              # begin_db_transaction may itself raise an exception (or be
+              # interrupted). The flags for the open transaction must be made
+              # before calling that function.
+              transaction_open = true
               if open_transactions == 0
+                increment_open_transactions
                 begin_db_transaction
               elsif requires_new
                 create_savepoint
+                increment_open_transactions
               end
-              increment_open_transactions
-              transaction_open = true
               @_current_transaction_records.push([])
             end
             yield
