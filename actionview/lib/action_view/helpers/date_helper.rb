@@ -143,6 +143,7 @@ module ActionView
 
       # Like <tt>distance_of_time_in_words</tt>, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
       #
+      #   time_ago_in_words(nil)                                # => none
       #   time_ago_in_words(3.minutes.from_now)                 # => 3 minutes
       #   time_ago_in_words(3.minutes.ago)                      # => 3 minutes
       #   time_ago_in_words(Time.now - 15.hours)                # => about 15 hours
