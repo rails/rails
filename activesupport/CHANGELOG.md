@@ -1,3 +1,20 @@
+*   Maintain proleptic gregorian in Time#advance
+
+    `Time#advance` uses `Time#to_date` and `Date#advance` to calculate a new date.
+    The `Date` object returned by `Time#to_date` is constructed with the assumption
+    that the `Time` object represents a proleptic gregorian date, but it is
+    configured to observe the default julian calendar reform date (2299161j)
+    for purposes of calculating month, date and year:
+
+        Time.new(1582, 10, 4).to_date.to_s           # => "1582-09-24"
+        Time.new(1582, 10, 4).to_date.gregorian.to_s # => "1582-10-04"
+
+    This patch ensures that when the intermediate `Date` object is advanced
+    to yield a new `Date` object, that the `Time` object for return is contructed
+    with a proleptic gregorian month, date and year.
+
+    *Riley Lynch*
+
 *   MemCacheStore should only accept a Dalli::Client, or create one.
 
     *arthurnn*
