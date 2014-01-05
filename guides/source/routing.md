@@ -239,6 +239,8 @@ In each of these cases, the named routes remain the same as if you did not use `
 | PATCH/PUT | /admin/posts/:id      | posts#update      | post_path(:id)      |
 | DELETE    | /admin/posts/:id      | posts#destroy     | post_path(:id)      |
 
+TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo' => '/foo#index'`._
+
 ### Nested Resources
 
 It's common to have resources that are logically children of other resources. For example, suppose your application includes these models:

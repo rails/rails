@@ -2882,6 +2882,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/downloads/1/1.tar', download_path('1', '1')
   end
 
+  def test_absolute_controller_namespace
+    draw do
+      namespace :foo do
+        get '/', to: '/bar#index', as: 'root'
+      end
+    end
+
+    get '/foo'
+    assert_equal 'bar#index', @response.body
+    assert_equal '/foo', foo_root_path
+  end
+
 private
 
   def draw(&block)

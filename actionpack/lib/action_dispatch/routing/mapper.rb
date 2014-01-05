@@ -218,8 +218,12 @@ module ActionDispatch
               controller ||= default_controller
               action     ||= default_action
 
-              unless controller.is_a?(Regexp)
-                controller = [@scope[:module], controller].compact.join("/").presence
+              if @scope[:module] && !controller.is_a?(Regexp)
+                if controller =~ %r{\A/}
+                  controller = controller[1..-1]
+                else
+                  controller = [@scope[:module], controller].compact.join("/").presence
+                end
               end
 
               if controller.is_a?(String) && controller =~ %r{\A/}
