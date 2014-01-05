@@ -114,17 +114,17 @@ module ActionDispatch
         end
 
         def states
-          ss = @string_states.keys + @string_states.values.map(&:values).flatten
-          rs = @regexp_states.keys + @regexp_states.values.map(&:values).flatten
+          ss = @string_states.keys + @string_states.values.flat_map(&:values)
+          rs = @regexp_states.keys + @regexp_states.values.flat_map(&:values)
           (ss + rs).uniq
         end
 
         def transitions
-          @string_states.map { |from, hash|
+          @string_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
-          }.flatten(1) + @regexp_states.map { |from, hash|
+          } + @regexp_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
-          }.flatten(1)
+          }
         end
 
         private
