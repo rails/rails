@@ -174,7 +174,7 @@ module ActionView
       # * <tt>:use_short_month</tt>   - Set to true if you want to use abbreviated month names instead of full
       #   month names (e.g. "Feb" instead of "February").
       # * <tt>:add_month_numbers</tt>  - Set to true if you want to use both month numbers and month names (e.g.
-      #   "2 - February" instead of "February").
+      #   "2 – February" instead of "February").
       # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
       #   Note: You can also use Rails' i18n functionality for this.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
@@ -585,7 +585,7 @@ module ActionView
       #   select_month(Date.today, use_month_numbers: true)
       #
       #   # Generates a select field for months that defaults to the current month that
-      #   # will use keys like "1 - January", "3 - March".
+      #   # will use keys like "1 – January", "3 – March".
       #   select_month(Date.today, add_month_numbers: true)
       #
       #   # Generates a select field for months that defaults to the current month that
@@ -868,14 +868,14 @@ module ActionView
         #  month_name(1) => '01'
         #
         # If <tt>:add_month_numbers</tt> option is passed
-        #  month_name(1) => "1 - January"
+        #  month_name(1) => "1 – January"
         def month_name(number)
           if @options[:use_month_numbers]
             number
           elsif @options[:use_two_digit_numbers]
             sprintf "%02d", number
           elsif @options[:add_month_numbers]
-            "#{number} - #{month_names[number]}"
+            "#{number} – #{month_names[number]}"
           else
             month_names[number]
           end
