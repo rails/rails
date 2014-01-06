@@ -388,9 +388,9 @@ It's inside this class that you'll define methods that will become the actions
 for this controller. These actions will perform CRUD operations on the posts
 within our system.
 
-NOTE: There are `public`, `private` and `protected` methods in `Ruby`
-(for more details you can check on [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/)).
-But only `public` methods can be actions for controllers.
+NOTE: There are `public`, `private` and `protected` methods in Ruby, 
+but only `public` methods can be actions for controllers.
+For more details check out [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/).
 
 If you refresh <http://localhost:3000/posts/new> now, you'll get a new error:
 
