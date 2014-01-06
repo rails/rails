@@ -153,10 +153,9 @@ module ActiveModel
     #   person.name = 'robert'
     #   person.changed_attributes # => {"name" => "bob"}
     def changed_attributes
-      changes.tap do |ch|
-        ch.keys.each do |attr|
-          ch[attr] = ch[attr].first
-        end
+      ch = changes
+      ch.each do |key, value|
+        ch[key] = value.first
       end
     end
 

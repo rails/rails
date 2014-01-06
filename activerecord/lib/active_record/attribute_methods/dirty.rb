@@ -46,12 +46,12 @@ module ActiveRecord
       end
 
       def read_attribute(attr)
-        super.tap { |value|
+        super.tap do |value|
           attr = attr.to_s
           if attr != "" && attribute_names.include?(attr)
             set_original_value(attr, value, value)
           end
-        }
+        end
       end
 
     private
@@ -75,15 +75,6 @@ module ActiveRecord
       # changed in place.
       def keys_for_partial_write
         changed
-      end
-
-      def attribute_change(attr)
-        attr = attr.to_s
-        if original_values.key?(attr)
-          old = original_values[attr]
-          value = __send__(attr)
-          [old, value] if _field_changed?(attr, old, value)
-        end
       end
 
       def _field_changed?(attr, old, value)
