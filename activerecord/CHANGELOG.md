@@ -1246,7 +1246,7 @@
 
     *John Wang*
 
-*   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
+*   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432.
 
     *Adam Anderson*
 
