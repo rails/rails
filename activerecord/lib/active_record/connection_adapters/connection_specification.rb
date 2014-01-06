@@ -112,7 +112,7 @@ module ActiveRecord
         #
         #   configurations = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
         #   Resolver.new(configurations).resolve(:production)
-        #   # => {host: "localhost", database: "foo", adapter: "sqlite3"}
+        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3"}
         #
         # Initialized with URL configuration strings.
         #
