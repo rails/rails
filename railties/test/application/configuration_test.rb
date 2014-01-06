@@ -62,7 +62,6 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
-      ActiveRecord::NullMigration.any_instance.stubs(:mtime).returns(1)
 
       get "/foo"
       assert_equal 500, last_response.status

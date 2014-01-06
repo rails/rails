@@ -1,3 +1,8 @@
+*   `ActiveRecord::Migrator#needs_migration?` may return `false` when
+    there are pending migrations actually (fix #10856).
+
+    *Alexey Chernenkov*
+
 *   Deprecate unused `ActiveRecord::Base.symbolized_base_class`
     and `ActiveRecord::Base.symbolized_sti_name` without replacement.
 

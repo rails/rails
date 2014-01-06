@@ -63,20 +63,38 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = migrations_path
+    ARTest::Migration.with_migrations_path(migrations_path) do
+      ActiveRecord::Migrator.up(migrations_path)
+      assert_equal 3, ActiveRecord::Migrator.current_version
+      assert_equal 3, ActiveRecord::Migrator.last_version
+      assert_equal false, ActiveRecord::Migrator.needs_migration?
 
-    ActiveRecord::Migrator.up(migrations_path)
-    assert_equal 3, ActiveRecord::Migrator.current_version
-    assert_equal 3, ActiveRecord::Migrator.last_version
-    assert_equal false, ActiveRecord::Migrator.needs_migration?
+      ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
+      assert_equal 0, ActiveRecord::Migrator.current_version
+      assert_equal 3, ActiveRecord::Migrator.last_version
+      assert_equal true, ActiveRecord::Migrator.needs_migration?
+    end
+  end
 
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
-    assert_equal 0, ActiveRecord::Migrator.current_version
-    assert_equal 3, ActiveRecord::Migrator.last_version
-    assert_equal true, ActiveRecord::Migrator.needs_migration?
-  ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
+  def test_need_migration
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    ARTest::Migration.with_migrations_path(migrations_path) do
+      ActiveRecord::Migrator.up migrations_path
+      assert_equal [1, 2, 3], ActiveRecord::Migrator.get_all_versions
+
+      Reminder.reset_column_information
+      assert Reminder.table_exists?
+
+      ActiveRecord::Migrator.run :down, migrations_path, 2
+      assert_equal [1, 3], ActiveRecord::Migrator.get_all_versions
+
+      Reminder.reset_column_information
+      assert !Reminder.table_exists?
+
+      assert_equal 3, ActiveRecord::Migrator.current_version
+      assert_equal 3, ActiveRecord::Migrator.last_version
+      assert_equal true, ActiveRecord::Migrator.needs_migration?
+    end
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
@@ -912,6 +930,72 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     end
   ensure
     clear
+  end
+end
+
+class CheckPendingTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  def setup
+    @migrations_path = MIGRATIONS_ROOT + "/valid_do_nothing"
+  end
+
+  def teardown
+    migrations_table = ActiveRecord::Migrator.schema_migrations_table_name
+    ActiveRecord::Base.connection.execute("DELETE FROM #{migrations_table}")
+  end
+
+  def up_migrations
+    ActiveRecord::Migrator.up(@migrations_path)
+  end
+
+  def test_check_pending_to_raise_on_new_migrations
+    ARTest::Migration.with_migrations_path(@migrations_path) do
+      checker = ActiveRecord::Migration::CheckPending.new(Proc.new {})
+
+      # There are pending migrations
+      assert_raises(ActiveRecord::PendingMigrationError) { checker.call({}) }
+
+      # Migrate up and check that all ok now
+      up_migrations
+      assert_nothing_raised { checker.call({}) }
+    end
+  end
+
+  def test_check_pending_do_not_recheck_unmodified_files
+    ARTest::Migration.with_migrations_path(@migrations_path) do
+      checker = ActiveRecord::Migration::CheckPending.new(Proc.new {})
+
+      # Migrate up and make first check
+      up_migrations
+      assert_nothing_raised { checker.call({}) }
+
+      # Subsequent checks will not call ActiveRecord::Migration.check_pending!
+      ActiveRecord::Migration.expects(:'check_pending!').never
+      assert_nothing_raised { checker.call({}) }
+    end
+  end
+
+  def test_check_pending_recheck_on_file_modifications
+    changed_migration = @migrations_path + "/2_valid_do_nothing_second.rb"
+    old_atime, old_mtime = File.atime(changed_migration), File.mtime(changed_migration)
+    ARTest::Migration.with_migrations_path(@migrations_path) do
+      checker = ActiveRecord::Migration::CheckPending.new(Proc.new {})
+
+      # Migrate up
+      up_migrations
+      assert_nothing_raised { checker.call({}) }
+
+      # Some migrations were changed
+      ts = Time.utc(2010, 1, 1, 1, 1, 1)
+      File.utime(ts, ts, changed_migration)
+
+      # File was changed so recall ActiveRecord::Migration.check_pending! (but only once)
+      ActiveRecord::Migration.expects(:'check_pending!').once
+      3.times { assert_nothing_raised { checker.call({}) } }
+    end
+  ensure
+    File.utime(old_atime, old_mtime, changed_migration)
   end
 
   def test_check_pending_with_stdlib_logger

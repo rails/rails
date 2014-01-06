@@ -372,10 +372,12 @@ module ActiveRecord
       end
 
       def call(env)
-        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
-        if @last_check < mtime
+        # Remember the hash value for all migration files, and skip checking
+        # if there are no any changes since last succesfull check
+        current_check = ActiveRecord::Migrator.all_known_mtimes_hash
+        if @last_check != current_check
           ActiveRecord::Migration.check_pending!
-          @last_check = mtime
+          @last_check = current_check
         end
         @app.call(env)
       end
@@ -764,16 +766,6 @@ module ActiveRecord
 
   end
 
-  class NullMigration < MigrationProxy #:nodoc:
-    def initialize
-      super(nil, 0, nil, nil)
-    end
-
-    def mtime
-      0
-    end
-  end
-
   class Migrator#:nodoc:
     class << self
       attr_writer :migrations_paths
@@ -827,28 +819,32 @@ module ActiveRecord
       end
 
       def get_all_versions
-        SchemaMigration.all.map { |x| x.version.to_i }.sort
-      end
-
-      def current_version
         sm_table = schema_migrations_table_name
         if Base.connection.table_exists?(sm_table)
-          get_all_versions.max || 0
+          SchemaMigration.all.map { |x| x.version.to_i }.sort
         else
-          0
+          []
         end
       end
 
+      def current_version
+        get_all_versions.max || 0
+      end
+
       def needs_migration?
-        current_version < last_version
+        (all_known_versions - get_all_versions).any?
       end
 
       def last_version
-        last_migration.version
+        all_known_versions.max || 0
       end
 
-      def last_migration #:nodoc:
-        migrations(migrations_paths).last || NullMigration.new
+      def all_known_versions
+        migrations(migrations_paths).map(&:version).sort
+      end
+
+      def all_known_mtimes_hash #:nodoc:
+        migrations(migrations_paths).map(&:mtime).hash
       end
 
       def proper_table_name(name, options = {})
