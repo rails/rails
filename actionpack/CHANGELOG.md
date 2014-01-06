@@ -1,6 +1,12 @@
-*   Allow an absolute controller path inside a module scope
+*   Allow an absolute controller path inside a module scope. Fixes #12777.
 
-    Fixes #12777.
+    Example:
+
+        namespace :foo do
+          # will route to BarController without the namespace.
+          get '/special', to: '/bar#index'
+        end
+
 
 *   Unique the segment keys array for non-optimized url helpers
 
