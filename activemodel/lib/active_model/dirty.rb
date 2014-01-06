@@ -160,10 +160,6 @@ module ActiveModel
       end
     end
 
-    def changed_attributes_on_way_out
-      @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
-    end
-
     # Handle <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, options = {}) #:nodoc:
       value_pairs = attribute_change(attr)
@@ -181,8 +177,6 @@ module ActiveModel
 
     # mark a column as not changed (but don't change the value)
     def reset_change(attr)
-      #remove:
-      changed_attributes_on_way_out.delete(attr)
       original_values.delete(attr)
     end
 
@@ -195,16 +189,12 @@ module ActiveModel
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied
         @previously_changed = changes
-        #remove:
-        @changed_attributes = {}
         @original_values = nil
       end
 
       # Removes all dirty data: current changes and previous changes
       def reset_changes
         @previously_changed = {}
-        #remove:
-        @changed_attributes = {}
         @original_values = nil
       end
 
@@ -226,18 +216,14 @@ module ActiveModel
       # attr, old_value (optional), new_value (optional)
       def set_original_value(*args)
         attr = args.first.to_s
+        return if original_values.key?(attr)
         begin
           value = args.length < 2 ? __send__(attr) : args[1]
           value = value.duplicable? ? value.clone : value
         rescue TypeError, NoMethodError
         end
 
-        if ! original_values.key?(attr)
-          original_values[attr] = value
-        end
-        if ! changed_attributes_on_way_out.key?(attr) && (args.length < 3 || _field_changed?(attr, value, args[2]))
-          changed_attributes_on_way_out[attr] = value
-        end
+        original_values[attr] = value
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.

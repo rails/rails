@@ -41,21 +41,7 @@ module ActiveRecord
       # Wrap write_attribute to remember original attribute value.
       def write_attribute(attr, value)
         attr = attr.to_s
-        #goal to do something like this (and not deal with attribute_changed?:
-        ##set_original_value(attr)
-
-        # BEGIN
-        # The attribute already has an unsaved change.
-        if attribute_changed?(attr)
-          old = original_values[attr]
-          reset_change(attr) unless _field_changed?(attr, old, value)
-        else
-          old = clone_attribute_value(:read_attribute, attr)
-          set_original_value(attr, old, value)
-        end
-        # END
-
-        # Carry on.
+        set_original_value(attr)
         super(attr, value)
       end
 
@@ -72,6 +58,7 @@ module ActiveRecord
 
     def set_original_value(*args)
       attr = args.first
+      return if original_values.key?(attr)
       args << clone_attribute_value(:read_attribute, attr) if args.length < 2
       super(*args)
     end
@@ -95,28 +82,7 @@ module ActiveRecord
         if original_values.key?(attr)
           old = original_values[attr]
           value = __send__(attr)
-          #for numbers and stuff, want to do a quick compare before type_casting - but not working
-          #test_value =__send__("#{attr}_before_type_cast")
-
-          # if changed_attributes_on_way_out.key?(attr) != _field_changed?(attr, old, test_value)
-          #   ###puts [
-          #   ###  attr,
-          #   ###  "old=#{old}",
-          #   ###  "changed=#{changed_attributes.key?(attr) ? changed_attributes[attr] : "doesnt have it"}",
-          #   ###  "attributes=#{@attributes[attr]}",
-          #   ###  "value=#{value}",
-          #   ###  "before_typecast=#{__send__("#{attr}_before_type_cast")}",
-          #   ###  _field_changed?(attr, old, value) ? "field_changed" : "field_NOT_changed",
-          #   ###  old == @attributes[attr] ? "attr_same" : "attr_changed"
-          #   ###].inspect #if attr == "zine_id"
-
-          #   ###puts("   via #{caller[0..4].reverse.map {|c| c[/`.*'/][1..-2]}.join(" -> ") }") if attr == "zine_id"
-          #   binding.pry
-          # end
-          #remove:
-          [old, value] if _field_changed?(attr, old, value) || (changed_attributes_on_way_out.key?(attr))
-          #goal to do something like this:
-          #[old, value] if _field_changed?(attr, old, test_value)
+          [old, value] if _field_changed?(attr, old, value)
         end
       end
 
