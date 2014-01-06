@@ -433,7 +433,8 @@ for detailed changes.
   Request](https://github.com/rails/rails/pull/13528))
 
 * Deprecate unused `ActiveRecord::Base.symbolized_base_class`
-  and `ActiveRecord::Base.symbolized_sti_name` without replacement.
+  and `ActiveRecord::Base.symbolized_sti_name` without
+  replacement. [Commit](https://github.com/rails/rails/commit/97e7ca48c139ea5cce2fa9b4be631946252a1ebd)
 
 ### Notable changes
 
