@@ -85,7 +85,7 @@ module ActiveSupport
         instrument(:increment, name, :amount => amount) do
           @data.incr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue Dalli::DalliError
+      rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
@@ -99,7 +99,7 @@ module ActiveSupport
         instrument(:decrement, name, :amount => amount) do
           @data.decr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue Dalli::DalliError
+      rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
