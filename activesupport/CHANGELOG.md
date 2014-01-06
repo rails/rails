@@ -10,12 +10,12 @@
         Time.new(1582, 10, 4).to_date.gregorian.to_s # => "1582-10-04"
 
     This patch ensures that when the intermediate `Date` object is advanced
-    to yield a new `Date` object, that the `Time` object for return is contructed
+    to yield a new `Date` object, that the `Time` object for return is constructed
     with a proleptic gregorian month, date and year.
 
     *Riley Lynch*
 
-*   MemCacheStore should only accept a Dalli::Client, or create one.
+*   `MemCacheStore` should only accept a `Dalli::Client`, or create one.
 
     *arthurnn*
 
