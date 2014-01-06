@@ -1,3 +1,10 @@
+*   Fixed ActiveRecord::Store nil conversion TypeError when using YAML coder.
+    In case the YAML passed as paramter is nil, uses an empty string.
+
+    Fixes #13570.
+
+    *Thales Oliveira*
+
 *   Fix presence validator for association when the associated record responds to `to_a`.
 
     *gmarik*

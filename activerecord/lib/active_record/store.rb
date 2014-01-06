@@ -138,7 +138,7 @@ module ActiveRecord
       end
 
       def load(yaml)
-        self.class.as_indifferent_hash @coder.load(yaml)
+        self.class.as_indifferent_hash @coder.load(yaml || '')
       end
 
       def self.as_indifferent_hash(obj)

@@ -155,4 +155,8 @@ class StoreTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { @john.stored_attributes = Hash.new }
     assert_raise(NoMethodError) { @john.stored_attributes }
   end
+
+  test "YAML coder initializes the store when a Nil value is given" do
+    assert_equal({}, @john.params)
+  end
 end
