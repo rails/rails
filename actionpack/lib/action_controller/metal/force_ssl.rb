@@ -22,7 +22,7 @@ module ActionController
       #
       # ==== Options
       # * <tt>only</tt>   - The callback should be run only for this action
-      # * <tt>except<tt>  - The callback should be run for all actions except this action
+      # * <tt>except</tt>  - The callback should be run for all actions except this action
       def force_ssl(options = {})
         host = options.delete(:host)
         before_filter(options) do
