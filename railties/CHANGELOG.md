@@ -1,7 +1,7 @@
 *   When trying to remove a previously deleted migration,
     does nothing.
 
-    Fixes #13588
+    Fixes #13588.
 
     *Thales Oliveira*
 
