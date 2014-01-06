@@ -79,7 +79,7 @@ module ActiveRecord
         end
 
         # Returns name of the database.
-        # Sqlite3 expects this to be a full path or `:memory`.
+        # Sqlite3 expects this to be a full path or `:memory:`.
         def database
           if @adapter == 'sqlite3'
             if '/:memory:' == uri.path
