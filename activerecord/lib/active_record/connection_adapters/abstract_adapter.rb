@@ -225,7 +225,9 @@ module ActiveRecord
           @last_verification = 0
           message = "#{e.class.name}: #{e.message}: #{sql}"
           log_info(message, name, 0)
-          raise ActiveRecord::StatementInvalid, message
+          stmt_exception = ActiveRecord::StatementInvalid.new(message)
+          stmt_exception.set_backtrace(e.backtrace)
+          raise stmt_exception
         end
 
         def format_log_entry(message, dump = nil)
