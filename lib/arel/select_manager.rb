@@ -2,6 +2,8 @@ module Arel
   class SelectManager < Arel::TreeManager
     include Arel::Crud
 
+    STRING_OR_SYMBOL_CLASS = [Symbol, String]
+
     def initialize engine, table = nil
       super(engine)
       @ast   = Nodes::SelectStatement.new
@@ -128,7 +130,7 @@ module Arel
       # FIXME: converting these to SQLLiterals is probably not good, but
       # rails tests require it.
       @ctx.projections.concat projections.map { |x|
-        [Symbol, String].include?(x.class) ? SqlLiteral.new(x.to_s) : x
+        STRING_OR_SYMBOL_CLASS.include?(x.class) ? SqlLiteral.new(x.to_s) : x
       }
       self
     end
@@ -152,7 +154,7 @@ module Arel
     def order *expr
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
       @ast.orders.concat expr.map { |x|
-        String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
+        STRING_OR_SYMBOL_CLASS.include?(x.class) ? Nodes::SqlLiteral.new(x.to_s) : x
       }
       self
     end
