@@ -714,6 +714,10 @@ module ActiveRecord
         !native_database_types[type].nil?
       end
 
+      def update_table_definition(table_name, base) #:nodoc:
+        Table.new(table_name, base)
+      end
+
       protected
 
         # Returns the version of the connected PostgreSQL server.
@@ -776,7 +780,7 @@ module ActiveRecord
           end
         end
 
-        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
+        FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
 
         def exec_no_cache(sql, binds)
           @connection.async_exec(sql)
@@ -954,10 +958,6 @@ module ActiveRecord
 
         def create_table_definition(name, temporary, options)
           TableDefinition.new native_database_types, name, temporary, options
-        end
-
-        def update_table_definition(table_name, base)
-          Table.new(table_name, base)
         end
     end
   end
