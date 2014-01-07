@@ -11,6 +11,7 @@ module ActiveRecord
         if arel.respond_to?(:ast)
           binds = binds.dup
           visitor.accept(arel.ast) do
+            binds = [""] if binds.empty? || binds.nil?
             quote(*binds.shift.reverse)
           end
         else
