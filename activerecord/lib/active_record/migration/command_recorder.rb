@@ -86,7 +86,7 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       def change_table(table_name, options = {})
-        yield ConnectionAdapters::Table.new(table_name, self)
+        yield delegate.update_table_definition(table_name, self)
       end
 
       private
@@ -159,9 +159,11 @@ module ActiveRecord
 
       # Forwards any missing method call to the \target.
       def method_missing(method, *args, &block)
-        @delegate.send(method, *args, &block)
-      rescue NoMethodError => e
-        raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@delegate}")
+        if @delegate.respond_to?(method)
+          @delegate.send(method, *args, &block)
+        else
+          super
+        end
       end
     end
   end

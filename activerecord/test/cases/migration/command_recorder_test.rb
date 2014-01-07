@@ -4,7 +4,8 @@ module ActiveRecord
   class Migration
     class CommandRecorderTest < ActiveRecord::TestCase
       def setup
-        @recorder = CommandRecorder.new
+        connection = ActiveRecord::Base.connection
+        @recorder  = CommandRecorder.new(connection)
       end
 
       def test_respond_to_delegates
