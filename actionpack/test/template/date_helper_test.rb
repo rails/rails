@@ -320,7 +320,7 @@ class DateHelperTest < ActionView::TestCase
 
   def test_select_month_with_numbers_and_names
     expected = %(<select id="date_month" name="date[month]">\n)
-    expected << %(<option value="1">1 - January</option>\n<option value="2">2 - February</option>\n<option value="3">3 - March</option>\n<option value="4">4 - April</option>\n<option value="5">5 - May</option>\n<option value="6">6 - June</option>\n<option value="7">7 - July</option>\n<option value="8" selected="selected">8 - August</option>\n<option value="9">9 - September</option>\n<option value="10">10 - October</option>\n<option value="11">11 - November</option>\n<option value="12">12 - December</option>\n)
+    expected << %(<option value="1">1 – January</option>\n<option value="2">2 – February</option>\n<option value="3">3 – March</option>\n<option value="4">4 – April</option>\n<option value="5">5 – May</option>\n<option value="6">6 – June</option>\n<option value="7">7 – July</option>\n<option value="8" selected="selected">8 – August</option>\n<option value="9">9 – September</option>\n<option value="10">10 – October</option>\n<option value="11">11 – November</option>\n<option value="12">12 – December</option>\n)
     expected << "</select>\n"
 
     assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), :add_month_numbers => true)
@@ -329,7 +329,7 @@ class DateHelperTest < ActionView::TestCase
 
   def test_select_month_with_numbers_and_names_with_abbv
     expected = %(<select id="date_month" name="date[month]">\n)
-    expected << %(<option value="1">1 - Jan</option>\n<option value="2">2 - Feb</option>\n<option value="3">3 - Mar</option>\n<option value="4">4 - Apr</option>\n<option value="5">5 - May</option>\n<option value="6">6 - Jun</option>\n<option value="7">7 - Jul</option>\n<option value="8" selected="selected">8 - Aug</option>\n<option value="9">9 - Sep</option>\n<option value="10">10 - Oct</option>\n<option value="11">11 - Nov</option>\n<option value="12">12 - Dec</option>\n)
+    expected << %(<option value="1">1 – Jan</option>\n<option value="2">2 – Feb</option>\n<option value="3">3 – Mar</option>\n<option value="4">4 – Apr</option>\n<option value="5">5 – May</option>\n<option value="6">6 – Jun</option>\n<option value="7">7 – Jul</option>\n<option value="8" selected="selected">8 – Aug</option>\n<option value="9">9 – Sep</option>\n<option value="10">10 – Oct</option>\n<option value="11">11 – Nov</option>\n<option value="12">12 – Dec</option>\n)
     expected << "</select>\n"
 
     assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), :add_month_numbers => true, :use_short_month => true)
