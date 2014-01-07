@@ -1,7 +1,13 @@
+*   Initialize version on Migration objects so that it can be used in a migration,
+    and it will be included in the announce message.
+
+    *Dylan Thacker-Smith*
+
 *   `change_table` now uses the current adapter's `update_table_definition`
     method to retrieve a specific table definition.
     This ensures that `change_table` and `create_table` will use
     similar objects.
+
     Fixes #13577 and #13503.
 
     *Nishant Modak*, *Prathamesh Sonpatki*, *Rafael Mendonça França*
