@@ -593,7 +593,10 @@ If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
 `show` action before proceeding.
 
-```ruby
+As we have seen in the output of `rake routes`, the route for `show` action is
+as follows:
+
+```
 post GET    /posts/:id(.:format)      posts#show
 ```
 
