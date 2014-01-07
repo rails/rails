@@ -1,3 +1,8 @@
+*   Initialize version on Migration objects so that it can be used in a migration,
+    and it will be included in the announce message.
+
+    *Dylan Thacker-Smith*
+
 *   Fixed ActiveRecord::Store nil conversion TypeError when using YAML coder.
     In case the YAML passed as paramter is nil, uses an empty string.
 

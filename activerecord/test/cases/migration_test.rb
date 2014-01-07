@@ -76,6 +76,10 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal true, ActiveRecord::Migrator.needs_migration?
   end
 
+  def test_migration_version
+    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947)
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     if Person.connection.table_exists?(:testings2)
       Person.connection.drop_table :testings2
