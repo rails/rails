@@ -19,8 +19,8 @@
 
     *Bogdan Gusiev*
 
-*   Fix has_secure_password. `password_confirmation` validations are triggered
-    even if no `password_confirmation` is set.
+*   Fix `has_secure_password` not to trigger `password_confirmation` validations
+    if no `password_confirmation` is set.
 
     *Vladimir Kiselev*
 
@@ -33,7 +33,7 @@
 
     *Charles Bergeron*
 
-*   Fix regression in has_secure_password. When a password is set, but a
+*   Fix regression in `has_secure_password`. When a password is set, but a
     confirmation is an empty string, it would incorrectly save.
 
     *Steve Klabnik* and *Phillip Calvin*
