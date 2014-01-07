@@ -255,12 +255,6 @@ module Arel
       end
     end
 
-    def to_a # :nodoc:
-      warn "to_a is deprecated. Please remove it from #{caller[0]}"
-      # FIXME: I think `select` should be made public...
-      @engine.connection.send(:select, to_sql, 'AREL').map { |x| Row.new(x) }
-    end
-
     private
     def collapse exprs, existing = nil
       exprs = exprs.unshift(existing.expr) if existing
