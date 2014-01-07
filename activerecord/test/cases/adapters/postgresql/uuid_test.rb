@@ -11,13 +11,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-
-    unless @connection.extension_enabled?('uuid-ossp')
-      @connection.enable_extension 'uuid-ossp'
-      @connection.commit_db_transaction
-    end
-
-    @connection.reconnect!
+    enable_uuid_ossp!(@connection)
 
     @connection.transaction do
       @connection.create_table('pg_uuids', id: :uuid, default: 'uuid_generate_v1()') do |t|

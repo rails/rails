@@ -1,3 +1,9 @@
+*   Auto-generate stable fixture UUIDs on PostgreSQL.
+
+    Fixes: #11524
+
+    *Roderick van Domburg*
+
 *   `change_table` now uses the current adapter's `update_table_definition`
     method to retrieve a specific table definition.
     This ensures that `change_table` and `create_table` will use
@@ -751,6 +757,10 @@
 *   Fix `AR::Relation#merge` sometimes failing to preserve `readonly(false)` flag.
 
     *thedarkone*
+
+*   Test that PostgreSQL adapter includes `usec` when quoting `DateTime` objects
+
+    *Ben Cherry*
 
 *   Re-use `order` argument pre-processing for `reorder`.
 
