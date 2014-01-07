@@ -235,14 +235,6 @@ module Arel
       @ctx.source
     end
 
-    def joins manager
-      if $VERBOSE
-        warn "joins is deprecated and will be removed in 4.0.0"
-        warn "please remove your call to joins from #{caller.first}"
-      end
-      manager.join_sql
-    end
-
     class Row < Struct.new(:data) # :nodoc:
       def id
         data['id']
