@@ -639,12 +639,7 @@ module ActiveRecord
       arg_list = arguments.map{ |a| a.inspect } * ', '
 
       say_with_time "#{method}(#{arg_list})" do
-        unless @connection.respond_to? :revert
-          unless arguments.empty? || method == :execute
-            arguments[0] = proper_table_name(arguments.first, table_name_options)
-            arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
-          end
-        end
+        modify_arguments(method, arguments)
         return super unless connection.respond_to?(method)
         connection.send(method, *arguments, &block)
       end
@@ -728,6 +723,17 @@ module ActiveRecord
         super # use normal delegation to record the block
       else
         yield
+      end
+    end
+
+    def modify_arguments(method, arguments)
+      if @connection.respond_to? :revert
+        arguments[2] = !arguments[2] if method == :change_column_null
+      else
+        unless arguments.empty? || method == :execute
+          arguments[0] = proper_table_name(arguments.first, table_name_options)
+          arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
+        end
       end
     end
   end
