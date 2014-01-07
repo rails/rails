@@ -1,7 +1,16 @@
+*   Negate `null` argument of `change_column_null` method when
+    reverting migration. This will ensure that `NOT NULL` constraint
+    is reverted correctly.
+
+    Fixes #13576
+
+    *Nishant Modak*, *Prathamesh Sonpatki*
+
 *   `change_table` now uses the current adapter's `update_table_definition`
     method to retrieve a specific table definition.
     This ensures that `change_table` and `create_table` will use
     similar objects.
+
     Fixes #13577 and #13503.
 
     *Nishant Modak*, *Prathamesh Sonpatki*, *Rafael Mendonça França*
