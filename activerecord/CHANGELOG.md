@@ -1,3 +1,7 @@
+*   Make `change_column_null` revertable. Fixes #13576.
+
+    *Yves Senn*, *Nishant Modak*, *Prathamesh Sonpatki*
+
 *   Don't create/drop the test database if RAILS_ENV is specified explicitely.
 
     Previously, when the environment was development, we would always

@@ -308,6 +308,22 @@ module ActiveRecord
         assert_equal 2000, connection.select_values("SELECT money FROM testings").first.to_i
       end
 
+      def test_change_column_null
+        testing_table_with_only_foo_attribute do
+          notnull_migration = Class.new(ActiveRecord::Migration) do
+            def change
+              change_column_null :testings, :foo, false
+            end
+          end
+          notnull_migration.new.suppress_messages do
+            notnull_migration.migrate(:up)
+            assert_equal false, connection.columns(:testings).find{ |c| c.name == "foo"}.null
+            notnull_migration.migrate(:down)
+            assert connection.columns(:testings).find{ |c| c.name == "foo"}.null
+          end
+        end
+      end
+
       def test_column_exists
         connection.create_table :testings do |t|
           t.column :foo, :string
