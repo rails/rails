@@ -287,7 +287,7 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_equal 'x', 'x'.first
   end
 
-  test "#first with Fixnum, returns a substrung from the beginning to position" do
+  test "#first with Fixnum, returns a substring from the beginning to position" do
     assert_equal "he", "hello".first(2)
     assert_equal "", "hello".first(0)
     assert_equal "hello", "hello".first(10)
