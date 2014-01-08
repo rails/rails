@@ -172,6 +172,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
     assert_equal "llo", s.from(2)
     assert_equal "hel", s.to(2)
+    assert_equal "hell", s.to(-2)
 
     assert_equal "h", s.first
     assert_equal "he", s.first(2)
