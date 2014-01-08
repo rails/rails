@@ -166,6 +166,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal %w{name}, client.changed
   end
 
+  def test_becomes_includes_virtual_attributes
+    company = Company.new(name: '37signals', alias_name: 'Rails')
+    client = company.becomes(Client, :alias_name)
+    assert_equal '37signals', client.name
+    assert_equal 'Rails', client.alias_name
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])
