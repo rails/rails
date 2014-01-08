@@ -498,7 +498,7 @@ for detailed changes.
   object. Helper methods used by multiple fixtures should be defined on modules
   included in `ActiveRecord::FixtureSet.context_class`. ([Pull Request](https://github.com/rails/rails/pull/13022))
 
-* Don't create or drop the test database if RAILS_ENV is specified explicitely.
+* Don't create or drop the test database if RAILS_ENV is specified explicitly.
 
 Active Model
 ------------
