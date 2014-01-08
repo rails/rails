@@ -166,56 +166,6 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal 97, 'abc'.ord
   end
 
-  def test_access
-    s = "hello"
-    assert_equal "h", s.at(0)
-
-    assert_equal "llo", s.from(2)
-    assert_equal "hel", s.to(2)
-
-    assert_equal "h", s.first
-    assert_equal "he", s.first(2)
-    assert_equal "", s.first(0)
-
-    assert_equal "o", s.last
-    assert_equal "llo", s.last(3)
-    assert_equal "hello", s.last(10)
-    assert_equal "", s.last(0)
-
-    assert_equal 'x', 'x'.first
-    assert_equal 'x', 'x'.first(4)
-
-    assert_equal 'x', 'x'.last
-    assert_equal 'x', 'x'.last(4)
-  end
-
-  def test_access_returns_a_real_string
-    hash = {}
-    hash["h"] = true
-    hash["hello123".at(0)] = true
-    assert_equal %w(h), hash.keys
-
-    hash = {}
-    hash["llo"] = true
-    hash["hello".from(2)] = true
-    assert_equal %w(llo), hash.keys
-
-    hash = {}
-    hash["hel"] = true
-    hash["hello".to(2)] = true
-    assert_equal %w(hel), hash.keys
-
-    hash = {}
-    hash["hello"] = true
-    hash["123hello".last(5)] = true
-    assert_equal %w(hello), hash.keys
-
-    hash = {}
-    hash["hello"] = true
-    hash["hello123".first(5)] = true
-    assert_equal %w(hello), hash.keys
-  end
-
   def test_starts_ends_with_alias
     s = "hello"
     assert s.starts_with?('h')
@@ -292,6 +242,95 @@ class StringInflectionsTest < ActiveSupport::TestCase
     run_safe_constantize_tests_on do |string|
       string.safe_constantize
     end
+  end
+end
+
+class StringAccessTest < ActiveSupport::TestCase
+  test "#at with Fixnum, returns a substring of one character at that position" do
+    assert_equal "h", "hello".at(0)
+  end
+
+  test "#at with Range, returns a substring containing characters at offsets" do
+    assert_equal "lo", "hello".at(-2..-1)
+  end
+
+  test "#at with Regex, returns the matching portion of the string" do
+    assert_equal "lo", "hello".at(/lo/)
+    assert_equal nil, "hello".at(/nonexisting/)
+  end
+
+  test "#from with positive Fixnum, returns substring from the given position to the end" do
+    assert_equal "llo", "hello".from(2)
+  end
+
+  test "#from with negative Fixnum, position is counted from the end" do
+    assert_equal "lo", "hello".from(-2)
+  end
+
+  test "#to with positive Fixnum, substring from the beginning to the given position" do
+    assert_equal "hel", "hello".to(2)
+  end
+
+  test "#to with negative Fixnum, position is counted from the end" do
+    skip "functionality was broken with 2ef1fb2c455ca53a0c1e1768f50824926ce28bd3"
+    assert_equal "hell", "hello".to(-2)
+  end
+
+  test "#from and #to can be combined" do
+    skip "functionality was broken with 2ef1fb2c455ca53a0c1e1768f50824926ce28bd3"
+    assert_equal "hello", "hello".from(0).to(-1)
+    assert_equal "ell", "hello".from(1).to(-2)
+  end
+
+  test "#first returns the first character" do
+    assert_equal "h", "hello".first
+    assert_equal 'x', 'x'.first
+  end
+
+  test "#first with Fixnum, returns a substrung from the beginning to position" do
+    assert_equal "he", "hello".first(2)
+    assert_equal "", "hello".first(0)
+    assert_equal "hello", "hello".first(10)
+    assert_equal 'x', 'x'.first(4)
+  end
+
+  test "#last returns the last character" do
+    assert_equal "o", "hello".last
+    assert_equal 'x', 'x'.last
+  end
+
+  test "#last with Fixnum, returns a substring from the end to position" do
+    assert_equal "llo", "hello".last(3)
+    assert_equal "hello", "hello".last(10)
+    assert_equal "", "hello".last(0)
+    assert_equal 'x', 'x'.last(4)
+  end
+
+  test "access returns a real string" do
+    hash = {}
+    hash["h"] = true
+    hash["hello123".at(0)] = true
+    assert_equal %w(h), hash.keys
+
+    hash = {}
+    hash["llo"] = true
+    hash["hello".from(2)] = true
+    assert_equal %w(llo), hash.keys
+
+    hash = {}
+    hash["hel"] = true
+    hash["hello".to(2)] = true
+    assert_equal %w(hel), hash.keys
+
+    hash = {}
+    hash["hello"] = true
+    hash["123hello".last(5)] = true
+    assert_equal %w(hello), hash.keys
+
+    hash = {}
+    hash["hello"] = true
+    hash["hello123".first(5)] = true
+    assert_equal %w(hello), hash.keys
   end
 end
 
