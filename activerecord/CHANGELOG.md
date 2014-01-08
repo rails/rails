@@ -2,12 +2,12 @@
 
     *Yves Senn*, *Nishant Modak*, *Prathamesh Sonpatki*
 
-*   Don't create/drop the test database if RAILS_ENV is specified explicitely.
+*   Don't create/drop the test database if RAILS_ENV is specified explicitly.
 
     Previously, when the environment was development, we would always
     create or drop both the test and development databases.
 
-    Now, if RAILS_ENV is explicitely defined as development, we don't create
+    Now, if RAILS_ENV is explicitly defined as development, we don't create
     the test database.
 
     *Damien Mathieu*
@@ -38,7 +38,7 @@
 
     *Yves Senn*
 
-*   Since the `test_help.rb` in Railties now automatically maintains
+*   Since the `test_help.rb` file in Railties now automatically maintains
     your test schema, the `rake db:test:*` tasks are deprecated. This
     doesn't stop you manually running other tasks on your test database
     if needed:
