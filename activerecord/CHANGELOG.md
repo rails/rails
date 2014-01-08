@@ -1,3 +1,9 @@
+*   Ensure SQLite3 statements are closed on errors.
+
+    Fixes: #13631
+
+	*Timur Alperovich*
+
 *   Enable partial indexes for sqlite >= 3.8.0
 
     See http://www.sqlite.org/partialindex.html
