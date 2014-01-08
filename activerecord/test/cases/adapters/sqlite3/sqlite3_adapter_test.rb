@@ -395,6 +395,20 @@ module ActiveRecord
         assert @conn.respond_to?(:disable_extension)
       end
 
+      def test_transaction_rollback_active
+        SQLite3::Database.any_instance.expects(:transaction_active?).once.
+            returns(false)
+        SQLite3::Database.any_instance.expects(:rollback).never
+        @conn.rollback_db_transaction
+      end
+
+      def test_transaction_rollback_outside
+        SQLite3::Database.any_instance.expects(:transaction_active?).once.
+            returns(true)
+        SQLite3::Database.any_instance.expects(:rollback).once.returns()
+        @conn.rollback_db_transaction
+      end
+
       private
 
       def assert_logged logs
