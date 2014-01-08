@@ -272,12 +272,10 @@ class StringAccessTest < ActiveSupport::TestCase
   end
 
   test "#to with negative Fixnum, position is counted from the end" do
-    skip "functionality was broken with 2ef1fb2c455ca53a0c1e1768f50824926ce28bd3"
     assert_equal "hell", "hello".to(-2)
   end
 
   test "#from and #to can be combined" do
-    skip "functionality was broken with 2ef1fb2c455ca53a0c1e1768f50824926ce28bd3"
     assert_equal "hello", "hello".from(0).to(-1)
     assert_equal "ell", "hello".from(1).to(-2)
   end
