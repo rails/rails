@@ -164,55 +164,49 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_gemfile_entry
-    template = Tempfile.open 'my_template'
-    template.puts 'gemfile_entry "tenderlove"'
-    template.flush
-
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile", /tenderlove/
-  ensure
-    template.close
-    template.unlink
+    Tempfile.open('my_template') do |template|
+      template.puts 'gemfile_entry "tenderlove"'
+      template.flush
+      template.close
+      run_generator([destination_root, "-m", template.path])
+      assert_file "Gemfile", /tenderlove/
+    end
   end
 
   def test_add_skip_entry
-    template = Tempfile.open 'my_template'
-    template.puts 'add_gem_entry_filter { |gem| gem.name != "jbuilder" }'
-    template.flush
+    Tempfile.open 'my_template' do |template|
+      template.puts 'add_gem_entry_filter { |gem| gem.name != "jbuilder" }'
+      template.flush
 
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile" do |contents|
-      assert_no_match 'jbuilder', contents
+      run_generator([destination_root, "-m", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'jbuilder', contents
+      end
     end
-  ensure
-    template.close
-    template.unlink
   end
 
   def test_skip_turbolinks_when_it_is_not_on_gemfile
-    template = Tempfile.open 'my_template'
-    template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
-    template.flush
+    Tempfile.open 'my_template' do |template|
+      template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
+      template.flush
 
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile" do |contents|
-      assert_no_match 'turbolinks', contents
-    end
+      run_generator([destination_root, "-m", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
 
-    assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_no_match 'turbolinks', contents
-    end
+      assert_file "app/views/layouts/application.html.erb" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
 
-    assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_no_match('data-turbolinks-track', contents)
-    end
+      assert_file "app/views/layouts/application.html.erb" do |contents|
+        assert_no_match('data-turbolinks-track', contents)
+      end
 
-    assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_no_match 'turbolinks', contents
+      assert_file "app/assets/javascripts/application.js" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
     end
-  ensure
-    template.close
-    template.unlink
   end
 
   def test_config_another_database
