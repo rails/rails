@@ -226,14 +226,14 @@ module Rails
         build(:vendor)
       end
 
-      def finish_template
-        build(:leftovers)
-      end
-
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
           remove_dir 'app/assets/javascripts'
         end
+      end
+
+      def finish_template
+        build(:leftovers)
       end
 
       public_task :run_bundle
