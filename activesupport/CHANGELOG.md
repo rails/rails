@@ -1,3 +1,7 @@
+*   Added `Hash#compact` and `Hash#compact!` for removing items with nil value from hash.
+
+    *Celestino Gomes*
+
 *   Maintain proleptic gregorian in Time#advance
 
     `Time#advance` uses `Time#to_date` and `Date#advance` to calculate a new date.

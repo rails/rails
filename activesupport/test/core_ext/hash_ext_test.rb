@@ -54,6 +54,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
+    assert_respond_to h, :compact
+    assert_respond_to h, :compact!
   end
 
   def test_transform_keys
@@ -864,6 +866,32 @@ class HashExtTest < ActiveSupport::TestCase
     original = { :a => 'x', :b => 'y' }
     original.expects(:delete).never
     original.except(:a)
+  end
+
+  def test_compact
+    hash_contain_nil_value = @symbols.merge(z: nil)
+    hash_with_only_nil_values = { a: nil, b: nil }
+    
+    h = hash_contain_nil_value.dup
+    assert_equal(@symbols, h.compact)
+    assert_equal(hash_contain_nil_value, h)
+    
+    h = hash_with_only_nil_values.dup
+    assert_equal({}, h.compact)
+    assert_equal(hash_with_only_nil_values, h)
+  end
+
+  def test_compact!
+    hash_contain_nil_value = @symbols.merge(z: nil)
+    hash_with_only_nil_values = { a: nil, b: nil }
+    
+    h = hash_contain_nil_value.dup
+    assert_equal(@symbols, h.compact!)
+    assert_equal(@symbols, h)
+    
+    h = hash_with_only_nil_values.dup
+    assert_equal({}, h.compact!)
+    assert_equal({}, h)
   end
 end
 
