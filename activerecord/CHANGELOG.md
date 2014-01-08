@@ -1,3 +1,13 @@
+*   Don't create/drop the test database if RAILS_ENV is specified explicitely.
+
+    Previously, when the environment was development, we would always
+    create or drop both the test and development databases.
+
+    Now, if RAILS_ENV is explicitely defined as development, we don't create
+    the test database.
+
+    *Damien Mathieu*
+
 *   Initialize version on Migration objects so that it can be used in a migration,
     and it will be included in the announce message.
 
