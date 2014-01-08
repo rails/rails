@@ -201,7 +201,8 @@ module ActiveRecord
 
       def each_current_configuration(environment)
         environments = [environment]
-        environments << 'test' if environment == 'development'
+        # add test environment only if no RAILS_ENV was specified.
+        environments << 'test' if environment == 'development' && ENV['RAILS_ENV'].nil?
 
         configurations = ActiveRecord::Base.configurations.values_at(*environments)
         configurations.compact.each do |configuration|
