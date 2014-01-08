@@ -32,6 +32,11 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal datetime.readable_inspect, datetime.inspect
   end
 
+  def test_readable_inspect_does_not_clobber_default_inspect
+    datetime = DateTime.new(2005, 2, 21, 14, 30, 0)
+    assert_match(/#<DateTime: 2005-02-21T.+\(\(\d+j,\d+s,\d+n\),.\d+s,\d+j\)/, datetime.default_inspect)
+  end
+
   def test_custom_date_format
     Time::DATE_FORMATS[:custom] = '%Y%m%d%H%M%S'
     assert_equal '20050221143000', DateTime.new(2005, 2, 21, 14, 30, 0).to_s(:custom)

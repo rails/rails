@@ -52,7 +52,7 @@ class DateTime
   def readable_inspect
     to_s(:rfc822)
   end
-  alias_method :default_inspect, :inspect
+  alias_method :default_inspect, :inspect if instance_methods(false).include?(:inspect)
   alias_method :inspect, :readable_inspect
 
   # Returns DateTime with local offset for given year if format is local else
