@@ -14,6 +14,7 @@ module Rails
       DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
+      attr_accessor :app_template
       add_shebang_option!
 
       argument :app_path, type: :string
@@ -24,6 +25,9 @@ module Rails
 
       def self.add_shared_options_for(name)
         class_option :template,           type: :string, aliases: '-m',
+                                          desc: "Path to some #{name} template (can be a filesystem path or URL)"
+
+        class_option :app_template,       type: :string, aliases: '-n',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
@@ -122,6 +126,10 @@ module Rails
         }.curry[@gem_filter]
       end
 
+      def remove_gem(name)
+        add_gem_entry_filter { |gem| gem.name != name }
+      end
+
       def builder
         @builder ||= begin
           builder_class = get_builder_class
@@ -162,6 +170,10 @@ module Rails
           @target.send :add_gem_entry_filter, *args, &block
         end
 
+        def remove_gem(*args, &block)
+          @target.send :remove_gem, *args, &block
+        end
+
         def method_missing(name, *args, &block)
           @commands << [name, args, block]
         end
@@ -180,7 +192,8 @@ module Rails
       def apply_rails_template
         @recorder = TemplateRecorder.new self
 
-        apply(rails_template, target: @recorder) if rails_template
+        apply(rails_template, target: self) if rails_template
+        apply(app_template, target: @recorder) if app_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
@@ -210,13 +223,18 @@ module Rails
 
       def set_default_accessors!
         self.destination_root = File.expand_path(app_path, destination_root)
-        self.rails_template = case options[:template]
-          when /^https?:\/\//
-            options[:template]
-          when String
-            File.expand_path(options[:template], Dir.pwd)
-          else
-            options[:template]
+        self.rails_template = expand_template options[:template]
+        self.app_template = expand_template options[:app_template]
+      end
+
+      def expand_template(name)
+        case name
+        when /^https?:\/\//
+          name
+        when String
+          File.expand_path(name, Dir.pwd)
+        else
+          name
         end
       end
 

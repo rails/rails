@@ -163,12 +163,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_arbitrary_code
+    output = Tempfile.open('my_template') do |template|
+      template.puts 'puts "You are using Rails version #{Rails::VERSION::STRING}."'
+      template.close
+      run_generator([destination_root, "-m", template.path])
+    end
+    assert_match 'You are using', output
+  end
+
   def test_add_gemfile_entry
     Tempfile.open('my_template') do |template|
       template.puts 'gemfile_entry "tenderlove"'
       template.flush
       template.close
-      run_generator([destination_root, "-m", template.path])
+      run_generator([destination_root, "-n", template.path])
       assert_file "Gemfile", /tenderlove/
     end
   end
@@ -176,9 +185,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_add_skip_entry
     Tempfile.open 'my_template' do |template|
       template.puts 'add_gem_entry_filter { |gem| gem.name != "jbuilder" }'
-      template.flush
+      template.close
 
-      run_generator([destination_root, "-m", template.path])
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'jbuilder', contents
+      end
+    end
+  end
+
+  def test_remove_gem
+    Tempfile.open 'my_template' do |template|
+      template.puts 'remove_gem "jbuilder"'
+      template.close
+
+      run_generator([destination_root, "-n", template.path])
       assert_file "Gemfile" do |contents|
         assert_no_match 'jbuilder', contents
       end
@@ -190,7 +211,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
       template.flush
 
-      run_generator([destination_root, "-m", template.path])
+      run_generator([destination_root, "-n", template.path])
       assert_file "Gemfile" do |contents|
         assert_no_match 'turbolinks', contents
       end
