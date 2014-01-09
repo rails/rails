@@ -221,7 +221,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal 1, @first.commits
     assert_equal 0, @first.rollbacks
     assert_equal 0, @second.commits
-    assert_equal 1, @second.rollbacks
+    assert_equal 0, @second.rollbacks
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint_when_release_savepoint_fails
@@ -235,7 +235,6 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       @first.save
       Topic.transaction(:requires_new => true) do
         @first.save!
-        raise ActiveRecord::Rollback
       end
       Topic.transaction(:requires_new => true) do
         @first.save!
@@ -243,8 +242,9 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       end
     end
 
+
     assert_equal 1, @first.commits
-    assert_equal 2, @first.rollbacks
+    assert_equal 0, @first.rollbacks
   end
 
   def test_after_transaction_callbacks_should_prevent_callbacks_from_being_called
