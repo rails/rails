@@ -286,10 +286,6 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        execute fixture_sql(fixture, table_name), 'Fixture Insert'
-      end
-
-      def fixture_sql(fixture, table_name)
         columns = schema_cache.columns_hash(table_name)
 
         key_list   = []
@@ -298,7 +294,7 @@ module ActiveRecord
           quote(value, columns[name])
         end
 
-        "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})"
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
       end
 
       def empty_insert_statement_value
