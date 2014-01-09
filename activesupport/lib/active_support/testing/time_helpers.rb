@@ -1,7 +1,52 @@
+require 'minitest/mock'
+require 'active_support/concurrency/latch'
+require 'monitor'
+
+class Object
+  def internal_stub(name, *args, &block)
+    key             = [object_id, name]
+    stub_locks      = Thread.current[:stubs] ||= {}
+    use_latch       = ActiveSupport::Concurrency::Latch.new
+    undefined_latch = ActiveSupport::Concurrency::Latch.new
+    defined_latch   = ActiveSupport::Concurrency::Latch.new
+    stub_locks[key] = { use: use_latch,
+                        undefined: undefined_latch }
+    Thread.new {
+      stub(name, *args) {
+        defined_latch.release
+        use_latch.await
+      }
+      undefined_latch.release
+    }
+    defined_latch.await
+  end
+
+  def internal_unstub(name)
+    return unless Thread.current[:stubs]
+
+    key = [object_id, name]
+
+    lock = Thread.current[:stubs][key]
+
+    if lock
+      lock[:use].release
+      lock[:undefined].await
+    end
+  end
+end
+
 module ActiveSupport
   module Testing
     # Containing helpers that helps you test passage of time.
     module TimeHelpers
+      # This teardown method is to make sure the stubs are automatically removed at the end of each
+      # test.
+      def teardown #:nodoc:
+        super
+        Time.internal_unstub :now
+        Date.internal_unstub :today
+      end
+
       # Change current time to the time in the future or in the past by a given time difference by
       # stubbing +Time.now+ and +Date.today+. Note that the stubs are automatically removed
       # at the end of each test.
@@ -41,13 +86,13 @@ module ActiveSupport
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time, &block)
-        Time.stubs now: date_or_time.to_time
-        Date.stubs today: date_or_time.to_date
+        Time.internal_stub :now, date_or_time.to_time
+        Date.internal_stub :today, date_or_time.to_date
 
         if block_given?
           block.call
-          Time.unstub :now
-          Date.unstub :today
+          Time.internal_unstub :now
+          Date.internal_unstub :today
         end
       end
     end
