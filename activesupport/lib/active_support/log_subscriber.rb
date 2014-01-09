@@ -30,10 +30,6 @@ module ActiveSupport
   # After configured, whenever a "sql.active_record" notification is published,
   # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
   # the sql method.
-  #
-  # Log subscriber also has some helpers to deal with logging and automatically
-  # flushes all logs when the request finishes (via action_dispatch.callback
-  # notification) in a Rails environment.
   class LogSubscriber < Subscriber
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR   = "\e[0m"
@@ -63,11 +59,6 @@ module ActiveSupport
 
       def log_subscribers
         subscribers
-      end
-
-      # Flush all log_subscribers' logger.
-      def flush_all!
-        logger.flush if logger.respond_to?(:flush)
       end
     end
 
