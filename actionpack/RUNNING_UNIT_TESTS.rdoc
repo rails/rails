@@ -1,7 +1,7 @@
 == Running with Rake
 
 The easiest way to run the unit tests is through Rake. The default task runs
-the entire test suite for all classes. For more information, checkout the
+the entire test suite for all classes. For more information, check out the
 full array of rake tasks with "rake -T"
 
 Rake can be found at http://rake.rubyforge.org
