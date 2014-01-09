@@ -191,7 +191,11 @@ module ActiveRecord
         raise
       ensure
         begin
-          commit_transaction unless error
+          if Thread.current.status == 'aborting'
+            rollback_transaction
+          elsif !error
+            commit_transaction
+          end
         rescue Exception
           transaction.rollback unless transaction.state.completed?
           raise
