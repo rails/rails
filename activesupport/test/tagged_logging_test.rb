@@ -79,7 +79,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[OMG] Cool story bro\n[BCX] Funky time\n", @output.string
   end
 
-  test "cleans up the taggings on flush" do
+  test "keeps tags on flush" do
     @logger.tagged("BCX") do
       Thread.new do
         @logger.tagged("OMG") do
@@ -88,7 +88,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
         end
       end.join
     end
-    assert_equal "[FLUSHED]\nCool story bro\n", @output.string
+    assert_equal "[OMG] [FLUSHED]\n[OMG] Cool story bro\n", @output.string
   end
 
   test "mixed levels of tagging" do
