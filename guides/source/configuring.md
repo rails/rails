@@ -455,13 +455,130 @@ There are a few configuration options available in Active Support:
 
 ### Configuring a Database
 
-Just about every Rails application will interact with a database. The database to use is specified in a configuration file called `config/database.yml`. If you open this file in a new Rails application, you'll see a default database configured to use SQLite3. The file contains sections for three different environments in which Rails can run by default:
+Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.
+
+Using the `config/database.yml` file you can specify all the information needed to access your database:
+
+```yaml
+development:
+  adapter: postgresql
+  database: blog_development
+  pool: 5
+```
+
+This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
+
+```ruby
+> puts ENV['DATABASE_URL']
+postgresql://localhost/blog_development?pool=5
+```
+
+The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
 
 * The `development` environment is used on your development/local computer as you interact manually with the application.
 * The `test` environment is used when running automated tests.
 * The `production` environment is used when you deploy your application for the world to use.
 
+If you wish, you can manually specify a URL inside of your `config/database.yml`
+
+```
+development:
+  url: postgresql://localhost/blog_development?pool=5
+```
+
+The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the tags will be evaluated as Ruby code. You can use this to pull out data from an environment variable or to perform calculations to generate the needed connection information.
+
+
 TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite. Detailed examples of the common database connections are below.
+
+
+### Connection Preference
+
+Since there are two ways to set your connection, via environment variable it is important to understand how the two can interact.
+
+If you have an empty `config/database.yml` file but your `ENV['DATABASE_URL']` is present, then Rails will connect to the database via your environment variable:
+
+```
+$ cat config/database.yml
+
+$ echo $DATABASE_URL
+postgresql://localhost/my_database
+```
+
+If you have a `config/database.yml` but no `ENV['DATABASE_URL']` then this file will be used to connect to your database:
+
+```
+$ cat config/database.yml
+development:
+  adapter: postgresql
+  database: my_database
+  host: localhost
+
+$ echo $DATABASE_URL
+```
+
+If you have both `config/database.yml` and `ENV['DATABASE_URL']` set then Rails will merge the configuration together. To better understand this we must see some examples.
+
+When duplicate connection information is provided the environment variable will take precedence:
+
+```
+$ cat config/database.yml
+development:
+  adapter: sqlite3
+  database: NOT_my_database
+  host: localhost
+
+$ echo $DATABASE_URL
+postgresql://localhost/my_database
+
+$ rails runner 'puts ActiveRecord::Base.connections'
+{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database"}}
+```
+
+Here the adapter, host, and database match the information in `ENV['DATABASE_URL']`.
+
+If non-duplicate information is provided you will get all unique values, environment variable still takes precedence in cases of any conflicts.
+
+```
+$ cat config/database.yml
+development:
+  adapter: sqlite3
+  pool: 5
+
+$ echo $DATABASE_URL
+postgresql://localhost/my_database
+
+$ rails runner 'puts ActiveRecord::Base.connections'
+{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database", "pool"=>5}}
+```
+
+Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
+
+The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connectinon using the `"url"` sub key:
+
+```
+$ cat config/database.yml
+development:
+  url: sqlite3://localhost/NOT_my_database
+
+$ echo $DATABASE_URL
+postgresql://localhost/my_database
+
+$ rails runner 'puts ActiveRecord::Base.connections'
+{"development"=>{"adapter"=>"sqlite3", "host"=>"localhost", "database"=>"NOT_my_database"}}
+```
+
+Here the connection information in `ENV['DATABASE_URL']` is ignored, note the different adapter and database name.
+
+Since it is possible to embed ERB in your `config/database.yml` it is best practice to explicitly show you are using the `ENV['DATABASE_URL']` to connect to your database. This is especially useful in production since you should not commit secrets like your database password into your source control (such as Git).
+
+```
+$ cat config/database.yml
+production:
+  url: <%= ENV['DATABASE_URL'] %>
+```
+
+Now the behavior is clear, that we are only using the connection information in `ENV['DATABASE_URL']`.
 
 #### Configuring an SQLite3 Database
 

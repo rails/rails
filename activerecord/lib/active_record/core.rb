@@ -42,8 +42,15 @@ module ActiveRecord
       #         'database' => 'db/production.sqlite3'
       #      }
       #   }
-      mattr_accessor :configurations, instance_writer: false
+      def self.configurations=(config)
+        @@configurations = ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig.new(config).resolve
+      end
       self.configurations = {}
+
+      # Returns fully resolved configurations hash
+      def self.configurations
+        @@configurations
+      end
 
       ##
       # :singleton-method:

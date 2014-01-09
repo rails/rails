@@ -1,3 +1,64 @@
+*   Currently Active Record can be configured via the environment variable
+    `DATABASE_URL` or by manually injecting a hash of values which is what Rails does,
+    reading in `database.yml` and setting Active Record appropriately. Active Record
+    expects to be able to use `DATABASE_URL` without the use of Rails, and we cannot
+    rip out this functionality without deprecating. This presents a problem though
+    when both config is set, and a `DATABASE_URL` is present. Currently the
+    `DATABASE_URL` should "win" and none of the values in `database.yml` are
+    used. This is somewhat unexpected, if one were to set values such as
+    `pool` in the `production:` group of `database.yml` they are ignored.
+
+    There are many ways that Active Record initiates a connection today:
+
+    - Stand Alone (without rails)
+      - `rake db:<tasks>`
+      - `ActiveRecord.establish_connection`
+
+    - With Rails
+      - `rake db:<tasks>`
+      - `rails <server> | <console>`
+      - `rails dbconsole`
+
+    Now all of these behave exactly the same way. The best way to do
+    this is to put all of this logic in one place so it is guaranteed to be used.
+
+    Here is the matrix of how this behavior works:
+
+    ```
+    No database.yml
+    No DATABASE_URL
+    => Error
+    ```
+
+    ```
+    database.yml present
+    No DATABASE_URL
+    => Use database.yml configuration
+    ```
+
+    ```
+    No database.yml
+    DATABASE_URL present
+    => use DATABASE_URL configuration
+    ```
+
+    ```
+    database.yml present
+    DATABASE_URL present
+    => Merged into `url` sub key. If both specify `url` sub key, the `database.yml` `url`
+       sub key "wins". If other paramaters `adapter` or `database` are specified in YAML,
+       they are discarded as the `url` sub key "wins".
+    ```
+
+    Current implementation uses `ActiveRecord::Base.configurations` to resolve and merge
+    all connection information before returning. This is achieved through a utility
+    class: `ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig`.
+
+    To understand the exact behavior of this class, it is best to review the
+    behavior in `activerecord/test/cases/connection_adapters/connection_handler_test.rb`
+
+    *Richard Schneeman*
+
 *   Make `change_column_null` revertable. Fixes #13576.
 
     *Yves Senn*, *Nishant Modak*, *Prathamesh Sonpatki*

@@ -40,19 +40,7 @@ module ActiveRecord
 
       namespace :db do
         task :load_config do
-          configuration = if ENV["DATABASE_URL"]
-            { Rails.env => ENV["DATABASE_URL"] }
-          else
-            Rails.application.config.database_configuration || {}
-          end
-
-          resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(configuration)
-
-          configuration.each do |key, value|
-            configuration[key] = resolver.resolve(value) if value
-          end
-
-          ActiveRecord::Tasks::DatabaseTasks.database_configuration = configuration
+          ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
 
           if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
             if engine.paths['db/migrate'].existent
@@ -137,7 +125,7 @@ module ActiveRecord
           end
         end
 
-        self.configurations = app.config.database_configuration || {}
+        self.configurations = Rails.application.config.database_configuration
         establish_connection
       end
     end

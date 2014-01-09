@@ -81,10 +81,11 @@ module Rails
 
     def config
       @config ||= begin
-        require APP_PATH
-        ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(
-          Rails.application.config.database_configuration || {}
-        ).resolve(ENV["DATABASE_URL"])
+        if configurations[environment].blank?
+          raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
+        else
+          configurations[environment]
+        end
       end
     end
 
@@ -97,6 +98,12 @@ module Rails
     end
 
     protected
+
+    def configurations
+      require APP_PATH
+      ActiveRecord::Base.configurations = Rails.application.config.database_configuration
+      ActiveRecord::Base.configurations
+    end
 
     def parse_arguments(arguments)
       options = {}

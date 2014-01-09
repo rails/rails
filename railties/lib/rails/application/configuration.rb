@@ -88,17 +88,23 @@ module Rails
         end
       end
 
-      # Loads and returns the configuration of the database.
+      # Loads and returns the entire raw configuration of database from
+      # values stored in `config/database.yml`.
       def database_configuration
-        yaml = paths["config/database"].first
-        if File.exist?(yaml)
+        yaml = Pathname.new(paths["config/database"].first || "")
+
+        config = if yaml.exist?
           require "erb"
-          YAML.load ERB.new(IO.read(yaml)).result
+          YAML.load(ERB.new(yaml.read).result) || {}
         elsif ENV['DATABASE_URL']
-          nil
+          # Value from ENV['DATABASE_URL'] is set to default database connection
+          # by Active Record.
+          {}
         else
           raise "Could not load database configuration. No such file - #{yaml}"
         end
+
+        config
       rescue Psych::SyntaxError => e
         raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
               "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
