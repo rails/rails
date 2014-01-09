@@ -80,6 +80,13 @@ db_namespace = namespace :db do
       db_namespace['_dump'].invoke
     end
 
+    # desc 'Shows the nth last migration details'
+    task :show, [:index] => [:environment, :load_config] do
+      raise "You need to provide an index, example : rake db:migrate:show[-1]" if args.index.nil?
+      puts "Migration Name : #{ActiveRecord::Migrator.migrations(ActiveRecord::Migrator.migrations_paths)[args.index.to_i].name}"
+      puts "Migration Version : #{ActiveRecord::Migrator.migrations(ActiveRecord::Migrator.migrations_paths)[args.index.to_i].version}"
+    end
+
     desc 'Display status of migrations'
     task :status => [:environment, :load_config] do
       unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)

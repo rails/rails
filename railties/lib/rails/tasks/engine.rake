@@ -23,6 +23,9 @@ namespace :db do
   app_task "migrate:redo"
   app_task "migrate:reset"
 
+  desc "Show the migration details"
+  app_task "migrate:show"
+
   desc "Display status of migrations"
   app_task "migrate:status"
 
