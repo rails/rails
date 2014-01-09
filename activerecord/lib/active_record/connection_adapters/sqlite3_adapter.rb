@@ -356,7 +356,9 @@ module ActiveRecord
       end
 
       def rollback_db_transaction #:nodoc:
-        log('rollback transaction',nil) { @connection.rollback }
+        if @connection.transaction_active?
+          log('rollback transaction',nil) { @connection.rollback }
+        end
       end
 
       # SCHEMA STATEMENTS ========================================
