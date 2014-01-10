@@ -45,20 +45,26 @@ module ActionDispatch
           @blocks  = blocks
         end
 
-        def call(original_params)
+        def call(original_params, parents = [])
           filtered_params = {}
 
           original_params.each do |key, value|
             if regexps.any? { |r| key =~ r }
               value = FILTERED
             elsif value.is_a?(Hash)
-              value = call(value)
+              value = call(value, parents + [key])
             elsif value.is_a?(Array)
-              value = value.map { |v| v.is_a?(Hash) ? call(v) : v }
+              value = value.map { |v| v.is_a?(Hash) ? call(v, parents + [key]) : v }
             elsif blocks.any?
               key = key.dup
               value = value.dup if value.duplicable?
-              blocks.each { |b| b.call(key, value) }
+              blocks.each { |b|
+                if b.arity == 3
+                  b.call(key, value, parents.dup)
+                else
+                  b.call(key, value)
+                end
+              }
             end
 
             filtered_params[key] = value
