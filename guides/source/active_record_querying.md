@@ -826,6 +826,8 @@ client.save
 
 As `client` is explicitly set to be a readonly object, the above code will raise an `ActiveRecord::ReadOnlyRecord` exception when calling `client.save` with an updated value of _visits_.
 
+NOTE: using `joins` without an explicit `select` will return readonly records.
+
 Locking Records for Update
 --------------------------
 
@@ -928,6 +930,8 @@ This will result in the following SQL:
 ```sql
 SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id = clients.id
 ```
+
+NOTE: using `joins` might return readonly records. See [readonly](active_record_querying.html#readonly-objects) for more details.
 
 ### Using Array/Hash of Named Associations
 
