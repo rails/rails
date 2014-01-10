@@ -230,6 +230,21 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nil new_topic.id, "The topic should not have an ID"
   end
 
+  def test_callback_rollback_in_after_save_with_record_invalid_exception_via_has_many
+    topic = Topic.create!
+    Reply.class_eval do
+      def after_save_for_transaction
+        raise ActiveRecord::RecordInvalid.new(self)
+      end
+    end
+    reply = topic.replies.create
+
+    assert !reply.persisted?, "The reply should not be persisted"
+    assert_nil reply.id, "The reply should not have an ID"
+  ensure
+    Reply.class_eval{ def after_save_for_transaction; end }
+  end
+
   def test_nested_explicit_transactions
     Topic.transaction do
       Topic.transaction do
