@@ -89,6 +89,7 @@ module ActionDispatch
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
     SECRET_TOKEN = "action_dispatch.secret_token".freeze
     SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
+    SESSION_SERIALIZER = "action_dispatch.session_serializer".freeze
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -210,7 +211,8 @@ module ActionDispatch
           encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] || '',
           secret_token: env[SECRET_TOKEN],
           secret_key_base: env[SECRET_KEY_BASE],
-          upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?
+          upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?,
+          session_serializer: env[SESSION_SERIALIZER]
         }
       end
 
@@ -435,7 +437,7 @@ module ActionDispatch
         @options = options
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
-        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: serializer)
       end
 
       def [](name)
@@ -461,6 +463,16 @@ module ActionDispatch
           @encryptor.decrypt_and_verify(encrypted_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
           nil
+        end
+
+        def serializer
+          serializer = @options[:session_serializer] || :marshal_serializer
+          case serializer
+          when Symbol, String
+            ActionDispatch::Session.const_get(serializer.to_s.camelize)
+          else
+            serializer
+          end
         end
     end
 
