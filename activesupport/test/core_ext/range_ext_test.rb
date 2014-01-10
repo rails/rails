@@ -112,4 +112,8 @@ class RangeTest < ActiveSupport::TestCase
     end
   end
 
+  def test_date_time_with_each
+    datetime = DateTime.now
+    assert ((datetime - 1.hour)..datetime).each {}
+  end
 end
