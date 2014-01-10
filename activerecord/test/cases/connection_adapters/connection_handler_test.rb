@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       def teardown
-        ENV["DATABASE_URL"] = @previous_database_url if @previous_database_url
+        ENV["DATABASE_URL"] = @previous_database_url
       end
 
       def test_string_connection
