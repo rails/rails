@@ -301,10 +301,10 @@ module ActiveRecord
     # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state = false) #:nodoc:
-      run_callbacks :rollback
+      run_callbacks :rollback if force_restore_state
     ensure
       restore_transaction_record_state(force_restore_state)
-      clear_transaction_record_state
+      clear_transaction_record_state if force_restore_state
     end
 
     # Add the record to the current transaction so that the +after_rollback+ and +after_commit+ callbacks
