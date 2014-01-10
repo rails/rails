@@ -747,6 +747,12 @@ module ActiveRecord
         # Turn this off. http://dev.rubyonrails.org/ticket/6778
         variables[:sql_auto_is_null] = 0
 
+        if ActiveRecord::Base.default_timezone.eql?:utc
+          variables[:time_zone] = '+00:00'
+        else
+          variables[:time_zone] = DateTime.now.zone
+        end
+
         # Increase timeout so the server doesn't disconnect us.
         wait_timeout = @config[:wait_timeout]
         wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
