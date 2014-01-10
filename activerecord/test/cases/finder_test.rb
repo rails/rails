@@ -12,6 +12,7 @@ require 'models/developer'
 require 'models/customer'
 require 'models/toy'
 require 'models/matey'
+require 'models/dog'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
@@ -641,6 +642,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
   end
 
+  def test_find_by_on_attribute_that_is_a_reserved_word
+    dog_alias = 'Dog'
+    dog = Dog.create(alias: dog_alias)
+
+    assert_equal dog, Dog.find_by_alias(dog_alias)
+  end
+
   def test_find_by_one_attribute_that_is_an_alias
     assert_equal topics(:first), Topic.find_by_heading("The First Topic")
     assert_nil Topic.find_by_heading("The First Topic!")
@@ -718,6 +726,15 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_two_attributes_but_passing_only_one
     assert_raise(ArgumentError) { Topic.find_by_title_and_author_name("The First Topic") }
+  end
+
+  def test_find_last_with_offset
+    devs = Developer.order('id')
+
+    assert_equal devs[2], Developer.offset(2).first
+    assert_equal devs[-3], Developer.offset(2).last
+    assert_equal devs[-3], Developer.offset(2).last
+    assert_equal devs[-3], Developer.offset(2).order('id DESC').first
   end
 
   def test_find_by_nil_attribute
@@ -837,10 +854,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_with_limiting_with_custom_select
-    skip 'broken test' if current_adapter?(:MysqlAdapter)
-
     posts = Post.references(:authors).merge(
-      :includes => :author, :select => ' posts.*, authors.id as "author_id"',
+      :includes => :author, :select => 'posts.*, authors.id as "author_id"',
       :limit => 3, :order => 'posts.id'
     ).to_a
     assert_equal 3, posts.size

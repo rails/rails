@@ -356,6 +356,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(2) { line_item.destroy }
   end
 
+  def test_belongs_to_with_touch_option_on_destroy_with_destroyed_parent
+    line_item = LineItem.create!
+    invoice   = Invoice.create!(line_items: [line_item])
+    invoice.destroy
+
+    assert_queries(1) { line_item.destroy }
+  end
+
   def test_belongs_to_with_touch_option_on_touch_and_reassigned_parent
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
@@ -576,6 +584,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     essay.writer = new_writer
     assert_nil essay.writer_id
+  end
+
+  def test_polymorphic_assignment_with_nil
+    essay = Essay.new
+    assert_nil essay.writer_id
+    assert_nil essay.writer_type
+
+    essay.writer_id = 1
+    essay.writer_type = 'Author'
+
+    essay.writer = nil
+    assert_nil essay.writer_id
+    assert_nil essay.writer_type
   end
 
   def test_belongs_to_proxy_should_not_respond_to_private_methods

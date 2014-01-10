@@ -23,6 +23,12 @@ module ActiveRecord
       assert_equal([expected], relation.where_values)
     end
 
+    def test_not_with_nil
+      assert_raise ArgumentError do
+        Post.where.not(nil)
+      end
+    end
+
     def test_not_in
       expected = Arel::Nodes::NotIn.new(Post.arel_table[@name], %w[hello goodbye])
       relation = Post.where.not(title: %w[hello goodbye])

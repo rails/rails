@@ -1,4 +1,5 @@
 require "isolation/abstract_unit"
+require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   module RakeTests
@@ -16,11 +17,11 @@ module ApplicationTests
       end
 
       def database_url_db_name
-        "db/database_url_db.sqlite3"
+        File.join(app_path, "db/database_url_db.sqlite3")
       end
 
       def set_database_url
-        ENV['DATABASE_URL'] = "sqlite3://:@localhost/#{database_url_db_name}"
+        ENV['DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
@@ -60,7 +61,7 @@ module ApplicationTests
           `rails generate model book title:string;
            bundle exec rake db:migrate`
           output = `bundle exec rake db:migrate:status`
-          assert_match(/database:\s+\S+#{expected[:database]}/, output)
+          assert_match(%r{database:\s+\S*#{Regexp.escape(expected[:database])}}, output)
           assert_match(/up\s+\d{14}\s+Create books/, output)
         end
       end
@@ -126,7 +127,7 @@ module ApplicationTests
            bundle exec rake db:migrate db:structure:dump`
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE \"books\"/, structure_dump)
-          `bundle exec rake db:drop db:structure:load`
+          `bundle exec rake environment db:drop db:structure:load`
           assert_match(/#{expected[:database]}/,
                         ActiveRecord::Base.connection_config[:database])
           require "#{app_path}/app/models/book"
@@ -153,7 +154,7 @@ module ApplicationTests
           `rails generate model book title:string;
            bundle exec rake db:migrate db:structure:dump db:test:load_structure`
           ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-          ActiveRecord::Base.establish_connection 'test'
+          ActiveRecord::Base.establish_connection :test
           require "#{app_path}/app/models/book"
           #if structure is not loaded correctly, exception would be raised
           assert Book.count, 0
@@ -165,6 +166,15 @@ module ApplicationTests
       test 'db:test:load_structure without database_url' do
         require "#{app_path}/config/environment"
         db_test_load_structure
+      end
+
+      test 'db:test deprecation' do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          output = `bundle exec rake db:migrate db:test:prepare 2>&1`
+          assert_equal "WARNING: db:test:prepare is deprecated. The Rails test helper now maintains " \
+                       "your test schema automatically, see the release notes for details.\n", output
+        end
       end
     end
   end

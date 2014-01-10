@@ -56,13 +56,11 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.save! }
 
-    begin
-      r = WrongReply.new
+    r = WrongReply.new
+    invalid = assert_raise ActiveRecord::RecordInvalid do
       r.save!
-      flunk
-    rescue ActiveRecord::RecordInvalid => invalid
-      assert_equal r, invalid.record
     end
+    assert_equal r, invalid.record
   end
 
   def test_exception_on_create_bang_many

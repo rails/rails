@@ -4,9 +4,10 @@ require 'active_support/core_ext/kernel/singleton_class'
 class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' }
-    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
+    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003e', '<' => '\u003c', "\u2028" => '\u2028', "\u2029" => '\u2029' }
+    HTML_ESCAPE_REGEXP = /[&"'><]/
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+));)/
-    JSON_ESCAPE_REGEXP = /[&"><]/
+    JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
@@ -21,7 +22,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.gsub(/[&"'><]/, HTML_ESCAPE).html_safe
+        s.gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE).html_safe
       end
     end
 
@@ -48,17 +49,56 @@ class ERB
 
     module_function :html_escape_once
 
-    # A utility method for escaping HTML entities in JSON strings
-    # using \uXXXX JavaScript escape sequences for string literals:
+    # A utility method for escaping HTML entities in JSON strings. Specifically, the
+    # &, > and < characters are replaced with their equivalent unicode escaped form -
+    # \u0026, \u003e, and \u003c. The Unicode sequences \u2028 and \u2029 are also
+    # escaped as they are treated as newline characters in some JavaScript engines.
+    # These sequences have identical meaning as the original characters inside the
+    # context of a JSON string, so assuming the input is a valid and well-formed
+    # JSON value, the output will have equivalent meaning when parsed:
     #
-    #   json_escape('is a > 0 & a < 10?')
-    #   # => is a \u003E 0 \u0026 a \u003C 10?
+    #   json = JSON.generate({ name: "</script><script>alert('PWNED!!!')</script>"})
+    #   # => "{\"name\":\"</script><script>alert('PWNED!!!')</script>\"}"
     #
-    # Note that after this operation is performed the output is not
-    # valid JSON. In particular double quotes are removed:
+    #   json_escape(json)
+    #   # => "{\"name\":\"\\u003C/script\\u003E\\u003Cscript\\u003Ealert('PWNED!!!')\\u003C/script\\u003E\"}"
     #
-    #   json_escape('{"name":"john","created_at":"2010-04-28T01:39:31Z","id":1}')
-    #   # => {name:john,created_at:2010-04-28T01:39:31Z,id:1}
+    #   JSON.parse(json) == JSON.parse(json_escape(json))
+    #   # => true
+    #
+    # The intended use case for this method is to escape JSON strings before including
+    # them inside a script tag to avoid XSS vulnerability:
+    #
+    #   <script>
+    #     var currentUser = <%= json_escape current_user.to_json %>;
+    #   </script>
+    #
+    # WARNING: this helper only works with valid JSON. Using this on non-JSON values
+    # will open up serious XSS vulnerabilities. For example, if you replace the
+    # +current_user.to_json+ in the example above with user input instead, the browser
+    # will happily eval() that string as JavaScript.
+    #
+    # The escaping performed in this method is identical to those performed in the
+    # Active Support JSON encoder when +ActiveSupport.escape_html_entities_in_json+ is
+    # set to true. Because this transformation is idempotent, this helper can be
+    # applied even if +ActiveSupport.escape_html_entities_in_json+ is already true.
+    #
+    # Therefore, when you are unsure if +ActiveSupport.escape_html_entities_in_json+
+    # is enabled, or if you are unsure where your JSON string originated from, it
+    # is recommended that you always apply this helper (other libraries, such as the
+    # JSON gem, do not provide this kind of protection by default; also some gems
+    # might override +to_json+ to bypass Active Support's encoder).
+    #
+    # The output of this helper method is marked as HTML safe so that you can directly
+    # include it inside a <tt><script></tt> tag as shown above.
+    #
+    # However, it is NOT safe to use the output of this inside an HTML attribute,
+    # because quotation marks are not escaped. Doing so might break your page's layout.
+    # If you intend to use this inside an HTML attribute, you should use the
+    # +html_escape+ helper (or its +h+ alias) instead:
+    #
+    #   <div data-user-info="<%= h current_user.to_json %>">...</div>
+    #
     def json_escape(s)
       result = s.to_s.gsub(JSON_ESCAPE_REGEXP, JSON_ESCAPE)
       s.html_safe? ? result.html_safe : result
@@ -143,15 +183,14 @@ module ActiveSupport #:nodoc:
     end
 
     def %(args)
-      args = Array(args).map do |arg|
-        if !html_safe? || arg.html_safe?
-          arg
-        else
-          ERB::Util.h(arg)
-        end
+      case args
+      when Hash
+        escaped_args = Hash[args.map { |k,arg| [k, html_escape_interpolated_argument(arg)] }]
+      else
+        escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
       end
 
-      self.class.new(super(args))
+      self.class.new(super(escaped_args))
     end
 
     def html_safe?
@@ -171,7 +210,7 @@ module ActiveSupport #:nodoc:
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
-      if 'String'.respond_to?(unsafe_method)
+      if unsafe_method.respond_to?(unsafe_method)
         class_eval <<-EOT, __FILE__, __LINE__ + 1
           def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
             to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
@@ -183,6 +222,12 @@ module ActiveSupport #:nodoc:
           end                                       # end
         EOT
       end
+    end
+
+    private
+
+    def html_escape_interpolated_argument(arg)
+      (!html_safe? || arg.html_safe?) ? arg : ERB::Util.h(arg)
     end
   end
 end

@@ -1,41 +1,48 @@
-require "active_support/core_ext/class/attribute_accessors"
+require "active_support/core_ext/module/attribute_accessors"
 require 'set'
 
 module ActiveRecord
-  # Exception that can be raised to stop migrations from going backwards.
-  class IrreversibleMigration < ActiveRecordError
+  class MigrationError < ActiveRecordError#:nodoc:
+    def initialize(message = nil)
+      message = "\n\n#{message}\n\n" if message
+      super
+    end
   end
 
-  class DuplicateMigrationVersionError < ActiveRecordError#:nodoc:
+  # Exception that can be raised to stop migrations from going backwards.
+  class IrreversibleMigration < MigrationError
+  end
+
+  class DuplicateMigrationVersionError < MigrationError#:nodoc:
     def initialize(version)
       super("Multiple migrations have the version number #{version}")
     end
   end
 
-  class DuplicateMigrationNameError < ActiveRecordError#:nodoc:
+  class DuplicateMigrationNameError < MigrationError#:nodoc:
     def initialize(name)
       super("Multiple migrations have the name #{name}")
     end
   end
 
-  class UnknownMigrationVersionError < ActiveRecordError #:nodoc:
+  class UnknownMigrationVersionError < MigrationError #:nodoc:
     def initialize(version)
       super("No migration with version number #{version}")
     end
   end
 
-  class IllegalMigrationNameError < ActiveRecordError#:nodoc:
+  class IllegalMigrationNameError < MigrationError#:nodoc:
     def initialize(name)
       super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
     end
   end
 
-  class PendingMigrationError < ActiveRecordError#:nodoc:
+  class PendingMigrationError < MigrationError#:nodoc:
     def initialize
       if defined?(Rails)
-        super("Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=#{::Rails.env}' to resolve this issue.")
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}")
       else
-        super("Migrations are pending; run 'bin/rake db:migrate' to resolve this issue.")
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate")
       end
     end
   end
@@ -380,6 +387,19 @@ module ActiveRecord
 
       def check_pending!
         raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
+      end
+
+      def load_schema_if_pending!
+        if ActiveRecord::Migrator.needs_migration?
+          ActiveRecord::Tasks::DatabaseTasks.load_schema
+          check_pending!
+        end
+      end
+
+      def maintain_test_schema! # :nodoc:
+        if ActiveRecord::Base.maintain_test_schema
+          suppress_messages { load_schema_if_pending! }
+        end
       end
 
       def method_missing(name, *args, &block) # :nodoc:
@@ -739,7 +759,7 @@ module ActiveRecord
 
       def load_migration
         require(File.expand_path(filename))
-        name.constantize.new
+        name.constantize.new(name, version)
       end
 
   end

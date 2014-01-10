@@ -10,6 +10,14 @@ module ActiveRecord
         @connection.exec_query('create table ex(id serial primary key, number integer, data character varying(255))')
       end
 
+      def test_bad_connection
+        assert_raise ActiveRecord::NoDatabaseError do
+          configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'should_not_exist-cinco-dog-db')
+          connection = ActiveRecord::Base.postgresql_connection(configuration)
+          connection.exec_query('drop table if exists ex')
+        end
+      end
+
       def test_valid_column
         column = @connection.columns('ex').find { |col| col.name == 'id' }
         assert @connection.valid_type?(column.type)
@@ -58,6 +66,18 @@ module ActiveRecord
 
       def test_insert_sql_with_no_space_after_table_name
         id = @connection.insert_sql("insert into ex(number) values(5150)")
+        expect = @connection.query('select max(id) from ex').first.first
+        assert_equal expect, id
+      end
+
+      def test_multiline_insert_sql
+        id = @connection.insert_sql(<<-SQL)
+        insert into ex(
+          number)
+        values(
+          5152
+        )
+        SQL
         expect = @connection.query('select max(id) from ex').first.first
         assert_equal expect, id
       end

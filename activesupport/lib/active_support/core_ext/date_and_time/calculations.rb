@@ -213,6 +213,27 @@ module DateAndTime
     end
     alias :at_end_of_year :end_of_year
 
+    # Returns a Range representing the whole week of the current date/time.
+    # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
+    def all_week(start_day = Date.beginning_of_week)
+      beginning_of_week(start_day)..end_of_week(start_day)
+    end
+
+    # Returns a Range representing the whole month of the current date/time.
+    def all_month
+      beginning_of_month..end_of_month
+    end
+
+    # Returns a Range representing the whole quarter of the current date/time.
+    def all_quarter
+      beginning_of_quarter..end_of_quarter
+    end
+
+    # Returns a Range representing the whole year of the current date/time.
+    def all_year
+      beginning_of_year..end_of_year
+    end
+
     private
 
     def first_hour(date_or_time)

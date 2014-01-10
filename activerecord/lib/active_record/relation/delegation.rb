@@ -1,3 +1,4 @@
+require 'set'
 require 'active_support/concern'
 require 'active_support/deprecation'
 
@@ -36,7 +37,14 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :to => :to_a
+    BLACKLISTED_ARRAY_METHODS = [
+      :compact!, :flatten!, :reject!, :reverse!, :rotate!, :map!,
+      :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
+      :keep_if, :pop, :shift, :delete_at, :compact
+    ].to_set # :nodoc:
+
+    delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, to: :to_a
+
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :to => :klass
 
@@ -64,7 +72,7 @@ module ActiveRecord
               RUBY
             else
               define_method method do |*args, &block|
-                scoping { @klass.send(method, *args, &block) }
+                scoping { @klass.public_send(method, *args, &block) }
               end
             end
           end
@@ -83,13 +91,10 @@ module ActiveRecord
       def method_missing(method, *args, &block)
         if @klass.respond_to?(method)
           self.class.delegate_to_scoped_klass(method)
-          scoping { @klass.send(method, *args, &block) }
-        elsif array_delegable?(method)
-          self.class.delegate method, :to => :to_a
-          to_a.send(method, *args, &block)
+          scoping { @klass.public_send(method, *args, &block) }
         elsif arel.respond_to?(method)
           self.class.delegate method, :to => :arel
-          arel.send(method, *args, &block)
+          arel.public_send(method, *args, &block)
         else
           super
         end
@@ -109,30 +114,24 @@ module ActiveRecord
     end
 
     def respond_to?(method, include_private = false)
-      super || array_delegable?(method) ||
-        @klass.respond_to?(method, include_private) ||
+      super || @klass.respond_to?(method, include_private) ||
+        array_delegable?(method) ||
         arel.respond_to?(method, include_private)
     end
 
     protected
 
     def array_delegable?(method)
-      defined = Array.method_defined?(method)
-      if defined && method.to_s.ends_with?('!')
-        ActiveSupport::Deprecation.warn(
-          "Association will no longer delegate #{method} to #to_a as of Rails 4.2. You instead must first call #to_a on the association to expose the array to be acted on."
-        )
-      end
-      defined
+      Array.method_defined?(method) && BLACKLISTED_ARRAY_METHODS.exclude?(method)
     end
 
     def method_missing(method, *args, &block)
       if @klass.respond_to?(method)
-        scoping { @klass.send(method, *args, &block) }
+        scoping { @klass.public_send(method, *args, &block) }
       elsif array_delegable?(method)
-        to_a.send(method, *args, &block)
+        to_a.public_send(method, *args, &block)
       elsif arel.respond_to?(method)
-        arel.send(method, *args, &block)
+        arel.public_send(method, *args, &block)
       else
         super
       end

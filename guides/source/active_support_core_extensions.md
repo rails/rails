@@ -424,7 +424,7 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 ### JSON support
 
-Active Support provides a better implementation of `to_json` than the +json+ gem ordinarily provides for Ruby objects. This is because some classes, like +Hash+, +OrderedHash+, and +Process::Status+ need special handling in order to provide a proper JSON representation.
+Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash`, `OrderedHash` and `Process::Status` need special handling in order to provide a proper JSON representation.
 
 NOTE: Defined in `active_support/core_ext/object/json.rb`.
 
@@ -624,7 +624,7 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 #### Module Attributes
 
-The macros `mattr_reader`, `mattr_writer`, and `mattr_accessor` are analogous to the `cattr_*` macros defined for class. Check [Class Attributes](#class-attributes).
+The macros `mattr_reader`, `mattr_writer`, and `mattr_accessor` are the same as the `cattr_*` macros defined for class. In fact, the `cattr_*` macros are just aliases for the `mattr_*` macros. Check [Class Attributes](#class-attributes).
 
 For example, the dependencies mechanism uses them:
 
@@ -735,7 +735,7 @@ X.local_constants    # => [:X1, :X2, :Y]
 X::Y.local_constants # => [:Y1, :X1]
 ```
 
-The names are returned as symbols. (The deprecated method `local_constant_names` returns strings.)
+The names are returned as symbols.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
@@ -888,7 +888,7 @@ class User < ActiveRecord::Base
 end
 ```
 
-With that configuration you get a user's name via his profile, `user.profile.name`, but it could be handy to still be able to access such attribute directly:
+With that configuration you get a user's name via their profile, `user.profile.name`, but it could be handy to still be able to access such attribute directly:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -1119,7 +1119,7 @@ end
 
 A model may find it useful to set `:instance_accessor` to `false` as a way to prevent mass-assignment from setting the attribute.
 
-NOTE: Defined in `active_support/core_ext/class/attribute_accessors.rb`.
+NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`. `active_support/core_ext/class/attribute_accessors.rb` is deprecated and will be removed in Ruby on Rails 4.2.
 
 ### Subclasses & Descendants
 
@@ -2285,8 +2285,6 @@ The defaults for these options can be localized, their keys are:
 | `:words_connector`     | `support.array.words_connector`     |
 | `:last_word_connector` | `support.array.last_word_connector` |
 
-Options `:connector` and `:skip_last_comma` are deprecated.
-
 NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 #### `to_formatted_s`
@@ -2908,6 +2906,16 @@ The method `with_indifferent_access` returns an `ActiveSupport::HashWithIndiffer
 ```
 
 NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
+
+### Compacting
+
+The methods `compact` and `compact!` return a Hash without items with `nil` value. 
+
+```ruby
+{a: 1, b: 2, c: nil}.compact # => {a: 1, b: 2}
+```
+
+NOTE: Defined in `active_support/core_ext/hash/compact.rb`.
 
 Extensions to `Regexp`
 ----------------------

@@ -6,95 +6,63 @@ module ActiveRecord
   class DelegationTest < ActiveRecord::TestCase
     fixtures :posts
 
-    def assert_responds(target, method)
-      assert target.respond_to?(method)
-      assert_nothing_raised do
-        method_arity = target.to_a.method(method).arity
+    def call_method(target, method)
+      method_arity = target.to_a.method(method).arity
 
-        if method_arity.zero?
-          target.send(method)
-        elsif method_arity < 0
-          if method == :shuffle!
-            target.send(method)
-          else
-            target.send(method, 1)
-          end
+      if method_arity.zero?
+        target.public_send(method)
+      elsif method_arity < 0
+        if method == :shuffle!
+          target.public_send(method)
         else
-          raise NotImplementedError
+          target.public_send(method, 1)
         end
+       elsif method_arity == 1
+        target.public_send(method, 1)
+      else
+        raise NotImplementedError
+      end
+    end
+  end
+
+  module DelegationWhitelistBlacklistTests
+    ARRAY_DELEGATES = [
+      :+, :-, :|, :&, :[],
+      :all?, :collect, :detect, :each, :each_cons, :each_with_index,
+      :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
+      :map, :none?, :one?, :partition, :reject, :reverse,
+      :sample, :second, :sort, :sort_by, :third,
+      :to_ary, :to_set, :to_xml, :to_yaml
+    ]
+
+    ARRAY_DELEGATES.each do |method|
+      define_method "test_delegates_#{method}_to_Array" do
+        assert_respond_to target, method
+      end
+    end
+
+    ActiveRecord::Delegation::BLACKLISTED_ARRAY_METHODS.each do |method|
+      define_method "test_#{method}_is_not_delegated_to_Array" do
+        assert_raises(NoMethodError) { call_method(target, method) }
       end
     end
   end
 
   class DelegationAssociationTest < DelegationTest
+    include DelegationWhitelistBlacklistTests
+
     def target
       Post.first.comments
-    end
-
-    [:map, :collect].each do |method|
-      test "##{method} is delegated" do
-        assert_responds(target, method)
-        assert_equal(target.pluck(:body), target.send(method) {|post| post.body })
-      end
-
-      test "##{method}! is not delegated" do
-        assert_deprecated do
-          assert_responds(target, "#{method}!")
-        end
-      end
-    end
-
-    [:compact!, :flatten!, :reject!, :reverse!, :rotate!,
-      :shuffle!, :slice!, :sort!, :sort_by!].each do |method|
-      test "##{method} delegation is deprecated" do
-        assert_deprecated do
-          assert_responds(target, method)
-        end
-      end
-    end
-
-    [:select!, :uniq!].each do |method|
-      test "##{method} is implemented" do
-        assert_responds(target, method)
-      end
     end
   end
 
   class DelegationRelationTest < DelegationTest
+    include DelegationWhitelistBlacklistTests
+
     fixtures :comments
 
     def target
-      Comment.where(body: 'Normal type')
-    end
-
-    [:map, :collect].each do |method|
-      test "##{method} is delegated" do
-        assert_responds(target, method)
-        assert_equal(target.pluck(:body), target.send(method) {|post| post.body })
-      end
-
-      test "##{method}! is not delegated" do
-        assert_deprecated do
-          assert_responds(target, "#{method}!")
-        end
-      end
-    end
-
-    [:compact!, :flatten!, :reject!, :reverse!, :rotate!,
-      :shuffle!, :slice!, :sort!, :sort_by!].each do |method|
-      test "##{method} delegation is deprecated" do
-        assert_deprecated do
-          assert_responds(target, method)
-        end
-      end
-    end
-
-    [:select!, :uniq!].each do |method|
-      test "##{method} triggers an immutable error" do
-        assert_raises ActiveRecord::ImmutableRelation do
-          assert_responds(target, method)
-        end
-      end
+      Comment.all
     end
   end
 end

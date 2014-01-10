@@ -68,13 +68,12 @@ module ActionDispatch
         assert_equal '1', session.fetch(:one)
 
         assert_equal '2', session.fetch(:two, '2')
-        assert_equal '2', session.fetch(:two)
+        assert_nil session.fetch(:two, nil)
 
         assert_equal 'three', session.fetch(:three) {|el| el.to_s }
-        assert_equal 'three', session.fetch(:three)
 
         assert_raise KeyError do
-          session.fetch(:four)
+          session.fetch(:three)
         end
       end
 

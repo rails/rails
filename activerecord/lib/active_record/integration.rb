@@ -98,8 +98,10 @@ module ActiveRecord
           super()
         else
           define_method :to_param do
-            if (default = super()) && (result = send(method_name).to_s).present?
-              "#{default}-#{result.squish.truncate(20, separator: /\s/, omission: nil).parameterize}"
+            if (default = super()) &&
+                 (result = send(method_name).to_s).present? &&
+                   (param = result.squish.truncate(20, separator: /\s/, omission: nil).parameterize).present?
+              "#{default}-#{param}"
             else
               default
             end

@@ -1,4 +1,4 @@
-FRAMEWORKS = %w( activesupport activemodel activerecord actionpack actionview actionmailer railties )
+FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack actionmailer railties )
 
 root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
@@ -120,7 +120,7 @@ namespace :all do
   end
 
   task :tag do
-    sh "git tag #{tag}"
+    sh "git tag -m '#{tag} release' #{tag}"
     sh "git push --tags"
   end
 

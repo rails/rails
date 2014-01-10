@@ -15,7 +15,7 @@ require "action_mailer/railtie"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(:default, Rails.env)
+Bundler.require(*Rails.groups)
 
 module <%= app_const_base %>
   class Application < Rails::Application
@@ -30,10 +30,5 @@ module <%= app_const_base %>
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
-<% if options.skip_sprockets? -%>
-
-    # Disable the asset pipeline.
-    config.assets.enabled = false
-<% end -%>
   end
 end

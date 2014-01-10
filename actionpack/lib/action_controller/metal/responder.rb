@@ -270,7 +270,7 @@ module ActionController #:nodoc:
       resource.respond_to?(:errors) && !resource.errors.empty?
     end
 
-    # Check whether the neceessary Renderer is available
+    # Check whether the necessary Renderer is available
     def has_renderer?
       Renderers::RENDERERS.include?(format)
     end

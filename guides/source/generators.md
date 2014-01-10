@@ -560,7 +560,7 @@ This method also takes a block:
 
 ```ruby
 vendor "seeds.rb" do
-  "puts 'in ur app, seeding ur database'"
+  "puts 'in your app, seeding your database'"
 end
 ```
 

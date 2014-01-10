@@ -45,6 +45,7 @@ ActiveRecord::Schema.define do
     t.string :preferences, null: true, default: '', limit: 1024
     t.string :json_data, null: true, limit: 1024
     t.string :json_data_empty, null: true, default: "", limit: 1024
+    t.text :params
     t.references :account
   end
 
@@ -245,6 +246,7 @@ ActiveRecord::Schema.define do
     t.integer :trainer_id
     t.integer :breeder_id
     t.integer :dog_lover_id
+    t.string  :alias
   end
 
   create_table :edges, force: true, id: false do |t|

@@ -1,6 +1,8 @@
 require 'fileutils'
+require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
+require 'active_support/message_verifier'
 require 'rails/engine'
 
 module Rails
@@ -103,16 +105,17 @@ module Rails
     delegate :default_url_options, :default_url_options=, to: :routes
 
     INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
-                         :routes, :helpers, :app_env_config] # :nodoc:
+                         :routes, :helpers, :app_env_config, :secrets] # :nodoc:
 
     def initialize(initial_variable_values = {}, &block)
       super()
-      @initialized      = false
-      @reloaders        = []
-      @routes_reloader  = nil
-      @app_env_config   = nil
-      @ordered_railties = nil
-      @railties         = nil
+      @initialized       = false
+      @reloaders         = []
+      @routes_reloader   = nil
+      @app_env_config    = nil
+      @ordered_railties  = nil
+      @railties          = nil
+      @message_verifiers = {}
 
       add_lib_to_load_path!
       ActiveSupport.run_load_hooks(:before_configuration, self)
@@ -149,12 +152,37 @@ module Rails
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @caching_key_generator ||= begin
-        if config.secret_key_base
-          key_generator = ActiveSupport::KeyGenerator.new(config.secret_key_base, iterations: 1000)
+        if secrets.secret_key_base
+          key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
           ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
         end
+      end
+    end
+
+    # Returns a message verifier object.
+    #
+    # This verifier can be used to generate and verify signed messages in the application.
+    #
+    # It is recommended not to use the same verifier for different things, so you can get different
+    # verifiers passing the +verifier_name+ argument.
+    #
+    # ==== Parameters
+    #
+    # * +verifier_name+ - the name of the message verifier.
+    #
+    # ==== Examples
+    #
+    #     message = Rails.application.message_verifier('sensitive_data').generate('my sensible data')
+    #     Rails.application.message_verifier('sensitive_data').verify(message)
+    #     # => 'my sensible data'
+    #
+    # See the +ActiveSupport::MessageVerifier+ documentation for more information.
+    def message_verifier(verifier_name)
+      @message_verifiers[verifier_name] ||= begin
+        secret = key_generator.generate_key(verifier_name.to_s)
+        ActiveSupport::MessageVerifier.new(secret)
       end
     end
 
@@ -168,7 +196,7 @@ module Rails
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => config.secret_token,
-          "action_dispatch.secret_key_base" => config.secret_key_base,
+          "action_dispatch.secret_key_base" => secrets.secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.logger" => Rails.logger,
@@ -273,6 +301,27 @@ module Rails
       @config = configuration
     end
 
+    def secrets #:nodoc:
+      @secrets ||= begin
+        secrets = ActiveSupport::OrderedOptions.new
+        yaml = config.paths["config/secrets"].first
+        if File.exist?(yaml)
+          require "erb"
+          env_secrets = YAML.load(ERB.new(IO.read(yaml)).result)[Rails.env]
+          secrets.merge!(env_secrets.symbolize_keys) if env_secrets
+        end
+
+        # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
+        secrets.secret_key_base ||= config.secret_key_base
+
+        secrets
+      end
+    end
+
+    def secrets=(secrets) #:nodoc:
+      @secrets = secrets
+    end
+
     def to_app #:nodoc:
       self
     end
@@ -364,8 +413,8 @@ module Rails
     end
 
     def validate_secret_key_config! #:nodoc:
-      if config.secret_key_base.blank? && config.secret_token.blank?
-        raise "You must set config.secret_key_base in your app's config."
+      if secrets.secret_key_base.blank? && config.secret_token.blank?
+        raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
       end
     end
   end

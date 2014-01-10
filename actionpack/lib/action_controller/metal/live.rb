@@ -48,7 +48,7 @@ module ActionController
     #   the server will receive a +Last-Event-ID+ header with value equal to +id+.
     #
     # After setting an option in the constructor of the SSE object, all future
-    # SSEs sent accross the stream will use those options unless overridden.
+    # SSEs sent across the stream will use those options unless overridden.
     #
     # Example Usage:
     #

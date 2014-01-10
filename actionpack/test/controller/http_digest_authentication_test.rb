@@ -21,7 +21,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     def authenticate
       authenticate_or_request_with_http_digest("SuperSecret") do |username|
-        # Return the password
+        # Returns the password
         USERS[username]
       end
     end

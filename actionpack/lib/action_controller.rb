@@ -50,7 +50,7 @@ module ActionController
 end
 
 # Common Active Support usage in Action Controller
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/name_error'

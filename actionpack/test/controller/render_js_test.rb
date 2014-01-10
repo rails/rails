@@ -22,7 +22,7 @@ class RenderJSTest < ActionController::TestCase
   tests TestController
 
   def test_render_vanilla_js
-    get :render_vanilla_js_hello
+    xhr :get, :render_vanilla_js_hello
     assert_equal "alert('hello')", @response.body
     assert_equal "text/javascript", @response.content_type
   end

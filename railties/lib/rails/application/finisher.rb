@@ -22,6 +22,8 @@ module Rails
       initializer :add_builtin_route do |app|
         if Rails.env.development?
           app.routes.append do
+            get '/rails/mailers'         => "rails/mailers#index"
+            get '/rails/mailers/*path'   => "rails/mailers#preview"
             get '/rails/info/properties' => "rails/info#properties"
             get '/rails/info/routes'     => "rails/info#routes"
             get '/rails/info'            => "rails/info#index"

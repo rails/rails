@@ -16,7 +16,7 @@ module ActiveRecord
       # instance of the given subclass instead of the base class.
       def new(*args, &block)
         if abstract_class? || self == Base
-          raise NotImplementedError, "#{self} is an abstract class and can not be instantiated."
+          raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
         if (attrs = args.first).is_a?(Hash)
           if subclass = subclass_from_attrs(attrs)
@@ -45,10 +45,12 @@ module ActiveRecord
       end
 
       def symbolized_base_class
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.symbolized_base_class is deprecated and will be removed without replacement.")
         @symbolized_base_class ||= base_class.to_s.to_sym
       end
 
       def symbolized_sti_name
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.symbolized_sti_name is deprecated and will be removed without replacement.")
         @symbolized_sti_name ||= sti_name.present? ? sti_name.to_sym : symbolized_base_class
       end
 

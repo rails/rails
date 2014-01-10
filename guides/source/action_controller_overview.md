@@ -665,14 +665,17 @@ The first is to use a block directly with the *_action methods. The block receiv
 ```ruby
 class ApplicationController < ActionController::Base
   before_action do |controller|
-    redirect_to new_login_url unless controller.send(:logged_in?)
+    unless controller.send(:logged_in?)
+      flash[:error] = "You must be logged in to access this section"
+      redirect_to new_login_url
+    end
   end
 end
 ```
 
 Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter is not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
 
-The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and can not be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
+The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -682,7 +685,7 @@ end
 class LoginFilter
   def self.filter(controller)
     unless controller.send(:logged_in?)
-      controller.flash[:error] = "You must be logged in"
+      controller.flash[:error] = "You must be logged in to access this section"
       controller.redirect_to controller.new_login_url
     end
   end
@@ -794,7 +797,7 @@ class AdminsController < ApplicationController
 end
 ```
 
-With this in place, you can create namespaced controllers that inherit from `AdminController`. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
+With this in place, you can create namespaced controllers that inherit from `AdminsController`. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
 ### HTTP Digest Authentication
 

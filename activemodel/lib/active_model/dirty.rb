@@ -54,6 +54,7 @@ module ActiveModel
   #   person.name = 'Bob'
   #   person.changed?       # => true
   #   person.name_changed?  # => true
+  #   person.name_changed?(from: "Uncle Bob", to: "Bob") # => true
   #   person.name_was       # => "Uncle Bob"
   #   person.name_change    # => ["Uncle Bob", "Bob"]
   #   person.name = 'Bill'
@@ -149,12 +150,15 @@ module ActiveModel
     end
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
-    def attribute_changed?(attr)
-      changed_attributes.include?(attr)
+    def attribute_changed?(attr, options = {}) #:nodoc:
+      result = changed_attributes.include?(attr)
+      result &&= options[:to] == __send__(attr) if options.key?(:to)
+      result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
+      result
     end
 
     # Handle <tt>*_was</tt> for +method_missing+.
-    def attribute_was(attr)
+    def attribute_was(attr) # :nodoc:
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 

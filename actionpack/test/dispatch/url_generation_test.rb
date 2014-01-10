@@ -66,7 +66,7 @@ module TestUrlGeneration
       assert_equal "http://www.example.com:8080/foo", foo_url(host: "www.example.com:8080", protocol: "http://")
     end
 
-    test "port option overides the host" do
+    test "port option overrides the host" do
       assert_equal "http://www.example.com:8080/foo", foo_url(host: "www.example.com:8443", protocol: "http://", port: 8080)
     end
 

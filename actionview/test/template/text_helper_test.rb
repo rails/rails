@@ -21,6 +21,11 @@ class TextHelperTest < ActionView::TestCase
     assert simple_format("<b> test with html tags </b>").html_safe?
   end
 
+  def test_simple_format_included_in_isolation
+    helper_klass = Class.new { include ActionView::Helpers::TextHelper }
+    assert helper_klass.new.simple_format("<b> test with html tags </b>").html_safe?
+  end
+
   def test_simple_format
     assert_equal "<p></p>", simple_format(nil)
 
@@ -379,6 +384,13 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("one", cycle("one", 2, "3"))
     assert_equal("2", cycle("one", 2, "3"))
     assert_equal("3", cycle("one", 2, "3"))
+  end
+
+  def test_cycle_with_array
+    array = [1, 2, 3]
+    assert_equal("1", cycle(array))
+    assert_equal("2", cycle(array))
+    assert_equal("3", cycle(array))
   end
 
   def test_cycle_with_no_arguments

@@ -31,8 +31,8 @@ module ActiveRecord
         old, @query_cache_enabled = @query_cache_enabled, true
         yield
       ensure
-        clear_query_cache
         @query_cache_enabled = old
+        clear_query_cache unless @query_cache_enabled
       end
 
       def enable_query_cache!

@@ -15,9 +15,6 @@ class I18nTestMailer < ActionMailer::Base
   end
 end
 
-# Emulate AV railtie
-ActionController::Base.superclass.send(:include, ActionView::Layouts)
-
 class TestController < ActionController::Base
   def send_mail
     I18nTestMailer.mail_with_i18n_subject("test@localhost").deliver

@@ -59,7 +59,7 @@ class String
   #   str.from(0).to(-1) # => "hello"
   #   str.from(1).to(-2) # => "ell"
   def to(position)
-    self[0, position + 1]
+    self[0..position]
   end
 
   # Returns the first character. If a limit is supplied, returns a substring

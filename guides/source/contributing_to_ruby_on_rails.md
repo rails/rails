@@ -55,7 +55,7 @@ can expect it to be marked "invalid" as soon as it's reviewed.
 
 Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
 Generally, a feature is anything that adds new behavior, while a bug is
-anything that fixes already existing behavior that is mis-behaving. Sometimes,
+anything that fixes already existing behavior that is misbehaving. Sometimes,
 the core team will have to make a judgement call. That said, the distinction
 generally just affects which release your patch will get in to; we love feature
 submissions! They just won't get backported to maintenance branches.

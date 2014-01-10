@@ -91,10 +91,11 @@ class Time
     end
   end
 
-  # Uses Date to provide precise Time calculations for years, months, and days.
-  # The +options+ parameter takes a hash with any of these keys: <tt>:years</tt>,
-  # <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>,
-  # <tt>:minutes</tt>, <tt>:seconds</tt>.
+  # Uses Date to provide precise Time calculations for years, months, and days
+  # according to the proleptic Gregorian calendar. The +options+ parameter
+  # takes a hash with any of these keys: <tt>:years</tt>, <tt>:months</tt>,
+  # <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>, <tt>:minutes</tt>,
+  # <tt>:seconds</tt>.
   def advance(options)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
@@ -107,6 +108,7 @@ class Time
     end
 
     d = to_date.advance(options)
+    d = d.gregorian if d.julian?
     time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
     seconds_to_advance = \
       options.fetch(:seconds, 0) +
@@ -197,27 +199,6 @@ class Time
   # Returns a Range representing the whole day of the current time.
   def all_day
     beginning_of_day..end_of_day
-  end
-
-  # Returns a Range representing the whole week of the current time.
-  # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
-  def all_week(start_day = Date.beginning_of_week)
-    beginning_of_week(start_day)..end_of_week(start_day)
-  end
-
-  # Returns a Range representing the whole month of the current time.
-  def all_month
-    beginning_of_month..end_of_month
-  end
-
-  # Returns a Range representing the whole quarter of the current time.
-  def all_quarter
-    beginning_of_quarter..end_of_quarter
-  end
-
-  # Returns a Range representing the whole year of the current time.
-  def all_year
-    beginning_of_year..end_of_year
   end
 
   def plus_with_duration(other) #:nodoc:

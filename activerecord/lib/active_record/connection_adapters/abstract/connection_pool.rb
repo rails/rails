@@ -86,7 +86,7 @@ module ActiveRecord
           end
         end
 
-        # Return the number of threads currently waiting on this
+        # Returns the number of threads currently waiting on this
         # queue.
         def num_waiting
           synchronize do

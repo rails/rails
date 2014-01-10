@@ -73,12 +73,11 @@ class DependenciesTest < ActiveSupport::TestCase
       $raises_exception_load_count = 0
 
       5.times do |count|
-        begin
+        e = assert_raise Exception, 'should have loaded dependencies/raises_exception which raises an exception' do
           require_dependency filename
-          flunk 'should have loaded dependencies/raises_exception which raises an exception'
-        rescue Exception => e
-          assert_equal 'Loading me failed, so do not add to loaded or history.', e.message
         end
+
+        assert_equal 'Loading me failed, so do not add to loaded or history.', e.message
         assert_equal count + 1, $raises_exception_load_count
 
         assert !ActiveSupport::Dependencies.loaded.include?(filename)
@@ -366,26 +365,19 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_non_existing_const_raises_name_error_with_fully_qualified_name
     with_autoloading_fixtures do
-      begin
-        A::DoesNotExist.nil?
-        flunk "No raise!!"
-      rescue NameError => e
-        assert_equal "uninitialized constant A::DoesNotExist", e.message
-      end
-      begin
-        A::B::DoesNotExist.nil?
-        flunk "No raise!!"
-      rescue NameError => e
-        assert_equal "uninitialized constant A::B::DoesNotExist", e.message
-      end
+      e = assert_raise(NameError) { A::DoesNotExist.nil? }
+      assert_equal "uninitialized constant A::DoesNotExist", e.message
+
+      e = assert_raise(NameError) { A::B::DoesNotExist.nil? }
+      assert_equal "uninitialized constant A::B::DoesNotExist", e.message
     end
   end
 
   def test_smart_name_error_strings
-    Object.module_eval "ImaginaryObject"
-    flunk "No raise!!"
-  rescue NameError => e
-    assert e.message.include?("uninitialized constant ImaginaryObject")
+    e = assert_raise NameError do
+      Object.module_eval "ImaginaryObject"
+    end
+    assert_includes "uninitialized constant ImaginaryObject", e.message
   end
 
   def test_loadable_constants_for_path_should_handle_empty_autoloads
@@ -530,29 +522,21 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def test_const_missing_should_not_double_load
-    $counting_loaded_times = 0
+  def test_const_missing_in_anonymous_modules_loads_top_level_constants
     with_autoloading_fixtures do
-      require_dependency '././counting_loader'
-      assert_equal 1, $counting_loaded_times
-      assert_raise(NameError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
-      assert_equal 1, $counting_loaded_times
+      # class_eval STRING pushes the class to the nesting of the eval'ed code.
+      klass = Class.new.class_eval "E"
+      assert_equal E, klass
     end
   end
 
-  def test_const_missing_within_anonymous_module
-    $counting_loaded_times = 0
-    m = Module.new
-    m.module_eval "def a() CountingLoader; end"
-    extend m
+  def test_const_missing_in_anonymous_modules_raises_if_the_constant_belongs_to_Object
     with_autoloading_fixtures do
-      kls = nil
-      assert_nothing_raised { kls = a }
-      assert_equal "CountingLoader", kls.name
-      assert_equal 1, $counting_loaded_times
+      require_dependency 'e'
 
-      assert_nothing_raised { kls = a }
-      assert_equal 1, $counting_loaded_times
+      mod = Module.new
+      e = assert_raise(NameError) { mod::E }
+      assert_equal 'E cannot be autoloaded from an anonymous class or module', e.message
     end
   end
 
@@ -561,12 +545,10 @@ class DependenciesTest < ActiveSupport::TestCase
       c = ServiceOne
       ActiveSupport::Dependencies.clear
       assert ! defined?(ServiceOne)
-      begin
+      e = assert_raise ArgumentError do
         ActiveSupport::Dependencies.load_missing_constant(c, :FakeMissing)
-        flunk "Expected exception"
-      rescue ArgumentError => e
-        assert_match %r{ServiceOne has been removed from the module tree}i, e.message
       end
+      assert_match %r{ServiceOne has been removed from the module tree}i, e.message
     end
   end
 
@@ -905,12 +887,10 @@ class DependenciesTest < ActiveSupport::TestCase
     with_autoloading_fixtures do
       Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
       2.times do
-        begin
+        e = assert_raise NameError do
           ::RaisesNameError::FooBarBaz.object_id
-          flunk 'should have raised NameError when autoloaded file referenced FooBarBaz'
-        rescue NameError => e
-          assert_equal 'uninitialized constant RaisesNameError::FooBarBaz', e.message
         end
+        assert_equal 'uninitialized constant RaisesNameError::FooBarBaz', e.message
         assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
 

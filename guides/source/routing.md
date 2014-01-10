@@ -138,7 +138,7 @@ Sometimes, you have a resource that clients always look up without referencing a
 get 'profile', to: 'users#show'
 ```
 
-Passing a `String` to `match` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action:
+Passing a `String` to `get` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action:
 
 ```ruby
 get 'profile', to: :show
@@ -238,6 +238,8 @@ In each of these cases, the named routes remain the same as if you did not use `
 | GET       | /admin/posts/:id/edit | posts#edit        | edit_post_path(:id) |
 | PATCH/PUT | /admin/posts/:id      | posts#update      | post_path(:id)      |
 | DELETE    | /admin/posts/:id      | posts#destroy     | post_path(:id)      |
+
+TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo' => '/foo#index'`._
 
 ### Nested Resources
 

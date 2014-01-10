@@ -31,21 +31,21 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star at the beginning" do
     accept = "text/*, text/html, application/json, multipart/form-data"
-    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML, Mime::JSON, Mime::MULTIPART_FORM]
+    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML, Mime::JSON, Mime::MULTIPART_FORM]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
 
   test "parse text with trailing star in the end" do
     accept = "text/html, application/json, multipart/form-data, text/*"
-    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML]
+    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
 
   test "parse text with trailing star" do
     accept = "text/*"
-    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML, Mime::JSON]
+    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML, Mime::JSON]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end

@@ -21,10 +21,10 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     assert_equal true, assert_not(nil)
     assert_equal true, assert_not(false)
 
-    e = assert_raises(MiniTest::Assertion) { assert_not true }
+    e = assert_raises(Minitest::Assertion) { assert_not true }
     assert_equal 'Expected true to be nil or false', e.message
 
-    e = assert_raises(MiniTest::Assertion) { assert_not true, 'custom' }
+    e = assert_raises(Minitest::Assertion) { assert_not true, 'custom' }
     assert_equal 'custom', e.message
   end
 
@@ -73,7 +73,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   end
 
   def test_array_of_expressions_identify_failure
-    assert_raises(MiniTest::Assertion) do
+    assert_raises(Minitest::Assertion) do
       assert_difference ['@object.num', '1 + 1'] do
         @object.increment
       end
@@ -81,7 +81,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   end
 
   def test_array_of_expressions_identify_failure_when_message_provided
-    assert_raises(MiniTest::Assertion) do
+    assert_raises(Minitest::Assertion) do
       assert_difference ['@object.num', '1 + 1'], 1, 'something went wrong' do
         @object.increment
       end

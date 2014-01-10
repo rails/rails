@@ -26,9 +26,15 @@ module SharedGeneratorTests
     default_files.each { |path| assert_file path }
   end
 
-  def test_generation_runs_bundle_install
-    generator([destination_root]).expects(:bundle_command).with('install').once
+  def assert_generates_with_bundler(options = {})
+    generator([destination_root], options)
+    generator.expects(:bundle_command).with('install').once
+    generator.stubs(:bundle_command).with('exec spring binstub --all')
     quietly { generator.invoke_all }
+  end
+
+  def test_generation_runs_bundle_install
+    assert_generates_with_bundler
   end
 
   def test_plugin_new_generate_pretend
@@ -96,15 +102,13 @@ module SharedGeneratorTests
   end
 
   def test_dev_option
-    generator([destination_root], dev: true).expects(:bundle_command).with('install').once
-    quietly { generator.invoke_all }
+    assert_generates_with_bundler dev: true
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    generator([destination_root], edge: true).expects(:bundle_command).with('install').once
-    quietly { generator.invoke_all }
+    assert_generates_with_bundler edge: true
     assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 

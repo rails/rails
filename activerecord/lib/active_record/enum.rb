@@ -1,5 +1,6 @@
 module ActiveRecord
-  # Declare an enum attribute where the values map to integers in the database, but can be queried by name. Example:
+  # Declare an enum attribute where the values map to integers in the database,
+  # but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: [ :active, :archived ]
@@ -18,6 +19,15 @@ module ActiveRecord
   #   # conversation.update! status: 1
   #   conversation.status = "archived"
   #
+  #   # conversation.update! status: nil
+  #   conversation.status = nil
+  #   conversation.status.nil? # => true
+  #   conversation.status      # => nil
+  #
+  # Scopes based on the allowed values of the enum field will be provided
+  # as well. With the above example, it will create an +active+ and +archived+
+  # scope.
+  #
   # You can set the default value from the database declaration, like:
   #
   #   create_table :conversations do |t|
@@ -26,11 +36,22 @@ module ActiveRecord
   #
   # Good practice is to let the first declared status be the default.
   #
-  # Finally, it's also possible to explicitly map the relation between attribute and database integer:
+  # Finally, it's also possible to explicitly map the relation between attribute and
+  # database integer with a +Hash+:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 0, archived: 1 }
   #   end
+  #
+  # Note that when an +Array+ is used, the implicit mapping from the values to database
+  # integers is derived from the order the values appear in the array. In the example,
+  # <tt>:active</tt> is mapped to +0+ as it's the first element, and <tt>:archived</tt>
+  # is mapped to +1+. In general, the +i+-th element is mapped to <tt>i-1</tt> in the
+  # database.
+  #
+  # Therefore, once a value is added to the enum array, its position in the array must
+  # be maintained, and new values should only be added to the end of the array. To
+  # remove unused values, the explicit +Hash+ syntax should be used.
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a constant with the attributes name:
@@ -44,45 +65,52 @@ module ActiveRecord
     def enum(definitions)
       klass = self
       definitions.each do |name, values|
-        # DIRECTION = { }
+        # STATUS = { }
         enum_values = _enum_methods_module.const_set name.to_s.upcase, ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
 
         _enum_methods_module.module_eval do
-          # def direction=(value) self[:direction] = DIRECTION[value] end
+          # def status=(value) self[:status] = STATUS[value] end
           define_method("#{name}=") { |value|
-            unless enum_values.has_key?(value)
+            if enum_values.has_key?(value) || value.blank?
+              self[name] = enum_values[value]
+            elsif enum_values.has_value?(value)
+              # Assigning a value directly is not a end-user feature, hence it's not documented.
+              # This is used internally to make building objects from the generated scopes work
+              # as expected, i.e. +Conversation.archived.build.archived?+ should be true.
+              self[name] = value
+            else
               raise ArgumentError, "'#{value}' is not a valid #{name}"
             end
-            self[name] = enum_values[value]
           }
 
-          # def direction() DIRECTION.key self[:direction] end
+          # def status() STATUS.key self[:status] end
           define_method(name) { enum_values.key self[name] }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value] = i
 
-            # scope :incoming, -> { where direction: 0 }
+            # scope :active, -> { where status: 0 }
             klass.scope value, -> { klass.where name => i }
 
-            # def incoming?() direction == 0 end
+            # def active?() status == 0 end
             define_method("#{value}?") { self[name] == i }
 
-            # def incoming! update! direction: :incoming end
+            # def active!() update! status: :active end
             define_method("#{value}!") { update! name => value }
           end
         end
       end
     end
 
-    def _enum_methods_module
-      @_enum_methods_module ||= begin
-        mod = Module.new
-        include mod
-        mod
+    private
+      def _enum_methods_module
+        @_enum_methods_module ||= begin
+          mod = Module.new
+          include mod
+          mod
+        end
       end
-    end
   end
 end

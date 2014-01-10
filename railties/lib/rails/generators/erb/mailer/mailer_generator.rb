@@ -5,8 +5,8 @@ module Erb # :nodoc:
     class MailerGenerator < ControllerGenerator # :nodoc:
       protected
 
-      def format
-        :text
+      def formats
+        [:text, :html]
       end
     end
   end

@@ -18,7 +18,7 @@ module ActionView
             src << "@output_buffer.safe_append='"
             src << "\n" * @newline_pending if @newline_pending > 0
             src << escape_text(text)
-            src << "';"
+            src << "'.freeze;"
 
             @newline_pending = 0
           end
@@ -67,7 +67,7 @@ module ActionView
 
         def flush_newline_if_pending(src)
           if @newline_pending > 0
-            src << "@output_buffer.safe_append='#{"\n" * @newline_pending}';"
+            src << "@output_buffer.safe_append='#{"\n" * @newline_pending}'.freeze;"
             @newline_pending = 0
           end
         end

@@ -128,7 +128,7 @@ module ActiveModel
       # retrieve the value for a given attribute differently:
       #
       #   class MyClass
-      #     include ActiveModel::Validations
+      #     include ActiveModel::Serialization
       #
       #     def initialize(data = {})
       #       @data = data

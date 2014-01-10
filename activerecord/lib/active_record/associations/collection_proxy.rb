@@ -75,7 +75,7 @@ module ActiveRecord
       #   #      #<Pet id: nil, name: "Choo-Choo">
       #   #    ]
       #
-      #   person.pets.select([:id, :name])
+      #   person.pets.select(:id, :name )
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy">,
       #   #      #<Pet id: 2, name: "Spook">,
@@ -106,13 +106,13 @@ module ActiveRecord
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
       #   #    ]
-      def select(select = nil, &block)
-        @association.select(select, &block)
+      def select(*fields, &block)
+        @association.select(*fields, &block)
       end
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as <tt>ActiveRecord::Base.find</tt>. Returns <tt>ActiveRecord::RecordNotFound</tt>
-      # error if the object can not be found.
+      # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -669,8 +669,10 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      def count(column_name = nil)
-        @association.count(column_name)
+      def count(column_name = nil, options = {})
+        # TODO: Remove options argument as soon we remove support to
+        # activerecord-deprecated_finders.
+        @association.count(column_name, options)
       end
 
       # Returns the size of the collection. If the collection hasn't been loaded,

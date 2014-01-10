@@ -276,6 +276,23 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_all_week
+    assert_equal Date.new(2011,6,6)..Date.new(2011,6,12), Date.new(2011,6,7).all_week
+    assert_equal Date.new(2011,6,5)..Date.new(2011,6,11), Date.new(2011,6,7).all_week(:sunday)
+  end
+
+  def test_all_month
+    assert_equal Date.new(2011,6,1)..Date.new(2011,6,30), Date.new(2011,6,7).all_month
+  end
+
+  def test_all_quarter
+    assert_equal Date.new(2011,4,1)..Date.new(2011,6,30), Date.new(2011,6,7).all_quarter
+  end
+
+  def test_all_year
+    assert_equal Date.new(2011,1,1)..Date.new(2011,12,31), Date.new(2011,6,7).all_year
+  end
+
   def test_xmlschema
     with_env_tz 'US/Eastern' do
       assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)

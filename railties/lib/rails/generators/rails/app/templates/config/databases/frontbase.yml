@@ -23,6 +23,7 @@ test:
   <<: *default
   database: <%= app_name %>_test
 
+# Do not keep production credentials in the repository,
+# instead read the configuration from the environment.
 production:
-  <<: *default
-  database: <%= app_name %>_production
+  url: <%%= ENV["DATABASE_URL"] %>

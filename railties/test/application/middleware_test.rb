@@ -61,7 +61,7 @@ module ApplicationTests
 
       boot!
 
-      assert_equal "Rack::Cache", middleware.first
+      assert middleware.include?("Rack::Cache")
     end
 
     test "ActiveRecord::Migration::CheckPending is present when active_record.migration_error is set to :page_load" do

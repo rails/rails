@@ -211,31 +211,9 @@ This line of code is called an _assertion_. An assertion is a line of code that 
 
 Every test contains one or more assertions. Only when all the assertions are successful will the test pass.
 
-### Preparing your Application for Testing
+### Maintaining the test database schema
 
-Before you can run your tests, you need to ensure that the test database structure is current. For this you can use the following rake commands:
-
-```bash
-$ rake db:migrate
-...
-$ rake db:test:load
-```
-
-The `rake db:migrate` above runs any pending migrations on the _development_ environment and updates `db/schema.rb`. The `rake db:test:load` recreates the test database from the current `db/schema.rb`. On subsequent attempts, it is a good idea to first run `db:test:prepare`, as it first checks for pending migrations and warns you appropriately.
-
-NOTE: `db:test:prepare` will fail with an error if `db/schema.rb` doesn't exist.
-
-#### Rake Tasks for Preparing your Application for Testing
-
-| Tasks                          | Description                                                               |
-| ------------------------------ | ------------------------------------------------------------------------- |
-| `rake db:test:clone`           | Recreate the test database from the current environment's database schema |
-| `rake db:test:clone_structure` | Recreate the test database from the development structure                 |
-| `rake db:test:load`            | Recreate the test database from the current `schema.rb`                   |
-| `rake db:test:prepare`         | Check for pending migrations and load the test schema                     |
-| `rake db:test:purge`           | Empty the test database.                                                  |
-
-TIP: You can see all these rake tasks and their descriptions by running `rake --tasks --describe`
+In order to run your tests, your test database will need to have the current structure. The test helper checks whether your test database has any pending migrations. If so, it will try to load your `db/schema.rb` or `db/structure.sql` into the test database. If migrations are still pending, an error will be raised.
 
 ### Running Tests
 
@@ -784,7 +762,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
         u = users(user)
         sess.https!
         sess.post "/login", username: u.username, password: u.password
-        assert_equal '/welcome', path
+        assert_equal '/welcome', sess.path
         sess.https!(false)
       end
     end
@@ -794,18 +772,23 @@ end
 Rake Tasks for Running your Tests
 ---------------------------------
 
-You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of commands to help in testing. The table below lists all commands that come along in the default Rakefile when you initiate a Rails project.
+You don't need to set up and run your tests by hand on a test-by-test basis.
+Rails comes with a number of commands to help in testing.
+The table below lists all commands that come along in the default Rakefile
+when you initiate a Rails project.
 
 | Tasks                   | Description |
 | ----------------------- | ----------- |
-| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake` as Rails will run all the tests by default|
-| `rake test:controllers` | Runs all the controller tests from `test/controllers`|
-| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
-| `rake test:helpers`     | Runs all the helper tests from `test/helpers`|
-| `rake test:integration` | Runs all the integration tests from `test/integration`|
-| `rake test:mailers`     | Runs all the mailer tests from `test/mailers`|
-| `rake test:models`      | Runs all the model tests from `test/models`|
-| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
+| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake` as Rails will run all the tests by default |
+| `rake test:controllers` | Runs all the controller tests from `test/controllers` |
+| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
+| `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
+| `rake test:integration` | Runs all the integration tests from `test/integration` |
+| `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
+| `rake test:models`      | Runs all the model tests from `test/models` |
+| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
+| `rake test:all`         | Runs all tests quickly by merging all types and not resetting db |
+| `rake test:all:db`      | Runs all tests quickly by merging all types and resetting db |
 
 
 Brief Note About `MiniTest`

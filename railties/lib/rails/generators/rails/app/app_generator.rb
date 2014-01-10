@@ -78,6 +78,7 @@ module Rails
         template "routes.rb"
         template "application.rb"
         template "environment.rb"
+        template "secrets.yml"
 
         directory "environments"
         directory "initializers"
@@ -225,18 +226,19 @@ module Rails
         build(:vendor)
       end
 
-      def finish_template
-        build(:leftovers)
-      end
-
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
           remove_dir 'app/assets/javascripts'
         end
       end
 
+      def finish_template
+        build(:leftovers)
+      end
+
       public_task :run_bundle
       public_task :replay_template
+      public_task :generate_spring_binstubs
 
     protected
 

@@ -22,7 +22,7 @@ module Rails
   #
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
-  # * +adding config.*+ keys to the environment
+  # * adding <tt>config.*</tt> keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding rake tasks
   #
@@ -63,8 +63,8 @@ module Rails
   #     end
   #   end
   #
-  # Finally, you can also pass :before and :after as option to initializer, in case
-  # you want to couple it with a specific step in the initialization process.
+  # Finally, you can also pass <tt>:before</tt> and <tt>:after</tt> as option to initializer,
+  # in case you want to couple it with a specific step in the initialization process.
   #
   # == Configuration
   #

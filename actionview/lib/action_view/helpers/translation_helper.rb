@@ -1,24 +1,14 @@
 require 'action_view/helpers/tag_helper'
 require 'i18n/exceptions'
 
-module I18n
-  class ExceptionHandler
-    include Module.new {
-      def call(exception, locale, key, options)
-        exception.is_a?(MissingTranslation) && options[:rescue_format] == :html ? super.html_safe : super
-      end
-    }
-  end
-end
-
 module ActionView
   # = Action View Translation Helpers
   module Helpers
     module TranslationHelper
       # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
       #
-      # First, it'll pass the <tt>rescue_format: :html</tt> option to I18n so that any
-      # thrown +MissingTranslation+ messages will be turned into inline spans that
+      # First, it will ensure that any thrown +MissingTranslation+ messages will be turned 
+      # into inline spans that:
       #
       #   * have a "translation-missing" class set,
       #   * contain the missing key as a title attribute and
@@ -44,8 +34,17 @@ module ActionView
       # naming convention helps to identify translations that include HTML tags so that
       # you know what kind of output to expect when you call translate in a template.
       def translate(key, options = {})
-        options.merge!(:rescue_format => :html) unless options.key?(:rescue_format)
         options[:default] = wrap_translate_defaults(options[:default]) if options[:default]
+
+        # If the user has specified rescue_format then pass it all through, otherwise use
+        # raise and do the work ourselves
+        if options.key?(:raise) || options.key?(:rescue_format)
+          raise_error = options[:raise] || options[:rescue_format]
+        else
+          raise_error = false
+          options[:raise] = true
+        end
+
         if html_safe_translation_key?(key)
           html_safe_options = options.dup
           options.except(*I18n::RESERVED_KEYS).each do |name, value|
@@ -59,6 +58,11 @@ module ActionView
         else
           I18n.translate(scope_key_by_partial(key), options)
         end
+      rescue I18n::MissingTranslationData => e
+        raise e if raise_error
+
+        keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
+        content_tag('span', keys.last.to_s.titleize, :class => 'translation_missing', :title => "translation missing: #{keys.join('.')}")
       end
       alias :t :translate
 

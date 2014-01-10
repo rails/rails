@@ -31,6 +31,8 @@ module ActionView
 
       include SanitizeHelper
       include TagHelper
+      include OutputSafetyHelper
+
       # The preferred method of outputting text in your views is to use the
       # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods
       # do not operate as expected in an eRuby code block. If you absolutely must
@@ -80,6 +82,9 @@ module ActionView
       #   # => "And they f... (continued)"
       #
       #   truncate("<p>Once upon a time in a world far far away</p>")
+      #   # => "&lt;p&gt;Once upon a time in a wo..."
+      #
+      #   truncate("<p>Once upon a time in a world far far away</p>", escape: false)
       #   # => "<p>Once upon a time in a wo..."
       #
       #   truncate("Once upon a time in a world far far away") { link_to "Continue", "#" }
@@ -268,7 +273,7 @@ module ActionView
           content_tag(wrapper_tag, nil, html_options)
         else
           paragraphs.map! { |paragraph|
-            content_tag(wrapper_tag, paragraph, html_options, false)
+            content_tag(wrapper_tag, raw(paragraph), html_options)
           }.join("\n\n").html_safe
         end
       end
@@ -314,7 +319,7 @@ module ActionView
         options = values.extract_options!
         name = options.fetch(:name, 'default')
 
-        values.unshift(first_value)
+        values.unshift(*first_value)
 
         cycle = get_cycle(name)
         unless cycle && cycle.values == values

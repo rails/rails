@@ -203,6 +203,18 @@ module ActionDispatch
         assert_no_match(/\/sprockets/, output.first)
       end
 
+      def test_rake_routes_shows_route_defined_in_under_assets_prefix
+        output = draw do
+          scope '/sprockets' do
+            get '/foo' => 'foo#bar'
+          end
+        end
+        assert_equal [
+          "Prefix Verb URI Pattern              Controller#Action",
+          "   foo GET  /sprockets/foo(.:format) foo#bar"
+        ], output
+      end
+
       def test_redirect
         output = draw do
           get "/foo"    => redirect("/foo/bar"), :constraints => { :subdomain => "admin" }

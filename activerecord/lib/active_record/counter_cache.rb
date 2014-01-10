@@ -82,10 +82,10 @@ module ActiveRecord
 
       # Increment a numeric field by one, via a direct SQL update.
       #
-      # This method is used primarily for maintaining counter_cache columns used to
-      # store aggregate values. For example, a DiscussionBoard may cache posts_count
-      # and comments_count to avoid running an SQL query to calculate the number of
-      # posts and comments there are each time it is displayed.
+      # This method is used primarily for maintaining counter_cache columns that are
+      # used to store aggregate values. For example, a DiscussionBoard may cache
+      # posts_count and comments_count to avoid running an SQL query to calculate the
+      # number of posts and comments there are, each time it is displayed.
       #
       # ==== Parameters
       #

@@ -151,6 +151,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal relation.to_a, Comment.select('a.*').from(relation, :a).to_a
   end
 
+  def test_finding_with_subquery_without_select
+    relation = Topic.where(:approved => true)
+    assert_equal relation.to_a, Topic.from(relation).to_a
+  end
+
   def test_finding_with_conditions
     assert_equal ["David"], Author.where(:name => 'David').map(&:name)
     assert_equal ['Mary'],  Author.where(["name = ?", 'Mary']).map(&:name)
@@ -295,7 +300,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_calculations_methods
     assert_no_queries do
       assert_equal 0, Developer.none.count
-      assert_equal 0, Developer.none.calculate(:count, nil)
+      assert_equal 0, Developer.none.calculate(:count, nil, {})
       assert_equal nil, Developer.none.calculate(:average, 'salary')
     end
   end
@@ -1506,26 +1511,55 @@ class RelationTest < ActiveRecord::TestCase
     assert !Post.all.respond_to?(:by_lifo)
   end
 
-  class OMGTopic < ActiveRecord::Base
-    self.table_name = 'topics'
+  test "merge collapses wheres from the LHS only" do
+    left  = Post.where(title: "omg").where(comments_count: 1)
+    right = Post.where(title: "wtf").where(title: "bbq")
 
-    def self.__omg__
-      "omgtopic"
-    end
+    expected = [left.where_values[1]] + right.where_values
+    merged   = left.merge(right)
+
+    assert_equal expected, merged.where_values
+    assert !merged.to_sql.include?("omg")
+    assert merged.to_sql.include?("wtf")
+    assert merged.to_sql.include?("bbq")
   end
 
-  test "delegations do not clash across classes" do
-    begin
-      class ::Array
-        def __omg__
-          "array"
-        end
-      end
+  def test_merging_removes_rhs_bind_parameters
+    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    column = Post.columns_hash['id']
+    left.bind_values += [[column, 20]]
+    right   = Post.where(id: 10)
 
-      assert_equal "array",    Topic.all.__omg__
-      assert_equal "omgtopic", OMGTopic.all.__omg__
-    ensure
-      Array.send(:remove_method, :__omg__)
-    end
+    merged = left.merge(right)
+    assert_equal [], merged.bind_values
+  end
+
+  def test_merging_keeps_lhs_bind_parameters
+    column = Post.columns_hash['id']
+    binds = [[column, 20]]
+
+    right  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    right.bind_values += binds
+    left   = Post.where(id: 10)
+
+    merged = left.merge(right)
+    assert_equal binds, merged.bind_values
+  end
+
+  def test_merging_reorders_bind_params
+    post         = Post.first
+    id_column    = Post.columns_hash['id']
+    title_column = Post.columns_hash['title']
+
+    bv = Post.connection.substitute_at id_column, 0
+
+    right  = Post.where(id: bv)
+    right.bind_values += [[id_column, post.id]]
+
+    left   = Post.where(title: bv)
+    left.bind_values += [[title_column, post.title]]
+
+    merged = left.merge(right)
+    assert_equal post, merged.first
   end
 end

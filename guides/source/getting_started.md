@@ -86,7 +86,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.0.0p247
+ruby 2.0.0p353
 ```
 
 To install Rails, use the `gem install` command provided by RubyGems:
@@ -388,9 +388,9 @@ It's inside this class that you'll define methods that will become the actions
 for this controller. These actions will perform CRUD operations on the posts
 within our system.
 
-NOTE: There are `public`, `private` and `protected` methods in `Ruby`
-(for more details you can check on [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/)).
-But only `public` methods can be actions for controllers.
+NOTE: There are `public`, `private` and `protected` methods in Ruby, 
+but only `public` methods can be actions for controllers.
+For more details check out [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/).
 
 If you refresh <http://localhost:3000/posts/new> now, you'll get a new error:
 
@@ -398,7 +398,7 @@ If you refresh <http://localhost:3000/posts/new> now, you'll get a new error:
 
 This error indicates that Rails cannot find the `new` action inside the `PostsController`
 that you just generated. This is because when controllers are generated in Rails
-they are empty by default, unless you tell it you wanted actions during the
+they are empty by default, unless you tell it your wanted actions during the
 generation process.
 
 To manually define an action inside a controller, all you need to do is to
@@ -757,7 +757,7 @@ the `show` action. That's not very useful though, so let's add the
 As we have seen in the output of `rake routes`, the route for `show` action is
 as follows:
 
-```ruby
+```
 post GET    /posts/:id(.:format)      posts#show
 ```
 
@@ -804,7 +804,7 @@ Visit <http://localhost:3000/posts/new> and give it a try!
 We still need a way to list all our posts, so let's do that.
 The route for this as per output of `rake routes` is:
 
-```ruby
+```
 posts GET    /posts(.:format)          posts#index
 ```
 
@@ -816,7 +816,7 @@ def index
 end
 ```
 
-And then finally a view for this action, located at `app/views/posts/index.html.erb`:
+And then finally, add view for this action, located at `app/views/posts/index.html.erb`:
 
 ```html+erb
 <h1>Listing posts</h1>
@@ -1406,7 +1406,6 @@ class Post < ActiveRecord::Base
   has_many :comments
   validates :title, presence: true,
                     length: { minimum: 5 }
-  [...]
 end
 ```
 
@@ -1703,8 +1702,8 @@ Deleting Comments
 -----------------
 
 Another important feature of a blog is being able to delete spam comments. To do
-this, we need to implement a link of some sort in the view and a `DELETE` action
-in the `CommentsController`.
+this, we need to implement a link of some sort in the view and a `destroy`
+action in the `CommentsController`.
 
 So first, let's add the delete link in the
 `app/views/comments/_comment.html.erb` partial:
@@ -1729,7 +1728,7 @@ So first, let's add the delete link in the
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE
 /posts/:post_id/comments/:id` to our `CommentsController`, which can then use
-this to find the comment we want to delete, so let's add a destroy action to our
+this to find the comment we want to delete, so let's add a `destroy` action to our
 controller (`app/controllers/comments_controller.rb`):
 
 ```ruby
@@ -1771,7 +1770,6 @@ class Post < ActiveRecord::Base
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }
-  [...]
 end
 ```
 

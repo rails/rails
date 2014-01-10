@@ -36,6 +36,10 @@ class Developer < ActiveRecord::Base
       end
 
   has_and_belongs_to_many :special_projects, :join_table => 'developers_projects', :association_foreign_key => 'project_id'
+  has_and_belongs_to_many :sym_special_projects,
+                          :join_table => :developers_projects,
+                          :association_foreign_key => 'project_id',
+                          :class_name => 'SpecialProject'
 
   has_many :audit_logs
   has_many :contracts

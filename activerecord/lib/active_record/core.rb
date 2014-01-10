@@ -42,8 +42,15 @@ module ActiveRecord
       #         'database' => 'db/production.sqlite3'
       #      }
       #   }
-      mattr_accessor :configurations, instance_writer: false
+      def self.configurations=(config)
+        @@configurations = ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig.new(config).resolve
+      end
       self.configurations = {}
+
+      # Returns fully resolved configurations hash
+      def self.configurations
+        @@configurations
+      end
 
       ##
       # :singleton-method:
@@ -68,6 +75,9 @@ module ActiveRecord
       # Specify whether or not to use timestamps for migration versions
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
+
+      # :nodoc:
+      mattr_accessor :maintain_test_schema, instance_accessor: false
 
       def self.disable_implicit_join_references=(value)
         ActiveSupport::Deprecation.warn("Implicit join references were removed with Rails 4.1." \

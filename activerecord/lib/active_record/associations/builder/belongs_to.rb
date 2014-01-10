@@ -1,10 +1,10 @@
 module ActiveRecord::Associations::Builder
   class BelongsTo < SingularAssociation #:nodoc:
-    def self.macro
+    def macro
       :belongs_to
     end
 
-    def self.valid_options(options)
+    def valid_options
       super + [:foreign_type, :polymorphic, :touch, :counter_cache]
     end
 
@@ -22,6 +22,8 @@ module ActiveRecord::Associations::Builder
       super
       add_counter_cache_methods mixin
     end
+
+    private
 
     def self.add_counter_cache_methods(mixin)
       return if mixin.method_defined? :belongs_to_counter_cache_after_create
@@ -91,7 +93,13 @@ module ActiveRecord::Associations::Builder
       old_foreign_id = o.changed_attributes[foreign_key]
 
       if old_foreign_id
-        klass      = o.association(name).klass
+        association = o.association(name)
+        reflection = association.reflection
+        if reflection.polymorphic?
+          klass = o.public_send("#{reflection.foreign_type}_was").constantize
+        else
+          klass = association.klass
+        end
         old_record = klass.find_by(klass.primary_key => old_foreign_id)
 
         if old_record
@@ -104,7 +112,7 @@ module ActiveRecord::Associations::Builder
       end
 
       record = o.send name
-      unless record.nil? || record.new_record?
+      if record && record.persisted?
         if touch != true
           record.touch touch
         else

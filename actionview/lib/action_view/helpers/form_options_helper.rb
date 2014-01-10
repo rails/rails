@@ -260,7 +260,7 @@ module ActionView
         Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
       end
 
-      # Return select and option tags for the given object and method, using
+      # Returns select and option tags for the given object and method, using
       # #time_zone_options_for_select to generate the list of option tags.
       #
       # In addition to the <tt>:include_blank</tt> option documented above,

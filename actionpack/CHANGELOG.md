@@ -4,6 +4,199 @@
 
     *Alessandro Diaferia*
 
+*   Allow an absolute controller path inside a module scope. Fixes #12777.
+
+    Example:
+
+        namespace :foo do
+          # will route to BarController without the namespace.
+          get '/special', to: '/bar#index'
+        end
+
+
+*   Unique the segment keys array for non-optimized url helpers
+
+    In Rails 3.2 you only needed pass an argument for dynamic segment once so
+    unique the segment keys array to match the number of args. Since the number
+    of args is less than required parts the non-optimized code path is selected.
+    This means to benefit from optimized url generation the arg needs to be
+    specified as many times as it appears in the path.
+
+    Fixes #12808.
+
+    *Andrew White*
+
+*   Show full route constraints in error message
+
+    When an optimized helper fails to generate, show the full route constraints
+    in the error message. Previously it would only show the contraints that were
+    required as part of the path.
+
+    Fixes #13592.
+
+    *Andrew White*
+
+*   Use a custom route visitor for optimized url generation. Fixes #13349.
+
+    *Andrew White*
+
+*   Allow engine root relative redirects using an empty string.
+
+    Example:
+
+        # application routes.rb
+        mount BlogEngine => '/blog'
+
+        # engine routes.rb
+        get '/welcome' => redirect('')
+
+    This now redirects to the path `/blog`, whereas before it would redirect
+    to the application root path. In the case of a path redirect or a custom
+    redirect if the path returned contains a host then the path is treated as
+    absolute. Similarly for option redirects, if the options hash returned
+    contains a `:host` or `:domain` key then the path is treated as absolute.
+
+    Fixes #7977.
+
+    *Andrew White*
+
+*   Fix `Encoding::CompatibilityError` when public path is UTF-8
+
+    In #5337 we forced the path encoding to ASCII-8BIT to prevent static file handling
+    from blowing up before an application has had chance to deal with possibly invalid
+    urls. However this has a negative side effect of making it an incompatible encoding
+    if the application's public path has UTF-8 characters in it.
+
+    To work around the problem we check to see if the path has a valid encoding once
+    it has been unescaped. If it is not valid then we can return early since it will
+    not match any file anyway.
+
+    Fixes #13518.
+
+    *Andrew White*
+
+*   `ActionController::Parameters#permit!` permits hashes in array values.
+
+    *Xavier Noria*
+
+*   Converts hashes in arrays of unfiltered params to unpermitted params.
+
+    Fixes #13382.
+
+    *Xavier Noria*
+
+*   New config option to opt out of params "deep munging" that was used to
+    address security vulnerability CVE-2013-0155. In your app config:
+
+        config.action_dispatch.perform_deep_munge = false
+
+    Take care to understand the security risk involved before disabling this.
+    [Read more.](https://groups.google.com/forum/#!topic/rubyonrails-security/t1WFuuQyavI)
+
+    *Bernard Potocki*
+
+*   `rake routes` shows routes defined under assets prefix.
+
+    *Ryunosuke SATO*
+
+*   Extend cross-site request forgery (CSRF) protection to GET requests with
+    JavaScript responses, protecting apps from cross-origin `<script>` tags.
+
+    *Jeremy Kemper*
+
+*   Fix generating a path for engine inside a resources block.
+
+    Fixes #8533.
+
+    *Piotr Sarnacki*
+
+*   Add `Mime::Type.register "text/vcard", :vcf` to the default list of mime types.
+
+    *DHH*
+
+*   Remove deprecated `ActionController::RecordIdentifier`, use
+    `ActionView::RecordIdentifier` instead.
+
+    *kennyj*
+
+*   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
+    `options[:raise]`.
+
+    This regression was introduced at ec16ba75a5493b9da972eea08bae630eba35b62f.
+
+    *Shota Fukumori (sora_h)*
+
+*   Introducing Variants
+
+    We often want to render different html/json/xml templates for phones,
+    tablets, and desktop browsers. Variants make it easy.
+
+    The request variant is a specialization of the request format, like `:tablet`,
+    `:phone`, or `:desktop`.
+
+    You can set the variant in a `before_action`:
+
+        request.variant = :tablet if request.user_agent =~ /iPad/
+
+    Respond to variants in the action just like you respond to formats:
+
+        respond_to do |format|
+          format.html do |html|
+            html.tablet # renders app/views/projects/show.html+tablet.erb
+            html.phone { extra_setup; render ... }
+          end
+        end
+
+    Provide separate templates for each format and variant:
+
+        app/views/projects/show.html.erb
+        app/views/projects/show.html+tablet.erb
+        app/views/projects/show.html+phone.erb
+
+    You can also simplify the variants definition using the inline syntax:
+
+        respond_to do |format|
+          format.js         { render "trash" }
+          format.html.phone { redirect_to progress_path }
+          format.html.none  { render "trash" }
+        end
+
+    Variants also support common `any`/`all` block that formats have.
+
+    It works for both inline:
+
+        respond_to do |format|
+          format.html.any   { render text: "any"   }
+          format.html.phone { render text: "phone" }
+        end
+
+    and block syntax:
+
+        respond_to do |format|
+          format.html do |variant|
+            variant.any(:tablet, :phablet){ render text: "any" }
+            variant.phone { render text: "phone" }
+          end
+        end
+
+    *Łukasz Strzałkowski*
+
+*   Fix render of localized templates without an explicit format using wrong
+    content header and not passing correct formats to template due to the
+    introduction of the `NullType` for mimes.
+
+    Templates like `hello.it.erb` were subject to this issue.
+
+    Fixes #13064.
+
+    *Angelo Capilleri*, *Carlos Antonio da Silva*
+
+*   Try to escape each part of a url correctly when using a redirect route.
+
+    Fixes #13110.
+
+    *Andrew White*
+
 *   Better error message for typos in assert_response argument.
 
     When the response type argument to `assert_response` is not a known
@@ -27,9 +220,7 @@
 
 *   Add `session#fetch` method
 
-    fetch behaves similarly to [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch),
-    with the exception that the returned value is always saved into the session.
-
+    fetch behaves like [Hash#fetch](http://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch).
     It returns a value from the hash for the given key.
     If the key can’t be found, there are several options:
 

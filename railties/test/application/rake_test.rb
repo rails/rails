@@ -187,7 +187,7 @@ module ApplicationTests
     def test_scaffold_tests_pass_by_default
       output = Dir.chdir(app_path) do
         `rails generate scaffold user username:string password:string;
-         bundle exec rake db:migrate db:test:clone test`
+         bundle exec rake db:migrate test`
       end
 
       assert_match(/7 runs, 13 assertions, 0 failures, 0 errors/, output)
@@ -197,7 +197,7 @@ module ApplicationTests
     def test_scaffold_with_references_columns_tests_pass_by_default
       output = Dir.chdir(app_path) do
         `rails generate scaffold LineItems product:references cart:belongs_to;
-         bundle exec rake db:migrate db:test:clone test`
+         bundle exec rake db:migrate test`
       end
 
       assert_match(/7 runs, 13 assertions, 0 failures, 0 errors/, output)
@@ -208,7 +208,8 @@ module ApplicationTests
       add_to_config "config.active_record.schema_format = :sql"
       output = Dir.chdir(app_path) do
         `rails generate scaffold user username:string;
-         bundle exec rake db:migrate db:test:clone 2>&1 --trace`
+         bundle exec rake db:migrate;
+         bundle exec rake db:test:clone 2>&1 --trace`
       end
       assert_match(/Execute db:test:clone_structure/, output)
     end
@@ -217,7 +218,8 @@ module ApplicationTests
       add_to_config "config.active_record.schema_format = :sql"
       output = Dir.chdir(app_path) do
         `rails generate scaffold user username:string;
-         bundle exec rake db:migrate db:test:prepare 2>&1 --trace`
+         bundle exec rake db:migrate;
+         bundle exec rake db:test:prepare 2>&1 --trace`
       end
       assert_match(/Execute db:test:load_structure/, output)
     end

@@ -43,6 +43,9 @@ Thread.abort_on_exception = true
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
+# Disable available locale checks to avoid warnings running the test suite.
+I18n.enforce_available_locales = false
+
 # Register danish language for testing
 I18n.backend.store_translations 'da', {}
 I18n.backend.store_translations 'pt-BR', {}
@@ -246,8 +249,6 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 end
 
-ActionController::Base.superclass.send(:include, ActionView::Layouts)
-
 module ActionController
   class Base
     include ActionController::Testing
@@ -333,7 +334,6 @@ class ThreadsController  < ResourcesController; end
 class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
 class ReviewsController < ResourcesController; end
-class AuthorsController < ResourcesController; end
 class LogosController < ResourcesController; end
 
 class AccountsController <  ResourcesController; end
@@ -344,8 +344,6 @@ class PreferencesController < ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
-  class TagsController < ResourcesController; end
-  class ManufacturersController < ResourcesController; end
   class ImagesController < ResourcesController; end
 
   module Admin

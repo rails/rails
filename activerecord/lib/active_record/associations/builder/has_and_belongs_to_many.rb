@@ -20,7 +20,7 @@ module ActiveRecord::Associations::Builder
 
       def self.build(lhs_class, name, options)
         if options[:join_table]
-          KnownTable.new options[:join_table]
+          KnownTable.new options[:join_table].to_s
         else
           class_name = options.fetch(:class_name) {
             name.to_s.camelize.singularize
@@ -84,11 +84,11 @@ module ActiveRecord::Associations::Builder
       middle_name = [lhs_model.name.downcase.pluralize,
                      association_name].join('_').gsub(/::/, '_').to_sym
       middle_options = middle_options join_model
-
-      HasMany.create_reflection(lhs_model,
-                                middle_name,
-                                nil,
-                                middle_options)
+      hm_builder = HasMany.create_builder(lhs_model,
+                                          middle_name,
+                                          nil,
+                                          middle_options)
+      hm_builder.build lhs_model
     end
 
     private

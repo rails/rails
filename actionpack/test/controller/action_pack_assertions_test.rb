@@ -444,22 +444,18 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_assert_response_uses_exception_message
     @controller = AssertResponseWithUnexpectedErrorController.new
-    get :index
+    e = assert_raise RuntimeError, 'Expected non-success response' do
+      get :index
+    end
     assert_response :success
-    flunk 'Expected non-success response'
-  rescue RuntimeError => e
-    assert e.message.include?('FAIL')
+    assert_includes 'FAIL', e.message
   end
 
   def test_assert_response_failure_response_with_no_exception
     @controller = AssertResponseWithUnexpectedErrorController.new
     get :show
-    assert_response :success
-    flunk 'Expected non-success response'
-  rescue ActiveSupport::TestCase::Assertion
-    # success
-  rescue
-    flunk "assert_response failed to handle failure response with missing, but optional, exception."
+    assert_response 500
+    assert_equal 'Boom', response.body
   end
 end
 

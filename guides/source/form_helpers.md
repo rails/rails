@@ -154,7 +154,10 @@ make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
-Other form controls worth mentioning are textareas, password fields, hidden fields, search fields, telephone fields, date fields, time fields, color fields, datetime fields, datetime-local fields, month fields, week fields, URL fields and email fields:
+Other form controls worth mentioning are textareas, password fields,
+hidden fields, search fields, telephone fields, date fields, time fields,
+color fields, datetime fields, datetime-local fields, month fields, week fields,
+URL fields, email fields, number fields and range fields:
 
 ```erb
 <%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
@@ -171,6 +174,8 @@ Other form controls worth mentioning are textareas, password fields, hidden fiel
 <%= email_field(:user, :address) %>
 <%= color_field(:user, :favorite_color) %>
 <%= time_field(:task, :started_at) %>
+<%= number_field(:product, :price, in: 1.0..20.0, step: 0.5) %>
+<%= range_field(:product, :discount, in: 1..100) %>
 ```
 
 Output:
@@ -190,11 +195,20 @@ Output:
 <input id="user_address" name="user[address]" type="email" />
 <input id="user_favorite_color" name="user[favorite_color]" type="color" value="#000000" />
 <input id="task_started_at" name="task[started_at]" type="time" />
+<input id="product_price" max="20.0" min="1.0" name="product[price]" step="0.5" type="number" />
+<input id="product_discount" max="100" min="1" name="product[discount]" type="range" />
 ```
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
-IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local, month, week, URL, and email inputs are HTML5 controls. If you require your app to have a consistent experience in older browsers, you will need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a couple of popular tools at the moment are [Modernizr](http://www.modernizr.com/) and [yepnope](http://yepnopejs.com/), which provide a simple way to add functionality based on the presence of detected HTML5 features.
+IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local,
+month, week, URL, email, number and range inputs are HTML5 controls.
+If you require your app to have a consistent experience in older browsers,
+you will need an HTML5 polyfill (provided by CSS and/or JavaScript).
+There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a couple of popular tools at the moment are
+[Modernizr](http://www.modernizr.com/) and [yepnope](http://yepnopejs.com/),
+which provide a simple way to add functionality based on the presence of
+detected HTML5 features.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the [Security Guide](security.html#logging).
 
@@ -328,7 +342,7 @@ If you have created namespaced routes, `form_for` has a nifty shorthand for that
 form_for [:admin, @article]
 ```
 
-will create a form that submits to the articles controller inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
+will create a form that submits to the `ArticlesController` inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
 
 ```ruby
 form_for [:admin, :management, @article]
@@ -845,7 +859,7 @@ end
 
 This creates an `addresses_attributes=` method on `Person` that allows you to create, update and (optionally) destroy addresses.
 
-### Building the Form
+### Nested Forms
 
 The following form allows a user to create a `Person` and its associated addresses.
 
@@ -868,16 +882,18 @@ The following form allows a user to create a `Person` and its associated address
 ```
 
 
-When an association accepts nested attributes `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses it renders nothing. A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 3 sets of address fields being rendered on the new person form.
+When an association accepts nested attributes `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses it renders nothing. A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 2 sets of address fields being rendered on the new person form.
 
 ```ruby
 def new
   @person = Person.new
-  3.times { @person.addresses.build}
+  2.times { @person.addresses.build}
 end
 ```
 
-`fields_for` yields a form builder that names parameters in the format expected the accessor generated by `accepts_nested_attributes_for`. For example when creating a user with 2 addresses, the submitted parameters would look like
+The `fields_for` yields a form builder. The parameters' name will be what
+`accepts_nested_attributes_for` expects. For example when creating a user with
+2 addresses, the submitted parameters would look like:
 
 ```ruby
 {
@@ -899,7 +915,7 @@ end
 
 The keys of the `:addresses_attributes` hash are unimportant, they need merely be different for each address.
 
-If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `include_id: false` to `fields_for`. You may wish to do this if the autogenerated input is placed in a location where an input tag is not valid HTML or when using an ORM where children do not have an id.
+If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `include_id: false` to `fields_for`. You may wish to do this if the autogenerated input is placed in a location where an input tag is not valid HTML or when using an ORM where children do not have an `id`.
 
 ### The Controller
 
@@ -930,7 +946,9 @@ class Person < ActiveRecord::Base
 end
 ```
 
-If the hash of attributes for an object contains the key `_destroy` with a value of '1' or 'true' then the object will be destroyed. This form allows users to remove addresses:
+If the hash of attributes for an object contains the key `_destroy` with a value
+of `1` or `true` then the object will be destroyed. This form allows users to
+remove addresses:
 
 ```erb
 <%= form_for @person do |f| %>
@@ -938,7 +956,7 @@ If the hash of attributes for an object contains the key `_destroy` with a value
   <ul>
     <%= f.fields_for :addresses do |addresses_form| %>
       <li>
-        <%= check_box :_destroy%>
+        <%= addresses_form.check_box :_destroy%>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
         ...

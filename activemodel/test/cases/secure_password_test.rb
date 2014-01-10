@@ -2,7 +2,6 @@ require 'cases/helper'
 require 'models/user'
 require 'models/oauthed_user'
 require 'models/visitor'
-require 'models/administrator'
 
 class SecurePasswordTest < ActiveModel::TestCase
   setup do

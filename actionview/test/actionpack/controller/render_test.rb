@@ -44,8 +44,6 @@ module Quiz
     end
   end
 
-  class Store < Question; end
-
   # Controller
   class QuestionsController < ApplicationController
     def new
@@ -693,9 +691,9 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_line_offset
-    get :render_line_offset
-    flunk "the action should have raised an exception"
-  rescue StandardError => exc
+    exc = assert_raises ActionView::Template::Error do
+      get :render_line_offset
+    end
     line = exc.backtrace.first
     assert(line =~ %r{:(\d+):})
     assert_equal "1", $1,
@@ -971,7 +969,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_implicitly_render_js_template_without_layout
-    get :render_implicit_js_template_without_layout, :format => :js
+    xhr :get, :render_implicit_js_template_without_layout, :format => :js
     assert_no_match %r{<html>}, @response.body
   end
 

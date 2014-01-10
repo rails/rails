@@ -37,6 +37,8 @@ module ActiveRecord
       def not(opts, *rest)
         where_value = @scope.send(:build_where, opts, rest).map do |rel|
           case rel
+          when NilClass
+            raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
           when Arel::Nodes::In
             Arel::Nodes::NotIn.new(rel.left, rel.right)
           when Arel::Nodes::Equality
@@ -427,7 +429,7 @@ module ActiveRecord
     # === string
     #
     # A single string, without additional arguments, is passed to the query
-    # constructor as a SQL fragment, and used in the where clause of the query.
+    # constructor as an SQL fragment, and used in the where clause of the query.
     #
     #    Client.where("orders_count = '2'")
     #    # SELECT * from clients where orders_count = '2';
@@ -631,12 +633,11 @@ module ActiveRecord
       self
     end
 
-    # Returns a chainable relation with zero records, specifically an
-    # instance of the <tt>ActiveRecord::NullRelation</tt> class.
+    # Returns a chainable relation with zero records.
     #
-    # The returned <tt>ActiveRecord::NullRelation</tt> inherits from Relation and implements the
-    # Null Object pattern. It is an object with defined null behavior and always returns an empty
-    # array of records without querying the database.
+    # The returned relation implements the Null Object pattern. It is an
+    # object with defined null behavior and always returns an empty array of
+    # records without querying the database.
     #
     # Any subsequent condition chained to the returned relation will continue
     # generating an empty relation and will not fire any query to the database.
@@ -656,7 +657,7 @@ module ActiveRecord
     #     when 'Reviewer'
     #       Post.published
     #     when 'Bad User'
-    #       Post.none # => returning [] instead breaks the previous code
+    #       Post.none # It can't be chained if [] is returned.
     #     end
     #   end
     #
@@ -983,8 +984,10 @@ module ActiveRecord
     end
 
     def build_select(arel, selects)
-      unless selects.empty?
+      if !selects.empty?
         arel.project(*selects)
+      elsif from_value
+        arel.project(Arel.star)
       else
         arel.project(@klass.arel_table[Arel.star])
       end

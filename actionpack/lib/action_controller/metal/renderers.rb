@@ -43,7 +43,7 @@ module ActionController
     end
 
     # Hash of available renderers, mapping a renderer name to its proc.
-    # Default keys are :json, :js, :xml.
+    # Default keys are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
     RENDERERS = Set.new
 
     # Adds a new renderer to call within controller actions.

@@ -17,15 +17,22 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  # For details on connection pooling, see rails configration guide
+  # For details on connection pooling, see rails configuration guide
   # http://guides.rubyonrails.org/configuring.html#database-pooling
   pool: 5
-  username: <%= app_name %>
-  password:
 
 development:
   <<: *default
   database: <%= app_name %>_development
+
+  # The specified database role being used to connect to postgres.
+  # To create additional roles in postgres see `$ createuser --help`.
+  # When left blank, postgres will use the default role. This is
+  # the same name as the operating system user that initialized the database.
+  #username: <%= app_name %>
+
+  # The password associated with the postgres role (username).
+  #password:
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -52,6 +59,11 @@ test:
   <<: *default
   database: <%= app_name %>_test
 
+# Do not keep production credentials in the repository,
+# instead read the configuration from the environment.
+#
+# Example:
+#   postgres://myuser:mypass@localhost/somedatabase
+#
 production:
-  <<: *default
-  database: <%= app_name %>_production
+  url: <%%= ENV["DATABASE_URL"] %>

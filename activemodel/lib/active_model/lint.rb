@@ -13,7 +13,7 @@ module ActiveModel
     #
     # These tests do not attempt to determine the semantic correctness of the
     # returned values. For instance, you could implement <tt>valid?</tt> to
-    # always return true, and the tests would pass. It is up to you to ensure
+    # always return +true+, and the tests would pass. It is up to you to ensure
     # that the values are semantically meaningful.
     #
     # Objects you pass in are expected to return a compliant object from a call

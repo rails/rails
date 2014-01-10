@@ -195,6 +195,7 @@ module ActiveRecord
     #   Person.exists?(5)
     #   Person.exists?('5')
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
+    #   Person.exists?(id: [1, 4, 8])
     #   Person.exists?(name: 'David')
     #   Person.exists?(false)
     #   Person.exists?
@@ -384,7 +385,7 @@ module ActiveRecord
         @records.last
       else
         @last ||=
-          if offset_value || limit_value
+          if limit_value
             to_a.last
           else
             reverse_order.limit(1).to_a.first

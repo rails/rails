@@ -2,7 +2,6 @@ require 'rails/railtie'
 require 'rails/engine/railties'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
-require 'rbconfig'
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of

@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rack',      '~> 1.5.2'
   s.add_dependency 'rack-test', '~> 0.6.2'
+  s.add_dependency 'actionview', version
 
-  s.add_development_dependency 'actionview',  version
   s.add_development_dependency 'activemodel', version
 end

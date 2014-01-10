@@ -221,9 +221,9 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_include_raises_when_nil_is_passed
-    @chars.include?(nil)
-    flunk "Expected chars.include?(nil) to raise TypeError or NoMethodError"
-  rescue Exception
+    assert_raises TypeError, NoMethodError, "Expected chars.include?(nil) to raise TypeError or NoMethodError" do
+      @chars.include?(nil)
+    end
   end
 
   def test_index_should_return_character_offset

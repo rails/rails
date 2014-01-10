@@ -2864,6 +2864,36 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert !@request.params[:action].frozen?
   end
 
+  def test_multiple_positional_args_with_the_same_name
+    draw do
+      get '/downloads/:id/:id.tar' => 'downloads#show', as: :download, format: false
+    end
+
+    expected_params = {
+      controller: 'downloads',
+      action:     'show',
+      id:         '1'
+    }
+
+    get '/downloads/1/1.tar'
+    assert_equal 'downloads#show', @response.body
+    assert_equal expected_params, @request.symbolized_path_parameters
+    assert_equal '/downloads/1/1.tar', download_path('1')
+    assert_equal '/downloads/1/1.tar', download_path('1', '1')
+  end
+
+  def test_absolute_controller_namespace
+    draw do
+      namespace :foo do
+        get '/', to: '/bar#index', as: 'root'
+      end
+    end
+
+    get '/foo'
+    assert_equal 'bar#index', @response.body
+    assert_equal '/foo', foo_root_path
+  end
+
 private
 
   def draw(&block)
@@ -3235,7 +3265,9 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
 
       get "/foo/:id" => redirect("/foo/bar/%{id}")
       get "/bar/:id" => redirect(:path => "/foo/bar/%{id}")
+      get "/baz/:id" => redirect("/baz?id=%{id}&foo=?&bar=1#id-%{id}")
       get "/foo/bar/:id" => ok
+      get "/baz" => ok
     end
   end
 
@@ -3249,6 +3281,14 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
   test "redirect escapes interpolated parameters with option proc" do
     get "/bar/1%3E"
     verify_redirect "http://www.example.com/foo/bar/1%3E"
+  end
+
+  test "path redirect escapes interpolated parameters correctly" do
+    get "/foo/1%201"
+    verify_redirect "http://www.example.com/foo/bar/1%201"
+
+    get "/baz/1%201"
+    verify_redirect "http://www.example.com/baz?id=1+1&foo=?&bar=1#id-1%201"
   end
 
 private
@@ -3317,6 +3357,8 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
       get '/foo' => ok, as: :foo
       get '/post(/:action(/:id))' => ok, as: :posts
+      get '/:foo/:foo_type/bars/:id' => ok, as: :bar
+      get '/projects/:id.:format' => ok, as: :project
     end
   end
 
@@ -3338,6 +3380,16 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   test 'nested optional segments are removed' do
     assert_equal '/post', Routes.url_helpers.posts_path
     assert_equal '/post', posts_path
+  end
+
+  test 'segments with same prefix are replaced correctly' do
+    assert_equal '/foo/baz/bars/1', Routes.url_helpers.bar_path('foo', 'baz', '1')
+    assert_equal '/foo/baz/bars/1', bar_path('foo', 'baz', '1')
+  end
+
+  test 'segments separated with a period are replaced correctly' do
+    assert_equal '/projects/1.json', Routes.url_helpers.project_path(1, :json)
+    assert_equal '/projects/1.json', project_path(1, :json)
   end
 end
 
@@ -3684,5 +3736,30 @@ class TestRedirectRouteGeneration < ActionDispatch::IntegrationTest
     assert_raise(ActionController::UrlGenerationError) do
       assert_equal '/de/account?controller=products', url_for(controller: 'products', action: 'index', :locale => 'de', only_path: true)
     end
+  end
+end
+
+class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      get "/products/:id" => 'products#show', :as => :product
+    end
+  end
+
+  def app; Routes end
+
+  include Routes.url_helpers
+
+  test "url helpers raise a helpful error message whem generation fails" do
+    url, missing = { action: 'show', controller: 'products', id: nil }, [:id]
+    message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
+
+    # Optimized url helper
+    error = assert_raises(ActionController::UrlGenerationError){ product_path(nil) }
+    assert_equal message, error.message
+
+    # Non-optimized url helper
+    error = assert_raises(ActionController::UrlGenerationError, message){ product_path(id: nil) }
+    assert_equal message, error.message
   end
 end

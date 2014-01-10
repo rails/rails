@@ -337,7 +337,7 @@ set. In fact, this set can be any enumerable object.
 ```ruby
 class Account < ActiveRecord::Base
   validates :subdomain, exclusion: { in: %w(www us ca jp),
-    message: "Subdomain %{value} is reserved." }
+    message: "%{value} is reserved." }
 end
 ```
 

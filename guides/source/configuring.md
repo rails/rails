@@ -66,6 +66,9 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
 
+* `config.beginning_of_week` sets the default beginning of week for the
+application. Accepts a valid week day symbol (e.g. `:monday`).
+
 * `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, or an object that implements the cache API. Defaults to `:file_store` if the directory `tmp/cache` exists, and to `:memory_store` otherwise.
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to true.
@@ -129,14 +132,14 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
 
-* `config.beginning_of_week` sets the default beginning of week for the application. Accepts a valid week day symbol (e.g. `:monday`).
-
 ### Configuring Assets
 
 * `config.assets.enabled` a flag that controls whether the asset
 pipeline is enabled. It is set to true by default.
 
-* `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/production.rb`.
+*`config.assets.raise_runtime_errors`* Set this flag to `true` to enable additional runtime error checking. Recommended in `config/environments/development.rb` to minimize unexpected behavior when deploying to `production`.
+
+* `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/environments/production.rb`.
 
 * `config.assets.css_compressor` defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
 
@@ -243,7 +246,13 @@ config.middleware.delete "Rack::MethodOverride"
 
 ### Configuring i18n
 
+All these configuration options are delegated to the `I18n` library.
+
+* `config.i18n.available_locales` whitelists the available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
+
 * `config.i18n.default_locale` sets the default locale of an application used for i18n. Defaults to `:en`.
+
+* `config.i18n.enforce_available_locales` ensures that all locales passed through i18n must be declared in the `available_locales` list, raising an `I18n::InvalidLocale` exception when setting an unavailable locale. Defaults to `true`. It is recommended not to disable this option unless strongly required, since this works as a security measure against setting any invalid locale from user input.
 
 * `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/*.{yml,rb}`.
 
@@ -280,6 +289,8 @@ config.middleware.delete "Rack::MethodOverride"
 * `config.active_record.partial_writes` is a boolean value and controls whether or not partial writes are used (i.e. whether updates only set attributes that are dirty). Note that when using partial writes, you should also use optimistic locking `config.active_record.lock_optimistically` since concurrent updates may write attributes based on a possibly stale read state. The default value is `true`.
 
 * `config.active_record.attribute_types_cached_by_default` sets the attribute types that `ActiveRecord::AttributeMethods` will cache by default on reads. The default is `[:datetime, :timestamp, :time, :date]`.
+
+* `config.active_record.maintain_test_schema` is a boolean value which controls whether Active Record should try to keep your test database schema up-to-date with `db/schema.rb` (or `db/structure.sql`) when you run your tests. The default is true.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -328,6 +339,18 @@ The schema dumper adds one additional configuration option:
     ```
 
 * `config.action_dispatch.tld_length` sets the TLD (top-level domain) length for the application. Defaults to `1`.
+
+* `config.action_dispatch.http_auth_salt` sets the HTTP Auth salt value. Defaults
+to `'http authentication'`.
+
+* `config.action_dispatch.signed_cookie_salt` sets the signed cookies salt value.
+Defaults to `'signed cookie'`.
+
+* `config.action_dispatch.encrypted_cookie_salt` sets the encrypted cookies salt
+value. Defaults to `'encrypted cookie'`.
+
+* `config.action_dispatch.encrypted_signed_cookie_salt` sets the signed
+encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
@@ -432,13 +455,130 @@ There are a few configuration options available in Active Support:
 
 ### Configuring a Database
 
-Just about every Rails application will interact with a database. The database to use is specified in a configuration file called `config/database.yml`. If you open this file in a new Rails application, you'll see a default database configured to use SQLite3. The file contains sections for three different environments in which Rails can run by default:
+Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.
+
+Using the `config/database.yml` file you can specify all the information needed to access your database:
+
+```yaml
+development:
+  adapter: postgresql
+  database: blog_development
+  pool: 5
+```
+
+This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
+
+```ruby
+> puts ENV['DATABASE_URL']
+postgresql://localhost/blog_development?pool=5
+```
+
+The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
 
 * The `development` environment is used on your development/local computer as you interact manually with the application.
 * The `test` environment is used when running automated tests.
 * The `production` environment is used when you deploy your application for the world to use.
 
+If you wish, you can manually specify a URL inside of your `config/database.yml`
+
+```
+development:
+  url: postgresql://localhost/blog_development?pool=5
+```
+
+The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the tags will be evaluated as Ruby code. You can use this to pull out data from an environment variable or to perform calculations to generate the needed connection information.
+
+
 TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite. Detailed examples of the common database connections are below.
+
+
+### Connection Preference
+
+Since there are two ways to set your connection, via environment variable it is important to understand how the two can interact.
+
+If you have an empty `config/database.yml` file but your `ENV['DATABASE_URL']` is present, then Rails will connect to the database via your environment variable:
+
+```
+$ cat config/database.yml
+
+$ echo $DATABASE_URL
+postgresql://localhost/my_database
+```
+
+If you have a `config/database.yml` but no `ENV['DATABASE_URL']` then this file will be used to connect to your database:
+
+```
+$ cat config/database.yml
+development:
+  adapter: postgresql
+  database: my_database
+  host: localhost
+
+$ echo $DATABASE_URL
+```
+
+If you have both `config/database.yml` and `ENV['DATABASE_URL']` set then Rails will merge the configuration together. To better understand this we must see some examples.
+
+When duplicate connection information is provided the environment variable will take precedence:
+
+```
+$ cat config/database.yml
+development:
+  adapter: sqlite3
+  database: NOT_my_database
+  host: localhost
+
+$ echo $DATABASE_URL
+postgresql://localhost/my_database
+
+$ rails runner 'puts ActiveRecord::Base.connections'
+{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database"}}
+```
+
+Here the adapter, host, and database match the information in `ENV['DATABASE_URL']`.
+
+If non-duplicate information is provided you will get all unique values, environment variable still takes precedence in cases of any conflicts.
+
+```
+$ cat config/database.yml
+development:
+  adapter: sqlite3
+  pool: 5
+
+$ echo $DATABASE_URL
+postgresql://localhost/my_database
+
+$ rails runner 'puts ActiveRecord::Base.connections'
+{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database", "pool"=>5}}
+```
+
+Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
+
+The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connectinon using the `"url"` sub key:
+
+```
+$ cat config/database.yml
+development:
+  url: sqlite3://localhost/NOT_my_database
+
+$ echo $DATABASE_URL
+postgresql://localhost/my_database
+
+$ rails runner 'puts ActiveRecord::Base.connections'
+{"development"=>{"adapter"=>"sqlite3", "host"=>"localhost", "database"=>"NOT_my_database"}}
+```
+
+Here the connection information in `ENV['DATABASE_URL']` is ignored, note the different adapter and database name.
+
+Since it is possible to embed ERB in your `config/database.yml` it is best practice to explicitly show you are using the `ENV['DATABASE_URL']` to connect to your database. This is especially useful in production since you should not commit secrets like your database password into your source control (such as Git).
+
+```
+$ cat config/database.yml
+production:
+  url: <%= ENV['DATABASE_URL'] %>
+```
+
+Now the behavior is clear, that we are only using the connection information in `ENV['DATABASE_URL']`.
 
 #### Configuring an SQLite3 Database
 
@@ -775,7 +915,7 @@ error similar to given below will be thrown.
 ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5 seconds. The max pool size is currently 5; consider increasing it:
 ```
 
-If you get the above error, you might want to increase the size of connection 
+If you get the above error, you might want to increase the size of connection
 pool by incrementing the `pool` option in `database.yml`
 
 NOTE. If you have enabled `Rails.threadsafe!` mode then there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.

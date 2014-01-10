@@ -1833,11 +1833,11 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'foo', :action => 'id_default', :id => 1 }, @routes.recognize_path('/id_default'))
     assert_equal({:controller => 'foo', :action => 'get_or_post'}, @routes.recognize_path('/get_or_post', :method => :get))
     assert_equal({:controller => 'foo', :action => 'get_or_post'}, @routes.recognize_path('/get_or_post', :method => :post))
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/get_or_post', :method => :put) }
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/get_or_post', :method => :delete) }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/get_or_post', :method => :put) }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/get_or_post', :method => :delete) }
 
     assert_equal({:controller => 'posts', :action => 'index', :optional => 'bar'}, @routes.recognize_path('/optional/bar'))
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/optional') }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/optional') }
 
     assert_equal({:controller => 'posts', :action => 'show', :id => '1', :ws => true}, @routes.recognize_path('/ws/posts/show/1', :method => :get))
     assert_equal({:controller => 'posts', :action => 'list', :ws => true}, @routes.recognize_path('/ws/posts/list', :method => :get))
@@ -1915,12 +1915,5 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
         extras[1].sort! { |a, b| a.to_s <=> b.to_s }
       end
       extras
-    end
-
-    def assert_raise(e)
-      result = yield
-      flunk "Did not raise #{e}, but returned #{result.inspect}"
-    rescue e
-      assert true
     end
 end

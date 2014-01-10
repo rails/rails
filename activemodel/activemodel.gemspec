@@ -20,5 +20,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activesupport', version
 
-  s.add_dependency 'builder', '~> 3.1.0'
+  s.add_dependency 'builder', '~> 3.1'
 end

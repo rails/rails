@@ -70,6 +70,23 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       Hstore.reset_column_information
     end
 
+    def test_hstore_migration
+      hstore_migration = Class.new(ActiveRecord::Migration) do
+        def change
+          change_table("hstores") do |t|
+            t.hstore :keys
+          end
+        end
+      end
+
+      hstore_migration.new.suppress_messages do
+        hstore_migration.migrate(:up)
+        assert_includes @connection.columns(:hstores).map(&:name), "keys"
+        hstore_migration.migrate(:down)
+        assert_not_includes @connection.columns(:hstores).map(&:name), "keys"
+      end
+    end
+
     def test_cast_value_on_write
       x = Hstore.new tags: {"bool" => true, "number" => 5}
       assert_equal({"bool" => "true", "number" => "5"}, x.tags)
@@ -205,6 +222,16 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
     def test_multiline
       assert_cycle("a\nb" => "c\nd")
+    end
+
+    def test_update_all
+      hstore = Hstore.create! tags: { "one" => "two" }
+
+      Hstore.update_all tags: { "three" => "four" }
+      assert_equal({ "three" => "four" }, hstore.reload.tags)
+
+      Hstore.update_all tags: { }
+      assert_equal({ }, hstore.reload.tags)
     end
   end
 

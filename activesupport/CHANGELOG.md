@@ -1,3 +1,144 @@
+*   Added `Hash#compact` and `Hash#compact!` for removing items with nil value from hash.
+
+    *Celestino Gomes*
+
+*   Maintain proleptic gregorian in Time#advance
+
+    `Time#advance` uses `Time#to_date` and `Date#advance` to calculate a new date.
+    The `Date` object returned by `Time#to_date` is constructed with the assumption
+    that the `Time` object represents a proleptic gregorian date, but it is
+    configured to observe the default julian calendar reform date (2299161j)
+    for purposes of calculating month, date and year:
+
+        Time.new(1582, 10, 4).to_date.to_s           # => "1582-09-24"
+        Time.new(1582, 10, 4).to_date.gregorian.to_s # => "1582-10-04"
+
+    This patch ensures that when the intermediate `Date` object is advanced
+    to yield a new `Date` object, that the `Time` object for return is constructed
+    with a proleptic gregorian month, date and year.
+
+    *Riley Lynch*
+
+*   `MemCacheStore` should only accept a `Dalli::Client`, or create one.
+
+    *arthurnn*
+
+*   Don't lazy load the `tzinfo` library as it causes problems on Windows.
+
+    Fixes #13553.
+
+    *Andrew White*
+
+*   Use `remove_possible_method` instead of `remove_method` to avoid
+    a `NameError` to be thrown on FreeBSD with the `Date` object.
+
+    *Rafael Mendonça França*, *Robin Dupret*
+
+*   `blank?` and `present?` commit to return singletons.
+
+    *Xavier Noria*, *Pavel Pravosud*
+
+*   Fixed Float related error in NumberHelper with large precisions.
+
+    Before:
+
+        ActiveSupport::NumberHelper.number_to_rounded '3.14159', precision: 50
+        #=> "3.14158999999999988261834005243144929409027099609375"
+
+    After:
+
+        ActiveSupport::NumberHelper.number_to_rounded '3.14159', precision: 50
+        #=> "3.14159000000000000000000000000000000000000000000000"
+
+    *Kenta Murata*, *Akira Matsuda*
+
+*   Default the new `I18n.enforce_available_locales` config to `true`, meaning
+    `I18n` will make sure that all locales passed to it must be declared in the
+    `available_locales` list.
+
+    To disable it add the following configuration to your application:
+
+        config.i18n.enforce_available_locales = false
+
+    This also ensures I18n configuration is properly initialized taking the new
+    option into account, to avoid their deprecations while booting up the app.
+
+    *Carlos Antonio da Silva*, *Yves Senn*
+
+*   Introduce Module#concerning: a natural, low-ceremony way to separate
+    responsibilities within a class.
+
+    Imported from https://github.com/37signals/concerning#readme
+
+        class Todo < ActiveRecord::Base
+          concerning :EventTracking do
+            included do
+              has_many :events
+            end
+
+            def latest_event
+              ...
+            end
+
+            private
+              def some_internal_method
+                ...
+              end
+          end
+
+          concerning :Trashable do
+            def trashed?
+              ...
+            end
+
+            def latest_event
+              super some_option: true
+            end
+          end
+        end
+
+    is equivalent to defining these modules inline, extending them into
+    concerns, then mixing them in to the class.
+
+    Inline concerns tame "junk drawer" classes that intersperse many unrelated
+    class-level declarations, public instance methods, and private
+    implementation. Coalesce related bits and give them definition.
+    These are a stepping stone toward future growth & refactoring.
+
+    When to move on from an inline concern:
+     * Encapsulating state? Extract collaborator object.
+     * Encompassing more public behavior or implementation? Move to separate file.
+     * Sharing behavior among classes? Move to separate file.
+
+    *Jeremy Kemper*
+
+*   Fix file descriptor being leaked on each call to `Kernel.silence_stream`.
+
+    *Mario Visic*
+
+*   Added `Date#all_week/month/quarter/year` for generating date ranges.
+
+    *Dmitriy Meremyanin*
+
+*   Add `Time.zone.yesterday` and `Time.zone.tomorrow`. These follow the
+    behavior of Ruby's `Date.yesterday` and `Date.tomorrow` but return localized
+    versions, similar to how `Time.zone.today` has returned a localized version
+    of `Date.today`.
+
+    *Colin Bartlett*
+
+*   Show valid keys when `assert_valid_keys` raises an exception, and show the
+    wrong value as it was entered.
+
+    *Gonzalo Rodríguez-Baltanás Díaz*
+
+*   Both `cattr_*` and `mattr_*` method definitions now live in `active_support/core_ext/module/attribute_accessors`.
+
+    Requires to `active_support/core_ext/class/attribute_accessors` are
+    deprecated and will be removed in Ruby on Rails 4.2.
+
+    *Genadi Samokovarov*
+
 *   Deprecated `Numeric#{ago,until,since,from_now}`, the user is expected to explicitly
     convert the value into an AS::Duration, i.e. `5.ago` => `5.seconds.ago`
 
@@ -16,6 +157,22 @@
     *Godfrey Chan*
 
 *   Requires JSON gem version 1.7.7 or above due to a security issue in older versions.
+
+    *Godfrey Chan*
+
+*   Removed the old pure-Ruby JSON encoder and switched to a new encoder based on the built-in JSON
+    gem.
+
+    Support for encoding `BigDecimal` as a JSON number, as well as defining custom `encode_json`
+    methods to control the JSON output has been **removed from core**. The new encoder will always
+    encode BigDecimals as `String`s and ignore any custom `encode_json` methods.
+
+    The old encoder has been extracted into the `activesupport-json_encoder` gem. Installing that
+    gem will bring back the ability to encode `BigDecimal`s as numbers as well as `encode_json`
+    support.
+
+    Setting the related configuration `ActiveSupport.encode_big_decimal_as_string` without the
+    `activesupport-json_encoder` gem installed will raise an error.
 
     *Godfrey Chan*
 
@@ -215,19 +372,21 @@
 
     The value of `PER_ENTRY_OVERHEAD` is 240 bytes based on an [empirical
     estimation](https://gist.github.com/ssimeonov/6047200) for 64-bit MRI on
-    1.9.3 and 2.0. GH#11512
+    1.9.3 and 2.0.
+
+    Fixes #11512.
 
     *Simeon Simeonov*
 
 *   Only raise `Module::DelegationError` if it's the source of the exception.
 
-    Fixes #10559
+    Fixes #10559.
 
     *Andrew White*
 
 *   Make `Time.at_with_coercion` retain the second fraction and return local time.
 
-    Fixes #11350
+    Fixes #11350.
 
     *Neer Friedman*, *Andrew White*
 
@@ -244,7 +403,7 @@
 
     *Arun Agrawal*
 
-*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_fromat`.
+*   Remove deprecated `DateTime.local_offset` in favor of `DateTime.civil_from_format`.
 
     *Arun Agrawal*
 
@@ -293,21 +452,21 @@
 *   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
     with multiple silencers.
 
-    Fixes #11030
+    Fixes #11030.
 
     *Mark J. Titorenko*
 
 *   `HashWithIndifferentAccess#select` now returns a `HashWithIndifferentAccess`
     instance instead of a `Hash` instance.
 
-    Fixes #10723
+    Fixes #10723.
 
     *Albert Llop*
 
 *   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
     sub-second resolution when wrapping a `DateTime` value.
 
-    Fixes #10855
+    Fixes #10855.
 
     *Andrew White*
 
@@ -323,9 +482,13 @@
 *   Prevent side effects to hashes inside arrays when
     `Hash#with_indifferent_access` is called.
 
-    Fixes #10526
+    Fixes #10526.
 
     *Yves Senn*
+
+*   Removed deprecated `ActiveSupport::JSON::Variable` with no replacement.
+
+    *Toshinori Kajihara*
 
 *   Raise an error when multiple `included` blocks are defined for a Concern.
     The old behavior would silently discard previously defined blocks, running

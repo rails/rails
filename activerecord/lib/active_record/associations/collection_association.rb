@@ -4,7 +4,7 @@ module ActiveRecord
     #
     # CollectionAssociation is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
-    # collections. See the class hierarchy in AssociationProxy.
+    # collections. See the class hierarchy in Association.
     #
     #   CollectionAssociation:
     #     HasManyAssociation => has_many
@@ -66,11 +66,11 @@ module ActiveRecord
         @target = []
       end
 
-      def select(select = nil)
+      def select(*fields)
         if block_given?
           load_target.select.each { |e| yield e }
         else
-          scope.select(select)
+          scope.select(*fields)
         end
       end
 
@@ -193,7 +193,11 @@ module ActiveRecord
 
       # Count all records using SQL.  Construct options and pass them with
       # scope to the target class's +count+.
-      def count(column_name = nil)
+      def count(column_name = nil, count_options = {})
+        # TODO: Remove count_options argument as soon we remove support to
+        # activerecord-deprecated_finders.
+        column_name, count_options = nil, column_name if column_name.is_a?(Hash)
+
         relation = scope
         if association_scope.distinct_value
           # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.

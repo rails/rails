@@ -137,7 +137,7 @@ module ActionDispatch
     class Session
       DEFAULT_HOST = "www.example.com"
 
-      include MiniTest::Assertions
+      include Minitest::Assertions
       include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
@@ -242,7 +242,7 @@ module ActionDispatch
         @https = flag
       end
 
-      # Return +true+ if the session is mimicking a secure HTTPS request.
+      # Returns +true+ if the session is mimicking a secure HTTPS request.
       #
       #   if session.https?
       #     ...

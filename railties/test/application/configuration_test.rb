@@ -250,7 +250,7 @@ module ApplicationTests
 
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |app|
-        app.config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
         app.config.session_store :disabled
       end
 
@@ -266,6 +266,74 @@ module ApplicationTests
       secret = app.key_generator.generate_key('signed cookie')
       verifier = ActiveSupport::MessageVerifier.new(secret)
       assert_equal 'some_value', verifier.verify(last_response.body)
+    end
+
+    test "application verifier can be used in the entire application" do
+      make_basic_app do |app|
+        app.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.session_store :disabled
+      end
+
+      message = app.message_verifier(:sensitive_value).generate("some_value")
+
+      assert_equal 'some_value', Rails.application.message_verifier(:sensitive_value).verify(message)
+
+      secret = app.key_generator.generate_key('sensitive_value')
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      assert_equal 'some_value', verifier.verify(message)
+    end
+
+    test "application verifier can build different verifiers" do
+      make_basic_app do |app|
+        app.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.session_store :disabled
+      end
+
+      default_verifier = app.message_verifier(:sensitive_value)
+      text_verifier = app.message_verifier(:text)
+
+      message = text_verifier.generate('some_value')
+
+      assert_equal 'some_value', text_verifier.verify(message)
+      assert_raises ActiveSupport::MessageVerifier::InvalidSignature do
+        default_verifier.verify(message)
+      end
+
+      assert_equal default_verifier.object_id, app.message_verifier(:sensitive_value).object_id
+      assert_not_equal default_verifier.object_id, text_verifier.object_id
+    end
+
+    test "secrets.secret_key_base is used when config/secrets.yml is present" do
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+      YAML
+
+      require "#{app_path}/config/environment"
+      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_key_base
+    end
+
+    test "secret_key_base is copied from config to secrets when not set" do
+      remove_file "config/secrets.yml"
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_key_base
+    end
+
+    test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+          aws_access_key_id: myamazonaccesskeyid
+          aws_secret_access_key: myamazonsecretaccesskey
+      YAML
+
+      require "#{app_path}/config/environment"
+      assert_equal 'myamazonaccesskeyid', app.secrets.aws_access_key_id
+      assert_equal 'myamazonsecretaccesskey', app.secrets.aws_secret_access_key
     end
 
     test "protect from forgery is the default in a new app" do
@@ -459,7 +527,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert ActionView::Resolver.caching?
+      assert_equal true, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading without cache_classes default" do
@@ -467,7 +535,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert !ActionView::Resolver.caching?
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading = false" do
@@ -478,7 +546,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert !ActionView::Resolver.caching?
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading = true" do
@@ -489,7 +557,21 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert ActionView::Resolver.caching?
+      assert_equal true, ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading with cache_classes in an environment" do
+      build_app(initializers: true)
+      add_to_env_config "development", "config.cache_classes = false"
+
+      # These requires are to emulate an engine loading Action View before the application
+      require 'action_view'
+      require 'action_view/railtie'
+      require 'action_view/base'
+
+      require "#{app_path}/config/environment"
+
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_dispatch.show_exceptions is sent in env" do

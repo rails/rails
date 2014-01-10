@@ -78,9 +78,9 @@ module AbstractController
       end
 
       def test_declare_missing_helper
-        AbstractHelpers.helper :missing
-        flunk "should have raised an exception"
-      rescue LoadError => e
+        e = assert_raise AbstractController::Helpers::MissingHelperError do
+          AbstractHelpers.helper :missing
+        end
         assert_equal "helpers/missing_helper.rb", e.path
       end
 

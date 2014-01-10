@@ -671,6 +671,27 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal ["robert.pankowecki@gmail.com"], DefaultFromMailer.welcome.from
   end
 
+  test "mail() without arguments serves as getter for the current mail message" do
+    class MailerWithCallback < ActionMailer::Base
+      after_action :a_callback
+
+      def welcome
+        headers('X-Special-Header' => 'special indeed!')
+        mail subject: "subject", body: "hello world", to: ["joe@example.com"]
+      end
+
+      def a_callback
+        mail.to << "jane@example.com"
+      end
+    end
+
+    mail = MailerWithCallback.welcome
+    assert_equal "subject", mail.subject
+    assert_equal ["joe@example.com", "jane@example.com"], mail.to
+    assert_equal "hello world", mail.body.encoded.strip
+    assert_equal "special indeed!", mail["X-Special-Header"].to_s
+  end
+
   protected
 
     # Execute the block setting the given values and restoring old values after

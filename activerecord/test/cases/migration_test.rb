@@ -79,6 +79,10 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
   end
 
+  def test_migration_version
+    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947)
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     if Person.connection.table_exists?(:testings2)
       Person.connection.drop_table :testings2
@@ -443,6 +447,32 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :binary_testings rescue nil
   end
 
+  def test_create_table_with_query
+    Person.connection.drop_table :table_from_query_testings rescue nil
+    Person.connection.create_table(:person, force: true)
+
+    Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
+
+    columns = Person.connection.columns(:table_from_query_testings)
+    assert_equal 1, columns.length
+    assert_equal "id", columns.first.name
+
+    Person.connection.drop_table :table_from_query_testings rescue nil
+  end
+
+  def test_create_table_with_query_from_relation
+    Person.connection.drop_table :table_from_query_testings rescue nil
+    Person.connection.create_table(:person, force: true)
+
+    Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
+
+    columns = Person.connection.columns(:table_from_query_testings)
+    assert_equal 1, columns.length
+    assert_equal "id", columns.first.name
+
+    Person.connection.drop_table :table_from_query_testings rescue nil
+  end
+
   if current_adapter? :OracleAdapter
     def test_create_table_with_custom_sequence_name
       # table name is 29 chars, the standard sequence name will
@@ -743,7 +773,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+    travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
@@ -768,7 +798,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
     sources[:omg]     = MIGRATIONS_ROOT + "/to_copy_with_timestamps2"
 
-    Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+    travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
       copied = ActiveRecord::Migration.copy(@migrations_path, sources)
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
@@ -788,7 +818,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    Time.travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
+    travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
       ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert File.exist?(@migrations_path + "/20100301010102_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100301010103_people_have_descriptions.bukkits.rb")
@@ -863,7 +893,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/non_existing"
     @existing_migrations = []
 
-    Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+    travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
@@ -878,7 +908,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/empty"
     @existing_migrations = []
 
-    Time.travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
+    travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
       copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")

@@ -18,6 +18,7 @@ test:
   <<: *default
   database: db/test.sqlite3
 
+# Do not keep production credentials in the repository,
+# instead read the configuration from the environment.
 production:
-  <<: *default
-  database: db/production.sqlite3
+  url: <%%= ENV["DATABASE_URL"] %>

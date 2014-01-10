@@ -767,8 +767,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   # that by defining a 'foo' method in the generated methods module for B.
   # (That module will be inserted between the two, e.g. [B, <GeneratedAttributes>, A].)
   def test_inherited_custom_accessors
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "topics"
+    klass = new_topic_like_ar_class do
       self.abstract_class = true
       def title; "omg"; end
       def title=(val); self.author_name = val; end
@@ -783,7 +782,39 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "lol", topic.author_name
   end
 
+  def test_on_the_fly_super_invokable_generated_attribute_methods_via_method_missing
+    klass = new_topic_like_ar_class do
+      def title
+        super + '!'
+      end
+    end
+
+    real_topic = topics(:first)
+    assert_equal real_topic.title + '!', klass.find(real_topic.id).title
+  end
+
+  def test_on_the_fly_super_invokable_generated_predicate_attribute_methods_via_method_missing
+    klass = new_topic_like_ar_class do
+      def title?
+        !super
+      end
+    end
+
+    real_topic = topics(:first)
+    assert_equal !real_topic.title?, klass.find(real_topic.id).title?
+  end
+
   private
+
+  def new_topic_like_ar_class(&block)
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'topics'
+      class_eval(&block)
+    end
+
+    assert_empty klass.generated_attribute_methods.instance_methods(false)
+    klass
+  end
 
   def cached_columns
     Topic.columns.map(&:name) - Topic.serialized_attributes.keys

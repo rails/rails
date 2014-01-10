@@ -93,7 +93,8 @@ module TestHelpers
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
       @prev_rails_env = ENV['RAILS_ENV']
-      ENV['RAILS_ENV'] = 'development'
+      ENV['RAILS_ENV']             = 'development'
+      ENV['RAILS_SECRET_KEY_BASE'] ||= SecureRandom.hex(16)
 
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(app_template_path, app_path)
@@ -117,9 +118,26 @@ module TestHelpers
         end
       end
 
+      File.open("#{app_path}/config/database.yml", "w") do |f|
+        f.puts <<-YAML
+        default: &default
+          adapter: sqlite3
+          pool: 5
+          timeout: 5000
+        development:
+          <<: *default
+          database: db/development.sqlite3
+        test:
+          <<: *default
+          database: db/test.sqlite3
+        production:
+          <<: *default
+          database: db/production.sqlite3
+        YAML
+      end
+
       add_to_config <<-RUBY
         config.eager_load = false
-        config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
@@ -139,7 +157,7 @@ module TestHelpers
 
       app = Class.new(Rails::Application)
       app.config.eager_load = false
-      app.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
+      app.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
       app.config.session_store :cookie_store, key: "_myapp_session"
       app.config.active_support.deprecation = :log
 

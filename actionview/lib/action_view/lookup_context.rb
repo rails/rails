@@ -52,6 +52,7 @@ module ActionView
       locales
     end
     register_detail(:formats) { ActionView::Base.default_formats || [:html, :text, :js, :css,  :xml, :json] }
+    register_detail(:variants) { [] }
     register_detail(:handlers){ Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
@@ -62,6 +63,13 @@ module ActionView
       @details_keys = ThreadSafe::Cache.new
 
       def self.get(details)
+        if details[:formats]
+          details = details.dup
+          syms    = Set.new Mime::SET.symbols
+          details[:formats] = details[:formats].select { |v|
+            syms.include? v
+          }
+        end
         @details_keys[details] ||= new
       end
 

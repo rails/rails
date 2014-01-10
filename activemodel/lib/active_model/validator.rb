@@ -61,7 +61,7 @@ module ActiveModel
   #   end
   #
   # Note that the validator is initialized only once for the whole application
-  # lifecycle, and not on each validation run.
+  # life cycle, and not on each validation run.
   #
   # The easiest way to add custom validators for validating individual attributes
   # is with the convenient <tt>ActiveModel::EachValidator</tt>.
@@ -83,7 +83,7 @@ module ActiveModel
   #   end
   #
   # It can be useful to access the class that is using that validator when there are prerequisites such
-  # as an +attr_accessor+ being present. This class is accessable via +options[:class]+ in the constructor.
+  # as an +attr_accessor+ being present. This class is accessible via +options[:class]+ in the constructor.
   # To setup your validator override the constructor.
   #
   #   class MyValidator < ActiveModel::Validator
@@ -109,7 +109,7 @@ module ActiveModel
       deprecated_setup(options)
     end
 
-    # Return the kind for this validator.
+    # Returns the kind for this validator.
     #
     #   PresenceValidator.new.kind   # => :presence
     #   UniquenessValidator.new.kind # => :uniqueness

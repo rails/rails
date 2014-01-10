@@ -19,16 +19,21 @@ module ActiveRecord
     #
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
-    def count(column_name = nil)
-      calculate(:count, column_name)
+    def count(column_name = nil, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
+      column_name, options = nil, column_name if column_name.is_a?(Hash)
+      calculate(:count, column_name, options)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
     # no row. See +calculate+ for examples with options.
     #
     #   Person.average(:age) # => 35.8
-    def average(column_name)
-      calculate(:average, column_name)
+    def average(column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
+      calculate(:average, column_name, options)
     end
 
     # Calculates the minimum value on a given column. The value is returned
@@ -36,8 +41,10 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.minimum(:age) # => 7
-    def minimum(column_name)
-      calculate(:minimum, column_name)
+    def minimum(column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
+      calculate(:minimum, column_name, options)
     end
 
     # Calculates the maximum value on a given column. The value is returned
@@ -45,8 +52,10 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.maximum(:age) # => 93
-    def maximum(column_name)
-      calculate(:maximum, column_name)
+    def maximum(column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
+      calculate(:maximum, column_name, options)
     end
 
     # Calculates the sum of values on a given column. The value is returned
@@ -89,15 +98,17 @@ module ActiveRecord
     #   Person.group(:last_name).having("min(age) > 17").minimum(:age)
     #
     #   Person.sum("2 * age")
-    def calculate(operation, column_name)
+    def calculate(operation, column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
       if column_name.is_a?(Symbol) && attribute_alias?(column_name)
         column_name = attribute_alias(column_name)
       end
 
       if has_include?(column_name)
-        construct_relation_for_association_calculations.calculate(operation, column_name)
+        construct_relation_for_association_calculations.calculate(operation, column_name, options)
       else
-        perform_calculation(operation, column_name)
+        perform_calculation(operation, column_name, options)
       end
     end
 
@@ -180,7 +191,9 @@ module ActiveRecord
       eager_loading? || (includes_values.present? && (column_name || references_eager_loaded_tables?))
     end
 
-    def perform_calculation(operation, column_name)
+    def perform_calculation(operation, column_name, options = {})
+      # TODO: Remove options argument as soon we remove support to
+      # activerecord-deprecated_finders.
       operation = operation.to_s.downcase
 
       # If #count is used with #distinct / #uniq it is considered distinct. (eg. relation.distinct.count)
@@ -311,7 +324,9 @@ module ActiveRecord
         }
         key = key.first if key.size == 1
         key = key_records[key] if associated
-        [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
+
+        column_type = calculated_data.column_types.fetch(aggregate_alias) { column_for(column_name) }
+        [key, type_cast_calculated_value(row[aggregate_alias], column_type, operation)]
       end]
     end
 

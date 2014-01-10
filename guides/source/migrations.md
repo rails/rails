@@ -297,10 +297,10 @@ You can append as many column name/type pairs as you want.
 You can also specify some options just after the field type between curly
 braces. You can use the following modifiers:
 
-* `limit`        Sets the maximum size of the `string/text/binary/integer` fields
-* `precision`    Defines the precision for the `decimal` fields
-* `scale`        Defines the scale for the `decimal` fields
-* `polymorphic`  Adds a `type` column for `belongs_to` associations
+* `limit`        Sets the maximum size of the `string/text/binary/integer` fields.
+* `precision`    Defines the precision for the `decimal` fields, representing the total number of digits in the number.
+* `scale`        Defines the scale for the `decimal` fields, representing the number of digits after the decimal point.
+* `polymorphic`  Adds a `type` column for `belongs_to` associations.
 * `null`         Allows or disallows `NULL` values in the column.
 
 For instance, running:

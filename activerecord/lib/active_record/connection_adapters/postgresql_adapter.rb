@@ -46,7 +46,7 @@ module ActiveRecord
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       attr_accessor :array
-      # Instantiates a new PostgreSQL column definition in a table.
+
       def initialize(name, default, oid_type, sql_type = nil, null = true)
         @oid_type = oid_type
         default_value     = self.class.extract_value_from_default(default)
@@ -60,6 +60,14 @@ module ActiveRecord
         end
 
         @default_function = default if has_default_function?(default_value, default)
+      end
+
+      def number?
+        !array && super
+      end
+
+      def text?
+        !array && super
       end
 
       # :stopdoc:
@@ -565,7 +573,8 @@ module ActiveRecord
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
-        initialize_type_map
+        @type_map = OID::TypeMap.new
+        initialize_type_map(type_map)
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
@@ -712,6 +721,10 @@ module ActiveRecord
         !native_database_types[type].nil?
       end
 
+      def update_table_definition(table_name, base) #:nodoc:
+        Table.new(table_name, base)
+      end
+
       protected
 
         # Returns the version of the connected PostgreSQL server.
@@ -738,43 +751,60 @@ module ActiveRecord
 
       private
 
-        def reload_type_map
-          OID::TYPE_MAP.clear
-          initialize_type_map
+        def type_map
+          @type_map
         end
 
-        def initialize_type_map
+        def reload_type_map
+          type_map.clear
+          initialize_type_map(type_map)
+        end
+
+        def add_oid(row, records_by_oid, type_map)
+          return type_map if type_map.key? row['type_elem'].to_i
+
+          if OID.registered_type? row['typname']
+            # this composite type is explicitly registered
+            vector = OID::NAMES[row['typname']]
+          else
+            # use the default for composite types
+            unless type_map.key? row['typelem'].to_i
+              add_oid records_by_oid[row['typelem']], records_by_oid, type_map
+            end
+
+            vector = OID::Vector.new row['typdelim'], type_map[row['typelem'].to_i]
+          end
+
+          type_map[row['oid'].to_i] = vector
+          type_map
+        end
+
+        def initialize_type_map(type_map)
           result = execute('SELECT oid, typname, typelem, typdelim, typinput FROM pg_type', 'SCHEMA')
           leaves, nodes = result.partition { |row| row['typelem'] == '0' }
 
           # populate the leaf nodes
           leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
-            OID::TYPE_MAP[row['oid'].to_i] = OID::NAMES[row['typname']]
+            type_map[row['oid'].to_i] = OID::NAMES[row['typname']]
           end
+
+          records_by_oid = result.group_by { |row| row['oid'] }
 
           arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
           # populate composite types
-          nodes.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
-            if OID.registered_type? row['typname']
-              # this composite type is explicitly registered
-              vector = OID::NAMES[row['typname']]
-            else
-              # use the default for composite types
-              vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
-            end
-
-            OID::TYPE_MAP[row['oid'].to_i] = vector
+          nodes.each do |row|
+            add_oid row, records_by_oid, type_map
           end
 
           # populate array types
-          arrays.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
-            array = OID::Array.new  OID::TYPE_MAP[row['typelem'].to_i]
-            OID::TYPE_MAP[row['oid'].to_i] = array
+          arrays.find_all { |row| type_map.key? row['typelem'].to_i }.each do |row|
+            array = OID::Array.new  type_map[row['typelem'].to_i]
+            type_map[row['oid'].to_i] = array
           end
         end
 
-        FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
+        FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
 
         def exec_no_cache(sql, name, binds)
           log(sql, name, binds) { @connection.async_exec(sql) }
@@ -847,6 +877,12 @@ module ActiveRecord
           PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
 
           configure_connection
+        rescue ::PG::Error => error
+          if error.message.include?("does not exist")
+            raise ActiveRecord::NoDatabaseError.new(error.message)
+          else
+            raise error
+          end
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
@@ -951,16 +987,12 @@ module ActiveRecord
         end
 
         def extract_table_ref_from_insert_sql(sql)
-          sql[/into\s+([^\(]*).*values\s*\(/i]
+          sql[/into\s+([^\(]*).*values\s*\(/im]
           $1.strip if $1
         end
 
-        def create_table_definition(name, temporary, options)
-          TableDefinition.new native_database_types, name, temporary, options
-        end
-
-        def update_table_definition(table_name, base)
-          Table.new(table_name, base)
+        def create_table_definition(name, temporary, options, as = nil)
+          TableDefinition.new native_database_types, name, temporary, options, as
         end
     end
   end

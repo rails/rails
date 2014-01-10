@@ -172,6 +172,22 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal "𐒑", decoded_hash['string']
   end
 
+  def test_reading_encode_big_decimal_as_string_option
+    assert_deprecated do
+      assert ActiveSupport.encode_big_decimal_as_string
+    end
+  end
+
+  def test_setting_deprecated_encode_big_decimal_as_string_option
+    assert_raise(NotImplementedError) do
+      ActiveSupport.encode_big_decimal_as_string = true
+    end
+
+    assert_raise(NotImplementedError) do
+      ActiveSupport.encode_big_decimal_as_string = false
+    end
+  end
+
   def test_exception_raised_when_encoding_circular_reference_in_array
     a = [1]
     a << a

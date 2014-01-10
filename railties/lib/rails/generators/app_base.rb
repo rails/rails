@@ -14,6 +14,7 @@ module Rails
       DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
+      attr_accessor :app_template
       add_shebang_option!
 
       argument :app_path, type: :string
@@ -24,6 +25,9 @@ module Rails
 
       def self.add_shared_options_for(name)
         class_option :template,           type: :string, aliases: '-m',
+                                          desc: "Path to some #{name} template (can be a filesystem path or URL)"
+
+        class_option :app_template,       type: :string, aliases: '-n',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
@@ -46,6 +50,9 @@ module Rails
 
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
+
+        class_option :skip_spring,        type: :boolean, default: false,
+                                          desc: "Don't install Spring application preloader"
 
         class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
@@ -109,6 +116,7 @@ module Rails
           jbuilder_gemfile_entry,
           sdoc_gemfile_entry,
           platform_dependent_gemfile_entry,
+          spring_gemfile_entry,
           @extra_entries].flatten.find_all(&@gem_filter)
       end
 
@@ -116,6 +124,10 @@ module Rails
         @gem_filter = lambda { |next_filter, entry|
           yield(entry) && next_filter.call(entry)
         }.curry[@gem_filter]
+      end
+
+      def remove_gem(name)
+        add_gem_entry_filter { |gem| gem.name != name }
       end
 
       def builder
@@ -158,6 +170,10 @@ module Rails
           @target.send :add_gem_entry_filter, *args, &block
         end
 
+        def remove_gem(*args, &block)
+          @target.send :remove_gem, *args, &block
+        end
+
         def method_missing(name, *args, &block)
           @commands << [name, args, block]
         end
@@ -176,7 +192,8 @@ module Rails
       def apply_rails_template
         @recorder = TemplateRecorder.new self
 
-        apply(rails_template, target: @recorder) if rails_template
+        apply(rails_template, target: self) if rails_template
+        apply(app_template, target: @recorder) if app_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
@@ -206,13 +223,18 @@ module Rails
 
       def set_default_accessors!
         self.destination_root = File.expand_path(app_path, destination_root)
-        self.rails_template = case options[:template]
-          when /^https?:\/\//
-            options[:template]
-          when String
-            File.expand_path(options[:template], Dir.pwd)
-          else
-            options[:template]
+        self.rails_template = expand_template options[:template]
+        self.app_template = expand_template options[:app_template]
+      end
+
+      def expand_template(name)
+        case name
+        when /^https?:\/\//
+          name
+        when String
+          File.expand_path(name, Dir.pwd)
+        else
+          name
         end
       end
 
@@ -304,7 +326,7 @@ module Rails
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails',
-                                     '~> 4.0.0.rc1',
+                                     '~> 4.0.1',
                                      'Use SCSS for stylesheets')
         end
 
@@ -325,7 +347,7 @@ module Rails
 
       def jbuilder_gemfile_entry
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
-        GemfileEntry.version('jbuilder', '~> 1.2', comment)
+        GemfileEntry.version('jbuilder', '~> 2.0', comment)
       end
 
       def sdoc_gemfile_entry
@@ -365,6 +387,12 @@ module Rails
         end
       end
 
+      def spring_gemfile_entry
+        return [] unless spring_install?
+        comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/jonleighton/spring'
+        GemfileEntry.new('spring', nil, comment, group: :development)
+      end
+
       def bundle_command(command)
         say_status :run, "bundle #{command}"
 
@@ -388,8 +416,22 @@ module Rails
         end
       end
 
+      def bundle_install?
+        !(options[:skip_gemfile] || options[:skip_bundle] || options[:pretend])
+      end
+
+      def spring_install?
+        !options[:skip_spring] && Process.respond_to?(:fork)
+      end
+
       def run_bundle
-        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
+        bundle_command('install') if bundle_install?
+      end
+
+      def generate_spring_binstubs
+        if bundle_install? && spring_install?
+          bundle_command("exec spring binstub --all")
+        end
       end
 
       def empty_directory_with_keep_file(destination, config = {})

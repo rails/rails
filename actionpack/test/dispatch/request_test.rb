@@ -93,6 +93,14 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal '1.1.1.1', request.remote_ip
   end
 
+  test "remote ip spoof protection ignores private addresses" do
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '172.17.19.51',
+                           'HTTP_CLIENT_IP'       => '172.17.19.51',
+                           'REMOTE_ADDR'          => '1.1.1.1',
+                           'HTTP_X_BLUECOAT_VIA'  => 'de462e07a2db325e'
+    assert_equal '1.1.1.1', request.remote_ip
+  end
+
   test "remote ip v6" do
     request = stub_request 'REMOTE_ADDR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334'
     assert_equal '2001:0db8:85a3:0000:0000:8a2e:0370:7334', request.remote_ip
@@ -598,7 +606,7 @@ class RequestTest < ActiveSupport::TestCase
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     request.expects(:parameters).at_least_once.returns({})
     assert_equal [Mime::JS], request.formats
-    
+
     request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     request.expects(:parameters).at_least_once.returns({})
@@ -616,10 +624,10 @@ class RequestTest < ActiveSupport::TestCase
   test "format is not nil with unknown format" do
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ format: :hello })
-    assert_equal request.format.nil?, true
-    assert_equal request.format.html?, false
-    assert_equal request.format.xml?, false
-    assert_equal request.format.json?, false
+    assert request.format.nil?
+    assert_not request.format.html?
+    assert_not request.format.xml?
+    assert_not request.format.json?
   end
 
   test "formats with xhr request" do
@@ -833,6 +841,19 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal expected, request.if_none_match_etags
     expected.each do |etag|
       assert request.etag_matches?(etag), etag
+    end
+  end
+
+  test "setting variant" do
+    request = stub_request
+    request.variant = :mobile
+    assert_equal :mobile, request.variant
+  end
+
+  test "setting variant with non symbol value" do
+    request = stub_request
+    assert_raise ArgumentError do
+      request.variant = "mobile"
     end
   end
 

@@ -1,6 +1,7 @@
 require 'date'
 require 'active_support/inflector/methods'
 require 'active_support/core_ext/date/zones'
+require 'active_support/core_ext/module/remove_method'
 
 class Date
   DATE_FORMATS = {
@@ -19,8 +20,10 @@ class Date
   # Ruby 1.9 has Date#to_time which converts to localtime only.
   remove_method :to_time
 
-  # Ruby 1.9 has Date#xmlschema which converts to a string without the time component.
-  remove_method :xmlschema
+  # Ruby 1.9 has Date#xmlschema which converts to a string without the time
+  # component. This removal may generate an issue on FreeBSD, that's why we
+  # need to use remove_possible_method here
+  remove_possible_method :xmlschema
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
@@ -37,12 +40,12 @@ class Date
   #   date.to_formatted_s(:rfc822)        # => "10 Nov 2007"
   #   date.to_formatted_s(:iso8601)       # => "2007-11-10"
   #
-  # == Adding your own time formats to to_formatted_s
+  # == Adding your own date formats to to_formatted_s
   # You can add your own formats to the Date::DATE_FORMATS hash.
   # Use the format name as the hash key and either a strftime string
   # or Proc instance that takes a date argument as the value.
   #
-  #   # config/initializers/time_formats.rb
+  #   # config/initializers/date_formats.rb
   #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
   #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
   def to_formatted_s(format = :default)

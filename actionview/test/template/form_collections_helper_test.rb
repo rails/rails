@@ -60,7 +60,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select 'input[type=radio][value=other][disabled=disabled]'
   end
 
-  test 'collection radio accepts single disable item' do
+  test 'collection radio accepts single disabled item' do
     collection = [[1, true], [0, false]]
     with_collection_radio_buttons :user, :active, collection, :last, :first, :disabled => true
 
@@ -82,6 +82,24 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
     assert_select 'input[type=radio][value=true].foo#user_active_true'
     assert_select 'input[type=radio][value=false].bar#user_active_false'
+  end
+
+  test 'collection radio sets the label class defined inside the block' do
+    collection = [[1, true, {class: 'foo'}], [0, false, {class: 'bar'}]]
+    with_collection_radio_buttons :user, :active, collection, :second, :first do |b|
+      b.label(class: "collection_radio_buttons")
+    end
+
+    assert_select 'label.collection_radio_buttons[for=user_active_true]'
+    assert_select 'label.collection_radio_buttons[for=user_active_false]'
+  end
+
+  test 'collection radio does not include the input class in the respective label' do
+    collection = [[1, true, {class: 'foo'}], [0, false, {class: 'bar'}]]
+    with_collection_radio_buttons :user, :active, collection, :second, :first
+
+    assert_no_select 'label.foo[for=user_active_true]'
+    assert_no_select 'label.bar[for=user_active_false]'
   end
 
   test 'collection radio does not wrap input inside the label' do
@@ -215,6 +233,24 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'input[type=checkbox][value=2].bar'
   end
 
+  test 'collection check boxes sets the label class defined inside the block' do
+    collection = [[1, 'Category 1', {class: 'foo'}], [2, 'Category 2', {class: 'bar'}]]
+    with_collection_check_boxes :user, :active, collection, :second, :first do |b|
+      b.label(class: 'collection_check_boxes')
+    end
+
+    assert_select 'label.collection_check_boxes[for=user_active_category_1]'
+    assert_select 'label.collection_check_boxes[for=user_active_category_2]'
+  end
+
+  test 'collection check boxes does not include the input class in the respective label' do
+    collection = [[1, 'Category 1', {class: 'foo'}], [2, 'Category 2', {class: 'bar'}]]
+    with_collection_check_boxes :user, :active, collection, :second, :first
+
+    assert_no_select 'label.foo[for=user_active_category_1]'
+    assert_no_select 'label.bar[for=user_active_category_2]'
+  end
+
   test 'collection check boxes accepts selected values as :checked option' do
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :checked => [1, 3]
@@ -264,7 +300,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select 'input[type=checkbox][value=2][disabled=disabled]'
   end
 
-  test 'collection check boxes accepts single disable item' do
+  test 'collection check boxes accepts single disabled item' do
     collection = (1..3).map{|i| [i, "Category #{i}"] }
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, :disabled => 1
 

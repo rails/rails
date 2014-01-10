@@ -92,7 +92,7 @@ module ActiveRecord
             )
           end
         ensure
-          ActiveRecord::Base.establish_connection 'arunit'
+          ActiveRecord::Base.establish_connection :arunit
         end
       end
     end
@@ -178,6 +178,10 @@ module ActiveRecord
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
     end
+
+    test "type_to_sql returns a String for unmapped types" do
+      assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
+    end
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
@@ -187,7 +191,7 @@ module ActiveRecord
     end
 
     def setup
-      Klass.establish_connection 'arunit'
+      Klass.establish_connection :arunit
       @connection = Klass.connection
     end
 

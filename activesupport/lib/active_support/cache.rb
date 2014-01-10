@@ -3,7 +3,7 @@ require 'zlib'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/benchmark'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/object/to_param'
@@ -401,7 +401,7 @@ module ActiveSupport
         end
       end
 
-      # Return +true+ if the cache contains an entry for the given key.
+      # Returns +true+ if the cache contains an entry for the given key.
       #
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)

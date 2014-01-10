@@ -128,6 +128,16 @@ module ActiveRecord
         end
       end
 
+      def find_generated_attribute_method(method_name) # :nodoc:
+        klass = self
+        until klass == Base
+          gen_methods = klass.generated_attribute_methods
+          return gen_methods.instance_method(method_name) if method_defined_within?(method_name, gen_methods, Object)
+          klass = klass.superclass
+        end
+        nil
+      end
+
       # Returns +true+ if +attribute+ is an attribute method and table exists,
       # +false+ otherwise.
       #
@@ -163,7 +173,14 @@ module ActiveRecord
     def method_missing(method, *args, &block) # :nodoc:
       self.class.define_attribute_methods
       if respond_to_without_attributes?(method)
-        send(method, *args, &block)
+        # make sure to invoke the correct attribute method, as we might have gotten here via a `super`
+        # call in a overwritten attribute method
+        if attribute_method = self.class.find_generated_attribute_method(method)
+          # this is probably horribly slow, but should only happen at most once for a given AR class
+          attribute_method.bind(self).call(*args, &block)
+        else
+          send(method, *args, &block)
+        end
       else
         super
       end
@@ -313,7 +330,7 @@ module ActiveRecord
     end
 
     # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)). It raises
+    # "2004-12-12" in a date column is cast to a date object, like Date.new(2004, 12, 12)). It raises
     # <tt>ActiveModel::MissingAttributeError</tt> if the identified attribute is missing.
     #
     # Alias for the <tt>read_attribute</tt> method.

@@ -7,14 +7,14 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'thread'
 
 module ActiveSupport
-  # Callbacks are code hooks that are run at key points in an object's lifecycle.
+  # Callbacks are code hooks that are run at key points in an object's life cycle.
   # The typical use case is to have a base class define a set of callbacks
   # relevant to the other functionality it supplies, so that subclasses can
   # install callbacks that enhance or modify the base functionality without
   # needing to override or redefine methods of the base class.
   #
   # Mixing in this module allows you to define the events in the object's
-  # lifecycle that will support callbacks (via +ClassMethods.define_callbacks+),
+  # life cycle that will support callbacks (via +ClassMethods.define_callbacks+),
   # set the instance methods, procs, or callback objects to be called (via
   # +ClassMethods.set_callback+), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
@@ -89,7 +89,7 @@ module ActiveSupport
 
     private
 
-    # A hook invoked everytime a before callback is halted.
+    # A hook invoked every time a before callback is halted.
     # This can be overridden in AS::Callback implementors in order
     # to provide better debugging/logging.
     def halted_callback_hook(filter)
@@ -577,7 +577,7 @@ module ActiveSupport
       # The callback can be specified as a symbol naming an instance method; as a
       # proc, lambda, or block; as a string to be instance evaluated; or as an
       # object that responds to a certain method determined by the <tt>:scope</tt>
-      # argument to +define_callback+.
+      # argument to +define_callbacks+.
       #
       # If a proc, lambda, or block is given, its body is evaluated in the context
       # of the current object. It can also optionally accept the current object as
@@ -648,7 +648,7 @@ module ActiveSupport
         self.set_callbacks name, callbacks.dup.clear
       end
 
-      # Define sets of events in the object lifecycle that support callbacks.
+      # Define sets of events in the object life cycle that support callbacks.
       #
       #   define_callbacks :validate
       #   define_callbacks :initialize, :save, :destroy

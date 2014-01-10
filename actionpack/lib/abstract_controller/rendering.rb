@@ -1,5 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/class/attribute'
+require 'action_view/view_paths'
 require 'set'
 
 module AbstractController
@@ -13,6 +14,7 @@ module AbstractController
 
   module Rendering
     extend ActiveSupport::Concern
+    include ActionView::ViewPaths
 
     # Normalize arguments, options and then delegates render_to_body and
     # sticks the result in self.response_body.
@@ -20,7 +22,7 @@ module AbstractController
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
-      _process_format(rendered_format)
+      _process_format(rendered_format) if rendered_format
       self.response_body
     end
 
@@ -45,7 +47,7 @@ module AbstractController
     def render_to_body(options = {})
     end
 
-    # Return Content-Type of rendered content
+    # Returns Content-Type of rendered content
     # :api: public
     def rendered_format
       Mime::TEXT
@@ -102,6 +104,8 @@ module AbstractController
     # :api: private
     def _normalize_render(*args, &block)
       options = _normalize_args(*args, &block)
+      #TODO: remove defined? when we restore AP <=> AV dependency
+      options[:variant] = request.variant if defined?(request) && request.variant.present?
       _normalize_options(options)
       options
     end

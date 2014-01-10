@@ -1,5 +1,6 @@
 require 'set'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'singleton'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/starts_ends_with'
 
 module Mime
@@ -27,7 +28,7 @@ module Mime
   class << self
     def [](type)
       return type if type.is_a?(Type)
-      Type.lookup_by_extension(type) || NullType.new
+      Type.lookup_by_extension(type)
     end
 
     def fetch(type)
@@ -292,13 +293,13 @@ module Mime
   end
 
   class NullType
+    include Singleton
+
     def nil?
       true
     end
 
-    def ref
-      nil
-    end
+    def ref; end
 
     def respond_to_missing?(method, include_private = false)
       method.to_s.ends_with? '?'

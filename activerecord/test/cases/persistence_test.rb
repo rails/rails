@@ -152,6 +152,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal original_errors, client.errors
   end
 
+  def test_dupd_becomes_persists_changes_from_the_original
+    original = topics(:first)
+    copy = original.dup.becomes(Reply)
+    copy.save!
+    assert_equal "The First Topic", Topic.find(copy.id).title
+  end
+
+  def test_becomes_includes_changed_attributes
+    company = Company.new(name: "37signals")
+    client = company.becomes(Client)
+    assert_equal "37signals", client.name
+    assert_equal %w{name}, client.changed
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])

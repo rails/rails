@@ -262,7 +262,7 @@ Rails determines the name of the partial to use by looking at the model name in 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 
 ```erb
-<%= render @products, spacer_template: "product_ruler" %>
+<%= render partial: @products, spacer_template: "product_ruler" %>
 ```
 
 Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
@@ -464,7 +464,7 @@ stylesheet_link_tag :monkey # =>
 
 #### auto_discovery_link_tag
 
-Returns a link tag that browsers and news readers can use to auto-detect an RSS or Atom feed.
+Returns a link tag that browsers and feed readers can use to auto-detect an RSS or Atom feed.
 
 ```ruby
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "RSS Feed"}) # =>
@@ -1143,7 +1143,7 @@ Returns a string of option tags for pretty much any country in the world.
 
 #### country_select
 
-Return select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
+Returns select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
 
 #### option_groups_from_collection_for_select
 
@@ -1242,7 +1242,7 @@ Returns a string of option tags for pretty much any time zone in the world.
 
 #### time_zone_select
 
-Return select and option tags for the given object and method, using `time_zone_options_for_select` to generate the list of option tags.
+Returns select and option tags for the given object and method, using `time_zone_options_for_select` to generate the list of option tags.
 
 ```ruby
 time_zone_select( "user", "time_zone")
@@ -1258,7 +1258,7 @@ date_field("user", "dob")
 
 ### FormTagHelper
 
-Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
+Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
 
 #### check_box_tag
 
@@ -1285,7 +1285,7 @@ Creates a field set for grouping HTML form elements.
 Creates a file upload field.
 
 ```html+erb
-<%= form_tag {action: "post"}, {multipart: true} do %>
+<%= form_tag({action:"post"}, multipart: true) do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
 <% end %>
@@ -1591,7 +1591,7 @@ Localized Views
 
 Action View has the ability render different templates depending on the current locale.
 
-For example, suppose you have a Posts controller with a show action. By default, calling this action will render `app/views/posts/show.html.erb`. But if you set `I18n.locale = :de`, then `app/views/posts/show.de.html.erb` will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
+For example, suppose you have a `PostsController` with a show action. By default, calling this action will render `app/views/posts/show.html.erb`. But if you set `I18n.locale = :de`, then `app/views/posts/show.de.html.erb` will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
 
 You can use the same technique to localize the rescue files in your public directory. For example, setting `I18n.locale = :de` and creating `public/500.de.html` and `public/404.de.html` would allow you to have localized rescue pages.
 

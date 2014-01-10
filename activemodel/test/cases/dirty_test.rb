@@ -67,6 +67,16 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal [nil, "John"], @model.changes['name']
   end
 
+  test "checking if an attribute has changed to a particular value" do
+    @model.name = "Ringo"
+    assert @model.name_changed?(from: nil, to: "Ringo")
+    assert_not @model.name_changed?(from: "Pete", to: "Ringo")
+    assert @model.name_changed?(to: "Ringo")
+    assert_not @model.name_changed?(to: "Pete")
+    assert @model.name_changed?(from: nil)
+    assert_not @model.name_changed?(from: "Pete")
+  end
+
   test "changes accessible through both strings and symbols" do
     @model.name = "David"
     assert_not_nil @model.changes[:name]

@@ -20,6 +20,9 @@ Thread.abort_on_exception = true
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
+# Disable available locale checks to avoid warnings running the test suite.
+I18n.enforce_available_locales = false
+
 # Connect to the database
 ARTest.connect
 
@@ -149,23 +152,6 @@ end
 
 load_schema
 
-class << Time
-  unless method_defined? :now_before_time_travel
-    alias_method :now_before_time_travel, :now
-  end
-
-  def now
-    (@now ||= nil) || now_before_time_travel
-  end
-
-  def travel_to(time, &block)
-    @now = time
-    block.call
-  ensure
-    @now = nil
-  end
-end
-
 class SQLSubscriber
   attr_reader :logged
   attr_reader :payloads
@@ -182,7 +168,6 @@ class SQLSubscriber
 
   def finish(name, id, payload); end
 end
-
 
 module InTimeZone
   private

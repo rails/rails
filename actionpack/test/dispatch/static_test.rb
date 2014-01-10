@@ -137,7 +137,7 @@ module StaticTests
     end
 
     def with_static_file(file)
-      path = "#{FIXTURE_LOAD_PATH}/public" + file
+      path = "#{FIXTURE_LOAD_PATH}/#{public_path}" + file
       File.open(path, "wb+") { |f| f.write(file) }
       yield file
     ensure
@@ -149,11 +149,24 @@ class StaticTest < ActiveSupport::TestCase
   DummyApp = lambda { |env|
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
-  App = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
 
   def setup
-    @app = App
+    @app = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
+  end
+
+  def public_path
+    "public"
   end
 
   include StaticTests
+end
+
+class StaticEncodingTest < StaticTest
+  def setup
+    @app = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/公共", "public, max-age=60")
+  end
+
+  def public_path
+    "公共"
+  end
 end

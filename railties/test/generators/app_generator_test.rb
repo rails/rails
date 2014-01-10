@@ -163,56 +163,71 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_add_gemfile_entry
-    template = Tempfile.open 'my_template'
-    template.puts 'gemfile_entry "tenderlove"'
-    template.flush
+  def test_arbitrary_code
+    output = Tempfile.open('my_template') do |template|
+      template.puts 'puts "You are using Rails version #{Rails::VERSION::STRING}."'
+      template.close
+      run_generator([destination_root, "-m", template.path])
+    end
+    assert_match 'You are using', output
+  end
 
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile", /tenderlove/
-  ensure
-    template.close
-    template.unlink
+  def test_add_gemfile_entry
+    Tempfile.open('my_template') do |template|
+      template.puts 'gemfile_entry "tenderlove"'
+      template.flush
+      template.close
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile", /tenderlove/
+    end
   end
 
   def test_add_skip_entry
-    template = Tempfile.open 'my_template'
-    template.puts 'add_gem_entry_filter { |gem| gem.name != "jbuilder" }'
-    template.flush
+    Tempfile.open 'my_template' do |template|
+      template.puts 'add_gem_entry_filter { |gem| gem.name != "jbuilder" }'
+      template.close
 
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile" do |contents|
-      assert_no_match 'jbuilder', contents
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'jbuilder', contents
+      end
     end
-  ensure
-    template.close
-    template.unlink
+  end
+
+  def test_remove_gem
+    Tempfile.open 'my_template' do |template|
+      template.puts 'remove_gem "jbuilder"'
+      template.close
+
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'jbuilder', contents
+      end
+    end
   end
 
   def test_skip_turbolinks_when_it_is_not_on_gemfile
-    template = Tempfile.open 'my_template'
-    template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
-    template.flush
+    Tempfile.open 'my_template' do |template|
+      template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
+      template.flush
 
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile" do |contents|
-      assert_no_match 'turbolinks', contents
-    end
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
 
-    assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_no_match 'turbolinks', contents
-    end
+      assert_file "app/views/layouts/application.html.erb" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
 
-    assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_no_match('data-turbolinks-track', contents)
-    end
+      assert_file "app/views/layouts/application.html.erb" do |contents|
+        assert_no_match('data-turbolinks-track', contents)
+      end
 
-    assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_no_match 'turbolinks', contents
+      assert_file "app/assets/javascripts/application.js" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
     end
-  ensure
-    template.close
-    template.unlink
   end
 
   def test_config_another_database
@@ -291,7 +306,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
-      assert_match(/config\.assets\.enabled = false/, content)
     end
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
@@ -436,6 +450,34 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "foo bar/config/database.yml", /database: foo_bar_development/
     assert_file "foo bar/config/initializers/session_store.rb", /key: '_foo_bar/
+  end
+
+  def test_spring
+    run_generator
+    assert_file "Gemfile", /gem 'spring', \s+group: :development/
+  end
+
+  def test_spring_binstubs
+    generator.stubs(:bundle_command).with('install')
+    generator.expects(:bundle_command).with('exec spring binstub --all').once
+    quietly { generator.invoke_all }
+  end
+
+  def test_spring_no_fork
+    Process.stubs(:respond_to?).with(:fork).returns(false)
+    run_generator
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/spring/, content)
+    end
+  end
+
+  def test_skip_spring
+    run_generator [destination_root, "--skip-spring"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/spring/, content)
+    end
   end
 
 protected

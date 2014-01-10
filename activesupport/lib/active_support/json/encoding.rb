@@ -5,6 +5,7 @@ module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
+      :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
       :json_encoder, :json_encoder=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
@@ -48,7 +49,7 @@ module ActiveSupport
           ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
 
           # This class wraps all the strings we see and does the extra escaping
-          class EscapedString < String
+          class EscapedString < String #:nodoc:
             def to_json(*)
               if Encoding.escape_html_entities_in_json
                 super.gsub ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
@@ -62,33 +63,28 @@ module ActiveSupport
           private_constant :ESCAPED_CHARS, :ESCAPE_REGEX_WITH_HTML_ENTITIES, 
             :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, :EscapedString
 
-          # Recursively turn the given object into a "jsonified" Ruby data structure
-          # that the JSON gem understands - i.e. we want only Hash, Array, String,
-          # Numeric, true, false and nil in the final tree. Calls #as_json on it if
-          # it's not from one of these base types.
-          # 
-          # This allows developers to implement #as_json withouth having to worry
-          # about what base types of objects they are allowed to return and having
-          # to remember calling #as_json recursively.
-          # 
-          # By default, the options hash is not passed to the children data structures
-          # to avoid undesiarable result. Develoers must opt-in by implementing
-          # custom #as_json methods (e.g. Hash#as_json and Array#as_json).
+          # Convert an object into a "JSON-ready" representation composed of
+          # primitives like Hash, Array, String, Numeric, and true/false/nil.
+          # Recursively calls #as_json to the object to recursively build a
+          # fully JSON-ready object.
+          #
+          # This allows developers to implement #as_json without having to
+          # worry about what base types of objects they are allowed to return
+          # or having to remember to call #as_json recursively.
+          #
+          # Note: the +options+ hash passed to +object.to_json+ is only passed
+          # to +object.as_json+, not any of this method's recursive +#as_json+
+          # calls.
           def jsonify(value)
-            if value.is_a?(Hash)
-              Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
-            elsif value.is_a?(Array)
-              value.map { |v| jsonify(v) }
-            elsif value.is_a?(String)
+            case value
+            when String
               EscapedString.new(value)
-            elsif value.is_a?(Numeric)
+            when Numeric, NilClass, TrueClass, FalseClass
               value
-            elsif value == true
-              true
-            elsif value == false
-              false
-            elsif value == nil
-              nil
+            when Hash
+              Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
+            when Array
+              value.map { |v| jsonify(v) }
             else
               jsonify value.as_json
             end
@@ -112,6 +108,32 @@ module ActiveSupport
         # Sets the encoder used by Rails to encode Ruby objects into JSON strings
         # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
         attr_accessor :json_encoder
+
+        def encode_big_decimal_as_string=(as_string)
+          message = \
+            "The JSON encoder in Rails 4.1 no longer supports encoding BigDecimals as JSON numbers. Instead, " \
+            "the new encoder will always encode them as strings.\n\n" \
+            "You are seeing this error because you have 'active_support.encode_big_decimal_as_string' in " \
+            "your configuration file. If you have been setting this to true, you can safely remove it from " \
+            "your configuration. Otherwise, you should add the 'activesupport-json_encoder' gem to your " \
+            "Gemfile in order to restore this functionality."
+
+          raise NotImplementedError, message
+        end
+
+        def encode_big_decimal_as_string
+          message = \
+            "The JSON encoder in Rails 4.1 no longer supports encoding BigDecimals as JSON numbers. Instead, " \
+            "the new encoder will always encode them as strings.\n\n" \
+            "You are seeing this error because you are trying to check the value of the related configuration, " \
+            "'active_support.encode_big_decimal_as_string'. If your application depends on this option, you should " \
+            "add the 'activesupport-json_encoder' gem to your Gemfile. For now, this option will always be true. " \
+            "In the future, it will be removed from Rails, so you should stop checking its value."
+
+          ActiveSupport::Deprecation.warn message
+
+          true
+        end
 
         # Deprecate CircularReferenceError
         def const_missing(name)

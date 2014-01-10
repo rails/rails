@@ -1,6 +1,6 @@
 module ActionController
   module Head
-    # Return a response that has no content (merely headers). The options
+    # Returns a response that has no content (merely headers). The options
     # argument is interpreted to be a hash of header names and values.
     # This allows you to easily return a response that consists only of
     # significant headers:
