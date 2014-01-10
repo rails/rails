@@ -1009,7 +1009,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>New zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1017,7 +1016,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>Editing zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
