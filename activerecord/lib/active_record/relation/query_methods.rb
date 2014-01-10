@@ -918,7 +918,7 @@ module ActiveRecord
           self.bind_values += rel.bind_values
         end
 
-        [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
+        [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other), table.name)]
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
@@ -989,7 +989,7 @@ module ActiveRecord
       elsif from_value
         arel.project(Arel.star)
       else
-        arel.project(@klass.arel_table[Arel.star])
+        arel.project(table[Arel.star])
       end
     end
 

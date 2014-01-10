@@ -245,6 +245,18 @@ module ActiveRecord
         assert_equal "(number > 100)", index.where
       end
 
+      def test_partial_index_from_hash
+        @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => { :number => 100 }
+        index = @connection.indexes('ex').find { |idx| idx.name == 'partial' }
+        assert_equal "(number = 100)", index.where
+      end
+
+      def test_partial_index_from_array
+        @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => ['number=?', 100]
+        index = @connection.indexes('ex').find { |idx| idx.name == 'partial' }
+        assert_equal "(number = 100)", index.where
+      end
+
       def test_columns_for_distinct_zero_orders
         assert_equal "posts.id",
           @connection.columns_for_distinct("posts.id", [])
