@@ -854,6 +854,8 @@ client.save
 
 As `client` is explicitly set to be a readonly object, the above code will raise an `ActiveRecord::ReadOnlyRecord` exception when calling `client.save` with an updated value of _visits_.
 
+TIP: Using a JOIN without an explicit SELECT will return readonly records.
+
 Locking Records for Update
 --------------------------
 
