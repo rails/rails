@@ -195,6 +195,7 @@ module ActiveRecord
     #   Person.exists?(5)
     #   Person.exists?('5')
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
+    #   Person.exists?(id: [1, 4, 8])
     #   Person.exists?(name: 'David')
     #   Person.exists?(false)
     #   Person.exists?
