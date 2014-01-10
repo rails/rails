@@ -5,6 +5,8 @@ rescue LoadError
   # available only if the application bundle includes "rdoc" (normally as a
   # dependency of the "sdoc" gem.)
   #
+  # Need to have gem 'sdoc', '0.3.20' installed in order to run
+  #
   # If RDoc is not available it is fine that we do not generate the tasks that
   # depend on it. Just be robust to this gotcha and go on.
 else
