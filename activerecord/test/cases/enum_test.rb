@@ -79,6 +79,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal 2, Book::STATUS[:published]
   end
 
+  test "string value to set the mapping" do
+    @book.status = "0"
+    assert_equal "proposed", @book.status
+  end
+
+  test "integer value to set the mapping" do
+    @book.status = 0
+    assert_equal "proposed", @book.status
+  end
+
   test "building new objects with enum scopes" do
     assert Book.written.build.written?
     assert Book.read.build.read?
