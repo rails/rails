@@ -128,17 +128,18 @@ module ActiveRecord
 
         # Returns an array of indexes for the given table.
         def indexes(table_name, name = nil)
-           result = query(<<-SQL, 'SCHEMA')
-             SELECT distinct i.relname, d.indisunique, d.indkey,
-               pg_get_indexdef(d.indexrelid), t.oid, m.amname, m.amcanorder
-             FROM pg_class t
-             INNER JOIN pg_index d ON t.oid = d.indrelid
-             INNER JOIN pg_class i ON d.indexrelid = i.oid
-             INNER JOIN pg_am m ON i.relam = m.oid
-             WHERE i.relkind = 'i'
-               AND d.indisprimary = 'f'
-               AND t.relname = '#{table_name}'
-               AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
+          result = query(<<-SQL, 'SCHEMA')
+            SELECT distinct i.relname, d.indisunique, d.indkey,
+              pg_get_expr(d.indpred, t.oid),
+              pg_get_indexdef(d.indexrelid), t.oid, m.amname, m.amcanorder
+            FROM pg_class t
+            INNER JOIN pg_index d ON t.oid = d.indrelid
+            INNER JOIN pg_class i ON d.indexrelid = i.oid
+            INNER JOIN pg_am m ON i.relam = m.oid
+            WHERE i.relkind = 'i'
+              AND d.indisprimary = 'f'
+              AND t.relname = '#{table_name}'
+              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
             ORDER BY i.relname
           SQL
 
@@ -146,9 +147,10 @@ module ActiveRecord
             index_name = row[0]
             unique = row[1] == 't'
             indkey = row[2].split(" ")
-            inddef = row[3]
-            oid = row[4]
-            using = row[5].to_sym
+            where = row[3]
+            inddef = row[4]
+            oid = row[5]
+            using = row[6].to_sym
 
             columns = Hash[query(<<-SQL, "SCHEMA")]
             SELECT a.attnum, a.attname

@@ -24,7 +24,8 @@ class SchemaTest < ActiveRecord::TestCase
     'email character varying(50)',
     'description character varying(100)',
     'name_vector tsvector',
-    'moment timestamp without time zone default now()'
+    'moment timestamp without time zone default now()',
+    'active boolean default true'
   ]
   PK_TABLE_NAME = 'table_with_pk'
   UNMATCHED_SEQUENCE_NAME = 'unmatched_primary_key_default_value_seq'
@@ -56,8 +57,8 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{TABLE_NAME}.table\" (#{COLUMNS.join(',')})"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{CAPITALIZED_TABLE_NAME}\" (#{COLUMNS.join(',')})"
     @connection.execute "CREATE SCHEMA #{SCHEMA2_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
-    @connection.execute "CREATE INDEX #{INDEX_A_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_A_COLUMN});"
-    @connection.execute "CREATE INDEX #{INDEX_A_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_A_COLUMN});"
+    @connection.execute "CREATE INDEX #{INDEX_A_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_A_COLUMN}) WHERE active;"
+    @connection.execute "CREATE INDEX #{INDEX_A_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_A_COLUMN}) WHERE active;"
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S1});"
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S2});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
@@ -358,6 +359,8 @@ class SchemaTest < ActiveRecord::TestCase
         do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[3], INDEX_E_NAME, fourth_index_column_name)
+
+        assert_equal 'active', indexes[0].where
 
         indexes.select{|i| i.name != INDEX_E_NAME}.each do |index|
            assert_equal :btree, index.using
