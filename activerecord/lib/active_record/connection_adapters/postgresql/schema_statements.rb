@@ -129,10 +129,12 @@ module ActiveRecord
         # Returns an array of indexes for the given table.
         def indexes(table_name, name = nil)
            result = query(<<-SQL, 'SCHEMA')
-             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
+             SELECT distinct i.relname, d.indisunique, d.indkey,
+               pg_get_indexdef(d.indexrelid), t.oid, m.amname, m.amcanorder
              FROM pg_class t
              INNER JOIN pg_index d ON t.oid = d.indrelid
              INNER JOIN pg_class i ON d.indexrelid = i.oid
+             INNER JOIN pg_am m ON i.relam = m.oid
              WHERE i.relkind = 'i'
                AND d.indisprimary = 'f'
                AND t.relname = '#{table_name}'
@@ -146,6 +148,7 @@ module ActiveRecord
             indkey = row[2].split(" ")
             inddef = row[3]
             oid = row[4]
+            using = row[5].to_sym
 
             columns = Hash[query(<<-SQL, "SCHEMA")]
             SELECT a.attnum, a.attname
@@ -161,7 +164,6 @@ module ActiveRecord
               desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
               orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
               where = inddef.scan(/WHERE (.+)$/).flatten[0]
-              using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
 
               IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
             end
