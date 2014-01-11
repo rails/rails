@@ -720,8 +720,11 @@ class RequestTest < ActiveSupport::TestCase
       before_filter['barg'] = {'bargain'=>'gain', 'blah'=>'bar', 'bar'=>{'bargain'=>{'blah'=>'foo'}}}
       after_filter['barg']  = {'bargain'=>'niag', 'blah'=>'[FILTERED]', 'bar'=>{'bargain'=>{'blah'=>'[FILTERED]'}}}
 
-      before_filter['credit_card'] = {'code'=>'foo', 'bar'=>'baz'}
+      before_filter['credit_card']  = {'code'=>'foo', 'bar'=>'baz'}
+      before_filter['source']       = {'code'=>'foo', 'bar'=>'baz'}
+
       after_filter['credit_card'] = {'code'=>'oof', 'bar'=>'baz'}
+      after_filter['source']      = {'code'=>'foo', 'bar'=>'baz'}
 
       assert_equal after_filter, parameter_filter.filter(before_filter)
     end
