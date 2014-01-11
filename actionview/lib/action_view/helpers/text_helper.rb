@@ -195,8 +195,17 @@ module ActionView
       #
       #   pluralize(0, 'person')
       #   # => 0 people
-      def pluralize(count, singular, plural = nil)
-        word = if (count == 1 || count =~ /^1(\.0+)?$/)
+      #
+      # If you specify +zero_is_singular+ to true and if +count+ is zero, the
+      # method returns the singualar form.
+      #
+      #   pluralize(0, 'person', nil, true)
+      #   # => 0 person
+      #
+      #   pluralize(0, 'person', 'users', true)
+      #   # => 0 person
+      def pluralize(count, singular, plural = nil, zero_is_singular = false)
+        word = if singular?(count, zero_is_singular)
           singular
         else
           plural || singular.pluralize
@@ -444,6 +453,15 @@ module ActionView
           end
 
           return affix, part.join(separator)
+        end
+
+        def singular?(count, zero_is_singular)
+          case (count ||= 0)
+          when Integer then count == 1 || zero_is_singular && count == 0
+          when String  then count =~ /^#{zero_is_singular ? '0|1' : '1'}(\.0+)?$/
+          else
+            false
+          end
         end
     end
   end

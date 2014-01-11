@@ -359,6 +359,29 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("10 buffaloes", pluralize(10, "buffalo"))
     assert_equal("1 berry", pluralize(1, "berry"))
     assert_equal("12 berries", pluralize(12, "berry"))
+    assert_equal("0 counts", pluralize(0, "count"))
+    assert_equal("0.0 counts", pluralize('0.0', "count"))
+    assert_equal("0.00 counts", pluralize('0.00', "count"))
+  end
+
+  def test_pluralization_with_zero_singular
+    assert_equal("1 count", pluralize(1, "count", nil, true))
+    assert_equal("2 counts", pluralize(2, "count", nil, true))
+    assert_equal("1 count", pluralize('1', "count", nil, true))
+    assert_equal("2 counts", pluralize('2', "count", nil, true))
+    assert_equal("1,066 counts", pluralize('1,066', "count", nil, true))
+    assert_equal("1.25 counts", pluralize('1.25', "count", nil, true))
+    assert_equal("1.0 count", pluralize('1.0', "count", nil, true))
+    assert_equal("1.00 count", pluralize('1.00', "count", nil, true))
+    assert_equal("2 counters", pluralize(2, "count", "counters", true))
+    assert_equal("0 count", pluralize(nil, "count", "counters", true))
+    assert_equal("2 people", pluralize(2, "person", nil, true))
+    assert_equal("10 buffaloes", pluralize(10, "buffalo", nil, true))
+    assert_equal("1 berry", pluralize(1, "berry", nil, true))
+    assert_equal("12 berries", pluralize(12, "berry", nil, true))
+    assert_equal("0 count", pluralize(0, "count", nil, true))
+    assert_equal("0.0 count", pluralize('0.0', "count", nil, true))
+    assert_equal("0.00 count", pluralize('0.00', "count", nil, true))
   end
 
   def test_cycle_class
