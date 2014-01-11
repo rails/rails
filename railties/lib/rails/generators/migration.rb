@@ -54,6 +54,8 @@ module Rails
             raise Error, "Another migration is already named #{@migration_file_name}: #{destination}. Use --force to remove the old migration file and replace it."
           end
           destination = File.join(migration_dir, "#{@migration_number}_#{@migration_file_name}.rb")
+        elsif behavior == :revoke && (destination.nil? || !File.exist?(destination)) && (source.nil? || !File.exist?(source))
+          return
         end
 
         template(source, destination, config)
