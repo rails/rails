@@ -184,7 +184,7 @@ module RailsGuides
     def generate?(source_file, output_file)
       fin  = File.join(source_dir, source_file)
       fout = output_path_for(output_file)
-      all || !File.exists?(fout) || File.mtime(fout) < File.mtime(fin)
+      all || !File.exist?(fout) || File.mtime(fout) < File.mtime(fin)
     end
 
     def generate_guide(guide, output_file)

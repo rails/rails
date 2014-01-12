@@ -25,6 +25,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "February 21st, 2005", date.to_s(:long_ordinal)
     assert_equal "2005-02-21",          date.to_s(:db)
     assert_equal "21 Feb 2005",         date.to_s(:rfc822)
+    assert_equal "2005-02-21",          date.to_s(:iso8601)
   end
 
   def test_readable_inspect
@@ -46,6 +47,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+
+  def test_compare_to_time
+    assert Date.yesterday < Time.now
   end
 
   def test_to_datetime
@@ -243,6 +248,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
   end
 
+  def test_middle_of_day
+    assert_equal Time.local(2005,2,21,12,0,0), Date.new(2005,2,21).middle_of_day
+  end
+
   def test_beginning_of_day_when_zone_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
@@ -265,6 +274,23 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
         assert_equal zone, Date.new(2005,2,21).end_of_day.time_zone
       end
     end
+  end
+
+  def test_all_week
+    assert_equal Date.new(2011,6,6)..Date.new(2011,6,12), Date.new(2011,6,7).all_week
+    assert_equal Date.new(2011,6,5)..Date.new(2011,6,11), Date.new(2011,6,7).all_week(:sunday)
+  end
+
+  def test_all_month
+    assert_equal Date.new(2011,6,1)..Date.new(2011,6,30), Date.new(2011,6,7).all_month
+  end
+
+  def test_all_quarter
+    assert_equal Date.new(2011,4,1)..Date.new(2011,6,30), Date.new(2011,6,7).all_quarter
+  end
+
+  def test_all_year
+    assert_equal Date.new(2011,1,1)..Date.new(2011,12,31), Date.new(2011,6,7).all_year
   end
 
   def test_xmlschema
@@ -359,10 +385,3 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
   end
 end
 
-class DateExtConversionsTest < ActiveSupport::TestCase
-  def test_to_time_in_current_zone_is_deprecated
-    assert_deprecated(/to_time_in_current_zone/) do
-      Date.new(2012,6,7).to_time_in_current_zone
-    end
-  end
-end

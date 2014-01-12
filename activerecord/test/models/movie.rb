@@ -1,5 +1,3 @@
 class Movie < ActiveRecord::Base
-  def self.primary_key
-    "movieid"
-  end
+  self.primary_key = "movieid"
 end

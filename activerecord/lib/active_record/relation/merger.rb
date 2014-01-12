@@ -22,7 +22,7 @@ module ActiveRecord
       # build a relation to merge in rather than directly merging
       # the values.
       def other
-        other = Relation.new(relation.klass, relation.table)
+        other = Relation.create(relation.klass, relation.table)
         hash.each { |k, v|
           if k == :joins
             if Hash === v
@@ -42,10 +42,6 @@ module ActiveRecord
       attr_reader :relation, :values, :other
 
       def initialize(relation, other)
-        if other.default_scoped? && other.klass != relation.klass
-          other = other.with_default_scope
-        end
-
         @relation = relation
         @values   = other.values
         @other    = other
@@ -62,7 +58,11 @@ module ActiveRecord
       def merge
         normal_values.each do |name|
           value = values[name]
-          relation.send("#{name}!", *value) unless value.blank?
+          # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
+          # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
+          # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
+          # don't fall through the cracks.
+          relation.send("#{name}!", *value) unless value.nil? || (value.blank? && false != value)
         end
 
         merge_multi_values
@@ -94,26 +94,42 @@ module ActiveRecord
                                                                            [])
           relation.joins! rest
 
-          @relation = join_dependency.join_relation(relation)
+          @relation = relation.joins join_dependency
         end
       end
 
       def merge_multi_values
         lhs_wheres = relation.where_values
         rhs_wheres = values[:where] || []
+
         lhs_binds  = relation.bind_values
         rhs_binds  = values[:bind] || []
 
         removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
 
-        relation.where_values = kept + rhs_wheres
-        relation.bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
+        where_values = kept + rhs_wheres
+        bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
+
+        conn = relation.klass.connection
+        bv_index = 0
+        where_values.map! do |node|
+          if Arel::Nodes::Equality === node && Arel::Nodes::BindParam === node.right
+            substitute = conn.substitute_at(bind_values[bv_index].first, bv_index)
+            bv_index += 1
+            Arel::Nodes::Equality.new(node.left, substitute)
+          else
+            node
+          end
+        end
+
+        relation.where_values = where_values
+        relation.bind_values  = bind_values
 
         if values[:reordering]
           # override any order specified in the original relation
           relation.reorder! values[:order]
         elsif values[:order]
-          # merge in order_values from r
+          # merge in order_values from relation
           relation.order! values[:order]
         end
 

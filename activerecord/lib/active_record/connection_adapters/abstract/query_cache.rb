@@ -9,10 +9,10 @@ module ActiveRecord
         def dirties_query_cache(base, *method_names)
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
-              def #{method_name}(*)                         # def update_with_query_dirty(*)
-                clear_query_cache if @query_cache_enabled   #   clear_query_cache if @query_cache_enabled
-                super                                       #   super
-              end                                           # end
+              def #{method_name}(*)
+                clear_query_cache if @query_cache_enabled
+                super
+              end
             end_code
           end
         end
@@ -20,13 +20,19 @@ module ActiveRecord
 
       attr_reader :query_cache, :query_cache_enabled
 
+      def initialize(*)
+        super
+        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
+        @query_cache_enabled = false
+      end
+
       # Enable the query cache within the block.
       def cache
         old, @query_cache_enabled = @query_cache_enabled, true
         yield
       ensure
-        clear_query_cache
         @query_cache_enabled = old
+        clear_query_cache unless @query_cache_enabled
       end
 
       def enable_query_cache!
@@ -75,14 +81,7 @@ module ActiveRecord
           else
             @query_cache[sql][binds] = yield
           end
-
-        # FIXME: we should guarantee that all cached items are Result
-        # objects.  Then we can avoid this conditional
-        if ActiveRecord::Result === result
-          result.dup
-        else
-          result.collect { |row| row.dup }
-        end
+        result.dup
       end
 
       # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such

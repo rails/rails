@@ -38,7 +38,7 @@ module AbstractController
       def _normalize_callback_option(options, from, to) # :nodoc:
         if from = options[from]
           from = Array(from).map {|o| "action_name == '#{o}'"}.join(" || ")
-          options[to] = Array(options[to]) << from
+          options[to] = Array(options[to]).unshift(from)
         end
       end
 
@@ -71,7 +71,7 @@ module AbstractController
       # * <tt>name</tt>     - The callback to be added
       # * <tt>options</tt>  - A hash of options to be used when adding the callback
       def _insert_callbacks(callbacks, block = nil)
-        options = callbacks.last.is_a?(Hash) ? callbacks.pop : {}
+        options = callbacks.extract_options!
         _normalize_callback_options(options)
         callbacks.push(block) if block
         callbacks.each do |callback|

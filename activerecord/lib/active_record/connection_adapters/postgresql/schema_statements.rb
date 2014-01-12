@@ -46,7 +46,7 @@ module ActiveRecord
         end
 
         # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-        # <tt>:encoding</tt>, <tt>:collation</tt>, <tt>:ctype</tt>,
+        # <tt>:encoding</tt> (defaults to utf8), <tt>:collation</tt>, <tt>:ctype</tt>,
         # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
         # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
         #
@@ -172,7 +172,7 @@ module ActiveRecord
         def columns(table_name)
           # Limit, precision, and scale are all handled by the superclass.
           column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
-            oid = OID::TYPE_MAP.fetch(oid.to_i, fmod.to_i) {
+            oid = type_map.fetch(oid.to_i, fmod.to_i) {
               OID::Identity.new
             }
             PostgreSQLColumn.new(column_name, default, oid, type, notnull == 'f')
@@ -384,8 +384,9 @@ module ActiveRecord
         def change_column(table_name, column_name, type, options = {})
           clear_cache!
           quoted_table_name = quote_table_name(table_name)
-
-          execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+          sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale])
+          sql_type << "[]" if options[:array]
+          execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{sql_type}"
 
           change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
           change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)

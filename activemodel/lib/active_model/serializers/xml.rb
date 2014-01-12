@@ -1,4 +1,4 @@
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/hash/conversions'
 require 'active_support/core_ext/hash/slice'
@@ -205,7 +205,7 @@ module ActiveModel
         Serializer.new(self, options).serialize(&block)
       end
 
-      # Sets the model +attributes+ from a JSON string. Returns +self+.
+      # Sets the model +attributes+ from an XML string. Returns +self+.
       #
       #   class Person
       #     include ActiveModel::Serializers::Xml

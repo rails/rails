@@ -39,7 +39,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -51,7 +51,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -63,7 +63,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -75,7 +75,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -395,6 +395,15 @@ INFO. Cache stores my add their own keys
   key: 'name-of-complicated-computation'
 }
 ```
+
+Railties
+--------
+
+### load_config_initializer.railties
+
+| Key            | Value                                                 |
+| -------------- | ----------------------------------------------------- |
+| `:initializer` | Path to loaded initializer from `config/initializers` |
 
 Rails
 -----

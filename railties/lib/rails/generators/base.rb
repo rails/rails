@@ -7,8 +7,6 @@ rescue LoadError
   exit
 end
 
-require 'rails/generators/actions'
-
 module Rails
   module Generators
     class Error < Thor::Error # :nodoc:
@@ -168,15 +166,15 @@ module Rails
         as_hook = options.delete(:as) || generator_name
 
         names.each do |name|
-          defaults = if options[:type] == :boolean
-            { }
-          elsif [true, false].include?(default_value_for_option(name, options))
-            { banner: "" }
-          else
-            { desc: "#{name.to_s.humanize} to be invoked", banner: "NAME" }
-          end
-
           unless class_options.key?(name)
+            defaults = if options[:type] == :boolean
+              { }
+            elsif [true, false].include?(default_value_for_option(name, options))
+              { banner: "" }
+            else
+              { desc: "#{name.to_s.humanize} to be invoked", banner: "NAME" }
+            end
+
             class_option(name, defaults.merge!(options))
           end
 
@@ -211,7 +209,7 @@ module Rails
         return unless base_name && generator_name
         return unless default_generator_root
         path = File.join(default_generator_root, 'templates')
-        path if File.exists?(path)
+        path if File.exist?(path)
       end
 
       # Returns the base root for a common set of generators. This is used to dynamically
@@ -255,18 +253,21 @@ module Rails
             # Split the class from its module nesting
             nesting = class_name.split('::')
             last_name = nesting.pop
-
-            # Extract the last Module in the nesting
-            last = nesting.inject(Object) do |last_module, nest|
-              break unless last_module.const_defined?(nest, false)
-              last_module.const_get(nest)
-            end
+            last = extract_last_module(nesting)
 
             if last && last.const_defined?(last_name.camelize, false)
               raise Error, "The name '#{class_name}' is either already used in your application " <<
                            "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
                            "this generator again."
             end
+          end
+        end
+
+        # Takes in an array of nested modules and extracts the last module
+        def extract_last_module(nesting)
+          nesting.inject(Object) do |last_module, nest|
+            break unless last_module.const_defined?(nest, false)
+            last_module.const_get(nest)
           end
         end
 
@@ -295,7 +296,7 @@ module Rails
           end
         end
 
-        # Return the default value for the option name given doing a lookup in
+        # Returns the default value for the option name given doing a lookup in
         # Rails::Generators.options.
         def self.default_value_for_option(name, options)
           default_for_option(Rails::Generators.options, name, options, options[:default])
@@ -365,12 +366,12 @@ module Rails
             source_root && File.expand_path("../USAGE", source_root),
             default_generator_root && File.join(default_generator_root, "USAGE")
           ]
-          paths.compact.detect { |path| File.exists? path }
+          paths.compact.detect { |path| File.exist? path }
         end
 
         def self.default_generator_root
           path = File.expand_path(File.join(base_name, generator_name), base_root)
-          path if File.exists?(path)
+          path if File.exist?(path)
         end
 
     end

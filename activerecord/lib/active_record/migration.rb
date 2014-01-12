@@ -1,38 +1,49 @@
-require "active_support/core_ext/class/attribute_accessors"
+require "active_support/core_ext/module/attribute_accessors"
 require 'set'
 
 module ActiveRecord
-  # Exception that can be raised to stop migrations from going backwards.
-  class IrreversibleMigration < ActiveRecordError
+  class MigrationError < ActiveRecordError#:nodoc:
+    def initialize(message = nil)
+      message = "\n\n#{message}\n\n" if message
+      super
+    end
   end
 
-  class DuplicateMigrationVersionError < ActiveRecordError#:nodoc:
+  # Exception that can be raised to stop migrations from going backwards.
+  class IrreversibleMigration < MigrationError
+  end
+
+  class DuplicateMigrationVersionError < MigrationError#:nodoc:
     def initialize(version)
       super("Multiple migrations have the version number #{version}")
     end
   end
 
-  class DuplicateMigrationNameError < ActiveRecordError#:nodoc:
+  class DuplicateMigrationNameError < MigrationError#:nodoc:
     def initialize(name)
       super("Multiple migrations have the name #{name}")
     end
   end
 
-  class UnknownMigrationVersionError < ActiveRecordError #:nodoc:
+  class UnknownMigrationVersionError < MigrationError #:nodoc:
     def initialize(version)
       super("No migration with version number #{version}")
     end
   end
 
-  class IllegalMigrationNameError < ActiveRecordError#:nodoc:
+  class IllegalMigrationNameError < MigrationError#:nodoc:
     def initialize(name)
       super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
     end
   end
 
-  class PendingMigrationError < ActiveRecordError#:nodoc:
+  class PendingMigrationError < MigrationError#:nodoc:
     def initialize
-      super("Migrations are pending; run 'rake db:migrate RAILS_ENV=#{Rails.env}' to resolve this issue.")
+      if defined?(Rails)
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}")
+      else
+        super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate")
+      end
     end
   end
 
@@ -120,8 +131,8 @@ module ActiveRecord
   #   a column but keeps the type and content.
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>remove_column(table_name, column_names)</tt>: Removes the column listed in
-  #   +column_names+ from the table called +table_name+.
+  # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
+  #   named +column_name+ from the table called +table_name+.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
   #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
@@ -357,11 +368,14 @@ module ActiveRecord
     class CheckPending
       def initialize(app)
         @app = app
+        @last_check = 0
       end
 
       def call(env)
-        ActiveRecord::Base.logger.silence do
+        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+        if @last_check < mtime
           ActiveRecord::Migration.check_pending!
+          @last_check = mtime
         end
         @app.call(env)
       end
@@ -370,23 +384,36 @@ module ActiveRecord
     class << self
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
-    end
 
-    def self.check_pending!
-      raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
-    end
+      def check_pending!
+        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
+      end
 
-    def self.method_missing(name, *args, &block) # :nodoc:
-      (delegate || superclass.delegate).send(name, *args, &block)
-    end
+      def load_schema_if_pending!
+        if ActiveRecord::Migrator.needs_migration?
+          ActiveRecord::Tasks::DatabaseTasks.load_schema
+          check_pending!
+        end
+      end
 
-    def self.migrate(direction)
-      new.migrate direction
-    end
+      def maintain_test_schema! # :nodoc:
+        if ActiveRecord::Base.maintain_test_schema
+          suppress_messages { load_schema_if_pending! }
+        end
+      end
 
-    # Disable DDL transactions for this migration.
-    def self.disable_ddl_transaction!
-      @disable_ddl_transaction = true
+      def method_missing(name, *args, &block) # :nodoc:
+        (delegate || superclass.delegate).send(name, *args, &block)
+      end
+
+      def migrate(direction)
+        new.migrate direction
+      end
+
+      # Disable DDL transactions for this migration.
+      def disable_ddl_transaction!
+        @disable_ddl_transaction = true
+      end
     end
 
     def disable_ddl_transaction # :nodoc:
@@ -614,8 +641,8 @@ module ActiveRecord
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
           unless arguments.empty? || method == :execute
-            arguments[0] = Migrator.proper_table_name(arguments.first)
-            arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
+            arguments[0] = proper_table_name(arguments.first, table_name_options)
+            arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
           end
         end
         return super unless connection.respond_to?(method)
@@ -626,7 +653,7 @@ module ActiveRecord
     def copy(destination, sources, options = {})
       copied = []
 
-      FileUtils.mkdir_p(destination) unless File.exists?(destination)
+      FileUtils.mkdir_p(destination) unless File.exist?(destination)
 
       destination_migrations = ActiveRecord::Migrator.migrations(destination)
       last = destination_migrations.last
@@ -668,6 +695,17 @@ module ActiveRecord
       copied
     end
 
+    # Finds the correct table name given an Active Record object.
+    # Uses the Active Record object's own table_name, or pre/suffix from the
+    # options passed in.
+    def proper_table_name(name, options = {})
+      if name.respond_to? :table_name
+        name.table_name
+      else
+        "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
+      end
+    end
+
     # Determines the version number of the next migration.
     def next_migration_number(number)
       if ActiveRecord::Base.timestamped_migrations
@@ -675,6 +713,13 @@ module ActiveRecord
       else
         "%.3d" % number
       end
+    end
+
+    def table_name_options(config = ActiveRecord::Base)
+      {
+        table_name_prefix: config.table_name_prefix,
+        table_name_suffix: config.table_name_suffix
+      }
     end
 
     private
@@ -700,6 +745,10 @@ module ActiveRecord
       File.basename(filename)
     end
 
+    def mtime
+      File.mtime filename
+    end
+
     delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
 
     private
@@ -710,9 +759,19 @@ module ActiveRecord
 
       def load_migration
         require(File.expand_path(filename))
-        name.constantize.new
+        name.constantize.new(name, version)
       end
 
+  end
+
+  class NullMigration < MigrationProxy #:nodoc:
+    def initialize
+      super(nil, 0, nil, nil)
+    end
+
+    def mtime
+      0
+    end
   end
 
   class Migrator#:nodoc:
@@ -785,15 +844,23 @@ module ActiveRecord
       end
 
       def last_version
-        migrations(migrations_paths).last.try(:version)||0
+        last_migration.version
       end
 
-      def proper_table_name(name)
-        # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
+      def last_migration #:nodoc:
+        migrations(migrations_paths).last || NullMigration.new
+      end
+
+      def proper_table_name(name, options = {})
+        ActiveSupport::Deprecation.warn "ActiveRecord::Migrator.proper_table_name is deprecated and will be removed in Rails 4.2. Use the proper_table_name instance method on ActiveRecord::Migration instead"
+        options = {
+          table_name_prefix: ActiveRecord::Base.table_name_prefix,
+          table_name_suffix: ActiveRecord::Base.table_name_suffix
+        }.merge(options)
         if name.respond_to? :table_name
           name.table_name
         else
-          "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+          "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
         end
       end
 
@@ -845,17 +912,11 @@ module ActiveRecord
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
-
-      if Array(migrations).grep(String).empty?
-        @migrations = migrations
-      else
-        ActiveSupport::Deprecation.warn "instantiate this class with a list of migrations"
-        @migrations = self.class.migrations(migrations)
-      end
+      @migrations        = migrations
 
       validate(@migrations)
 
-      ActiveRecord::SchemaMigration.create_table
+      Base.connection.initialize_schema_migrations_table
     end
 
     def current_version
@@ -885,15 +946,7 @@ module ActiveRecord
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      running = runnable
-
-      if block_given?
-        message = "block argument to migrate is deprecated, please filter migrations before constructing the migrator"
-        ActiveSupport::Deprecation.warn message
-        running.select! { |m| yield m }
-      end
-
-      running.each do |migration|
+      runnable.each do |migration|
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         begin

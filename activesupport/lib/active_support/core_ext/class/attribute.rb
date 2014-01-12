@@ -70,7 +70,6 @@ class Class
   # To opt out of both instance methods, pass <tt>instance_accessor: false</tt>.
   def class_attribute(*attrs)
     options = attrs.extract_options!
-    # double assignment is used to avoid "assigned but unused variable" warning
     instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
     instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
     instance_predicate = options.fetch(:instance_predicate, true)
@@ -119,7 +118,10 @@ class Class
   end
 
   private
-    def singleton_class?
-      ancestors.first != self
+
+    unless respond_to?(:singleton_class?)
+      def singleton_class?
+        ancestors.first != self
+      end
     end
 end

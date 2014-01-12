@@ -191,6 +191,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_one_through_on_belongs_to
+    MemberDetail.delete_all
     assert_not_nil @member.member_type
     @organization = organizations(:nsa)
     @member_detail = MemberDetail.new
@@ -201,7 +202,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
     @new_detail = @member_details[0]
     assert @new_detail.send(:association, :member_type).loaded?
-    assert_not_nil assert_no_queries { @new_detail.member_type }
+    assert_no_queries { @new_detail.member_type }
   end
 
   def test_save_of_record_with_loaded_has_one_through
@@ -313,5 +314,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_with_custom_select_on_join_model_default_scope
     assert_equal clubs(:boring_club), members(:groucho).selected_club
+  end
+
+  def test_has_one_through_relationship_cannot_have_a_counter_cache
+    assert_raise(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_one :thing, through: :other_thing, counter_cache: true
+      end
+    end
   end
 end

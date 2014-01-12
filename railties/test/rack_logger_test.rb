@@ -1,3 +1,4 @@
+require 'abstract_unit'
 require 'active_support/testing/autorun'
 require 'active_support/test_case'
 require 'rails/rack/logger'
@@ -38,7 +39,7 @@ module Rails
       def setup
         @subscriber = Subscriber.new
         @notifier = ActiveSupport::Notifications.notifier
-        notifier.subscribe 'action_dispatch.request', subscriber
+        notifier.subscribe 'request.action_dispatch', subscriber
       end
 
       def teardown
@@ -56,11 +57,14 @@ module Rails
       end
 
       def test_notification_on_raise
-        logger = TestLogger.new { raise }
+        logger = TestLogger.new do
+          # using an exception class that is not a StandardError subclass on purpose
+          raise NotImplementedError
+        end
 
         assert_difference('subscriber.starts.length') do
           assert_difference('subscriber.finishes.length') do
-            assert_raises(RuntimeError) do
+            assert_raises(NotImplementedError) do
               logger.call 'REQUEST_METHOD' => 'GET'
             end
           end

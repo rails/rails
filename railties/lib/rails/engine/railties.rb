@@ -9,10 +9,6 @@ module Rails
           ::Rails::Engine.subclasses.map(&:instance)
       end
 
-      def self.engines
-        @engines ||= ::Rails::Engine.subclasses.map(&:instance)
-      end
-
       def each(*args, &block)
         _all.each(*args, &block)
       end
@@ -20,10 +16,6 @@ module Rails
       def -(others)
         _all - others
       end
-
-      delegate :engines, to: "self.class"
     end
   end
 end
-
-ActiveSupport::Deprecation.deprecate_methods(Rails::Engine::Railties, :engines)

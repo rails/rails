@@ -82,9 +82,12 @@ module ActiveRecord
 
             stmt = relation.where(
               relation.table[self.class.primary_key].eq(id).and(
-                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value))
+                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value, column_for_attribute(lock_col)))
               )
-            ).arel.compile_update(arel_attributes_with_values_for_update(attribute_names))
+            ).arel.compile_update(
+              arel_attributes_with_values_for_update(attribute_names),
+              self.class.primary_key
+            )
 
             affected_rows = self.class.connection.update stmt
 
@@ -138,6 +141,7 @@ module ActiveRecord
 
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def locking_column=(value)
+          @column_defaults = nil
           @locking_column = value.to_s
         end
 
@@ -149,6 +153,7 @@ module ActiveRecord
 
         # Quote the column name used for optimistic locking.
         def quoted_locking_column
+          ActiveSupport::Deprecation.warn "ActiveRecord::Base.quoted_locking_column is deprecated and will be removed in Rails 4.2 or later."
           connection.quote_column_name(locking_column)
         end
 

@@ -24,6 +24,9 @@ module ActiveRecord
         # serialized object must be of that class on retrieval or
         # <tt>SerializationTypeMismatch</tt> will be raised.
         #
+        # A notable side effect of serialized attributes is that the model will
+        # be updated on every save, even if it is not dirty.
+        #
         # ==== Parameters
         #
         # * +attr_name+ - The field name that should be serialized.
@@ -50,39 +53,40 @@ module ActiveRecord
         end
       end
 
-      # *DEPRECATED*: Use ActiveRecord::AttributeMethods::Serialization::ClassMethods#serialized_attributes class level method instead.
-      def serialized_attributes
-        message = "Instance level serialized_attributes method is deprecated, please use class level method."
-        ActiveSupport::Deprecation.warn message
-        defined?(@serialized_attributes) ? @serialized_attributes : self.class.serialized_attributes
-      end
-
       class Type # :nodoc:
         def initialize(column)
           @column = column
         end
 
         def type_cast(value)
-          value.unserialized_value
+          if value.state == :serialized
+            value.unserialized_value @column.type_cast value.value
+          else
+            value.unserialized_value
+          end
         end
 
         def type
           @column.type
         end
+
+        def accessor
+          ActiveRecord::Store::IndifferentHashAccessor
+        end
       end
 
       class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
-        def unserialized_value
-          state == :serialized ? unserialize : value
+        def unserialized_value(v = value)
+          state == :serialized ? unserialize(v) : value
         end
 
         def serialized_value
           state == :unserialized ? serialize : value
         end
 
-        def unserialize
+        def unserialize(v)
           self.state = :unserialized
-          self.value = coder.load(value)
+          self.value = coder.load(v)
         end
 
         def serialize

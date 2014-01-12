@@ -10,7 +10,7 @@ require 'active_support/core_ext/string/inflections'
 class Hash
   # Returns a string containing an XML representation of its receiver:
   #
-  #   {'foo' => 1, 'bar' => 2}.to_xml
+  #   { foo: 1, bar: 2 }.to_xml
   #   # =>
   #   # <?xml version="1.0" encoding="UTF-8"?>
   #   # <hash>
@@ -43,7 +43,10 @@ class Hash
   #     end
   #
   #     { foo: Foo.new }.to_xml(skip_instruct: true)
-  #     # => "<hash><bar>fooing!</bar></hash>"
+  #     # =>
+  #     # <hash>
+  #     #   <bar>fooing!</bar>
+  #     # </hash>
   #
   # * Otherwise, a node with +key+ as tag is created with a string representation of
   #   +value+ as text node. If +value+ is +nil+ an attribute "nil" set to "true" is added.
@@ -201,7 +204,7 @@ module ActiveSupport
       end
 
       def become_empty_string?(value)
-        # {"string" => true}
+        # { "string" => true }
         # No tests fail when the second term is removed.
         value['type'] == 'string' && value['nil'] != 'true'
       end

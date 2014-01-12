@@ -1,4 +1,5 @@
 require 'thread_safe'
+require 'mutex_m'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -13,11 +14,11 @@ module ActiveModel
   class MissingAttributeError < NoMethodError
   end
 
-  # == Active \Model Attribute Methods
+  # == Active \Model \Attribute \Methods
   #
-  # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and
-  # suffixes to your methods as well as handling the creation of
-  # <tt>ActiveRecord::Base</tt>-like class methods such as +table_name+.
+  # Provides a way to add prefixes and suffixes to your methods as
+  # well as handling the creation of <tt>ActiveRecord::Base</tt>-like
+  # class methods such as +table_name+.
   #
   # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
   #
@@ -26,7 +27,9 @@ module ActiveModel
   #   or +attribute_method_prefix+.
   # * Call +define_attribute_methods+ after the other methods are called.
   # * Define the various generic +_attribute+ methods that you have declared.
-  # * Define an +attributes+ method, see below.
+  # * Define an +attributes+ method which returns a hash with each
+  #   attribute name in your model as hash key and the attribute value as hash value.
+  #   Hash keys must be strings.
   #
   # A minimal implementation could be:
   #
@@ -41,7 +44,7 @@ module ActiveModel
   #     attr_accessor :name
   #
   #     def attributes
-  #       {'name' => @name}
+  #       { 'name' => @name }
   #     end
   #
   #     private
@@ -58,13 +61,6 @@ module ActiveModel
   #       send("#{attr}=", 'Default Name')
   #     end
   #   end
-  #
-  # Note that whenever you include <tt>ActiveModel::AttributeMethods</tt> in
-  # your class, it requires you to implement an +attributes+ method which
-  # returns a hash with each attribute name in your model as hash key and the
-  # attribute value as hash value.
-  #
-  # Hash keys must be strings.
   module AttributeMethods
     extend ActiveSupport::Concern
 
@@ -172,14 +168,14 @@ module ActiveModel
       #     private
       #
       #     def reset_attribute_to_default!(attr)
-      #       ...
+      #       send("#{attr}=", 'Default Name')
       #     end
       #   end
       #
       #   person = Person.new
       #   person.name                         # => 'Gem'
       #   person.reset_name_to_default!
-      #   person.name                         # => 'Gemma'
+      #   person.name                         # => 'Default Name'
       def attribute_method_affix(*affixes)
         self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix] }
         undefine_attribute_methods
@@ -218,6 +214,16 @@ module ActiveModel
         end
       end
 
+      # Is +new_name+ an alias?
+      def attribute_alias?(new_name)
+        attribute_aliases.key? new_name.to_s
+      end
+
+      # Returns the original name for the alias +name+
+      def attribute_alias(name)
+        attribute_aliases[name.to_s]
+      end
+
       # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
@@ -239,7 +245,7 @@ module ActiveModel
       #     private
       #
       #     def clear_attribute(attr)
-      #       ...
+      #       send("#{attr}=", nil)
       #     end
       #   end
       def define_attribute_methods(*attr_names)
@@ -322,9 +328,10 @@ module ActiveModel
         attribute_method_matchers_cache.clear
       end
 
-      # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
+        @generated_attribute_methods ||= Module.new {
+          extend Mutex_m
+        }.tap { |mod| include mod }
       end
 
       protected
@@ -337,7 +344,7 @@ module ActiveModel
         # invoked often in a typical rails, both of which invoke the method
         # +match_attribute_method?+. The latter method iterates through an
         # array doing regular expression matches, which results in a lot of
-        # object creations. Most of the times it returns a +nil+ match. As the
+        # object creations. Most of the time it returns a +nil+ match. As the
         # match result is always the same given a +method_name+, this cache is
         # used to alleviate the GC, which ultimately also speeds up the app
         # significantly (in our case our test suite finishes 10% faster with
@@ -388,14 +395,6 @@ module ActiveModel
           AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
-            if options[:prefix] == '' || options[:suffix] == ''
-              message = "Specifying an empty prefix/suffix for an attribute method is no longer " \
-                        "necessary. If the un-prefixed/suffixed version of the method has not been " \
-                        "defined when `define_attribute_methods` is called, it will be defined " \
-                        "automatically."
-              ActiveSupport::Deprecation.warn message
-            end
-
             @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"

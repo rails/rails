@@ -24,10 +24,13 @@ class AMLogSubscriberTest < ActionMailer::TestCase
   def test_deliver_is_notified
     BaseMailer.welcome.deliver
     wait
+
     assert_equal(1, @logger.logged(:info).size)
     assert_match(/Sent mail to system@test.lindsaar.net/, @logger.logged(:info).first)
-    assert_equal(1, @logger.logged(:debug).size)
-    assert_match(/Welcome/, @logger.logged(:debug).first)
+
+    assert_equal(2, @logger.logged(:debug).size)
+    assert_match(/BaseMailer#welcome: processed outbound mail in [\d.]+ms/, @logger.logged(:debug).first)
+    assert_match(/Welcome/, @logger.logged(:debug).second)
   end
 
   def test_receive_is_notified

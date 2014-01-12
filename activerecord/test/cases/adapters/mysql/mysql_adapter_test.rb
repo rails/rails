@@ -10,10 +10,18 @@ module ActiveRecord
         @conn.exec_query('drop table if exists ex')
         @conn.exec_query(<<-eosql)
           CREATE TABLE `ex` (
-            `id` int(11) DEFAULT NULL auto_increment PRIMARY KEY,
+            `id` int(11) auto_increment PRIMARY KEY,
             `number` integer,
             `data` varchar(255))
         eosql
+      end
+
+      def test_bad_connection_mysql
+        assert_raise ActiveRecord::NoDatabaseError do
+          configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
+          connection = ActiveRecord::Base.mysql_connection(configuration)
+          connection.exec_query('drop table if exists ex')
+        end
       end
 
       def test_valid_column
@@ -75,7 +83,7 @@ module ActiveRecord
         @conn.exec_query('drop table if exists ex_with_non_standard_pk')
         @conn.exec_query(<<-eosql)
           CREATE TABLE `ex_with_non_standard_pk` (
-            `code` INT(11) DEFAULT NULL auto_increment,
+            `code` INT(11) auto_increment,
              PRIMARY KEY  (`code`))
         eosql
         pk, seq = @conn.pk_and_sequence_for('ex_with_non_standard_pk')
@@ -87,7 +95,7 @@ module ActiveRecord
         @conn.exec_query('drop table if exists ex_with_custom_index_type_pk')
         @conn.exec_query(<<-eosql)
           CREATE TABLE `ex_with_custom_index_type_pk` (
-            `id` INT(11) DEFAULT NULL auto_increment,
+            `id` INT(11) auto_increment,
              PRIMARY KEY  USING BTREE (`id`))
         eosql
         pk, seq = @conn.pk_and_sequence_for('ex_with_custom_index_type_pk')
@@ -106,6 +114,18 @@ module ActiveRecord
         result = @conn.exec_query('SELECT status FROM ex_with_non_boolean_tinyint_column')
 
         assert_equal 2, result.column_types['status'].type_cast(result.last['status'])
+      end
+
+      def test_supports_extensions
+        assert_not @conn.supports_extensions?, 'does not support extensions'
+      end
+
+      def test_respond_to_enable_extension
+        assert @conn.respond_to?(:enable_extension)
+      end
+
+      def test_respond_to_disable_extension
+        assert @conn.respond_to?(:disable_extension)
       end
 
       private

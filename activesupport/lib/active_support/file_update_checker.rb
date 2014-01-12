@@ -92,7 +92,7 @@ module ActiveSupport
 
     def watched
       @watched || begin
-        all = @files.select { |f| File.exists?(f) }
+        all = @files.select { |f| File.exist?(f) }
         all.concat(Dir[@glob]) if @glob
         all
       end
@@ -115,7 +115,7 @@ module ActiveSupport
     end
 
     def compile_glob(hash)
-      hash.freeze # Freeze so changes aren't accidently pushed
+      hash.freeze # Freeze so changes aren't accidentally pushed
       return if hash.empty?
 
       globs = hash.map do |key, value|

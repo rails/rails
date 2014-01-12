@@ -27,6 +27,9 @@ module ActionDispatch
             assert @response.send("#{type}?"), message
           else
             code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
+            if code.nil?
+              raise ArgumentError, "Invalid response type :#{type}"
+            end
             assert_equal code, @response.response_code, message
           end
         else
@@ -67,21 +70,11 @@ module ActionDispatch
         end
 
         def normalize_argument_to_redirection(fragment)
-          normalized = case fragment
-            when Regexp
-              fragment
-            when %r{^\w[A-Za-z\d+.-]*:.*}
-              fragment
-            when String
-              @request.protocol + @request.host_with_port + fragment
-            when :back
-              raise RedirectBackError unless refer = @request.headers["Referer"]
-              refer
-            else
-              @controller.url_for(fragment)
-            end
-
-          normalized.respond_to?(:delete) ? normalized.delete("\0\r\n") : normalized
+          if Regexp === fragment
+            fragment
+          else
+            @controller._compute_redirect_to_location(fragment)
+          end
         end
     end
   end

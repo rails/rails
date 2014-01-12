@@ -230,6 +230,10 @@ module ActiveRecord
     #     validates_presence_of :member
     #   end
     #
+    # Note that if you do not specify the <tt>inverse_of</tt> option, then
+    # Active Record will try to automatically guess the inverse association
+    # based on heuristics.
+    #
     # For one-to-one nested associations, if you build the new (in-memory)
     # child object yourself before assignment, then this module will not
     # overwrite it, e.g.:
@@ -302,13 +306,8 @@ module ActiveRecord
 
         attr_names.each do |association_name|
           if reflection = reflect_on_association(association_name)
-            reflection.options[:autosave] = true
+            reflection.autosave = true
             add_autosave_association_callbacks(reflection)
-
-            # Clear cached values of any inverse associations found in the
-            # reflection and prevent the reflection from finding inverses
-            # automatically in the future.
-            reflection.remove_automatic_inverse_of!
 
             nested_attributes_options = self.nested_attributes_options.dup
             nested_attributes_options[association_name.to_sym] = options
@@ -336,7 +335,7 @@ module ActiveRecord
       # the helper methods defined below. Makes it seem like the nested
       # associations are just regular associations.
       def generate_association_writer(association_name, type)
-        generated_feature_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
+        generated_association_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
           if method_defined?(:#{association_name}_attributes=)
             remove_method(:#{association_name}_attributes=)
           end
@@ -466,19 +465,17 @@ module ActiveRecord
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          unless association.loaded? || call_reject_if(association_name, attributes)
+          unless call_reject_if(association_name, attributes)
             # Make sure we are operating on the actual object which is in the association's
             # proxy_target array (either by finding it, or adding it if not found)
-            target_record = association.target.detect { |record| record == existing_record }
-
+            # Take into account that the proxy_target may have changed due to callbacks
+            target_record = association.target.detect { |record| record.id.to_s == attributes['id'].to_s }
             if target_record
               existing_record = target_record
             else
-              association.add_to_target(existing_record)
+              association.add_to_target(existing_record, :skip_callbacks)
             end
-          end
 
-          if !call_reject_if(association_name, attributes)
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
           end
         else

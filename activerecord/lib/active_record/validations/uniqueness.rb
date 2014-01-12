@@ -7,11 +7,7 @@ module ActiveRecord
                                "Pass a callable instead: `conditions: -> { where(approved: true) }`"
         end
         super({ case_sensitive: true }.merge!(options))
-      end
-
-      # Unfortunately, we have to tie Uniqueness validators to a class.
-      def setup(klass)
-        @klass = klass
+        @klass = options[:class]
       end
 
       def validate_each(record, attribute, value)
@@ -34,7 +30,6 @@ module ActiveRecord
       end
 
     protected
-
       # The check for an existing value should be run from a class that
       # isn't abstract. This means working down from the current class
       # (self), to the first non-abstract class. Since classes don't know
@@ -53,10 +48,18 @@ module ActiveRecord
       def build_relation(klass, table, attribute, value) #:nodoc:
         if reflection = klass.reflect_on_association(attribute)
           attribute = reflection.foreign_key
-          value = value.attributes[reflection.primary_key_column.name]
+          value = value.attributes[reflection.primary_key_column.name] unless value.nil?
         end
 
-        column = klass.columns_hash[attribute.to_s]
+        attribute_name = attribute.to_s
+
+        # the attribute may be an aliased attribute
+        if klass.attribute_aliases[attribute_name]
+          attribute = klass.attribute_aliases[attribute_name]
+          attribute_name = attribute.to_s
+        end
+
+        column = klass.columns_hash[attribute_name]
         value  = klass.connection.type_cast(value, column)
         value  = value.to_s[0, column.limit] if value && column.limit && column.text?
 
@@ -171,11 +174,11 @@ module ActiveRecord
       #  WHERE title = 'My Post'             |
       #                                      |
       #                                      | # User 2 does the same thing and also
-      #                                      | # infers that his title is unique.
+      #                                      | # infers that their title is unique.
       #                                      | SELECT * FROM comments
       #                                      | WHERE title = 'My Post'
       #                                      |
-      #  # User 1 inserts his comment.       |
+      #  # User 1 inserts their comment.     |
       #  INSERT INTO comments                |
       #  (title, content) VALUES             |
       #  ('My Post', 'hi!')                  |
@@ -201,9 +204,9 @@ module ActiveRecord
       # exception. You can either choose to let this error propagate (which
       # will result in the default Rails exception page being shown), or you
       # can catch it and restart the transaction (e.g. by telling the user
-      # that the title already exists, and asking him to re-enter the title).
-      # This technique is also known as optimistic concurrency control:
-      # http://en.wikipedia.org/wiki/Optimistic_concurrency_control.
+      # that the title already exists, and asking them to re-enter the title).
+      # This technique is also known as
+      # {optimistic concurrency control}[http://en.wikipedia.org/wiki/Optimistic_concurrency_control].
       #
       # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
       # constraint errors from other types of database errors by throwing an

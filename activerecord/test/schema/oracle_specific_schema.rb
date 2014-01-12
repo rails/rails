@@ -3,7 +3,6 @@ ActiveRecord::Schema.define do
   execute "drop table test_oracle_defaults" rescue nil
   execute "drop sequence test_oracle_defaults_seq" rescue nil
   execute "drop sequence companies_nonstd_seq" rescue nil
-  execute "drop synonym subjects" rescue nil
   execute "drop table defaults" rescue nil
   execute "drop sequence defaults_seq" rescue nil
 
@@ -21,8 +20,6 @@ create sequence test_oracle_defaults_seq minvalue 10000
   SQL
 
   execute "create sequence companies_nonstd_seq minvalue 10000"
-
-  execute "create synonym subjects for topics"
 
   execute <<-SQL
   CREATE TABLE defaults (

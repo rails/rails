@@ -143,7 +143,7 @@ module ActionDispatch
         # proxies with incompatible IP header conventions, and there is no way
         # for us to determine which header is the right one after the fact.
         # Since we have no idea, we give up and explode.
-        should_check_ip = @check_ip && client_ips.last
+        should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?! " +

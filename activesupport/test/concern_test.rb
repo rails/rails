@@ -56,22 +56,12 @@ class ConcernTest < ActiveSupport::TestCase
     @klass.send(:include, Baz)
     assert_equal "baz", @klass.new.baz
     assert @klass.included_modules.include?(ConcernTest::Baz)
-
-    @klass.send(:include, Baz)
-    assert_equal "baz", @klass.new.baz
-    assert @klass.included_modules.include?(ConcernTest::Baz)
   end
 
   def test_class_methods_are_extended
     @klass.send(:include, Baz)
     assert_equal "baz", @klass.baz
     assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
-  end
-
-  def test_instance_methods_are_included
-    @klass.send(:include, Baz)
-    assert_equal "baz", @klass.new.baz
-    assert @klass.included_modules.include?(ConcernTest::Baz)
   end
 
   def test_included_block_is_ran

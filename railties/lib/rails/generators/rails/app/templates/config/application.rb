@@ -4,16 +4,18 @@ require File.expand_path('../boot', __FILE__)
 require 'rails/all'
 <% else -%>
 # Pick the frameworks you want:
+require "active_model/railtie"
 <%= comment_if :skip_active_record %>require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"
+<%= comment_if :skip_action_view %>require "action_view/railtie"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
 <%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
 <% end -%>
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(:default, Rails.env)
+Bundler.require(*Rails.groups)
 
 module <%= app_const_base %>
   class Application < Rails::Application
@@ -28,10 +30,5 @@ module <%= app_const_base %>
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
-<% if options.skip_sprockets? -%>
-
-    # Disable the asset pipeline.
-    config.assets.enabled = false
-<% end -%>
   end
 end

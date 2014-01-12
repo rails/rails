@@ -2,8 +2,6 @@ module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
-    include AbstractController::Rendering
-
     # Before processing, set the request formats in current controller formats.
     def process_action(*) #:nodoc:
       self.formats = request.formats.map(&:ref).compact
@@ -12,28 +10,32 @@ module ActionController
 
     # Check for double render errors and set the content_type after rendering.
     def render(*args) #:nodoc:
-      raise ::AbstractController::DoubleRenderError if response_body
+      raise ::AbstractController::DoubleRenderError if self.response_body
       super
-      self.content_type ||= Mime[lookup_context.rendered_format].to_s
-      response_body
     end
 
     # Overwrite render_to_string because body can now be set to a rack body.
     def render_to_string(*)
-      if self.response_body = super
+      result = super
+      if result.respond_to?(:each)
         string = ""
-        response_body.each { |r| string << r }
+        result.each { |r| string << r }
         string
+      else
+        result
       end
-    ensure
-      self.response_body = nil
     end
 
-    def render_to_body(*)
-      super || " "
+    def render_to_body(options = {})
+      super || options[:text].presence || ' '
     end
 
     private
+
+    def _process_format(format)
+      super
+      self.content_type ||= format.to_s
+    end
 
     # Normalize arguments by catching blocks and setting them on :update.
     def _normalize_args(action=nil, options={}, &blk) #:nodoc:

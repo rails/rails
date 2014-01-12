@@ -7,6 +7,9 @@ module ActionDispatch
       ENV_SESSION_KEY         = Rack::Session::Abstract::ENV_SESSION_KEY # :nodoc:
       ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY # :nodoc:
 
+      # Singleton object used to determine if an optional param wasn't specified
+      Unspecified = Object.new
+
       def self.create(store, env, default_options)
         session_was = find env
         session     = Request::Session.new(store, env)
@@ -125,6 +128,15 @@ module ActionDispatch
       def delete(key)
         load_for_write!
         @delegate.delete key.to_s
+      end
+
+      def fetch(key, default=Unspecified, &block)
+        load_for_read!
+        if default == Unspecified
+          @delegate.fetch(key.to_s, &block)
+        else
+          @delegate.fetch(key.to_s, default, &block)
+        end
       end
 
       def inspect

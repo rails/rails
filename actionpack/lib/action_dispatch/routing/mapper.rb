@@ -3,6 +3,7 @@ require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/module/remove_method'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 
@@ -11,8 +12,8 @@ module ActionDispatch
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
       SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
-                       :controller, :path_names, :constraints, :defaults,
-                       :shallow, :blocks, :options]
+                       :controller, :action, :path_names, :constraints,
+                       :shallow, :blocks, :defaults, :options]
 
       class Constraints #:nodoc:
         def self.new(app, constraints, request = Rack::Request)
@@ -147,14 +148,16 @@ module ActionDispatch
             @defaults.merge!(options[:defaults]) if options[:defaults]
 
             options.each do |key, default|
-              next if Regexp === default || IGNORE_OPTIONS.include?(key)
-              @defaults[key] = default
+              unless Regexp === default || IGNORE_OPTIONS.include?(key)
+                @defaults[key] = default
+              end
             end
 
             if options[:constraints].is_a?(Hash)
               options[:constraints].each do |key, default|
-                next unless URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
-                @defaults[key] ||= default
+                if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+                  @defaults[key] ||= default
+                end
               end
             end
 
@@ -166,19 +169,21 @@ module ActionDispatch
           end
 
           def normalize_conditions!
-            @conditions.merge!(:path_info => path)
+            @conditions[:path_info] = path
 
             constraints.each do |key, condition|
-              next if segment_keys.include?(key) || key == :controller
-              @conditions[key] = condition
+              unless segment_keys.include?(key) || key == :controller
+                @conditions[key] = condition
+              end
             end
 
-            @conditions[:required_defaults] = []
+            required_defaults = []
             options.each do |key, required_default|
-              next if segment_keys.include?(key) || IGNORE_OPTIONS.include?(key)
-              next if Regexp === required_default
-              @conditions[:required_defaults] << key
+              unless segment_keys.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
+                required_defaults << key
+              end
             end
+            @conditions[:required_defaults] = required_defaults
 
             via_all = options.delete(:via) if options[:via] == :all
 
@@ -192,8 +197,7 @@ module ActionDispatch
             end
 
             if via = options[:via]
-              list = Array(via).map { |m| m.to_s.dasherize.upcase }
-              @conditions.merge!(:request_method => list)
+              @conditions[:request_method] = Array(via).map { |m| m.to_s.dasherize.upcase }
             end
           end
 
@@ -214,8 +218,12 @@ module ActionDispatch
               controller ||= default_controller
               action     ||= default_action
 
-              unless controller.is_a?(Regexp)
-                controller = [@scope[:module], controller].compact.join("/").presence
+              if @scope[:module] && !controller.is_a?(Regexp)
+                if controller =~ %r{\A/}
+                  controller = controller[1..-1]
+                else
+                  controller = [@scope[:module], controller].compact.join("/").presence
+                end
               end
 
               if controller.is_a?(String) && controller =~ %r{\A/}
@@ -226,11 +234,13 @@ module ActionDispatch
               action     = action.to_s     unless action.is_a?(Regexp)
 
               if controller.blank? && segment_keys.exclude?(:controller)
-                raise ArgumentError, "missing :controller"
+                message = "Missing :controller key on routes definition, please check your routes."
+                raise ArgumentError, message
               end
 
               if action.blank? && segment_keys.exclude?(:action)
-                raise ArgumentError, "missing :action"
+                message = "Missing :action key on routes definition, please check your routes."
+                raise ArgumentError, message
               end
 
               if controller.is_a?(String) && controller !~ /\A[a-z_0-9\/]*\z/
@@ -362,8 +372,9 @@ module ActionDispatch
         #   # Yes, controller actions are just rack endpoints
         #   match 'photos/:id', to: PhotosController.action(:show)
         #
-        # Because request various HTTP verbs with a single action has security
-        # implications, is recommendable use HttpHelpers[rdoc-ref:HttpHelpers]
+        # Because requesting various HTTP verbs with a single action has security
+        # implications, you must either specify the actions in
+        # the via options or use one of the HtttpHelpers[rdoc-ref:HttpHelpers]
         # instead +match+
         #
         # === Options
@@ -383,7 +394,7 @@ module ActionDispatch
         #   The namespace for :controller.
         #
         #     match 'path', to: 'c#a', module: 'sekret', controller: 'posts'
-        #     #=> Sekret::PostsController
+        #     # => Sekret::PostsController
         #
         #   See <tt>Scoping#namespace</tt> for its scope equivalent.
         #
@@ -432,10 +443,10 @@ module ActionDispatch
         #
         #     match 'json_only', constraints: { format: 'json' }
         #
-        #     class Blacklist
+        #     class Whitelist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path', to: 'c#a', constraints: Blacklist.new
+        #     match 'path', to: 'c#a', constraints: Whitelist.new
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -496,11 +507,12 @@ module ActionDispatch
           raise "A rack application must be specified" unless path
 
           options[:as]  ||= app_name(app)
+          target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
 
           match(path, options.merge(:to => app, :anchor => false, :format => false))
 
-          define_generate_prefix(app, options[:as])
+          define_generate_prefix(app, target_as)
           self
         end
 
@@ -539,11 +551,11 @@ module ActionDispatch
             _routes = @set
             app.routes.define_mounted_helper(name)
             app.routes.singleton_class.class_eval do
-              define_method :mounted? do
+              redefine_method :mounted? do
                 true
               end
 
-              define_method :_generate_prefix do |options|
+              redefine_method :_generate_prefix do |options|
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
                 _route.segment_keys.each { |k| options.delete(k) }
@@ -874,6 +886,10 @@ module ActionDispatch
             child
           end
 
+          def merge_action_scope(parent, child) #:nodoc:
+            child
+          end
+
           def merge_path_names_scope(parent, child) #:nodoc:
             merge_options_scope(parent, child)
           end
@@ -1062,18 +1078,18 @@ module ActionDispatch
         # a singular resource to map /profile (rather than /profile/:id) to
         # the show action:
         #
-        #   resource :geocoder
+        #   resource :profile
         #
         # creates six different routes in your application, all mapping to
-        # the +GeoCoders+ controller (note that the controller is named after
+        # the +Profiles+ controller (note that the controller is named after
         # the plural):
         #
-        #   GET       /geocoder/new
-        #   POST      /geocoder
-        #   GET       /geocoder
-        #   GET       /geocoder/edit
-        #   PATCH/PUT /geocoder
-        #   DELETE    /geocoder
+        #   GET       /profile/new
+        #   POST      /profile
+        #   GET       /profile
+        #   GET       /profile/edit
+        #   PATCH/PUT /profile
+        #   DELETE    /profile
         #
         # === Options
         # Takes same options as +resources+.
@@ -1381,6 +1397,10 @@ module ActionDispatch
 
           if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
             raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
+          end
+
+          if @scope[:controller] && @scope[:action]
+            options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
           end
 
           paths.each do |_path|

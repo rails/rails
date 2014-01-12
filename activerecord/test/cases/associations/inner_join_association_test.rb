@@ -41,15 +41,20 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_no_match(/WHERE/i, sql)
   end
 
+  def test_join_association_conditions_support_string_and_arel_expressions
+    assert_equal 0, Author.joins(:welcome_posts_with_one_comment).count
+    assert_equal 1, Author.joins(:welcome_posts_with_comments).count
+  end
+
   def test_join_conditions_allow_nil_associations
     authors = Author.includes(:essays).where(:essays => {:id => nil})
     assert_equal 2, authors.count
   end
 
-  def test_find_with_implicit_inner_joins_honors_readonly_without_select
-    authors = Author.joins(:posts).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| a.readonly? }, "expected all authors to be readonly"
+  def test_find_with_implicit_inner_joins_without_select_does_not_imply_readonly
+    authors = Author.joins(:posts)
+    assert_not authors.empty?, "expected authors to be non-empty"
+    assert authors.none? {|a| a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_with_select
@@ -65,7 +70,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_implicit_inner_joins_does_not_set_associations
-    authors = Author.joins(:posts).select('authors.*')
+    authors = Author.joins(:posts).select('authors.*').to_a
     assert !authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.instance_variable_defined?(:@posts) }, "expected no authors to have the @posts association loaded"
   end
@@ -103,5 +108,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   def test_find_with_conditions_on_through_reflection
     assert !posts(:welcome).tags.empty?
     assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
+  end
+
+  test "the default scope of the target is applied when joining associations" do
+    author = Author.create! name: "Jon"
+    author.categorizations.create!
+    author.categorizations.create! special: true
+
+    assert_equal [author], Author.where(id: author).joins(:special_categorizations)
   end
 end

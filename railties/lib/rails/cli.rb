@@ -1,4 +1,3 @@
-require 'rbconfig'
 require 'rails/app_rails_loader'
 
 # If we are inside a Rails application this method performs an exec and thus
@@ -10,7 +9,7 @@ Signal.trap("INT") { puts; exit(1) }
 
 if ARGV.first == 'plugin'
   ARGV.shift
-  require 'rails/commands/plugin_new'
+  require 'rails/commands/plugin'
 else
   require 'rails/commands/application'
 end

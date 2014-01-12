@@ -52,21 +52,21 @@ module ActiveSupport
       # into a non-delimited single lowercase word when passed to +underscore+.
       #
       #   acronym 'HTML'
-      #   titleize 'html'     #=> 'HTML'
-      #   camelize 'html'     #=> 'HTML'
-      #   underscore 'MyHTML' #=> 'my_html'
+      #   titleize 'html'     # => 'HTML'
+      #   camelize 'html'     # => 'HTML'
+      #   underscore 'MyHTML' # => 'my_html'
       #
       # The acronym, however, must occur as a delimited unit and not be part of
       # another word for conversions to recognize it:
       #
       #   acronym 'HTTP'
-      #   camelize 'my_http_delimited' #=> 'MyHTTPDelimited'
-      #   camelize 'https'             #=> 'Https', not 'HTTPs'
-      #   underscore 'HTTPS'           #=> 'http_s', not 'https'
+      #   camelize 'my_http_delimited' # => 'MyHTTPDelimited'
+      #   camelize 'https'             # => 'Https', not 'HTTPs'
+      #   underscore 'HTTPS'           # => 'http_s', not 'https'
       #
       #   acronym 'HTTPS'
-      #   camelize 'https'   #=> 'HTTPS'
-      #   underscore 'HTTPS' #=> 'https'
+      #   camelize 'https'   # => 'HTTPS'
+      #   underscore 'HTTPS' # => 'https'
       #
       # Note: Acronyms that are passed to +pluralize+ will no longer be
       # recognized, since the acronym will not occur as a delimited unit in the
@@ -74,25 +74,25 @@ module ActiveSupport
       # form as an acronym as well:
       #
       #    acronym 'API'
-      #    camelize(pluralize('api')) #=> 'Apis'
+      #    camelize(pluralize('api')) # => 'Apis'
       #
       #    acronym 'APIs'
-      #    camelize(pluralize('api')) #=> 'APIs'
+      #    camelize(pluralize('api')) # => 'APIs'
       #
       # +acronym+ may be used to specify any word that contains an acronym or
       # otherwise needs to maintain a non-standard capitalization. The only
       # restriction is that the word must begin with a capital letter.
       #
       #   acronym 'RESTful'
-      #   underscore 'RESTful'           #=> 'restful'
-      #   underscore 'RESTfulController' #=> 'restful_controller'
-      #   titleize 'RESTfulController'   #=> 'RESTful Controller'
-      #   camelize 'restful'             #=> 'RESTful'
-      #   camelize 'restful_controller'  #=> 'RESTfulController'
+      #   underscore 'RESTful'           # => 'restful'
+      #   underscore 'RESTfulController' # => 'restful_controller'
+      #   titleize 'RESTfulController'   # => 'RESTful Controller'
+      #   camelize 'restful'             # => 'RESTful'
+      #   camelize 'restful_controller'  # => 'RESTfulController'
       #
       #   acronym 'McDonald'
-      #   underscore 'McDonald' #=> 'mcdonald'
-      #   camelize 'mcdonald'   #=> 'McDonald'
+      #   underscore 'McDonald' # => 'mcdonald'
+      #   camelize 'mcdonald'   # => 'McDonald'
       def acronym(word)
         @acronyms[word.downcase] = word
         @acronym_regex = /#{@acronyms.values.join("|")}/

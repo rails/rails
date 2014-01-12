@@ -1,0 +1,11 @@
+Routing Error
+
+<%= @exception.message %>
+<% unless @exception.failures.empty? %>
+Failure reasons:
+<% @exception.failures.each do |route, reason| %>
+  - <%= route.inspect.delete('\\') %></code> failed because <%= reason.downcase %>
+<% end %>
+<% end %>
+
+<%= render template: "rescues/_trace", format: :text %>

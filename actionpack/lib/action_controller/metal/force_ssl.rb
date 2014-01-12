@@ -48,7 +48,7 @@ module ActionController
       # You can pass any of the following options to affect the redirect status and response
       # * <tt>status</tt>     - Redirect with a custom status (default is 301 Moved Permanently)
       # * <tt>flash</tt>      - Set a flash message when redirecting
-      # * <tt>alert</tt>      - Set a alert message when redirecting
+      # * <tt>alert</tt>      - Set an alert message when redirecting
       # * <tt>notice</tt>     - Set a notice message when redirecting
       #
       # ==== Action Options

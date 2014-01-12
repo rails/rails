@@ -60,10 +60,21 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     ActiveSupport.use_standard_json_time_format = true
     encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), SecureRandom.hex(64), :serializer => JSONSerializer.new)
     message = encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
-    exp = { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
+    exp = { "foo" => 123, "bar" => "2010-01-01T00:00:00.000Z" }
     assert_equal exp, encryptor.decrypt_and_verify(message)
   ensure
     ActiveSupport.use_standard_json_time_format = prev
+  end
+
+  def test_message_obeys_strict_encoding
+    bad_encoding_characters = "\n!@#"
+    message, iv = @encryptor.encrypt_and_sign("This is a very \n\nhumble string"+bad_encoding_characters)
+
+    assert_not_decrypted("#{::Base64.encode64 message.to_s}--#{::Base64.encode64 iv.to_s}")
+    assert_not_verified("#{::Base64.encode64 message.to_s}--#{::Base64.encode64 iv.to_s}")
+
+    assert_not_decrypted([iv,  message] * bad_encoding_characters)
+    assert_not_verified([iv,  message] * bad_encoding_characters)
   end
 
   private
@@ -81,7 +92,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def munge(base64_string)
-    bits = ::Base64.decode64(base64_string)
+    bits = ::Base64.strict_decode64(base64_string)
     bits.reverse!
     ::Base64.strict_encode64(bits)
   end

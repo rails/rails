@@ -37,3 +37,15 @@ class CustomBulb < Bulb
     self.frickinawesome = true if name == 'Dude'
   end
 end
+
+class FunkyBulb < Bulb
+  before_destroy do
+    raise "before_destroy was called"
+  end
+end
+
+class FailedBulb < Bulb
+  before_destroy do
+    false
+  end
+end

@@ -1,5 +1,6 @@
 require 'set'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'singleton'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/starts_ends_with'
 
 module Mime
@@ -27,7 +28,7 @@ module Mime
   class << self
     def [](type)
       return type if type.is_a?(Type)
-      Type.lookup_by_extension(type) || NullType.new
+      Type.lookup_by_extension(type)
     end
 
     def fetch(type)
@@ -53,10 +54,6 @@ module Mime
     @@html_types = Set.new [:html, :all]
     cattr_reader :html_types
 
-    # These are the content types which browsers can generate without using ajax, flash, etc
-    # i.e. following a link, getting an image or posting a form. CSRF protection
-    # only needs to protect against these types.
-    @@browser_generated_types = Set.new [:html, :url_encoded_form, :multipart_form, :text]
     attr_reader :symbol
 
     @register_callbacks = []
@@ -179,7 +176,7 @@ module Mime
       def parse(accept_header)
         if accept_header !~ /,/
           accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
-          parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)]
+          parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
         else
           list, index = AcceptList.new, 0
           accept_header.split(',').each do |header|
@@ -272,18 +269,6 @@ module Mime
       end
     end
 
-    # Returns true if Action Pack should check requests using this Mime Type for possible request forgery. See
-    # ActionController::RequestForgeryProtection.
-    def verify_request?
-      ActiveSupport::Deprecation.warn "Mime::Type#verify_request? is deprecated and will be removed in Rails 4.1"
-      @@browser_generated_types.include?(to_sym)
-    end
-
-    def self.browser_generated_types
-      ActiveSupport::Deprecation.warn "Mime::Type.browser_generated_types is deprecated and will be removed in Rails 4.1"
-      @@browser_generated_types
-    end
-
     def html?
       @@html_types.include?(to_sym) || @string =~ /html/
     end
@@ -308,13 +293,13 @@ module Mime
   end
 
   class NullType
+    include Singleton
+
     def nil?
       true
     end
 
-    def ref
-      nil
-    end
+    def ref; end
 
     def respond_to_missing?(method, include_private = false)
       method.to_s.ends_with? '?'

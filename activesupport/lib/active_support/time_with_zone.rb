@@ -146,12 +146,12 @@ module ActiveSupport
     # to +false+.
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-    #   # => "2005-02-01T15:15:10Z"
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
+    #   # => "2005-02-01T05:15:10.000-10:00"
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-    #   # => "2005/02/01 15:15:10 +0000"
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
+    #   # => "2005/02/01 05:15:10 -1000"
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
         xmlschema(3)
@@ -292,16 +292,12 @@ module ActiveSupport
       end
     end
 
-    %w(year mon month day mday wday yday hour min sec to_date).each do |method_name|
+    %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
       class_eval <<-EOV, __FILE__, __LINE__ + 1
         def #{method_name}    # def month
           time.#{method_name} #   time.month
         end                   # end
       EOV
-    end
-
-    def usec
-      time.respond_to?(:usec) ? time.usec : 0
     end
 
     def to_a

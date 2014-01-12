@@ -14,13 +14,9 @@ module ActiveModel
   #   track.
   # * Call <tt>attr_name_will_change!</tt> before each change to the tracked
   #   attribute.
-  #
-  # If you wish to also track previous changes on save or update, you need to
-  # add:
-  #
-  #   @previously_changed = changes
-  #
-  # inside of your save or update method.
+  # * Call <tt>changes_applied</tt> after the changes are persisted.
+  # * Call <tt>reset_changes</tt> when you want to reset the changes
+  #   information.
   #
   # A minimal implementation could be:
   #
@@ -39,8 +35,12 @@ module ActiveModel
   #     end
   #
   #     def save
-  #       @previously_changed = changes
-  #       @changed_attributes.clear
+  #       # do persistence work
+  #       changes_applied
+  #     end
+  #
+  #     def reload!
+  #       reset_changes
   #     end
   #   end
   #
@@ -54,6 +54,7 @@ module ActiveModel
   #   person.name = 'Bob'
   #   person.changed?       # => true
   #   person.name_changed?  # => true
+  #   person.name_changed?(from: "Uncle Bob", to: "Bob") # => true
   #   person.name_was       # => "Uncle Bob"
   #   person.name_change    # => ["Uncle Bob", "Bob"]
   #   person.name = 'Bill'
@@ -64,6 +65,12 @@ module ActiveModel
   #   person.save
   #   person.changed?       # => false
   #   person.name_changed?  # => false
+  #
+  # Reset the changes:
+  #
+  #   person.previous_changes # => {"name" => ["Uncle Bob", "Bill"]}
+  #   person.reload!
+  #   person.previous_changes # => {}
   #
   # Assigning the same value leaves the attribute unchanged:
   #
@@ -129,7 +136,7 @@ module ActiveModel
     #   person.save
     #   person.previous_changes # => {"name" => ["bob", "robert"]}
     def previous_changes
-      @previously_changed
+      @previously_changed ||= {}
     end
 
     # Returns a hash of the attributes with unsaved changes indicating their original
@@ -139,24 +146,39 @@ module ActiveModel
     #   person.name = 'robert'
     #   person.changed_attributes # => {"name" => "bob"}
     def changed_attributes
-      @changed_attributes ||= {}
+      @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
+    end
+
+    # Handle <tt>*_changed?</tt> for +method_missing+.
+    def attribute_changed?(attr, options = {}) #:nodoc:
+      result = changed_attributes.include?(attr)
+      result &&= options[:to] == __send__(attr) if options.key?(:to)
+      result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
+      result
+    end
+
+    # Handle <tt>*_was</tt> for +method_missing+.
+    def attribute_was(attr) # :nodoc:
+      attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 
     private
 
-      # Handle <tt>*_changed?</tt> for +method_missing+.
-      def attribute_changed?(attr)
-        changed_attributes.include?(attr)
+      # Removes current changes and makes them accessible through +previous_changes+.
+      def changes_applied
+        @previously_changed = changes
+        @changed_attributes = {}
+      end
+
+      # Removes all dirty data: current changes and previous changes
+      def reset_changes
+        @previously_changed = {}
+        @changed_attributes = {}
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
         [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
-      end
-
-      # Handle <tt>*_was</tt> for +method_missing+.
-      def attribute_was(attr)
-        attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.

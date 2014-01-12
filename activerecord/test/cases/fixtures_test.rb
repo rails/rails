@@ -84,6 +84,12 @@ class FixturesTest < ActiveRecord::TestCase
     assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
+  def test_create_symbol_fixtures_is_deprecated
+    assert_deprecated do
+      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, :collections => 'Course') { Course.connection }
+    end
+  end
+
   def test_attributes
     topics = create_fixtures("topics").first
     assert_equal("The First Topic", topics["first"]["title"])
@@ -190,11 +196,11 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil ActiveRecord::FixtureSet.new( Account.connection, "accounts", 'Account', FIXTURES_ROOT + "/naked/yml/accounts")
+    assert_not_nil ActiveRecord::FixtureSet.new( Account.connection, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil ActiveRecord::FixtureSet.new( Account.connection, "companies", 'Company', FIXTURES_ROOT + "/naked/yml/companies")
+    assert_not_nil ActiveRecord::FixtureSet.new( Account.connection, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
   end
 
   def test_nonexistent_fixture_file
@@ -204,19 +210,19 @@ class FixturesTest < ActiveRecord::TestCase
     assert Dir[nonexistent_fixture_path+"*"].empty?
 
     assert_raise(Errno::ENOENT) do
-      ActiveRecord::FixtureSet.new( Account.connection, "companies", 'Company', nonexistent_fixture_path)
+      ActiveRecord::FixtureSet.new( Account.connection, "companies", Company, nonexistent_fixture_path)
     end
   end
 
   def test_dirty_dirty_yaml_file
     assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new( Account.connection, "courses", 'Course', FIXTURES_ROOT + "/naked/yml/courses")
+      ActiveRecord::FixtureSet.new( Account.connection, "courses", Course, FIXTURES_ROOT + "/naked/yml/courses")
     end
   end
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = ActiveRecord::FixtureSet.new(Account.connection, 'categories', 'Category', FIXTURES_ROOT + "/categories_ordered")
+      fixtures = ActiveRecord::FixtureSet.new(Account.connection, 'categories', Category, FIXTURES_ROOT + "/categories_ordered")
 
       fixtures.each.with_index do |(name, fixture), i|
         assert_equal "fixture_no_#{i}", name
@@ -244,6 +250,60 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_serialized_fixtures
     assert_equal ["Green", "Red", "Orange"], traffic_lights(:uk).state
+  end
+
+  def test_fixtures_are_set_up_with_database_env_variable
+    db_url_tmp = ENV['DATABASE_URL']
+    ENV['DATABASE_URL'] = "sqlite3:///:memory:"
+    ActiveRecord::Base.stubs(:configurations).returns({})
+    test_case = Class.new(ActiveRecord::TestCase) do
+      fixtures :accounts
+
+      def test_fixtures
+        assert accounts(:signals37)
+      end
+    end
+
+    result = test_case.new(:test_fixtures).run
+
+    assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
+  ensure
+    ENV['DATABASE_URL'] = db_url_tmp
+  end
+end
+
+class HasManyThroughFixture < ActiveSupport::TestCase
+  def make_model(name)
+    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+  end
+
+  def test_has_many_through
+    pt = make_model "ParrotTreasure"
+    parrot = make_model "Parrot"
+    treasure = make_model "Treasure"
+
+    pt.table_name = "parrots_treasures"
+    pt.belongs_to :parrot, :class => parrot
+    pt.belongs_to :treasure, :class => treasure
+
+    parrot.has_many :parrot_treasures, :class => pt
+    parrot.has_many :treasures, :through => :parrot_treasures
+
+    parrots = File.join FIXTURES_ROOT, 'parrots'
+
+    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    rows = fs.table_rows
+    assert_equal load_has_and_belongs_to_many['parrots_treasures'], rows['parrots_treasures']
+  end
+
+  def load_has_and_belongs_to_many
+    parrot = make_model "Parrot"
+    parrot.has_and_belongs_to_many :treasures
+
+    parrots = File.join FIXTURES_ROOT, 'parrots'
+
+    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs.table_rows
   end
 end
 
@@ -433,7 +493,7 @@ class OverRideFixtureMethodTest < ActiveRecord::TestCase
 end
 
 class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :funny_jokes => 'Joke'
+  set_fixture_class :funny_jokes => Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -477,10 +537,6 @@ class CustomConnectionFixturesTest < ActiveRecord::TestCase
   fixtures :courses
   self.use_transactional_fixtures = false
 
-  def test_connection_instance_method_deprecation
-    assert_deprecated { courses(:ruby).connection }
-  end
-
   def test_leaky_destroy
     assert_nothing_raised { courses(:ruby) }
     courses(:ruby).destroy
@@ -520,7 +576,7 @@ class InvalidTableNameFixturesTest < ActiveRecord::TestCase
 end
 
 class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
-  set_fixture_class :funny_jokes => 'Joke'
+  set_fixture_class :funny_jokes => Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
@@ -562,26 +618,30 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   end
 
   private
-    def load_fixtures
+    def load_fixtures(config)
       raise 'argh'
     end
 end
 
 class LoadAllFixturesTest < ActiveRecord::TestCase
-  self.fixture_path = FIXTURES_ROOT + "/all"
-  fixtures :all
-
   def test_all_there
-    assert_equal %w(developers people tasks), fixture_table_names.sort
+    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixtures :all
+
+    assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
   end
 end
 
 class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
-  self.fixture_path = Pathname.new(FIXTURES_ROOT).join('all')
-  fixtures :all
-
   def test_all_there
-    assert_equal %w(developers people tasks), fixture_table_names.sort
+    self.class.fixture_path = Pathname.new(FIXTURES_ROOT).join('all')
+    self.class.fixtures :all
+
+    assert_equal %w(admin/accounts admin/users developers people tasks), fixture_table_names.sort
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
   end
 end
 

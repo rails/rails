@@ -16,7 +16,7 @@ module ApplicationTests
       @metrics_plugin = engine "metrics"
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           mount Weblog::Engine, :at => '/', :as => 'weblog'
           resources :posts
           get "/engine_route" => "application_generating#engine_route"

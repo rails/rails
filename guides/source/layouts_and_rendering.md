@@ -88,7 +88,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <% end %>
 </table>
 
-<br />
+<br>
 
 <%= link_to "New book", new_book_path %>
 ```
@@ -122,8 +122,7 @@ X-Runtime: 0.014297
 Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
 Cache-Control: no-cache
 
-
- $
+$
 ```
 
 We see there is an empty response (no data after the `Cache-Control` line), but the request was successful because Rails has set the response to 200 OK. You can set the `:status` option on render to change this response. Rendering nothing can be useful for Ajax requests where all you want to send back to the browser is an acknowledgment that the request was completed.
@@ -137,7 +136,7 @@ If you want to render the view that corresponds to a different template within t
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render "edit"
@@ -152,7 +151,7 @@ If you prefer, you can use a symbol instead of a string to specify the action to
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render :edit
@@ -375,9 +374,9 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 423              | :locked                          |
 |                     | 424              | :failed_dependency               |
 |                     | 426              | :upgrade_required                |
-|                     | 423              | :precondition_required           |
-|                     | 424              | :too_many_requests               |
-|                     | 426              | :request_header_fields_too_large |
+|                     | 428              | :precondition_required           |
+|                     | 429              | :too_many_requests               |
+|                     | 431              | :request_header_fields_too_large |
 | **Server Error**    | 500              | :internal_server_error           |
 |                     | 501              | :not_implemented                 |
 |                     | 502              | :bad_gateway                     |
@@ -405,7 +404,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-With this declaration, all of the views rendered by the products controller will use `app/views/layouts/inventory.html.erb` as their layout.
+With this declaration, all of the views rendered by the `ProductsController` will use `app/views/layouts/inventory.html.erb` as their layout.
 
 To assign a specific layout for the entire application, use a `layout` declaration in your `ApplicationController` class:
 
@@ -592,7 +591,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     render action: "index"
   end
@@ -607,7 +606,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     redirect_to action: :index
   end
@@ -626,10 +625,10 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     @books = Book.all
-    flash[:alert] = "Your book was not found"
+    flash.now[:alert] = "Your book was not found"
     render "index"
   end
 end
@@ -704,7 +703,7 @@ WARNING: The asset tag helpers do _not_ verify the existence of the assets at th
 
 #### Linking to Feeds with the `auto_discovery_link_tag`
 
-The `auto_discovery_link_tag` helper builds HTML that most browsers and newsreaders can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
+The `auto_discovery_link_tag` helper builds HTML that most browsers and feed readers can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
 ```erb
 <%= auto_discovery_link_tag(:rss, {action: "feed"},
@@ -1009,7 +1008,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>New zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1017,7 +1015,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>Editing zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1026,7 +1023,7 @@ You can also pass local variables into partials, making them even more powerful 
     ```html+erb
     <%= form_for(zone) do |f| %>
       <p>
-        <b>Zone name</b><br />
+        <b>Zone name</b><br>
         <%= f.text_field :name %>
       </p>
       <p>

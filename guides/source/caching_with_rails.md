@@ -104,6 +104,15 @@ This method generates a cache key that depends on all products and can be used i
   All available products:
 <% end %>
 ```
+
+If you want to cache a fragment under certain condition you can use `cache_if` or `cache_unless` 
+
+```erb
+<% cache_if (condition, cache_key_for_products) do %>
+  All available products:
+<% end %>
+```
+
 You can also use an Active Record model as the cache key:
 
 ```erb
@@ -180,7 +189,7 @@ The main methods to call are `read`, `write`, `delete`, `exist?`, and `fetch`. T
 
 There are some common options used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
 
-* `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications. The default value will include the application name and Rails environment.
+* `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
 
 * `:compress` - This option can be used to indicate that compression should be used in the cache. This can be useful for transferring large cache entries over a slow network.
 
@@ -216,7 +225,7 @@ This is the default cache store implementation.
 
 ### ActiveSupport::Cache::MemCacheStore
 
-This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very a high performance and redundancy.
+This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very high performance and redundancy.
 
 When initializing the cache, you need to specify the addresses for all memcached servers in your cluster. If none is specified, it will assume memcached is running on the local host on the default port, but this is not an ideal set up for larger sites.
 
@@ -236,7 +245,7 @@ config.cache_store = :ehcache_store
 
 When initializing the cache, you may use the `:ehcache_config` option to specify the Ehcache config file to use (where the default is "ehcache.xml" in your Rails config directory), and the :cache_name option to provide a custom name for your cache (the default is rails_cache).
 
-In addition to the standard `:expires_in` option, the `write` method on this cache can also accept the additional  `:unless_exist` option, which will cause the cache store to use Ehcache's `putIfAbsent` method instead of `put`, and therefore will not overwrite an existing entry. Additionally, the `write` method supports all of the properties exposed by the [Ehcache Element class](http://ehcache.org/apidocs/net/sf/ehcache/Element.html) , including:
+In addition to the standard `:expires_in` option, the `write` method on this cache can also accept the additional `:unless_exist` option, which will cause the cache store to use Ehcache's `putIfAbsent` method instead of `put`, and therefore will not overwrite an existing entry. Additionally, the `write` method supports all of the properties exposed by the [Ehcache Element class](http://ehcache.org/apidocs/net/sf/ehcache/Element.html) , including:
 
 | Property                    | Argument Type       | Description                                                 |
 | --------------------------- | ------------------- | ----------------------------------------------------------- |
@@ -292,7 +301,7 @@ Conditional GET support
 
 Conditional GETs are a feature of the HTTP specification that provide a way for web servers to tell browsers that the response to a GET request hasn't changed since the last request and can be safely pulled from the browser cache.
 
-They work by using the `HTTP_IF_NONE_MATCH` and `HTTP_IF_MODIFIED_SINCE` headers to pass back and forth both a unique content identifier and the timestamp of when the content was last changed. If the browser makes a request where the content identifier (etag) or last modified since timestamp matches the server’s version then the server only needs to send back an empty response with a not modified status.
+They work by using the `HTTP_IF_NONE_MATCH` and `HTTP_IF_MODIFIED_SINCE` headers to pass back and forth both a unique content identifier and the timestamp of when the content was last changed. If the browser makes a request where the content identifier (etag) or last modified since timestamp matches the server's version then the server only needs to send back an empty response with a not modified status.
 
 It is the server's (i.e. our) responsibility to look for a last modified timestamp and the if-none-match header and determine whether or not to send back the full response. With conditional-get support in Rails this is a pretty easy task:
 
@@ -318,7 +327,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Instead of a options hash, you can also simply pass in a model, Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
+Instead of an options hash, you can also simply pass in a model, Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
 
 ```ruby
 class ProductsController < ApplicationController
@@ -329,7 +338,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using respond_to or calling render yourself) then you’ve got an easy helper in fresh_when:
+If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using respond_to or calling render yourself) then you've got an easy helper in fresh_when:
 
 ```ruby
 class ProductsController < ApplicationController

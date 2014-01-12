@@ -16,6 +16,14 @@ module ActionDispatch
         @app         = app
         @path        = path
 
+        # Unwrap any constraints so we can see what's inside for route generation.
+        # This allows the formatter to skip over any mounted applications or redirects
+        # that shouldn't be matched when using a url_for without a route name.
+        while app.is_a?(Routing::Mapper::Constraints) do
+          app = app.app
+        end
+        @dispatcher  = app.is_a?(Routing::RouteSet::Dispatcher)
+
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
@@ -91,6 +99,10 @@ module ActionDispatch
         @required_defaults ||= @defaults.dup.delete_if do |k,_|
           parts.include?(k) || !required_default?(k)
         end
+      end
+
+      def dispatcher?
+        @dispatcher
       end
 
       def matches?(request)

@@ -54,10 +54,11 @@ module ActiveSupport
         @transaction_id = transaction_id
         @end            = ending
         @children       = []
+        @duration       = nil
       end
 
       def duration
-        1000.0 * (self.end - time)
+        @duration ||= 1000.0 * (self.end - time)
       end
 
       def <<(event)

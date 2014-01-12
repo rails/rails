@@ -17,12 +17,14 @@ module ActiveRecord
 
     def initialize
       super
-      @odd_or_even = false
+      @odd = false
     end
 
     def render_bind(column, value)
       if column
         if column.binary?
+          # This specifically deals with the PG adapter that casts bytea columns into a Hash.
+          value = value[:value] if value.is_a?(Hash)
           value = "<#{value.bytesize} bytes of binary data>"
         end
 
@@ -41,7 +43,7 @@ module ActiveRecord
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
 
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
-      sql   = payload[:sql].squeeze(' ')
+      sql   = payload[:sql]
       binds = nil
 
       unless (payload[:binds] || []).empty?
@@ -60,17 +62,8 @@ module ActiveRecord
       debug "  #{name}  #{sql}#{binds}"
     end
 
-    def identity(event)
-      return unless logger.debug?
-
-      name = color(event.payload[:name], odd? ? CYAN : MAGENTA, true)
-      line = odd? ? color(event.payload[:line], nil, true) : event.payload[:line]
-
-      debug "  #{name}  #{line}"
-    end
-
     def odd?
-      @odd_or_even = !@odd_or_even
+      @odd = !@odd
     end
 
     def logger

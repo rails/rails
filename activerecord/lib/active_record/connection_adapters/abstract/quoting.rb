@@ -15,7 +15,6 @@ module ActiveRecord
           return "'#{quote_string(value)}'" unless column
 
           case column.type
-          when :binary then "'#{quote_string(column.string_to_binary(value))}'"
           when :integer then value.to_i.to_s
           when :float then value.to_f.to_s
           else
@@ -44,7 +43,9 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value, column)
-        return value.id if value.respond_to?(:quoted_id)
+        if value.respond_to?(:quoted_id) && value.respond_to?(:id)
+          return value.id
+        end
 
         case value
         when String, ActiveSupport::Multibyte::Chars
@@ -52,7 +53,6 @@ module ActiveRecord
           return value unless column
 
           case column.type
-          when :binary then value
           when :integer then value.to_i
           when :float then value.to_f
           else

@@ -64,19 +64,35 @@ YAML-formatted fixtures are a very human-friendly way to describe your sample da
 Here's a sample YAML fixture file:
 
 ```yaml
-# lo & behold!  I am a YAML comment!
+# lo & behold! I am a YAML comment!
 david:
- name: David Heinemeier Hansson
- birthday: 1979-10-15
- profession: Systems development
+  name: David Heinemeier Hansson
+  birthday: 1979-10-15
+  profession: Systems development
 
 steve:
- name: Steve Ross Kellock
- birthday: 1974-09-27
- profession: guy with keyboard
+  name: Steve Ross Kellock
+  birthday: 1974-09-27
+  profession: guy with keyboard
 ```
 
 Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank space. You can place comments in a fixture file by using the # character in the first column. Keys which resemble YAML keywords such as 'yes' and 'no' are quoted so that the YAML Parser correctly interprets them.
+
+If you are working with [associations](/association_basics.html), you can simply
+define a reference node between two different fixtures. Here's an example with
+a belongs_to/has_many association:
+
+```yaml
+# In fixtures/categories.yml
+about:
+  name: About
+
+# In fixtures/articles.yml
+one:
+  title: Welcome to Rails!
+  body: Hello world!
+  category: about
+```
 
 #### ERB'in It Up
 
@@ -92,7 +108,7 @@ user_<%= n %>:
 
 #### Fixtures in Action
 
-Rails by default automatically loads all fixtures from the `test/fixtures` folder for your unit and functional test. Loading involves three steps:
+Rails by default automatically loads all fixtures from the `test/fixtures` folder for your models and controllers test. Loading involves three steps:
 
 * Remove any existing data from the table corresponding to the fixture
 * Load the fixture data into the table
@@ -116,7 +132,7 @@ email(david.girlfriend.email, david.location_tonight)
 Unit Testing your Models
 ------------------------
 
-In Rails, unit tests are what you write to test your models.
+In Rails, models tests are what you write to test your models.
 
 For this guide we will be using Rails _scaffolding_. It will create the model, a migration, controller and views for the new resource in a single operation. It will also create a full test suite following Rails best practices. I will be using examples from this generated code and will be supplementing it with additional examples where necessary.
 
@@ -159,7 +175,7 @@ class PostTest < ActiveSupport::TestCase
 
 The `PostTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `PostTest` thus has all the methods available from `ActiveSupport::TestCase`. You'll see those methods a little later in this guide.
 
-Any method defined within a class inherited from `MiniTest::Unit::TestCase` 
+Any method defined within a class inherited from `MiniTest::Unit::TestCase`
 (which is the superclass of `ActiveSupport::TestCase`) that begins with `test` (case sensitive) is simply called a test. So, `test_password`, `test_valid_password` and `testValidPassword` all are legal test names and are run automatically when the test case is run.
 
 Rails adds a `test` method that takes a test name and a block. It generates a normal `MiniTest::Unit` test with method names prefixed with `test_`. So,
@@ -195,31 +211,9 @@ This line of code is called an _assertion_. An assertion is a line of code that 
 
 Every test contains one or more assertions. Only when all the assertions are successful will the test pass.
 
-### Preparing your Application for Testing
+### Maintaining the test database schema
 
-Before you can run your tests, you need to ensure that the test database structure is current. For this you can use the following rake commands:
-
-```bash
-$ rake db:migrate
-...
-$ rake db:test:load
-```
-
-The `rake db:migrate` above runs any pending migrations on the _development_ environment and updates `db/schema.rb`. The `rake db:test:load` recreates the test database from the current `db/schema.rb`. On subsequent attempts, it is a good idea to first run `db:test:prepare`, as it first checks for pending migrations and warns you appropriately.
-
-NOTE: `db:test:prepare` will fail with an error if `db/schema.rb` doesn't exist.
-
-#### Rake Tasks for Preparing your Application for Testing
-
-| Tasks                          | Description                                                               |
-| ------------------------------ | ------------------------------------------------------------------------- |
-| `rake db:test:clone`           | Recreate the test database from the current environment's database schema |
-| `rake db:test:clone_structure` | Recreate the test database from the development structure                 |
-| `rake db:test:load`            | Recreate the test database from the current `schema.rb`                   |
-| `rake db:test:prepare`         | Check for pending migrations and load the test schema                     |
-| `rake db:test:purge`           | Empty the test database.                                                  |
-
-TIP: You can see all these rake tasks and their descriptions by running `rake --tasks --describe`
+In order to run your tests, your test database will need to have the current structure. The test helper checks whether your test database has any pending migrations. If so, it will try to load your `db/schema.rb` or `db/structure.sql` into the test database. If migrations are still pending, an error will be raised.
 
 ### Running Tests
 
@@ -343,6 +337,17 @@ Notice the 'E' in the output. It denotes a test with error.
 
 NOTE: The execution of each test method stops as soon as any error or an assertion failure is encountered, and the test suite continues with the next method. All test methods are executed in alphabetical order.
 
+When a test fails you are presented with the corresponding backtrace. By default
+Rails filters that backtrace and will only print lines relevant to your
+application. This eliminates the framwork noise and helps to focus on your
+code. However there are situations when you want to see the full
+backtrace. simply set the `BACKTRACE` environment variable to enable this
+behavior:
+
+```bash
+$ BACKTRACE=1 rake test test/models/post_test.rb
+```
+
 ### What to Include in Your Unit Tests
 
 Ideally, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
@@ -357,28 +362,28 @@ Here's an extract of the assertions you can use with `minitest`, the default tes
 | Assertion                                                        | Purpose |
 | ---------------------------------------------------------------- | ------- |
 | `assert( test, [msg] )`                                          | Ensures that `test` is true.|
-| `refute( test, [msg] )`                                          | Ensures that `test` is false.|
+| `assert_not( test, [msg] )`                                      | Ensures that `test` is false.|
 | `assert_equal( expected, actual, [msg] )`                        | Ensures that `expected == actual` is true.|
-| `refute_equal( expected, actual, [msg] )`                        | Ensures that `expected != actual` is true.|
+| `assert_not_equal( expected, actual, [msg] )`                    | Ensures that `expected != actual` is true.|
 | `assert_same( expected, actual, [msg] )`                         | Ensures that `expected.equal?(actual)` is true.|
-| `refute_same( expected, actual, [msg] )`                         | Ensures that `expected.equal?(actual)` is false.|
+| `assert_not_same( expected, actual, [msg] )`                     | Ensures that `expected.equal?(actual)` is false.|
 | `assert_nil( obj, [msg] )`                                       | Ensures that `obj.nil?` is true.|
-| `refute_nil( obj, [msg] )`                                       | Ensures that `obj.nil?` is false.|
+| `assert_not_nil( obj, [msg] )`                                   | Ensures that `obj.nil?` is false.|
 | `assert_match( regexp, string, [msg] )`                          | Ensures that a string matches the regular expression.|
-| `refute_match( regexp, string, [msg] )`                          | Ensures that a string doesn't match the regular expression.|
+| `assert_no_match( regexp, string, [msg] )`                       | Ensures that a string doesn't match the regular expression.|
 | `assert_in_delta( expecting, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
-| `refute_in_delta( expecting, actual, [delta], [msg] )`           | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
+| `assert_not_in_delta( expecting, actual, [delta], [msg] )`       | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
-| `refute_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is not an instance of `class`.|
+| `assert_not_instance_of( class, obj, [msg] )`                    | Ensures that `obj` is not an instance of `class`.|
 | `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is or descends from `class`.|
-| `refute_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is not an instance of `class` and is not descending from it.|
+| `assert_not_kind_of( class, obj, [msg] )`                        | Ensures that `obj` is not an instance of `class` and is not descending from it.|
 | `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` responds to `symbol`.|
-| `refute_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` does not respond to `symbol`.|
+| `assert_not_respond_to( obj, symbol, [msg] )`                    | Ensures that `obj` does not respond to `symbol`.|
 | `assert_operator( obj1, operator, [obj2], [msg] )`               | Ensures that `obj1.operator(obj2)` is true.|
-| `refute_operator( obj1, operator, [obj2], [msg] )`               | Ensures that `obj1.operator(obj2)` is false.|
+| `assert_not_operator( obj1, operator, [obj2], [msg] )`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_send( array, [msg] )`                                    | Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true. This one is weird eh?|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
@@ -396,7 +401,7 @@ Rails adds some custom assertions of its own to the `test/unit` framework:
 | `assert_no_difference(expressions, message = nil, &amp;block)`                    | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
 | `assert_recognizes(expected_options, path, extras={}, message=nil)`               | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | `assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)` | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
-| `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299,  `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range|
+| `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range|
 | `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(controller: "weblog")` will also match the redirection of `redirect_to(controller: "weblog", action: "show")` and so on.|
 | `assert_template(expected = nil, message=nil)`                                    | Asserts that the request was rendered with the appropriate template file.|
 
@@ -422,10 +427,12 @@ Now that we have used Rails scaffold generator for our `Post` resource, it has a
 Let me take you through one such test, `test_should_get_index` from the file `posts_controller_test.rb`.
 
 ```ruby
-test "should get index" do
-  get :index
-  assert_response :success
-  assert_not_nil assigns(:posts)
+class PostsControllerTest < ActionController::TestCase
+  test "should get index" do
+    get :index
+    assert_response :success
+    assert_not_nil assigns(:posts)
+  end
 end
 ```
 
@@ -516,7 +523,7 @@ instance variable:
 
 ```ruby
 # setting a HTTP Header
-@request.headers["Accepts"] = "text/plain, text/html"
+@request.headers["Accept"] = "text/plain, text/html"
 get :index # simulate the request with custom header
 
 # setting a CGI variable
@@ -622,11 +629,11 @@ The `assert_select` assertion is quite powerful. For more advanced usage, refer 
 
 There are more assertions that are primarily used in testing views:
 
-| Assertion                                                  | Purpose |
-| ---------------------------------------------------------- | ------- |
-| `assert_select_email`                                      | Allows you to make assertions on the body of an e-mail. |
-| `assert_select_encoded`                                    | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
-| `css_select(selector)`  or `css_select(element, selector)` | Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
+| Assertion                                                 | Purpose |
+| --------------------------------------------------------- | ------- |
+| `assert_select_email`                                     | Allows you to make assertions on the body of an e-mail. |
+| `assert_select_encoded`                                   | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
+| `css_select(selector)` or `css_select(element, selector)` | Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
 
 Here's an example of using `assert_select_email`:
 
@@ -741,50 +748,48 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 
   private
 
-  module CustomDsl
-    def browses_site
-      get "/products/all"
-      assert_response :success
-      assert assigns(:products)
+    module CustomDsl
+      def browses_site
+        get "/products/all"
+        assert_response :success
+        assert assigns(:products)
+      end
     end
-  end
 
-  def login(user)
-    open_session do |sess|
-      sess.extend(CustomDsl)
-      u = users(user)
-      sess.https!
-      sess.post "/login", username: u.username, password: u.password
-      assert_equal '/welcome', path
-      sess.https!(false)
+    def login(user)
+      open_session do |sess|
+        sess.extend(CustomDsl)
+        u = users(user)
+        sess.https!
+        sess.post "/login", username: u.username, password: u.password
+        assert_equal '/welcome', sess.path
+        sess.https!(false)
+      end
     end
-  end
 end
 ```
 
 Rake Tasks for Running your Tests
 ---------------------------------
 
-You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of commands to help in testing. The table below lists all commands that come along in the default Rakefile when you initiate a Rails project.
+You don't need to set up and run your tests by hand on a test-by-test basis.
+Rails comes with a number of commands to help in testing.
+The table below lists all commands that come along in the default Rakefile
+when you initiate a Rails project.
 
-| Tasks                    | Description |
-| ------------------------ | ----------- |
-| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake test` as Rails will run all the tests by default|
-| `rake test:controllers` | Runs all the controller tests from `test/controllers`|
-| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
-| `rake test:helpers`     | Runs all the helper tests from `test/helpers`|
-| `rake test:integration` | Runs all the integration tests from `test/integration`|
-| `rake test:mailers`     | Runs all the mailer tests from `test/mailers`|
-| `rake test:models`      | Runs all the model tests from `test/models`|
-| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
+| Tasks                   | Description |
+| ----------------------- | ----------- |
+| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake` as Rails will run all the tests by default |
+| `rake test:controllers` | Runs all the controller tests from `test/controllers` |
+| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
+| `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
+| `rake test:integration` | Runs all the integration tests from `test/integration` |
+| `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
+| `rake test:models`      | Runs all the model tests from `test/models` |
+| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
+| `rake test:all`         | Runs all tests quickly by merging all types and not resetting db |
+| `rake test:all:db`      | Runs all tests quickly by merging all types and resetting db |
 
-There're also some test commands which you can initiate by running rake tasks:
-
-| Tasks                    | Description |
-| ------------------------ | ----------- |
-| `rake test`              | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
-| `rake test:recent`       | Tests recent changes|
-| `rake test:uncommitted`  | Runs all the tests which are uncommitted. Supports Subversion and Git|
 
 Brief Note About `MiniTest`
 -----------------------------
@@ -878,10 +883,9 @@ class PostsControllerTest < ActionController::TestCase
 
   private
 
-  def initialize_post
-    @post = posts(:one)
-  end
-
+    def initialize_post
+      @post = posts(:one)
+    end
 end
 ```
 
@@ -903,7 +907,7 @@ Testing mailer classes requires some specific tools to do a thorough job.
 
 ### Keeping the Postman in Check
 
-Your mailer classes — like every other part of your Rails application — should be tested to ensure that it is working as expected.
+Your mailer classes - like every other part of your Rails application - should be tested to ensure that it is working as expected.
 
 The goals of testing your mailer classes are to ensure that:
 
@@ -997,6 +1001,47 @@ class UserControllerTest < ActionController::TestCase
 end
 ```
 
+Testing helpers
+---------------
+
+In order to test helpers, all you need to do is check that the output of the
+helper method matches what you'd expect. Tests related to the helpers are
+located under the `test/helpers` directory. Rails provides a generator which
+generates both the helper and the test file:
+
+```bash
+$ rails generate helper User
+      create  app/helpers/user_helper.rb
+      invoke  test_unit
+      create    test/helpers/user_helper_test.rb
+```
+
+The generated test file contains the following code:
+
+```ruby
+require 'test_helper'
+
+class UserHelperTest < ActionView::TestCase
+end
+```
+
+A helper is just a simple module where you can define methods which are
+available into your views. To test the output of the helper's methods, you just
+have to use a mixin like this:
+
+```ruby
+class UserHelperTest < ActionView::TestCase
+  include UserHelper
+
+  test "should return the user name" do
+    # ...
+  end
+end
+```
+
+Moreover, since the test class extends from `ActionView::TestCase`, you have
+access to Rails' helper methods such as `link_to` or `pluralize`.
+
 Other Testing Approaches
 ------------------------
 
@@ -1005,6 +1050,7 @@ The built-in `test/unit` based testing is not the only way to test Rails applica
 * [NullDB](http://avdi.org/projects/nulldb/), a way to speed up testing by avoiding database use.
 * [Factory Girl](https://github.com/thoughtbot/factory_girl/tree/master), a replacement for fixtures.
 * [Machinist](https://github.com/notahat/machinist/tree/master), another replacement for fixtures.
+* [Fixture Builder](https://github.com/rdy/fixture_builder), a tool that compiles Ruby factories into fixtures before a test run.
 * [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails), use the MiniTest::Spec DSL within your rails tests.
 * [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.
 * [RSpec](http://relishapp.com/rspec), a behavior-driven development framework

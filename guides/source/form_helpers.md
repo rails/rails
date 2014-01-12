@@ -67,7 +67,7 @@ To create this form you will use `form_tag`, `label_tag`, `text_field_tag`, and 
 This will generate the following HTML:
 
 ```html
-<form accept-charset="UTF-8" action="/search" method="get">
+<form accept-charset="UTF-8" action="/search" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
   <label for="q">Search for:</label>
   <input id="q" name="q" type="text" />
   <input name="commit" type="submit" value="Search" />
@@ -154,7 +154,10 @@ make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
-Other form controls worth mentioning are textareas, password fields, hidden fields, search fields, telephone fields, date fields, time fields, color fields, datetime fields, datetime-local fields, month fields, week fields, URL fields and email fields:
+Other form controls worth mentioning are textareas, password fields,
+hidden fields, search fields, telephone fields, date fields, time fields,
+color fields, datetime fields, datetime-local fields, month fields, week fields,
+URL fields, email fields, number fields and range fields:
 
 ```erb
 <%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
@@ -171,6 +174,8 @@ Other form controls worth mentioning are textareas, password fields, hidden fiel
 <%= email_field(:user, :address) %>
 <%= color_field(:user, :favorite_color) %>
 <%= time_field(:task, :started_at) %>
+<%= number_field(:product, :price, in: 1.0..20.0, step: 0.5) %>
+<%= range_field(:product, :discount, in: 1..100) %>
 ```
 
 Output:
@@ -190,11 +195,20 @@ Output:
 <input id="user_address" name="user[address]" type="email" />
 <input id="user_favorite_color" name="user[favorite_color]" type="color" value="#000000" />
 <input id="task_started_at" name="task[started_at]" type="time" />
+<input id="product_price" max="20.0" min="1.0" name="product[price]" step="0.5" type="number" />
+<input id="product_discount" max="100" min="1" name="product[discount]" type="range" />
 ```
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
-IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local, month, week, URL, and email inputs are HTML5 controls. If you require your app to have a consistent experience in older browsers, you will need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a couple of popular tools at the moment are [Modernizr](http://www.modernizr.com/) and [yepnope](http://yepnopejs.com/), which provide a simple way to add functionality based on the presence of detected HTML5 features.
+IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local,
+month, week, URL, email, number and range inputs are HTML5 controls.
+If you require your app to have a consistent experience in older browsers,
+you will need an HTML5 polyfill (provided by CSS and/or JavaScript).
+There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a couple of popular tools at the moment are
+[Modernizr](http://www.modernizr.com/) and [yepnope](http://yepnopejs.com/),
+which provide a simple way to add functionality based on the presence of
+detected HTML5 features.
 
 TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the [Security Guide](security.html#logging).
 
@@ -290,7 +304,7 @@ The object yielded by `fields_for` is a form builder like the one yielded by `fo
 
 ### Relying on Record Identification
 
-The Article model is directly available to users of the application, so — following the best practices for developing with Rails — you should declare it **a resource**:
+The Article model is directly available to users of the application, so - following the best practices for developing with Rails - you should declare it **a resource**:
 
 ```ruby
 resources :articles
@@ -328,7 +342,7 @@ If you have created namespaced routes, `form_for` has a nifty shorthand for that
 form_for [:admin, @article]
 ```
 
-will create a form that submits to the articles controller inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
+will create a form that submits to the `ArticlesController` inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
 
 ```ruby
 form_for [:admin, :management, @article]
@@ -381,7 +395,7 @@ Here you have a list of cities whose names are presented to the user. Internally
 
 ### The Select and Option Tags
 
-The most generic helper is `select_tag`, which — as the name implies — simply generates the `SELECT` tag that encapsulates an options string:
+The most generic helper is `select_tag`, which - as the name implies - simply generates the `SELECT` tag that encapsulates an options string:
 
 ```erb
 <%= select_tag(:city_id, '<option value="1">Lisbon</option>...') %>
@@ -421,7 +435,7 @@ output:
 
 Whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
 
-TIP: The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to `options_for_select` — you must pass 2. Be aware of values extracted from the `params` hash as they are all strings.
+TIP: The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to `options_for_select` - you must pass 2. Be aware of values extracted from the `params` hash as they are all strings.
 
 WARNING: when `:include_blank` or `:prompt` are not present, `:include_blank` is forced true if the select attribute `required` is true, display `size` is one and `multiple` is not true.
 
@@ -451,7 +465,7 @@ In most cases form controls will be tied to a specific database model and as you
 <%= select(:person, :city_id, [['Lisbon', 1], ['Madrid', 2], ...]) %>
 ```
 
-Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one — Rails will do this for you by reading from the `@person.city_id` attribute.
+Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one - Rails will do this for you by reading from the `@person.city_id` attribute.
 
 As with other helpers, if you were to use the `select` helper on a form builder scoped to the `@person` object, the syntax would be:
 
@@ -553,7 +567,7 @@ outputs (with actual option values omitted for brevity)
 which results in a `params` hash like
 
 ```ruby
-{:person => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
+{'person' => {'birth_date(1i)' => '2008', 'birth_date(2i)' => '11', 'birth_date(3i)' => '22'}}
 ```
 
 When this is passed to `Person.new` (or `update`), Active Record spots that these parameters should all be used to construct the `birth_date` attribute and uses the suffixed information to determine in which order it should pass these parameters to functions such as `Date.civil`.
@@ -568,7 +582,7 @@ NOTE: In many cases the built-in date pickers are clumsy as they do not aid the 
 
 ### Individual Components
 
-Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be overridden with the  `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
+Occasionally you need to display just a single date component such as a year or a month. Rails provides a series of helpers for this, one for each component `select_year`, `select_month`, `select_day`, `select_hour`, `select_minute`, `select_second`. These helpers are fairly straightforward. By default they will generate an input field named after the time component (for example "year" for `select_year`, "month" for `select_month` etc.) although this can be overridden with the `:field_name` option. The `:prefix` option works in the same way that it does for `select_date` and `select_time` and has the same default value.
 
 The first parameter specifies which value should be selected and can either be an instance of a Date, Time or DateTime, in which case the relevant component will be extracted, or a numerical value. For example
 
@@ -605,7 +619,7 @@ The object in the `params` hash is an instance of a subclass of IO. Depending on
 ```ruby
 def upload
   uploaded_io = params[:person][:picture]
-  File.open(Rails.root.join('public', 'uploads', uploaded_io.original_filename), 'w') do |file|
+  File.open(Rails.root.join('public', 'uploads', uploaded_io.original_filename), 'wb') do |file|
     file.write(uploaded_io.read)
   end
 end
@@ -664,7 +678,7 @@ Understanding Parameter Naming Conventions
 As you've seen in the previous sections, values from forms can be at the top level of the `params` hash or nested in another hash. For example in a standard `create`
 action for a Person model, `params[:person]` would usually be a hash of all the attributes for the person to create. The `params` hash can also contain arrays, arrays of hashes and so on.
 
-Fundamentally HTML forms don't know about any sort of structured data, all they generate is name–value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
+Fundamentally HTML forms don't know about any sort of structured data, all they generate is name-value pairs, where pairs are just plain strings. The arrays and hashes you see in your application are the result of some parameter naming conventions that Rails uses.
 
 TIP: You may find you can try out examples in this section faster by using the console to directly invoke Racks' parameter parser. For example,
 
@@ -830,7 +844,7 @@ Many apps grow beyond simple forms editing a single object. For example when cre
 
 ### Configuring the Model
 
-Active Record provides model level support  via the `accepts_nested_attributes_for` method:
+Active Record provides model level support via the `accepts_nested_attributes_for` method:
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -845,7 +859,7 @@ end
 
 This creates an `addresses_attributes=` method on `Person` that allows you to create, update and (optionally) destroy addresses.
 
-### Building the Form
+### Nested Forms
 
 The following form allows a user to create a `Person` and its associated addresses.
 
@@ -868,38 +882,40 @@ The following form allows a user to create a `Person` and its associated address
 ```
 
 
-When an association accepts nested attributes `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses it renders nothing. A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 3 sets of address fields being rendered on the new person form.
+When an association accepts nested attributes `fields_for` renders its block once for every element of the association. In particular, if a person has no addresses it renders nothing. A common pattern is for the controller to build one or more empty children so that at least one set of fields is shown to the user. The example below would result in 2 sets of address fields being rendered on the new person form.
 
 ```ruby
 def new
   @person = Person.new
-  3.times { @person.addresses.build}
+  2.times { @person.addresses.build}
 end
 ```
 
-`fields_for` yields a form builder that names parameters in the format expected the accessor generated by `accepts_nested_attributes_for`. For example when creating a user with 2 addresses, the submitted parameters would look like
+The `fields_for` yields a form builder. The parameters' name will be what
+`accepts_nested_attributes_for` expects. For example when creating a user with
+2 addresses, the submitted parameters would look like:
 
 ```ruby
 {
-    :person => {
-        :name => 'John Doe',
-        :addresses_attributes => {
-            '0' => {
-                :kind  => 'Home',
-                :street => '221b Baker Street',
-            },
-            '1' => {
-                :kind => 'Office',
-                :street => '31 Spooner Street'
-            }
-        }
+  'person' => {
+    'name' => 'John Doe',
+    'addresses_attributes' => {
+      '0' => {
+        'kind' => 'Home',
+        'street' => '221b Baker Street'
+      },
+      '1' => {
+        'kind' => 'Office',
+        'street' => '31 Spooner Street'
+      }
     }
+  }
 }
 ```
 
 The keys of the `:addresses_attributes` hash are unimportant, they need merely be different for each address.
 
-If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `include_id: false` to `fields_for`. You may wish to do this if the autogenerated input is placed in a location where an input tag is not valid HTML or when using an ORM where children do not have an id.
+If the associated object is already saved, `fields_for` autogenerates a hidden input with the `id` of the saved record. You can disable this by passing `include_id: false` to `fields_for`. You may wish to do this if the autogenerated input is placed in a location where an input tag is not valid HTML or when using an ORM where children do not have an `id`.
 
 ### The Controller
 
@@ -914,9 +930,9 @@ def create
 end
 
 private
-def person_params
-  params.require(:person).permit(:name, addresses_attributes: [:id, :kind, :street])
-end
+  def person_params
+    params.require(:person).permit(:name, addresses_attributes: [:id, :kind, :street])
+  end
 ```
 
 ### Removing Objects
@@ -930,7 +946,9 @@ class Person < ActiveRecord::Base
 end
 ```
 
-If the hash of attributes for an object contains the key `_destroy` with a value of '1' or 'true' then the object will be destroyed. This form allows users to remove addresses:
+If the hash of attributes for an object contains the key `_destroy` with a value
+of `1` or `true` then the object will be destroyed. This form allows users to
+remove addresses:
 
 ```erb
 <%= form_for @person do |f| %>
@@ -938,7 +956,7 @@ If the hash of attributes for an object contains the key `_destroy` with a value
   <ul>
     <%= f.fields_for :addresses do |addresses_form| %>
       <li>
-        <%= check_box :_destroy%>
+        <%= addresses_form.check_box :_destroy%>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
         ...
@@ -973,4 +991,4 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 ### Adding Fields on the Fly
 
-Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new child' button. Rails does not provide any builtin support for this. When generating new sets of fields you must ensure the the key of the associated array is unique - the current javascript date (milliseconds after the epoch) is a common choice.
+Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new address' button. Rails does not provide any builtin support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds after the epoch) is a common choice.

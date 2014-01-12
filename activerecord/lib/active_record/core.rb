@@ -42,8 +42,15 @@ module ActiveRecord
       #         'database' => 'db/production.sqlite3'
       #      }
       #   }
-      mattr_accessor :configurations, instance_writer: false
+      def self.configurations=(config)
+        @@configurations = ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig.new(config).resolve
+      end
       self.configurations = {}
+
+      # Returns fully resolved configurations hash
+      def self.configurations
+        @@configurations
+      end
 
       ##
       # :singleton-method:
@@ -69,13 +76,13 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
-      ##
-      # :singleton-method:
-      # Disable implicit join references. This feature was deprecated with Rails 4.
-      # If you don't make use of implicit references but still see deprecation warnings
-      # you can disable the feature entirely. This will be the default with Rails 4.1.
-      mattr_accessor :disable_implicit_join_references, instance_writer: false
-      self.disable_implicit_join_references = false
+      # :nodoc:
+      mattr_accessor :maintain_test_schema, instance_accessor: false
+
+      def self.disable_implicit_join_references=(value)
+        ActiveSupport::Deprecation.warn("Implicit join references were removed with Rails 4.1." \
+                                        "Make sure to remove this configuration because it does nothing.")
+      end
 
       class_attribute :default_connection_handler, instance_writer: false
 
@@ -91,27 +98,15 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(child_class) #:nodoc:
-        child_class.initialize_generated_modules
-        super
-      end
-
       def initialize_generated_modules
-        @attribute_methods_mutex = Mutex.new
+        super
 
-        # force attribute methods to be higher in inheritance hierarchy than other generated methods
-        generated_attribute_methods.const_set(:AttrNames, Module.new {
-          def self.const_missing(name)
-            const_set(name, [name.to_s.sub(/ATTR_/, '')].pack('h*').freeze)
-          end
-        })
-
-        generated_feature_methods
+        generated_association_methods
       end
 
-      def generated_feature_methods
-        @generated_feature_methods ||= begin
-          mod = const_set(:GeneratedFeatureMethods, Module.new)
+      def generated_association_methods
+        @generated_association_methods ||= begin
+          mod = const_set(:GeneratedAssociationMethods, Module.new)
           include mod
           mod
         end
@@ -123,6 +118,8 @@ module ActiveRecord
           super
         elsif abstract_class?
           "#{super}(abstract)"
+        elsif !connected?
+          "#{super} (call '#{super}.connection' to establish a connection)"
         elsif table_exists?
           attr_list = columns.map { |c| "#{c.name}: #{c.type}" } * ', '
           "#{super}(#{attr_list})"
@@ -139,7 +136,7 @@ module ActiveRecord
       # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
       #
       #   class Post < ActiveRecord::Base
-      #     scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
+      #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
@@ -147,19 +144,18 @@ module ActiveRecord
 
       # Returns the Arel engine.
       def arel_engine
-        @arel_engine ||= begin
+        @arel_engine ||=
           if Base == self || connection_handler.retrieve_connection_pool(self)
             self
           else
             superclass.arel_engine
           end
-       end
       end
 
       private
 
       def relation #:nodoc:
-        relation = Relation.new(self, arel_table)
+        relation = Relation.create(self, arel_table)
 
         if finder_needs_type_condition?
           relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
@@ -177,19 +173,22 @@ module ActiveRecord
     # ==== Example:
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
-    def initialize(attributes = nil)
+    def initialize(attributes = nil, options = {})
       defaults = self.class.column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
 
       @attributes   = self.class.initialize_attributes(defaults)
-      @columns_hash = self.class.column_types.dup
+      @column_types_override = nil
+      @column_types = self.class.column_types
 
       init_internals
       init_changed_attributes
       ensure_proper_type
       populate_with_current_scope_attributes
 
-      assign_attributes(attributes) if attributes
+      # +options+ argument is only needed to make protected_attributes gem easier to hook.
+      # Remove it when we drop support to this gem.
+      init_attributes(attributes, options) if attributes
 
       yield self if block_given?
       run_callbacks :initialize unless _initialize_callbacks.empty?
@@ -207,7 +206,8 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes   = self.class.initialize_attributes(coder['attributes'])
-      @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
+      @column_types_override = coder['column_types']
+      @column_types = self.class.column_types
 
       init_internals
 
@@ -296,7 +296,7 @@ module ActiveRecord
     def ==(comparison_object)
       super ||
         comparison_object.instance_of?(self.class) &&
-        id.present? &&
+        id &&
         comparison_object.id == id
     end
     alias :eql? :==
@@ -324,6 +324,8 @@ module ActiveRecord
     def <=>(other_object)
       if other_object.is_a?(self.class)
         self.to_key <=> other_object.to_key
+      else
+        super
       end
     end
 
@@ -336,14 +338,6 @@ module ActiveRecord
     # Marks this record as read only.
     def readonly!
       @readonly = true
-    end
-
-    # Returns the connection currently associated with the class. This can
-    # also be used to "borrow" the connection to do database work that isn't
-    # easily done without going straight to SQL.
-    def connection
-      ActiveSupport::Deprecation.warn("#connection is deprecated in favour of accessing it via the class")
-      self.class.connection
     end
 
     def connection_handler
@@ -368,7 +362,7 @@ module ActiveRecord
 
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
-      Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
+      Hash[methods.map! { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
     def set_transaction_state(state) # :nodoc:
@@ -438,8 +432,6 @@ module ActiveRecord
       @aggregation_cache        = {}
       @association_cache        = {}
       @attributes_cache         = {}
-      @previously_changed       = {}
-      @changed_attributes       = {}
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false
@@ -456,8 +448,14 @@ module ActiveRecord
       # optimistic locking) won't get written unless they get marked as changed
       self.class.columns.each do |c|
         attr, orig_value = c.name, c.default
-        @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
+        changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
       end
+    end
+
+    # This method is needed to make protected_attributes gem easier to hook.
+    # Remove it when we drop support to this gem.
+    def init_attributes(attributes, options)
+      assign_attributes(attributes)
     end
   end
 end

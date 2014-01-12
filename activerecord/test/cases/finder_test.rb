@@ -11,6 +11,8 @@ require 'models/project'
 require 'models/developer'
 require 'models/customer'
 require 'models/toy'
+require 'models/matey'
+require 'models/dog'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
@@ -45,17 +47,19 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists
-    assert Topic.exists?(1)
-    assert Topic.exists?("1")
-    assert Topic.exists?(title: "The First Topic")
-    assert Topic.exists?(heading: "The First Topic")
-    assert Topic.exists?(:author_name => "Mary", :approved => true)
-    assert Topic.exists?(["parent_id = ?", 1])
-    assert !Topic.exists?(45)
-    assert !Topic.exists?(Topic.new)
+    assert_equal true, Topic.exists?(1)
+    assert_equal true, Topic.exists?("1")
+    assert_equal true, Topic.exists?(title: "The First Topic")
+    assert_equal true, Topic.exists?(heading: "The First Topic")
+    assert_equal true, Topic.exists?(:author_name => "Mary", :approved => true)
+    assert_equal true, Topic.exists?(["parent_id = ?", 1])
+    assert_equal true, Topic.exists?(id: [1, 9999])
+
+    assert_equal false, Topic.exists?(45)
+    assert_equal false, Topic.exists?(Topic.new)
 
     begin
-      assert !Topic.exists?("foo")
+      assert_equal false, Topic.exists?("foo")
     rescue ActiveRecord::StatementInvalid
       # PostgreSQL complains about string comparison with integer field
     rescue Exception
@@ -72,61 +76,62 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_returns_true_with_one_record_and_no_args
-    assert Topic.exists?
+    assert_equal true, Topic.exists?
   end
 
   def test_exists_returns_false_with_false_arg
-    assert !Topic.exists?(false)
+    assert_equal false, Topic.exists?(false)
   end
 
   # exists? should handle nil for id's that come from URLs and always return false
   # (example: Topic.exists?(params[:id])) where params[:id] is nil
   def test_exists_with_nil_arg
-    assert !Topic.exists?(nil)
-    assert Topic.exists?
-    assert !Topic.first.replies.exists?(nil)
-    assert Topic.first.replies.exists?
+    assert_equal false, Topic.exists?(nil)
+    assert_equal true, Topic.exists?
+
+    assert_equal false, Topic.first.replies.exists?(nil)
+    assert_equal true, Topic.first.replies.exists?
   end
 
   # ensures +exists?+ runs valid SQL by excluding order value
   def test_exists_with_order
-    assert Topic.order(:id).distinct.exists?
+    assert_equal true, Topic.order(:id).distinct.exists?
   end
 
   def test_exists_with_includes_limit_and_empty_result
-    assert !Topic.includes(:replies).limit(0).exists?
-    assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
+    assert_equal false, Topic.includes(:replies).limit(0).exists?
+    assert_equal false, Topic.includes(:replies).limit(1).where('0 = 1').exists?
   end
 
   def test_exists_with_distinct_association_includes_and_limit
     author = Author.first
-    assert !author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
-    assert author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
   end
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert !author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
-    assert author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
-    assert !Topic.exists?
+    assert_equal false, Topic.exists?
   end
 
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
-    assert Customer.exists?(:address => existing_address)
+    assert_equal true, Customer.exists?(:address => existing_address)
   end
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert !Customer.exists?(:address =>
+    assert_equal false, Customer.exists?(:address =>
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
@@ -146,14 +151,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_ids_with_limit_and_offset
-    assert_equal 2, Entrant.all.merge!(:limit => 2).find([1,3,2]).size
-    assert_equal 1, Entrant.all.merge!(:limit => 3, :offset => 2).find([1,3,2]).size
+    assert_equal 2, Entrant.limit(2).find([1,3,2]).size
+    assert_equal 1, Entrant.limit(3).offset(2).find([1,3,2]).size
 
     # Also test an edge case: If you have 11 results, and you set a
     #   limit of 3 and offset of 9, then you should find that there
     #   will be only 2 results, regardless of the limit.
     devs = Developer.all
-    last_devs = Developer.all.merge!(:limit => 3, :offset => 9).find devs.map(&:id)
+    last_devs = Developer.limit(3).offset(9).find devs.map(&:id)
     assert_equal 2, last_devs.size
   end
 
@@ -306,7 +311,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_only_some_columns
-    topic = Topic.all.merge!(:select => "author_name").find(1)
+    topic = Topic.select("author_name").find(1)
     assert_raise(ActiveModel::MissingAttributeError) {topic.title}
     assert_raise(ActiveModel::MissingAttributeError) {topic.title?}
     assert_nil topic.read_attribute("title")
@@ -318,23 +323,23 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_array_conditions
-    assert Topic.all.merge!(:where => ["approved = ?", false]).find(1)
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => ["approved = ?", true]).find(1) }
+    assert Topic.where(["approved = ?", false]).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(["approved = ?", true]).find(1) }
   end
 
   def test_find_on_hash_conditions
-    assert Topic.all.merge!(:where => { :approved => false }).find(1)
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => { :approved => true }).find(1) }
+    assert Topic.where(approved: false).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(approved: true).find(1) }
   end
 
   def test_find_on_hash_conditions_with_explicit_table_name
-    assert Topic.all.merge!(:where => { 'topics.approved' => false }).find(1)
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => { 'topics.approved' => true }).find(1) }
+    assert Topic.where('topics.approved' => false).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => true).find(1) }
   end
 
   def test_find_on_hash_conditions_with_hashed_table_name
-    assert Topic.all.merge!(:where => {:topics => { :approved => false }}).find(1)
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => {:topics => { :approved => true }}).find(1) }
+    assert Topic.where(topics: { approved: false }).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(topics: { approved: true }).find(1) }
   end
 
   def test_find_with_hash_conditions_on_joined_table
@@ -344,7 +349,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_hash_conditions_on_joined_table_and_with_range
-    firms = DependentFirm.all.merge!(:joins => :account, :where => {:name => 'RailsCore', :accounts => { :credit_limit => 55..60 }})
+    firms = DependentFirm.joins(:account).where(name: 'RailsCore', accounts: { credit_limit: 55..60 })
     assert_equal 1, firms.size
     assert_equal companies(:rails_core), firms.first
   end
@@ -362,71 +367,71 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions_with_range
-    assert_equal [1,2], Topic.all.merge!(:where => { :id => 1..2 }).to_a.map(&:id).sort
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => { :id => 2..3 }).find(1) }
+    assert_equal [1,2], Topic.where(id: 1..2).to_a.map(&:id).sort
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(id: 2..3).find(1) }
   end
 
   def test_find_on_hash_conditions_with_end_exclusive_range
-    assert_equal [1,2,3], Topic.all.merge!(:where => { :id => 1..3 }).to_a.map(&:id).sort
-    assert_equal [1,2], Topic.all.merge!(:where => { :id => 1...3 }).to_a.map(&:id).sort
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => { :id => 2...3 }).find(3) }
+    assert_equal [1,2,3], Topic.where(id: 1..3).to_a.map(&:id).sort
+    assert_equal [1,2], Topic.where(id: 1...3).to_a.map(&:id).sort
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(id: 2...3).find(3) }
   end
 
   def test_find_on_hash_conditions_with_multiple_ranges
-    assert_equal [1,2,3], Comment.all.merge!(:where => { :id => 1..3, :post_id => 1..2 }).to_a.map(&:id).sort
-    assert_equal [1], Comment.all.merge!(:where => { :id => 1..1, :post_id => 1..10 }).to_a.map(&:id).sort
+    assert_equal [1,2,3], Comment.where(id: 1..3, post_id: 1..2).to_a.map(&:id).sort
+    assert_equal [1], Comment.where(id: 1..1, post_id: 1..10).to_a.map(&:id).sort
   end
 
   def test_find_on_hash_conditions_with_array_of_integers_and_ranges
-    assert_equal [1,2,3,5,6,7,8,9], Comment.all.merge!(:where => {:id => [1..2, 3, 5, 6..8, 9]}).to_a.map(&:id).sort
+    assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [1..2, 3, 5, 6..8, 9]).to_a.map(&:id).sort
   end
 
   def test_find_on_multiple_hash_conditions
-    assert Topic.all.merge!(:where => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => false }).find(1)
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }).find(1) }
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => { :author_name => "David", :title => "HHC", :replies_count => 1, :approved => false }).find(1) }
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.all.merge!(:where => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }).find(1) }
+    assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "HHC", replies_count: 1, approved: false).find(1) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
   end
 
   def test_condition_interpolation
     assert_kind_of Firm, Company.where("name = '%s'", "37signals").first
-    assert_nil Company.all.merge!(:where => ["name = '%s'", "37signals!"]).first
-    assert_nil Company.all.merge!(:where => ["name = '%s'", "37signals!' OR 1=1"]).first
-    assert_kind_of Time, Topic.all.merge!(:where => ["id = %d", 1]).first.written_on
+    assert_nil Company.where(["name = '%s'", "37signals!"]).first
+    assert_nil Company.where(["name = '%s'", "37signals!' OR 1=1"]).first
+    assert_kind_of Time, Topic.where(["id = %d", 1]).first.written_on
   end
 
   def test_condition_array_interpolation
-    assert_kind_of Firm, Company.all.merge!(:where => ["name = '%s'", "37signals"]).first
-    assert_nil Company.all.merge!(:where => ["name = '%s'", "37signals!"]).first
-    assert_nil Company.all.merge!(:where => ["name = '%s'", "37signals!' OR 1=1"]).first
-    assert_kind_of Time, Topic.all.merge!(:where => ["id = %d", 1]).first.written_on
+    assert_kind_of Firm, Company.where(["name = '%s'", "37signals"]).first
+    assert_nil Company.where(["name = '%s'", "37signals!"]).first
+    assert_nil Company.where(["name = '%s'", "37signals!' OR 1=1"]).first
+    assert_kind_of Time, Topic.where(["id = %d", 1]).first.written_on
   end
 
   def test_condition_hash_interpolation
-    assert_kind_of Firm, Company.all.merge!(:where => { :name => "37signals"}).first
-    assert_nil Company.all.merge!(:where => { :name => "37signals!"}).first
-    assert_kind_of Time, Topic.all.merge!(:where => {:id => 1}).first.written_on
+    assert_kind_of Firm, Company.where(name: "37signals").first
+    assert_nil Company.where(name: "37signals!").first
+    assert_kind_of Time, Topic.where(id: 1).first.written_on
   end
 
   def test_hash_condition_find_malformed
     assert_raise(ActiveRecord::StatementInvalid) {
-      Company.all.merge!(:where => { :id => 2, :dhh => true }).first
+      Company.where(id: 2, dhh: true).first
     }
   end
 
   def test_hash_condition_find_with_escaped_characters
     Company.create("name" => "Ain't noth'n like' \#stuff")
-    assert Company.all.merge!(:where => { :name => "Ain't noth'n like' \#stuff" }).first
+    assert Company.where(name: "Ain't noth'n like' \#stuff").first
   end
 
   def test_hash_condition_find_with_array
-    p1, p2 = Post.all.merge!(:limit => 2, :order => 'id asc').to_a
-    assert_equal [p1, p2], Post.all.merge!(:where => { :id => [p1, p2] }, :order => 'id asc').to_a
-    assert_equal [p1, p2], Post.all.merge!(:where => { :id => [p1, p2.id] }, :order => 'id asc').to_a
+    p1, p2 = Post.limit(2).order('id asc').to_a
+    assert_equal [p1, p2], Post.where(id: [p1, p2]).order('id asc').to_a
+    assert_equal [p1, p2], Post.where(id: [p1, p2.id]).order('id asc').to_a
   end
 
   def test_hash_condition_find_with_nil
-    topic = Topic.all.merge!(:where => { :last_read => nil } ).first
+    topic = Topic.where(last_read: nil).first
     assert_not_nil topic
     assert_nil topic.last_read
   end
@@ -475,61 +480,61 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_condition_utc_time_interpolation_with_default_timezone_local
     with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :local do
+      with_timezone_config default: :local do
         topic = Topic.first
-        assert_equal topic, Topic.all.merge!(:where => ['written_on = ?', topic.written_on.getutc]).first
+        assert_equal topic, Topic.where(['written_on = ?', topic.written_on.getutc]).first
       end
     end
   end
 
   def test_hash_condition_utc_time_interpolation_with_default_timezone_local
     with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :local do
+      with_timezone_config default: :local do
         topic = Topic.first
-        assert_equal topic, Topic.all.merge!(:where => {:written_on => topic.written_on.getutc}).first
+        assert_equal topic, Topic.where(written_on: topic.written_on.getutc).first
       end
     end
   end
 
   def test_condition_local_time_interpolation_with_default_timezone_utc
     with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :utc do
+      with_timezone_config default: :utc do
         topic = Topic.first
-        assert_equal topic, Topic.all.merge!(:where => ['written_on = ?', topic.written_on.getlocal]).first
+        assert_equal topic, Topic.where(['written_on = ?', topic.written_on.getlocal]).first
       end
     end
   end
 
   def test_hash_condition_local_time_interpolation_with_default_timezone_utc
     with_env_tz 'America/New_York' do
-      with_active_record_default_timezone :utc do
+      with_timezone_config default: :utc do
         topic = Topic.first
-        assert_equal topic, Topic.all.merge!(:where => {:written_on => topic.written_on.getlocal}).first
+        assert_equal topic, Topic.where(written_on: topic.written_on.getlocal).first
       end
     end
   end
 
   def test_bind_variables
-    assert_kind_of Firm, Company.all.merge!(:where => ["name = ?", "37signals"]).first
-    assert_nil Company.all.merge!(:where => ["name = ?", "37signals!"]).first
-    assert_nil Company.all.merge!(:where => ["name = ?", "37signals!' OR 1=1"]).first
-    assert_kind_of Time, Topic.all.merge!(:where => ["id = ?", 1]).first.written_on
+    assert_kind_of Firm, Company.where(["name = ?", "37signals"]).first
+    assert_nil Company.where(["name = ?", "37signals!"]).first
+    assert_nil Company.where(["name = ?", "37signals!' OR 1=1"]).first
+    assert_kind_of Time, Topic.where(["id = ?", 1]).first.written_on
     assert_raise(ActiveRecord::PreparedStatementInvalid) {
-      Company.all.merge!(:where => ["id=? AND name = ?", 2]).first
+      Company.where(["id=? AND name = ?", 2]).first
     }
     assert_raise(ActiveRecord::PreparedStatementInvalid) {
-     Company.all.merge!(:where => ["id=?", 2, 3, 4]).first
+     Company.where(["id=?", 2, 3, 4]).first
     }
   end
 
   def test_bind_variables_with_quotes
     Company.create("name" => "37signals' go'es agains")
-    assert Company.all.merge!(:where => ["name = ?", "37signals' go'es agains"]).first
+    assert Company.where(["name = ?", "37signals' go'es agains"]).first
   end
 
   def test_named_bind_variables_with_quotes
     Company.create("name" => "37signals' go'es agains")
-    assert Company.all.merge!(:where => ["name = :name", {:name => "37signals' go'es agains"}]).first
+    assert Company.where(["name = :name", {name: "37signals' go'es agains"}]).first
   end
 
   def test_bind_arity
@@ -547,10 +552,10 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_nothing_raised { bind("'+00:00'", :foo => "bar") }
 
-    assert_kind_of Firm, Company.all.merge!(:where => ["name = :name", { :name => "37signals" }]).first
-    assert_nil Company.all.merge!(:where => ["name = :name", { :name => "37signals!" }]).first
-    assert_nil Company.all.merge!(:where => ["name = :name", { :name => "37signals!' OR 1=1" }]).first
-    assert_kind_of Time, Topic.all.merge!(:where => ["id = :id", { :id => 1 }]).first.written_on
+    assert_kind_of Firm, Company.where(["name = :name", { name: "37signals" }]).first
+    assert_nil Company.where(["name = :name", { name: "37signals!" }]).first
+    assert_nil Company.where(["name = :name", { name: "37signals!' OR 1=1" }]).first
+    assert_kind_of Time, Topic.where(["id = :id", { id: 1 }]).first.written_on
   end
 
   class SimpleEnumerable
@@ -613,7 +618,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_named_bind_with_postgresql_type_casts
     l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => '10') }
     assert_nothing_raised(&l)
-    assert_equal "#{ActiveRecord::Base.quote_value('10')}::integer '2009-01-01'::date", l.call
+    assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
 
   def test_string_sanitation
@@ -635,6 +640,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_one_attribute_bang
     assert_equal topics(:first), Topic.find_by_title!("The First Topic")
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
+  end
+
+  def test_find_by_on_attribute_that_is_a_reserved_word
+    dog_alias = 'Dog'
+    dog = Dog.create(alias: dog_alias)
+
+    assert_equal dog, Dog.find_by_alias(dog_alias)
   end
 
   def test_find_by_one_attribute_that_is_an_alias
@@ -716,6 +728,15 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Topic.find_by_title_and_author_name("The First Topic") }
   end
 
+  def test_find_last_with_offset
+    devs = Developer.order('id')
+
+    assert_equal devs[2], Developer.offset(2).first
+    assert_equal devs[-3], Developer.offset(2).last
+    assert_equal devs[-3], Developer.offset(2).last
+    assert_equal devs[-3], Developer.offset(2).order('id DESC').first
+  end
+
   def test_find_by_nil_attribute
     topic = Topic.find_by_last_read nil
     assert_not_nil topic
@@ -732,10 +753,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_all_with_join
-    developers_on_project_one = Developer.all.merge!(
-      :joins => 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id',
-      :where => 'project_id=1'
-    ).to_a
+    developers_on_project_one = Developer.
+      joins('LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id').
+      where('project_id=1').to_a
     assert_equal 3, developers_on_project_one.length
     developer_names = developers_on_project_one.map { |d| d.name }
     assert developer_names.include?('David')
@@ -743,20 +763,17 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_joins_dont_clobber_id
-    first = Firm.all.merge!(
-      :joins => 'INNER JOIN companies clients ON clients.firm_id = companies.id',
-      :where => 'companies.id = 1'
-    ).first
+    first = Firm.
+      joins('INNER JOIN companies clients ON clients.firm_id = companies.id').
+      where('companies.id = 1').first
     assert_equal 1, first.id
   end
 
   def test_joins_with_string_array
-    person_with_reader_and_post = Post.all.merge!(
-      :joins => [
-        "INNER JOIN categorizations ON categorizations.post_id = posts.id",
-        "INNER JOIN categories ON categories.id = categorizations.category_id AND categories.type = 'SpecialCategory'"
-      ]
-    )
+    person_with_reader_and_post = Post.
+      joins(["INNER JOIN categorizations ON categorizations.post_id = posts.id",
+             "INNER JOIN categories ON categories.id = categorizations.category_id AND categories.type = 'SpecialCategory'"
+            ])
     assert_equal 1, person_with_reader_and_post.size
   end
 
@@ -781,9 +798,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_records
-    p1, p2 = Post.all.merge!(:limit => 2, :order => 'id asc').to_a
-    assert_equal [p1, p2], Post.all.merge!(:where => ['id in (?)', [p1, p2]], :order => 'id asc')
-    assert_equal [p1, p2], Post.all.merge!(:where => ['id in (?)', [p1, p2.id]], :order => 'id asc')
+    p1, p2 = Post.limit(2).order('id asc').to_a
+    assert_equal [p1, p2], Post.where(['id in (?)', [p1, p2]]).order('id asc')
+    assert_equal [p1, p2], Post.where(['id in (?)', [p1, p2.id]]).order('id asc')
   end
 
   def test_select_value
@@ -810,36 +827,35 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-    assert_equal 2, Post.all.merge!(:includes => { :authors => :author_address }, :order => 'author_addresses.id DESC ', :limit => 2).to_a.size
+    assert_equal 2, Post.includes(authors: :author_address).order('author_addresses.id DESC ').limit(2).to_a.size
 
-    assert_equal 3, Post.all.merge!(:includes => { :author => :author_address, :authors => :author_address},
-                              :order => 'author_addresses_authors.id DESC ', :limit => 3).to_a.size
+    assert_equal 3, Post.includes(author: :author_address, authors: :author_address).
+                              order('author_addresses_authors.id DESC ').limit(3).to_a.size
   end
 
   def test_find_with_nil_inside_set_passed_for_one_attribute
-    client_of = Company.all.merge!(
-      :where => {
-        :client_of => [2, 1, nil],
-        :name => ['37signals', 'Summit', 'Microsoft'] },
-      :order => 'client_of DESC'
-    ).map { |x| x.client_of }
+    client_of = Company.
+      where(client_of: [2, 1, nil],
+            name: ['37signals', 'Summit', 'Microsoft']).
+      order('client_of DESC').
+      map { |x| x.client_of }
 
     assert client_of.include?(nil)
     assert_equal [2, 1].sort, client_of.compact.sort
   end
 
   def test_find_with_nil_inside_set_passed_for_attribute
-    client_of = Company.all.merge!(
-      :where => { :client_of => [nil] },
-      :order => 'client_of DESC'
-    ).map { |x| x.client_of }
+    client_of = Company.
+      where(client_of: [nil]).
+      order('client_of DESC').
+      map { |x| x.client_of }
 
     assert_equal [], client_of.compact
   end
 
   def test_with_limiting_with_custom_select
     posts = Post.references(:authors).merge(
-      :includes => :author, :select => ' posts.*, authors.id as "author_id"',
+      :includes => :author, :select => 'posts.*, authors.id as "author_id"',
       :limit => 3, :order => 'posts.id'
     ).to_a
     assert_equal 3, posts.size
@@ -857,8 +873,14 @@ class FinderTest < ActiveRecord::TestCase
     Toy.reset_primary_key
   end
 
+  def test_find_without_primary_key
+    assert_raises(ActiveRecord::UnknownPrimaryKey) do
+      Matey.find(1)
+    end
+  end
+
   def test_finder_with_offset_string
-    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.all.merge!(:offset => "3").to_a }
+    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.offset("3").to_a }
   end
 
   protected
@@ -875,12 +897,5 @@ class FinderTest < ActiveRecord::TestCase
       yield
     ensure
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
-    def with_active_record_default_timezone(zone)
-      old_zone, ActiveRecord::Base.default_timezone = ActiveRecord::Base.default_timezone, zone
-      yield
-    ensure
-      ActiveRecord::Base.default_timezone = old_zone
     end
 end

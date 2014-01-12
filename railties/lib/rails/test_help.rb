@@ -6,12 +6,17 @@ require 'active_support/testing/autorun'
 require 'active_support/test_case'
 require 'action_controller/test_case'
 require 'action_dispatch/testing/integration'
+require 'rails/generators/test_case'
 
 # Config Rails backtrace in tests.
 require 'rails/backtrace_cleaner'
-MiniTest.backtrace_filter = Rails.backtrace_cleaner
+if ENV["BACKTRACE"].nil?
+  Minitest.backtrace_filter = Rails.backtrace_cleaner
+end
 
 if defined?(ActiveRecord::Base)
+  ActiveRecord::Migration.maintain_test_schema!
+
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"

@@ -370,6 +370,24 @@ module AbstractController
         assert_equal("/c/a?show=false", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :show => false))
       end
 
+      def test_url_generation_with_array_and_hash
+        with_routing do |set|
+          set.draw do
+            namespace :admin do
+              resources :posts
+            end
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = 'www.basecamphq.com'
+
+          controller = kls.new
+          assert_equal("http://www.basecamphq.com/admin/posts/new?param=value",
+            controller.send(:url_for, [:new, :admin, :post, { param: 'value' }])
+          )
+        end
+      end
+
       private
         def extract_params(url)
           url.split('?', 2).last.split('&').sort

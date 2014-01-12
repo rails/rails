@@ -73,21 +73,15 @@ module ActiveRecord
     end
   end
 
-  class HasAndBelongsToManyAssociationForeignKeyNeeded < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      super("Cannot create self referential has_and_belongs_to_many association on '#{reflection.class_name rescue nil}##{reflection.name rescue nil}'. :association_foreign_key cannot be the same as the :foreign_key.")
-    end
-  end
-
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      super("Can not eagerly load the polymorphic association #{reflection.name.inspect}")
+      super("Cannot eagerly load the polymorphic association #{reflection.name.inspect}")
     end
   end
 
   class ReadOnlyAssociation < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      super("Can not add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")
+      super("Cannot add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")
     end
   end
 
@@ -114,7 +108,6 @@ module ActiveRecord
 
     autoload :BelongsToAssociation,            'active_record/associations/belongs_to_association'
     autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
-    autoload :HasAndBelongsToManyAssociation,  'active_record/associations/has_and_belongs_to_many_association'
     autoload :HasManyAssociation,              'active_record/associations/has_many_association'
     autoload :HasManyThroughAssociation,       'active_record/associations/has_many_through_association'
     autoload :HasOneAssociation,               'active_record/associations/has_one_association'
@@ -164,7 +157,7 @@ module ActiveRecord
     private
       # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
-        @association_cache[name.to_sym]
+        @association_cache[name]
       end
 
       # Set the specified association instance.
@@ -586,9 +579,10 @@ module ActiveRecord
     #     belongs_to :tag, inverse_of: :taggings
     #   end
     #
-    # If you do not set the +:inverse_of+ record, the association will do its
-    # best to match itself up with the correct inverse. Automatic +:inverse_of+
-    # detection only works on +has_many+, +has_one+, and +belongs_to+ associations.
+    # If you do not set the <tt>:inverse_of</tt> record, the association will
+    # do its best to match itself up with the correct inverse. Automatic
+    # inverse detection only works on <tt>has_many</tt>, <tt>has_one</tt>, and
+    # <tt>belongs_to</tt> associations.
     #
     # Extra options on the associations, as defined in the
     # <tt>AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS</tt> constant, will
@@ -599,10 +593,10 @@ module ActiveRecord
     # especially the ones with non-standard names.
     #
     # You can turn off the automatic detection of inverse associations by setting
-    # the +:automatic_inverse_of+ option to +false+ like so:
+    # the <tt>:inverse_of</tt> option to <tt>false</tt> like so:
     #
     #   class Taggable < ActiveRecord::Base
-    #     belongs_to :tag, automatic_inverse_of: false
+    #     belongs_to :tag, inverse_of: false
     #   end
     #
     # == Nested \Associations
@@ -1204,7 +1198,8 @@ module ActiveRecord
       #   has_many :reports, -> { readonly }
       #   has_many :subscribers, through: :subscriptions, source: :user
       def has_many(name, scope = nil, options = {}, &extension)
-        Builder::HasMany.build(self, name, scope, options, &extension)
+        reflection = Builder::HasMany.build(self, name, scope, options, &extension)
+        Reflection.add_reflection self, name, reflection
       end
 
       # Specifies a one-to-one association with another class. This method should only be used
@@ -1307,7 +1302,8 @@ module ActiveRecord
       #   has_one :club, through: :membership
       #   has_one :primary_address, -> { where primary: true }, through: :addressables, source: :addressable
       def has_one(name, scope = nil, options = {})
-        Builder::HasOne.build(self, name, scope, options)
+        reflection = Builder::HasOne.build(self, name, scope, options)
+        Reflection.add_reflection self, name, reflection
       end
 
       # Specifies a one-to-one association with another class. This method should only be used
@@ -1419,7 +1415,8 @@ module ActiveRecord
       #   belongs_to :company, touch: true
       #   belongs_to :company, touch: :employees_last_updated_at
       def belongs_to(name, scope = nil, options = {})
-        Builder::BelongsTo.build(self, name, scope, options)
+        reflection = Builder::BelongsTo.build(self, name, scope, options)
+        Reflection.add_reflection self, name, reflection
       end
 
       # Specifies a many-to-many relationship with another class. This associates two classes via an
@@ -1556,7 +1553,39 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, join_table: "prods_cats"
       #   has_and_belongs_to_many :categories, -> { readonly }
       def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)
-        Builder::HasAndBelongsToMany.build(self, name, scope, options, &extension)
+        if scope.is_a?(Hash)
+          options = scope
+          scope   = nil
+        end
+
+        builder = Builder::HasAndBelongsToMany.new name, self, options
+
+        join_model = builder.through_model
+
+        middle_reflection = builder.middle_reflection join_model
+
+        Builder::HasMany.define_callbacks self, middle_reflection
+        Reflection.add_reflection self, middle_reflection.name, middle_reflection
+
+        include Module.new {
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def destroy_associations
+            association(:#{middle_reflection.name}).delete_all(:delete_all)
+            association(:#{name}).reset
+            super
+          end
+          RUBY
+        }
+
+        hm_options = {}
+        hm_options[:through] = middle_reflection.name
+        hm_options[:source] = join_model.right_reflection.name
+
+        [:before_add, :after_add, :before_remove, :after_remove].each do |k|
+          hm_options[k] = options[k] if options.key? k
+        end
+
+        has_many name, scope, hm_options, &extension
       end
     end
   end

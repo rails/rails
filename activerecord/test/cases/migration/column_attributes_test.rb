@@ -16,40 +16,31 @@ module ActiveRecord
       end
 
       def test_add_remove_single_field_using_string_arguments
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
 
         add_column 'test_models', 'last_name', :string
-
-        TestModel.reset_column_information
-
-        assert TestModel.column_methods_hash.key?(:last_name)
+        assert_column TestModel, :last_name
 
         remove_column 'test_models', 'last_name'
-
-        TestModel.reset_column_information
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
       end
 
       def test_add_remove_single_field_using_symbol_arguments
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
 
         add_column :test_models, :last_name, :string
-
-        TestModel.reset_column_information
-        assert TestModel.column_methods_hash.key?(:last_name)
+        assert_column TestModel, :last_name
 
         remove_column :test_models, :last_name
-
-        TestModel.reset_column_information
-        assert_not TestModel.column_methods_hash.key?(:last_name)
+        assert_no_column TestModel, :last_name
       end
 
-      def test_unabstracted_database_dependent_types
-        skip "not supported" unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
-
-        add_column :test_models, :intelligence_quotient, :tinyint
-        TestModel.reset_column_information
-        assert_match(/tinyint/, TestModel.columns_hash['intelligence_quotient'].sql_type)
+      if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+        def test_unabstracted_database_dependent_types
+          add_column :test_models, :intelligence_quotient, :tinyint
+          TestModel.reset_column_information
+          assert_match(/tinyint/, TestModel.columns_hash['intelligence_quotient'].sql_type)
+        end
       end
 
       # We specifically do a manual INSERT here, and then test only the SELECT
@@ -104,22 +95,22 @@ module ActiveRecord
         assert_equal 7, wealth_column.scale
       end
 
-      def test_change_column_preserve_other_column_precision_and_scale
-        skip "only on sqlite3" unless current_adapter?(:SQLite3Adapter)
+      if current_adapter?(:SQLite3Adapter)
+        def test_change_column_preserve_other_column_precision_and_scale
+          connection.add_column 'test_models', 'last_name', :string
+          connection.add_column 'test_models', 'wealth', :decimal, :precision => 9, :scale => 7
 
-        connection.add_column 'test_models', 'last_name', :string
-        connection.add_column 'test_models', 'wealth', :decimal, :precision => 9, :scale => 7
+          wealth_column = TestModel.columns_hash['wealth']
+          assert_equal 9, wealth_column.precision
+          assert_equal 7, wealth_column.scale
 
-        wealth_column = TestModel.columns_hash['wealth']
-        assert_equal 9, wealth_column.precision
-        assert_equal 7, wealth_column.scale
+          connection.change_column 'test_models', 'last_name', :string, :null => false
+          TestModel.reset_column_information
 
-        connection.change_column 'test_models', 'last_name', :string, :null => false
-        TestModel.reset_column_information
-
-        wealth_column = TestModel.columns_hash['wealth']
-        assert_equal 9, wealth_column.precision
-        assert_equal 7, wealth_column.scale
+          wealth_column = TestModel.columns_hash['wealth']
+          assert_equal 9, wealth_column.precision
+          assert_equal 7, wealth_column.scale
+        end
       end
 
       def test_native_types
@@ -168,37 +159,17 @@ module ActiveRecord
           assert_equal Date, bob.favorite_day.class
         end
 
-        # Oracle adapter stores Time or DateTime with timezone value already in _before_type_cast column
-        # therefore no timezone change is done afterwards when default timezone is changed
-        unless current_adapter?(:OracleAdapter)
-          # Test DateTime column and defaults, including timezone.
-          # FIXME: moment of truth may be Time on 64-bit platforms.
-          if bob.moment_of_truth.is_a?(DateTime)
-
-            with_env_tz 'US/Eastern' do
-              bob.reload
-              assert_equal DateTime.local_offset, bob.moment_of_truth.offset
-              assert_not_equal 0, bob.moment_of_truth.offset
-              assert_not_equal "Z", bob.moment_of_truth.zone
-              # US/Eastern is -5 hours from GMT
-              assert_equal Rational(-5, 24), bob.moment_of_truth.offset
-              assert_match(/\A-05:00\Z/, bob.moment_of_truth.zone)
-              assert_equal DateTime::ITALY, bob.moment_of_truth.start
-            end
-          end
-        end
-
         assert_instance_of TrueClass, bob.male?
         assert_kind_of BigDecimal, bob.wealth
       end
 
-      def test_out_of_range_limit_should_raise
-        skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+      if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+        def test_out_of_range_limit_should_raise
+          assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, :limit => 10 }
 
-        assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, :limit => 10 }
-
-        unless current_adapter?(:PostgreSQLAdapter)
-          assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, :limit => 0xfffffffff }
+          unless current_adapter?(:PostgreSQLAdapter)
+            assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, :limit => 0xfffffffff }
+          end
         end
       end
     end

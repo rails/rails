@@ -10,12 +10,11 @@ module AbstractController
   autoload :Base
   autoload :Callbacks
   autoload :Collector
+  autoload :DoubleRenderError, "abstract_controller/rendering"
   autoload :Helpers
-  autoload :Layouts
   autoload :Logger
   autoload :Rendering
   autoload :Translation
   autoload :AssetPaths
-  autoload :ViewPaths
   autoload :UrlFor
 end

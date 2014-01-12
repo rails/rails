@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2005-2013 David Heinemeier Hansson
+# Copyright (c) 2005-2014 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -39,7 +39,6 @@ module ActiveSupport
 
   eager_autoload do
     autoload :BacktraceCleaner
-    autoload :BasicObject
     autoload :ProxyObject
     autoload :Benchmarkable
     autoload :Cache
@@ -53,6 +52,7 @@ module ActiveSupport
     autoload :MessageEncryptor
     autoload :MessageVerifier
     autoload :Multibyte
+    autoload :NumberHelper
     autoload :OptionMerger
     autoload :OrderedHash
     autoload :OrderedOptions
@@ -64,6 +64,12 @@ module ActiveSupport
   autoload :Rescuable
   autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
+
+  def self.eager_load!
+    super
+
+    NumberHelper.eager_load!
+  end
 end
 
 autoload :I18n, "active_support/i18n"

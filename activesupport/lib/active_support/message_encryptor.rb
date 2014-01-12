@@ -76,12 +76,12 @@ module ActiveSupport
       encrypted_data = cipher.update(@serializer.dump(value))
       encrypted_data << cipher.final
 
-      [encrypted_data, iv].map {|v| ::Base64.strict_encode64(v)}.join("--")
+      "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
     end
 
     def _decrypt(encrypted_message)
       cipher = new_cipher
-      encrypted_data, iv = encrypted_message.split("--").map {|v| ::Base64.decode64(v)}
+      encrypted_data, iv = encrypted_message.split("--").map {|v| ::Base64.strict_decode64(v)}
 
       cipher.decrypt
       cipher.key = @secret
@@ -91,7 +91,7 @@ module ActiveSupport
       decrypted_data << cipher.final
 
       @serializer.load(decrypted_data)
-    rescue OpenSSLCipherError, TypeError
+    rescue OpenSSLCipherError, TypeError, ArgumentError
       raise InvalidMessage
     end
 

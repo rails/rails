@@ -373,4 +373,25 @@ class ValidationsTest < ActiveModel::TestCase
     assert topic.invalid?
     assert duped.valid?
   end
+
+   # validator test:
+  def test_setup_is_deprecated_but_still_receives_klass # TODO: remove me in 4.2.
+    validator_class = Class.new(ActiveModel::Validator) do
+      def setup(klass)
+        @old_klass = klass
+      end
+
+      def validate(*)
+        @old_klass == Topic or raise "#setup didn't work"
+      end
+    end
+
+    assert_deprecated do
+      Topic.validates_with validator_class
+    end
+
+    t = Topic.new
+    t.valid?
+  end
+
 end

@@ -56,13 +56,11 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.save! }
 
-    begin
-      r = WrongReply.new
+    r = WrongReply.new
+    invalid = assert_raise ActiveRecord::RecordInvalid do
       r.save!
-      flunk
-    rescue ActiveRecord::RecordInvalid => invalid
-      assert_equal r, invalid.record
     end
+    assert_equal r, invalid.record
   end
 
   def test_exception_on_create_bang_many
@@ -93,7 +91,7 @@ class ValidationsTest < ActiveRecord::TestCase
     assert reply.save(:validate => false)
   end
 
-  def test_validates_acceptance_of_with_non_existant_table
+  def test_validates_acceptance_of_with_non_existent_table
     Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base)
 
     assert_nothing_raised ActiveRecord::StatementInvalid do

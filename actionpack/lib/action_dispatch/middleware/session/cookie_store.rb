@@ -15,8 +15,8 @@ module ActionDispatch
     # best possible option given your application's configuration.
     #
     # If you only have secret_token set, your cookies will be signed, but
-    # not encrypted. This means a user cannot alter his +user_id+ without
-    # knowing your app's secret key, but can easily read his +user_id+. This
+    # not encrypted. This means a user cannot alter their +user_id+ without
+    # knowing your app's secret key, but can easily read their +user_id+. This
     # was the default for Rails 3 apps.
     #
     # If you have secret_key_base set, your cookies will be encrypted. This
@@ -31,9 +31,10 @@ module ActionDispatch
     #
     #   Myapp::Application.config.session_store :cookie_store, key: '_your_app_session'
     #
-    # Configure your secret key in config/initializers/secret_token.rb:
+    # Configure your secret key in config/secrets.yml:
     #
-    #   Myapp::Application.config.secret_key_base 'secret key'
+    #   development:
+    #     secret_key_base: 'secret key'
     #
     # To generate a secret key for an existing application, run `rake secret`.
     #

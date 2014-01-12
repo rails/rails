@@ -277,7 +277,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def redirect
-      redirect_to :action => "get"
+      redirect_to action_url('get')
     end
   end
 
@@ -511,8 +511,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          match ':action', :to => controller, :via => [:get, :post]
-          get 'get/:action', :to => controller
+          match ':action', :to => controller, :via => [:get, :post], :as => :action
+          get 'get/:action', :to => controller, :as => :get_action
         end
 
         self.singleton_class.send(:include, set.url_helpers)

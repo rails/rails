@@ -63,6 +63,7 @@ module InflectorTestCases
     "news"        => "news",
 
     "series"      => "series",
+    "miniseries"  => "miniseries",
     "species"     => "species",
 
     "quiz"        => "quizzes",
@@ -105,7 +106,6 @@ module InflectorTestCases
     "prize"       => "prizes",
     "edge"        => "edges",
 
-    "cow"         => "kine",
     "database"    => "databases",
 
     # regression tests against improper inflection regexes
@@ -211,6 +211,12 @@ module InflectorTestCases
     "employee_salary" => "Employee salary",
     "employee_id"     => "Employee",
     "underground"     => "Underground"
+  }
+
+  UnderscoreToHumanWithoutCapitalize = {
+    "employee_salary" => "employee salary",
+    "employee_id"     => "employee",
+    "underground"     => "underground"
   }
 
   MixtureToTitleCase = {

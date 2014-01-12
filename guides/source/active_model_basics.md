@@ -120,8 +120,8 @@ class Person
   end
 
   def save
-    @previously_changed = changes
     # do save work...
+    changes_applied
   end
 end
 ```

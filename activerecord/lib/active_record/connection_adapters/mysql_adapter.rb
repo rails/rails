@@ -34,6 +34,12 @@ module ActiveRecord
       default_flags |= Mysql::CLIENT_FOUND_ROWS if Mysql.const_defined?(:CLIENT_FOUND_ROWS)
       options = [host, username, password, database, port, socket, default_flags]
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, options, config)
+    rescue Mysql::Error => error
+      if error.message.include?("Unknown database")
+        raise ActiveRecord::NoDatabaseError.new(error.message)
+      else
+        raise error
+      end
     end
   end
 
@@ -160,12 +166,6 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      def type_cast(value, column)
-        return super unless value == true || value == false
-
-        value ? 1 : 0
-      end
-
       def quote_string(string) #:nodoc:
         @connection.quote(string)
       end
@@ -279,11 +279,7 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        # If the configuration sets prepared_statements:false, binds will
-        # always be empty, since the bind variables will have been already
-        # substituted and removed from binds by BindVisitor, so this will
-        # effectively disable prepared statement usage completely.
-        if binds.empty?
+        if without_prepared_statement?(binds)
           result_set, affected_rows = exec_without_stmt(sql, name)
         else
           result_set, affected_rows = exec_stmt(sql, name, binds)
@@ -429,14 +425,19 @@ module ActiveRecord
 
           if result
             types = {}
+            fields = []
             result.fetch_fields.each { |field|
+              field_name = field.name
+              fields << field_name
+
               if field.decimals > 0
-                types[field.name] = Fields::Decimal.new
+                types[field_name] = Fields::Decimal.new
               else
-                types[field.name] = Fields.find_type field
+                types[field_name] = Fields.find_type field
               end
             }
-            result_set = ActiveRecord::Result.new(types.keys, result.to_a, types)
+
+            result_set = ActiveRecord::Result.new(fields, result.to_a, types)
             result.free
           else
             result_set = ActiveRecord::Result.new([], [])
@@ -472,15 +473,17 @@ module ActiveRecord
 
       def begin_db_transaction #:nodoc:
         exec_query "BEGIN"
-      rescue Mysql::Error
-        # Transactions aren't supported
       end
 
       private
 
       def exec_stmt(sql, name, binds)
         cache = {}
-        log(sql, name, binds) do
+        type_casted_binds = binds.map { |col, val|
+          [col, type_cast(val, col)]
+        }
+
+        log(sql, name, type_casted_binds) do
           if binds.empty?
             stmt = @connection.prepare(sql)
           else
@@ -491,7 +494,7 @@ module ActiveRecord
           end
 
           begin
-            stmt.execute(*binds.map { |col, val| type_cast(val, col) })
+            stmt.execute(*type_casted_binds.map { |_, val| val })
           rescue Mysql::Error => e
             # Older versions of MySQL leave the prepared statement in a bad
             # place when an error occurs. To support older mysql versions, we
@@ -507,12 +510,12 @@ module ActiveRecord
             cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
               field.name
             }
+            metadata.free
           end
 
           result_set = ActiveRecord::Result.new(cols, stmt.to_a) if cols
           affected_rows = stmt.affected_rows
 
-          stmt.result_metadata.free if cols
           stmt.free_result
           stmt.close if binds.empty?
 
@@ -558,6 +561,14 @@ module ActiveRecord
       # Returns the version of the connected MySQL server.
       def version
         @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+      end
+
+      def set_field_encoding field_name
+        field_name.force_encoding(client_encoding)
+        if internal_enc = Encoding.default_internal
+          field_name = field_name.encode!(internal_enc)
+        end
+        field_name
       end
     end
   end

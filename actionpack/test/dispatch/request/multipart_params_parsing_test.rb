@@ -108,8 +108,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
     # Rack doesn't handle multipart/mixed for us.
     files = params['files']
-    files.force_encoding('ASCII-8BIT')
-    assert_equal 19756, files.size
+    assert_equal 19756, files.bytesize
   end
 
   test "does not create tempfile if no file has been selected" do

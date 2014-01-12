@@ -1,11 +1,5 @@
 require 'ostruct'
 
-module DeveloperProjectsAssociationExtension
-  def find_most_recent
-    order("id DESC").first
-  end
-end
-
 module DeveloperProjectsAssociationExtension2
   def find_least_recent
     order("id ASC").first
@@ -42,8 +36,14 @@ class Developer < ActiveRecord::Base
       end
 
   has_and_belongs_to_many :special_projects, :join_table => 'developers_projects', :association_foreign_key => 'project_id'
+  has_and_belongs_to_many :sym_special_projects,
+                          :join_table => :developers_projects,
+                          :association_foreign_key => 'project_id',
+                          :class_name => 'SpecialProject'
 
   has_many :audit_logs
+  has_many :contracts
+  has_many :firms, :through => :contracts, :source => :firm
 
   scope :jamises, -> { where(:name => 'Jamis') }
 

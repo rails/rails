@@ -1,3 +1,5 @@
+require 'tzinfo'
+require 'thread_safe'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 
@@ -184,6 +186,8 @@ module ActiveSupport
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
 
+    @lazy_zones_map = ThreadSafe::Cache.new
+
     # Assumes self represents an offset from UTC in seconds (as returned from
     # Time#utc_offset) and turns this into an +HH:MM formatted string.
     #
@@ -205,8 +209,6 @@ module ActiveSupport
     # (GMT). Seconds were chosen as the offset unit because that is the unit
     # that Ruby uses to represent time zone offsets (see Time#utc_offset).
     def initialize(name, utc_offset = nil, tzinfo = nil)
-      self.class.send(:require_tzinfo)
-
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
@@ -232,6 +234,7 @@ module ActiveSupport
     # Compare this time zone to the parameter. The two are compared first on
     # their offsets, and then by name.
     def <=>(zone)
+      return unless zone.respond_to? :utc_offset
       result = (utc_offset <=> zone.utc_offset)
       result = (name <=> zone.name) if result == 0
       result
@@ -314,6 +317,16 @@ module ActiveSupport
       tzinfo.now.to_date
     end
 
+    # Returns the next date in this time zone.
+    def tomorrow
+      today + 1
+    end
+
+    # Returns the previous date in this time zone.
+    def yesterday
+      today - 1
+    end
+
     # Adjust the given time to the simultaneous time in the time zone
     # represented by +self+. Returns a Time.utc() instance -- if you want an
     # ActiveSupport::TimeWithZone instance, use Time#in_time_zone() instead.
@@ -346,14 +359,14 @@ module ActiveSupport
     class << self
       alias_method :create, :new
 
-      # Return a TimeZone instance with the given name, or +nil+ if no
+      # Returns a TimeZone instance with the given name, or +nil+ if no
       # such TimeZone instance exists. (This exists to support the use of
       # this class with the +composed_of+ macro.)
       def new(name)
         self[name]
       end
 
-      # Return an array of all TimeZone objects. There are multiple
+      # Returns an array of all TimeZone objects. There are multiple
       # TimeZone objects per time zone, in many cases, to make it easier
       # for users to find their own time zone.
       def all
@@ -362,10 +375,8 @@ module ActiveSupport
 
       def zones_map
         @zones_map ||= begin
-          new_zones_names = MAPPING.keys - lazy_zones_map.keys
-          new_zones       = Hash[new_zones_names.map { |place| [place, create(place)] }]
-
-          lazy_zones_map.merge(new_zones)
+          MAPPING.each_key {|place| self[place]} # load all the zones
+          @lazy_zones_map
         end
       end
 
@@ -378,7 +389,7 @@ module ActiveSupport
         case arg
           when String
           begin
-            lazy_zones_map[arg] ||= lookup(arg).tap { |tz| tz.utc_offset }
+            @lazy_zones_map[arg] ||= create(arg).tap { |tz| tz.utc_offset }
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
@@ -395,29 +406,6 @@ module ActiveSupport
       def us_zones
         @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
-
-      protected
-
-        def require_tzinfo
-          require 'tzinfo' unless defined?(::TZInfo)
-        rescue LoadError
-          $stderr.puts "You don't have tzinfo installed in your application. Please add it to your Gemfile and run bundle install"
-          raise
-        end
-
-      private
-
-        def lookup(name)
-          (tzinfo = find_tzinfo(name)) && create(tzinfo.name.freeze)
-        end
-
-        def lazy_zones_map
-          require_tzinfo
-
-          @lazy_zones_map ||= Hash.new do |hash, place|
-            hash[place] = create(place) if MAPPING.has_key?(place)
-          end
-        end
     end
 
     private

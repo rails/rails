@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "cases/helper"
 require 'models/owner'
+require 'tempfile'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -21,8 +22,36 @@ module ActiveRecord
           )
         eosql
 
-        @conn.extend(LogIntercepter)
-        @conn.intercepted = true
+        @subscriber = SQLSubscriber.new
+        ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+      end
+
+      def test_bad_connection
+        assert_raise ActiveRecord::NoDatabaseError do
+          connection = ActiveRecord::Base.sqlite3_connection(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
+          connection.exec_query('drop table if exists ex')
+        end
+      end
+
+      def test_connect_with_url
+        original_connection = ActiveRecord::Base.remove_connection
+        tf = Tempfile.open 'whatever'
+        url = "sqlite3://#{tf.path}"
+        ActiveRecord::Base.establish_connection(url)
+        assert ActiveRecord::Base.connection
+      ensure
+        tf.close
+        tf.unlink
+        ActiveRecord::Base.establish_connection(original_connection)
+      end
+
+      def test_connect_memory_with_url
+        original_connection = ActiveRecord::Base.remove_connection
+        url = "sqlite3:///:memory:"
+        ActiveRecord::Base.establish_connection(url)
+        assert ActiveRecord::Base.connection
+      ensure
+        ActiveRecord::Base.establish_connection(original_connection)
       end
 
       def test_valid_column
@@ -31,16 +60,16 @@ module ActiveRecord
       end
 
       # sqlite databases should be able to support any type and not
-      # just the ones mentioned in the native_database_types. 
-      # Therefore test_invalid column should always return true 
+      # just the ones mentioned in the native_database_types.
+      # Therefore test_invalid column should always return true
       # even if the type is not valid.
       def test_invalid_column
         assert @conn.valid_type?(:foobar)
       end
 
       def teardown
-        @conn.intercepted = false
-        @conn.logged = []
+        ActiveSupport::Notifications.unsubscribe(@subscriber)
+        super
       end
 
       def test_column_types
@@ -255,7 +284,7 @@ module ActiveRecord
       def test_tables_logs_name
         assert_logged [['SCHEMA', []]] do
           @conn.tables('hello')
-          assert_not_nil @conn.logged.first.shift
+          assert_not_nil @subscriber.logged.first.shift
         end
       end
 
@@ -267,7 +296,7 @@ module ActiveRecord
 
       def test_table_exists_logs_name
         assert @conn.table_exists?('items')
-        assert_equal 'SCHEMA', @conn.logged[0][1]
+        assert_equal 'SCHEMA', @subscriber.logged[0][1]
       end
 
       def test_columns
@@ -305,10 +334,10 @@ module ActiveRecord
       end
 
       def test_indexes_logs
-        assert_difference('@conn.logged.length') do
+        assert_difference('@subscriber.logged.length') do
           @conn.indexes('items')
         end
-        assert_match(/items/, @conn.logged.last.first)
+        assert_match(/items/, @subscriber.logged.last.first)
       end
 
       def test_no_indexes
@@ -353,11 +382,23 @@ module ActiveRecord
         assert_nil @conn.primary_key('failboat')
       end
 
+      def test_supports_extensions
+        assert_not @conn.supports_extensions?, 'does not support extensions'
+      end
+
+      def test_respond_to_enable_extension
+        assert @conn.respond_to?(:enable_extension)
+      end
+
+      def test_respond_to_disable_extension
+        assert @conn.respond_to?(:disable_extension)
+      end
+
       private
 
       def assert_logged logs
         yield
-        assert_equal logs, @conn.logged
+        assert_equal logs, @subscriber.logged
       end
 
     end

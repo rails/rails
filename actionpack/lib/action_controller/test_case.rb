@@ -524,7 +524,6 @@ module ActionController
 
       def process(action, http_method = 'GET', *args)
         check_required_ivars
-        http_method, args = handle_old_process_api(http_method, args, caller)
 
         if args.first.is_a?(String) && http_method != 'HEAD'
           @request.env['RAW_POST_DATA'] = args.shift
@@ -626,17 +625,6 @@ module ActionController
             raise "#{iv_name} is nil: make sure you set it in your test's setup method."
           end
         end
-      end
-
-      def handle_old_process_api(http_method, args, callstack)
-        # 4.0: Remove this method.
-        if http_method.is_a?(Hash)
-          ActiveSupport::Deprecation.warn("TestCase#process now expects the HTTP method as second argument: process(action, http_method, params, session, flash)", callstack)
-          args.unshift(http_method)
-          http_method = args.last.is_a?(String) ? args.last : "GET"
-        end
-
-        [http_method, args]
       end
 
       def build_request_uri(action, parameters)

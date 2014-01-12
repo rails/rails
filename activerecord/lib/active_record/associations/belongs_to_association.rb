@@ -8,13 +8,16 @@ module ActiveRecord
       end
 
       def replace(record)
-        raise_on_type_mismatch!(record) if record
-
-        update_counters(record)
-        replace_keys(record)
-        set_inverse_instance(record)
-
-        @updated = true if record
+        if record
+          raise_on_type_mismatch!(record)
+          update_counters(record)
+          replace_keys(record)
+          set_inverse_instance(record)
+          @updated = true
+        else
+          decrement_counters
+          remove_keys
+        end
 
         self.target = record
       end
@@ -34,35 +37,41 @@ module ActiveRecord
           !loaded? && foreign_key_present? && klass
         end
 
-        def update_counters(record)
+        def with_cache_name
           counter_cache_name = reflection.counter_cache_column
+          return unless counter_cache_name && owner.persisted?
+          yield counter_cache_name
+        end
 
-          if counter_cache_name && owner.persisted? && different_target?(record)
-            if record
-              record.class.increment_counter(counter_cache_name, record.id)
-            end
+        def update_counters(record)
+          with_cache_name do |name|
+            return unless different_target? record
+            record.class.increment_counter(name, record.id)
+            decrement_counter name
+          end
+        end
 
-            if foreign_key_present?
-              klass.decrement_counter(counter_cache_name, target_id)
-            end
+        def decrement_counters
+          with_cache_name { |name| decrement_counter name }
+        end
+
+        def decrement_counter counter_cache_name
+          if foreign_key_present?
+            klass.decrement_counter(counter_cache_name, target_id)
           end
         end
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          if record.nil? 
-            owner[reflection.foreign_key] 
-          else
-            record.id != owner[reflection.foreign_key]
-          end
+          record.id != owner[reflection.foreign_key]
         end
 
         def replace_keys(record)
-          if record
-            owner[reflection.foreign_key] = record[reflection.association_primary_key(record.class)]
-          else
-            owner[reflection.foreign_key] = nil
-          end
+          owner[reflection.foreign_key] = record[reflection.association_primary_key(record.class)]
+        end
+
+        def remove_keys
+          owner[reflection.foreign_key] = nil
         end
 
         def foreign_key_present?

@@ -9,8 +9,8 @@ module ActionDispatch
         attr_reader :memos
 
         def initialize
-          @regexp_states = Hash.new { |h,k| h[k] = {} }
-          @string_states = Hash.new { |h,k| h[k] = {} }
+          @regexp_states = {}
+          @string_states = {}
           @accepting     = {}
           @memos         = Hash.new { |h,k| h[k] = [] }
         end
@@ -43,9 +43,7 @@ module ActionDispatch
           move_string(t, a).concat(move_regexp(t, a))
         end
 
-        def to_json
-          require 'json'
-
+        def as_json(options = nil)
           simple_regexp = Hash.new { |h,k| h[k] = {} }
 
           @regexp_states.each do |from, hash|
@@ -54,11 +52,11 @@ module ActionDispatch
             end
           end
 
-          JSON.dump({
+          {
             regexp_states: simple_regexp,
             string_states: @string_states,
             accepting:     @accepting
-          })
+          }
         end
 
         def to_svg
@@ -111,14 +109,8 @@ module ActionDispatch
         end
 
         def []=(from, to, sym)
-          case sym
-          when String
-            @string_states[from][sym] = to
-          when Regexp
-            @regexp_states[from][sym] = to
-          else
-            raise ArgumentError, 'unknown symbol: %s' % sym.class
-          end
+          to_mappings = states_hash_for(sym)[from] ||= {}
+          to_mappings[sym] = to
         end
 
         def states
@@ -137,18 +129,35 @@ module ActionDispatch
 
         private
 
+          def states_hash_for(sym)
+            case sym
+            when String
+              @string_states
+            when Regexp
+              @regexp_states
+            else
+              raise ArgumentError, 'unknown symbol: %s' % sym.class
+            end
+          end
+
           def move_regexp(t, a)
             return [] if t.empty?
 
             t.map { |s|
-              @regexp_states[s].map { |re, v| re === a ? v : nil }
+              if states = @regexp_states[s]
+                states.map { |re, v| re === a ? v : nil }
+              end
             }.flatten.compact.uniq
           end
 
           def move_string(t, a)
             return [] if t.empty?
 
-            t.map { |s| @string_states[s][a] }.compact
+            t.map do |s|
+              if states = @string_states[s]
+                states[a]
+              end
+            end.compact
           end
       end
     end

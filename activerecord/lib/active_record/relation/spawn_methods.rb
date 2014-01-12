@@ -64,8 +64,7 @@ module ActiveRecord
     private
 
       def relation_with(values) # :nodoc:
-        result = Relation.new(klass, table, values)
-        result.default_scoped = default_scoped
+        result = Relation.create(klass, table, values)
         result.extend(*extending_values) if extending_values.any?
         result
       end

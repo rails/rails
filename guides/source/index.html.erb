@@ -19,7 +19,7 @@ Ruby on Rails Guides
   <h3><%= section['name'] %></h3>
   <dl>
     <% section['documents'].each do |document| %>
-      <%= guide(document['name'], document['url'], :work_in_progress => document['work_in_progress']) do %>
+      <%= guide(document['name'], document['url'], work_in_progress: document['work_in_progress']) do %>
         <p><%= document['description'] %></p>
       <% end %>
     <% end %>

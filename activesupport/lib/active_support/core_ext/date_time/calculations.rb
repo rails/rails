@@ -1,31 +1,13 @@
 require 'date'
-require 'active_support/deprecation'
 
 class DateTime
   class << self
-    # *DEPRECATED*: Use +DateTime.civil_from_format+ directly.
-    def local_offset
-      ActiveSupport::Deprecation.warn 'DateTime.local_offset is deprecated. Use DateTime.civil_from_format directly.'
-
-      ::Time.local(2012).utc_offset.to_r / 86400
-    end
-
     # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or
     # <tt>config.time_zone</tt> are set, otherwise returns
     # <tt>Time.now.to_datetime</tt>.
     def current
       ::Time.zone ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
     end
-  end
-
-  # Tells whether the DateTime object's datetime lies in the past.
-  def past?
-    self < ::DateTime.current
-  end
-
-  # Tells whether the DateTime object's datetime lies in the future.
-  def future?
-    self > ::DateTime.current
   end
 
   # Seconds since midnight: DateTime.now.seconds_since_midnight.
@@ -107,6 +89,16 @@ class DateTime
   alias :at_midnight :beginning_of_day
   alias :at_beginning_of_day :beginning_of_day
 
+  # Returns a new DateTime representing the middle of the day (12:00)
+  def middle_of_day
+    change(:hour => 12)
+  end
+  alias :midday :middle_of_day
+  alias :noon :middle_of_day
+  alias :at_midday :middle_of_day
+  alias :at_noon :middle_of_day
+  alias :at_middle_of_day :middle_of_day
+
   # Returns a new DateTime representing the end of the day (23:59:59).
   def end_of_day
     change(:hour => 23, :min => 59, :sec => 59)
@@ -159,7 +151,11 @@ class DateTime
   # Layers additional behavior on DateTime#<=> so that Time and
   # ActiveSupport::TimeWithZone instances can be compared with a DateTime.
   def <=>(other)
-    super other.to_datetime
+    if other.respond_to? :to_datetime
+      super other.to_datetime
+    else
+      nil
+    end
   end
 
 end

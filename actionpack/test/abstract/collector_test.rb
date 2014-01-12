@@ -37,7 +37,7 @@ module AbstractController
 
       test "does not register unknown mime types" do
         collector = MyCollector.new
-        assert_raise NameError do
+        assert_raise NoMethodError do
           collector.unknown
         end
       end

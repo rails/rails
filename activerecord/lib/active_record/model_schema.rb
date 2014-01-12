@@ -34,6 +34,12 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Accessor for the name of the schema migrations table. By default, the value is "schema_migrations"
+      class_attribute :schema_migrations_table_name, instance_accessor: false
+      self.schema_migrations_table_name = "schema_migrations"
+
+      ##
+      # :singleton-method:
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
@@ -124,7 +130,7 @@ module ActiveRecord
         @quoted_table_name = nil
         @arel_table        = nil
         @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
-        @relation          = Relation.new(self, arel_table)
+        @relation          = Relation.create(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -224,13 +230,20 @@ module ActiveRecord
       def decorate_columns(columns_hash) # :nodoc:
         return if columns_hash.empty?
 
-        columns_hash.each do |name, col|
-          if serialized_attributes.key?(name)
-            columns_hash[name] = AttributeMethods::Serialization::Type.new(col)
-          end
-          if create_time_zone_conversion_attribute?(name, col)
-            columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(col)
-          end
+        @serialized_column_names ||= self.columns_hash.keys.find_all do |name|
+          serialized_attributes.key?(name)
+        end
+
+        @serialized_column_names.each do |name|
+          columns_hash[name] = AttributeMethods::Serialization::Type.new(columns_hash[name])
+        end
+
+        @time_zone_column_names ||= self.columns_hash.find_all do |name, col|
+          create_time_zone_conversion_attribute?(name, col)
+        end.map!(&:first)
+
+        @time_zone_column_names.each do |name|
+          columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(columns_hash[name])
         end
 
         columns_hash
@@ -251,19 +264,6 @@ module ActiveRecord
       # and columns used for single table inheritance have been removed.
       def content_columns
         @content_columns ||= columns.reject { |c| c.primary || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
-      end
-
-      # Returns a hash of all the methods added to query each of the columns in the table with the name of the method as the key
-      # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
-      # is available.
-      def column_methods_hash #:nodoc:
-        @dynamic_methods_hash ||= column_names.each_with_object(Hash.new(false)) do |attr, methods|
-          attr_name = attr.to_s
-          methods[attr.to_sym]       = attr_name
-          methods["#{attr}=".to_sym] = attr_name
-          methods["#{attr}?".to_sym] = attr_name
-          methods["#{attr}_before_type_cast".to_sym] = attr_name
-        end
       end
 
       # Resets all the cached information about columns, which will cause them
@@ -297,16 +297,19 @@ module ActiveRecord
         undefine_attribute_methods
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
-        @arel_engine          = nil
-        @column_defaults      = nil
-        @column_names         = nil
-        @columns              = nil
-        @columns_hash         = nil
-        @column_types         = nil
-        @content_columns      = nil
-        @dynamic_methods_hash = nil
-        @inheritance_column   = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
-        @relation             = nil
+        @arel_engine             = nil
+        @column_defaults         = nil
+        @column_names            = nil
+        @columns                 = nil
+        @columns_hash            = nil
+        @column_types            = nil
+        @content_columns         = nil
+        @dynamic_methods_hash    = nil
+        @inheritance_column      = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
+        @relation                = nil
+        @serialized_column_names = nil
+        @time_zone_column_names  = nil
+        @cached_time_zone        = nil
       end
 
       # This is a hook for use by modules that need to do extra stuff to

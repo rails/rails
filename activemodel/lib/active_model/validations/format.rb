@@ -17,8 +17,8 @@ module ActiveModel
           raise ArgumentError, "Either :with or :without must be supplied (but not both)"
         end
 
-        check_options_validity(options, :with)
-        check_options_validity(options, :without)
+        check_options_validity :with
+        check_options_validity :without
       end
 
       private
@@ -32,21 +32,23 @@ module ActiveModel
         record.errors.add(attribute, :invalid, options.except(name).merge!(value: value))
       end
 
-      def regexp_using_multiline_anchors?(regexp)
-        regexp.source.start_with?("^") ||
-          (regexp.source.end_with?("$") && !regexp.source.end_with?("\\$"))
+      def check_options_validity(name)
+        if option = options[name]
+          if option.is_a?(Regexp)
+            if options[:multiline] != true && regexp_using_multiline_anchors?(option)
+              raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), " \
+              "which may present a security risk. Did you mean to use \\A and \\z, or forgot to add the " \
+              ":multiline => true option?"
+            end
+          elsif !option.respond_to?(:call)
+            raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
+          end
+        end
       end
 
-      def check_options_validity(options, name)
-        option = options[name]
-        if option && !option.is_a?(Regexp) && !option.respond_to?(:call)
-          raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
-        elsif option && option.is_a?(Regexp) &&
-              regexp_using_multiline_anchors?(option) && options[:multiline] != true
-          raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), " \
-          "which may present a security risk. Did you mean to use \\A and \\z, or forgot to add the " \
-          ":multiline => true option?"
-        end
+      def regexp_using_multiline_anchors?(regexp)
+        source = regexp.source
+        source.start_with?("^") || (source.end_with?("$") && !source.end_with?("\\$"))
       end
     end
 

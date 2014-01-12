@@ -35,11 +35,11 @@ class User < ActiveRecord::Base
   before_validation :ensure_login_has_a_value
 
   protected
-  def ensure_login_has_a_value
-    if login.nil?
-      self.login = email unless email.blank?
+    def ensure_login_has_a_value
+      if login.nil?
+        self.login = email unless email.blank?
+      end
     end
-  end
 end
 ```
 
@@ -49,13 +49,13 @@ The macro-style class methods can also receive a block. Consider using this styl
 class User < ActiveRecord::Base
   validates :login, :email, presence: true
 
-  before_create do |user|
-    user.name = user.login.capitalize if user.name.blank?
+  before_create do
+    self.name = login.capitalize if name.blank?
   end
 end
 ```
 
-Callbacks can also be registered to only fire on certain lifecycle events:
+Callbacks can also be registered to only fire on certain life cycle events:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -65,13 +65,13 @@ class User < ActiveRecord::Base
   after_validation :set_location, on: [ :create, :update ]
 
   protected
-  def normalize_name
-    self.name = self.name.downcase.titleize
-  end
+    def normalize_name
+      self.name = self.name.downcase.titleize
+    end
 
-  def set_location
-    self.location = LocationService.query(self)
-  end
+    def set_location
+      self.location = LocationService.query(self)
+    end
 end
 ```
 
@@ -141,6 +141,55 @@ You have initialized an object!
 => #<User id: 1>
 ```
 
+### `after_touch`
+
+The `after_touch` callback will be called whenever an Active Record object is touched.
+
+```ruby
+class User < ActiveRecord::Base
+  after_touch do |user|
+    puts "You have touched an object"
+  end
+end
+
+>> u = User.create(name: 'Kuldeep')
+=> #<User id: 1, name: "Kuldeep", created_at: "2013-11-25 12:17:49", updated_at: "2013-11-25 12:17:49">
+
+>> u.touch
+You have touched an object
+=> true
+```
+
+It can be used along with `belongs_to`:
+
+```ruby
+class Employee < ActiveRecord::Base
+  belongs_to :company, touch: true
+  after_touch do
+    puts 'An Employee was touched'
+  end
+end
+
+class Company < ActiveRecord::Base
+  has_many :employees
+  after_touch :log_when_employees_or_company_touched
+
+  private
+  def log_when_employees_or_company_touched
+    puts 'Employee/Company was touched'
+  end
+end
+
+>> @employee = Employee.last
+=> #<Employee id: 1, company_id: 1, created_at: "2013-11-25 17:04:22", updated_at: "2013-11-25 17:05:05">
+
+# triggers @employee.company.touch
+>> @employee.touch
+Employee/Company was touched
+An Employee was touched
+=> true
+```
+
 Running Callbacks
 -----------------
 
@@ -167,6 +216,7 @@ Additionally, the `after_find` callback is triggered by the following finder met
 * `all`
 * `first`
 * `find`
+* `find_by`
 * `find_by_*`
 * `find_by_*!`
 * `find_by_sql`
@@ -179,7 +229,7 @@ NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated aut
 Skipping Callbacks
 ------------------
 
-Just as with validations, it is also possible to skip callbacks. These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
+Just as with validations, it is also possible to skip callbacks by using the following methods:
 
 * `decrement`
 * `decrement_counter`
@@ -194,6 +244,8 @@ Just as with validations, it is also possible to skip callbacks. These methods s
 * `update_all`
 * `update_counters`
 
+These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
+
 Halting Execution
 -----------------
 
@@ -201,7 +253,7 @@ As you start registering new callbacks for your models, they will be queued for 
 
 The whole callback chain is wrapped in a transaction. If any _before_ callback method returns exactly `false` or raises an exception, the execution chain gets halted and a ROLLBACK is issued; _after_ callbacks can only accomplish that by raising an exception.
 
-WARNING. Raising an arbitrary exception may break code that expects `save` and its friends not to fail like that. The `ActiveRecord::Rollback` exception is thought precisely to tell Active Record a rollback is going on. That one is internally captured but not reraised.
+WARNING. Any exception that is not `ActiveRecord::Rollback` will be re-raised by Rails after the callback chain is halted. Raising an exception other than `ActiveRecord::Rollback` may break code that does not expect methods like `save` and `update_attributes` (which normally try to return `true` or `false`) to raise an exception.
 
 Relational Callbacks
 --------------------
@@ -287,7 +339,7 @@ Here's an example where we create a class with an `after_destroy` callback for a
 ```ruby
 class PictureFileCallbacks
   def after_destroy(picture_file)
-    if File.exists?(picture_file.filepath)
+    if File.exist?(picture_file.filepath)
       File.delete(picture_file.filepath)
     end
   end
@@ -307,7 +359,7 @@ Note that we needed to instantiate a new `PictureFileCallbacks` object, since we
 ```ruby
 class PictureFileCallbacks
   def self.after_destroy(picture_file)
-    if File.exists?(picture_file.filepath)
+    if File.exist?(picture_file.filepath)
       File.delete(picture_file.filepath)
     end
   end
@@ -342,7 +394,7 @@ By using the `after_commit` callback we can account for this case.
 
 ```ruby
 class PictureFile < ActiveRecord::Base
-  after_commit :delete_picture_file_from_disk, :on => [:destroy]
+  after_commit :delete_picture_file_from_disk, on: [:destroy]
 
   def delete_picture_file_from_disk
     if File.exist?(filepath)
@@ -355,4 +407,4 @@ end
 NOTE: the `:on` option specifies when a callback will be fired. If you
 don't supply the `:on` option the callback will fire for every action.
 
-The `after_commit` and `after_rollback` callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.
+WARNING. The `after_commit` and `after_rollback` callbacks are guaranteed to be called for all models created, updated, or destroyed within a transaction block. If any exceptions are raised within one of these callbacks, they will be ignored so that they don't interfere with the other callbacks. As such, if your callback code could raise an exception, you'll need to rescue it and handle it appropriately within the callback.

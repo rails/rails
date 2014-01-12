@@ -30,7 +30,7 @@ module ActiveModel
   #   end
   #
   # Then in your class, you can use the +before_create+, +after_create+ and
-  # +around_create+ methods, just as you would in an Active Record module.
+  # +around_create+ methods, just as you would in an Active Record model.
   #
   #   before_create :action_before_create
   #
@@ -135,7 +135,10 @@ module ActiveModel
       klass.define_singleton_method("after_#{callback}") do |*args, &block|
         options = args.extract_options!
         options[:prepend] = true
-        options[:if] = Array(options[:if]) << "value != false"
+        conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
+          v != false
+        }
+        options[:if] = Array(options[:if]) << conditional
         set_callback(:"#{callback}", :after, *(args << options), &block)
       end
     end

@@ -5,7 +5,7 @@ module ActiveRecord
   class Migration
     class TableTest < ActiveRecord::TestCase
       def setup
-        @connection = MiniTest::Mock.new
+        @connection = Minitest::Mock.new
       end
 
       def teardown

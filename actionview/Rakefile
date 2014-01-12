@@ -1,0 +1,80 @@
+require 'rake/testtask'
+require 'rubygems/package_task'
+
+desc "Default Task"
+task :default => :test
+
+# Run the unit tests
+
+desc "Run all unit tests"
+task :test => ["test:template", "test:integration:action_pack", "test:integration:active_record"]
+
+namespace :test do
+  task :isolated do
+    Dir.glob("test/{actionpack,activerecord,template}/**/*_test.rb").all? do |file|
+      sh(Gem.ruby, '-w', '-Ilib:test', file)
+    end or raise "Failures"
+  end
+
+  Rake::TestTask.new(:template) do |t|
+    t.libs << 'test'
+    t.test_files = Dir.glob('test/template/**/*_test.rb').sort
+    t.warning = true
+    t.verbose = true
+  end
+
+  namespace :integration do
+    desc 'ActiveRecord Integration Tests'
+    Rake::TestTask.new(:active_record) do |t|
+      t.libs << 'test'
+      t.test_files = Dir.glob("test/activerecord/*_test.rb")
+      t.warning = true
+      t.verbose = true
+    end
+
+    desc 'ActionPack Integration Tests'
+    Rake::TestTask.new(:action_pack) do |t|
+      t.libs << 'test'
+      t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
+      t.warning = true
+      t.verbose = true
+    end
+  end
+end
+
+spec = eval(File.read('actionview.gemspec'))
+
+Gem::PackageTask.new(spec) do |p|
+  p.gem_spec = spec
+end
+
+desc "Release to rubygems"
+task :release => :package do
+  require 'rake/gemcutter'
+  Rake::Gemcutter::Tasks.new(spec).define
+  Rake::Task['gem:push'].invoke
+end
+
+task :lines do
+  lines, codelines, total_lines, total_codelines = 0, 0, 0, 0
+
+  FileList["lib/**/*.rb"].each do |file_name|
+    next if file_name =~ /vendor/
+    File.open(file_name, 'r') do |f|
+      while line = f.gets
+        lines += 1
+        next if line =~ /^\s*$/
+        next if line =~ /^\s*#/
+        codelines += 1
+      end
+    end
+    puts "L: #{sprintf("%4d", lines)}, LOC #{sprintf("%4d", codelines)} | #{file_name}"
+
+    total_lines     += lines
+    total_codelines += codelines
+
+    lines, codelines = 0, 0
+  end
+
+  puts "Total: Lines #{total_lines}, LOC #{total_codelines}"
+end

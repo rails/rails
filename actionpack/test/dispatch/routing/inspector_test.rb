@@ -46,11 +46,11 @@ module ActionDispatch
 
         assert_equal [
           "       Prefix Verb URI Pattern              Controller#Action",
-          "custom_assets GET /custom/assets(.:format) custom_assets#show",
-          "         blog     /blog                    Blog::Engine",
+          "custom_assets GET  /custom/assets(.:format) custom_assets#show",
+          "         blog      /blog                    Blog::Engine",
           "",
           "Routes for Blog::Engine:",
-          "cart GET /cart(.:format) cart#show"
+          "  cart GET  /cart(.:format) cart#show"
         ], output
       end
 
@@ -61,7 +61,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern     Controller#Action",
-          "cart GET /cart(.:format) cart#show"
+          "  cart GET  /cart(.:format) cart#show"
         ], output
       end
 
@@ -72,7 +72,7 @@ module ActionDispatch
 
         assert_equal [
           "       Prefix Verb URI Pattern              Controller#Action",
-          "custom_assets GET /custom/assets(.:format) custom_assets#show"
+          "custom_assets GET  /custom/assets(.:format) custom_assets#show"
         ], output
       end
 
@@ -101,7 +101,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern Controller#Action",
-          "root GET / pages#main"
+          "  root GET  /           pages#main"
         ], output
       end
 
@@ -112,7 +112,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern            Controller#Action",
-          " GET /api/:action(.:format) api#:action"
+          "       GET  /api/:action(.:format) api#:action"
         ], output
       end
 
@@ -123,7 +123,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern                    Controller#Action",
-          " GET /:controller/:action(.:format) :controller#:action"
+          "       GET  /:controller/:action(.:format) :controller#:action"
         ], output
       end
 
@@ -134,7 +134,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern                            Controller#Action",
-          " GET /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"
+          "       GET  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"
         ], output
       end
 
@@ -145,7 +145,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          %Q[ GET /photos/:id(.:format) photos#show {:format=>"jpg"}]
+          %Q[       GET  /photos/:id(.:format) photos#show {:format=>"jpg"}]
         ], output
       end
 
@@ -156,7 +156,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          " GET /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
         ], output
       end
 
@@ -172,7 +172,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern        Controller#Action",
-          " GET /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"
         ], output
       end
 
@@ -191,7 +191,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern Controller#Action",
-          "  /foo #{RackApp.name} {:constraint=>( my custom constraint )}"
+          "            /foo        #{RackApp.name} {:constraint=>( my custom constraint )}"
         ], output
       end
 
@@ -203,6 +203,18 @@ module ActionDispatch
         assert_no_match(/\/sprockets/, output.first)
       end
 
+      def test_rake_routes_shows_route_defined_in_under_assets_prefix
+        output = draw do
+          scope '/sprockets' do
+            get '/foo' => 'foo#bar'
+          end
+        end
+        assert_equal [
+          "Prefix Verb URI Pattern              Controller#Action",
+          "   foo GET  /sprockets/foo(.:format) foo#bar"
+        ], output
+      end
+
       def test_redirect
         output = draw do
           get "/foo"    => redirect("/foo/bar"), :constraints => { :subdomain => "admin" }
@@ -212,9 +224,9 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern       Controller#Action",
-          "   foo GET /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}",
-          "   bar GET /bar(.:format)    redirect(307, path: /foo/bar)",
-          "foobar GET /foobar(.:format) redirect(301)"
+          "   foo GET  /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}",
+          "   bar GET  /bar(.:format)    redirect(307, path: /foo/bar)",
+          "foobar GET  /foobar(.:format) redirect(301)"
         ], output
       end
 
@@ -233,6 +245,15 @@ module ActionDispatch
                       "          PATCH  /posts/:id(.:format)      posts#update",
                       "          PUT    /posts/:id(.:format)      posts#update",
                       "          DELETE /posts/:id(.:format)      posts#destroy"], output
+      end
+
+      def test_regression_route_with_controller_regexp
+        output = draw do
+          get ':controller(/:action)', controller: /api\/[^\/]+/, format: false
+        end
+
+        assert_equal ["Prefix Verb URI Pattern            Controller#Action",
+                      "       GET  /:controller(/:action) (?-mix:api\\/[^\\/]+)#:action"], output
       end
     end
   end

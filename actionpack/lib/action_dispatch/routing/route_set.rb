@@ -28,7 +28,7 @@ module ActionDispatch
         def call(env)
           params = env[PARAMETERS_KEY]
 
-          # If any of the path parameters has a invalid encoding then
+          # If any of the path parameters has an invalid encoding then
           # raise since it's likely to trigger errors further on.
           params.each do |key, value|
             next unless value.respond_to?(:valid_encoding?)
@@ -163,9 +163,10 @@ module ActionDispatch
 
             def initialize(route, options)
               super
-              @path_parts   = @route.required_parts
-              @arg_size     = @path_parts.size
-              @string_route = @route.optimized_path
+              @klass          = Journey::Router::Utils
+              @required_parts = @route.required_parts
+              @arg_size       = @required_parts.size
+              @optimized_path = @route.optimized_path
             end
 
             def call(t, args)
@@ -182,26 +183,44 @@ module ActionDispatch
             private
 
             def optimized_helper(args)
-              path = @string_route.dup
-              klass = Journey::Router::Utils
+              params = Hash[parameterize_args(args)]
+              missing_keys = missing_keys(params)
 
-              @path_parts.zip(args) do |part, arg|
-                # Replace each route parameter
-                # e.g. :id for regular parameter or *path for globbing
-                # with ruby string interpolation code
-                path.gsub!(/(\*|:)#{part}/, klass.escape_fragment(arg.to_param))
+              unless missing_keys.empty?
+                raise_generation_error(params, missing_keys)
               end
-              path
+
+              @optimized_path.map{ |segment| replace_segment(params, segment) }.join
+            end
+
+            def replace_segment(params, segment)
+              Symbol === segment ? @klass.escape_fragment(params[segment]) : segment
             end
 
             def optimize_routes_generation?(t)
               t.send(:optimize_routes_generation?)
             end
+
+            def parameterize_args(args)
+              @required_parts.zip(args.map(&:to_param))
+            end
+
+            def missing_keys(args)
+              args.select{ |part, arg| arg.nil? || arg.empty? }.keys
+            end
+
+            def raise_generation_error(args, missing_keys)
+              constraints = Hash[@route.requirements.merge(args).sort]
+              message = "No route matches #{constraints.inspect}"
+              message << " missing required keys: #{missing_keys.sort.inspect}"
+
+              raise ActionController::UrlGenerationError, message
+            end
           end
 
           def initialize(route, options)
             @options      = options
-            @segment_keys = route.segment_keys
+            @segment_keys = route.segment_keys.uniq
             @route        = route
           end
 
@@ -336,7 +355,7 @@ module ActionDispatch
         include UrlFor
       end
 
-      # Contains all the mounted helpers accross different
+      # Contains all the mounted helpers across different
       # engines and the `main_app` helper for the application.
       # You can include this in your classes if you want to
       # access routes for other engines.
@@ -489,11 +508,12 @@ module ActionDispatch
           @recall      = recall.dup
           @set         = set
 
+          normalize_recall!
           normalize_options!
           normalize_controller_action_id!
           use_relative_controller!
           normalize_controller!
-          handle_nil_action!
+          normalize_action!
         end
 
         def controller
@@ -512,6 +532,11 @@ module ActionDispatch
           end
         end
 
+        # Set 'index' as default action for recall
+        def normalize_recall!
+          @recall[:action] ||= 'index'
+        end
+
         def normalize_options!
           # If an explicit :controller was given, always make :action explicit
           # too, so that action expiry works as expected for things like
@@ -527,8 +552,8 @@ module ActionDispatch
             options[:controller]   = options[:controller].to_s
           end
 
-          if options[:action]
-            options[:action] = options[:action].to_s
+          if options.key?(:action)
+            options[:action] = (options[:action] || 'index').to_s
           end
         end
 
@@ -538,8 +563,6 @@ module ActionDispatch
         # :controller, :action or :id is not found, don't pull any
         # more keys from the recall.
         def normalize_controller_action_id!
-          @recall[:action] ||= 'index' if current_controller
-
           use_recall_for(:controller) or return
           use_recall_for(:action) or return
           use_recall_for(:id)
@@ -561,13 +584,11 @@ module ActionDispatch
           @options[:controller] = controller.sub(%r{^/}, '') if controller
         end
 
-        # This handles the case of action: nil being explicitly passed.
-        # It is identical to action: "index"
-        def handle_nil_action!
-          if options.has_key?(:action) && options[:action].nil?
-            options[:action] = 'index'
+        # Move 'index' action from options to recall
+        def normalize_action!
+          if @options[:action] == 'index'
+            @recall[:action] = @options.delete(:action)
           end
-          recall[:action] = options.delete(:action) if options[:action] == 'index'
         end
 
         # Generates a path from routes, returns [path, params].

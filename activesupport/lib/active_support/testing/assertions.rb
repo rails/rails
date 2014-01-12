@@ -92,36 +92,6 @@ module ActiveSupport
       def assert_no_difference(expression, message = nil, &block)
         assert_difference expression, 0, message, &block
       end
-
-      # Test if an expression is blank. Passes if <tt>object.blank?</tt>
-      # is +true+.
-      #
-      #   assert_blank []   # => true
-      #   assert_blank [[]] # => [[]] is not blank
-      #
-      # An error message can be specified.
-      #
-      #   assert_blank [], 'this should be blank'
-      def assert_blank(object, message=nil)
-        ActiveSupport::Deprecation.warn('"assert_blank" is deprecated. Please use "assert object.blank?" instead')
-        message ||= "#{object.inspect} is not blank"
-        assert object.blank?, message
-      end
-
-      # Test if an expression is not blank. Passes if <tt>object.present?</tt>
-      # is +true+.
-      #
-      #   assert_present({ data: 'x' }) # => true
-      #   assert_present({})            # => {} is blank
-      #
-      # An error message can be specified.
-      #
-      #   assert_present({ data: 'x' }, 'this should not be blank')
-      def assert_present(object, message=nil)
-        ActiveSupport::Deprecation.warn('"assert_present" is deprecated. Please use "assert object.present?" instead')
-        message ||= "#{object.inspect} is blank"
-        assert object.present?, message
-      end
     end
   end
 end

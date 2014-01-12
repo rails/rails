@@ -100,32 +100,10 @@ class ValidatesWithTest < ActiveModel::TestCase
   test "passes all configuration options to the validator class" do
     topic = Topic.new
     validator = mock()
-    validator.expects(:new).with(foo: :bar, if: "1 == 1").returns(validator)
+    validator.expects(:new).with(foo: :bar, if: "1 == 1", class: Topic).returns(validator)
     validator.expects(:validate).with(topic)
 
     Topic.validates_with(validator, if: "1 == 1", foo: :bar)
-    assert topic.valid?
-  end
-
-  test "calls setup method of validator passing in self when validator has setup method" do
-    topic = Topic.new
-    validator = stub_everything
-    validator.stubs(:new).returns(validator)
-    validator.stubs(:validate)
-    validator.stubs(:respond_to?).with(:setup).returns(true)
-    validator.expects(:setup).with(Topic).once
-    Topic.validates_with(validator)
-    assert topic.valid?
-  end
-
-  test "doesn't call setup method of validator when validator has no setup method" do
-    topic = Topic.new
-    validator = stub_everything
-    validator.stubs(:new).returns(validator)
-    validator.stubs(:validate)
-    validator.stubs(:respond_to?).with(:setup).returns(false)
-    validator.expects(:setup).with(Topic).never
-    Topic.validates_with(validator)
     assert topic.valid?
   end
 

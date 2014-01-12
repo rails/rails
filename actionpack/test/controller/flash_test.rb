@@ -174,12 +174,12 @@ class FlashTest < ActionController::TestCase
     flash.update(:foo => :foo_indeed, :bar => :bar_indeed)
 
     assert_equal(:foo_indeed, flash.discard(:foo)) # valid key passed
-    assert_nil flash.discard(:unknown) # non existant key passed
+    assert_nil flash.discard(:unknown) # non existent key passed
     assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard().to_hash) # nothing passed
     assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.discard(nil).to_hash) # nothing passed
 
     assert_equal(:foo_indeed, flash.keep(:foo)) # valid key passed
-    assert_nil flash.keep(:unknown) # non existant key passed
+    assert_nil flash.keep(:unknown) # non existent key passed
     assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep().to_hash) # nothing passed
     assert_equal({:foo => :foo_indeed, :bar => :bar_indeed}, flash.keep(nil).to_hash) # nothing passed
   end
@@ -213,6 +213,18 @@ class FlashTest < ActionController::TestCase
     @controller.class.add_flash_types :foo
     get :redirect_with_foo_flash
     assert_equal "for great justice", @controller.send(:flash)[:foo]
+  end
+
+  class SubclassesTestController < TestController; end
+
+  def test_add_flash_type_to_subclasses
+    TestController.add_flash_types :foo
+    assert SubclassesTestController._flash_types.include?(:foo)
+  end
+
+  def test_do_not_add_flash_type_to_parent_class
+    SubclassesTestController.add_flash_types :bar
+    assert_not TestController._flash_types.include?(:bar)
   end
 end
 

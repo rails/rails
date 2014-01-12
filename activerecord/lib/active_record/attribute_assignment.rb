@@ -3,7 +3,6 @@ require 'active_model/forbidden_attributes_protection'
 module ActiveRecord
   module AttributeAssignment
     extend ActiveSupport::Concern
-    include ActiveModel::DeprecatedMassAssignmentSecurity
     include ActiveModel::ForbiddenAttributesProtection
 
     # Allows you to set all the attributes by passing in a hash of attributes with
@@ -13,6 +12,9 @@ module ActiveRecord
     # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
     # exception is raised.
     def assign_attributes(new_attributes)
+      if !new_attributes.respond_to?(:stringify_keys)
+        raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
+      end
       return if new_attributes.blank?
 
       attributes                  = new_attributes.stringify_keys

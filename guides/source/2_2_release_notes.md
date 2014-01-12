@@ -327,7 +327,7 @@ Other features of memoization include `unmemoize`, `unmemoize_all`, and `memoize
 The `each_with_object` method provides an alternative to `inject`, using a method backported from Ruby 1.9. It iterates over a collection, passing the current element and the memo into the block.
 
 ```ruby
-%w(foo bar).each_with_object({}) { |str, hsh| hsh[str] = str.upcase } #=> {'foo' => 'FOO', 'bar' => 'BAR'}
+%w(foo bar).each_with_object({}) { |str, hsh| hsh[str] = str.upcase } # => {'foo' => 'FOO', 'bar' => 'BAR'}
 ```
 
 Lead Contributor: [Adam Keys](http://therealadam.com/)
@@ -366,7 +366,7 @@ Lead Contributor: [Daniel Schierbeck](http://workingwithrails.com/person/5830-da
 * `Inflector#parameterize` produces a URL-ready version of its input, for use in `to_param`.
 * `Time#advance` recognizes fractional days and weeks, so you can do `1.7.weeks.ago`, `1.5.hours.since`, and so on.
 * The included TzInfo library has been upgraded to version 0.3.12.
-* `ActiveSuport::StringInquirer` gives you a pretty way to test for equality in strings: `ActiveSupport::StringInquirer.new("abc").abc? => true`
+* `ActiveSupport::StringInquirer` gives you a pretty way to test for equality in strings: `ActiveSupport::StringInquirer.new("abc").abc? => true`
 
 Railties
 --------

@@ -131,6 +131,9 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
+      # [<tt>:as</tt>]
+      #   SQL to use to generate the table. When this option is used, the block is
+      #   ignored, as are the <tt>:id</tt> and <tt>:primary_key</tt> options.
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #
@@ -169,19 +172,31 @@ module ActiveRecord
       #     supplier_id int
       #   )
       #
+      # ====== Create a temporary table based on a query
+      #
+      #   create_table(:long_query, temporary: true,
+      #     as: "SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id")
+      #
+      # generates:
+      #
+      #   CREATE TEMPORARY TABLE long_query AS
+      #     SELECT * FROM orders INNER JOIN line_items ON order_id=orders.id
+      #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        td = create_table_definition table_name, options[:temporary], options[:options]
+        td = create_table_definition table_name, options[:temporary], options[:options], options[:as]
 
-        unless options[:id] == false
-          pk = options.fetch(:primary_key) {
-            Base.get_primary_key table_name.to_s.singularize
-          }
+        if !options[:as]
+          unless options[:id] == false
+            pk = options.fetch(:primary_key) {
+              Base.get_primary_key table_name.to_s.singularize
+            }
 
-          td.primary_key pk, options.fetch(:id, :primary_key), options
+            td.primary_key pk, options.fetch(:id, :primary_key), options
+          end
+
+          yield td if block_given?
         end
-
-        yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)
@@ -214,8 +229,8 @@ module ActiveRecord
       # its block form to do so yourself:
       #
       #   create_join_table :products, :categories do |t|
-      #     t.index :products
-      #     t.index :categories
+      #     t.index :product_id
+      #     t.index :category_id
       #   end
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
@@ -558,8 +573,8 @@ module ActiveRecord
         # this is a naive implementation; some DBs may support this more efficiently (Postgres, for instance)
         old_index_def = indexes(table_name).detect { |i| i.name == old_name }
         return unless old_index_def
-        remove_index(table_name, :name => old_name)
-        add_index(table_name, old_index_def.columns, :name => new_name, :unique => old_index_def.unique)
+        add_index(table_name, old_index_def.columns, name: new_name, unique: old_index_def.unique)
+        remove_index(table_name, name: old_name)
       end
 
       def index_name(table_name, options) #:nodoc:
@@ -606,7 +621,7 @@ module ActiveRecord
         index_options = options.delete(:index)
         add_column(table_name, "#{ref_name}_id", :integer, options)
         add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
-        add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : nil) if index_options
+        add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
       end
       alias :add_belongs_to :add_reference
 
@@ -690,28 +705,8 @@ module ActiveRecord
 
           column_type_sql
         else
-          type
+          type.to_s
         end
-      end
-
-      def add_column_options!(sql, options) #:nodoc:
-        sql << " DEFAULT #{quote(options[:default], options[:column])}" if options_include_default?(options)
-        # must explicitly check for :null to allow change_column to work on migrations
-        if options[:null] == false
-          sql << " NOT NULL"
-        end
-        if options[:auto_increment] == true
-          sql << " AUTO_INCREMENT"
-        end
-      end
-
-      # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
-      #
-      #   distinct("posts.id", ["posts.created_at desc"])
-      #
-      def distinct(columns, order_by)
-        ActiveSupport::Deprecation.warn("#distinct is deprecated and shall be removed from future releases.")
-        "DISTINCT #{columns_for_distinct(columns, order_by)}"
       end
 
       # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
@@ -719,7 +714,7 @@ module ActiveRecord
       # require the order columns appear in the SELECT.
       #
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
-      def columns_for_distinct(columns, orders) # :nodoc:
+      def columns_for_distinct(columns, orders) #:nodoc:
         columns
       end
 
@@ -739,6 +734,10 @@ module ActiveRecord
       def remove_timestamps(table_name)
         remove_column table_name, :updated_at
         remove_column table_name, :created_at
+      end
+
+      def update_table_definition(table_name, base) #:nodoc:
+        Table.new(table_name, base)
       end
 
       protected
@@ -775,37 +774,23 @@ module ActiveRecord
           column_names = Array(column_name)
           index_name   = index_name(table_name, column: column_names)
 
-          if Hash === options # legacy support, since this param was a string
-            options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+          options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
 
-            index_type = options[:unique] ? "UNIQUE" : ""
-            index_type = options[:type].to_s if options.key?(:type)
-            index_name = options[:name].to_s if options.key?(:name)
-            max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
+          index_type = options[:unique] ? "UNIQUE" : ""
+          index_type = options[:type].to_s if options.key?(:type)
+          index_name = options[:name].to_s if options.key?(:name)
+          max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
 
-            if options.key?(:algorithm)
-              algorithm = index_algorithms.fetch(options[:algorithm]) {
-                raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
-              }
-            end
+          if options.key?(:algorithm)
+            algorithm = index_algorithms.fetch(options[:algorithm]) {
+              raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
+            }
+          end
 
-            using = "USING #{options[:using]}" if options[:using].present?
+          using = "USING #{options[:using]}" if options[:using].present?
 
-            if supports_partial_index?
-              index_options = options[:where] ? " WHERE #{options[:where]}" : ""
-            end
-          else
-            if options
-              message = "Passing a string as third argument of `add_index` is deprecated and will" +
-                " be removed in Rails 4.1." +
-                " Use add_index(#{table_name.inspect}, #{column_name.inspect}, unique: true) instead"
-
-              ActiveSupport::Deprecation.warn message
-            end
-
-            index_type = options
-            max_index_length = allowed_index_name_length
-            algorithm = using = nil
+          if supports_partial_index?
+            index_options = options[:where] ? " WHERE #{options[:where]}" : ""
           end
 
           if index_name.length > max_index_length
@@ -837,12 +822,6 @@ module ActiveRecord
           index_name
         end
 
-        def columns_for_remove(table_name, *column_names)
-          ActiveSupport::Deprecation.warn("columns_for_remove is deprecated and will be removed in the future")
-          raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.blank?
-          column_names.map {|column_name| quote_column_name(column_name) }
-        end
-
         def rename_table_indexes(table_name, new_name)
           indexes(new_name).each do |index|
             generated_index_name = index_name(table_name, column: index.columns)
@@ -866,16 +845,12 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition(name, temporary, options)
-        TableDefinition.new native_database_types, name, temporary, options
+      def create_table_definition(name, temporary, options, as = nil)
+        TableDefinition.new native_database_types, name, temporary, options, as
       end
 
       def create_alter_table(name)
         AlterTable.new create_table_definition(name, false, {})
-      end
-
-      def update_table_definition(table_name, base)
-        Table.new(table_name, base)
       end
     end
   end

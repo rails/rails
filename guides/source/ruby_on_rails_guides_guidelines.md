@@ -51,7 +51,7 @@ Use the same typography as in regular text:
 API Documentation Guidelines
 ----------------------------
 
-The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the [API Documentation Guidelines](api_documentation_guidelines.html:)
+The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the [API Documentation Guidelines](api_documentation_guidelines.html):
 
 * [Wording](api_documentation_guidelines.html#wording)
 * [Example Code](api_documentation_guidelines.html#example-code)
@@ -63,7 +63,7 @@ Those guidelines apply also to guides.
 HTML Guides
 -----------
 
-Before generating the guides, make sure that you have the latest version of Bundler installed on your system. As of this writing, you must install Bundler 1.3.5 on your device. 
+Before generating the guides, make sure that you have the latest version of Bundler installed on your system. As of this writing, you must install Bundler 1.3.5 on your device.
 
 To install the latest version of Bundler, simply run the `gem install bundler` command
 

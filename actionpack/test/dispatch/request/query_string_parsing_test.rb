@@ -11,6 +11,17 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       head :ok
     end
   end
+  class EarlyParse
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      # Trigger a Rack parse so that env caches the query params
+      Rack::Request.new(env).params
+      @app.call(env)
+    end
+  end
 
   def teardown
     TestController.last_query_parameters = nil
@@ -93,6 +104,21 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     assert_parses({"action" => ['1']}, "action[]=1&action[]")
   end
 
+  test "perform_deep_munge" do
+    ActionDispatch::Request::Utils.perform_deep_munge = false
+    begin
+      assert_parses({"action" => nil}, "action")
+      assert_parses({"action" => {"foo" => nil}}, "action[foo]")
+      assert_parses({"action" => {"foo" => {"bar" => nil}}}, "action[foo][bar]")
+      assert_parses({"action" => {"foo" => {"bar" => [nil]}}}, "action[foo][bar][]")
+      assert_parses({"action" => {"foo" => [nil]}}, "action[foo][]")
+      assert_parses({"action" => {"foo" => [{"bar" => nil}]}}, "action[foo][][bar]")
+      assert_parses({"action" => ['1',nil]}, "action[]=1&action[]")
+    ensure
+      ActionDispatch::Request::Utils.perform_deep_munge = true
+    end
+  end
+
   test "query string with empty key" do
     assert_parses(
       { "action" => "create_customer", "full_name" => "David Heinemeier Hansson" },
@@ -131,6 +157,10 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
         set.draw do
           get ':action', :to => ::QueryStringParsingTest::TestController
         end
+        @app = self.class.build_app(set) do |middleware|
+          middleware.use(EarlyParse)
+        end
+
 
         get "/parse", actual
         assert_response :ok

@@ -61,9 +61,7 @@ generated would look like this:
 
   Thank you for signing up!
 
-In previous version of Rails you would call <tt>create_method_name</tt> and
-<tt>deliver_method_name</tt>.  Rails 3.0 has a much simpler interface - you
-simply call the method and optionally call +deliver+ on the return value.
+In order to send mails, you simply call the method and then call +deliver+ on the return value.
 
 Calling the method returns a Mail Message object:
 
@@ -76,7 +74,7 @@ Or you can just chain the methods together like:
 
 == Setting defaults
 
-It is possible to set default values that will be used in every method in your Action Mailer class. To implement this functionality, you just call the public class method <tt>default</tt> which you get for free from ActionMailer::Base. This method accepts a Hash as the parameter. You can use any of the headers e-mail messages has, like <tt>:from</tt> as the key. You can also pass in a string as the key, like "Content-Type", but Action Mailer does this out of the box for you, so you won't need to worry about that. Finally, it is also possible to pass in a Proc that will get evaluated when it is needed.
+It is possible to set default values that will be used in every method in your Action Mailer class. To implement this functionality, you just call the public class method <tt>default</tt> which you get for free from <tt>ActionMailer::Base</tt>. This method accepts a Hash as the parameter. You can use any of the headers e-mail messages has, like <tt>:from</tt> as the key. You can also pass in a string as the key, like "Content-Type", but Action Mailer does this out of the box for you, so you won't need to worry about that. Finally, it is also possible to pass in a Proc that will get evaluated when it is needed.
 
 Note that every value you set with this method will get overwritten if you use the same key in your mailer method.
 

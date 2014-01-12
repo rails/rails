@@ -33,7 +33,6 @@ module ActiveRecord
       def initialize(klass, association) #:nodoc:
         @association = association
         super klass, klass.arel_table
-        self.default_scoped = true
         merge! association.scope(nullify: false)
       end
 
@@ -76,7 +75,7 @@ module ActiveRecord
       #   #      #<Pet id: nil, name: "Choo-Choo">
       #   #    ]
       #
-      #   person.pets.select([:id, :name])
+      #   person.pets.select(:id, :name )
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy">,
       #   #      #<Pet id: 2, name: "Spook">,
@@ -107,13 +106,13 @@ module ActiveRecord
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
       #   #    ]
-      def select(select = nil, &block)
-        @association.select(select, &block)
+      def select(*fields, &block)
+        @association.select(*fields, &block)
       end
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as <tt>ActiveRecord::Base.find</tt>. Returns <tt>ActiveRecord::RecordNotFound</tt>
-      # error if the object can not be found.
+      # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -282,7 +281,7 @@ module ActiveRecord
       # so method calls may be chained.
       #
       #   class Person < ActiveRecord::Base
-      #     pets :has_many
+      #     has_many :pets
       #   end
       #
       #   person.pets.size # => 0
@@ -418,8 +417,8 @@ module ActiveRecord
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
-      def delete_all
-        @association.delete_all
+      def delete_all(dependent = nil)
+        @association.delete_all(dependent)
       end
 
       # Deletes the records of the collection directly from the database
@@ -671,6 +670,8 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       def count(column_name = nil, options = {})
+        # TODO: Remove options argument as soon we remove support to
+        # activerecord-deprecated_finders.
         @association.count(column_name, options)
       end
 
@@ -727,7 +728,7 @@ module ActiveRecord
       end
 
       # Returns +true+ if the collection is empty. If the collection has been
-      # loaded or the <tt>:counter_sql</tt> option is provided, it is equivalent
+      # loaded it is equivalent
       # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
       # it is equivalent to <tt>collection.exists?</tt>. If the collection has
       # not already been loaded and you are going to fetch the records anyway it
@@ -788,12 +789,12 @@ module ActiveRecord
       #     has_many :pets
       #   end
       #
-      #   person.pets.count #=> 1
-      #   person.pets.many? #=> false
+      #   person.pets.count # => 1
+      #   person.pets.many? # => false
       #
       #   person.pets << Pet.new(name: 'Snoopy')
-      #   person.pets.count #=> 2
-      #   person.pets.many? #=> true
+      #   person.pets.count # => 2
+      #   person.pets.many? # => true
       #
       # You can also pass a block to define criteria. The
       # behavior is the same, it returns true if the collection
@@ -830,7 +831,7 @@ module ActiveRecord
       #   person.pets.include?(Pet.find(20)) # => true
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
-        @association.include?(record)
+        !!@association.include?(record)
       end
 
       def proxy_association
@@ -849,8 +850,6 @@ module ActiveRecord
       def scope
         @association.scope
       end
-
-      # :nodoc:
       alias spawn scope
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays

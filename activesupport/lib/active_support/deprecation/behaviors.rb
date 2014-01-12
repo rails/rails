@@ -1,14 +1,24 @@
 require "active_support/notifications"
 
 module ActiveSupport
+  class DeprecationException < StandardError
+  end
+
   class Deprecation
     # Default warning behaviors per Rails.env.
     DEFAULT_BEHAVIORS = {
-      :stderr => Proc.new { |message, callstack|
+      raise: ->(message, callstack) {
+        e = DeprecationException.new(message)
+        e.set_backtrace(callstack)
+        raise e
+      },
+
+      stderr: ->(message, callstack) {
         $stderr.puts(message)
         $stderr.puts callstack.join("\n  ") if debug
       },
-      :log => Proc.new { |message, callstack|
+
+      log: ->(message, callstack) {
         logger =
             if defined?(Rails) && Rails.logger
               Rails.logger
@@ -19,11 +29,13 @@ module ActiveSupport
         logger.warn message
         logger.debug callstack.join("\n  ") if debug
       },
-      :notify => Proc.new { |message, callstack|
+
+      notify: ->(message, callstack) {
         ActiveSupport::Notifications.instrument("deprecation.rails",
                                                 :message => message, :callstack => callstack)
       },
-      :silence => Proc.new { |message, callstack| }
+
+      silence: ->(message, callstack) {},
     }
 
     module Behavior
@@ -40,6 +52,7 @@ module ActiveSupport
       #
       # Available behaviors:
       #
+      # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
       # [+stderr+]  Log all deprecation warnings to +$stderr+.
       # [+log+]     Log all deprecation warnings to +Rails.logger+.
       # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
@@ -52,7 +65,7 @@ module ActiveSupport
       #   ActiveSupport::Deprecation.behavior = :stderr
       #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
       #   ActiveSupport::Deprecation.behavior = MyCustomHandler
-      #   ActiveSupport::Deprecation.behavior = proc { |message, callstack|
+      #   ActiveSupport::Deprecation.behavior = ->(message, callstack) {
       #     # custom stuff
       #   }
       def behavior=(behavior)

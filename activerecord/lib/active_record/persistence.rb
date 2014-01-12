@@ -10,9 +10,6 @@ module ActiveRecord
       # The +attributes+ parameter can be either a Hash or an Array of Hashes. These Hashes describe the
       # attributes on the objects that are to be created.
       #
-      # +create+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
-      # in the +options+ parameter.
-      #
       # ==== Examples
       #   # Create a single new object
       #   User.create(first_name: 'Jamie')
@@ -184,6 +181,7 @@ module ActiveRecord
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@attributes_cache", @attributes_cache)
+      became.instance_variable_set("@changed_attributes", @changed_attributes) if defined?(@changed_attributes)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
@@ -267,7 +265,7 @@ module ActiveRecord
     # This method raises an +ActiveRecord::ActiveRecordError+ when called on new
     # objects, or when at least one of the attributes is marked as readonly.
     def update_columns(attributes)
-      raise ActiveRecordError, "can not update on a new record object" unless persisted?
+      raise ActiveRecordError, "cannot update on a new record object" unless persisted?
 
       attributes.each_key do |key|
         verify_readonly_attribute(key.to_s)
@@ -333,10 +331,54 @@ module ActiveRecord
       toggle(attribute).update_attribute(attribute, self[attribute])
     end
 
-    # Reloads the attributes of this object from the database.
-    # The optional options argument is passed to find when reloading so you
-    # may do e.g. record.reload(lock: true) to reload the same record with
-    # an exclusive row lock.
+    # Reloads the record from the database.
+    #
+    # This method finds record by its primary key (which could be assigned manually) and
+    # modifies the receiver in-place:
+    #
+    #   account = Account.new
+    #   # => #<Account id: nil, email: nil>
+    #   account.id = 1
+    #   account.reload
+    #   # Account Load (1.2ms)  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 1]]
+    #   # => #<Account id: 1, email: 'account@example.com'>
+    #
+    # Attributes are reloaded from the database, and caches busted, in
+    # particular the associations cache.
+    #
+    # If the record no longer exists in the database <tt>ActiveRecord::RecordNotFound</tt>
+    # is raised. Otherwise, in addition to the in-place modification the method
+    # returns +self+ for convenience.
+    #
+    # The optional <tt>:lock</tt> flag option allows you to lock the reloaded record:
+    #
+    #   reload(lock: true) # reload with pessimistic locking
+    #
+    # Reloading is commonly used in test suites to test something is actually
+    # written to the database, or when some action modifies the corresponding
+    # row in the database but not the object in memory:
+    #
+    #   assert account.deposit!(25)
+    #   assert_equal 25, account.credit        # check it is updated in memory
+    #   assert_equal 25, account.reload.credit # check it is also persisted
+    #
+    # Another common use case is optimistic locking handling:
+    #
+    #   def with_optimistic_retry
+    #     begin
+    #       yield
+    #     rescue ActiveRecord::StaleObjectError
+    #       begin
+    #         # Reload lock_version in particular.
+    #         reload
+    #       rescue ActiveRecord::RecordNotFound
+    #         # If the record is gone there is nothing to do.
+    #       else
+    #         retry
+    #       end
+    #     end
+    #   end
+    #
     def reload(options = nil)
       clear_aggregation_cache
       clear_association_cache
@@ -349,14 +391,16 @@ module ActiveRecord
         end
 
       @attributes.update(fresh_object.instance_variable_get('@attributes'))
-      @columns_hash = fresh_object.instance_variable_get('@columns_hash')
 
-      @attributes_cache = {}
+      @column_types           = self.class.column_types
+      @column_types_override  = fresh_object.instance_variable_get('@column_types_override')
+      @attributes_cache       = {}
       self
     end
 
     # Saves the record with the updated_at/on attributes set to the current time.
-    # Please note that no validation is performed and no callbacks are executed.
+    # Please note that no validation is performed and only the +after_touch+
+    # callback is executed.
     # If an attribute name is passed, that attribute is updated along with
     # updated_at/on attributes.
     #
@@ -383,7 +427,7 @@ module ActiveRecord
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
     def touch(name = nil)
-      raise ActiveRecordError, "can not touch on a new record object" unless persisted?
+      raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
 
       attributes = timestamp_attributes_for_update_in_model
       attributes << name if name
@@ -399,7 +443,7 @@ module ActiveRecord
 
         changes[self.class.locking_column] = increment_lock if locking_enabled?
 
-        @changed_attributes.except!(*changes.keys)
+        changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
         self.class.unscoped.where(primary_key => self[primary_key]).update_all(changes) == 1
       end

@@ -7,7 +7,7 @@ module Rails
         path = Pathname.new(log || "#{::File.expand_path(Rails.root)}/log/#{Rails.env}.log").cleanpath
 
         @cursor = @file = nil
-        if ::File.exists?(path)
+        if ::File.exist?(path)
           @cursor = ::File.size(path)
           @file = ::File.open(path, 'r')
         end

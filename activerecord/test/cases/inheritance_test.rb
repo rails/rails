@@ -176,14 +176,14 @@ class InheritanceTest < ActiveRecord::TestCase
     e = assert_raises(NotImplementedError) do
       AbstractCompany.new
     end
-    assert_equal("AbstractCompany is an abstract class and can not be instantiated.", e.message)
+    assert_equal("AbstractCompany is an abstract class and cannot be instantiated.", e.message)
   end
 
   def test_new_with_ar_base
     e = assert_raises(NotImplementedError) do
       ActiveRecord::Base.new
     end
-    assert_equal("ActiveRecord::Base is an abstract class and can not be instantiated.", e.message)
+    assert_equal("ActiveRecord::Base is an abstract class and cannot be instantiated.", e.message)
   end
 
   def test_new_with_invalid_type
@@ -313,8 +313,12 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
     assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }
   end
-end
 
+  def test_scope_inherited_properly
+    assert_nothing_raised { Company.of_first_firm }
+    assert_nothing_raised { Client.of_first_firm }
+  end
+end
 
 class InheritanceComputeTypeTest < ActiveRecord::TestCase
   fixtures :companies

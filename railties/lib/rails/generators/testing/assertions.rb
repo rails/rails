@@ -21,8 +21,8 @@ module Rails
         #     end
         #   end
         def assert_file(relative, *contents)
-          absolute = File.expand_path(relative, destination_root)
-          assert File.exists?(absolute), "Expected file #{relative.inspect} to exist, but does not"
+          absolute = File.expand_path(relative, destination_root).shellescape
+          assert File.exist?(absolute), "Expected file #{relative.inspect} to exist, but does not"
 
           read = File.read(absolute) if block_given? || !contents.empty?
           yield read if block_given?
@@ -44,7 +44,7 @@ module Rails
         #   assert_no_file "config/random.rb"
         def assert_no_file(relative)
           absolute = File.expand_path(relative, destination_root)
-          assert !File.exists?(absolute), "Expected file #{relative.inspect} to not exist, but does"
+          assert !File.exist?(absolute), "Expected file #{relative.inspect} to not exist, but does"
         end
         alias :assert_no_directory :assert_no_file
 

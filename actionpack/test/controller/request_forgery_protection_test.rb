@@ -52,18 +52,36 @@ module RequestForgeryProtectionActions
     render :inline => "<%= form_for(:some_resource, :remote => true, :authenticity_token => 'external_token') {} %>"
   end
 
+  def same_origin_js
+    render js: 'foo();'
+  end
+
+  def negotiate_same_origin
+    respond_to do |format|
+      format.js { same_origin_js }
+    end
+  end
+
+  def cross_origin_js
+    same_origin_js
+  end
+
+  def negotiate_cross_origin
+    negotiate_same_origin
+  end
+
   def rescue_action(e) raise e end
 end
 
 # sample controllers
 class RequestForgeryProtectionControllerUsingResetSession < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery :only => %w(index meta), :with => :reset_session
+  protect_from_forgery :only => %w(index meta same_origin_js negotiate_same_origin), :with => :reset_session
 end
 
 class RequestForgeryProtectionControllerUsingException < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery :only => %w(index meta), :with => :exception
+  protect_from_forgery :only => %w(index meta same_origin_js negotiate_same_origin), :with => :exception
 end
 
 class RequestForgeryProtectionControllerUsingNullSession < ActionController::Base
@@ -76,6 +94,11 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
 
   def encrypted
     cookies.encrypted[:foo] = 'bar'
+    render :nothing => true
+  end
+
+  def try_to_reset_session
+    reset_session
     render :nothing => true
   end
 end
@@ -196,7 +219,7 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_not_allow_post_without_token_irrespective_of_format
-    assert_blocked { post :index, :format=>'xml' }
+    assert_blocked { post :index, format: 'xml' }
   end
 
   def test_should_not_allow_patch_without_token
@@ -266,6 +289,48 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_only_allow_same_origin_js_get_with_xhr_header
+    assert_cross_origin_blocked { get :same_origin_js }
+    assert_cross_origin_blocked { get :same_origin_js, format: 'js' }
+    assert_cross_origin_blocked do
+      @request.accept = 'text/javascript'
+      get :negotiate_same_origin
+    end
+
+    assert_cross_origin_not_blocked { xhr :get, :same_origin_js }
+    assert_cross_origin_not_blocked { xhr :get, :same_origin_js, format: 'js' }
+    assert_cross_origin_not_blocked do
+      @request.accept = 'text/javascript'
+      xhr :get, :negotiate_same_origin
+    end
+  end
+
+  # Allow non-GET requests since GET is all a remote <script> tag can muster.
+  def test_should_allow_non_get_js_without_xhr_header
+    assert_cross_origin_not_blocked { post :same_origin_js, custom_authenticity_token: @token }
+    assert_cross_origin_not_blocked { post :same_origin_js, format: 'js', custom_authenticity_token: @token }
+    assert_cross_origin_not_blocked do
+      @request.accept = 'text/javascript'
+      post :negotiate_same_origin, custom_authenticity_token: @token
+    end
+  end
+
+  def test_should_only_allow_cross_origin_js_get_without_xhr_header_if_protection_disabled
+    assert_cross_origin_not_blocked { get :cross_origin_js }
+    assert_cross_origin_not_blocked { get :cross_origin_js, format: 'js' }
+    assert_cross_origin_not_blocked do
+      @request.accept = 'text/javascript'
+      get :negotiate_cross_origin
+    end
+
+    assert_cross_origin_not_blocked { xhr :get, :cross_origin_js }
+    assert_cross_origin_not_blocked { xhr :get, :cross_origin_js, format: 'js' }
+    assert_cross_origin_not_blocked do
+      @request.accept = 'text/javascript'
+      xhr :get, :negotiate_cross_origin
+    end
+  end
+
   def assert_blocked
     session[:something_like_user_id] = 1
     yield
@@ -276,6 +341,16 @@ module RequestForgeryProtectionTests
   def assert_not_blocked
     assert_nothing_raised { yield }
     assert_response :success
+  end
+
+  def assert_cross_origin_blocked
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      yield
+    end
+  end
+
+  def assert_cross_origin_not_blocked
+    assert_not_blocked { yield }
   end
 end
 
@@ -300,13 +375,13 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   end
 end
 
-class NullSessionDummyKeyGenerator
-  def generate_key(secret)
-    '03312270731a2ed0d11ed091c2338a06'
+class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
+  class NullSessionDummyKeyGenerator
+    def generate_key(secret)
+      '03312270731a2ed0d11ed091c2338a06'
+    end
   end
-end
 
-class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase  
   def setup
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
   end
@@ -318,6 +393,11 @@ class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController:
 
   test 'should allow to set encrypted cookies' do
     post :encrypted
+    assert_response :ok
+  end
+
+  test 'should allow reset_session' do
+    post :try_to_reset_session
     assert_response :ok
   end
 end
@@ -365,8 +445,8 @@ end
 
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup
-    ActionController::Base.request_forgery_protection_token = :custom_token_name
     super
+    ActionController::Base.request_forgery_protection_token = :custom_token_name
   end
 
   def teardown

@@ -1,4 +1,4 @@
-# MySQL.  Versions 4.1 and 5.0 are recommended.
+# MySQL.  Versions 5.0+ are recommended.
 #
 # Install the MYSQL driver
 #   gem install mysql2
@@ -8,10 +8,10 @@
 #
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
-development:
+#
+default: &default
   adapter: mysql2
   encoding: utf8
-  database: <%= app_name %>_development
   pool: 5
   username: root
   password:
@@ -20,32 +20,23 @@ development:
 <% else -%>
   host: localhost
 <% end -%>
+
+development:
+  <<: *default
+  database: <%= app_name %>_development
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  adapter: mysql2
-  encoding: utf8
+  <<: *default
   database: <%= app_name %>_test
-  pool: 5
-  username: root
-  password:
-<% if mysql_socket -%>
-  socket: <%= mysql_socket %>
-<% else -%>
-  host: localhost
-<% end -%>
 
+# Avoid production credentials in the repository,
+# instead read the configuration from the environment.
+#
+# Example:
+#   mysql2://myuser:mypass@localhost/somedatabase
+#
 production:
-  adapter: mysql2
-  encoding: utf8
-  database: <%= app_name %>_production
-  pool: 5
-  username: root
-  password:
-<% if mysql_socket -%>
-  socket: <%= mysql_socket %>
-<% else -%>
-  host: localhost
-<% end -%>
+  url: <%%= ENV["DATABASE_URL"] %>

@@ -19,24 +19,24 @@ module ActiveRecord
         super
       end
 
-      def test_rename_table_for_sqlite_should_work_with_reserved_words
-        renamed = false
+      if current_adapter?(:SQLite3Adapter)
+        def test_rename_table_for_sqlite_should_work_with_reserved_words
+          renamed = false
 
-        skip "not supported" unless current_adapter?(:SQLite3Adapter)
+          add_column :test_models, :url, :string
+          connection.rename_table :references, :old_references
+          connection.rename_table :test_models, :references
 
-        add_column :test_models, :url, :string
-        connection.rename_table :references, :old_references
-        connection.rename_table :test_models, :references
+          renamed = true
 
-        renamed = true
-
-        # Using explicit id in insert for compatibility across all databases
-        connection.execute "INSERT INTO 'references' (url, created_at, updated_at) VALUES ('http://rubyonrails.com', 0, 0)"
-        assert_equal 'http://rubyonrails.com', connection.select_value("SELECT url FROM 'references' WHERE id=1")
-      ensure
-        return unless renamed
-        connection.rename_table :references, :test_models
-        connection.rename_table :old_references, :references
+          # Using explicit id in insert for compatibility across all databases
+          connection.execute "INSERT INTO 'references' (url, created_at, updated_at) VALUES ('http://rubyonrails.com', 0, 0)"
+          assert_equal 'http://rubyonrails.com', connection.select_value("SELECT url FROM 'references' WHERE id=1")
+        ensure
+          return unless renamed
+          connection.rename_table :references, :test_models
+          connection.rename_table :old_references, :references
+        end
       end
 
       def test_rename_table
@@ -76,14 +76,14 @@ module ActiveRecord
         assert_equal ['special_url_idx'], connection.indexes(:octopi).map(&:name)
       end
 
-      def test_rename_table_for_postgresql_should_also_rename_default_sequence
-        skip 'not supported' unless current_adapter?(:PostgreSQLAdapter)
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_rename_table_for_postgresql_should_also_rename_default_sequence
+          rename_table :test_models, :octopi
 
-        rename_table :test_models, :octopi
+          pk, seq = connection.pk_and_sequence_for('octopi')
 
-        pk, seq = connection.pk_and_sequence_for('octopi')
-
-        assert_equal "octopi_#{pk}_seq", seq
+          assert_equal "octopi_#{pk}_seq", seq
+        end
       end
     end
   end

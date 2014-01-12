@@ -16,13 +16,13 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key) #:nodoc:
-      def string_to_binary(value)
-        value
-      end
 
       def primary_key?
         primary_key || type.to_sym == :primary_key
       end
+    end
+
+    class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -49,14 +49,15 @@ module ActiveRecord
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
       attr_accessor :indexes
-      attr_reader :name, :temporary, :options
+      attr_reader :name, :temporary, :options, :as
 
-      def initialize(types, name, temporary, options)
+      def initialize(types, name, temporary, options, as = nil)
         @columns_hash = {}
         @indexes = {}
         @native = types
         @temporary = temporary
         @options = options
+        @as = as
         @name = name
       end
 
@@ -269,6 +270,7 @@ module ActiveRecord
         end
 
         column.limit       = limit
+        column.array       = options[:array] if column.respond_to?(:array)
         column.precision   = options[:precision]
         column.scale       = options[:scale]
         column.default     = options[:default]

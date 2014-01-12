@@ -48,7 +48,7 @@
       <ul class="nav">
         <li><a class="nav-item" href="index.html">Home</a></li>
         <li class="guides-index guides-index-large">
-          <a href="index.html" onclick="guideMenu(); return false;" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
           <div id="guides" class="clearfix" style="display: none;">
             <hr />
             <% ['L', 'R'].each do |position| %>
@@ -101,17 +101,15 @@
           You're encouraged to help improve the quality of this guide.
         </p>
         <p>
-          If you see any typos or factual errors you are confident to
-          patch, please clone <%= link_to 'docrails', 'https://github.com/lifo/docrails' %>
-          and push the change yourself. That branch of Rails has public write access.
-          Commits are still reviewed, but that happens after you've submitted your
-          contribution. <%= link_to 'docrails', 'https://github.com/lifo/docrails' %> is
-          cross-merged with master periodically.
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <%= link_to 'documentation contributions', 'http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation' %> section.
         </p>
         <p>
           You may also find incomplete content, or stuff that is not up to date.
-          Please do add any missing documentation for master. Check the
-          <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
+          Please do add any missing documentation for master. Make sure to check
+          <%= link_to 'Edge Guides','http://edgeguides.rubyonrails.org' %> first to verify
+          if the issues are already fixed or not on the master branch.
+          Check the <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
           for style and conventions.
         </p>
         <p>
@@ -141,7 +139,7 @@
   <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushSql.js"></script>
   <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushPlain.js"></script>
   <script type="text/javascript">
-    SyntaxHighlighter.all()
+    SyntaxHighlighter.all();
     $(guidesIndex.bind);
   </script>
 </body>

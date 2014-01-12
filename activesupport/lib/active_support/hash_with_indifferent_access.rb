@@ -91,7 +91,7 @@ module ActiveSupport
     #
     # This value can be later fetched using either +:key+ or +'key'+.
     def []=(key, value)
-      regular_writer(convert_key(key), convert_value(value))
+      regular_writer(convert_key(key), convert_value(value, for: :assignment))
     end
 
     alias_method :store, :[]=
@@ -207,7 +207,7 @@ module ActiveSupport
     # Replaces the contents of this hash with other_hash.
     #
     #   h = { "a" => 100, "b" => 200 }
-    #   h.replace({ "c" => 300, "d" => 400 }) #=> {"c"=>300, "d"=>400}
+    #   h.replace({ "c" => 300, "d" => 400 }) # => {"c"=>300, "d"=>400}
     def replace(other_hash)
       super(self.class.new_from_hash_copying_default(other_hash))
     end
@@ -224,14 +224,18 @@ module ActiveSupport
     undef :symbolize_keys!
     undef :deep_symbolize_keys!
     def symbolize_keys; to_hash.symbolize_keys! end
-    def deep_symbolize_keys; to_hash.deep_symbolize_keys end
+    def deep_symbolize_keys; to_hash.deep_symbolize_keys! end
     def to_options!; self end
+
+    def select(*args, &block)
+      dup.tap {|hash| hash.select!(*args, &block)}
+    end
 
     # Convert to a regular hash with string keys.
     def to_hash
       _new_hash= {}
       each do |key, value|
-        _new_hash[convert_key(key)] = convert_value(value, true)
+        _new_hash[convert_key(key)] = convert_value(value, for: :to_hash)
       end
       Hash.new(default).merge!(_new_hash)
     end
@@ -241,12 +245,18 @@ module ActiveSupport
         key.kind_of?(Symbol) ? key.to_s : key
       end
 
-      def convert_value(value, _convert_for_to_hash = false)
+      def convert_value(value, options = {})
         if value.is_a? Hash
-          _convert_for_to_hash ? value.to_hash : value.nested_under_indifferent_access
+          if options[:for] == :to_hash
+            value.to_hash
+          else
+            value.nested_under_indifferent_access
+          end
         elsif value.is_a?(Array)
-          value = value.dup if value.frozen?
-          value.map! { |e| convert_value(e, _convert_for_to_hash) }
+          unless options[:for] == :assignment
+            value = value.dup
+          end
+          value.map! { |e| convert_value(e, options) }
         else
           value
         end

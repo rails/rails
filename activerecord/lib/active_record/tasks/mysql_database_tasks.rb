@@ -134,8 +134,9 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         args << "--password=#{configuration['password']}"  if configuration['password']
         args.concat(['--default-character-set', configuration['encoding']]) if configuration['encoding']
         configuration.slice('host', 'port', 'socket').each do |k, v|
-          args.concat([ "--#{k}", v ]) if v
+          args.concat([ "--#{k}", v.to_s ]) if v
         end
+
         args
       end
     end

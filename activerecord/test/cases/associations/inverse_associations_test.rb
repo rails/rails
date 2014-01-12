@@ -9,9 +9,23 @@ require 'models/rating'
 require 'models/comment'
 require 'models/car'
 require 'models/bulb'
+require 'models/mixed_case_monkey'
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
+
+  def test_has_one_and_belongs_to_should_find_inverse_automatically_on_multiple_word_name
+    monkey_reflection = MixedCaseMonkey.reflect_on_association(:man)
+    man_reflection = Man.reflect_on_association(:mixed_case_monkey)
+
+    assert_respond_to monkey_reflection, :has_inverse?
+    assert monkey_reflection.has_inverse?, "The monkey reflection should have an inverse"
+    assert_equal man_reflection, monkey_reflection.inverse_of, "The monkey reflection's inverse should be the man reflection"
+
+    assert_respond_to man_reflection, :has_inverse?
+    assert man_reflection.has_inverse?, "The man reflection should have an inverse"
+    assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
+  end
 
   def test_has_one_and_belongs_to_should_find_inverse_automatically
     car_reflection = Car.reflect_on_association(:bulb)
@@ -401,10 +415,22 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the child name is changed"
   end
 
+  def test_find_on_child_instance_with_id_should_not_load_all_child_records
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    man.interests.find(interest.id)
+    assert_not man.interests.loaded?
+  end
+
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
+    # delete all interest records to ensure that hard coded invalid_id(s)
+    # are indeed invalid.
+    Interest.delete_all
+
     man = Man.create!
 
-    invalid_id = 2394823094892348920348523452345
+    invalid_id = 245324523
     assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_id) }
 
     invalid_ids = [8432342, 2390102913, 2453245234523452]
@@ -419,6 +445,19 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.secret_interests }
+  end
+
+  def test_child_instance_should_point_to_parent_without_saving
+    man = Man.new
+    i = Interest.create(:topic => 'Industrial Revolution Re-enactment')
+
+    man.interests << i
+    assert_not_nil i.man
+
+    i.man.name = "Charles"
+    assert_equal i.man.name, man.name
+
+    assert !man.persisted?
   end
 end
 
@@ -562,6 +601,18 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to parent instance"
     new_man.polymorphic_face.description = 'Mungo'
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
+  end
+
+  def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed
+    new_man = Man.new
+    face = Face.new
+    new_man.face = face
+
+    old_inversed_man = face.man
+    new_man.save!
+    new_inversed_man = face.man
+
+    assert_equal old_inversed_man.object_id, new_inversed_man.object_id
   end
 
   def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many

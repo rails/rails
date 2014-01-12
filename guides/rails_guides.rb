@@ -5,7 +5,7 @@ $:.unshift pwd
 def bundler?
   # Note that rake sets the cwd to the one that contains the Rakefile
   # being executed.
-  File.exists?('Gemfile')
+  File.exist?('Gemfile')
 end
 
 begin
@@ -29,6 +29,25 @@ rescue LoadError
 Please add
 
   gem 'redcarpet', '~> 2.1.1'
+
+to the Gemfile, run
+
+  bundle install
+
+and try again.
+ERROR
+  exit 1
+end
+
+begin
+  require 'nokogiri'
+rescue LoadError
+  # This can happen if doc:guides is executed in an application.
+  $stderr.puts('Generating guides requires Nokogiri.')
+  $stderr.puts(<<ERROR) if bundler?
+Please add
+
+  gem 'nokogiri'
 
 to the Gemfile, run
 

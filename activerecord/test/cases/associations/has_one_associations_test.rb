@@ -158,22 +158,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { firm.destroy }
   end
 
-  def test_restrict
-    firm = RestrictedFirm.create!(:name => 'restrict')
-    firm.create_account(:credit_limit => 10)
-
-    assert_not_nil firm.account
-
-    assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
-    assert RestrictedFirm.exists?(:name => 'restrict')
-    assert firm.account.present?
-  end
-
-  def test_restrict_is_deprecated
-    klass = Class.new(ActiveRecord::Base)
-    assert_deprecated { klass.has_one :post, dependent: :restrict }
-  end
-
   def test_restrict_with_exception
     firm = RestrictedWithExceptionFirm.create!(:name => 'restrict')
     firm.create_account(:credit_limit => 10)
@@ -521,21 +505,56 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { company.account = nil }
     account = Account.find(2)
     assert_queries { company.account = account }
+
+    assert_no_queries { Firm.new.account = account }
   end
 
-  def test_has_one_assignment_triggers_save_on_change
+  def test_has_one_assignment_dont_trigger_save_on_change_of_same_object
     pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
     ship = pirate.build_ship(name: 'old name')
     ship.save!
 
     ship.name = 'new name'
     assert ship.changed?
-    assert_queries(2) do
-      # One query for updating name and second query for updating pirate_id
+    assert_queries(1) do
+      # One query for updating name, not triggering query for updating pirate_id
       pirate.ship = ship
     end
 
     assert_equal 'new name', pirate.ship.reload.name
   end
 
+  def test_has_one_assignment_triggers_save_on_change_on_replacing_object
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    ship = pirate.build_ship(name: 'old name')
+    ship.save!
+
+    new_ship = Ship.create(name: 'new name')
+    assert_queries(2) do
+      # One query for updating name and second query for updating pirate_id
+      pirate.ship = new_ship
+    end
+
+    assert_equal 'new name', pirate.ship.reload.name
+  end
+
+  def test_has_one_autosave_with_primary_key_manually_set
+    post = Post.create(id: 1234, title: "Some title", body: 'Some content')
+    author = Author.new(id: 33, name: 'Hank Moody')
+
+    author.post = post
+    author.save
+    author.reload
+
+    assert_not_nil author.post
+    assert_equal author.post, post
+  end
+
+  def test_has_one_relationship_cannot_have_a_counter_cache
+    assert_raise(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_one :thing, counter_cache: true
+      end
+    end
+  end
 end

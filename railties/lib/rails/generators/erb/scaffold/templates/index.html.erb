@@ -6,9 +6,7 @@
 <% attributes.reject(&:password_digest?).each do |attribute| -%>
       <th><%= attribute.human_name %></th>
 <% end -%>
-      <th></th>
-      <th></th>
-      <th></th>
+      <th colspan="3"></th>
     </tr>
   </thead>
 

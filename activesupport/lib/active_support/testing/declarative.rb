@@ -7,11 +7,18 @@ module ActiveSupport
 
           unless method_defined?(:describe)
             def self.describe(text)
-              class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-                def self.name
-                  "#{text}"
-                end
-              RUBY_EVAL
+              if block_given?
+                super
+              else
+                message = "`describe` without a block is deprecated, please switch to: `def self.name; #{text.inspect}; end`\n"
+                ActiveSupport::Deprecation.warn message
+
+                class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+                  def self.name
+                    "#{text}"
+                  end
+                RUBY_EVAL
+              end
             end
           end
 
@@ -19,9 +26,12 @@ module ActiveSupport
       end
 
       unless defined?(Spec)
-        # test "verify something" do
-        #   ...
-        # end
+        # Helper to define a test method using a String. Under the hood, it replaces
+        # spaces with underscores and defines the test method.
+        #
+        #   test "verify something" do
+        #     ...
+        #   end
         def test(name, &block)
           test_name = "test_#{name.gsub(/\s+/,'_')}".to_sym
           defined = instance_method(test_name) rescue false

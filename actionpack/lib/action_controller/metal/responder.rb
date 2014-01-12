@@ -97,8 +97,12 @@ module ActionController #:nodoc:
   #
   # This will return status 201 if the task was saved successfully. If not,
   # it will simply ignore the given options and return status 422 and the
-  # resource errors. To customize the failure scenario, you can pass a
-  # a block to <code>respond_with</code>:
+  # resource errors. You can also override the location to redirect to:
+  #
+  #   respond_with(@project, location: root_path)
+  #
+  # To customize the failure scenario, you can pass a block to
+  # <code>respond_with</code>:
   #
   #   def create
   #     @project = Project.find(params[:project_id])
@@ -140,7 +144,7 @@ module ActionController #:nodoc:
     undef_method(:to_json) if method_defined?(:to_json)
     undef_method(:to_yaml) if method_defined?(:to_yaml)
 
-    # Initializes a new responder an invoke the proper format. If the format is
+    # Initializes a new responder and invokes the proper format. If the format is
     # not defined, call to_format.
     #
     def self.call(*args)
@@ -198,6 +202,7 @@ module ActionController #:nodoc:
     # This is the common behavior for formats associated with APIs, such as :xml and :json.
     def api_behavior(error)
       raise error unless resourceful?
+      raise MissingRenderer.new(format) unless has_renderer?
 
       if get?
         display resource
@@ -263,6 +268,11 @@ module ActionController #:nodoc:
     #
     def has_errors?
       resource.respond_to?(:errors) && !resource.errors.empty?
+    end
+
+    # Check whether the necessary Renderer is available
+    def has_renderer?
+      Renderers::RENDERERS.include?(format)
     end
 
     # By default, render the <code>:edit</code> action for HTML requests with errors, unless

@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'active_record/tasks/database_tasks'
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -128,11 +129,22 @@ module ActiveRecord
       )
     end
 
-    def test_creates_test_database_when_environment_is_database
+    def test_creates_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'test-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
+    end
+
+    def test_creates_only_development_database_when_rails_env_is_development
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with('database' => 'dev-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns('development')
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
@@ -142,7 +154,7 @@ module ActiveRecord
     def test_establishes_connection_for_the_given_environment
       ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
 
-      ActiveRecord::Base.expects(:establish_connection).with('development')
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
@@ -238,11 +250,22 @@ module ActiveRecord
       )
     end
 
-    def test_creates_test_database_when_environment_is_database
+    def test_drops_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'test-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
+    end
+
+    def test_drops_only_development_database_when_rails_env_is_development
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with('database' => 'dev-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns('development')
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new('development')

@@ -58,7 +58,7 @@ module ActionController
     #   redirect_to post_url(@post), alert: "Watch it, mister!"
     #   redirect_to post_url(@post), status: :found, notice: "Pay attention to the road"
     #   redirect_to post_url(@post), status: 301, flash: { updated_post_id: @post.id }
-    #   redirect_to { action: 'atom' }, alert: "Something serious happened"
+    #   redirect_to({ action: 'atom' }, alert: "Something serious happened")
     #
     # When using <tt>redirect_to :back</tt>, if there is no referrer, ActionController::RedirectBackError will be raised. You may specify some fallback
     # behavior for this case by rescuing ActionController::RedirectBackError.
@@ -71,6 +71,26 @@ module ActionController
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.h(location)}\">redirected</a>.</body></html>"
     end
 
+    def _compute_redirect_to_location(options) #:nodoc:
+      case options
+      # The scheme name consist of a letter followed by any combination of
+      # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
+      # characters; and is terminated by a colon (":").
+      # See http://tools.ietf.org/html/rfc3986#section-3.1
+      # The protocol relative scheme starts with a double slash "//".
+      when /\A([a-z][a-z\d\-+\.]*:|\/\/).*/i
+        options
+      when String
+        request.protocol + request.host_with_port + options
+      when :back
+        request.headers["Referer"] or raise RedirectBackError
+      when Proc
+        _compute_redirect_to_location options.call
+      else
+        url_for(options)
+      end.delete("\0\r\n")
+    end
+
     private
       def _extract_redirect_to_status(options, response_status)
         if options.is_a?(Hash) && options.key?(:status)
@@ -80,25 +100,6 @@ module ActionController
         else
           302
         end
-      end
-
-      def _compute_redirect_to_location(options)
-        case options
-        # The scheme name consist of a letter followed by any combination of
-        # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
-        # characters; and is terminated by a colon (":").
-        # The protocol relative scheme starts with a double slash "//"
-        when %r{\A(\w[\w+.-]*:|//).*}
-          options
-        when String
-          request.protocol + request.host_with_port + options
-        when :back
-          request.headers["Referer"] or raise RedirectBackError
-        when Proc
-          _compute_redirect_to_location options.call
-        else
-          url_for(options)
-        end.delete("\0\r\n")
       end
   end
 end

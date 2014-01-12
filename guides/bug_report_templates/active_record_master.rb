@@ -1,7 +1,8 @@
-unless File.exists?('Gemfile')
+unless File.exist?('Gemfile')
   File.write('Gemfile', <<-GEMFILE)
     source 'https://rubygems.org'
     gem 'rails', github: 'rails/rails'
+    gem 'arel', github: 'rails/arel'
     gem 'sqlite3'
   GEMFILE
 
@@ -36,7 +37,7 @@ class Comment < ActiveRecord::Base
   belongs_to :post
 end
 
-class BugTest < MiniTest::Unit::TestCase
+class BugTest < Minitest::Test
   def test_association_stuff
     post = Post.create!
     post.comments << Comment.create!

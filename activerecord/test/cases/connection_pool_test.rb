@@ -118,6 +118,7 @@ module ActiveRecord
         connection = cs.first
         @pool.remove connection
         assert_respond_to t.join.value, :execute
+        connection.close
       end
 
       def test_reap_and_active
@@ -329,7 +330,7 @@ module ActiveRecord
       end
 
       # make sure exceptions are thrown when establish_connection
-      # is called with a anonymous class
+      # is called with an anonymous class
       def test_anonymous_class_exception
         anonymous = Class.new(ActiveRecord::Base)
         handler = ActiveRecord::Base.connection_handler

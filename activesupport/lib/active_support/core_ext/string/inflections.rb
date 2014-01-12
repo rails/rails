@@ -182,21 +182,23 @@ class String
   #
   #   'egg_and_hams'.classify # => "EggAndHam"
   #   'posts'.classify        # => "Post"
-  #
-  # Singular names are not handled correctly.
-  #
-  #   'business'.classify # => "Business"
   def classify
     ActiveSupport::Inflector.classify(self)
   end
 
-  # Capitalizes the first word, turns underscores into spaces, and strips '_id'.
+  # Capitalizes the first word, turns underscores into spaces, and strips a
+  # trailing '_id' if present.
   # Like +titleize+, this is meant for creating pretty output.
   #
-  #   'employee_salary'.humanize # => "Employee salary"
-  #   'author_id'.humanize       # => "Author"
-  def humanize
-    ActiveSupport::Inflector.humanize(self)
+  # The capitalization of the first word can be turned off by setting the
+  # optional parameter +capitalize+ to false.
+  # By default, this parameter is true.
+  #
+  #   'employee_salary'.humanize              # => "Employee salary"
+  #   'author_id'.humanize                    # => "Author"
+  #   'author_id'.humanize(capitalize: false) # => "author"
+  def humanize(options = {})
+    ActiveSupport::Inflector.humanize(self, options)
   end
 
   # Creates a foreign key name from a class name.

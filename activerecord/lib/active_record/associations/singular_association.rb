@@ -39,10 +39,11 @@ module ActiveRecord
         end
 
         def find_target
-          scope.first.tap { |record| set_inverse_instance(record) }
+          if record = scope.first
+            set_inverse_instance record
+          end
         end
 
-        # Implemented by subclasses
         def replace(record)
           raise NotImplementedError, "Subclasses must implement a replace(record) method"
         end

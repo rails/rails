@@ -128,6 +128,47 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
+  test "rescue with text error for xhr request" do
+    @app = DevelopmentApp
+    xhr_request_env = {'action_dispatch.show_exceptions' => true, 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'}
+
+    get "/", {}, xhr_request_env
+    assert_response 500
+    assert_no_match(/<body>/, body)
+    assert_equal response.content_type, "text/plain"
+    assert_match(/puke/, body)
+
+    get "/not_found", {}, xhr_request_env
+    assert_response 404
+    assert_no_match(/<body>/, body)
+    assert_equal response.content_type, "text/plain"
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
+
+    get "/method_not_allowed", {}, xhr_request_env
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal response.content_type, "text/plain"
+    assert_match(/ActionController::MethodNotAllowed/, body)
+
+    get "/unknown_http_method", {}, xhr_request_env
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal response.content_type, "text/plain"
+    assert_match(/ActionController::UnknownHttpMethod/, body)
+
+    get "/bad_request", {}, xhr_request_env
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal response.content_type, "text/plain"
+    assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", {}, xhr_request_env
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal response.content_type, "text/plain"
+    assert_match(/ActionController::ParameterMissing/, body)
+  end
+
   test "does not show filtered parameters" do
     @app = DevelopmentApp
 

@@ -4,7 +4,6 @@
 ENV['NO_RELOAD'] ||= '1'
 ENV['RAILS_ENV'] ||= 'development'
 
-Gem.source_index
 require 'benchmark'
 
 module RequireProfiler

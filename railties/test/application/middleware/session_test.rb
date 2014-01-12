@@ -49,7 +49,7 @@ module ApplicationTests
 
     test "session is empty and isn't saved on unverified request when using :null_session protect method" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get  ':controller(/:action)'
           post ':controller(/:action)'
         end
@@ -90,7 +90,7 @@ module ApplicationTests
 
     test "cookie jar is empty and isn't saved on unverified request when using :null_session protect method" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get  ':controller(/:action)'
           post ':controller(/:action)'
         end
@@ -131,7 +131,7 @@ module ApplicationTests
 
     test "session using encrypted cookie store" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -176,7 +176,7 @@ module ApplicationTests
 
     test "session upgrading signature to encryption cookie store works the same way as encrypted cookie store" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -225,7 +225,7 @@ module ApplicationTests
 
     test "session upgrading signature to encryption cookie store upgrades session to encrypted mode" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -284,7 +284,7 @@ module ApplicationTests
 
     test "session upgrading legacy signed cookies to new signed cookies" do
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get ':controller(/:action)'
         end
       RUBY
@@ -318,7 +318,7 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-        config.secret_key_base = nil
+        secrets.secret_key_base = nil
       RUBY
 
       require "#{app_path}/config/environment"

@@ -1,6 +1,6 @@
 module ActiveModel
 
-  # == Active \Model Basic \Model
+  # == Active \Model \Basic \Model
   #
   # Includes the required interface for an object to interact with
   # <tt>ActionPack</tt>, using different <tt>ActiveModel</tt> modules.
@@ -79,6 +79,8 @@ module ActiveModel
       params.each do |attr, value|
         self.public_send("#{attr}=", value)
       end if params
+
+      super()
     end
 
     # Indicates if the model is persisted. Default is +false+.

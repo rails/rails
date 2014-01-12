@@ -2,7 +2,6 @@ require 'cases/helper'
 require 'models/user'
 require 'models/oauthed_user'
 require 'models/visitor'
-require 'models/administrator'
 
 class SecurePasswordTest < ActiveModel::TestCase
   setup do
@@ -82,6 +81,14 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal BCrypt::Engine::DEFAULT_COST, @user.password_digest.cost
   end
 
+  test "Password digest cost honors bcrypt cost attribute when min_cost is false" do
+    ActiveModel::SecurePassword.min_cost = false
+    BCrypt::Engine.cost = 5
+
+    @user.password = "secret"
+    assert_equal BCrypt::Engine.cost, @user.password_digest.cost
+  end
+
   test "Password digest cost can be set to bcrypt min cost to speed up tests" do
     ActiveModel::SecurePassword.min_cost = true
 
@@ -93,5 +100,19 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password = ""
     @user.password_confirmation = ""
     assert @user.valid?(:update), "user should be valid"
+  end
+
+  test "password_confirmation validations will not be triggered if password_confirmation is not sent" do
+    @user.password = "password"
+    assert @user.valid?(:create)
+  end
+
+  test "will not save if confirmation is blank but password is not" do
+    @user.password = "password"
+    @user.password_confirmation = ""
+    assert_not @user.valid?(:create)
+
+    @user.password_confirmation = "password"
+    assert @user.valid?(:create)
   end
 end

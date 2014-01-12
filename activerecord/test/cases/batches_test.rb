@@ -26,6 +26,24 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_each_should_return_an_enumerator_if_no_block_is_present
+    assert_queries(1) do
+      Post.find_each(:batch_size => 100000).with_index do |post, index|
+        assert_kind_of Post, post
+        assert_kind_of Integer, index
+      end
+    end
+  end
+
+  def test_each_enumerator_should_execute_one_query_per_batch
+    assert_queries(@total + 1) do
+      Post.find_each(:batch_size => 1).with_index do |post, index|
+        assert_kind_of Post, post
+        assert_kind_of Integer, index
+      end
+    end
+  end
+
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(RuntimeError) do
       Post.select(:title).find_each(:batch_size => 1) { |post| post }
@@ -48,6 +66,16 @@ class EachTest < ActiveRecord::TestCase
   def test_warn_if_order_scope_is_set
     ActiveRecord::Base.logger.expects(:warn)
     Post.order("title").find_each { |post| post }
+  end
+
+  def test_logger_not_required
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = nil
+    assert_nothing_raised do
+      Post.limit(1).find_each { |post| post }
+    end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
   end
 
   def test_find_in_batches_should_return_batches

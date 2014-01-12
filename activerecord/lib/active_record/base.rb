@@ -4,7 +4,7 @@ require 'active_support/benchmarkable'
 require 'active_support/dependencies'
 require 'active_support/descendants_tracker'
 require 'active_support/time'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/deep_merge'
@@ -18,6 +18,7 @@ require 'arel'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
 require 'active_record/explain_subscriber'
+require 'active_record/relation/delegation'
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -290,8 +291,11 @@ module ActiveRecord #:nodoc:
     extend Translation
     extend DynamicMatchers
     extend Explain
+    extend Enum
+    extend Delegation::DelegateCache
 
     include Persistence
+    include NoTouching
     include ReadonlyAttributes
     include ModelSchema
     include Inheritance

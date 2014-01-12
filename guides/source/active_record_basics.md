@@ -48,10 +48,10 @@ overall database access code.
 Active Record gives us several mechanisms, the most important being the ability
 to:
 
-* Represent models and their data
-* Represent associations between these models
-* Represent inheritance hierarchies through related models
-* Validate models before they get persisted to the database
+* Represent models and their data.
+* Represent associations between these models.
+* Represent inheritance hierarchies through related models.
+* Validate models before they get persisted to the database.
 * Perform database operations in an object-oriented fashion.
 
 Convention over Configuration in Active Record
@@ -62,9 +62,9 @@ may be necessary to write a lot of configuration code. This is particularly true
 for ORM frameworks in general. However, if you follow the conventions adopted by
 Rails, you'll need to write very little configuration (in some case no
 configuration at all) when creating Active Record models. The idea is that if
-you configure your applications in the very same way most of the times then this
-should be the default way. In this cases, explicit configuration would be needed
-only in those cases where you can't follow the conventions for any reason.
+you configure your applications in the very same way most of the time then this
+should be the default way. Thus, explicit configuration would be needed
+only in those cases where you can't follow the standard convention.
 
 ### Naming Conventions
 
@@ -78,15 +78,15 @@ of two or more words, the model class name should follow the Ruby conventions,
 using the CamelCase form, while the table name must contain the words separated
 by underscores. Examples:
 
-* Database Table - Plural with underscores separating words (e.g., `book_clubs`)
+* Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
-`BookClub`)
+`BookClub`).
 
 | Model / Class | Table / Schema |
 | ------------- | -------------- |
 | `Post`        | `posts`        |
 | `LineItem`    | `line_items`   |
-| `Deer`        | `deer`         |
+| `Deer`        | `deers`        |
 | `Mouse`       | `mice`         |
 | `Person`      | `people`       |
 
@@ -101,11 +101,11 @@ depending on the purpose of these columns.
   fields that Active Record will look for when you create associations between
   your models.
 * **Primary keys** - By default, Active Record will use an integer column named
-  `id` as the table's primary key. When using [Rails
+  `id` as the table's primary key. When using [Active Record
   Migrations](migrations.html) to create your tables, this column will be
   automatically created.
 
-There are also some optional column names that will create additional features
+There are also some optional column names that will add additional features
 to Active Record instances:
 
 * `created_at` - Automatically gets set to the current date and time when the
@@ -116,7 +116,7 @@ to Active Record instances:
   locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html)
+  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html#label-Single+table+inheritance).
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
@@ -181,18 +181,18 @@ definition:
 
 ```ruby
 class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class funny_jokes: 'Joke'
+  set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   ...
 end
 ```
 
 It's also possible to override the column that should be used as the table's
-primary key using the `ActiveRecord::Base.set_primary_key` method:
+primary key using the `ActiveRecord::Base.primary_key=` method:
 
 ```ruby
 class Product < ActiveRecord::Base
-  set_primary_key "product_id"
+  self.primary_key = "product_id"
 end
 ```
 
@@ -253,7 +253,7 @@ user = User.first
 
 ```ruby
 # return the first user named David
-david = User.find_by_name('David')
+david = User.find_by(name: 'David')
 ```
 
 ```ruby
@@ -270,7 +270,7 @@ Once an Active Record object has been retrieved, its attributes can be modified
 and it can be saved to the database.
 
 ```ruby
-user = User.find_by_name('David')
+user = User.find_by(name: 'David')
 user.name = 'Dave'
 user.save
 ```
@@ -279,7 +279,7 @@ A shorthand for this is to use a hash mapping attribute names to the desired
 value, like so:
 
 ```ruby
-user = User.find_by_name('David')
+user = User.find_by(name: 'David')
 user.update(name: 'Dave')
 ```
 
@@ -297,7 +297,7 @@ Likewise, once retrieved an Active Record object can be destroyed which removes
 it from the database.
 
 ```ruby
-user = User.find_by_name('David')
+user = User.find_by(name: 'David')
 user.destroy
 ```
 
@@ -343,7 +343,7 @@ Migrations
 
 Rails provides a domain-specific language for managing a database schema called
 migrations. Migrations are stored in files which are executed against any
-database that Active Record support using `rake`. Here's a migration that
+database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
@@ -368,6 +368,6 @@ Rails keeps track of which files have been committed to the database and
 provides rollback features. To actually create the table, you'd run `rake db:migrate`
 and to roll it back, `rake db:rollback`.
 
-Note that the above code is database-agnostic: it will run in MySQL, postgresql,
-Oracle and others. You can learn more about migrations in the [Active Record
-Migrations guide](migrations.html)
+Note that the above code is database-agnostic: it will run in MySQL,
+PostgreSQL, Oracle and others. You can learn more about migrations in the
+[Active Record Migrations guide](migrations.html).

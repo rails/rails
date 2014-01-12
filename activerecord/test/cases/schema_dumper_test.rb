@@ -202,6 +202,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
   end
 
+  def test_schema_dump_should_use_false_as_default
+    output = standard_dump
+    assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
+  end
+
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
@@ -247,19 +252,20 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
     end
 
-    def test_schema_dump_includes_extensions
-      connection = ActiveRecord::Base.connection
-      skip unless connection.supports_extensions?
+    if ActiveRecord::Base.connection.supports_extensions?
+      def test_schema_dump_includes_extensions
+        connection = ActiveRecord::Base.connection
 
-      connection.stubs(:extensions).returns(['hstore'])
-      output = standard_dump
-      assert_match "# These are extensions that must be enabled", output
-      assert_match %r{enable_extension "hstore"}, output
+        connection.stubs(:extensions).returns(['hstore'])
+        output = standard_dump
+        assert_match "# These are extensions that must be enabled", output
+        assert_match %r{enable_extension "hstore"}, output
 
-      connection.stubs(:extensions).returns([])
-      output = standard_dump
-      assert_no_match "# These are extensions that must be enabled", output
-      assert_no_match %r{enable_extension}, output
+        connection.stubs(:extensions).returns([])
+        output = standard_dump
+        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match %r{enable_extension}, output
+      end
     end
 
     def test_schema_dump_includes_xml_shorthand_definition
@@ -299,7 +305,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_includes_uuid_shorthand_definition
       output = standard_dump
-      if %r{create_table "poistgresql_uuids"} =~ output
+      if %r{create_table "postgresql_uuids"} =~ output
         assert_match %r{t.uuid "guid"}, output
       end
     end

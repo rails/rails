@@ -186,7 +186,9 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     members = assert_queries(4) { Member.includes(:organization_member_details_2).to_a.sort_by(&:id) }
     groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
 
-    assert_no_queries do
+    # postgresql test if randomly executed then executes "SHOW max_identifier_length". Hence
+    # the need to ignore certain predefined sqls that deal with system calls.
+    assert_no_queries(ignore_none: false) do
       assert_equal [groucho_details, other_details], members.first.organization_member_details_2.sort_by(&:id)
     end
   end
@@ -212,7 +214,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection_preload
-    authors = assert_queries(3) { Author.includes(:post_categories).to_a.sort_by(&:id) }
+    authors = assert_queries(4) { Author.includes(:post_categories).to_a.sort_by(&:id) }
     general, cooking = categories(:general), categories(:cooking)
 
     assert_no_queries do
@@ -240,7 +242,8 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload
-    categories = assert_queries(3) { Category.includes(:post_comments).to_a.sort_by(&:id) }
+    Category.includes(:post_comments).to_a # preheat cache
+    categories = assert_queries(4) { Category.includes(:post_comments).to_a.sort_by(&:id) }
     greetings, more = comments(:greetings), comments(:more_greetings)
 
     assert_no_queries do
@@ -268,7 +271,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection_preload
-    authors = assert_queries(5) { Author.includes(:category_post_comments).to_a.sort_by(&:id) }
+    authors = assert_queries(6) { Author.includes(:category_post_comments).to_a.sort_by(&:id) }
     greetings, more = comments(:greetings), comments(:more_greetings)
 
     assert_no_queries do
@@ -369,7 +372,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     prev_default_scope = Club.default_scopes
 
     [:includes, :preload, :joins, :eager_load].each do |q|
-      Club.default_scopes = [Club.send(q, :category)]
+      Club.default_scopes = [proc { Club.send(q, :category) }]
       assert_equal categories(:general), members(:groucho).reload.club_category
     end
   ensure

@@ -3,6 +3,42 @@ require 'abstract_unit'
 require 'active_support/cache'
 require 'dependencies_test_helpers'
 
+module ActiveSupport
+  module Cache
+    module Strategy
+      module LocalCache
+        class MiddlewareTest < ActiveSupport::TestCase
+          def test_local_cache_cleared_on_close
+            key = "super awesome key"
+            assert_nil LocalCacheRegistry.cache_for key
+            middleware = Middleware.new('<3', key).new(->(env) {
+              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              [200, {}, []]
+            })
+            _, _, body = middleware.call({})
+            assert LocalCacheRegistry.cache_for(key), 'should still have a cache'
+            body.each { }
+            assert LocalCacheRegistry.cache_for(key), 'should still have a cache'
+            body.close
+            assert_nil LocalCacheRegistry.cache_for(key)
+          end
+
+          def test_local_cache_cleared_on_exception
+            key = "super awesome key"
+            assert_nil LocalCacheRegistry.cache_for key
+            middleware = Middleware.new('<3', key).new(->(env) {
+              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              raise
+            })
+            assert_raises(RuntimeError) { middleware.call({}) }
+            assert_nil LocalCacheRegistry.cache_for(key)
+          end
+        end
+      end
+    end
+  end
+end
+
 class CacheKeyTest < ActiveSupport::TestCase
   def test_entry_legacy_optional_ivars
     legacy = Class.new(ActiveSupport::Cache::Entry) do
@@ -110,12 +146,12 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
-  def test_mem_cache_fragment_cache_store_with_given_mem_cache_like_object
+  def test_mem_cache_fragment_cache_store_with_not_dalli_client
     Dalli::Client.expects(:new).never
     memcache = Object.new
-    def memcache.get() true end
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
-    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    assert_raises(ArgumentError) do
+      ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
+    end
   end
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
@@ -327,8 +363,8 @@ module CacheStoreBehavior
 
   def test_exist
     @cache.write('foo', 'bar')
-    assert @cache.exist?('foo')
-    assert !@cache.exist?('bar')
+    assert_equal true, @cache.exist?('foo')
+    assert_equal false, @cache.exist?('bar')
   end
 
   def test_nil_exist
@@ -577,6 +613,7 @@ module LocalCacheBehavior
       result = @cache.write('foo', 'bar')
       assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
       assert result
+      [200, {}, []]
     }
     app = @cache.middleware.new(app)
     app.call({})
@@ -709,12 +746,31 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.send(:read_entry, "winston", {})
     assert @buffer.string.present?
   end
+
+  def test_cleanup_removes_all_expired_entries
+    time = Time.now
+    @cache.write('foo', 'bar', expires_in: 10)
+    @cache.write('baz', 'qux')
+    @cache.write('quux', 'corge', expires_in: 20)
+    Time.stubs(:now).returns(time + 15)
+    @cache.cleanup
+    assert_not @cache.exist?('foo')
+    assert @cache.exist?('baz')
+    assert @cache.exist?('quux')
+  end
+
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaaaaaaaa")
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+    @cache.write(1, nil)
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @record_size = ActiveSupport::Cache::Entry.new("aaaaaaaaaa").size
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10)
+    @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10 + 1)
   end
 
   include CacheStoreBehavior
@@ -761,6 +817,30 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(4)
     assert !@cache.exist?(3), "no entry"
     assert @cache.exist?(2)
+    assert !@cache.exist?(1), "no entry"
+  end
+
+  def test_prune_size_on_write_based_on_key_length
+    @cache.write(1, "aaaaaaaaaa") && sleep(0.001)
+    @cache.write(2, "bbbbbbbbbb") && sleep(0.001)
+    @cache.write(3, "cccccccccc") && sleep(0.001)
+    @cache.write(4, "dddddddddd") && sleep(0.001)
+    @cache.write(5, "eeeeeeeeee") && sleep(0.001)
+    @cache.write(6, "ffffffffff") && sleep(0.001)
+    @cache.write(7, "gggggggggg") && sleep(0.001)
+    @cache.write(8, "hhhhhhhhhh") && sleep(0.001)
+    @cache.write(9, "iiiiiiiiii") && sleep(0.001)
+    long_key = '*' * 2 * @record_size
+    @cache.write(long_key, "llllllllll")
+    assert @cache.exist?(long_key)
+    assert @cache.exist?(9)
+    assert @cache.exist?(8)
+    assert @cache.exist?(7)
+    assert @cache.exist?(6)
+    assert !@cache.exist?(5), "no entry"
+    assert !@cache.exist?(4), "no entry"
+    assert !@cache.exist?(3), "no entry"
+    assert !@cache.exist?(2), "no entry"
     assert !@cache.exist?(1), "no entry"
   end
 

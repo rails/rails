@@ -6,10 +6,6 @@ module ActiveRecord
       module OID
         class Type
           def type; end
-
-          def type_cast_for_write(value)
-            value
-          end
         end
 
         class Identity < Type
@@ -38,12 +34,17 @@ module ActiveRecord
         class Money < Type
           def type_cast(value)
             return if value.nil?
+            return value unless String === value
 
             # Because money output is formatted according to the locale, there are two
             # cases to consider (note the decimal separators):
             #  (1) $12,345,678.12
             #  (2) $12.345.678,12
+            # Negative values are represented as follows:
+            #  (3) -$2.55
+            #  (4) ($2.55)
 
+            value.sub!(/^\((.+)\)$/, '-\1') # (4)
             case value
             when /^-?\D+[\d,]+\.\d{2}$/  # (1)
               value.gsub!(/[^-\d.]/, '')
@@ -224,10 +225,18 @@ module ActiveRecord
         end
 
         class Hstore < Type
+          def type_cast_for_write(value)
+            ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
+          end
+
           def type_cast(value)
             return if value.nil?
 
             ConnectionAdapters::PostgreSQLColumn.string_to_hstore value
+          end
+
+          def accessor
+            ActiveRecord::Store::StringKeyedHashAccessor
           end
         end
 
@@ -240,10 +249,18 @@ module ActiveRecord
         end
 
         class Json < Type
+          def type_cast_for_write(value)
+            ConnectionAdapters::PostgreSQLColumn.json_to_string value
+          end
+
           def type_cast(value)
             return if value.nil?
 
             ConnectionAdapters::PostgreSQLColumn.string_to_json value
+          end
+
+          def accessor
+            ActiveRecord::Store::StringKeyedHashAccessor
           end
         end
 
@@ -284,17 +301,15 @@ module ActiveRecord
           end
         end
 
-        TYPE_MAP = TypeMap.new # :nodoc:
-
-        # When the PG adapter connects, the pg_type table is queried.  The
+        # When the PG adapter connects, the pg_type table is queried. The
         # key of this hash maps to the `typname` column from the table.
-        # TYPE_MAP is then dynamically built with oids as the key and type
+        # type_map is then dynamically built with oids as the key and type
         # objects as values.
         NAMES = Hash.new { |h,k| # :nodoc:
           h[k] = OID::Identity.new
         }
 
-        # Register an OID type named +name+ with a typcasting object in
+        # Register an OID type named +name+ with a typecasting object in
         # +type+.  +name+ should correspond to the `typname` column in
         # the `pg_type` table.
         def self.register_type(name, type)
