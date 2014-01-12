@@ -7,7 +7,7 @@ module ActiveSupport
 
       def self.included(klass) #:nodoc:
         klass.class_eval do
-          parallelize_me!
+          parallelize_me! unless RUBY_ENGINE == 'jruby'
         end
       end
 
