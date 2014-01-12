@@ -24,7 +24,8 @@ module ActionView
             view_renderer.render(self, options)
           end
         else
-          view_renderer.render_partial(self, :partial => options, :locals => locals)
+          object, locals, options = options, locals.slice!(:formats, :layout), locals
+          view_renderer.render_partial(self, options.merge(:partial => object, :locals => locals))
         end
       end
 
