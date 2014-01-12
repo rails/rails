@@ -2,7 +2,7 @@
 
     *Xavier Noria*
 
-*   `test_help.rb` now automatically checks/maintains your test datbase
+*   `test_help.rb` now automatically checks/maintains your test database
     schema. (Use `config.active_record.maintain_test_schema = false` to
     disable.)
 
