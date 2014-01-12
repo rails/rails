@@ -198,11 +198,10 @@ HEADER
             index_orders = (index.orders || {})
             statement_parts << ('order: ' + index.orders.inspect) unless index_orders.empty?
 
-            statement_parts << ('where: ' + index.where.inspect) if index.where
-
-            statement_parts << ('using: ' + index.using.inspect) if index.using
-
-            statement_parts << ('type: ' + index.type.inspect) if index.type
+            %w(where using type function).each do |attr|
+              value = index.public_send(attr)
+              statement_parts << ("#{attr}: " + value.inspect) if value
+            end
 
             '  ' + statement_parts.join(', ')
           end

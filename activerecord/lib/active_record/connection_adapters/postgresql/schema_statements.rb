@@ -130,7 +130,7 @@ module ActiveRecord
         def indexes(table_name, name = nil)
           result = query(<<-SQL, 'SCHEMA')
             SELECT distinct i.relname, d.indisunique, d.indkey,
-              pg_get_expr(d.indpred, t.oid),
+              pg_get_expr(d.indexprs, t.oid), pg_get_expr(d.indpred, t.oid),
               pg_get_indexdef(d.indexrelid), t.oid, m.amname, m.amcanorder
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -147,27 +147,35 @@ module ActiveRecord
             index_name = row[0]
             unique = row[1] == 't'
             indkey = row[2].split(" ")
-            where = row[3]
-            inddef = row[4]
-            oid = row[5]
-            using = row[6].to_sym
+            expression = row[3]
+            where = row[4]
+            inddef = row[5]
+            oid = row[6]
+            using = row[7].to_sym
 
-            columns = Hash[query(<<-SQL, "SCHEMA")]
-            SELECT a.attnum, a.attname
-            FROM pg_attribute a
-            WHERE a.attrelid = #{oid}
-            AND a.attnum IN (#{indkey.join(",")})
-            SQL
+            # Matches "lower((column)::text)" or "lower(column)"
+            if indkey == ['0'] && (expression =~ /\A(\w+)\(\((\w+)\)::[\w\s]+\)\Z/ ||
+                expression =~ /\A(\w+)\((\w+)\)\Z/)
+              function = $~[1]
+              column_names = [$~[2]]
+            else
+              columns = Hash[query(<<-SQL, "SCHEMA")]
+              SELECT a.attnum, a.attname
+              FROM pg_attribute a
+              WHERE a.attrelid = #{oid}
+              AND a.attnum IN (#{indkey.join(",")})
+              SQL
 
-            column_names = columns.values_at(*indkey).compact
+              column_names = columns.values_at(*indkey).compact
+              function = nil
+            end
 
             unless column_names.empty?
               # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
               desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
               orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-              where = inddef.scan(/WHERE (.+)$/).flatten[0]
 
-              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
+              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using, function)
             end
           end.compact
         end
