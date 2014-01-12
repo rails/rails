@@ -33,6 +33,38 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_session_timezone
+    original_timezone = ActiveRecord::Base.default_timezone
+    global_mysql_timezones = []
+
+    # checking session timezone while the config value is :utc
+    ActiveRecord::Base.default_timezone = :utc
+    @connection.reconnect!
+    session_mysql_timezone = @connection.exec_query "SELECT @@SESSION.time_zone"
+    global_mysql_timezones << @connection.exec_query("SELECT @@GLOBAL.time_zone").rows[0]
+    assert_equal [["+00:00"]], session_mysql_timezone.rows, "Session time_zone not set correctly."
+
+    # checking session timezone while the config value is :local
+    ActiveRecord::Base.default_timezone = :local
+    @connection.reconnect!
+    session_mysql_timezone = @connection.exec_query "SELECT @@SESSION.time_zone"
+    global_mysql_timezones << @connection.exec_query("SELECT @@GLOBAL.time_zone").rows[0]
+    assert_equal [[DateTime.now.zone]], session_mysql_timezone.rows, "Session time_zone not set correctly."
+
+    # checking session timezone while the config value is otherwise
+    ActiveRecord::Base.default_timezone = ''
+    @connection.reconnect!
+    session_mysql_timezone = @connection.exec_query "SELECT @@SESSION.time_zone"
+    global_mysql_timezones << @connection.exec_query("SELECT @@GLOBAL.time_zone").rows[0]
+    assert_equal [[DateTime.now.zone]], session_mysql_timezone.rows, "Session time_zone not set correctly."
+
+    # global value should remain unaffected
+    assert_equal 1, global_mysql_timezones.uniq.count, "Global mysql time_zone shouldn't change."
+
+    ActiveRecord::Base.default_timezone = original_timezone
+    @connection.reconnect!
+  end
+
   def test_successful_reconnection_after_timeout_with_manual_reconnect
     assert @connection.active?
     @connection.update('set @@wait_timeout=1')
