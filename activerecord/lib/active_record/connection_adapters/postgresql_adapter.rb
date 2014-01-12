@@ -483,6 +483,10 @@ module ActiveRecord
         true
       end
 
+      def supports_index_functions?
+        true
+      end
+
       def supports_transaction_isolation?
         true
       end

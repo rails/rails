@@ -763,7 +763,15 @@ module ActiveRecord
             option_strings = add_index_sort_order(option_strings, column_names, options)
           end
 
-          column_names.map {|name| quote_column_name(name) + option_strings[name]}
+          column_names.map do |name|
+            quoted = quote_column_name(name)
+
+            if supports_index_functions? && options[:function]
+              quoted = "#{options[:function]}(#{quoted})"
+            end
+
+            quoted + option_strings[name]
+          end
         end
 
         def options_include_default?(options)
@@ -774,7 +782,7 @@ module ActiveRecord
           column_names = Array(column_name)
           index_name   = index_name(table_name, column: column_names)
 
-          options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+          options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :function)
 
           index_type = options[:unique] ? "UNIQUE" : ""
           index_type = options[:type].to_s if options.key?(:type)

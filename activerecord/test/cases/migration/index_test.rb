@@ -193,6 +193,14 @@ module ActiveRecord
           connection.remove_index("testings", "last_name")
           assert !connection.index_exists?("testings", "last_name")
         end
+
+        def test_index_functions
+          connection.add_index("testings", "last_name", :function => "lower")
+          assert connection.index_exists?("testings", "last_name")
+
+          connection.remove_index("testings", "last_name")
+          assert !connection.index_exists?("testings", "last_name")
+        end
       end
 
       private
