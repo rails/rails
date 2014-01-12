@@ -209,7 +209,7 @@ class PeopleController < ActionController::Base
   # Request reply.
   def update
     person = current_account.people.find(params[:id])
-    person.update!(person_params)
+    person.update!(person_params(params))
     redirect_to person
   end
 
@@ -218,7 +218,7 @@ class PeopleController < ActionController::Base
     # is just a good pattern since you'll be able to reuse the same
     # permit list between create and update. Also, you can specialize
     # this method with per-user checking of permissible attributes.
-    def person_params
+    def person_params(params)
       params.require(:person).permit(:name, :age)
     end
 end
