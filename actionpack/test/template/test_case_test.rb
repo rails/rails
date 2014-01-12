@@ -296,10 +296,19 @@ module ActionView
   end
 
   class RenderTemplateTest < ActionView::TestCase
-    test "supports specifying partials" do
+    test "supports specifying partials (passing)" do
       controller.controller_path = "test"
       render(:template => "test/calling_partial_with_layout")
       assert_template :partial => "_partial_for_use_in_layout"
+    end
+
+    test "supports specifying partials (failing)" do
+      controller.controller_path = "test"
+      render(:template => "test/calling_partial_with_layout")
+      assert_raise ActiveSupport::TestCase::Assertion,
+          /expecting partial <_wrong_template> but action rendered <_partial_for_use_in_layout>/ do
+        assert_template :partial => "_wrong_template"
+      end
     end
 
     test "supports specifying locals (passing)" do
@@ -313,6 +322,15 @@ module ActionView
       render(:template => "test/calling_partial_with_layout")
       assert_raise ActiveSupport::TestCase::Assertion, /Somebody else.*David/m do
         assert_template :partial => "_partial_for_use_in_layout", :locals => { :name => "Somebody Else" }
+      end
+    end
+
+    test "supports specifying locals (failing with wrong template name)" do
+      controller.controller_path = "test"
+      render(:template => "test/calling_partial_with_layout")
+      assert_raise ActiveSupport::TestCase::Assertion,
+            /expecting partial <_adrian_has_monkey_balls> but action rendered <_partial_for_use_in_layout>/ do
+        assert_template :partial => "_adrian_has_monkey_balls", :locals => { :name => "Somebody Else" }
       end
     end
   end
