@@ -1,3 +1,13 @@
+*   PostgreSQL implementation of SchemaStatements#index_name_exists?
+
+    The database agnostic implementation does not detect with indexes that are
+    not supported by the ActiveRecord schema dumper. For example, expressions
+    indexes would not be detected.
+
+    This fixes #11018.
+
+    *Jonathan Baudanza*
+
 *   Currently Active Record can be configured via the environment variable
     `DATABASE_URL` or by manually injecting a hash of values which is what Rails does,
     reading in `database.yml` and setting Active Record appropriately. Active Record
