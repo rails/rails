@@ -1,3 +1,9 @@
+*   Re-enable support for iterating over `DateTIme` ranges
+
+    Fixes #13667.
+
+    *Prathamesh Sonpatki*
+
 *   Use `remove_possible_method` instead of `remove_method` to avoid
     a `NameError` to be thrown on FreeBSD with the `Date` object.
 
