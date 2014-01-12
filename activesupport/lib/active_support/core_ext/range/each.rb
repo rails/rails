@@ -1,5 +1,4 @@
 require 'active_support/core_ext/module/aliasing'
-require 'active_support/core_ext/object/acts_like'
 
 class Range #:nodoc:
 
@@ -17,7 +16,7 @@ class Range #:nodoc:
 
   private
   def ensure_iteration_allowed
-    if first.acts_like?(:time)
+    if first.is_a?(Time)
       raise TypeError, "can't iterate from #{first.class}"
     end
   end
