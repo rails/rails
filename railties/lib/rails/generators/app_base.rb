@@ -352,7 +352,7 @@ module Rails
 
       def sdoc_gemfile_entry
         comment = 'bundle exec rake doc:rails generates the API under doc/api.'
-        GemfileEntry.new('sdoc', nil, comment, { group: :doc, require: false })
+        GemfileEntry.new('sdoc', '~> 0.4.0', comment, group: :doc)
       end
 
       def coffee_gemfile_entry

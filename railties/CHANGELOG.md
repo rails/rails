@@ -1,3 +1,7 @@
+*   The `Gemfile` of new applications depends on SDoc ~> 0.4.0.
+
+    *Xavier Noria*
+
 *   `test_help.rb` now automatically checks/maintains your test datbase
     schema. (Use `config.active_record.maintain_test_schema = false` to
     disable.)
