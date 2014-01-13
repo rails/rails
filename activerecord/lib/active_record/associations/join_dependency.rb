@@ -141,11 +141,18 @@ module ActiveRecord
 
         model_cache = Hash.new { |h,klass| h[klass] = {} }
         parents = model_cache[join_root]
+
+        all_aliases = aliases.columns.map(&:right)
         column_aliases = aliases.column_aliases join_root
 
         result_set.each { |row_hash|
           primary_id = type_caster.type_cast row_hash[primary_key]
-          parent = parents[primary_id] ||= join_root.instantiate(row_hash, column_aliases)
+
+          unless parent = parents[primary_id]
+            columns = row_hash.select{ |key, _| all_aliases.exclude?(key) }
+            parents[primary_id] = parent = join_root.instantiate_with_columns(columns, row_hash, column_aliases)
+          end
+
           construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
         }
 

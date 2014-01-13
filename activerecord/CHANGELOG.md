@@ -1,3 +1,9 @@
+*   Additional select columns are removed when using includes.
+
+    Fixes #12423
+
+    *Edo Balvers*
+
 *   Currently Active Record can be configured via the environment variable
     `DATABASE_URL` or by manually injecting a hash of values which is what Rails does,
     reading in `database.yml` and setting Active Record appropriately. Active Record
