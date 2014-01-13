@@ -182,7 +182,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   # COLLECTION CHECK BOXES
-  test 'collection check boxes accepts a collection and generate a serie of checkboxes for value method' do
+  test 'collection check boxes accepts a collection and generate a series of checkboxes for value method' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_check_boxes :user, :category_ids, collection, :id, :name
 
@@ -204,7 +204,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "input[type=hidden][name='user[other_category_ids][]'][value=]", :count => 1
   end
 
-  test 'collection check boxes accepts a collection and generate a serie of checkboxes with labels for label method' do
+  test 'collection check boxes accepts a collection and generate a series of checkboxes with labels for label method' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_check_boxes :user, :category_ids, collection, :id, :name
 
