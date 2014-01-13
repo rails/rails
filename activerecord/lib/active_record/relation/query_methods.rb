@@ -869,13 +869,13 @@ module ActiveRecord
     end
 
     def where_unscoping(target_value)
-      target_value_sym = target_value.to_sym
+      target_value = target_value.to_s
 
       where_values.reject! do |rel|
         case rel
         when Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual
           subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
-          subrelation.name.to_sym == target_value_sym
+          subrelation.name == target_value
         else
           raise "unscope(where: #{target_value.inspect}) failed: unscoping #{rel.class} is unimplemented."
         end
