@@ -608,7 +608,7 @@ module ActiveRecord
     private
 
     def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, arel.bind_values + bind_values)
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?

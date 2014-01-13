@@ -1010,7 +1010,7 @@ module ActiveRecord
 
       join_infos.each do |info|
         info.joins.each { |join| manager.from(join) }
-        self.bind_values += info.binds
+        manager.bind_values.concat info.binds
       end
 
       manager.join_sources.concat(join_list)

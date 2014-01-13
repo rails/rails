@@ -255,7 +255,8 @@ module ActiveRecord
         if ActiveRecord::NullRelation === relation
           []
         else
-          rows = connection.select_all(relation.arel, 'SQL', relation.bind_values.dup)
+          arel = relation.arel
+          rows = connection.select_all(arel, 'SQL', arel.bind_values + relation.bind_values)
           join_dependency.instantiate(rows, aliases)
         end
       end

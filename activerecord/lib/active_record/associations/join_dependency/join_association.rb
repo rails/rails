@@ -67,12 +67,9 @@ module ActiveRecord
               left.merge right
             end
 
-            if rel
+            if rel && !rel.arel.constraints.empty?
               bind_values.concat rel.bind_values
-
-              if !rel.arel.constraints.empty?
-                constraint = constraint.and rel.arel.constraints
-              end
+              constraint = constraint.and rel.arel.constraints
             end
 
             joins << table.create_join(table, table.create_on(constraint), join_type)
