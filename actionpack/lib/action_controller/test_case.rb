@@ -121,24 +121,31 @@ module ActionController
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
             if defined?(@locals)
-              actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
-              expected_locals.each_pair do |k,v|
-                assert_equal(v, actual_locals[k])
-              end
+              assert_partial_template_rendered(expected_partial, message)
+              assert_partial_rendered_with_locals(expected_partial, expected_locals)
             else
               warn "the :locals option to #assert_template is only supported in a ActionView::TestCase"
             end
           elsif expected_count = options[:count]
-            actual_count = @partials[expected_partial]
+            assert_partial_rendered_num_times(expected_partial, expected_count)
+          elsif options.key?(:layout)
+            # Please note that this is actually broken and has always been broken.
+            # But to fix would require a longer refactor which needs to be addressed
+            # later
             msg = build_message(message,
-                    "expecting ? to be rendered ? time(s) but rendered ? time(s)",
-                     expected_partial, expected_count, actual_count)
-            assert(actual_count == expected_count.to_i, msg)
+                    "expecting layout <?> but action rendered <?>",
+                    expected_layout, @layouts.keys)
+
+            case layout = options[:layout]
+            when String
+              assert(@layouts.include?(expected_layout), msg)
+            when Regexp
+              assert(@layouts.any? {|l| l =~ layout }, msg)
+            when nil
+              assert(@layouts.empty?, msg)
+            end
           else
-            msg = build_message(message,
-                    "expecting partial <?> but action rendered <?>",
-                    options[:partial], @partials.keys)
-            assert(@partials.include?(expected_partial), msg)
+            assert_partial_template_rendered(options[:partial], message)
           end
         elsif options.key?(:partial)
           assert @partials.empty?,
@@ -146,6 +153,30 @@ module ActionController
         end
       end
     end
+
+    private
+
+      def assert_partial_template_rendered(expected_partial, message = nil)
+        msg = build_message(message,
+                  "expecting partial <?> but action rendered <?>",
+                  expected_partial, @partials.keys)
+        assert(@partials.include?(expected_partial), msg)
+      end
+
+      def assert_partial_rendered_with_locals(expected_partial, expected_locals)
+        actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
+        expected_locals.each_pair do |k,v|
+          assert_equal(v, actual_locals[k])
+        end
+      end
+
+      def assert_partial_rendered_num_times(expected_partial, expected_count, message = nil)
+        actual_count = @partials[expected_partial]
+        msg = build_message(message,
+                "expecting ? to be rendered ? time(s) but rendered ? time(s)",
+                 expected_partial, expected_count, actual_count)
+        assert(actual_count == expected_count.to_i, msg)
+      end
   end
 
   class TestRequest < ActionDispatch::TestRequest #:nodoc:

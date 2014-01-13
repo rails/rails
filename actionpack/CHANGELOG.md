@@ -1,3 +1,7 @@
+*   Fix issue with `ActionController::TemplateAssertions#assert_template` where options
+    `:partial` and `:locals` can cause a NoMethodException when the wrong partial
+    template name is supplied
+
 *   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
     `options[:raise]`.
 
