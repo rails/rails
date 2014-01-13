@@ -309,6 +309,16 @@ module RenderTestCases
       @controller_view.render(Customer.new("lifo"), :greeting => "Hello")
   end
 
+  def test_render_partial_using_object_and_explicit_format
+    assert_equal "<greeting>Hello</greeting><name>lifo</name>",
+      @controller_view.render(Customer.new("lifo"), :greeting => "Hello", formats: :xml)
+  end
+
+  def test_render_partial_using_object_and_layout
+    assert_equal '<b class="lifo">Hello: lifo</b>',
+      @controller_view.render(Customer.new("lifo"), :greeting => "Hello", :layout => 'test/b_layout_for_partial_with_object')
+  end
+
   def test_render_partial_using_collection
     customers = [ Customer.new("Amazon"), Customer.new("Yahoo") ]
     assert_equal "Hello: AmazonHello: Yahoo",
