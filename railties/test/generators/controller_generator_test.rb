@@ -67,7 +67,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_add_routes
     run_generator
-    assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
+    assert_file "config/routes.rb", /get 'account\/foo'/, /get 'account\/bar'/
   end
 
   def test_invokes_default_template_engine_even_with_no_action
@@ -91,6 +91,6 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_namespaced_routes_are_created_in_routes
     run_generator ["admin/dashboard", "index"]
-    assert_file "config/routes.rb", /namespace :admin do\n\s+get "dashboard\/index"\n/
+    assert_file "config/routes.rb", /namespace :admin do\n\s+get 'dashboard\/index'\n/
   end
 end

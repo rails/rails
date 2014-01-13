@@ -23,7 +23,7 @@ module Rails
         # Will generate -
         # namespace :foo do
         #   namespace :bar do
-        #     get "baz/index"
+        #     get 'baz/index'
         #   end
         # end
         def generate_routing_code(action)
@@ -36,8 +36,8 @@ module Rails
           end.join
 
           # Create route
-          #     get "baz/index"
-          route = indent(%{get "#{file_name}/#{action}"\n}, depth * 2)
+          #     get 'baz/index'
+          route = indent(%{get '#{file_name}/#{action}'\n}, depth * 2)
 
           # Create `end` ladder
           #   end
