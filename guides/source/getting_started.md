@@ -106,7 +106,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 4.0.0", you are ready to continue.
+If it says something like "Rails 4.1.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -123,42 +123,40 @@ rights to create files, and type:
 $ rails new blog
 ```
 
-This will create a Rails application called Blog in a directory called blog and
+This will create a Rails application called Blog in a `blog` directory and
 install the gem dependencies that are already mentioned in `Gemfile` using
 `bundle install`.
 
 TIP: You can see all of the command line options that the Rails application
 builder accepts by running `rails new -h`.
 
-After you create the blog application, switch to its folder to continue work
-directly in that application:
+After you create the blog application, switch to its folder:
 
 ```bash
 $ cd blog
 ```
 
-The `rails new blog` command we ran above created a folder in your working
-directory called `blog`. The `blog` directory has a number of auto-generated
-files and folders that make up the structure of a Rails application. Most of the
-work in this tutorial will happen in the `app/` folder, but here's a basic
-rundown on the function of each of the files and folders that Rails created by default:
+The `blog` directory has a number of auto-generated files and folders that make
+up the structure of a Rails application. Most of the work in this tutorial will
+happen in the `app` folder, but here's a basic rundown on the function of each
+of the files and folders that Rails created by default:
 
 | File/Folder | Purpose |
 | ----------- | ------- |
-|app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
-|config/|Configure your application's runtime rules, routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html)|
+|app|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|bin|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
+|config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
-|db/|Contains your current database schema, as well as the database migrations.|
-|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
-|lib/|Extended modules for your application.|
-|log/|Application log files.|
-|public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
+|db|Contains your current database schema, as well as the database migrations.|
+|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com).|
+|lib|Extended modules for your application.|
+|log|Application log files.|
+|public|The only folder seen by the world as-is. Contains static files and compiled assets.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
-|test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html)|
-|tmp/|Temporary files (like cache, pid and session files)|
-|vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems and the Rails source code (if you optionally install it into your project).|
+|test|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
+|tmp|Temporary files (like cache, pid, and session files).|
+|vendor|A place for all third-party code. In a typical Rails application this includes vendored gems.|
 
 Hello, Rails!
 -------------
@@ -170,7 +168,7 @@ get your Rails application server running.
 
 You actually have a functional Rails application already. To see it, you need to
 start a web server on your development machine. You can do this by running the
-following in the root directory of your rails application:
+following in the `blog` directory:
 
 ```bash
 $ rails server
@@ -179,14 +177,15 @@ $ rails server
 TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the
 absence of a runtime will give you an `execjs` error. Usually Mac OS X and
 Windows come with a JavaScript runtime installed. Rails adds the `therubyracer`
-gem to Gemfile in a commented line for new apps and you can uncomment if you
-need it. `therubyrhino` is the recommended runtime for JRuby users and is added
-by default to Gemfile in apps generated under JRuby. You can investigate about
-all the supported runtimes at [ExecJS](https://github.com/sstephenson/execjs#readme).
+gem to the generated `Gemfile` in a commented line for new apps and you can
+uncomment if you need it. `therubyrhino` is the recommended runtime for JRuby
+users and is added by default to the `Gemfile` in apps generated under JRuby.
+You can investigate about all the supported runtimes at
+[ExecJS](https://github.com/sstephenson/execjs#readme).
 
-This will fire up WEBrick, a webserver built into Ruby by default. To see your
-application in action, open a browser window and navigate to <http://localhost:3000>.
-You should see the Rails default information page:
+This will fire up WEBrick, a web server distributed with Ruby by default. To see
+your application in action, open a browser window and navigate to
+<http://localhost:3000>. You should see the Rails default information page:
 
 ![Welcome Aboard screenshot](images/getting_started/rails_welcome.png)
 
@@ -197,7 +196,7 @@ dollar sign `$`. In development mode, Rails does not generally require you to
 restart the server; changes you make in files will be automatically picked up by
 the server.
 
-The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it
+The "Welcome aboard" page is the _smoke test_ for a new Rails application: it
 makes sure that you have your software configured correctly enough to serve a
 page. You can also click on the _About your application's environment_ link to
 see a summary of your application's environment.
@@ -216,8 +215,9 @@ it to a view.
 A view's purpose is to display this information in a human readable format. An
 important distinction to make is that it is the _controller_, not the view,
 where information is collected. The view should just display that information.
-By default, view templates are written in a language called ERB (Embedded Ruby)
-which is converted by the request cycle in Rails before being sent to the user.
+By default, view templates are written in a language called eRuby (Embedded
+Ruby) which is processed by the request cycle in Rails before being sent to the
+user.
 
 To create a new controller, you will need to run the "controller" generator and
 tell it you want a controller called "welcome" with an action called "index",
@@ -262,23 +262,25 @@ of code:
 ### Setting the Application Home Page
 
 Now that we have made the controller and view, we need to tell Rails when we
-want `Hello, Rails!` to show up. In our case, we want it to show up when we
+want "Hello, Rails!" to show up. In our case, we want it to show up when we
 navigate to the root URL of our site, <http://localhost:3000>. At the moment,
-"Welcome Aboard" is occupying that spot.
+"Welcome aboard" is occupying that spot.
 
 Next, you have to tell Rails where your actual home page is located.
 
 Open the file `config/routes.rb` in your editor.
 
 ```ruby
-Blog::Application.routes.draw do
+Rails.application.routes.draw do
   get "welcome/index"
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
-  # ...
+  #
   # You can have the root of your site routed with "root"
   # root "welcome#index"
+  #
+  # ...
 ```
 
 This is your application's _routing file_ which holds entries in a special DSL
@@ -289,17 +291,18 @@ to a specific controller and action. Find the line beginning with `root` and
 uncomment it. It should look something like the following:
 
 ```ruby
-root "welcome#index"
+root 'welcome#index'
 ```
 
-The `root "welcome#index"` tells Rails to map requests to the root of the
+`root 'welcome#index'` tells Rails to map requests to the root of the
 application to the welcome controller's index action and `get "welcome/index"`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
 controller generator (`rails generate controller welcome index`).
 
-If you navigate to <http://localhost:3000> in your browser, you'll see the
-`Hello, Rails!` message you put into `app/views/welcome/index.html.erb`,
+Launch the web server again if you stopped it to generate the controller (`rails
+server`) and navigate to <http://localhost:3000> in your browser. You'll see the
+"Hello, Rails!" message you put into `app/views/welcome/index.html.erb`,
 indicating that this new route is indeed going to `WelcomeController`'s `index`
 action and is rendering the view correctly.
 
