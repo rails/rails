@@ -855,7 +855,7 @@ module ActiveRecord
       end
 
       single_val_method = Relation::SINGLE_VALUE_METHODS.include?(scope)
-      unscope_code = :"#{scope}_value#{'s' unless single_val_method}="
+      unscope_code = "#{scope}_value#{'s' unless single_val_method}="
 
       case scope
       when :order
