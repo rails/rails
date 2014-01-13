@@ -1,3 +1,9 @@
+*   Fix bug in `becomes!` when changing from the base model to a STI sub-class.
+
+    Fixes #13272.
+
+    *the-web-dev*, *Yves Senn*
+
 *   Currently Active Record can be configured via the environment variable
     `DATABASE_URL` or by manually injecting a hash of values which is what Rails does,
     reading in `database.yml` and setting Active Record appropriately. Active Record

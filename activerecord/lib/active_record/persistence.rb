@@ -196,7 +196,11 @@ module ActiveRecord
     # share the same set of attributes.
     def becomes!(klass)
       became = becomes(klass)
-      became.public_send("#{klass.inheritance_column}=", klass.sti_name) unless self.class.descends_from_active_record?
+      sti_type = nil
+      if !klass.descends_from_active_record?
+        sti_type = klass.sti_name
+      end
+      became.public_send("#{klass.inheritance_column}=", sti_type)
       became
     end
 
