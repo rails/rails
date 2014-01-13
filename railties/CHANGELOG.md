@@ -1,3 +1,10 @@
+*   Only lookup `config.log_level` for stdlib `::Logger` instances.
+    Assign it as is for third party loggers like `Log4r::Logger`.
+
+    Fixes #13421.
+
+    *Yves Senn*
+
 *   The `Gemfile` of new applications depends on SDoc ~> 0.4.0.
 
     *Xavier Noria*
