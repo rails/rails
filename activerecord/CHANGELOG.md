@@ -1,3 +1,9 @@
+*   Fix bug in `becomes!` when changing from the base model to a STI sub-class.
+
+    Fixes #13272.
+
+    *the-web-dev*, *Yves Senn*
+
 *   Initialize version on Migration objects so that it can be used in a migration,
     and it will be included in the announce message.
 
