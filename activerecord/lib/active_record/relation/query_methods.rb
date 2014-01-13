@@ -1006,9 +1006,12 @@ module ActiveRecord
         join_list
       )
 
-      joins = join_dependency.join_constraints stashed_association_joins
+      join_infos = join_dependency.join_constraints stashed_association_joins
 
-      joins.each { |join| manager.from(join) }
+      join_infos.each do |info|
+        info.joins.each { |join| manager.from(join) }
+        self.bind_values += info.binds
+      end
 
       manager.join_sources.concat(join_list)
 
