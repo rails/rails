@@ -62,3 +62,12 @@ end
 def restore_delivery_method
   ActionMailer::Base.delivery_method = @old_delivery_method
 end
+
+# Skips the current run on Rubinius using Minitest::Assertions#skip
+def rubinius_skip(message = '')
+  skip message if RUBY_ENGINE == 'rbx'
+end
+# Skips the current run on JRuby using Minitest::Assertions#skip
+def jruby_skip(message = '')
+  skip message if defined?(JRUBY_VERSION)
+end

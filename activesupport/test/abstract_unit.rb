@@ -34,5 +34,5 @@ end
 
 # Skips the current run on JRuby using Minitest::Assertions#skip
 def jruby_skip(message = '')
-  skip message if RUBY_ENGINE == 'jruby'
+  skip message if defined?(JRUBY_VERSION)
 end
