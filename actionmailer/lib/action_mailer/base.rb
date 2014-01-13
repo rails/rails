@@ -674,7 +674,7 @@ module ActionMailer
     # For example:
     #
     #   class Notifier < ActionMailer::Base
-    #     default from: 'no-reply@test.lindsaar.net',
+    #     default from: 'no-reply@test.lindsaar.net'
     #
     #     def welcome
     #       mail(to: 'mikel@test.lindsaar.net')
