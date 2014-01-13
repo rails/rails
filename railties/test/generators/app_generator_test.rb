@@ -458,12 +458,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_spring_binstubs
+    skip "spring doesn't run on JRuby" if defined?(JRUBY_VERSION)
     generator.stubs(:bundle_command).with('install')
     generator.expects(:bundle_command).with('exec spring binstub --all').once
     quietly { generator.invoke_all }
   end
 
   def test_spring_no_fork
+    skip "spring doesn't run on JRuby" if defined?(JRUBY_VERSION)
     Process.stubs(:respond_to?).with(:fork).returns(false)
     run_generator
 
