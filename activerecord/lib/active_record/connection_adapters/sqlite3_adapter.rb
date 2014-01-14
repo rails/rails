@@ -269,7 +269,7 @@ module ActiveRecord
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', []))
       end
 
       class ExplainPrettyPrinter
