@@ -26,19 +26,18 @@ module ActiveRecord
     end
 
 
-    #Validate primary key binding
     def test_statement_cache_id
-      Book.create(name: "my book")
-      Book.create(name: "my other book")
+      b1 = Book.create(name: "my book")
+      b2 = Book.create(name: "my other book")
 
       cache = StatementCache.new do |id|
         Book.where(id: id)
       end
 
-      b = cache.execute "1"
-      assert_equal "my book", b[0].name
-      b = cache.execute "2"
-      assert_equal "my other book", b[0].name
+      b = cache.execute b1.id
+      assert_equal b1.name, b[0].name
+      b = cache.execute b2.id
+      assert_equal b2.name, b[0].name
     end
 
     def test_find_or_create_by
