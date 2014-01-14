@@ -922,8 +922,8 @@ module ActiveRecord
 
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
-        temp_opts = opts.dup
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
+        temp_opts = opts.dup
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
         create_binds(temp_opts)
