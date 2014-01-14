@@ -113,9 +113,6 @@ module ActiveRecord
     def test_rewhere_with_multiple_overwriting_conditions
       relation = Post.where(title: 'hello').where(body: 'world').rewhere(title: 'alone', body: 'again')
 
-      title_expected = Arel::Nodes::Equality.new(Post.arel_table['title'], 'alone')
-      body_expected  = Arel::Nodes::Equality.new(Post.arel_table['body'], 'again')
-
       assert_equal 2, relation.where_values.size
 
       value = relation.where_values.first
