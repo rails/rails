@@ -155,6 +155,10 @@ module ActiveRecord
         true
       end
 
+      def supports_partial_index?
+        sqlite_version >= '3.8.0'
+      end
+
       # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
@@ -397,13 +401,25 @@ module ActiveRecord
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
         exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
+          sql = <<-SQL
+            SELECT sql
+            FROM sqlite_master
+            WHERE name=#{quote(row['name'])} AND type='index'
+            UNION ALL
+            SELECT sql
+            FROM sqlite_temp_master
+            WHERE name=#{quote(row['name'])} AND type='index'
+          SQL
+          index_sql = exec_query(sql).first['sql']
+          match = /\sWHERE\s+(.+)$/i.match(index_sql)
+          where = match[1] if match
           IndexDefinition.new(
             table_name,
             row['name'],
             row['unique'] != 0,
             exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
               col['name']
-            })
+            }, nil, nil, where)
         end
       end
 

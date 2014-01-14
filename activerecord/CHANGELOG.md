@@ -1,3 +1,9 @@
+*   Enable partial indexes for sqlite >= 3.8.0
+
+    See http://www.sqlite.org/partialindex.html
+
+    *Cody Cutrer*
+
 *   Don't try to get the subclass if the inheritance column doesn't exist
 
     The `subclass_from_attrs` method is called even if the column specified by
