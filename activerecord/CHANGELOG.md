@@ -1,3 +1,12 @@
+*   Don't try to get the subclass if the inheritance column doesn't exist
+
+    The `subclass_from_attrs` method is called even if the column specified by
+    the `inheritance_column` setting doesn't exist. This prevents setting associations
+    via the attributes hash if the association name clashes with the value of the setting,
+    typically `:type`. This worked previously in Rails 3.2.
+
+    *Ujjwal Thaakar*
+
 *   Enum mappings are now exposed via class methods instead of constants.
 
     Example:
