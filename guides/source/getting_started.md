@@ -231,7 +231,7 @@ Rails will create several files and a route for you.
 
 ```bash
 create  app/controllers/welcome_controller.rb
- route  get "welcome/index"
+ route  get 'welcome/index'
 invoke  erb
 create    app/views/welcome
 create    app/views/welcome/index.html.erb
@@ -272,13 +272,13 @@ Open the file `config/routes.rb` in your editor.
 
 ```ruby
 Rails.application.routes.draw do
-  get "welcome/index"
+  get 'welcome/index'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
   #
   # You can have the root of your site routed with "root"
-  # root "welcome#index"
+  # root 'welcome#index'
   #
   # ...
 ```
@@ -295,7 +295,7 @@ root 'welcome#index'
 ```
 
 `root 'welcome#index'` tells Rails to map requests to the root of the
-application to the welcome controller's index action and `get "welcome/index"`
+application to the welcome controller's index action and `get 'welcome/index'`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
 controller generator (`rails generate controller welcome index`).
@@ -328,7 +328,7 @@ Blog::Application.routes.draw do
 
   resources :posts
 
-  root "welcome#index"
+  root 'welcome#index'
 end
 ```
 
