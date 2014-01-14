@@ -859,7 +859,7 @@ module ActiveRecord
 
       case scope
       when :order
-        self.send(:reverse_order_value=, false)
+        self.reverse_order_value = false
         result = []
       else
         result = [] unless single_val_method
