@@ -1524,6 +1524,15 @@ class RelationTest < ActiveRecord::TestCase
     assert merged.to_sql.include?("bbq")
   end
 
+  def test_unscope_removes_binds
+    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    column = Post.columns_hash['id']
+    left.bind_values += [[column, 20]]
+
+    relation = left.unscope(where: :id)
+    assert_equal [], relation.bind_values
+  end
+
   def test_merging_removes_rhs_bind_parameters
     left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
     column = Post.columns_hash['id']

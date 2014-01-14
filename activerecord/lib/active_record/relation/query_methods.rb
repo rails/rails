@@ -880,6 +880,8 @@ module ActiveRecord
           raise "unscope(where: #{target_value.inspect}) failed: unscoping #{rel.class} is unimplemented."
         end
       end
+
+      bind_values.reject! { |col,_| col.name == target_value }
     end
 
     def custom_join_ast(table, joins)
