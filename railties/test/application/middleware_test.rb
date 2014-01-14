@@ -118,6 +118,16 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
+    test "can clear stack" do
+      add_to_config %{
+        initializer :clear_middleware do
+          config.middleware.clear
+        end
+      }
+      boot!
+      assert middleware.empty?
+    end
+
     test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
