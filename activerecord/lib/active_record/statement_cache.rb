@@ -14,13 +14,25 @@ module ActiveRecord
   # The relation returned by the block is cached, and for each +execute+ call the cached relation gets duped.
   # Database is queried when +to_a+ is called on the relation.
   class StatementCache
-    def initialize
-      @relation = yield
-      raise ArgumentError.new("Statement cannot be nil") if @relation.nil?
+    def initialize(block = Proc.new)
+      @mutex    = Mutex.new
+      @relation = nil
+      @block    = block
     end
 
-    def execute
-      @relation.dup.to_a
+    def execute(*vals)
+      rel = relation vals
+      @mutex.synchronize do
+        rel.set_binds vals
+        rel.to_a
+      end
+    end
+
+    private
+    def relation(values)
+      @relation || @mutex.synchronize {
+        @block.call(*values)
+      }
     end
   end
 end

@@ -15,13 +15,13 @@ module ActiveRecord
       Book.create(name: "my book")
       Book.create(name: "my other book")
 
-      cache = StatementCache.new do
-        Book.where(:name => "my book")
+      cache = StatementCache.new do |name|
+        Book.where(:name => name)
       end
 
-      b = cache.execute name: "my book"
+      b = cache.execute "my book"
       assert_equal "my book", b[0].name
-      b = cache.execute name: "my other book"
+      b = cache.execute "my other book"
       assert_equal "my other book", b[0].name
     end
 
@@ -31,13 +31,13 @@ module ActiveRecord
       Book.create(name: "my book")
       Book.create(name: "my other book")
 
-      cache = StatementCache.new do
-        Book.where(id: "1")
+      cache = StatementCache.new do |id|
+        Book.where(id: id)
       end
 
-      b = cache.execute id: "1"
+      b = cache.execute "1"
       assert_equal "my book", b[0].name
-      b = cache.execute id: "2"
+      b = cache.execute "2"
       assert_equal "my other book", b[0].name
     end
 
@@ -62,14 +62,6 @@ module ActiveRecord
 
       books = cache.execute
       assert_equal "my book", books[0].name
-    end
-
-    def test_statement_cache_with_nil_statement_raises_error
-      assert_raise(ArgumentError) do
-        ActiveRecord::StatementCache.new do
-          nil
-        end
-      end
     end
 
     def test_statement_cache_with_complex_statement
