@@ -189,7 +189,7 @@ module ActiveRecord
         DualEncoding.connection.execute(<<-eosql)
           CREATE TABLE IF NOT EXISTS dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
-            name string,
+            name varchar(255),
             data binary
           )
         eosql
@@ -198,7 +198,7 @@ module ActiveRecord
         binary.save!
         assert_equal str, binary.data
       ensure
-        #DualEncoding.connection.execute('DROP TABLE IF EXISTS dual_encodings')
+        DualEncoding.connection.execute('DROP TABLE IF EXISTS dual_encodings')
       end
 
       def test_type_cast_should_not_mutate_encoding
