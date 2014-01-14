@@ -189,7 +189,7 @@ module ActiveRecord
         DualEncoding.connection.execute(<<-eosql)
           CREATE TABLE dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
-            name string,
+            name varchar(255),
             data binary
           )
         eosql
