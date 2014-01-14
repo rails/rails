@@ -254,8 +254,10 @@ module ActiveRecord
       result = @klass.connection.select_all(query_builder, nil, relation.bind_values)
       row    = result.first
       value  = row && row.values.first
-      column = result.column_types.fetch(column_alias) do
-        column_for(column_name)
+      column =  @klass.column_types.fetch(column_name.to_s) do
+        result.column_types.fetch(column_alias) do
+          column_for(column_name)
+        end
       end
 
       type_cast_calculated_value(value, column, operation)
@@ -317,15 +319,25 @@ module ActiveRecord
 
       Hash[calculated_data.map do |row|
         key = group_columns.map { |aliaz, col_name|
-          column = calculated_data.column_types.fetch(aliaz) do
-            column_for(col_name)
+          # The original column_types keys are strings.
+          # Convert to a string but only if col_name is a symbol.
+          # Anything else, we fall through and use the aliaz.
+          col_name = col_name.to_s if col_name.is_a? Symbol
+          column = @klass.column_types.fetch(col_name) do
+            calculated_data.column_types.fetch(aliaz) do
+              column_for(col_name)
+            end
           end
           type_cast_calculated_value(row[aliaz], column)
         }
         key = key.first if key.size == 1
         key = key_records[key] if associated
 
-        column_type = calculated_data.column_types.fetch(aggregate_alias) { column_for(column_name) }
+        column_type = @klass.column_types.fetch(column_name.to_s) do
+          calculated_data.column_types.fetch(aggregate_alias) do
+            column_for(column_name)
+          end
+        end
         [key, type_cast_calculated_value(row[aggregate_alias], column_type, operation)]
       end]
     end
