@@ -1,4 +1,4 @@
-*   Set NameError#name with class name when failed to load the class for association.
+*   Set `NameError#name` when STI-class-lookup fails.
 
     *Chulki Lee*
 
@@ -65,7 +65,7 @@
     class: `ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig`.
 
     To understand the exact behavior of this class, it is best to review the
-    behavior in `activerecord/test/cases/connection_adapters/connection_handler_test.rb`
+    behavior in `activerecord/test/cases/connection_adapters/connection_handler_test.rb`.
 
     *Richard Schneeman*
 
@@ -411,7 +411,7 @@
     *kostya*, *Lauro Caetano*
 
 *   `type_to_sql` returns a `String` for unmapped columns. This fixes an error
-    when using unmapped array types in PG
+    when using unmapped PostgreSQL array types.
 
     Example:
 
@@ -450,7 +450,7 @@
 
 *   Update counter cache on a `has_many` relationship regardless of default scope.
 
-    Fix #12952.
+    Fixes #12952.
 
     *Uku Taht*
 
@@ -461,9 +461,10 @@
 
     *Cody Cutrer*, *Yves Senn*
 
-*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child marked with `dependent: destroy` fails to be destroyed.
+*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child
+    marked with `dependent: destroy` fails to be destroyed.
 
-    Fix #12812
+    Fixex #12812.
 
     *Brian Thomas Storti*
 
@@ -1369,6 +1370,7 @@
     *Yves Senn*
 
 *   Fix the `:primary_key` option for `has_many` associations.
+
     Fixes #10693.
 
     *Yves Senn*
@@ -1493,7 +1495,7 @@
 
 *   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
 
-    Fix #8856.
+    Fixes #8856.
 
     *Chris Thompson*
 
