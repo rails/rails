@@ -1,3 +1,21 @@
+*   Enum mappings are now exposed via class methods instead of constants.
+
+    Example:
+
+        class Conversation < ActiveRecord::Base
+          enum status: [ :active, :archived ]
+        end
+
+    Before:
+
+        Conversation::STATUS # => { "active" => 0, "archived" => 1 }
+
+    After:
+
+        Conversation.statuses # => { "active" => 0, "archived" => 1 }
+
+    *Godfrey Chan*
+
 *   Set `NameError#name` when STI-class-lookup fails.
 
     *Chulki Lee*
