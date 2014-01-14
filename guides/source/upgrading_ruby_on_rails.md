@@ -130,7 +130,7 @@ Rails-specific features. For example:
 ```ruby
 class FooBar
   def as_json(options = nil)
-    { foo: "bar" }
+    { foo: 'bar' }
   end
 end
 
@@ -503,13 +503,13 @@ get 'こんにちは', controller: 'welcome', action: 'index'
 
 ```ruby
   # Rails 3.x
-  match "/" => "root#index"
+  match '/' => 'root#index'
 
   # becomes
-  match "/" => "root#index", via: :get
+  match '/' => 'root#index', via: :get
 
   # or
-  get "/" => "root#index"
+  get '/' => 'root#index'
 ```
 
 * Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
@@ -705,7 +705,7 @@ You can help test performance with these additions to your test environment:
 ```ruby
 # Configure static asset server for tests with Cache-Control for performance
 config.serve_static_assets = true
-config.static_cache_control = "public, max-age=3600"
+config.static_cache_control = 'public, max-age=3600'
 ```
 
 ### config/initializers/wrap_parameters.rb
