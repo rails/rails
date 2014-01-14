@@ -291,6 +291,13 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [])
+        #if @prepared_statements && name != 'EXPLAIN'
+        #  unless sql.count('?') == binds.length
+        #    str = "binds.length => #{binds.length} sql.count => #{sql.count('?')}\n" \
+        #      "#{sql}"
+        #    raise str
+        #  end
+        #end
         type_casted_binds = binds.map { |col, val|
           [col, type_cast(val, col)]
         }
