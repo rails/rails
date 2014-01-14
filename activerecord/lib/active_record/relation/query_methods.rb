@@ -861,6 +861,8 @@ module ActiveRecord
       when :order
         self.reverse_order_value = false
         result = []
+      when :where
+        self.bind_values = []
       else
         result = [] unless single_val_method
       end
