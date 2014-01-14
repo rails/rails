@@ -384,9 +384,6 @@ module ActiveRecord
         end
       end
 
-      #For bind param caching. TODO: VALIDATE AND CORRECT THIS
-      self.bind_values = []
-      #end
       self
     end
 
