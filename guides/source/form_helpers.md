@@ -751,7 +751,7 @@ You might want to render a form with a set of edit fields for each of a person's
 <%= form_for @person do |person_form| %>
   <%= person_form.text_field :name %>
   <% @person.addresses.each do |address| %>
-    <%= person_form.fields_for address, index: address do |address_form|%>
+    <%= person_form.fields_for address, index: address.id do |address_form|%>
       <%= address_form.text_field :city %>
     <% end %>
   <% end %>
@@ -774,9 +774,16 @@ This will result in a `params` hash that looks like
 {'person' => {'name' => 'Bob', 'address' => {'23' => {'city' => 'Paris'}, '45' => {'city' => 'London'}}}}
 ```
 
-Rails knows that all these inputs should be part of the person hash because you called `fields_for` on the first form builder. By specifying an `:index` option you're telling Rails that instead of naming the inputs `person[address][city]` it should insert that index surrounded by [] between the address and the city. If you pass an Active Record object as we did then Rails will call `to_param` on it, which by default returns the database id. This is often useful as it is then easy to locate which Address record should be modified. You can pass numbers with some other significance, strings or even `nil` (which will result in an array parameter being created).
+Rails knows that all these inputs should be part of the person hash because you
+called `fields_for` on the first form builder. By specifying an `:index` option
+you're telling Rails that instead of naming the inputs `person[address][city]`
+it should insert that index surrounded by [] between the address and the city.
+This is often useful as it is then easy to locate which Address record
+should be modified. You can pass numbers with some other significance,
+strings or even `nil` (which will result in an array parameter being created).
 
-To create more intricate nestings, you can specify the first part of the input name (`person[address]` in the previous example) explicitly, for example
+To create more intricate nestings, you can specify the first part of the input
+name (`person[address]` in the previous example) explicitly:
 
 ```erb
 <%= fields_for 'person[address][primary]', address, index: address do |address_form| %>
