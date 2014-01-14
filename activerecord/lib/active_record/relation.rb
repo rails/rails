@@ -518,15 +518,15 @@ module ActiveRecord
       @to_sql ||= begin
                     relation   = self
                     connection = klass.connection
-                    visitor    = connection.visitor
+                    visitor    = connection.bind_substitution_visitor
 
                     if eager_loading?
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    ast   = relation.arel.ast
-                    binds = relation.bind_values.dup
-                    visitor.accept(ast) do
+                    arel  = relation.arel
+                    binds = arel.bind_values + relation.bind_values
+                    visitor.accept(arel.ast) do
                       connection.quote(*binds.shift.reverse)
                     end
                   end
