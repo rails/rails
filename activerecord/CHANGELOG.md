@@ -1,3 +1,7 @@
+*   Set NameError#name with class name when failed to load the class for association.
+
+    *Chulki Lee*
+
 *   Fix bug in `becomes!` when changing from the base model to a STI sub-class.
 
     Fixes #13272.

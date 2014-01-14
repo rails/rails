@@ -126,7 +126,7 @@ module ActiveRecord
             end
           end
 
-          raise NameError, "uninitialized constant #{candidates.first}"
+          raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
         end
       end
 
