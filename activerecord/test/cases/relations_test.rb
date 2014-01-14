@@ -1547,8 +1547,7 @@ class RelationTest < ActiveRecord::TestCase
     column = Post.columns_hash['id']
     binds = [[column, 20]]
 
-    right  = Post.where(id: Arel::Nodes::BindParam.new('?'))
-    right.bind_values += binds
+    right  = Post.where(id: 20)
     left   = Post.where(id: 10)
 
     merged = left.merge(right)
