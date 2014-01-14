@@ -18,13 +18,17 @@ module ActiveRecord
         if abstract_class? || self == Base
           raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
-        if (attrs = args.first).is_a?(Hash)
-          if subclass = subclass_from_attrs(attrs)
-            return subclass.new(*args, &block)
-          end
+
+        attrs = args.first
+        if subclass_from_attributes?(attrs)
+          subclass = subclass_from_attributes(attrs)
         end
-        # Delegate to the original .new
-        super
+
+        if subclass
+          subclass.new(*args, &block)
+        else
+          super
+        end
       end
 
       # Returns +true+ if this does not need STI type condition. Returns
@@ -126,7 +130,7 @@ module ActiveRecord
             end
           end
 
-          raise NameError, "uninitialized constant #{candidates.first}"
+          raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
         end
       end
 
@@ -172,7 +176,11 @@ module ActiveRecord
       # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
       # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
       # this will ignore the inheritance column and return nil
-      def subclass_from_attrs(attrs)
+      def subclass_from_attributes?(attrs)
+        columns_hash.include?(inheritance_column) && attrs.is_a?(Hash)
+      end
+
+      def subclass_from_attributes(attrs)
         subclass_name = attrs.with_indifferent_access[inheritance_column]
 
         if subclass_name.present? && subclass_name != self.name

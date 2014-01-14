@@ -190,6 +190,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
     elsif current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
+    elsif current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
+      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "rating > 10"', index_definition
     else
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index"', index_definition
     end

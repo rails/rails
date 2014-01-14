@@ -557,7 +557,12 @@ ActiveRecord::Schema.define do
 
   create_table :products, force: true do |t|
     t.references :collection
+    t.references :type
     t.string     :name
+  end
+
+  create_table :product_types, force: true do |t|
+    t.string :name
   end
 
   create_table :projects, force: true do |t|

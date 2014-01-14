@@ -105,7 +105,7 @@ class Hash
     #   hash = Hash.from_xml(xml)
     #   # => {"hash"=>{"foo"=>1, "bar"=>2}}
     #
-    # DisallowedType is raise if the XML contains attributes with <tt>type="yaml"</tt> or
+    # DisallowedType is raised if the XML contains attributes with <tt>type="yaml"</tt> or
     # <tt>type="symbol"</tt>. Use <tt>Hash.from_trusted_xml</tt> to parse this XML.
     def from_xml(xml, disallowed_types = nil)
       ActiveSupport::XMLConverter.new(xml, disallowed_types).to_h

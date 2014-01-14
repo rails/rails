@@ -1,3 +1,40 @@
+*   Enable partial indexes for sqlite >= 3.8.0
+
+    See http://www.sqlite.org/partialindex.html
+
+    *Cody Cutrer*
+
+*   Don't try to get the subclass if the inheritance column doesn't exist
+
+    The `subclass_from_attrs` method is called even if the column specified by
+    the `inheritance_column` setting doesn't exist. This prevents setting associations
+    via the attributes hash if the association name clashes with the value of the setting,
+    typically `:type`. This worked previously in Rails 3.2.
+
+    *Ujjwal Thaakar*
+
+*   Enum mappings are now exposed via class methods instead of constants.
+
+    Example:
+
+        class Conversation < ActiveRecord::Base
+          enum status: [ :active, :archived ]
+        end
+
+    Before:
+
+        Conversation::STATUS # => { "active" => 0, "archived" => 1 }
+
+    After:
+
+        Conversation.statuses # => { "active" => 0, "archived" => 1 }
+
+    *Godfrey Chan*
+
+*   Set `NameError#name` when STI-class-lookup fails.
+
+    *Chulki Lee*
+
 *   Fix bug in `becomes!` when changing from the base model to a STI sub-class.
 
     Fixes #13272.
@@ -61,7 +98,7 @@
     class: `ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig`.
 
     To understand the exact behavior of this class, it is best to review the
-    behavior in `activerecord/test/cases/connection_adapters/connection_handler_test.rb`
+    behavior in `activerecord/test/cases/connection_adapters/connection_handler_test.rb`.
 
     *Richard Schneeman*
 
@@ -407,7 +444,7 @@
     *kostya*, *Lauro Caetano*
 
 *   `type_to_sql` returns a `String` for unmapped columns. This fixes an error
-    when using unmapped array types in PG
+    when using unmapped PostgreSQL array types.
 
     Example:
 
@@ -446,7 +483,7 @@
 
 *   Update counter cache on a `has_many` relationship regardless of default scope.
 
-    Fix #12952.
+    Fixes #12952.
 
     *Uku Taht*
 
@@ -457,9 +494,10 @@
 
     *Cody Cutrer*, *Yves Senn*
 
-*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child marked with `dependent: destroy` fails to be destroyed.
+*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child
+    marked with `dependent: destroy` fails to be destroyed.
 
-    Fix #12812
+    Fixex #12812.
 
     *Brian Thomas Storti*
 
@@ -1365,6 +1403,7 @@
     *Yves Senn*
 
 *   Fix the `:primary_key` option for `has_many` associations.
+
     Fixes #10693.
 
     *Yves Senn*
@@ -1489,7 +1528,7 @@
 
 *   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
 
-    Fix #8856.
+    Fixes #8856.
 
     *Chris Thompson*
 

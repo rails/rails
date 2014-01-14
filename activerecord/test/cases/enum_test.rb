@@ -74,9 +74,9 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "constant to access the mapping" do
-    assert_equal 0, Book::STATUS[:proposed]
-    assert_equal 1, Book::STATUS["written"]
-    assert_equal 2, Book::STATUS[:published]
+    assert_equal 0, Book.statuses[:proposed]
+    assert_equal 1, Book.statuses["written"]
+    assert_equal 2, Book.statuses[:published]
   end
 
   test "building new objects with enum scopes" do
