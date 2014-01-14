@@ -5,7 +5,6 @@ require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
 require 'stringio'
 require 'set'
-require 'active_support/core_ext/range/include_range'
 
 module ActionController
   # Raised when a required parameter is missing.
