@@ -9,6 +9,13 @@ module Arel
       assert_equal "SELECT FROM 'foo'", manager.to_sql
     end
 
+    def test_manager_stores_bind_values
+      manager = Arel::SelectManager.new Table.engine
+      assert_equal [], manager.bind_values
+      manager.bind_values = [1]
+      assert_equal [1], manager.bind_values
+    end
+
     describe 'backwards compatibility' do
       describe 'project' do
         it 'accepts symbols as sql literals' do

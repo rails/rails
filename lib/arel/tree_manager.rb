@@ -4,9 +4,12 @@ module Arel
 
     attr_reader :ast, :engine
 
+    attr_accessor :bind_values
+
     def initialize engine
       @engine = engine
       @ctx    = nil
+      @bind_values = []
     end
 
     def to_dot
