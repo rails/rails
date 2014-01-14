@@ -390,9 +390,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_lazy_loaded_sdoc
+  def test_inclusion_of_doc
     run_generator
-    assert_file 'Gemfile', /gem 'sdoc', \s+group: :doc, require: false/
+    assert_file 'Gemfile', /gem 'sdoc',\s+'~> 0.4.0',\s+group: :doc/
   end
 
   def test_template_from_dir_pwd
@@ -458,12 +458,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_spring_binstubs
+    jruby_skip "spring doesn't run on JRuby"
     generator.stubs(:bundle_command).with('install')
     generator.expects(:bundle_command).with('exec spring binstub --all').once
     quietly { generator.invoke_all }
   end
 
   def test_spring_no_fork
+    jruby_skip "spring doesn't run on JRuby"
     Process.stubs(:respond_to?).with(:fork).returns(false)
     run_generator
 

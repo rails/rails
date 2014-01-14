@@ -858,11 +858,11 @@ module ActiveRecord
       end
 
       single_val_method = Relation::SINGLE_VALUE_METHODS.include?(scope)
-      unscope_code = :"#{scope}_value#{'s' unless single_val_method}="
+      unscope_code = "#{scope}_value#{'s' unless single_val_method}="
 
       case scope
       when :order
-        self.send(:reverse_order_value=, false)
+        self.reverse_order_value = false
         result = []
       else
         result = [] unless single_val_method
@@ -872,17 +872,19 @@ module ActiveRecord
     end
 
     def where_unscoping(target_value)
-      target_value_sym = target_value.to_sym
+      target_value = target_value.to_s
 
       where_values.reject! do |rel|
         case rel
         when Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual
           subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
-          subrelation.name.to_sym == target_value_sym
+          subrelation.name == target_value
         else
           raise "unscope(where: #{target_value.inspect}) failed: unscoping #{rel.class} is unimplemented."
         end
       end
+
+      bind_values.reject! { |col,_| col.name == target_value }
     end
 
     def custom_join_ast(table, joins)

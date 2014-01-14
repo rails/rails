@@ -1,4 +1,15 @@
-*   `test_help.rb` now automatically checks/maintains your test datbase
+*   Only lookup `config.log_level` for stdlib `::Logger` instances.
+    Assign it as is for third party loggers like `Log4r::Logger`.
+
+    Fixes #13421.
+
+    *Yves Senn*
+
+*   The `Gemfile` of new applications depends on SDoc ~> 0.4.0.
+
+    *Xavier Noria*
+
+*   `test_help.rb` now automatically checks/maintains your test database
     schema. (Use `config.active_record.maintain_test_schema = false` to
     disable.)
 

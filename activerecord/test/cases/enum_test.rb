@@ -88,4 +88,8 @@ class EnumTest < ActiveRecord::TestCase
     assert Book.written.create.written?
     assert Book.read.create.read?
   end
+
+  test "_before_type_cast returns the enum label (required for form fields)" do
+    assert_equal "proposed", @book.status_before_type_cast
+  end
 end

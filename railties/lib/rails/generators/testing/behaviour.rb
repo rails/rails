@@ -61,11 +61,9 @@ module Rails
         # You can provide a configuration hash as second argument. This method returns the output
         # printed by the generator.
         def run_generator(args=self.default_arguments, config={})
-          without_thor_debug do
-            capture(:stdout) do
-              args += ['--skip-bundle'] unless args.include? '--dev'
-              self.generator_class.start(args, config.reverse_merge(destination_root: destination_root))
-            end
+          capture(:stdout) do
+            args += ['--skip-bundle'] unless args.include? '--dev'
+            self.generator_class.start(args, config.reverse_merge(destination_root: destination_root))
           end
         end
 
@@ -101,14 +99,6 @@ module Rails
             absolute = File.expand_path(relative, destination_root)
             dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
-          end
-
-          # TODO: remove this once Bundler 1.5.2 is released
-          def without_thor_debug # :nodoc:
-            thor_debug, ENV['THOR_DEBUG'] = ENV['THOR_DEBUG'], nil
-            yield
-          ensure
-            ENV['THOR_DEBUG'] = thor_debug
           end
       end
     end

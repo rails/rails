@@ -87,6 +87,9 @@ module ActiveRecord
           # def status() STATUS.key self[:status] end
           define_method(name) { enum_values.key self[name] }
 
+          # def status_before_type_cast() STATUS.key self[:status] end
+          define_method("#{name}_before_type_cast") { enum_values.key self[name] }
+
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value] = i

@@ -128,6 +128,17 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Cabbage, cabbage
   end
 
+  def test_alt_becomes_bang_resets_inheritance_type_column
+    vegetable = Vegetable.create!(name: "Red Pepper")
+    assert_nil vegetable.custom_type
+
+    cabbage = vegetable.becomes!(Cabbage)
+    assert_equal "Cabbage", cabbage.custom_type
+
+    vegetable = cabbage.becomes!(Vegetable)
+    assert_nil cabbage.custom_type
+  end
+
   def test_inheritance_find_all
     companies = Company.all.merge!(:order => 'id').to_a
     assert_kind_of Firm, companies[0], "37signals should be a firm"
