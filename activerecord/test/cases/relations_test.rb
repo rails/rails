@@ -1534,10 +1534,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_merging_removes_rhs_bind_parameters
-    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
-    column = Post.columns_hash['id']
-    left.bind_values += [[column, 20]]
-    right   = Post.where(id: 10)
+    left  = Post.where(id: 20)
+    right   = Post.where(id: [1,2,3,4])
 
     merged = left.merge(right)
     assert_equal [], merged.bind_values
