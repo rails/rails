@@ -79,24 +79,14 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record
-    @first.after_commit_block(:create){|r| r.history << :commit_on_create}
-    @first.after_commit_block(:update){|r| r.history << :commit_on_update}
-    @first.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
-    @first.after_rollback_block(:create){|r| r.history << :rollback_on_create}
-    @first.after_rollback_block(:update){|r| r.history << :rollback_on_update}
-    @first.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+    add_transaction_execution_blocks @first
 
     @first.save!
     assert_equal [:commit_on_update], @first.history
   end
 
   def test_only_call_after_commit_on_destroy_after_transaction_commits_for_destroyed_record
-    @first.after_commit_block(:create){|r| r.history << :commit_on_create}
-    @first.after_commit_block(:update){|r| r.history << :commit_on_update}
-    @first.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
-    @first.after_rollback_block(:create){|r| r.history << :rollback_on_create}
-    @first.after_rollback_block(:update){|r| r.history << :rollback_on_update}
-    @first.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+    add_transaction_execution_blocks @first
 
     @first.destroy
     assert_equal [:commit_on_destroy], @first.history
@@ -104,12 +94,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record
     @new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
-    @new_record.after_commit_block(:create){|r| r.history << :commit_on_create}
-    @new_record.after_commit_block(:update){|r| r.history << :commit_on_update}
-    @new_record.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
-    @new_record.after_rollback_block(:create){|r| r.history << :rollback_on_create}
-    @new_record.after_rollback_block(:update){|r| r.history << :rollback_on_update}
-    @new_record.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+    add_transaction_execution_blocks @new_record
 
     @new_record.save!
     assert_equal [:commit_on_create], @new_record.history
@@ -123,12 +108,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record_on_touch
-    @first.after_commit_block(:create){|r| r.history << :commit_on_create}
-    @first.after_commit_block(:update){|r| r.history << :commit_on_update}
-    @first.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
-    @first.after_rollback_block(:create){|r| r.history << :rollback_on_create}
-    @first.after_rollback_block(:update){|r| r.history << :rollback_on_update}
-    @first.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+    add_transaction_execution_blocks @first
 
     @first.touch
     assert_equal [:commit_on_update], @first.history
@@ -147,12 +127,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_update_after_transaction_rollsback_for_existing_record
-    @first.after_commit_block(:create){|r| r.history << :commit_on_create}
-    @first.after_commit_block(:update){|r| r.history << :commit_on_update}
-    @first.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
-    @first.after_rollback_block(:create){|r| r.history << :rollback_on_create}
-    @first.after_rollback_block(:update){|r| r.history << :rollback_on_update}
-    @first.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+    add_transaction_execution_blocks @first
 
     Topic.transaction do
       @first.save!
@@ -163,12 +138,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_update_after_transaction_rollsback_for_existing_record_on_touch
-    @first.after_commit_block(:create){|r| r.history << :commit_on_create}
-    @first.after_commit_block(:update){|r| r.history << :commit_on_update}
-    @first.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
-    @first.after_rollback_block(:create){|r| r.history << :rollback_on_create}
-    @first.after_rollback_block(:update){|r| r.history << :rollback_on_update}
-    @first.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+    add_transaction_execution_blocks @first
 
     Topic.transaction do
       @first.touch
@@ -179,12 +149,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_destroy_after_transaction_rollsback_for_destroyed_record
-    @first.after_commit_block(:create){|r| r.history << :commit_on_create}
-    @first.after_commit_block(:update){|r| r.history << :commit_on_update}
-    @first.after_commit_block(:destroy){|r| r.history << :commit_on_update}
-    @first.after_rollback_block(:create){|r| r.history << :rollback_on_create}
-    @first.after_rollback_block(:update){|r| r.history << :rollback_on_update}
-    @first.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+    add_transaction_execution_blocks @first
 
     Topic.transaction do
       @first.destroy
@@ -196,12 +161,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_only_call_after_rollback_on_create_after_transaction_rollsback_for_new_record
     @new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
-    @new_record.after_commit_block(:create){|r| r.history << :commit_on_create}
-    @new_record.after_commit_block(:update){|r| r.history << :commit_on_update}
-    @new_record.after_commit_block(:destroy){|r| r.history << :commit_on_destroy}
-    @new_record.after_rollback_block(:create){|r| r.history << :rollback_on_create}
-    @new_record.after_rollback_block(:update){|r| r.history << :rollback_on_update}
-    @new_record.after_rollback_block(:destroy){|r| r.history << :rollback_on_destroy}
+    add_transaction_execution_blocks @new_record
 
     Topic.transaction do
       @new_record.save!
@@ -324,6 +284,17 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     assert flag
   end
+
+  private
+
+    def add_transaction_execution_blocks(record)
+      record.after_commit_block(:create) { |r| r.history << :commit_on_create }
+      record.after_commit_block(:update) { |r| r.history << :commit_on_update }
+      record.after_commit_block(:destroy) { |r| r.history << :commit_on_destroy }
+      record.after_rollback_block(:create) { |r| r.history << :rollback_on_create }
+      record.after_rollback_block(:update) { |r| r.history << :rollback_on_update }
+      record.after_rollback_block(:destroy) { |r| r.history << :rollback_on_destroy }
+    end
 end
 
 class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
