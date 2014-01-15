@@ -626,6 +626,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal ["EUC-JP"], Weird.columns.map {|c| c.name.encoding.name }.uniq
     ensure
       silence_warnings { Encoding.default_internal = old_default_internal }
+      Weird.reset_column_information
     end
   end
 
