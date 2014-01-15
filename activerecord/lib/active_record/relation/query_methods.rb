@@ -948,7 +948,7 @@ module ActiveRecord
     def create_binds(opts, idx)
       bindable, non_binds = opts.partition do |column, value|
         case value
-        when String, Integer
+        when String, Integer, ActiveRecord::StatementCache::Substitute
           @klass.columns_hash.include? column.to_s
         else
           false
