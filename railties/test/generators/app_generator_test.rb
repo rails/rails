@@ -58,8 +58,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", media: "all", "data-turbolinks-track" => true/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+"application", "data-turbolinks-track" => true/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track' => true/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track' => true/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/assets/javascripts/application.js")
   end
@@ -364,8 +364,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "vendor/assets/javascripts"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+"application", media: "all" %>/, contents)
-      assert_no_match(/javascript_include_tag\s+"application" \%>/, contents)
+      assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
+      assert_no_match(/javascript_include_tag\s+'application' \%>/, contents)
     end
 
     assert_file "Gemfile" do |content|

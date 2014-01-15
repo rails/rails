@@ -1,3 +1,7 @@
+*   Use single quotes in generated files.
+
+    *Chulki Lee*
+
 *   Write controller generated routes in routes.rb with single quotes.
 
     *Cristian Mircea Messel*
