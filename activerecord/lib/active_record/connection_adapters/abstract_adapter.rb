@@ -353,11 +353,12 @@ module ActiveRecord
 
       protected
 
-      def translate_exception(e, sql)
+      def translate_exception_class(e, sql)
         message = "#{e.class.name}: #{e.message}: #{sql}"
         @logger.error message if @logger
         exception = translate_exception(e, message)
         exception.set_backtrace e.backtrace
+        exception
       end
 
       def log(sql, name = "SQL", binds = [], statement_name = nil)
@@ -369,7 +370,7 @@ module ActiveRecord
           :statement_name => statement_name,
           :binds          => binds) { yield }
       rescue => e
-        raise translate_exception(e, sql)
+        raise translate_exception_class(e, sql)
       end
 
       def translate_exception(exception, message)
