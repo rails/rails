@@ -1,3 +1,12 @@
+*   Add back `#yaml_initialize` method for Syck deserialization
+
+    `ActiveRecord::Core#yaml_initialize` has been added back to support deserialization using
+    the Syck engine. This is to facilitate migration from Syck to Psych. Serialization support
+    will not been restored for Syck, Psych should be used to serialize YAML once its been
+    parsed with Syck.
+ 
+    *Blake Mesdag*, *arthurnn*
+ 
 *   Don't try to get the subclass if the inheritance column doesn't exist
 
     The `subclass_from_attrs` method is called even if the column specified by
