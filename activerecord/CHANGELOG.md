@@ -1,3 +1,7 @@
+*   Add back #yaml_initialize method for Syck deserialization
+ 
+    *Blake Mesdag* *Arthur Neves*
+ 
 *   Don't try to get the subclass if the inheritance column doesn't exist
 
     The `subclass_from_attrs` method is called even if the column specified by
