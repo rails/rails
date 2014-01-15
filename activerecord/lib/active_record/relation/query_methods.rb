@@ -919,13 +919,13 @@ module ActiveRecord
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
-        temp_opts = opts.dup
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
-        create_binds(temp_opts)
-        temp_opts = substitute_opts(temp_opts)
+        bv_len = bind_values.length
+        tmp_opts, bind_values = create_binds(opts, bv_len)
+        self.bind_values += bind_values
 
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, temp_opts)
+        attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
         attributes.values.grep(ActiveRecord::Relation) do |rel|
           self.bind_values += rel.bind_values
         end
@@ -936,28 +936,27 @@ module ActiveRecord
       end
     end
 
-    def create_binds(temp_opts)
-      binds = []
-      temp_opts.map do |column, value| 
+    def create_binds(opts, idx)
+      bindable, non_binds = opts.partition do |column, value|
         case value
-          when String, Integer
-            if @klass.column_names.include? column.to_s
-              binds.push([@klass.columns_hash[column.to_s], value])
-            end
+        when String, Integer
+          @klass.columns_hash.include? column.to_s
+        else
+          false
         end
       end
-      self.bind_values += binds
-    end
 
-    def substitute_opts(temp_opts)
-      temp_opts = temp_opts.each_with_index do |(column,value), index|
-        if @klass.columns_hash[column.to_s] != nil        
-          case value
-            when String, Integer
-              temp_opts[column] = connection.substitute_at(column, index) 
-          end
-        end
+      new_opts = {}
+      binds = []
+
+      bindable.each_with_index do |(column,value), index|
+        binds.push [@klass.columns_hash[column.to_s], value]
+        new_opts[column] = connection.substitute_at(column, index + idx)
       end
+
+      non_binds.each { |column,value| new_opts[column] = value }
+
+      [new_opts, binds]
     end
 
     def build_from
