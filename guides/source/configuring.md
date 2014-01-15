@@ -374,7 +374,7 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
 * `config.action_view.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action View. Set to `nil` to disable logging.
 
-* `config.action_view.erb_trim_mode` gives the trim mode to be used by ERB. Rails now uses Erubis as the default engine. See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.06.html#topics-trimspaces) for more information.
+* `config.action_view.erb_trim_mode` gives the trim mode to be used by ERB. Since Rails 3 the default engine has changed to [Erubis](http://www.kuwata-lab.com/erubis/users-guide.06.html#topics-trimspaces) and now the only mode it understands for trimming is '-'. Below is an example of how you can trim white spaces in ERB or Erubis syntax.
 
    ```erb
    <%= @person -%>          # or <%= @person =%>
