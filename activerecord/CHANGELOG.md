@@ -1,3 +1,7 @@
+*   Add back #yaml_initialize method for Syck deserialization
+
+    *Blake Mesdag* *Arthur Neves*
+
 *   Enable partial indexes for sqlite >= 3.8.0
 
     See http://www.sqlite.org/partialindex.html
