@@ -1511,19 +1511,6 @@ class RelationTest < ActiveRecord::TestCase
     assert !Post.all.respond_to?(:by_lifo)
   end
 
-  test "merge collapses wheres from the LHS only" do
-    left  = Post.where(title: "omg").where(comments_count: 1)
-    right = Post.where(title: "wtf").where(title: "bbq")
-
-    expected = [left.where_values[1]] + right.where_values
-    merged   = left.merge(right)
-
-    assert_equal expected, merged.where_values
-    assert !merged.to_sql.include?("omg")
-    assert merged.to_sql.include?("wtf")
-    assert merged.to_sql.include?("bbq")
-  end
-
   def test_unscope_removes_binds
     left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
     column = Post.columns_hash['id']
