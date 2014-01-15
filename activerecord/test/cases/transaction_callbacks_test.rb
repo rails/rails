@@ -30,14 +30,14 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
-    after_commit{|record| record.send(:do_after_commit, nil)}
-    after_commit(:on => :create){|record| record.send(:do_after_commit, :create)}
-    after_commit(:on => :update){|record| record.send(:do_after_commit, :update)}
-    after_commit(:on => :destroy){|record| record.send(:do_after_commit, :destroy)}
-    after_rollback{|record| record.send(:do_after_rollback, nil)}
-    after_rollback(:on => :create){|record| record.send(:do_after_rollback, :create)}
-    after_rollback(:on => :update){|record| record.send(:do_after_rollback, :update)}
-    after_rollback(:on => :destroy){|record| record.send(:do_after_rollback, :destroy)}
+    after_commit { |record| record.do_after_commit(nil) }
+    after_commit(on: :create) { |record| record.do_after_commit(:create) }
+    after_commit(on: :update) { |record| record.do_after_commit(:update) }
+    after_commit(on: :destroy) { |record| record.do_after_commit(:destroy) }
+    after_rollback { |record| record.do_after_rollback(nil) }
+    after_rollback(on: :create) { |record| record.do_after_rollback(:create) }
+    after_rollback(on: :update) { |record| record.do_after_rollback(:update) }
+    after_rollback(on: :destroy) { |record| record.do_after_rollback(:destroy) }
 
     def history
       @history ||= []
@@ -303,11 +303,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_after_rollback_callbacks_should_validate_on_condition
-    assert_raise(ArgumentError) { Topic.send(:after_rollback, :on => :save) }
+    assert_raise(ArgumentError) { Topic.after_rollback(on: :save) }
   end
 
   def test_after_commit_callbacks_should_validate_on_condition
-    assert_raise(ArgumentError) { Topic.send(:after_commit, :on => :save) }
+    assert_raise(ArgumentError) { Topic.after_commit(on: :save) }
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_call_callbacks_on_the_parent_object
