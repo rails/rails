@@ -6,9 +6,6 @@ module ActiveRecord
     extend ActiveSupport::Concern
     ACTIONS = [:create, :destroy, :update]
 
-    class TransactionError < ActiveRecordError # :nodoc:
-    end
-
     included do
       define_callbacks :commit, :rollback,
                        terminator: ->(_, result) { result == false },
