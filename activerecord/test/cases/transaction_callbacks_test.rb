@@ -93,11 +93,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record
-    @new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
-    add_transaction_execution_blocks @new_record
+    new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
+    add_transaction_execution_blocks new_record
 
-    @new_record.save!
-    assert_equal [:commit_on_create], @new_record.history
+    new_record.save!
+    assert_equal [:commit_on_create], new_record.history
   end
 
   def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record_if_create_succeeds_creating_through_association
@@ -160,15 +160,15 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_create_after_transaction_rollsback_for_new_record
-    @new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
-    add_transaction_execution_blocks @new_record
+    new_record = TopicWithCallbacks.new(:title => "New topic", :written_on => Date.today)
+    add_transaction_execution_blocks new_record
 
     Topic.transaction do
-      @new_record.save!
+      new_record.save!
       raise ActiveRecord::Rollback
     end
 
-    assert_equal [:rollback_on_create], @new_record.history
+    assert_equal [:rollback_on_create], new_record.history
   end
 
   def test_call_after_rollback_when_commit_fails
