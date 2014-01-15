@@ -400,6 +400,10 @@
 
     *thedarkone*
 
+*   Make ActiveRecord::Base#touch fire the `after_commit` and `after_rollback` callbacks.
+
+    * Harry Brundage *
+
 *   PostgreSQL adapter recognizes negative money values formatted with
     parentheses (eg. `($1.25) # => -1.25`)).
     Fixes #11899.
