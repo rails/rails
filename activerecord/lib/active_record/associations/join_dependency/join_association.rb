@@ -52,16 +52,14 @@ module ActiveRecord
               end
             end
 
-            if reflection.type
-              scope_chain_items <<
-                ActiveRecord::Relation.create(klass, table)
-                  .where(reflection.type => foreign_klass.base_class.name)
-            end
-
             scope_chain_items.concat [klass.send(:build_default_scope)].compact
 
             rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
               left.merge right
+            end
+
+            if reflection.type
+              constraint = constraint.and table[reflection.type].eq foreign_klass.base_class.name
             end
 
             if rel && !rel.arel.constraints.empty?
