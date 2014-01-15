@@ -70,5 +70,33 @@ class ERBTrackerTest < Minitest::Test
 
     assert_equal ["messages/message"], tracker.dependencies
   end
+
+  def test_finds_no_dependency_when_general_word_starts_with_render
+    template = FakeTemplate.new("<%# renderings %>", :erb)
+    tracker = make_tracker('ings/ing', template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_finds_no_dependency_when_no_space_between_render_and_filename
+    template = FakeTemplate.new("<%# render'messages/message' %>", :erb)
+    tracker = make_tracker('messages/_message', template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_finds_no_dependency_when_no_space_between_render_and_partial
+    template = FakeTemplate.new("<%# render:partial => 'messages/message' %>", :erb)
+    tracker = make_tracker('messages/_message', template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_dependency_of_erb_partials
+    template = FakeTemplate.new("<%# render :partial=> 'messages/message' %>", :erb)
+    tracker = make_tracker('messages/_message', template)
+
+    assert_equal ['messages/message'], tracker.dependencies
+  end
 end
 
