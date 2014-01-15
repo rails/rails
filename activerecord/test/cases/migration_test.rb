@@ -534,13 +534,6 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
     # This is needed to isolate class_attribute assignments like `table_name_prefix`
     # for each test case.
     def new_isolated_reminder_class
