@@ -853,7 +853,11 @@ module ActiveRecord
           sql_key = sql_key(sql)
           unless @statements.key? sql_key
             nextkey = @statements.next_key
-            @connection.prepare nextkey, sql
+            begin
+              @connection.prepare nextkey, sql
+            rescue => e
+              raise translate_exception(e, sql)
+            end
             # Clear the queue
             @connection.get_last_result
             @statements[sql_key] = nextkey
