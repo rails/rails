@@ -54,11 +54,12 @@ module ActiveRecord
   # remove unused values, the explicit +Hash+ syntax should be used.
   #
   # In rare circumstances you might need to access the mapping directly.
-  # The mappings are exposed through a constant with the attributes name:
+  # The mappings are exposed through a class method with the pluralized attribute
+  # name:
   #
   #   Conversation.statuses # => { "active" => 0, "archived" => 1 }
   #
-  # Use that constant when you need to know the ordinal value of an enum:
+  # Use that class method when you need to know the ordinal value of an enum:
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   module Enum
