@@ -856,7 +856,7 @@ module ActiveRecord
             begin
               @connection.prepare nextkey, sql
             rescue => e
-              raise translate_exception(e, sql)
+              raise translate_exception_class(e, sql)
             end
             # Clear the queue
             @connection.get_last_result
