@@ -3,7 +3,7 @@ require 'active_support/concurrency/latch'
 require 'monitor'
 
 class Object
-  def internal_stub(name, *args, &block)
+  def internal_stub(name, *args, &block) # :nodoc:
     key             = [object_id, name]
     stub_locks      = Thread.current[:stubs] ||= {}
 
@@ -27,7 +27,7 @@ class Object
     defined_latch.await
   end
 
-  def internal_unstub(name)
+  def internal_unstub(name) # :nodoc:
     stub_locks = Thread.current[:stubs]
     return unless stub_locks
 
