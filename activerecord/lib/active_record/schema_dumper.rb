@@ -198,7 +198,7 @@ HEADER
             index_orders = (index.orders || {})
             statement_parts << ('order: ' + index.orders.inspect) unless index_orders.empty?
 
-            %w(where using type function).each do |attr|
+            %w(where using type functions).each do |attr|
               value = index.public_send(attr)
               statement_parts << ("#{attr}: " + value.inspect) if value
             end

@@ -198,7 +198,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dumps_index_functions
     index_definition = standard_dump.split(/\n/).grep(/add_index.*company_lower_name_index/).first.strip
     if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 'add_index "companies", ["name"], name: "company_lower_name_index", using: :btree, function: "lower"', index_definition
+      assert_equal 'add_index "companies", ["name"], name: "company_lower_name_index", using: :btree, functions: ["lower"]', index_definition
     elsif current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
       assert_equal 'add_index "companies", ["name"], name: "company_lower_name_index", using: :btree', index_definition
     else

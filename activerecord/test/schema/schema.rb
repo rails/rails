@@ -189,7 +189,7 @@ ActiveRecord::Schema.define do
   add_index :companies, [:firm_id, :type, :rating], name: "company_index"
   add_index :companies, [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
   add_index :companies, :name, name: 'company_name_index', using: :btree
-  add_index :companies, :name, name: 'company_lower_name_index', using: :btree, function: 'lower'
+  add_index :companies, :name, name: 'company_lower_name_index', using: :btree, functions: 'lower'
 
   create_table :vegetables, force: true do |t|
     t.string :name

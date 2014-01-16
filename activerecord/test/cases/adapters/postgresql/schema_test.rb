@@ -13,6 +13,7 @@ class SchemaTest < ActiveRecord::TestCase
   INDEX_D_NAME = 'd_index_things_on_description_desc'
   INDEX_E_NAME = 'e_index_things_on_name_vector'
   INDEX_F_NAME = 'f_index_lower_name_on_things'
+  INDEX_G_NAME = 'g_index_composite_index_on_things'
   INDEX_A_COLUMN = 'name'
   INDEX_B_COLUMN_S1 = 'email'
   INDEX_B_COLUMN_S2 = 'moment'
@@ -20,6 +21,7 @@ class SchemaTest < ActiveRecord::TestCase
   INDEX_D_COLUMN = 'description'
   INDEX_E_COLUMN = 'name_vector'
   INDEX_F_COLUMN = 'LOWER(name)'
+  INDEX_G_COLUMN = 'UPPER(name),active,LOWER(email)'
   COLUMNS = [
     'id integer',
     'name character varying(50)',
@@ -71,6 +73,8 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_F_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_F_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_F_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_F_COLUMN});"
+    @connection.execute "CREATE INDEX #{INDEX_G_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_G_COLUMN});"
+    @connection.execute "CREATE INDEX #{INDEX_G_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_G_COLUMN});"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
     @connection.execute "CREATE SEQUENCE #{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME} (id integer NOT NULL DEFAULT nextval('#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}'::regclass), CONSTRAINT unmatched_pkey PRIMARY KEY (id))"
@@ -357,17 +361,22 @@ class SchemaTest < ActiveRecord::TestCase
     def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name, fourth_index_column_name)
       with_schema_search_path(this_schema_name) do
         indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
-        assert_equal 5,indexes.size
+        assert_equal 6,indexes.size
 
         do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[3], INDEX_E_NAME, fourth_index_column_name)
-        do_dump_index_assertions_for_one_index(indexes[4], INDEX_F_NAME, 'name')
 
         assert_equal 'active', indexes[0].where
 
-        assert_equal 'lower', indexes[4].function
+        assert_equal INDEX_F_NAME, indexes[4].name
+        assert_equal ['name'],     indexes[4].columns
+        assert_equal ['lower'],    indexes[4].functions
+
+        assert_equal INDEX_G_NAME,                indexes[5].name
+        assert_equal ['name', 'active', 'email'], indexes[5].columns
+        assert_equal ['upper', nil, 'lower'],     indexes[5].functions
 
         indexes.select{|i| i.name != INDEX_E_NAME}.each do |index|
            assert_equal :btree, index.using
@@ -382,5 +391,6 @@ class SchemaTest < ActiveRecord::TestCase
       assert_equal 1, this_index.columns.size
       assert_equal this_index_column, this_index.columns[0]
       assert_equal this_index_name, this_index.name
+      assert_nil this_index.functions
     end
 end

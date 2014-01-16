@@ -153,29 +153,57 @@ module ActiveRecord
             oid = row[6]
             using = row[7].to_sym
 
-            # Matches "lower((column)::text)" or "lower(column)"
-            if indkey == ['0'] && (expression =~ /\A(\w+)\(\((\w+)\)::[\w\s]+\)\Z/ ||
-                expression =~ /\A(\w+)\((\w+)\)\Z/)
-              function = $~[1]
-              column_names = [$~[2]]
-            else
-              columns = Hash[query(<<-SQL, "SCHEMA")]
-              SELECT a.attnum, a.attname
-              FROM pg_attribute a
-              WHERE a.attrelid = #{oid}
-              AND a.attnum IN (#{indkey.join(",")})
-              SQL
+            index_supported = true
 
-              column_names = columns.values_at(*indkey).compact
-              function = nil
+            function_names = []
+            function_columns = []
+
+            if expression
+              expression.split(',').each do |part|
+                part.strip!
+
+                # Matches "lower((column)::text)" or "lower(column)"
+                if part =~ /\A(\w+)\(\((\w+)\)::[\w\s]+\)\Z/ ||
+                  part =~ /\A(\w+)\((\w+)\)\Z/
+
+                  function_names << $~[1]
+                  function_columns << $~[2]
+                else
+                  # Complex expression indexes aren't supported
+                  index_supported = false
+                  break
+                end
+              end
             end
 
-            unless column_names.empty?
+            columns = Hash[query(<<-SQL, "SCHEMA")]
+            SELECT a.attnum, a.attname
+            FROM pg_attribute a
+            WHERE a.attrelid = #{oid}
+            AND a.attnum IN (#{indkey.join(",")})
+            SQL
+
+            column_names = []
+            functions = []
+
+            indkey.each do |i|
+              if i == '0'
+                functions << function_names.shift
+                column_names << function_columns.shift
+              else
+                functions << nil
+                column_names << columns[i]
+              end
+            end
+
+            functions = nil if functions.compact.empty?
+
+            if index_supported && !column_names.empty?
               # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
               desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
               orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
 
-              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using, function)
+              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using, functions)
             end
           end.compact
         end
