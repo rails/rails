@@ -449,7 +449,6 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings.
 
-* `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 ### Configuring a Database
 
