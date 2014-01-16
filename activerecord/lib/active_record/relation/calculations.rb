@@ -145,26 +145,54 @@ module ActiveRecord
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
+    #   Person.pluck(:id, profile: :name, address: [:country, :city])
+    #   # SELECT people.id, people_profiles.name as people_profiles__name, addresses.country as addresses__country, addresses.city as addresses__city FROM people
+    #   #   INNER JOIN people_profiles ON people_profiles.person_id = people.id
+    #   #   INNER JOIN addresses ON address.person_id = people.id
+    #   # => [[1, 'David', 'USA', 'New York'], [2, 'Jeremy', 'UK', 'London'], [3, 'Jose', 'France', 'Marseille']]
+    #
+    #   Post.where(published: true).pluck(:title, category: [:id, :title], author: { profile: [:name] })
+    #   # SELECT posts.title, categories.id as categories__id, categories.title as categories__title, profiles.name as profiles__name FROM posts
+    #   #   INNER JOIN categories ON categories.id = posts.category_id
+    #   #   INNER JOIN users ON users.id = posts.author_id
+    #   #     INNER JOIN profiles ON profiles.user_id = users.id
+    #   # WHERE published = 't'
+    #   # => [["Lorem", 1, "Tips", "John"], ["Ipsum", 2, "Articles", "Mark"]]
+    #
     def pluck(*column_names)
+      to_join = []
+
       column_names.map! do |column_name|
         if column_name.is_a?(Symbol) && attribute_alias?(column_name)
           attribute_alias(column_name)
+        elsif column_name.is_a?(Hash)
+          to_join << joins_hash_from_columns_hash(column_name)
+          columns_array_from_columns_hash(@klass, column_name)
+        elsif column_name.is_a?(Arel::Attributes::Attribute) || column_name.is_a?(Arel::Nodes::As)
+          column_name
         else
           column_name.to_s
         end
-      end
+      end.flatten!
 
       if has_include?(column_names.first)
-        construct_relation_for_association_calculations.pluck(*column_names)
+        construct_relation_for_association_calculations.joins(to_join).pluck(*column_names)
       else
-        relation = spawn
+        relation = spawn.joins(to_join)
         relation.select_values = column_names.map { |cn|
           columns_hash.key?(cn) ? arel_table[cn] : cn
         }
         result = klass.connection.select_all(relation.arel, nil, bind_values)
-        columns = result.columns.map do |key|
+        columns = result.columns.map.with_index do |key, ind|
           klass.column_types.fetch(key) {
-            result.column_types.fetch(key) { result.identity_type }
+            case column = column_names[ind]
+            when Arel::Attributes::Attribute
+              column.relation.engine.column_types.fetch(column.name.to_s)
+            when Arel::Nodes::As
+              column.left.relation.engine.column_types.fetch(column.left.name.to_s)
+            else
+              result.column_types.fetch(key) { result.identity_type }
+            end
           }
         end
 
@@ -390,6 +418,48 @@ module ActiveRecord
       sm = Arel::SelectManager.new relation.engine
       select_value = operation_over_aggregate_column(column_alias, 'count', distinct)
       sm.project(select_value).from(subquery)
+    end
+
+    def joins_hash_from_columns_hash(columns, hash = {})
+      case columns
+      when Symbol, String
+        # Just ignore it
+      when Array
+        columns.each do |col|
+          joins_hash_from_columns_hash col, hash
+        end
+      when Hash
+        columns.each do |k,v|
+          cache = hash[k] ||= {}
+          joins_hash_from_columns_hash v, cache
+        end
+      else
+        raise ConfigurationError, columns.inspect
+      end
+      hash
+    end
+
+    def columns_array_from_columns_hash(base, columns_hash, columns_array = [])
+      case columns_hash
+      when Symbol, String
+        column_name = base.attribute_alias(columns_hash) || columns_hash
+        columns_array << base.arel_table[column_name].as("#{base.table_name}__#{column_name}")
+      when Array
+        columns_hash.each do |col|
+          columns_array_from_columns_hash base, col, columns_array
+        end
+      when Hash
+        columns_hash.each do |k,v|
+          if association = base.reflect_on_association(k)
+            columns_array_from_columns_hash association.klass, v, columns_array
+          else
+            raise ConfigurationError, "Association named '#{ k }' was not found on #{ base.name }; perhaps you misspelled it?"
+          end
+        end
+      else
+        raise ConfigurationError, columns_hash.inspect
+      end
+      columns_array
     end
   end
 end
