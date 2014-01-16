@@ -2894,6 +2894,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/foo', foo_root_path
   end
 
+  def test_trailing_slash
+    draw do
+      resources :streams
+    end
+
+    get '/streams'
+    assert @response.ok?, 'route without trailing slash should work'
+
+    get '/streams/'
+    assert @response.ok?, 'route with trailing slash should work'
+
+    get '/streams?foobar'
+    assert @response.ok?, 'route without trailing slash and with QUERY_STRING should work'
+
+    get '/streams/?foobar'
+    assert @response.ok?, 'route with trailing slash and with QUERY_STRING should work'
+  end
+
 private
 
   def draw(&block)
