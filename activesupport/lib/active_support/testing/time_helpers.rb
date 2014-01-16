@@ -6,11 +6,17 @@ class Object
   def internal_stub(name, *args, &block)
     key             = [object_id, name]
     stub_locks      = Thread.current[:stubs] ||= {}
+
+    lock = stub_locks[key]
+    release_stub(lock) if lock
+
     use_latch       = ActiveSupport::Concurrency::Latch.new
     undefined_latch = ActiveSupport::Concurrency::Latch.new
     defined_latch   = ActiveSupport::Concurrency::Latch.new
+
     stub_locks[key] = { use: use_latch,
                         undefined: undefined_latch }
+
     Thread.new {
       stub(name, *args) {
         defined_latch.release
@@ -22,17 +28,21 @@ class Object
   end
 
   def internal_unstub(name)
-    return unless Thread.current[:stubs]
+    stub_locks = Thread.current[:stubs]
+    return unless stub_locks
 
     key = [object_id, name]
 
-    lock = Thread.current[:stubs][key]
+    lock = stub_locks[key]
+    release_stub(lock) if lock
+  end
 
-    if lock
+  private
+
+    def release_stub(lock)
       lock[:use].release
       lock[:undefined].await
     end
-  end
 end
 
 module ActiveSupport
