@@ -16,6 +16,32 @@ module ActiveRecord
   class StatementCache
     Substitute = Struct.new :name
 
+    class Query
+      def initialize(connection, sql)
+        @connection = connection
+        @sql = sql
+      end
+
+      def sql_for(binds)
+        @sql
+      end
+    end
+
+    class PartialQuery < Query
+      def sql_for(binds)
+        @sql.gsub(/\?/) { @connection.quote(*binds.shift.reverse) }
+      end
+    end
+
+    def self.query(connection, visitor, ast)
+      Query.new connection, visitor.accept(ast)
+    end
+
+    def self.partial_query(connection, visitor, ast)
+      sql = visitor.accept(ast) { "?" }
+      PartialQuery.new connection, sql
+    end
+
     class Params
       def [](name); Substitute.new name; end
     end
@@ -45,23 +71,34 @@ module ActiveRecord
       @sql      = nil
       @binds    = nil
       @block    = block
+      @query_builder = nil
       @params   = Params.new
     end
 
     def execute(params)
       rel = relation @params
 
-      arel  = rel.arel
-      klass = rel.klass
-      bv    = binds rel
+      arel        = rel.arel
+      klass       = rel.klass
+      bind_map    = binds rel
+      bind_values = bind_map.bind params
 
-      klass.find_by_sql sql(klass, arel, bv), bv.bind(params)
+      builder = query_builder klass.connection, arel
+      sql = builder.sql_for bind_values
+
+      klass.find_by_sql sql, bind_values
     end
     alias :call :execute
 
     private
     def binds(rel)
       @binds || @mutex.synchronize { @binds ||= BindMap.new rel.bind_values }
+    end
+
+    def query_builder(connection, arel)
+      @query_builder || @mutex.synchronize {
+        @query_builder ||= connection.cacheable_query(arel)
+      }
     end
 
     def sql(klass, arel, bv)

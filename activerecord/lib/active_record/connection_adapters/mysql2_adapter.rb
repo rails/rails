@@ -44,6 +44,10 @@ module ActiveRecord
         configure_connection
       end
 
+      def cacheable_query(arel)
+        ActiveRecord::StatementCache.partial_query self, visitor, arel.ast
+      end
+
       MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191
       def initialize_schema_migrations_table
         if @config[:encoding] == 'utf8mb4'

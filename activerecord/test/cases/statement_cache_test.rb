@@ -7,7 +7,6 @@ require 'models/electron'
 module ActiveRecord
   class StatementCacheTest < ActiveRecord::TestCase
     def setup
-      skip if current_adapter?(:Mysql2Adapter)
       @connection = ActiveRecord::Base.connection
     end
 
