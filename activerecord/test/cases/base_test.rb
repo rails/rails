@@ -26,6 +26,8 @@ require 'models/joke'
 require 'models/bird'
 require 'models/car'
 require 'models/bulb'
+require 'models/owner'
+require 'models/pet'
 require 'rexml/document'
 
 class FirstAbstractClass < ActiveRecord::Base
@@ -75,7 +77,8 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics,
+    'warehouse-things', :authors, :categorizations, :categories, :posts, :owners, :pets
 
   def setup
     ActiveRecord::Base.time_zone_aware_attributes = false
@@ -1493,13 +1496,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_cache_key_changes_when_child_touched
-    car = Car.create
-    Bulb.create(car: car)
+    owner = owners(:blackbeard)
+    pet   = pets(:parrot)
 
-    key = car.cache_key
-    car.bulb.touch
-    car.reload
-    assert_not_equal key, car.cache_key
+    owner.update_column :updated_at, Time.current
+    key = owner.cache_key
+
+    assert pet.touch
+    assert_not_equal key, owner.reload.cache_key
   end
 
   def test_cache_key_format_for_existing_record_with_nil_updated_timestamps
