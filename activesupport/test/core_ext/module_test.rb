@@ -245,6 +245,16 @@ class ModuleTest < ActiveSupport::TestCase
     end
   end
 
+  def test_delegation_line_number
+    file, line = Someone.instance_method(:foo).source_location
+    assert_equal Someone::FAILED_DELEGATE_LINE, line
+  end
+
+  def test_delegate_line_with_nil
+    file, line = Someone.instance_method(:bar).source_location
+    assert_equal Someone::FAILED_DELEGATE_LINE_2, line
+  end
+
   def test_delegation_exception_backtrace
     someone = Someone.new("foo", "bar")
     someone.foo
