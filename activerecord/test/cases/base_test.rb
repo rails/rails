@@ -626,6 +626,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal ["EUC-JP"], Weird.columns.map {|c| c.name.encoding.name }.uniq
     ensure
       silence_warnings { Encoding.default_internal = old_default_internal }
+      Weird.reset_column_information
     end
   end
 
@@ -1129,7 +1130,7 @@ class BasicsTest < ActiveRecord::TestCase
     k = Class.new(ak)
     k.table_name = "projects"
     orig_name = k.sequence_name
-    return skip "sequences not supported by db" unless orig_name
+    skip "sequences not supported by db" unless orig_name
     assert_equal k.reset_sequence_name, orig_name
   end
 

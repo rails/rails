@@ -18,7 +18,7 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
         end
       end
     rescue ActiveRecord::StatementInvalid
-      return skip "do not test on PG without xml"
+      skip "do not test on PG without xml"
     end
     @column = XmlDataType.columns.find { |c| c.name == 'payload' }
   end
