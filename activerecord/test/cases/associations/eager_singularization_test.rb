@@ -1,45 +1,53 @@
 require "cases/helper"
 
-class Virus < ActiveRecord::Base
-  belongs_to :octopus
-end
-class Octopus < ActiveRecord::Base
-  has_one :virus
-end
-class Pass < ActiveRecord::Base
-  belongs_to :bus
-end
-class Bus < ActiveRecord::Base
-  has_many :passes
-end
-class Mess < ActiveRecord::Base
-  has_and_belongs_to_many :crises
-end
-class Crisis < ActiveRecord::Base
-  has_and_belongs_to_many :messes
-  has_many :analyses, :dependent => :destroy
-  has_many :successes, :through => :analyses
-  has_many :dresses, :dependent => :destroy
-  has_many :compresses, :through => :dresses
-end
-class Analysis < ActiveRecord::Base
-  belongs_to :crisis
-  belongs_to :success
-end
-class Success < ActiveRecord::Base
-  has_many :analyses, :dependent => :destroy
-  has_many :crises, :through => :analyses
-end
-class Dress < ActiveRecord::Base
-  belongs_to :crisis
-  has_many :compresses
-end
-class Compress < ActiveRecord::Base
-  belongs_to :dress
-end
-
 
 class EagerSingularizationTest < ActiveRecord::TestCase
+  class Virus < ActiveRecord::Base
+    belongs_to :octopus
+  end
+
+  class Octopus < ActiveRecord::Base
+    has_one :virus
+  end
+
+  class Pass < ActiveRecord::Base
+    belongs_to :bus
+  end
+
+  class Bus < ActiveRecord::Base
+    has_many :passes
+  end
+
+  class Mess < ActiveRecord::Base
+    has_and_belongs_to_many :crises
+  end
+
+  class Crisis < ActiveRecord::Base
+    has_and_belongs_to_many :messes
+    has_many :analyses, :dependent => :destroy
+    has_many :successes, :through => :analyses
+    has_many :dresses, :dependent => :destroy
+    has_many :compresses, :through => :dresses
+  end
+
+  class Analysis < ActiveRecord::Base
+    belongs_to :crisis
+    belongs_to :success
+  end
+
+  class Success < ActiveRecord::Base
+    has_many :analyses, :dependent => :destroy
+    has_many :crises, :through => :analyses
+  end
+
+  class Dress < ActiveRecord::Base
+    belongs_to :crisis
+    has_many :compresses
+  end
+
+  class Compress < ActiveRecord::Base
+    belongs_to :dress
+  end
 
   def setup
     if ActiveRecord::Base.connection.supports_migrations?
