@@ -6,9 +6,6 @@ module ActiveRecord
     extend ActiveSupport::Concern
     ACTIONS = [:create, :destroy, :update]
 
-    class TransactionError < ActiveRecordError # :nodoc:
-    end
-
     included do
       define_callbacks :commit, :rollback,
                        terminator: ->(_, result) { result == false },
@@ -243,15 +240,14 @@ module ActiveRecord
       def set_options_for_callbacks!(args)
         options = args.last
         if options.is_a?(Hash) && options[:on]
-          assert_valid_transaction_action(options[:on])
-          options[:if] = Array(options[:if])
           fire_on = Array(options[:on])
+          assert_valid_transaction_action(fire_on)
+          options[:if] = Array(options[:if])
           options[:if] << "transaction_include_any_action?(#{fire_on})"
         end
       end
 
       def assert_valid_transaction_action(actions)
-        actions = Array(actions)
         if (actions - ACTIONS).any?
           raise ArgumentError, ":on conditions for after_commit and after_rollback callbacks have to be one of #{ACTIONS.join(",")}"
         end
@@ -274,6 +270,10 @@ module ActiveRecord
     end
 
     def save!(*) #:nodoc:
+      with_transaction_returning_status { super }
+    end
+
+    def touch(*) #:nodoc:
       with_transaction_returning_status { super }
     end
 

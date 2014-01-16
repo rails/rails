@@ -1,3 +1,7 @@
+*   Make `touch` fire the `after_commit` and `after_rollback` callbacks.
+
+    *Harry Brundage*
+
 *   Enable partial indexes for sqlite >= 3.8.0
 
     See http://www.sqlite.org/partialindex.html

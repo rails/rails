@@ -3,12 +3,11 @@
 require 'cases/helper'
 require 'models/company'
 require 'models/developer'
-require 'models/car'
-require 'models/bulb'
 require 'models/owner'
+require 'models/pet'
 
 class IntegrationTest < ActiveRecord::TestCase
-  fixtures :companies, :developers, :owners
+  fixtures :companies, :developers, :owners, :pets
 
   def test_to_param_should_return_string
     assert_kind_of String, Client.first.to_param
@@ -91,13 +90,14 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_key_changes_when_child_touched
-    car = Car.create
-    Bulb.create(car: car)
+    owner = owners(:blackbeard)
+    pet   = pets(:parrot)
 
-    key = car.cache_key
-    car.bulb.touch
-    car.reload
-    assert_not_equal key, car.cache_key
+    owner.update_column :updated_at, Time.current
+    key = owner.cache_key
+
+    assert pet.touch
+    assert_not_equal key, owner.reload.cache_key
   end
 
   def test_cache_key_format_for_existing_record_with_nil_updated_timestamps

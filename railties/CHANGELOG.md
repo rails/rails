@@ -1,6 +1,6 @@
-*   Write controller generated routes in routes.rb with single quotes.
+*   Use single quotes in generated files.
 
-    *Cristian Mircea Messel*
+    *Cristian Mircea Messel*, *Chulki Lee*
 
 *   Only lookup `config.log_level` for stdlib `::Logger` instances.
     Assign it as is for third party loggers like `Log4r::Logger`.
