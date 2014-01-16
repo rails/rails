@@ -67,7 +67,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def setup
-    @first, @second = TopicWithCallbacks.find(1, 3).sort_by { |t| t.id }
+    @first = TopicWithCallbacks.find(1)
   end
 
   def test_call_after_commit_after_transaction_commits
@@ -195,23 +195,24 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     @first.after_rollback_block{|r| r.rollbacks(1)}
     @first.after_commit_block{|r| r.commits(1)}
 
-    def @second.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
-    def @second.commits(i=0); @commits ||= 0; @commits += i if i; end
-    @second.after_rollback_block{|r| r.rollbacks(1)}
-    @second.after_commit_block{|r| r.commits(1)}
+    second = TopicWithCallbacks.find(3)
+    def second.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
+    def second.commits(i=0); @commits ||= 0; @commits += i if i; end
+    second.after_rollback_block{|r| r.rollbacks(1)}
+    second.after_commit_block{|r| r.commits(1)}
 
     Topic.transaction do
       @first.save!
       Topic.transaction(:requires_new => true) do
-        @second.save!
+        second.save!
         raise ActiveRecord::Rollback
       end
     end
 
     assert_equal 1, @first.commits
     assert_equal 0, @first.rollbacks
-    assert_equal 0, @second.commits
-    assert_equal 1, @second.rollbacks
+    assert_equal 0, second.commits
+    assert_equal 1, second.rollbacks
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint_when_release_savepoint_fails
@@ -242,24 +243,26 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     def @first.last_after_transaction_error; @last_transaction_error; end
     @first.after_commit_block{|r| r.last_after_transaction_error = :commit; raise "fail!";}
     @first.after_rollback_block{|r| r.last_after_transaction_error = :rollback; raise "fail!";}
-    @second.after_commit_block{|r| r.history << :after_commit}
-    @second.after_rollback_block{|r| r.history << :after_rollback}
+
+    second = TopicWithCallbacks.find(3)
+    second.after_commit_block{|r| r.history << :after_commit}
+    second.after_rollback_block{|r| r.history << :after_rollback}
 
     Topic.transaction do
       @first.save!
-      @second.save!
+      second.save!
     end
     assert_equal :commit, @first.last_after_transaction_error
-    assert_equal [:after_commit], @second.history
+    assert_equal [:after_commit], second.history
 
-    @second.history.clear
+    second.history.clear
     Topic.transaction do
       @first.save!
-      @second.save!
+      second.save!
       raise ActiveRecord::Rollback
     end
     assert_equal :rollback, @first.last_after_transaction_error
-    assert_equal [:after_rollback], @second.history
+    assert_equal [:after_rollback], second.history
   end
 
   def test_after_rollback_callbacks_should_validate_on_condition
