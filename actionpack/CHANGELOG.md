@@ -431,10 +431,4 @@
 
     *Piotr Sarnacki*, *Łukasz Strzałkowski*
 
-*   Fix removing trailing slash for mounted apps.
-
-    Fixes #3215.
-
-    *Piotr Sarnacki*
-
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for previous changes.
