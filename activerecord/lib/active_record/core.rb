@@ -373,6 +373,17 @@ module ActiveRecord
       !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_create_callbacks.empty?
     end
 
+    # Required to deserialize Syck properly.
+    if YAML.const_defined?(:ENGINE) && YAML::ENGINE.syck?
+      ActiveSupport::Deprecation.warn(
+        "Syck is deprecated and support for serialization has been removed." \
+        " ActiveRecord::Core#yaml_initialize will be removed in 4.1 which will break deserialization support with Syck."
+      )
+      def yaml_initialize(tag, coder) # :nodoc:
+        init_with(coder)
+      end
+    end
+
     private
 
     # Updates the attributes on this particular ActiveRecord object so that

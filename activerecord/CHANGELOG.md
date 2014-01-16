@@ -1,3 +1,12 @@
+*   Add back `#yaml_initialize` method for Syck deserialization
+
+    `ActiveRecord::Core#yaml_initialize` has been added back to support deserialization using
+    the Syck engine. This is to facilitate migration from Syck to Psych. Serialization support
+    will not been restored for Syck, Psych should be used to serialize YAML once its been
+    parsed with Syck.
+
+    *Blake Mesdag*, *arthurnn*
+
 *   Make `touch` fire the `after_commit` and `after_rollback` callbacks.
 
     *Harry Brundage*
