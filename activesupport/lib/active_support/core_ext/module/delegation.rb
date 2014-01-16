@@ -178,30 +178,32 @@ class Module
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
       if allow_nil
-        module_eval(<<-EOS, file, line - 3)
-          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            _ = #{to}                                         #   _ = client
-            if !_.nil? || nil.respond_to?(:#{method})         #   if !_.nil? || nil.respond_to?(:name)
-              _.#{method}(#{definition})                      #     _.name(*args, &block)
-            end                                               #   end
-          end                                                 # end
-        EOS
+        method_def = [
+          "def #{method_prefix}#{method}(#{definition})",  # def customer_name(*args, &block)
+          "_ = #{to}",                                     #   _ = client
+          "if !_.nil? || nil.respond_to?(:#{method})",     #   if !_.nil? || nil.respond_to?(:name)
+          "  _.#{method}(#{definition})",                  #     _.name(*args, &block)
+          "end",                                           #   end
+        "end"                                              # end
+        ].join ';'
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
-        module_eval(<<-EOS, file, line - 2)
-          def #{method_prefix}#{method}(#{definition})                                          # def customer_name(*args, &block)
-            _ = #{to}                                                                           #   _ = client
-            _.#{method}(#{definition})                                                          #   _.name(*args, &block)
-          rescue NoMethodError => e                                                             # rescue NoMethodError => e
-            if _.nil? && e.name == :#{method}                                                   #   if _.nil? && e.name == :name
-              #{exception}                                                                      #     # add helpful message to the exception
-            else                                                                                #   else
-              raise                                                                             #     raise
-            end                                                                                 #   end
-          end                                                                                   # end
-        EOS
+        method_def = [
+          "def #{method_prefix}#{method}(#{definition})",  # def customer_name(*args, &block)
+          " _ = #{to}",                                    #   _ = client
+          "  _.#{method}(#{definition})",                  #   _.name(*args, &block)
+          "rescue NoMethodError => e",                     # rescue NoMethodError => e
+          "  if _.nil? && e.name == :#{method}",           #   if _.nil? && e.name == :name
+          "    #{exception}",                              #     # add helpful message to the exception
+          "  else",                                        #   else
+          "    raise",                                     #     raise
+          "  end",                                         #   end
+          "end"                                            # end
+        ].join ';'
       end
+
+      module_eval(method_def, file, line)
     end
   end
 end
