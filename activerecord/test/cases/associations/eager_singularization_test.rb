@@ -50,59 +50,63 @@ class EagerSingularizationTest < ActiveRecord::TestCase
   end
 
   def setup
-    skip 'Does not support migrations' unless ActiveRecord::Base.connection.supports_migrations?
+    skip 'Does not support migrations' unless connection.supports_migrations?
 
-    ActiveRecord::Base.connection.create_table :viri do |t|
+    connection.create_table :viri do |t|
       t.column :octopus_id, :integer
       t.column :species, :string
     end
-    ActiveRecord::Base.connection.create_table :octopi do |t|
+    connection.create_table :octopi do |t|
       t.column :species, :string
     end
-    ActiveRecord::Base.connection.create_table :passes do |t|
+    connection.create_table :passes do |t|
       t.column :bus_id, :integer
       t.column :rides, :integer
     end
-    ActiveRecord::Base.connection.create_table :buses do |t|
+    connection.create_table :buses do |t|
       t.column :name, :string
     end
-    ActiveRecord::Base.connection.create_table :crises_messes, :id => false do |t|
+    connection.create_table :crises_messes, :id => false do |t|
       t.column :crisis_id, :integer
       t.column :mess_id, :integer
     end
-    ActiveRecord::Base.connection.create_table :messes do |t|
+    connection.create_table :messes do |t|
       t.column :name, :string
     end
-    ActiveRecord::Base.connection.create_table :crises do |t|
+    connection.create_table :crises do |t|
       t.column :name, :string
     end
-    ActiveRecord::Base.connection.create_table :successes do |t|
+    connection.create_table :successes do |t|
       t.column :name, :string
     end
-    ActiveRecord::Base.connection.create_table :analyses do |t|
+    connection.create_table :analyses do |t|
       t.column :crisis_id, :integer
       t.column :success_id, :integer
     end
-    ActiveRecord::Base.connection.create_table :dresses do |t|
+    connection.create_table :dresses do |t|
       t.column :crisis_id, :integer
     end
-    ActiveRecord::Base.connection.create_table :compresses do |t|
+    connection.create_table :compresses do |t|
       t.column :dress_id, :integer
     end
   end
 
   def teardown
-    ActiveRecord::Base.connection.drop_table :viri
-    ActiveRecord::Base.connection.drop_table :octopi
-    ActiveRecord::Base.connection.drop_table :passes
-    ActiveRecord::Base.connection.drop_table :buses
-    ActiveRecord::Base.connection.drop_table :crises_messes
-    ActiveRecord::Base.connection.drop_table :messes
-    ActiveRecord::Base.connection.drop_table :crises
-    ActiveRecord::Base.connection.drop_table :successes
-    ActiveRecord::Base.connection.drop_table :analyses
-    ActiveRecord::Base.connection.drop_table :dresses
-    ActiveRecord::Base.connection.drop_table :compresses
+    connection.drop_table :viri
+    connection.drop_table :octopi
+    connection.drop_table :passes
+    connection.drop_table :buses
+    connection.drop_table :crises_messes
+    connection.drop_table :messes
+    connection.drop_table :crises
+    connection.drop_table :successes
+    connection.drop_table :analyses
+    connection.drop_table :dresses
+    connection.drop_table :compresses
+  end
+
+  def connection
+    ActiveRecord::Base.connection
   end
 
   def test_eager_no_extra_singularization_belongs_to
