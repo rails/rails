@@ -2,7 +2,7 @@ require 'minitest/mock'
 require 'active_support/concurrency/latch'
 require 'monitor'
 
-class Object
+module InternalStub # :nodoc:
   def internal_stub(name, *args, &block) # :nodoc:
     key             = [object_id, name]
     stub_locks      = Thread.current[:stubs] ||= {}
@@ -43,6 +43,14 @@ class Object
       lock[:use].release
       lock[:undefined].await
     end
+end
+
+class Time
+  extend InternalStub
+end
+
+class Date
+  extend InternalStub
 end
 
 module ActiveSupport
