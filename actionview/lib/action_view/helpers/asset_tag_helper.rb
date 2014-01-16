@@ -176,7 +176,7 @@ module ActionView
       # ==== Options
       #
       # You can add HTML attributes using the +options+. The +options+ supports
-      # three additional keys for convenience and conformance:
+      # two additional keys for convenience and conformance:
       #
       # * <tt>:alt</tt>  - If no alt text is given, the file name part of the
       #   +source+ is used (capitalized and without the extension)

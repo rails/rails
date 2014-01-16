@@ -224,7 +224,6 @@ and migrating the database. First, run:
 ```bash
 $ cd test/dummy
 $ rake db:migrate
-$ rake db:test:prepare
 ```
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act

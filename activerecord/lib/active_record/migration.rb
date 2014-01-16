@@ -389,6 +389,19 @@ module ActiveRecord
         raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
       end
 
+      def load_schema_if_pending!
+        if ActiveRecord::Migrator.needs_migration?
+          ActiveRecord::Tasks::DatabaseTasks.load_schema
+          check_pending!
+        end
+      end
+
+      def maintain_test_schema! # :nodoc:
+        if ActiveRecord::Base.maintain_test_schema
+          suppress_messages { load_schema_if_pending! }
+        end
+      end
+
       def method_missing(name, *args, &block) # :nodoc:
         (delegate || superclass.delegate).send(name, *args, &block)
       end
@@ -746,7 +759,7 @@ module ActiveRecord
 
       def load_migration
         require(File.expand_path(filename))
-        name.constantize.new
+        name.constantize.new(name, version)
       end
 
   end

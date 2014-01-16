@@ -5,6 +5,8 @@
 *   Calling `mail()` without arguments serves as getter for the current mail
     message and keeps previously set headers.
 
+    Fixes #13090.
+
     Example:
 
         class MailerWithCallback < ActionMailer::Base

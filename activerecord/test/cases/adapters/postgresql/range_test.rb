@@ -26,7 +26,7 @@ if ActiveRecord::Base.connection.supports_ranges?
           end
         end
       rescue ActiveRecord::StatementInvalid
-        return skip "do not test on PG without range"
+        skip "do not test on PG without range"
       end
 
       insert_range(id: 101,

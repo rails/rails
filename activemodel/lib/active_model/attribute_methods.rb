@@ -245,7 +245,7 @@ module ActiveModel
       #     private
       #
       #     def clear_attribute(attr)
-      #       send("#{attr}", nil)
+      #       send("#{attr}=", nil)
       #     end
       #   end
       def define_attribute_methods(*attr_names)

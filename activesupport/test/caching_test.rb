@@ -3,6 +3,42 @@ require 'abstract_unit'
 require 'active_support/cache'
 require 'dependencies_test_helpers'
 
+module ActiveSupport
+  module Cache
+    module Strategy
+      module LocalCache
+        class MiddlewareTest < ActiveSupport::TestCase
+          def test_local_cache_cleared_on_close
+            key = "super awesome key"
+            assert_nil LocalCacheRegistry.cache_for key
+            middleware = Middleware.new('<3', key).new(->(env) {
+              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              [200, {}, []]
+            })
+            _, _, body = middleware.call({})
+            assert LocalCacheRegistry.cache_for(key), 'should still have a cache'
+            body.each { }
+            assert LocalCacheRegistry.cache_for(key), 'should still have a cache'
+            body.close
+            assert_nil LocalCacheRegistry.cache_for(key)
+          end
+
+          def test_local_cache_cleared_on_exception
+            key = "super awesome key"
+            assert_nil LocalCacheRegistry.cache_for key
+            middleware = Middleware.new('<3', key).new(->(env) {
+              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              raise
+            })
+            assert_raises(RuntimeError) { middleware.call({}) }
+            assert_nil LocalCacheRegistry.cache_for(key)
+          end
+        end
+      end
+    end
+  end
+end
+
 class CacheKeyTest < ActiveSupport::TestCase
   def test_entry_legacy_optional_ivars
     legacy = Class.new(ActiveSupport::Cache::Entry) do
@@ -110,12 +146,12 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
-  def test_mem_cache_fragment_cache_store_with_given_mem_cache_like_object
+  def test_mem_cache_fragment_cache_store_with_not_dalli_client
     Dalli::Client.expects(:new).never
     memcache = Object.new
-    def memcache.get() true end
-    store = ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
-    assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
+    assert_raises(ArgumentError) do
+      ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
+    end
   end
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
@@ -577,6 +613,7 @@ module LocalCacheBehavior
       result = @cache.write('foo', 'bar')
       assert_equal 'bar', @cache.read('foo') # make sure 'foo' was written
       assert result
+      [200, {}, []]
     }
     app = @cache.middleware.new(app)
     app.call({})

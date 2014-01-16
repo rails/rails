@@ -21,7 +21,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
         end
       end
     rescue ActiveRecord::StatementInvalid
-      return skip "do not test on PG without json"
+      skip "do not test on PG without json"
     end
     @column = JsonDataType.columns.find { |c| c.name == 'payload' }
   end

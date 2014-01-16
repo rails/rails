@@ -233,6 +233,8 @@ mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
        to 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
        to 'rails'@'localhost';
+mysql> GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.*
+       to 'rails'@'localhost';
 ```
 
 and create the test databases:

@@ -183,7 +183,7 @@ module ActiveRecord
         def run(preloader); end
 
         def preloaded_records
-          owners.flat_map { |owner| owner.read_attribute reflection.name }
+          owners.flat_map { |owner| owner.association(reflection.name).target }
         end
       end
 

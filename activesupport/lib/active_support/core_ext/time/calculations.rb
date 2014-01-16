@@ -91,10 +91,11 @@ class Time
     end
   end
 
-  # Uses Date to provide precise Time calculations for years, months, and days.
-  # The +options+ parameter takes a hash with any of these keys: <tt>:years</tt>,
-  # <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>,
-  # <tt>:minutes</tt>, <tt>:seconds</tt>.
+  # Uses Date to provide precise Time calculations for years, months, and days
+  # according to the proleptic Gregorian calendar. The +options+ parameter
+  # takes a hash with any of these keys: <tt>:years</tt>, <tt>:months</tt>,
+  # <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>, <tt>:minutes</tt>,
+  # <tt>:seconds</tt>.
   def advance(options)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
@@ -107,6 +108,7 @@ class Time
     end
 
     d = to_date.advance(options)
+    d = d.gregorian if d.julian?
     time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
     seconds_to_advance = \
       options.fetch(:seconds, 0) +

@@ -70,8 +70,19 @@ class ERB
     # them inside a script tag to avoid XSS vulnerability:
     #
     #   <script>
-    #     var currentUser = <%= json_escape current_user.to_json %>;
+    #     var currentUser = <%= raw json_escape(current_user.to_json) %>;
     #   </script>
+    #
+    # It is necessary to +raw+ the result of +json_escape+, so that quotation marks
+    # don't get converted to <tt>&quot;</tt> entities. +json_escape+ doesn't
+    # automatically flag the result as HTML safe, since the raw value is unsafe to
+    # use inside HTML attributes.
+    #
+    # If you need to output JSON elsewhere in your HTML, you can just do something
+    # like this, as any unsafe characters (including quotation marks) will be
+    # automatically escaped for you:
+    #
+    #   <div data-user-info="<%= current_user.to_json %>">...</div>
     #
     # WARNING: this helper only works with valid JSON. Using this on non-JSON values
     # will open up serious XSS vulnerabilities. For example, if you replace the
@@ -88,17 +99,6 @@ class ERB
     # is recommended that you always apply this helper (other libraries, such as the
     # JSON gem, do not provide this kind of protection by default; also some gems
     # might override +to_json+ to bypass Active Support's encoder).
-    #
-    # The output of this helper method is marked as HTML safe so that you can directly
-    # include it inside a <tt><script></tt> tag as shown above.
-    #
-    # However, it is NOT safe to use the output of this inside an HTML attribute,
-    # because quotation marks are not escaped. Doing so might break your page's layout.
-    # If you intend to use this inside an HTML attribute, you should use the
-    # +html_escape+ helper (or its +h+ alias) instead:
-    #
-    #   <div data-user-info="<%= h current_user.to_json %>">...</div>
-    #
     def json_escape(s)
       result = s.to_s.gsub(JSON_ESCAPE_REGEXP, JSON_ESCAPE)
       s.html_safe? ? result.html_safe : result

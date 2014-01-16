@@ -1,10 +1,11 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/company'
 require 'models/person'
 require 'models/post'
 require 'models/project'
 require 'models/subscriber'
 require 'models/vegetables'
+require 'models/shop'
 
 class InheritanceTest < ActiveRecord::TestCase
   fixtures :companies, :projects, :subscribers, :accounts, :vegetables
@@ -128,6 +129,17 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Cabbage, cabbage
   end
 
+  def test_alt_becomes_bang_resets_inheritance_type_column
+    vegetable = Vegetable.create!(name: "Red Pepper")
+    assert_nil vegetable.custom_type
+
+    cabbage = vegetable.becomes!(Cabbage)
+    assert_equal "Cabbage", cabbage.custom_type
+
+    vegetable = cabbage.becomes!(Vegetable)
+    assert_nil cabbage.custom_type
+  end
+
   def test_inheritance_find_all
     companies = Company.all.merge!(:order => 'id').to_a
     assert_kind_of Firm, companies[0], "37signals should be a firm"
@@ -176,14 +188,14 @@ class InheritanceTest < ActiveRecord::TestCase
     e = assert_raises(NotImplementedError) do
       AbstractCompany.new
     end
-    assert_equal("AbstractCompany is an abstract class and can not be instantiated.", e.message)
+    assert_equal("AbstractCompany is an abstract class and cannot be instantiated.", e.message)
   end
 
   def test_new_with_ar_base
     e = assert_raises(NotImplementedError) do
       ActiveRecord::Base.new
     end
-    assert_equal("ActiveRecord::Base is an abstract class and can not be instantiated.", e.message)
+    assert_equal("ActiveRecord::Base is an abstract class and cannot be instantiated.", e.message)
   end
 
   def test_new_with_invalid_type
@@ -355,5 +367,11 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
   ensure
     ActiveRecord::Base.store_full_sti_class = true
+  end
+
+  def test_sti_type_from_attributes_disabled_in_non_sti_class
+    phone = Shop::Product::Type.new(name: 'Phone')
+    product = Shop::Product.new(:type => phone)
+    assert product.save
   end
 end

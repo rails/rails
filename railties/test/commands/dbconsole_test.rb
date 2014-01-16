@@ -223,7 +223,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   private
 
   def app_db_config(results)
-    Rails.application.config.stubs(:database_configuration).returns(results)
+    Rails.application.config.stubs(:database_configuration).returns(results || {})
   end
 
   def dbconsole

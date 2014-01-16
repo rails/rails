@@ -476,6 +476,13 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal t, t.advance(:months => 0)
   end
 
+  def test_advance_gregorian_proleptic
+    assert_equal Time.local(1582,10,14,15,15,10), Time.local(1582,10,15,15,15,10).advance(:days => -1)
+    assert_equal Time.local(1582,10,15,15,15,10), Time.local(1582,10,14,15,15,10).advance(:days => 1)
+    assert_equal Time.local(1582,10,5,15,15,10), Time.local(1582,10,4,15,15,10).advance(:days => 1)
+    assert_equal Time.local(1582,10,4,15,15,10), Time.local(1582,10,5,15,15,10).advance(:days => -1)
+  end
+
   def test_last_week
     with_env_tz 'US/Eastern' do
       assert_equal Time.local(2005,2,21), Time.local(2005,3,1,15,15,10).last_week

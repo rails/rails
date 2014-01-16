@@ -574,6 +574,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
   end
 
+  def teardown
+    # We are running without transactional fixtures and need to cleanup.
+    Bird.delete_all
+    @ship.delete
+    @pirate.delete
+  end
+
   # reload
   def test_a_marked_for_destruction_record_should_not_be_be_marked_after_reload
     @pirate.mark_for_destruction

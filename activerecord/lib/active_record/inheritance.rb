@@ -16,15 +16,19 @@ module ActiveRecord
       # instance of the given subclass instead of the base class.
       def new(*args, &block)
         if abstract_class? || self == Base
-          raise NotImplementedError, "#{self} is an abstract class and can not be instantiated."
+          raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
-        if (attrs = args.first).is_a?(Hash)
-          if subclass = subclass_from_attrs(attrs)
-            return subclass.new(*args, &block)
-          end
+
+        attrs = args.first
+        if subclass_from_attributes?(attrs)
+          subclass = subclass_from_attributes(attrs)
         end
-        # Delegate to the original .new
-        super
+
+        if subclass
+          subclass.new(*args, &block)
+        else
+          super
+        end
       end
 
       # Returns +true+ if this does not need STI type condition. Returns
@@ -45,10 +49,12 @@ module ActiveRecord
       end
 
       def symbolized_base_class
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.symbolized_base_class is deprecated and will be removed without replacement.")
         @symbolized_base_class ||= base_class.to_s.to_sym
       end
 
       def symbolized_sti_name
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.symbolized_sti_name is deprecated and will be removed without replacement.")
         @symbolized_sti_name ||= sti_name.present? ? sti_name.to_sym : symbolized_base_class
       end
 
@@ -124,7 +130,7 @@ module ActiveRecord
             end
           end
 
-          raise NameError, "uninitialized constant #{candidates.first}"
+          raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
         end
       end
 
@@ -170,7 +176,11 @@ module ActiveRecord
       # is not self or a valid subclass, raises ActiveRecord::SubclassNotFound
       # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
       # this will ignore the inheritance column and return nil
-      def subclass_from_attrs(attrs)
+      def subclass_from_attributes?(attrs)
+        columns_hash.include?(inheritance_column) && attrs.is_a?(Hash)
+      end
+
+      def subclass_from_attributes(attrs)
         subclass_name = attrs.with_indifferent_access[inheritance_column]
 
         if subclass_name.present? && subclass_name != self.name

@@ -79,6 +79,10 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
   end
 
+  def test_migration_version
+    ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947)
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     if Person.connection.table_exists?(:testings2)
       Person.connection.drop_table :testings2
@@ -324,6 +328,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_proper_table_name_on_migrator
+    reminder_class = new_isolated_reminder_class
     assert_deprecated do
       assert_equal "table", ActiveRecord::Migrator.proper_table_name('table')
     end
@@ -331,30 +336,30 @@ class MigrationTest < ActiveRecord::TestCase
       assert_equal "table", ActiveRecord::Migrator.proper_table_name(:table)
     end
     assert_deprecated do
-      assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(Reminder)
+      assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(reminder_class)
     end
-    Reminder.reset_table_name
+    reminder_class.reset_table_name
     assert_deprecated do
-      assert_equal Reminder.table_name, ActiveRecord::Migrator.proper_table_name(Reminder)
+      assert_equal reminder_class.table_name, ActiveRecord::Migrator.proper_table_name(reminder_class)
     end
 
     # Use the model's own prefix/suffix if a model is given
     ActiveRecord::Base.table_name_prefix = "ARprefix_"
     ActiveRecord::Base.table_name_suffix = "_ARsuffix"
-    Reminder.table_name_prefix = 'prefix_'
-    Reminder.table_name_suffix = '_suffix'
-    Reminder.reset_table_name
+    reminder_class.table_name_prefix = 'prefix_'
+    reminder_class.table_name_suffix = '_suffix'
+    reminder_class.reset_table_name
     assert_deprecated do
-      assert_equal "prefix_reminders_suffix", ActiveRecord::Migrator.proper_table_name(Reminder)
+      assert_equal "prefix_reminders_suffix", ActiveRecord::Migrator.proper_table_name(reminder_class)
     end
-    Reminder.table_name_prefix = ''
-    Reminder.table_name_suffix = ''
-    Reminder.reset_table_name
+    reminder_class.table_name_prefix = ''
+    reminder_class.table_name_suffix = ''
+    reminder_class.reset_table_name
 
     # Use AR::Base's prefix/suffix if string or symbol is given
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
-    Reminder.reset_table_name
+    reminder_class.reset_table_name
     assert_deprecated do
       assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name('table')
     end
@@ -364,28 +369,29 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_proper_table_name_on_migration
+    reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
     assert_equal "table", migration.proper_table_name('table')
     assert_equal "table", migration.proper_table_name(:table)
-    assert_equal "reminders", migration.proper_table_name(Reminder)
-    Reminder.reset_table_name
-    assert_equal Reminder.table_name, migration.proper_table_name(Reminder)
+    assert_equal "reminders", migration.proper_table_name(reminder_class)
+    reminder_class.reset_table_name
+    assert_equal reminder_class.table_name, migration.proper_table_name(reminder_class)
 
     # Use the model's own prefix/suffix if a model is given
     ActiveRecord::Base.table_name_prefix = "ARprefix_"
     ActiveRecord::Base.table_name_suffix = "_ARsuffix"
-    Reminder.table_name_prefix = 'prefix_'
-    Reminder.table_name_suffix = '_suffix'
-    Reminder.reset_table_name
-    assert_equal "prefix_reminders_suffix", migration.proper_table_name(Reminder)
-    Reminder.table_name_prefix = ''
-    Reminder.table_name_suffix = ''
-    Reminder.reset_table_name
+    reminder_class.table_name_prefix = 'prefix_'
+    reminder_class.table_name_suffix = '_suffix'
+    reminder_class.reset_table_name
+    assert_equal "prefix_reminders_suffix", migration.proper_table_name(reminder_class)
+    reminder_class.table_name_prefix = ''
+    reminder_class.table_name_suffix = ''
+    reminder_class.reset_table_name
 
     # Use AR::Base's prefix/suffix if string or symbol is given
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
-    Reminder.reset_table_name
+    reminder_class.reset_table_name
     assert_equal "prefix_table_suffix", migration.proper_table_name('table', migration.table_name_options)
     assert_equal "prefix_table_suffix", migration.proper_table_name(:table, migration.table_name_options)
   end
@@ -528,11 +534,13 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    # This is needed to isolate class_attribute assignments like `table_name_prefix`
+    # for each test case.
+    def new_isolated_reminder_class
+      Class.new(Reminder) {
+        def self.name; "Reminder"; end
+        def self.base_class; self; end
+      }
     end
 end
 

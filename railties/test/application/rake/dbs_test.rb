@@ -1,4 +1,5 @@
 require "isolation/abstract_unit"
+require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   module RakeTests
@@ -20,12 +21,9 @@ module ApplicationTests
       end
 
       def set_database_url
-        ENV['RAILS_DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
+        ENV['DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
-        File.open("#{app_path}/config/database.yml", 'w') do |f|
-          f << {ENV['RAILS_ENV'] => %Q{<%= ENV['RAILS_DATABASE_URL'] %>}}.to_yaml
-        end
       end
 
       def expected
@@ -168,6 +166,15 @@ module ApplicationTests
       test 'db:test:load_structure without database_url' do
         require "#{app_path}/config/environment"
         db_test_load_structure
+      end
+
+      test 'db:test deprecation' do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          output = `bundle exec rake db:migrate db:test:prepare 2>&1`
+          assert_equal "WARNING: db:test:prepare is deprecated. The Rails test helper now maintains " \
+                       "your test schema automatically, see the release notes for details.\n", output
+        end
       end
     end
   end

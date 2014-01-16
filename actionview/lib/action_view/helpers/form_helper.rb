@@ -51,7 +51,7 @@ module ActionView
     # The HTML generated for this would be (modulus formatting):
     #
     #   <form action="/people" class="new_person" id="new_person" method="post">
-    #     <div style="margin:0;padding:0;display:inline">
+    #     <div style="display:none">
     #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     </div>
     #     <label for="person_first_name">First name</label>:
@@ -81,7 +81,7 @@ module ActionView
     # the code above as is would yield instead:
     #
     #   <form action="/people/256" class="edit_person" id="edit_person_256" method="post">
-    #     <div style="margin:0;padding:0;display:inline">
+    #     <div style="display:none">
     #       <input name="_method" type="hidden" value="patch" />
     #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     </div>
@@ -315,7 +315,7 @@ module ActionView
       # The HTML generated for this would be:
       #
       #   <form action='http://www.example.com' method='post' data-remote='true'>
-      #     <div style='margin:0;padding:0;display:inline'>
+      #     <div style='display:none'>
       #       <input name='_method' type='hidden' value='patch' />
       #     </div>
       #     ...
@@ -333,7 +333,7 @@ module ActionView
       # The HTML generated for this would be:
       #
       #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
-      #     <div style='margin:0;padding:0;display:inline'>
+      #     <div style='display:none'>
       #       <input name='_method' type='hidden' value='patch' />
       #     </div>
       #     ...
@@ -762,8 +762,8 @@ module ActionView
       #   text_field(:post, :title, class: "create_input")
       #   # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" class="create_input" />
       #
-      #   text_field(:session, :user, onchange: "if ($('#session_user').val() === 'admin') { alert('Your login can not be admin!'); }")
-      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange="if ($('#session_user').val() === 'admin') { alert('Your login can not be admin!'); }"/>
+      #   text_field(:session, :user, onchange: "if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }")
+      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange="if ($('#session_user').val() === 'admin') { alert('Your login cannot be admin!'); }"/>
       #
       #   text_field(:snippet, :code, size: 20, class: 'code_input')
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />

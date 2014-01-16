@@ -1,3 +1,9 @@
+*   Use `display:none` instead of `display:inline` for hidden fields
+
+    Fixes #6403
+
+    *Gaelian Ditchburn*
+
 *   The `video_tag` helper accepts a number as `:size`
 
     The `:size` option of the `video_tag` helper now can be specified

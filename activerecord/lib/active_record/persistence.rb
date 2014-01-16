@@ -196,7 +196,11 @@ module ActiveRecord
     # share the same set of attributes.
     def becomes!(klass)
       became = becomes(klass)
-      became.public_send("#{klass.inheritance_column}=", klass.sti_name) unless self.class.descends_from_active_record?
+      sti_type = nil
+      if !klass.descends_from_active_record?
+        sti_type = klass.sti_name
+      end
+      became.public_send("#{klass.inheritance_column}=", sti_type)
       became
     end
 
@@ -265,7 +269,7 @@ module ActiveRecord
     # This method raises an +ActiveRecord::ActiveRecordError+ when called on new
     # objects, or when at least one of the attributes is marked as readonly.
     def update_columns(attributes)
-      raise ActiveRecordError, "can not update on a new record object" unless persisted?
+      raise ActiveRecordError, "cannot update on a new record object" unless persisted?
 
       attributes.each_key do |key|
         verify_readonly_attribute(key.to_s)
@@ -427,7 +431,7 @@ module ActiveRecord
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
     def touch(name = nil)
-      raise ActiveRecordError, "can not touch on a new record object" unless persisted?
+      raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
 
       attributes = timestamp_attributes_for_update_in_model
       attributes << name if name

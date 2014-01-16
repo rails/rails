@@ -1,3 +1,65 @@
+*   Fix stream closing when sending file with `ActionController::Live` included.
+
+    Fixes #12381
+
+    *Alessandro Diaferia*
+
+*   Allow an absolute controller path inside a module scope. Fixes #12777.
+
+    Example:
+
+        namespace :foo do
+          # will route to BarController without the namespace.
+          get '/special', to: '/bar#index'
+        end
+
+
+*   Unique the segment keys array for non-optimized url helpers
+
+    In Rails 3.2 you only needed pass an argument for dynamic segment once so
+    unique the segment keys array to match the number of args. Since the number
+    of args is less than required parts the non-optimized code path is selected.
+    This means to benefit from optimized url generation the arg needs to be
+    specified as many times as it appears in the path.
+
+    Fixes #12808.
+
+    *Andrew White*
+
+*   Show full route constraints in error message
+
+    When an optimized helper fails to generate, show the full route constraints
+    in the error message. Previously it would only show the contraints that were
+    required as part of the path.
+
+    Fixes #13592.
+
+    *Andrew White*
+
+*   Use a custom route visitor for optimized url generation. Fixes #13349.
+
+    *Andrew White*
+
+*   Allow engine root relative redirects using an empty string.
+
+    Example:
+
+        # application routes.rb
+        mount BlogEngine => '/blog'
+
+        # engine routes.rb
+        get '/welcome' => redirect('')
+
+    This now redirects to the path `/blog`, whereas before it would redirect
+    to the application root path. In the case of a path redirect or a custom
+    redirect if the path returned contains a host then the path is treated as
+    absolute. Similarly for option redirects, if the options hash returned
+    contains a `:host` or `:domain` key then the path is treated as absolute.
+
+    Fixes #7977.
+
+    *Andrew White*
+
 *   Fix `Encoding::CompatibilityError` when public path is UTF-8
 
     In #5337 we forced the path encoding to ASCII-8BIT to prevent static file handling
@@ -9,7 +71,7 @@
     it has been unescaped. If it is not valid then we can return early since it will
     not match any file anyway.
 
-    Fixes #13518
+    Fixes #13518.
 
     *Andrew White*
 
@@ -19,7 +81,7 @@
 
 *   Converts hashes in arrays of unfiltered params to unpermitted params.
 
-    Fixes #13382
+    Fixes #13382.
 
     *Xavier Noria*
 
@@ -97,6 +159,24 @@
           format.js         { render "trash" }
           format.html.phone { redirect_to progress_path }
           format.html.none  { render "trash" }
+        end
+
+    Variants also support common `any`/`all` block that formats have.
+
+    It works for both inline:
+
+        respond_to do |format|
+          format.html.any   { render text: "any"   }
+          format.html.phone { render text: "phone" }
+        end
+
+    and block syntax:
+
+        respond_to do |format|
+          format.html do |variant|
+            variant.any(:tablet, :phablet){ render text: "any" }
+            variant.phone { render text: "phone" }
+          end
         end
 
     *Łukasz Strzałkowski*
@@ -350,11 +430,5 @@
 *   Action View extracted from Action Pack.
 
     *Piotr Sarnacki*, *Łukasz Strzałkowski*
-
-*   Fix removing trailing slash for mounted apps.
-
-    Fixes #3215.
-
-    *Piotr Sarnacki*
 
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for previous changes.

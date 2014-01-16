@@ -191,6 +191,61 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def variant_any
+    respond_to do |format|
+      format.html do |variant|
+        variant.any(:tablet, :phablet){ render text: "any" }
+        variant.phone { render text: "phone" }
+      end
+    end
+  end
+
+  def variant_any_any
+    respond_to do |format|
+      format.html do |variant|
+        variant.any   { render text: "any"   }
+        variant.phone { render text: "phone" }
+      end
+    end
+  end
+
+  def variant_inline_any
+    respond_to do |format|
+      format.html.any(:tablet, :phablet){ render text: "any" }
+      format.html.phone { render text: "phone" }
+    end
+  end
+
+  def variant_inline_any_any
+    respond_to do |format|
+      format.html.phone { render text: "phone" }
+      format.html.any   { render text: "any"   }
+    end
+  end
+
+  def variant_any_implicit_render
+    respond_to do |format|
+      format.html.phone
+      format.html.any(:tablet, :phablet)
+    end
+  end
+
+  def variant_any_with_none
+    respond_to do |format|
+      format.html.any(:none, :phone){ render text: "none or phone" }
+    end
+  end
+
+  def format_any_variant_any
+    respond_to do |format|
+      format.html { render text: "HTML" }
+      format.any(:js, :xml) do |variant|
+        variant.phone{ render text: "phone" }
+        variant.any(:tablet, :phablet){ render text: "tablet" }
+      end
+    end
+  end
+
   protected
     def set_layout
       case action_name
@@ -596,5 +651,93 @@ class RespondToControllerTest < ActionController::TestCase
     get :variant_inline_syntax_without_block
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
+  end
+
+  def test_variant_any
+    @request.variant = :phone
+    get :variant_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+
+    @request.variant = :tablet
+    get :variant_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+
+    @request.variant = :phablet
+    get :variant_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+  end
+
+  def test_variant_any_any
+    @request.variant = :phone
+    get :variant_any_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+
+    @request.variant = :yolo
+    get :variant_any_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+  end
+
+  def test_variant_inline_any
+    @request.variant = :phone
+    get :variant_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+
+    @request.variant = :tablet
+    get :variant_inline_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+
+    @request.variant = :phablet
+    get :variant_inline_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+  end
+
+  def test_variant_inline_any_any
+    @request.variant = :phone
+    get :variant_inline_any_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+
+    @request.variant = :yolo
+    get :variant_inline_any_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+  end
+
+  def test_variant_any_implicit_render
+    @request.variant = :tablet
+    get :variant_any_implicit_render
+    assert_equal "text/html", @response.content_type
+    assert_equal "tablet", @response.body
+
+    @request.variant = :phablet
+    get :variant_any_implicit_render
+    assert_equal "text/html", @response.content_type
+    assert_equal "phablet", @response.body
+  end
+
+  def test_variant_any_with_none
+    get :variant_any_with_none
+    assert_equal "text/html", @response.content_type
+    assert_equal "none or phone", @response.body
+
+    @request.variant = :phone
+    get :variant_any_with_none
+    assert_equal "text/html", @response.content_type
+    assert_equal "none or phone", @response.body
+  end
+
+  def test_format_any_variant_any
+    @request.variant = :tablet
+    get :format_any_variant_any, format: :js
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "tablet", @response.body
   end
 end

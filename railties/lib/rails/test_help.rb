@@ -15,6 +15,8 @@ if ENV["BACKTRACE"].nil?
 end
 
 if defined?(ActiveRecord::Base)
+  ActiveRecord::Migration.maintain_test_schema!
+
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"

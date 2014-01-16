@@ -1,3 +1,199 @@
+*   Make `touch` fire the `after_commit` and `after_rollback` callbacks.
+
+    *Harry Brundage*
+
+*   Enable partial indexes for sqlite >= 3.8.0
+
+    See http://www.sqlite.org/partialindex.html
+
+    *Cody Cutrer*
+
+*   Don't try to get the subclass if the inheritance column doesn't exist
+
+    The `subclass_from_attrs` method is called even if the column specified by
+    the `inheritance_column` setting doesn't exist. This prevents setting associations
+    via the attributes hash if the association name clashes with the value of the setting,
+    typically `:type`. This worked previously in Rails 3.2.
+
+    *Ujjwal Thaakar*
+
+*   Enum mappings are now exposed via class methods instead of constants.
+
+    Example:
+
+        class Conversation < ActiveRecord::Base
+          enum status: [ :active, :archived ]
+        end
+
+    Before:
+
+        Conversation::STATUS # => { "active" => 0, "archived" => 1 }
+
+    After:
+
+        Conversation.statuses # => { "active" => 0, "archived" => 1 }
+
+    *Godfrey Chan*
+
+*   Set `NameError#name` when STI-class-lookup fails.
+
+    *Chulki Lee*
+
+*   Fix bug in `becomes!` when changing from the base model to a STI sub-class.
+
+    Fixes #13272.
+
+    *the-web-dev*, *Yves Senn*
+
+*   Currently Active Record can be configured via the environment variable
+    `DATABASE_URL` or by manually injecting a hash of values which is what Rails does,
+    reading in `database.yml` and setting Active Record appropriately. Active Record
+    expects to be able to use `DATABASE_URL` without the use of Rails, and we cannot
+    rip out this functionality without deprecating. This presents a problem though
+    when both config is set, and a `DATABASE_URL` is present. Currently the
+    `DATABASE_URL` should "win" and none of the values in `database.yml` are
+    used. This is somewhat unexpected, if one were to set values such as
+    `pool` in the `production:` group of `database.yml` they are ignored.
+
+    There are many ways that Active Record initiates a connection today:
+
+    - Stand Alone (without rails)
+      - `rake db:<tasks>`
+      - `ActiveRecord.establish_connection`
+
+    - With Rails
+      - `rake db:<tasks>`
+      - `rails <server> | <console>`
+      - `rails dbconsole`
+
+    Now all of these behave exactly the same way. The best way to do
+    this is to put all of this logic in one place so it is guaranteed to be used.
+
+    Here is the matrix of how this behavior works:
+
+    ```
+    No database.yml
+    No DATABASE_URL
+    => Error
+    ```
+
+    ```
+    database.yml present
+    No DATABASE_URL
+    => Use database.yml configuration
+    ```
+
+    ```
+    No database.yml
+    DATABASE_URL present
+    => use DATABASE_URL configuration
+    ```
+
+    ```
+    database.yml present
+    DATABASE_URL present
+    => Merged into `url` sub key. If both specify `url` sub key, the `database.yml` `url`
+       sub key "wins". If other paramaters `adapter` or `database` are specified in YAML,
+       they are discarded as the `url` sub key "wins".
+    ```
+
+    Current implementation uses `ActiveRecord::Base.configurations` to resolve and merge
+    all connection information before returning. This is achieved through a utility
+    class: `ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig`.
+
+    To understand the exact behavior of this class, it is best to review the
+    behavior in `activerecord/test/cases/connection_adapters/connection_handler_test.rb`.
+
+    *Richard Schneeman*
+
+*   Make `change_column_null` revertable. Fixes #13576.
+
+    *Yves Senn*, *Nishant Modak*, *Prathamesh Sonpatki*
+
+*   Don't create/drop the test database if RAILS_ENV is specified explicitly.
+
+    Previously, when the environment was development, we would always
+    create or drop both the test and development databases.
+
+    Now, if RAILS_ENV is explicitly defined as development, we don't create
+    the test database.
+
+    *Damien Mathieu*
+
+*   Initialize version on Migration objects so that it can be used in a migration,
+    and it will be included in the announce message.
+
+    *Dylan Thacker-Smith*
+
+*   `change_table` now uses the current adapter's `update_table_definition`
+    method to retrieve a specific table definition.
+    This ensures that `change_table` and `create_table` will use
+    similar objects.
+
+    Fixes #13577 and #13503.
+
+    *Nishant Modak*, *Prathamesh Sonpatki*, *Rafael Mendonça França*
+
+*   Fixed ActiveRecord::Store nil conversion TypeError when using YAML coder.
+    In case the YAML passed as paramter is nil, uses an empty string.
+
+    Fixes #13570.
+
+    *Thales Oliveira*
+
+*   Deprecate unused `ActiveRecord::Base.symbolized_base_class`
+    and `ActiveRecord::Base.symbolized_sti_name` without replacement.
+
+    *Yves Senn*
+
+*   Since the `test_help.rb` file in Railties now automatically maintains
+    your test schema, the `rake db:test:*` tasks are deprecated. This
+    doesn't stop you manually running other tasks on your test database
+    if needed:
+
+        rake db:schema:load RAILS_ENV=test
+
+    *Jon Leighton*
+
+*   Fix presence validator for association when the associated record responds to `to_a`.
+
+    *gmarik*
+
+*   Fixed regression on preload/includes with multiple arguments failing in certain conditions,
+    raising a NoMethodError internally by calling `reflect_on_association` for `NilClass:Class`.
+
+    Fixes #13437.
+
+    *Vipul A M*, *khustochka*
+
+*   Add the ability to nullify the `enum` column.
+
+     Example:
+
+         class Conversation < ActiveRecord::Base
+           enum gender: [:female, :male]
+         end
+
+         Conversation::GENDER # => { female: 0, male: 1 }
+
+         # conversation.update! gender: 0
+         conversation.female!
+         conversation.female? # => true
+         conversation.gender  # => "female"
+
+         # conversation.update! gender: nil
+         conversation.gender = nil
+         conversation.gender.nil? # => true
+         conversation.gender      # => nil
+
+     *Amr Tamimi*
+
+*   Connection specification now accepts a "url" key. The value of this
+    key is expected to contain a database URL. The database URL will be
+    expanded into a hash and merged.
+
+    *Richard Schneeman*
+
 *   An `ArgumentError` is now raised on a call to `Relation#where.not(nil)`.
 
     Example:
@@ -49,7 +245,7 @@
 
     *Richard Schneeman*
 
-*   Do not raise `'can not touch on a new record object'` exception on destroying
+*   Do not raise `'cannot touch on a new record object'` exception on destroying
     already destroyed `belongs_to` association with `touch: true` option.
 
     Fixes #13445.
@@ -252,7 +448,7 @@
     *kostya*, *Lauro Caetano*
 
 *   `type_to_sql` returns a `String` for unmapped columns. This fixes an error
-    when using unmapped array types in PG
+    when using unmapped PostgreSQL array types.
 
     Example:
 
@@ -291,7 +487,7 @@
 
 *   Update counter cache on a `has_many` relationship regardless of default scope.
 
-    Fix #12952.
+    Fixes #12952.
 
     *Uku Taht*
 
@@ -302,9 +498,10 @@
 
     *Cody Cutrer*, *Yves Senn*
 
-*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child marked with `dependent: destroy` fails to be destroyed.
+*   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child
+    marked with `dependent: destroy` fails to be destroyed.
 
-    Fix #12812
+    Fixex #12812.
 
     *Brian Thomas Storti*
 
@@ -1193,7 +1390,7 @@
 
     *John Wang*
 
-*   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432
+*   Fix `add_column` with `array` option when using PostgreSQL. Fixes #10432.
 
     *Adam Anderson*
 
@@ -1210,6 +1407,7 @@
     *Yves Senn*
 
 *   Fix the `:primary_key` option for `has_many` associations.
+
     Fixes #10693.
 
     *Yves Senn*
@@ -1334,7 +1532,7 @@
 
 *   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
 
-    Fix #8856.
+    Fixes #8856.
 
     *Chris Thompson*
 

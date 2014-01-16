@@ -58,8 +58,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_assets
     run_generator
 
-    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+"application", media: "all", "data-turbolinks-track" => true/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+"application", "data-turbolinks-track" => true/)
+    assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track' => true/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track' => true/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/assets/javascripts/application.js")
   end
@@ -163,56 +163,71 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_add_gemfile_entry
-    template = Tempfile.open 'my_template'
-    template.puts 'gemfile_entry "tenderlove"'
-    template.flush
+  def test_arbitrary_code
+    output = Tempfile.open('my_template') do |template|
+      template.puts 'puts "You are using Rails version #{Rails::VERSION::STRING}."'
+      template.close
+      run_generator([destination_root, "-m", template.path])
+    end
+    assert_match 'You are using', output
+  end
 
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile", /tenderlove/
-  ensure
-    template.close
-    template.unlink
+  def test_add_gemfile_entry
+    Tempfile.open('my_template') do |template|
+      template.puts 'gemfile_entry "tenderlove"'
+      template.flush
+      template.close
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile", /tenderlove/
+    end
   end
 
   def test_add_skip_entry
-    template = Tempfile.open 'my_template'
-    template.puts 'add_gem_entry_filter { |gem| gem.name != "jbuilder" }'
-    template.flush
+    Tempfile.open 'my_template' do |template|
+      template.puts 'add_gem_entry_filter { |gem| gem.name != "jbuilder" }'
+      template.close
 
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile" do |contents|
-      assert_no_match 'jbuilder', contents
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'jbuilder', contents
+      end
     end
-  ensure
-    template.close
-    template.unlink
+  end
+
+  def test_remove_gem
+    Tempfile.open 'my_template' do |template|
+      template.puts 'remove_gem "jbuilder"'
+      template.close
+
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'jbuilder', contents
+      end
+    end
   end
 
   def test_skip_turbolinks_when_it_is_not_on_gemfile
-    template = Tempfile.open 'my_template'
-    template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
-    template.flush
+    Tempfile.open 'my_template' do |template|
+      template.puts 'add_gem_entry_filter { |gem| gem.name != "turbolinks" }'
+      template.flush
 
-    run_generator([destination_root, "-m", template.path])
-    assert_file "Gemfile" do |contents|
-      assert_no_match 'turbolinks', contents
-    end
+      run_generator([destination_root, "-n", template.path])
+      assert_file "Gemfile" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
 
-    assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_no_match 'turbolinks', contents
-    end
+      assert_file "app/views/layouts/application.html.erb" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
 
-    assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_no_match('data-turbolinks-track', contents)
-    end
+      assert_file "app/views/layouts/application.html.erb" do |contents|
+        assert_no_match('data-turbolinks-track', contents)
+      end
 
-    assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_no_match 'turbolinks', contents
+      assert_file "app/assets/javascripts/application.js" do |contents|
+        assert_no_match 'turbolinks', contents
+      end
     end
-  ensure
-    template.close
-    template.unlink
   end
 
   def test_config_another_database
@@ -349,8 +364,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "vendor/assets/javascripts"
 
     assert_file "app/views/layouts/application.html.erb" do |contents|
-      assert_match(/stylesheet_link_tag\s+"application", media: "all" %>/, contents)
-      assert_no_match(/javascript_include_tag\s+"application" \%>/, contents)
+      assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
+      assert_no_match(/javascript_include_tag\s+'application' \%>/, contents)
     end
 
     assert_file "Gemfile" do |content|
@@ -375,9 +390,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_lazy_loaded_sdoc
+  def test_inclusion_of_doc
     run_generator
-    assert_file 'Gemfile', /gem 'sdoc', \s+group: :doc, require: false/
+    assert_file 'Gemfile', /gem 'sdoc',\s+'~> 0.4.0',\s+group: :doc/
   end
 
   def test_template_from_dir_pwd
@@ -443,12 +458,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_spring_binstubs
+    jruby_skip "spring doesn't run on JRuby"
     generator.stubs(:bundle_command).with('install')
     generator.expects(:bundle_command).with('exec spring binstub --all').once
     quietly { generator.invoke_all }
   end
 
   def test_spring_no_fork
+    jruby_skip "spring doesn't run on JRuby"
     Process.stubs(:respond_to?).with(:fork).returns(false)
     run_generator
 

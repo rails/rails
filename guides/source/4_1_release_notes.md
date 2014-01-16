@@ -281,6 +281,13 @@ for detailed changes.
 * Add `Application#message_verifier` method to return a message
   verifier. ([Pull Request](https://github.com/rails/rails/pull/12995))
 
+* The `test_help.rb` file which is required by the default generated test
+  helper will automatically keep your test database up-to-date with
+  `db/schema.rb` (or `db/structure.sql`). It raises an error if
+  reloading the schema does not resolve all pending migrations. Opt out
+  with `config.active_record.maintain_test_schema = false`. ([Pull
+  Request](https://github.com/rails/rails/pull/13528))
+
 Action Pack
 -----------
 
@@ -421,6 +428,14 @@ for detailed changes.
 * Deprecated `ConnectionAdapters::SchemaStatements#distinct`,
   as it is no longer used by internals. ([Pull Request](https://github.com/rails/rails/pull/10556))
 
+* Deprecated `rake db:test:*` tasks as the test database is now
+  automatically maintained. See railties release notes. ([Pull
+  Request](https://github.com/rails/rails/pull/13528))
+
+* Deprecate unused `ActiveRecord::Base.symbolized_base_class`
+  and `ActiveRecord::Base.symbolized_sti_name` without
+  replacement. [Commit](https://github.com/rails/rails/commit/97e7ca48c139ea5cce2fa9b4be631946252a1ebd)
+
 ### Notable changes
 
 * Added `ActiveRecord::Base.to_param` for convenient "pretty" URLs derived from
@@ -482,6 +497,8 @@ for detailed changes.
 * The ERB in fixture files is no longer evaluated in the context of the main
   object. Helper methods used by multiple fixtures should be defined on modules
   included in `ActiveRecord::FixtureSet.context_class`. ([Pull Request](https://github.com/rails/rails/pull/13022))
+
+* Don't create or drop the test database if RAILS_ENV is specified explicitly.
 
 Active Model
 ------------
