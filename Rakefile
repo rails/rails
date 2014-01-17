@@ -14,7 +14,7 @@ task :release => "all:release"
 PROJECTS = %w(activesupport activemodel actionpack actionview actionmailer activerecord railties)
 
 desc 'Run all tests by default'
-task :default => %w(test test:isolated)
+task :default => %w(test test:isolated travis_lint)
 
 %w(test test:isolated package gem).each do |task_name|
   desc "Run #{task_name} task for all projects"
@@ -33,6 +33,11 @@ task :smoke do
     system %(cd #{project} && #{$0} test:isolated)
   end
   system %(cd activerecord && #{$0} sqlite3:isolated_test)
+end
+
+desc "Check .travis.yml for errors"
+task :travis_lint do
+  sh 'travis-lint'
 end
 
 desc "Install gems for all projects."

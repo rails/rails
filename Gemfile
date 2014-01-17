@@ -41,6 +41,7 @@ group :test do
   # end
 
   gem 'benchmark-ips'
+  gem 'travis-lint'
 end
 
 platforms :ruby do
