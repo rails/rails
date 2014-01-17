@@ -60,9 +60,9 @@ module ActiveSupport
       # This method is to make sure the stubs are automatically removed at the end of each
       # test.
       def after_teardown #:nodoc:
-        super
         Time.internal_unstub :now
         Date.internal_unstub :today
+        super
       end
 
       # Change current time to the time in the future or in the past by a given time difference by
