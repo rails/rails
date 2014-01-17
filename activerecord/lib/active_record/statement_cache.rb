@@ -33,7 +33,7 @@ module ActiveRecord
     end
 
     def self.query(connection, visitor, ast)
-      Query.new connection, visitor.accept(ast)
+      Query.new visitor.accept(ast)
     end
 
     def self.partial_query(visitor, ast)
