@@ -159,7 +159,7 @@ module ActiveSupport
     #
     #   counters.fetch('foo')          # => 1
     #   counters.fetch(:bar, 0)        # => 0
-    #   counters.fetch(:bar) {|key| 0} # => 0
+    #   counters.fetch(:bar) { |key| 0 } # => 0
     #   counters.fetch(:zoo)           # => KeyError: key not found: "zoo"
     def fetch(key, *extras)
       super(convert_key(key), *extras)
@@ -172,7 +172,7 @@ module ActiveSupport
     #   hash[:b] = 'y'
     #   hash.values_at('a', 'b') # => ["x", "y"]
     def values_at(*indices)
-      indices.collect {|key| self[convert_key(key)]}
+      indices.collect { |key| self[convert_key(key)] }
     end
 
     # Returns an exact copy of the hash.
@@ -228,7 +228,11 @@ module ActiveSupport
     def to_options!; self end
 
     def select(*args, &block)
-      dup.tap {|hash| hash.select!(*args, &block)}
+      dup.tap { |hash| hash.select!(*args, &block) }
+    end
+
+    def reject(*args, &block)
+      dup.tap { |hash| hash.reject!(*args, &block) }
     end
 
     # Convert to a regular hash with string keys.

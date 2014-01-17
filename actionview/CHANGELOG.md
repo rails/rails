@@ -1,3 +1,10 @@
+*   Improved ERB dependency detection. New argument types and formattings for the `render`
+    calls can be matched.
+
+    Fixes #13074 and #13116
+
+    *João Britto*
+
 *   Use `display:none` instead of `display:inline` for hidden fields
 
     Fixes #6403

@@ -462,7 +462,7 @@ module ActiveRecord
         @class_names.delete_if { |k,klass|
           unless klass.is_a? Class
             klass = klass.safe_constantize
-            ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name will be removed in Rails 4.2, consider using the class itself instead.")
+            ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name to `set_fixture_class` will be removed in Rails 4.2. Use the class itself instead.")
           end
           !insert_class(@class_names, k, klass)
         }
@@ -568,7 +568,7 @@ module ActiveRecord
       @model_class = nil
 
       if class_name.is_a?(String)
-        ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name will be removed in Rails 4.2, consider using the class itself instead.")
+        ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name to `FixtureSet.new` will be removed in Rails 4.2. Use the class itself instead.")
       end
 
       if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
