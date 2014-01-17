@@ -924,7 +924,6 @@ module ActiveRecord
     def build_where(opts, other = [])
       case opts
       when String, Array
-        #TODO: Remove duplication with: /activerecord/lib/active_record/sanitization.rb:113
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
