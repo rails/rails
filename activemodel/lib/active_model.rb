@@ -60,9 +60,9 @@ module ActiveModel
     end
   end
 
-  def eager_load!
+  def self.eager_load!
     super
-    ActiveModel::Serializer.eager_load!
+    ActiveModel::Serializers.eager_load!
   end
 end
 
