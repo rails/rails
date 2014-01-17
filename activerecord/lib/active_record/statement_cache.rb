@@ -32,7 +32,7 @@ module ActiveRecord
       end
     end
 
-    def self.query(connection, visitor, ast)
+    def self.query(visitor, ast)
       Query.new visitor.accept(ast)
     end
 
