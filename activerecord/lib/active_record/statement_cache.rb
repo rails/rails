@@ -51,7 +51,7 @@ module ActiveRecord
         @value_map   = {}
         @bind_values = bind_values
 
-        bind_values.each_with_index do |(column, value), i|
+        bind_values.each_with_index do |(_, value), i|
           if Substitute === value
             @value_map[value.name] = i
           end
