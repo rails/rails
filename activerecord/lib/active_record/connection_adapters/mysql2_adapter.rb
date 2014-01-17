@@ -45,7 +45,7 @@ module ActiveRecord
       end
 
       def cacheable_query(arel)
-        ActiveRecord::StatementCache.partial_query self, visitor, arel.ast
+        ActiveRecord::StatementCache.partial_query visitor, arel.ast
       end
 
       MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191

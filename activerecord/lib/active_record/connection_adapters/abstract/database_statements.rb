@@ -21,7 +21,7 @@ module ActiveRecord
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
       def cacheable_query(arel) # :nodoc:
-        ActiveRecord::StatementCache.query self, visitor, arel.ast
+        ActiveRecord::StatementCache.query visitor, arel.ast
       end
 
       # Returns an ActiveRecord::Result instance.
