@@ -1380,6 +1380,8 @@ class BasicsTest < ActiveRecord::TestCase
       })
 
       rd, wr = IO.pipe
+      rd.binmode
+      wr.binmode
 
       ActiveRecord::Base.connection_handler.clear_all_connections!
 
