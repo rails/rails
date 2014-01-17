@@ -29,7 +29,7 @@ module ActiveSupport
     end
 
     def reject(*args, &block)
-      dup.tap { |hash| hash.reject!(*args, &block)}
+      dup.tap { |hash| hash.reject!(*args, &block) }
     end
 
     def nested_under_indifferent_access
