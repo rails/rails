@@ -57,9 +57,9 @@ module ActiveSupport
   module Testing
     # Containing helpers that helps you test passage of time.
     module TimeHelpers
-      # This teardown method is to make sure the stubs are automatically removed at the end of each
+      # This method is to make sure the stubs are automatically removed at the end of each
       # test.
-      def teardown #:nodoc:
+      def after_teardown #:nodoc:
         super
         Time.internal_unstub :now
         Date.internal_unstub :today
