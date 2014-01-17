@@ -17,19 +17,18 @@ module ActiveRecord
     Substitute = Struct.new :name
 
     class Query
-      def initialize(connection, sql)
-        @connection = connection
+      def initialize(sql)
         @sql = sql
       end
 
-      def sql_for(binds)
+      def sql_for(binds, connection)
         @sql
       end
     end
 
     class PartialQuery < Query
-      def sql_for(binds)
-        @sql.gsub(/\?/) { @connection.quote(*binds.shift.reverse) }
+      def sql_for(binds, connection)
+        @sql.gsub(/\?/) { connection.quote(*binds.shift.reverse) }
       end
     end
 
@@ -37,9 +36,9 @@ module ActiveRecord
       Query.new connection, visitor.accept(ast)
     end
 
-    def self.partial_query(connection, visitor, ast)
+    def self.partial_query(visitor, ast)
       sql = visitor.accept(ast) { "?" }
-      PartialQuery.new connection, sql
+      PartialQuery.new sql
     end
 
     class Params
@@ -84,7 +83,7 @@ module ActiveRecord
       bind_values = bind_map.bind params
 
       builder = query_builder klass.connection, arel
-      sql = builder.sql_for bind_values
+      sql = builder.sql_for bind_values, klass.connection
 
       klass.find_by_sql sql, bind_values
     end
