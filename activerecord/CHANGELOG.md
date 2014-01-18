@@ -1,3 +1,11 @@
+*   ActiveRecord states are now correctly restored after a rollback for
+    models that did not define any transactional callbacks (i.e.
+    `after_commit`, `after_rollback` or `after_create`).
+
+    Fixes #13744.
+
+    *Godfrey Chan*
+
 *   Make `touch` fire the `after_commit` and `after_rollback` callbacks.
 
     *Harry Brundage*
