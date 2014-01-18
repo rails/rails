@@ -72,8 +72,8 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies the context where this validation is active
-      #   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt>)
+      # * <tt>:on</tt> - Specifies the contexts where this validation is active
+      #   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt> or <tt>:on => [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
@@ -134,7 +134,7 @@ module ActiveModel
         if options.key?(:on)
           options = options.dup
           options[:if] = Array.wrap(options[:if])
-          options[:if].unshift("validation_context == :#{options[:on]}")
+          options[:if].unshift("#{Array.wrap(options[:on]).map(&:to_sym)}.include?(validation_context)")
         end
         args << options
         set_callback(:validate, *args, &block)
