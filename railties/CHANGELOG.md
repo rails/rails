@@ -1,3 +1,7 @@
+*   rake notes now searches YAML files (*.yml and *.yaml)
+
+    *Roberto Soares*
+
 *   Use single quotes in generated files.
 
     *Cristian Mircea Messel*, *Chulki Lee*
