@@ -397,13 +397,10 @@ module ActiveRecord
     end
 
     def update_attributes_from_transaction_state(transaction_state, depth)
-      if transaction_state && !has_transactional_callbacks?
+      if transaction_state && transaction_state.finalized? && !has_transactional_callbacks?
         unless @reflects_state[depth]
-          if transaction_state.committed?
-            committed!
-          elsif transaction_state.rolledback?
-            rolledback!
-          end
+          restore_transaction_record_state if transaction_state.rolledback?
+          clear_transaction_record_state
           @reflects_state[depth] = true
         end
 
