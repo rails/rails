@@ -389,7 +389,7 @@ module Rails
 
       def spring_gemfile_entry
         return [] unless spring_install?
-        comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/jonleighton/spring'
+        comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring'
         GemfileEntry.new('spring', nil, comment, group: :development)
       end
 
