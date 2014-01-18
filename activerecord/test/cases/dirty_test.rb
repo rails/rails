@@ -310,15 +310,9 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.create!(:catchphrase => 'arr')
 
     pirate.catchphrase << ' matey'
-    assert !pirate.catchphrase_changed?
-
-    assert pirate.catchphrase_will_change!
-    assert pirate.catchphrase_changed?
-    assert_equal ['arr matey', 'arr matey'], pirate.catchphrase_change
-
     pirate.catchphrase << '!'
     assert pirate.catchphrase_changed?
-    assert_equal ['arr matey', 'arr matey!'], pirate.catchphrase_change
+    assert_equal ['arr', 'arr matey!'], pirate.catchphrase_change
   end
 
   def test_association_assignment_changes_foreign_key
@@ -442,11 +436,28 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.catchphrase_changed?
   end
 
+  def test_attribute_hash_mutation
+    topic = Topic.create!(:content => {:a => "a"})
+    assert !topic.content_changed?
+    assert !topic.changed?
+    topic.content[:a] = "b"
+    assert topic.content_changed?
+    assert_equal ["content"], topic.changed
+    assert topic.changed?
+    topic.content[:a] = "a"
+    assert !topic.content_changed?
+    assert !topic.changed?
+    topic = Topic.find_by_id!(topic.id)
+    assert !topic.content_changed?
+    topic.content[:a] = "b"
+    assert topic.content_changed?
+  end
+
   def test_save_should_store_serialized_attributes_even_with_partial_writes
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
+      assert topic.changed?
       topic.save!
       assert_equal "b", topic.content[:b]
       topic.reload

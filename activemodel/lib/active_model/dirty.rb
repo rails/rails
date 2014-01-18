@@ -107,7 +107,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      changed_attributes.present?
+      changes.present?
     end
 
     # Returns an array with the name of the attributes with unsaved changes.
@@ -116,7 +116,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed # => ["name"]
     def changed
-      changed_attributes.keys
+      changes.keys
     end
 
     # Returns a hash of changed attributes indicating their original
@@ -126,7 +126,10 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changes # => { "name" => ["bill", "bob"] }
     def changes
-      ActiveSupport::HashWithIndifferentAccess[changed.map { |attr| [attr, attribute_change(attr)] }]
+      original_values.keys.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |attr, hash|
+        change = attribute_change(attr)
+        hash[attr] = change if change
+      end
     end
 
     # Returns a hash of attributes that were changed before the model was saved.
@@ -139,6 +142,10 @@ module ActiveModel
       @previously_changed ||= {}
     end
 
+    def original_values
+      @original_values ||= {}
+    end
+
     # Returns a hash of the attributes with unsaved changes indicating their original
     # values like <tt>attr => original value</tt>.
     #
@@ -146,59 +153,84 @@ module ActiveModel
     #   person.name = 'robert'
     #   person.changed_attributes # => {"name" => "bob"}
     def changed_attributes
-      @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
+      ch = changes
+      ch.each do |key, value|
+        ch[key] = value.first
+      end
     end
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, options = {}) #:nodoc:
-      result = changed_attributes.include?(attr)
-      result &&= options[:to] == __send__(attr) if options.key?(:to)
-      result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
+      value_pairs = attribute_change(attr)
+      result = ! value_pairs.nil?
+      result &&= options[:to].hash == value_pairs.last.hash if options.key?(:to)
+      result &&= options[:from].hash == value_pairs.first.hash if options.key?(:from)
       result
     end
 
     # Handle <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr) # :nodoc:
-      attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+      attr = attr.to_s
+      original_values.key?(attr) ? original_values[attr] : __send__(attr)
+    end
+
+    # mark a column as not changed (but don't change the value)
+    def reset_change(attr)
+      original_values.delete(attr)
     end
 
     private
 
+      def _field_changed?(attr, old, value)
+        old != value
+      end
+
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied
         @previously_changed = changes
-        @changed_attributes = {}
+        @original_values = nil
       end
 
       # Removes all dirty data: current changes and previous changes
       def reset_changes
         @previously_changed = {}
-        @changed_attributes = {}
+        @original_values = nil
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
-        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+        attr = attr.to_s
+        if original_values.key?(attr)
+          old = original_values[attr]
+          value = __send__(attr)
+          [old, value] if _field_changed?(attr, old, value)
+        end
       end
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
-        return if attribute_changed?(attr)
+        set_original_value(attr)
+      end
 
+      # attr, old_value (optional), new_value (optional)
+      def set_original_value(*args)
+        attr = args.first.to_s
+        return if original_values.key?(attr)
         begin
-          value = __send__(attr)
+          value = args.length < 2 ? __send__(attr) : args[1]
           value = value.duplicable? ? value.clone : value
         rescue TypeError, NoMethodError
         end
 
-        changed_attributes[attr] = value
+        original_values[attr] = value
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
-        if attribute_changed?(attr)
-          __send__("#{attr}=", changed_attributes[attr])
-          changed_attributes.delete(attr)
+        attr = attr.to_s
+        if original_values.key?(attr)
+          __send__("#{attr}=", original_values[attr])
+          reset_change(attr)
         end
       end
   end

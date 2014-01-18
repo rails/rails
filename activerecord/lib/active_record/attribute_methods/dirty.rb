@@ -38,23 +38,30 @@ module ActiveRecord
         end
       end
 
-    private
       # Wrap write_attribute to remember original attribute value.
       def write_attribute(attr, value)
         attr = attr.to_s
-
-        # The attribute already has an unsaved change.
-        if attribute_changed?(attr)
-          old = changed_attributes[attr]
-          changed_attributes.delete(attr) unless _field_changed?(attr, old, value)
-        else
-          old = clone_attribute_value(:read_attribute, attr)
-          changed_attributes[attr] = old if _field_changed?(attr, old, value)
-        end
-
-        # Carry on.
+        set_original_value(attr)
         super(attr, value)
       end
+
+      def read_attribute(attr)
+        super.tap do |value|
+          attr = attr.to_s
+          if attr != "" && attribute_names.include?(attr)
+            set_original_value(attr, value, value)
+          end
+        end
+      end
+
+    private
+
+    def set_original_value(*args)
+      attr = args.first
+      return if original_values.key?(attr)
+      args << clone_attribute_value(:read_attribute, attr) if args.length < 2
+      super(*args)
+    end
 
       def update_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
@@ -67,7 +74,7 @@ module ActiveRecord
       # Serialized attributes should always be written in case they've been
       # changed in place.
       def keys_for_partial_write
-        changed | (attributes.keys & self.class.serialized_attributes.keys)
+        changed
       end
 
       def _field_changed?(attr, old, value)

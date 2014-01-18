@@ -125,7 +125,7 @@ module ActiveRecord
 
         def _field_changed?(attr, old, value)
           if self.class.serialized_attributes.include?(attr)
-            old != value
+            old.hash != value.hash
           else
             super
           end

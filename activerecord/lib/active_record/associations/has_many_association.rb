@@ -84,7 +84,7 @@ module ActiveRecord
             counter = cached_counter_attribute_name(reflection)
             owner.class.update_counters(owner.id, counter => difference)
             owner[counter] += difference
-            owner.changed_attributes.delete(counter) # eww
+            owner.reset_change(counter) # eww
           end
         end
 
