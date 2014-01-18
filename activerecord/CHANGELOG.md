@@ -1,3 +1,11 @@
+*   ActiveRecord states are now correctly restored after a rollback for
+    models that did not define any transactional callbacks (i.e.
+    `after_commit`, `after_rollback` or `after_create`).
+
+    Fixes #13744.
+
+    *Godfrey Chan*
+
 *   Add back `#yaml_initialize` method for Syck deserialization
 
     `ActiveRecord::Core#yaml_initialize` has been added back to support deserialization using
