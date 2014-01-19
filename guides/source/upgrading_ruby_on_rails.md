@@ -62,7 +62,7 @@ If you want to use Spring as your application preloader you need to:
 
 NOTE: User defined rake tasks will run in the `development` environment by
 default. If you want them to run in other environments consult the
-[Spring README](https://github.com/jonleighton/spring#rake).
+[Spring README](https://github.com/rails/spring#rake).
 
 ### `config/secrets.yml`
 
