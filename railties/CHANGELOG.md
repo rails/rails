@@ -87,7 +87,7 @@
     *Rafael Mendonça França*
 
 *   The [Spring application
-    preloader](https://github.com/jonleighton/spring) is now installed
+    preloader](https://github.com/rails/spring) is now installed
     by default for new applications. It uses the development group of
     the Gemfile, so will not be installed in production.
 
