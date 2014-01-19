@@ -37,6 +37,8 @@ module ActiveSupport
       module Forking
         def run_in_isolation(&blk)
           read, write = IO.pipe
+          read.binmode
+          write.binmode
 
           pid = fork do
             read.close
