@@ -639,8 +639,8 @@ config.action_mailer.default_options = {from: 'no-reply@example.com'}
 
 ### Action Mailer Configuration for Gmail
 
-As Action Mailer now uses the Mail gem, this becomes as simple as adding to your
-`config/environments/$RAILS_ENV.rb` file:
+As Action Mailer now uses the [Mail gem](https://github.com/mikel/mail), this
+becomes as simple as adding to your `config/environments/$RAILS_ENV.rb` file:
 
 ```ruby
 config.action_mailer.delivery_method = :smtp
