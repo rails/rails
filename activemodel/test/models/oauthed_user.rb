@@ -7,5 +7,5 @@ class OauthedUser
 
   has_secure_password(validations: false)
 
-  attr_accessor :password_digest, :password_salt
+  attr_accessor :password_digest
 end
