@@ -51,7 +51,7 @@ module ActionMailer
   # * <tt>mail</tt> - Allows you to specify email to be sent.
   #
   # The hash passed to the mail method allows you to specify any header that a <tt>Mail::Message</tt>
-  # will accept (any valid Email header including optional fields).
+  # will accept (any valid email header including optional fields).
   #
   # The mail method, if not passed a block, will inspect your views and send all the views with
   # the same name as the method, so the above action would send the +welcome.text.erb+ view
