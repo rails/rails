@@ -51,6 +51,46 @@ class EnumTest < ActiveRecord::TestCase
     assert @book.written?
   end
 
+  test "enum changed attributes" do
+    old_status = @book.status
+    @book.status = :published
+    assert_equal old_status, @book.changed_attributes[:status]
+  end
+
+  test "enum changes" do
+    old_status = @book.status
+    @book.status = :published
+    assert_equal [old_status, 'published'], @book.changes[:status]
+  end
+
+  test "enum attribute was" do
+    old_status = @book.status
+    @book.status = :published
+    assert_equal old_status, @book.attribute_was(:status)
+  end
+
+  test "enum attribute changed" do
+    @book.status = :published
+    assert @book.attribute_changed?(:status)
+  end
+
+  test "enum attribute changed to" do
+    @book.status = :published
+    assert @book.attribute_changed?(:status, to: 'published')
+  end
+
+  test "enum attribute changed from" do
+    old_status = @book.status
+    @book.status = :published
+    assert @book.attribute_changed?(:status, from: old_status)
+  end
+
+  test "enum attribute changed from old status to new status" do
+    old_status = @book.status
+    @book.status = :published
+    assert @book.attribute_changed?(:status, from: old_status, to: 'published')
+  end
+
   test "assign non existing value raises an error" do
     e = assert_raises(ArgumentError) do
       @book.status = :unknown

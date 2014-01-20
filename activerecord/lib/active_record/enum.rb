@@ -63,12 +63,20 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   module Enum
+    DEFINED_ENUMS = [] # :nodoc:
+
+    def enum_attribute?(attr_name) # :nodoc:
+      DEFINED_ENUMS.include?(attr_name.to_sym)
+    end
+
     def enum(definitions)
       klass = self
       definitions.each do |name, values|
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
+
+        DEFINED_ENUMS.unshift name
 
         # def self.statuses statuses end
         klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
@@ -114,7 +122,16 @@ module ActiveRecord
     private
       def _enum_methods_module
         @_enum_methods_module ||= begin
-          mod = Module.new
+          mod = Module.new do
+            def save_changed_attribute(attr_name, value)
+              if self.class.enum_attribute?(attr_name)
+                old = clone_attribute_value(:read_attribute, attr_name)
+                changed_attributes[attr_name] = self.class.public_send(attr_name.pluralize).key old
+              else
+                super
+              end
+            end
+          end
           include mod
           mod
         end

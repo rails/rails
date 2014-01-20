@@ -1,3 +1,21 @@
+*   Make enum fields work as expected with the `ActiveModel::Dirty` API.
+
+    Before this change, using the dirty API would have surprising results:
+
+        conversation = Conversation.new
+        conversation.status = :active
+        conversation.status = :archived
+        conversation.status_was # => 0
+
+    After this change, the same code would result in:
+
+        conversation = Conversation.new
+        conversation.status = :active
+        conversation.status = :archived
+        conversation.status_was # => "active"
+
+    *Rafael Mendonça França*
+
 *   Ensure `second` through `fifth` methods act like the `first` finder.
 
     The famous ordinal Array instance methods defined in ActiveSupport
