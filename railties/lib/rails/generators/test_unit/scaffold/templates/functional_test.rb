@@ -22,7 +22,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
       post :create, <%= "#{singular_table_name}: { #{attributes_hash} }" %>
     end
 
-    assert_redirected_to <%= singular_table_name %>_path(assigns(:<%= singular_table_name %>))
+    assert_redirected_to <%= show_helper %>_path(assigns(:<%= singular_table_name %>))
   end
 
   test "should show <%= singular_table_name %>" do
@@ -37,7 +37,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
 
   test "should update <%= singular_table_name %>" do
     patch :update, id: <%= "@#{singular_table_name}" %>, <%= "#{singular_table_name}: { #{attributes_hash} }" %>
-    assert_redirected_to <%= singular_table_name %>_path(assigns(:<%= singular_table_name %>))
+    assert_redirected_to <%= show_helper %>_path(assigns(:<%= singular_table_name %>))
   end
 
   test "should destroy <%= singular_table_name %>" do

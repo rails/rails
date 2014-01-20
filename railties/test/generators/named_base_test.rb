@@ -27,6 +27,9 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'line_items', :plural_name
     assert_name g, 'line_item',  :i18n_scope
     assert_name g, 'line_items', :table_name
+    assert_name g, 'line_item',  :show_helper
+    assert_name g, '/line_items', :route_url
+    assert_name g, '@line_item',  :form_resource
   end
 
   def test_named_generator_attributes
@@ -41,6 +44,9 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'foos',       :plural_name
     assert_name g, 'admin.foo',  :i18n_scope
     assert_name g, 'admin_foos', :table_name
+    assert_name g, 'admin_foo',  :show_helper
+    assert_name g, '/admin/foos', :route_url
+    assert_name g, '@admin_foo',  :form_resource
   end
 
   def test_named_generator_attributes_as_ruby
@@ -55,6 +61,9 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'foos',       :plural_name
     assert_name g, 'admin.foo',  :i18n_scope
     assert_name g, 'admin_foos', :table_name
+    assert_name g, 'admin_foo',  :show_helper
+    assert_name g, '/admin/foos', :route_url
+    assert_name g, '@admin_foo',  :form_resource
   end
 
   def test_named_generator_attributes_without_pluralized
@@ -73,6 +82,9 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'admin/foos',  :controller_file_path
     assert_name g, 'foos',        :controller_file_name
     assert_name g, 'admin.foos',  :controller_i18n_scope
+    assert_name g, 'admin_foo',   :show_helper
+    assert_name g, '/admin/foos', :route_url
+    assert_name g, '@admin_foo',  :form_resource
   end
 
   def test_scaffold_plural_names_as_ruby
@@ -83,6 +95,9 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'admin/foos',  :controller_file_path
     assert_name g, 'foos',        :controller_file_name
     assert_name g, 'admin.foos',  :controller_i18n_scope
+    assert_name g, 'admin_foo',   :show_helper
+    assert_name g, '/admin/foos', :route_url
+    assert_name g, '@admin_foo',  :form_resource
   end
 
   def test_application_name
@@ -98,6 +113,11 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'posts', :index_helper
   end
 
+  def test_index_helper_with_underscore
+    g = generator ['line_item']
+    assert_name g, 'line_items', :index_helper
+  end
+
   def test_index_helper_to_pluralize_once
     g = generator ['Stadium']
     assert_name g, 'stadia', :index_helper
@@ -108,7 +128,17 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'sheep_index', :index_helper
   end
 
-  def test_hide_namespace
+  def test_index_helper_with_namespace
+    g = generator ['User::Tweet']
+    assert_name g, 'user_tweets', :index_helper
+  end
+
+  def test_index_helper_with_with_model_name_option
+    g = generator ['Admin::User'], model_name: 'User'
+    assert_name g, 'admin_users', :index_helper
+  end
+
+  def test_hide_namespace_
     g = generator ['Hidden']
     g.class.stubs(:namespace).returns('hidden')
 
@@ -118,7 +148,7 @@ class NamedBaseTest < Rails::Generators::TestCase
   end
 
   def test_scaffold_plural_names_with_model_name_option
-    g = generator ['Admin::Foo'], model_name: 'User'
+    g = generator ['Admin::Users'], model_name: 'User'
     assert_name g, 'user',        :singular_name
     assert_name g, 'User',        :name
     assert_name g, 'user',        :file_path
@@ -128,12 +158,15 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, 'users',       :plural_name
     assert_name g, 'user',        :i18n_scope
     assert_name g, 'users',       :table_name
-    assert_name g, 'Admin::Foos', :controller_name
+    assert_name g, 'Admin::Users', :controller_name
     assert_name g, %w(admin),     :controller_class_path
-    assert_name g, 'Admin::Foos', :controller_class_name
-    assert_name g, 'admin/foos',  :controller_file_path
-    assert_name g, 'foos',        :controller_file_name
-    assert_name g, 'admin.foos',  :controller_i18n_scope
+    assert_name g, 'Admin::Users', :controller_class_name
+    assert_name g, 'admin/users',  :controller_file_path
+    assert_name g, 'users',        :controller_file_name
+    assert_name g, 'admin.users',  :controller_i18n_scope
+    assert_name g, 'admin_user',   :show_helper
+    assert_name g, '/admin/users', :route_url
+    assert_name g, '[:admin, @user]',  :form_resource
   end
 
   protected

@@ -16,9 +16,9 @@
 <% attributes.reject(&:password_digest?).each do |attribute| -%>
         <td><%%= <%= singular_table_name %>.<%= attribute.name %> %></td>
 <% end -%>
-        <td><%%= link_to 'Show', <%= singular_table_name %> %></td>
-        <td><%%= link_to 'Edit', edit_<%= singular_table_name %>_path(<%= singular_table_name %>) %></td>
-        <td><%%= link_to 'Destroy', <%= singular_table_name %>, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td><%%= link_to 'Show', <%= show_helper %>_path(<%= singular_table_name %>) %></td>
+        <td><%%= link_to 'Edit', edit_<%= show_helper %>_path(<%= singular_table_name %>) %></td>
+        <td><%%= link_to 'Destroy', <%= show_helper %>_path(<%= singular_table_name %>), method: :delete, data: { confirm: 'Are you sure?' } %></td>
       </tr>
     <%% end %>
   </tbody>
@@ -26,4 +26,4 @@
 
 <br>
 
-<%%= link_to 'New <%= human_name %>', new_<%= singular_table_name %>_path %>
+<%%= link_to 'New <%= human_name %>', new_<%= show_helper %>_path %>

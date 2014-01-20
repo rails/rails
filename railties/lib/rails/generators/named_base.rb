@@ -121,7 +121,11 @@ module Rails
         end
 
         def index_helper
-          uncountable? ? "#{plural_table_name}_index" : plural_table_name
+          uncountable? ? "#{plural_table_name}_index" : controller_file_path.tr('/', '_')
+        end
+
+        def show_helper
+          index_helper.singularize
         end
 
         def singular_table_name
@@ -137,7 +141,23 @@ module Rails
         end
 
         def route_url
-          @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
+          @route_url ||= "/" + controller_file_path
+        end
+
+        def form_resource
+          route_namespaces = controller_class_path - regular_class_path
+
+          if route_namespaces.count > 0 and 
+            result = "["
+            route_namespaces.each do |route_namespace|
+              result << ":#{route_namespace}, "
+            end
+            result << "@#{singular_table_name}]"
+          else
+            result = "@#{singular_table_name}" 
+          end
+          
+          result
         end
 
         # Tries to retrieve the application name or simple return application.

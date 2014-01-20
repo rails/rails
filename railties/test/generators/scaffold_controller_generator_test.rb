@@ -101,6 +101,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \}/, content)
       assert_match(/patch :update, id: @user, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \}/, content)
+      assert_match(/assert_redirected_to user_path\(assigns\(:user\)\)/, content)
+      assert_match(/assert_redirected_to users_path/, content)
     end
   end
 
@@ -112,6 +114,32 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, user: \{  \}/, content)
       assert_match(/patch :update, id: @user, user: \{  \}/, content)
+    end
+  end
+
+  def test_functional_tests_with_namespace
+    run_generator ["User::Tweets"]
+
+    assert_file "test/controllers/user/tweets_controller_test.rb" do |content|
+      assert_match(/class User::TweetsControllerTest < ActionController::TestCase/, content)
+      assert_match(/test "should get index"/, content)
+      assert_match(/post :create, user_tweet: \{  \}/, content)
+      assert_match(/patch :update, id: @user_tweet, user_tweet: \{  \}/, content)
+      assert_match(/assert_redirected_to user_tweet_path\(assigns\(:user_tweet\)\)/, content)
+      assert_match(/assert_redirected_to user_tweets_path/, content)
+    end
+  end
+
+  def test_functional_tests_with_namespace_and_model_name
+    run_generator ["Admin::User", "--model-name=User"]
+
+    assert_file "test/controllers/admin/users_controller_test.rb" do |content|
+      assert_match(/class Admin::UsersControllerTest < ActionController::TestCase/, content)
+      assert_match(/test "should get index"/, content)
+      assert_match(/post :create, user: \{  \}/, content)
+      assert_match(/patch :update, id: @user, user: \{  \}/, content)
+      assert_match(/assert_redirected_to admin_user_path\(assigns\(:user\)\)/, content)
+      assert_match(/assert_redirected_to admin_users_path/, content)
     end
   end
 
@@ -160,11 +188,79 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     Unknown::Generators.send :remove_const, :ActiveModel
   end
 
-  def test_model_name_option
+  def test_scaffold_controller_with_namespace
+    run_generator [ "user/tweets" ]
+
+    # # copied from scaffold_generator_test.rb
+    # Controller
+    assert_file "app/controllers/user/tweets_controller.rb" do |content|
+      assert_match(/class User::TweetsController < ApplicationController/, content)
+
+      assert_instance_method :index, content do |m|
+        assert_match(/@user_tweets = User::Tweet\.all/, m)
+      end
+
+      assert_instance_method :show, content
+
+      assert_instance_method :new, content do |m|
+        assert_match(/@user_tweet = User::Tweet\.new/, m)
+      end
+
+      assert_instance_method :edit, content 
+
+      assert_instance_method :create, content do |m|
+        assert_match(/@user_tweet = User::Tweet\.new\(user_tweet_params\)/, m)
+        assert_match(/@user_tweet\.save/, m)
+        assert_match(/redirect_to user_tweet_path\(@user_tweet\)/, m)
+      end
+
+      assert_instance_method :update, content do |m|
+        assert_match(/@user_tweet\.update\(user_tweet_params\)/, m)
+        assert_match(/redirect_to user_tweet_path\(@user_tweet\)/, m)
+      end
+
+      assert_instance_method :destroy, content do |m|
+        assert_match(/@user_tweet\.destroy/, m)
+        assert_match(/redirect_to user_tweets_url/, m)
+      end
+
+      assert_instance_method :set_user_tweet, content do |m|
+        assert_match(/@user_tweet = User::Tweet\.find\(params\[:id\]\)/, m)
+      end
+    end
+  end
+
+  def test_scaffold_controller_with_namespace_and_model_name
     run_generator ["Admin::User", "--model-name=User"]
     assert_file "app/controllers/admin/users_controller.rb" do |content|
+      assert_match(/class Admin::UsersController < ApplicationController/, content)
+
       assert_instance_method :index, content do |m|
-        assert_match("@users = User.all", m)
+        assert_match(/@users = User\.all/, m)
+      end
+
+      assert_instance_method :new, content do |m|
+        assert_match(/@user = User\.new/, m)
+      end
+
+      assert_instance_method :create, content do |m|
+        assert_match(/@user = User\.new\(user_params\)/, m)
+        assert_match(/@user\.save/, m)
+        assert_match(/redirect_to admin_user_path\(@user\)/, m)
+      end
+
+      assert_instance_method :update, content do |m|
+        assert_match(/@user\.update\(user_params\)/, m)
+        assert_match(/redirect_to admin_user_path\(@user\)/, m)
+      end
+
+      assert_instance_method :destroy, content do |m|
+        assert_match(/@user\.destroy/, m)
+        assert_match(/redirect_to admin_users_url/, m)
+      end
+
+      assert_instance_method :set_user, content do |m|
+        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
       end
     end
   end
