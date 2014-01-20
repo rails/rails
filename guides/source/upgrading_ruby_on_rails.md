@@ -148,7 +148,7 @@ part of the rewrite, the following features have been removed from the encoder:
 2. Support for the `encode_json` hook
 3. Option to encode `BigDecimal` objects as numbers instead of strings
 
-If you application depends on one of these features, you can get them back by
+If your application depends on one of these features, you can get them back by
 adding the [`activesupport-json_encoder`](https://github.com/rails/activesupport-json_encoder)
 gem to your Gemfile.
 
