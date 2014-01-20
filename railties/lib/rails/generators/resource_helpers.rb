@@ -16,12 +16,10 @@ module Rails
       def initialize(*args) #:nodoc:
         super
         if options[:model_name]
-          controller_name = name
           self.name = options[:model_name]
           assign_names!(self.name)
-        else
-          controller_name = name
         end
+        controller_name = name
 
         if name == name.pluralize && name.singularize != name.pluralize && !options[:force_plural]
           unless ResourceHelpers.skip_warn
