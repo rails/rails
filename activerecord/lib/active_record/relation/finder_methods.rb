@@ -127,9 +127,9 @@ module ActiveRecord
     #
     def first(limit = nil)
       if limit
-        find_first_with_limit(limit)
+        find_nth_with_limit(offset_value, limit)
       else
-        find_first
+        find_nth(offset_value)
       end
     end
 
@@ -170,6 +170,86 @@ module ActiveRecord
     # is found. Note that <tt>last!</tt> accepts no arguments.
     def last!
       last or raise RecordNotFound
+    end
+
+    # Find the second record.
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.second # returns the second object fetched by SELECT * FROM people
+    #   Person.offset(3).second # returns the second object from OFFSET 3 (which is OFFSET 4)
+    #   Person.where(["user_name = :u", { u: user_name }]).second
+    def second
+      find_nth(offset_value ? offset_value + 1 : 1)
+    end
+
+    # Same as +second+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # is found.
+    def second!
+      second or raise RecordNotFound
+    end
+
+    # Find the third record.
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.third # returns the third object fetched by SELECT * FROM people
+    #   Person.offset(3).third # returns the third object from OFFSET 3 (which is OFFSET 5)
+    #   Person.where(["user_name = :u", { u: user_name }]).third
+    def third
+      find_nth(offset_value ? offset_value + 2 : 2)
+    end
+
+    # Same as +third+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # is found.
+    def third!
+      third or raise RecordNotFound
+    end
+
+    # Find the fourth record.
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.fourth # returns the fourth object fetched by SELECT * FROM people
+    #   Person.offset(3).fourth # returns the fourth object from OFFSET 3 (which is OFFSET 6)
+    #   Person.where(["user_name = :u", { u: user_name }]).fourth
+    def fourth
+      find_nth(offset_value ? offset_value + 3 : 3)
+    end
+
+    # Same as +fourth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # is found.
+    def fourth!
+      fourth or raise RecordNotFound
+    end
+
+    # Find the fifth record.
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.fifth # returns the fifth object fetched by SELECT * FROM people
+    #   Person.offset(3).fifth # returns the fifth object from OFFSET 3 (which is OFFSET 7)
+    #   Person.where(["user_name = :u", { u: user_name }]).fifth
+    def fifth
+      find_nth(offset_value ? offset_value + 4 : 4)
+    end
+
+    # Same as +fifth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # is found.
+    def fifth!
+      fifth or raise RecordNotFound
+    end
+
+    # Find the forty-second record. Also known as accessing "the reddit".
+    # If no order is defined it will order by primary key.
+    #
+    #   Person.forty_two # returns the forty-second object fetched by SELECT * FROM people
+    #   Person.offset(3).forty_two # returns the fifth object from OFFSET 3 (which is OFFSET 44)
+    #   Person.where(["user_name = :u", { u: user_name }]).forty_two
+    def forty_two
+      find_nth(offset_value ? offset_value + 41 : 41)
+    end
+
+    # Same as +forty_two+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
+    # is found.
+    def forty_two!
+      forty_two or raise RecordNotFound
     end
 
     # Returns +true+ if a record exists in the table that matches the +id+ or
@@ -364,19 +444,19 @@ module ActiveRecord
       end
     end
 
-    def find_first
+    def find_nth(offset)
       if loaded?
         @records.first
       else
-        @first ||= find_first_with_limit(1).first
+        @offsets[offset] ||= find_nth_with_limit(offset, 1).first
       end
     end
 
-    def find_first_with_limit(limit)
+    def find_nth_with_limit(offset, limit)
       if order_values.empty? && primary_key
-        order(arel_table[primary_key].asc).limit(limit).to_a
+        order(arel_table[primary_key].asc).limit(limit).offset(offset).to_a
       else
-        limit(limit).to_a
+        limit(limit).offset(offset).to_a
       end
     end
 

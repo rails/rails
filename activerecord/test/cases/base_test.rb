@@ -321,7 +321,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_load
     topics = Topic.all.merge!(:order => 'id').to_a
-    assert_equal(4, topics.size)
+    assert_equal(5, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
