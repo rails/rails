@@ -57,11 +57,15 @@ module ActiveModel
         include InstanceMethodsOnActivation
 
         if options.fetch(:validations, true)
-          validates_confirmation_of :password, if: :password_confirmation_required?
-          validates_presence_of     :password, on: :create
-          validates_presence_of     :password_confirmation, if: :password_confirmation_required?
+          # This ensures the model has a password by checking whether the password_digest
+          # is present, so that this works with both new and existing records. However,
+          # when there is an error, the message is added to the password attribute instead
+          # so that the error message will makes sense to the end-user.
+          validate do |record|
+            record.errors.add(:password, :blank) unless record.password_digest.present?
+          end
 
-          before_create { raise "Password digest missing on new record" if password_digest.blank? }
+          validates_confirmation_of :password, if: ->{ self.password.present? }
         end
 
         if respond_to?(:attributes_protected_by_default)
@@ -112,12 +116,6 @@ module ActiveModel
       def password_confirmation=(unencrypted_password)
         @password_confirmation = unencrypted_password
       end
-
-      private
-
-        def password_confirmation_required?
-          password_confirmation && password.present?
-        end
     end
   end
 end
