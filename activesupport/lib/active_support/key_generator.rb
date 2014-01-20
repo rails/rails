@@ -58,10 +58,10 @@ module ActiveSupport
     def ensure_secret_secure(secret)
       if secret.blank?
         raise ArgumentError, "A secret is required to generate an " +
-          "integrity hash for cookie session data. Use " +
-          "config.secret_key_base = \"some secret phrase of at " +
-          "least #{SECRET_MIN_LENGTH} characters\"" +
-          "in config/initializers/secret_token.rb"
+          "integrity hash for cookie session data. Set a " +
+          "secret_key_base of at least " +
+          "#{SECRET_MIN_LENGTH} characters " +
+          "in config/initializers/secrets.yml"
       end
 
       if secret.length < SECRET_MIN_LENGTH
