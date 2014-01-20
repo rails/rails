@@ -1410,6 +1410,7 @@ module ActionDispatch
             path_without_format = _path.to_s.sub(/\(\.:format\)$/, '')
             if using_match_shorthand?(path_without_format, route_options)
               route_options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
+              route_options[:to].tr!("-", "_")
             end
 
             decomposed_match(_path, route_options)
