@@ -37,7 +37,6 @@ module ActionDispatch
         end
         engine.routes.draw do
           get '/cart', :to => 'cart#show'
-          get '/view-cart', :to => 'cart#show'
         end
 
         output = draw do
@@ -51,8 +50,7 @@ module ActionDispatch
           "         blog      /blog                    Blog::Engine",
           "",
           "Routes for Blog::Engine:",
-          "     cart GET  /cart(.:format)      cart#show",
-          "view_cart GET  /view-cart(.:format) cart#show"
+          "  cart GET  /cart(.:format) cart#show"
         ], output
       end
 
@@ -159,6 +157,19 @@ module ActionDispatch
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
           "       GET  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
+        ], output
+      end
+
+      def test_rake_routes_shows_routes_with_dashes
+        output = draw do
+          get 'about-us' => 'pages#about_us'
+          get 'our-work/latest'
+        end
+
+        assert_equal [
+          "         Prefix Verb URI Pattern                Controller#Action",
+          "       about_us GET  /about-us(.:format)        pages#about_us",
+          "our_work_latest GET  /our-work/latest(.:format) our_work#latest"
         ], output
       end
 

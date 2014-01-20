@@ -1,9 +1,20 @@
-*   Add ability to set a prefix name for routes which have hyphen(s).
+*   Automatically convert dashes to underscores for shorthand routes, e.g:
+
+        get '/our-work/latest'
+
+    When running `rake routes` you will get the following output:
+
+                 Prefix Verb URI Pattern                Controller#Action
+        our_work_latest GET  /our-work/latest(.:format) our_work#latest
+
+    *Mikko Johansson*
+
+*   Automatically convert dashes to underscores for url helpers, e.g:
 
         get '/contact-us' => 'pages#contact'
         get '/about-us'   => 'pages#about_us'
 
-    The above routes will inspected to
+    When running `rake routes` you will get the following output:
 
             Prefix Verb URI Pattern           Controller#Action
         contact_us GET  /contact-us(.:format) pages#contact
