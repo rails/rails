@@ -1,3 +1,20 @@
+*   ActiveRecord::Relation#pluck allows to get attributes of associations
+
+    Example:
+
+        class Post < ActiveRecord::Base
+          belongs_to :category
+          belongs_to :author, class_name: "User"
+        end
+
+        Post.where(published: true).pluck(:title, category: [:id, :title], author: { profile: [:name] })
+        # SELECT posts.title, categories.id as categories__id, categories.title as categories__title, profiles.name as profiles__name FROM posts
+        #   INNER JOIN categories ON categories.id = posts.category_id
+        #   INNER JOIN users ON users.id = posts.author_id
+        #     INNER JOIN profiles ON profiles.user_id = users.id
+        # WHERE published = 't'
+        # => [["Lorem", 1, "Tips", "John"], ["Ipsum", 2, "Articles", "Mark"]]
+
 *   ActiveRecord states are now correctly restored after a rollback for
     models that did not define any transactional callbacks (i.e.
     `after_commit`, `after_rollback` or `after_create`).

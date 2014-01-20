@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/club'
 require 'models/company'
 require "models/contract"
+require "models/developer"
 require 'models/edge'
 require 'models/organization'
 require 'models/possession'
@@ -589,5 +590,20 @@ class CalculationsTest < ActiveRecord::TestCase
     taks_relation = Topic.select(:approved, :id).order(:id)
     assert_equal [1,2,3,4], taks_relation.pluck(:id)
     assert_equal [false, true, true, true], taks_relation.pluck(:approved)
+  end
+
+  def test_pluck_with_associations
+    Company.create!(:name => "test1", :dummy_account => Account.new(:credit_limit => 100), :contracts => [Contract.new(:developer_id => 7), Contract.new(:developer_id => 8)])
+    Company.create!(:name => "test2", :dummy_account => Account.new(:credit_limit => 200), :contracts => [Contract.new(:developer_id => 6), Contract.new(:developer_id => 9)])
+    assert_equal [["test1", 100, 7], ["test1", 100, 8], ["test2", 200, 6], ["test2", 200, 9]], Company.where("name LIKE 'test%'").pluck( :name, dummy_account: :credit_limit, contracts: [:developer_id] )
+  end
+
+  def test_pluck_with_nested_associations
+    Company.create!(:name => "test1", :dummy_account => Account.new(:credit_limit => 100),
+                    :contracts => [
+                      Contract.new(:developer => Developer.new( :name => "John", :salary => 100000 )),
+                      Contract.new(:developer => Developer.new( :name => "Mark", :salary => 150000 ))
+                    ])
+    assert_equal [["test1", 100, "John", 100000], ["test1", 100, "Mark", 150000]], Company.where(name: "test1").pluck( :name, dummy_account: :credit_limit, contracts: { developer: [:name, :salary] } )
   end
 end
