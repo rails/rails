@@ -20,11 +20,11 @@ module ActiveRecord
     alias :model :klass
     alias :loaded? :loaded
 
-    def initialize(klass, table, values = {}, offsets = {})
+    def initialize(klass, table, values = {})
       @klass  = klass
       @table  = table
       @values = values
-      @offsets = offsets
+      @offsets = {}
       @loaded = false
     end
 
