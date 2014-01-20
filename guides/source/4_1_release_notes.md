@@ -411,6 +411,9 @@ for detailed changes.
 * Remove implicit join references that were deprecated in 4.0.
 
 * Removed `activerecord-deprecated_finders` as a dependency.
+  Please see [upgrading
+  guide](upgrading_ruby_on_rails.html#upgrading-from-rails-3-2-to-rails-4-0-active-record)
+  for more info.
 
 * Removed usage of `implicit_readonly`. Please use `readonly` method
   explicitly to mark records as
