@@ -344,13 +344,13 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_batch_finders
-    assert_equal 3, Topic.approved.count
+    assert_equal 4, Topic.approved.count
 
-    assert_queries(4) do
+    assert_queries(5) do
       Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
     end
 
-    assert_queries(2) do
+    assert_queries(3) do
       Topic.approved.find_in_batches(:batch_size => 2) do |group|
         group.each {|t| assert t.approved? }
       end
@@ -366,7 +366,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_on_relations
     # Topic.replied
     approved_topics = Topic.all.approved.order('id DESC')
-    assert_equal topics(:fourth), approved_topics.first
+    assert_equal topics(:fifth), approved_topics.first
 
     replied_approved_topics = approved_topics.replied
     assert_equal topics(:third), replied_approved_topics.first

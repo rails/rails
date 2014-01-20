@@ -1,3 +1,34 @@
+*   Ensure `second` through `fifth` methods act like the `first` finder.
+
+    The famous ordinal Array instance methods defined in ActiveSupport
+    (`first`, `second`, `third`, `fourth`, and `fifth`) are now available as
+    full-fledged finders in ActiveRecord. The biggest benefit of this is ordering
+    of the records returned now defaults to the table's primary key in ascending order.
+
+    Example:
+
+        User.all.second
+
+        # Before
+        # => 'SELECT  "users".* FROM "users"'
+
+        # After
+        # => SELECT  "users".* FROM "users"   ORDER BY "users"."id" ASC LIMIT 1 OFFSET 1'
+
+        User.offset(3).second
+
+        # Before
+        # => 'SELECT "users".* FROM "users"  LIMIT -1 OFFSET 3' # sqlite3 gem
+        # => 'SELECT "users".* FROM "users"  OFFSET 3' # pg gem
+        # => 'SELECT `users`.* FROM `users`  LIMIT 18446744073709551615 OFFSET 3' # mysql2 gem
+
+        # After
+        # => SELECT  "users".* FROM "users"   ORDER BY "users"."id" ASC LIMIT 1 OFFSET 4'
+
+    Fixes #13743.
+
+    *Jason Meller*
+
 *   ActiveRecord states are now correctly restored after a rollback for
     models that did not define any transactional callbacks (i.e.
     `after_commit`, `after_rollback` or `after_create`).
