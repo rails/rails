@@ -45,7 +45,6 @@ module ActiveRecord
 
         save_changed_attribute(attr, value)
 
-        # Carry on.
         super(attr, value)
       end
 

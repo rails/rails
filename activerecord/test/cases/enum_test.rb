@@ -91,6 +91,38 @@ class EnumTest < ActiveRecord::TestCase
     assert @book.attribute_changed?(:status, from: old_status, to: 'published')
   end
 
+  test "enum didn't change" do
+    old_status = @book.status
+    @book.status = old_status
+    assert_not @book.attribute_changed?(:status)
+  end
+
+  test "persist changes that are dirty" do
+    old_status = @book.status
+    @book.status = :published
+    assert @book.attribute_changed?(:status)
+    @book.status = :written
+    assert @book.attribute_changed?(:status)
+  end
+
+  test "reverted changes that are not dirty" do
+    old_status = @book.status
+    @book.status = :published
+    assert @book.attribute_changed?(:status)
+    @book.status = old_status
+    assert_not @book.attribute_changed?(:status)
+  end
+
+  test "reverted changes are not dirty going from nil to value and back" do
+    book = Book.create!(nullable_status: nil)
+
+    book.nullable_status = :married
+    assert book.attribute_changed?(:nullable_status)
+
+    book.nullable_status = nil
+    assert_not book.attribute_changed?(:nullable_status)
+  end
+
   test "assign non existing value raises an error" do
     e = assert_raises(ArgumentError) do
       @book.status = :unknown
