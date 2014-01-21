@@ -222,9 +222,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_condition
-    assert_equal 10, Company.count
+    assert_equal 11, Company.count
     assert_equal 2, Firm.count
-    assert_equal 4, Client.count
+    assert_equal 5, Client.count
   end
 
   def test_alt_inheritance_condition

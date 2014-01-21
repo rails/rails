@@ -96,11 +96,31 @@ module ActiveRecord
       end
 
       def first(*args)
-        first_or_last(:first, *args)
+        first_nth_or_last(:first, *args)
+      end
+
+      def second(*args)
+        first_nth_or_last(:second, *args)
+      end
+
+      def third(*args)
+        first_nth_or_last(:third, *args)
+      end
+
+      def fourth(*args)
+        first_nth_or_last(:fourth, *args)
+      end
+
+      def fifth(*args)
+        first_nth_or_last(:fifth, *args)
+      end
+
+      def forty_two(*args)
+        first_nth_or_last(:forty_two, *args)
       end
 
       def last(*args)
-        first_or_last(:last, *args)
+        first_nth_or_last(:last, *args)
       end
 
       def build(attributes = {}, &block)
@@ -526,7 +546,7 @@ module ActiveRecord
         #   * target already loaded
         #   * owner is new record
         #   * target contains new or changed record(s)
-        def fetch_first_or_last_using_find?(args)
+        def fetch_first_nth_or_last_using_find?(args)
           if args.first.is_a?(Hash)
             true
           else
@@ -564,10 +584,10 @@ module ActiveRecord
         end
 
         # Fetches the first/last using SQL if possible, otherwise from the target array.
-        def first_or_last(type, *args)
+        def first_nth_or_last(type, *args)
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
-          collection = fetch_first_or_last_using_find?(args) ? scope : load_target
+          collection = fetch_first_nth_or_last_using_find?(args) ? scope : load_target
           collection.send(type, *args).tap do |record|
             set_inverse_instance record if record.is_a? ActiveRecord::Base
           end

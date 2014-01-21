@@ -170,6 +170,32 @@ module ActiveRecord
         @association.first(*args)
       end
 
+      # Same as +first+ except returns only the second record.
+      def second(*args)
+        @association.second(*args)
+      end
+
+      # Same as +first+ except returns only the third record.
+      def third(*args)
+        @association.third(*args)
+      end
+
+      # Same as +first+ except returns only the fourth record.
+      def fourth(*args)
+        @association.fourth(*args)
+      end
+
+      # Same as +first+ except returns only the fifth record.
+      def fifth(*args)
+        @association.fifth(*args)
+      end
+
+      # Same as +first+ except returns only the forty second record.
+      # Also known as accessing "the reddit".
+      def forty_two(*args)
+        @association.forty_two(*args)
+      end
+
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
