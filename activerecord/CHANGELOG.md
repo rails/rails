@@ -1,3 +1,12 @@
+*   Fail early with "Primary key not included in the custom select clause"
+    in `find_in_batches`.
+
+    Before this patch, the exception was raised after the first batch was
+    yielded to the block. This means that you only get it, when you hit the
+    `batch_size` treshold. This could shadow the issue in development.
+
+    *Alexander Balashov*
+
 *   ActiveRecord states are now correctly restored after a rollback for
     models that did not define any transactional callbacks (i.e.
     `after_commit`, `after_rollback` or `after_create`).
