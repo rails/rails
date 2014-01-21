@@ -63,10 +63,10 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   module Enum
-    DEFINED_ENUMS = [] # :nodoc:
+    DEFINED_ENUMS = {} # :nodoc:
 
-    def enum_attribute?(attr_name) # :nodoc:
-      DEFINED_ENUMS.include?(attr_name.to_sym)
+    def enum_mapping_for(attr_name) # :nodoc:
+      DEFINED_ENUMS[attr_name.to_sym]
     end
 
     def enum(definitions)
@@ -75,8 +75,6 @@ module ActiveRecord
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
-
-        DEFINED_ENUMS.unshift name
 
         # def self.statuses statuses end
         klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
@@ -115,6 +113,8 @@ module ActiveRecord
             # def active!() update! status: :active end
             define_method("#{value}!") { update! name => value }
           end
+
+          DEFINED_ENUMS[name] = enum_values
         end
       end
     end
@@ -125,18 +125,18 @@ module ActiveRecord
           mod = Module.new do
             private
               def save_changed_attribute(attr_name, value)
-                if self.class.enum_attribute?(attr_name)
+                if (mapping = self.class.enum_mapping_for(attr_name))
                   if attribute_changed?(attr_name)
                     old = changed_attributes[attr_name]
 
-                    if self.class.public_send(attr_name.pluralize)[old] == value
+                    if mapping[old] == value
                       changed_attributes.delete(attr_name)
                     end
                   else
                     old = clone_attribute_value(:read_attribute, attr_name)
 
                     if old != value
-                      changed_attributes[attr_name] = self.class.public_send(attr_name.pluralize).key old
+                      changed_attributes[attr_name] = mapping.key old
                     end
                   end
                 else
