@@ -46,6 +46,7 @@ module ActiveRecord
       # activerecord-deprecated_finders.
       calculate(:minimum, column_name, options)
     end
+    alias min :minimum
 
     # Calculates the maximum value on a given column. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
@@ -57,6 +58,7 @@ module ActiveRecord
       # activerecord-deprecated_finders.
       calculate(:maximum, column_name, options)
     end
+    alias max :maximum
 
     # Calculates the sum of values on a given column. The value is returned
     # with the same data type of the column, 0 if there's no row. See
