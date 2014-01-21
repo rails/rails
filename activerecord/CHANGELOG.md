@@ -1,3 +1,21 @@
+*   Make enum fields work as expected with the `ActiveModel::Dirty` API.
+
+    Before this change, using the dirty API would have surprising results:
+
+        conversation = Conversation.new
+        conversation.status = :active
+        conversation.status = :archived
+        conversation.status_was # => 0
+
+    After this change, the same code would result in:
+
+        conversation = Conversation.new
+        conversation.status = :active
+        conversation.status = :archived
+        conversation.status_was # => "active"
+
+    *Rafael Mendonça França*
+
 *   `has_one` and `belongs_to` accessors don't add ORDER BY to the queries anymore.
 
     Since Rails 4.0, we add an ORDER BY in the `first` method to ensure consistent results

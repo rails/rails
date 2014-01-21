@@ -43,6 +43,12 @@ module ActiveRecord
       def write_attribute(attr, value)
         attr = attr.to_s
 
+        save_changed_attribute(attr, value)
+
+        super(attr, value)
+      end
+
+      def save_changed_attribute(attr, value)
         # The attribute already has an unsaved change.
         if attribute_changed?(attr)
           old = changed_attributes[attr]
@@ -51,9 +57,6 @@ module ActiveRecord
           old = clone_attribute_value(:read_attribute, attr)
           changed_attributes[attr] = old if _field_changed?(attr, old, value)
         end
-
-        # Carry on.
-        super(attr, value)
       end
 
       def update_record(*)
