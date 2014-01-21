@@ -84,7 +84,7 @@ module ActiveRecord
       #
       # Be careful because this also means you're initializing a model
       # object with only the fields that you've selected. If you attempt
-      # to access a field that is not in the initialized record you'll
+      # to access a field except +id+ that is not in the initialized record you'll
       # receive:
       #
       #   person.pets.select(:name).first.person_id
