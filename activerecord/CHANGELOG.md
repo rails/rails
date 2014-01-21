@@ -1,3 +1,13 @@
+*   Prepend table name for column names passed to `Relation#select`.
+
+    Example:
+
+        Post.select(:id)
+        # Before: => SELECT id FROM "posts"
+        # After: => SELECT "posts"."id" FROM "posts"
+
+    *Yves Senn*
+
 *   Fail early with "Primary key not included in the custom select clause"
     in `find_in_batches`.
 
