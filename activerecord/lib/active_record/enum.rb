@@ -66,7 +66,7 @@ module ActiveRecord
     DEFINED_ENUMS = {} # :nodoc:
 
     def enum_mapping_for(attr_name) # :nodoc:
-      DEFINED_ENUMS[attr_name.to_sym]
+      DEFINED_ENUMS[attr_name.to_s]
     end
 
     def enum(definitions)
@@ -114,7 +114,7 @@ module ActiveRecord
             define_method("#{value}!") { update! name => value }
           end
 
-          DEFINED_ENUMS[name] = enum_values
+          DEFINED_ENUMS[name.to_s] = enum_values
         end
       end
     end
