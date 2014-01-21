@@ -125,8 +125,19 @@ module ActiveRecord
           mod = Module.new do
             def save_changed_attribute(attr_name, value)
               if self.class.enum_attribute?(attr_name)
-                old = clone_attribute_value(:read_attribute, attr_name)
-                changed_attributes[attr_name] = self.class.public_send(attr_name.pluralize).key old
+                if attribute_changed?(attr_name)
+                  old = changed_attributes[attr_name]
+
+                  if self.class.public_send(attr_name.pluralize)[old] == value
+                    changed_attributes.delete(attr_name)
+                  end
+                else
+                  old = clone_attribute_value(:read_attribute, attr_name)
+
+                  if old != value
+                    changed_attributes[attr_name] = self.class.public_send(attr_name.pluralize).key old
+                  end
+                end
               else
                 super
               end
