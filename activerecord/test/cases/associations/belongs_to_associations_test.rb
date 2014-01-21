@@ -28,6 +28,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm).name, firm.name
   end
 
+  def test_belongs_to_does_not_use_order_by
+    ActiveRecord::SQLCounter.clear_log
+    Client.find(3).firm
+  ensure
+    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, 'ORDER BY was used in the query'
+  end
+
   def test_belongs_to_with_primary_key
     client = Client.create(:name => "Primary key client", :firm_name => companies(:first_firm).name)
     assert_equal companies(:first_firm).name, client.firm_with_primary_key.name

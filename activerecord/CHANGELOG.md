@@ -1,3 +1,14 @@
+*   `has_one` and `belongs_to` accessors don't add ORDER BY to the queries anymore.
+
+    Since Rails 4.0, we add an ORDER BY in the `first` method to ensure consistent results
+    among different database engines. But for singular associations this behavior is not needed
+    since we will have one record to return. As this ORDER BY option can lead some performance
+    issues we are removing it for singular associations accessors.
+
+    Fixes #12623.
+
+    *Rafael Mendonça França*
+
 *   Prepend table name for column names passed to `Relation#select`.
 
     Example:
