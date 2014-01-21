@@ -22,6 +22,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
   end
 
+  def test_has_one_does_not_use_order_by
+    ActiveRecord::SQLCounter.clear_log
+    companies(:first_firm).account
+  ensure
+    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, 'ORDER BY was used in the query'
+  end
+
   def test_has_one_cache_nils
     firm = companies(:another_firm)
     assert_queries(1) { assert_nil firm.account }

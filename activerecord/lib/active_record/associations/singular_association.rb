@@ -39,7 +39,7 @@ module ActiveRecord
         end
 
         def find_target
-          scope.first.tap { |record| set_inverse_instance(record) }
+          scope.take.tap { |record| set_inverse_instance(record) }
         end
 
         # Implemented by subclasses
