@@ -490,6 +490,19 @@ end
 
 With this setup, you can retrieve `@employee.subordinates` and `@employee.manager`.
 
+In your migrations/schema, you will add a references column to the model itself.
+
+```ruby
+class CreateEmployees < ActiveRecord::Migration
+  def change
+    create_table :employees do |t|
+      t.references :manager
+      t.timestamps
+    end
+  end
+end
+```
+
 Tips, Tricks, and Warnings
 --------------------------
 
