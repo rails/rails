@@ -1,3 +1,7 @@
+*   Support for user created range types in PostgreSQL.
+
+    *Yves Senn*
+
 *   Default scopes are no longer overriden by chained conditions.
 
     Before this change when you defined a `default_scope` in a model
