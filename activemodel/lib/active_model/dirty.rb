@@ -136,7 +136,7 @@ module ActiveModel
     #   person.save
     #   person.previous_changes # => {"name" => ["bob", "robert"]}
     def previous_changes
-      @previously_changed ||= {}
+      @previously_changed ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
     # Returns a hash of the attributes with unsaved changes indicating their original
