@@ -116,6 +116,17 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     end
   end
 
+  def test_indexes_in_create
+    begin
+      ActiveRecord::Base.connection.stubs(:index_name_exists?).returns(false)
+      expected = "CREATE TEMPORARY TABLE `temp` (INDEX `index_temp_on_zip` (`zip`)) ENGINE=InnoDB AS SELECT id, name, zip FROM a_really_complicated_query"
+      actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
+        t.index :zip
+      end
+      assert_equal expected, actual
+    end
+  end
+
   private
     def with_real_execute
       ActiveRecord::Base.connection.singleton_class.class_eval do

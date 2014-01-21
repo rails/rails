@@ -1,3 +1,17 @@
+*   Create indexes inline in CREATE TABLE for MySQL
+
+    This is important, because adding an index on a temporary table after it has been created
+    would commit the transaction.
+
+    Example:
+
+        create_table :temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query" do |t|
+          t.index :zip
+        end
+        # => CREATE TEMPORARY TABLE temp (INDEX (zip)) AS SELECT id, name, zip FROM a_really_complicated_query
+
+    *Cody Cutrer*
+
 *   Make enum fields work as expected with the `ActiveModel::Dirty` API.
 
     Before this change, using the dirty API would have surprising results:
