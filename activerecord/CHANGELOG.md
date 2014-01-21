@@ -1,8 +1,9 @@
 *   Fail early with "Primary key not included in the custom select clause"
-    in find_in_batches.
+    in `find_in_batches`.
 
-    Before this patch find_in_batches raises this error only on second iteration.
-    So you will know about the problem only when you get the batch size threshold.
+    Before this patch, the exception was raised after the first batch was
+    yielded to the block. This means that you only get it, when you hit the
+    `batch_size` treshold. This could shadow the issue in development.
 
     *Alexander Balashov*
 
@@ -12,6 +13,8 @@
     (`first`, `second`, `third`, `fourth`, and `fifth`) are now available as
     full-fledged finders in ActiveRecord. The biggest benefit of this is ordering
     of the records returned now defaults to the table's primary key in ascending order.
+
+    Fixes #13743.
 
     Example:
 
@@ -32,8 +35,6 @@
 
         # After
         # => SELECT  "users".* FROM "users"   ORDER BY "users"."id" ASC LIMIT 1 OFFSET 4'
-
-    Fixes #13743.
 
     *Jason Meller*
 
