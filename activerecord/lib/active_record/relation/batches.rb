@@ -102,16 +102,13 @@ module ActiveRecord
       while records.any?
         records_size = records.size
         primary_key_offset = records.last.id
+        raise "Primary key not included in the custom select clause" unless primary_key_offset
 
         yield records
 
         break if records_size < batch_size
 
-        if primary_key_offset
-          records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
-        else
-          raise "Primary key not included in the custom select clause"
-        end
+        records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
       end
     end
 

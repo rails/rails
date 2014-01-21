@@ -46,7 +46,9 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_raise_if_select_is_set_without_id
     assert_raise(RuntimeError) do
-      Post.select(:title).find_each(:batch_size => 1) { |post| post }
+      Post.select(:title).find_each(batch_size: 1) { |post|
+        flunk "should not call this block"
+      }
     end
   end
 
