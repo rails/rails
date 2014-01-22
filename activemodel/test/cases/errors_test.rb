@@ -54,6 +54,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert errors.has_key?(:foo), 'errors should have key :foo'
   end
 
+  def test_has_no_key
+    errors = ActiveModel::Errors.new(self)
+    assert_equal false, errors.has_key?(:name), 'errors should not have key :name'
+  end
+
   test "clear errors" do
     person = Person.new
     person.validate!
