@@ -1,3 +1,16 @@
+*   Allow using hash for Relation#select to define aliases.
+
+    Also allow a subquery as the key.
+
+    Example:
+
+        User.select(id: :alternate_id, "COALESCE(display_name, name)": :my_name,
+          Transaction.select("COUNT(*)").where("user_id=users.id") => :transaction_count)
+        # => SELECT "users"."id" AS alternate_id, COALESCE(display_name, name) AS my_name,
+          (SELECT COUNT(*) FROM transactions WHERE user_id=users.id) transaction_count
+
+    *Cody Cutrer*
+
 *   Make enum fields work as expected with the `ActiveModel::Dirty` API.
 
     Before this change, using the dirty API would have surprising results:

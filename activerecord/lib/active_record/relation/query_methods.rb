@@ -234,6 +234,8 @@ module ActiveRecord
 
     def select!(*fields) # :nodoc:
       fields.flatten!
+      fields.map! { |field| Hash === field  ? field.to_a : field }
+      fields.flatten!(1)
 
       self.select_values += fields
       self
@@ -988,7 +990,21 @@ module ActiveRecord
     def build_select(arel, selects)
       if !selects.empty?
         expanded_select = selects.map do |field|
-          columns_hash.key?(field.to_s) ? arel_table[field] : field
+          if Array === field
+            field, aliaz = *field
+          end
+
+          # subqueries have to be aliases
+          if Relation === field && aliaz
+            column = field.arel.as(aliaz.to_s)
+          elsif columns_hash.key?(field.to_s)
+            column = arel_table[field]
+            column = column.as(aliaz.to_s) if aliaz
+          else
+            column = field
+            column = "#{field} AS #{aliaz}" if aliaz
+          end
+          column
         end
         arel.project(*expanded_select)
       elsif from_value
