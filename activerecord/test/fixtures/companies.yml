@@ -57,3 +57,11 @@ odegy:
   id: 9
   name: Odegy
   type: ExclusivelyDependentFirm
+
+another_first_firm_client:
+  id: 11
+  type: Client
+  firm_id: 1
+  client_of: 1
+  name: Apex
+  firm_name: 37signals

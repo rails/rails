@@ -278,7 +278,7 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Company.group("UPPER(#{QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
-    assert_equal 4, c['CLIENT']
+    assert_equal 5, c['CLIENT']
     assert_equal 2, c['FIRM']
   end
 
@@ -286,7 +286,7 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Company.group("UPPER(companies.#{QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
-    assert_equal 4, c['CLIENT']
+    assert_equal 5, c['CLIENT']
     assert_equal 2, c['FIRM']
   end
 
