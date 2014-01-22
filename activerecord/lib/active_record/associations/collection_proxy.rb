@@ -1004,6 +1004,27 @@ module ActiveRecord
         proxy_association.reload
         self
       end
+
+      # Unloads the association
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets # fetches pets from the database
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #
+      #   person.pets # uses the pets cache
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #
+      #   person.pets.reset # clears the pets cache
+      #
+      #   person.pets  # fetches pets from the database
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      def reset
+        proxy_association.reset
+        proxy_association.reset_scope
+      end
     end
   end
 end
