@@ -90,7 +90,8 @@ module ActiveRecord
             base_name.foreign_key
           else
             if ActiveRecord::Base != self && table_exists? && 
-              (primary_key = connection.schema_cache.primary_keys(table_name)).present?
+              ((primary_key = connection.schema_cache.primary_keys(table_name)).present? ||
+              !connection.schema_cache.columns(table_name).include?('id'))
               primary_key 
             else
               'id'
