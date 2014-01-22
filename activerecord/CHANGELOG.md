@@ -1,3 +1,9 @@
+*   Calling reset on a collection association should unload the assocation.
+
+    Fixes #13777.
+ 
+    *Kelsey Schlarman*
+
 *   Make enum fields work as expected with the `ActiveModel::Dirty` API.
 
     Before this change, using the dirty API would have surprising results:
