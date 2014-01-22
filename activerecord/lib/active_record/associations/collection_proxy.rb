@@ -1005,7 +1005,7 @@ module ActiveRecord
         self
       end
 
-      # Unloads the association
+      # Unloads the association. Returns +self+.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -1024,6 +1024,7 @@ module ActiveRecord
       def reset
         proxy_association.reset
         proxy_association.reset_scope
+        self
       end
     end
   end
