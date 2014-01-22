@@ -1517,6 +1517,18 @@ class RelationTest < ActiveRecord::TestCase
     assert !Post.all.respond_to?(:by_lifo)
   end
 
+  test "alias of non-table column with select" do
+    assert_equal 'abc', Post.select("'abc'" => "tenderlove").first.tenderlove
+  end
+
+  test "alias of table column with select" do
+    assert_equal [1, 2, 3], Post.select(:id => :other_id).order(:id).limit(3).map(&:other_id)
+  end
+
+  test "alias of subquery column with select" do
+    assert_equal 1, Post.select(Post.select("1").limit(1) => :subquery).first.subquery
+  end
+
   def test_unscope_removes_binds
     left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
     column = Post.columns_hash['id']
