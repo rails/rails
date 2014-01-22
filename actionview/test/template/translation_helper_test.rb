@@ -104,6 +104,36 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => stub(:to_s => "<World>"))
   end
 
+  def test_translate_doesnt_escape_html_safe_interpolations_in_translations_with_a_html_suffix
+    assert_equal '<a>Hello <b>World</b></a>', translate(:'translations.interpolated_html', :word => '<b>World</b>'.html_safe)
+  end
+
+  def test_translate_interpolates_with_a_block
+    assert_equal(
+      '<a>Hello World</a>',
+      translate(:'translations.interpolated_html') do |t|
+        t.word 'World'
+      end
+    )
+    assert_equal(
+      '<a>Hello World</a>',
+      translate(:'translations.interpolated_html') do |t|
+        t.word do
+          'World'
+        end
+      end
+    )
+    assert_equal(
+      '<a>Hello World</a>',
+      @view.translate(:'translations.interpolated_html') do |t|
+        t.word do
+          @view.output_buffer << 'World'
+          nil
+        end
+      end
+    )
+  end
+
   def test_translate_with_html_count
     assert_equal '<a>One 1</a>', translate(:'translations.count_html', :count => 1)
     assert_equal '<a>Other 2</a>', translate(:'translations.count_html', :count => 2)
