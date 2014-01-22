@@ -83,7 +83,7 @@ class DirtyTest < ActiveModel::TestCase
     assert_not_nil @model.changes['name']
   end
 
-  test "be cosistent with symbols arguments after the changes are applied" do
+  test "be consistent with symbols arguments after the changes are applied" do
     @model.name = "David"
     assert @model.attribute_changed?(:name)
     @model.save
