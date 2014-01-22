@@ -1,7 +1,19 @@
-*   Calling reset on a collection association should unload the assocation.
+*   Reset the collection association when calling `reset` on it.
+
+    Before:
+
+        post.comments.loaded? # => true
+        post.comments.reset
+        post.comments.loaded? # => true
+
+    After:
+
+        post.comments.loaded? # => true
+        post.comments.reset
+        post.comments.loaded? # => false
 
     Fixes #13777.
- 
+
     *Kelsey Schlarman*
 
 *   Make enum fields work as expected with the `ActiveModel::Dirty` API.
