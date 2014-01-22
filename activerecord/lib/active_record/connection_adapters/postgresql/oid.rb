@@ -135,6 +135,18 @@ module ActiveRecord
             extracted = extract_bounds(value)
             from = type_cast_single extracted[:from]
             to = type_cast_single extracted[:to]
+
+            if !infinity?(from) && extracted[:exclude_start]
+              if from.respond_to?(:succ)
+                from = from.succ
+                ActiveSupport::Deprecation.warn <<-MESSAGE
+Excluding the beginning of a Range is only partialy supported through `#succ`.
+This is not reliable and will be removed in the future.
+                MESSAGE
+              else
+                raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
+              end
+            end
             ::Range.new(from, to, extracted[:exclude_end])
           end
         end

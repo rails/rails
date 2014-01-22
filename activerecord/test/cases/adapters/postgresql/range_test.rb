@@ -53,21 +53,21 @@ _SQL
                    float_range: "[0.5, 0.7]")
 
       insert_range(id: 102,
-                   date_range: "(''2012-01-02'', ''2012-01-04'')",
-                   num_range: "(0.1, 0.2)",
-                   ts_range: "(''2010-01-01 14:30'', ''2011-01-01 14:30'')",
-                   tstz_range: "(''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'')",
-                   int4_range: "(1, 10)",
-                   int8_range: "(10, 100)",
-                   float_range: "(0.5, 0.7)")
+                   date_range: "[''2012-01-02'', ''2012-01-04'')",
+                   num_range: "[0.1, 0.2)",
+                   ts_range: "[''2010-01-01 14:30'', ''2011-01-01 14:30'')",
+                   tstz_range: "[''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'')",
+                   int4_range: "[1, 10)",
+                   int8_range: "[10, 100)",
+                   float_range: "[0.5, 0.7)")
 
       insert_range(id: 103,
-                   date_range: "(''2012-01-02'',]",
+                   date_range: "[''2012-01-02'',]",
                    num_range: "[0.1,]",
                    ts_range: "[''2010-01-01 14:30'',]",
                    tstz_range: "[''2010-01-01 14:30:00+05'',]",
-                   int4_range: "(1,]",
-                   int8_range: "(10,]",
+                   int4_range: "[1,]",
+                   int8_range: "[10,]",
                    float_range: "[0.5,]")
 
       insert_range(id: 104,
@@ -80,13 +80,13 @@ _SQL
                    float_range: "[,]")
 
       insert_range(id: 105,
-                   date_range: "(''2012-01-02'', ''2012-01-02'')",
-                   num_range: "(0.1, 0.1)",
-                   ts_range: "(''2010-01-01 14:30'', ''2010-01-01 14:30'')",
-                   tstz_range: "(''2010-01-01 14:30:00+05'', ''2010-01-01 06:30:00-03'')",
-                   int4_range: "(1, 1)",
-                   int8_range: "(10, 10)",
-                   float_range: "(0.5, 0.5)")
+                   date_range: "[''2012-01-02'', ''2012-01-02'')",
+                   num_range: "[0.1, 0.1)",
+                   ts_range: "[''2010-01-01 14:30'', ''2010-01-01 14:30'')",
+                   tstz_range: "[''2010-01-01 14:30:00+05'', ''2010-01-01 06:30:00-03'')",
+                   int4_range: "[1, 1)",
+                   int8_range: "[10, 10)",
+                   float_range: "[0.5, 0.5)")
 
       @new_range = PostgresqlRange.new
       @first_range = PostgresqlRange.find(101)
@@ -107,24 +107,24 @@ _SQL
 
     def test_int4range_values
       assert_equal 1...11, @first_range.int4_range
-      assert_equal 2...10, @second_range.int4_range
-      assert_equal 2...Float::INFINITY, @third_range.int4_range
+      assert_equal 1...10, @second_range.int4_range
+      assert_equal 1...Float::INFINITY, @third_range.int4_range
       assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.int4_range)
       assert_nil @empty_range.int4_range
     end
 
     def test_int8range_values
       assert_equal 10...101, @first_range.int8_range
-      assert_equal 11...100, @second_range.int8_range
-      assert_equal 11...Float::INFINITY, @third_range.int8_range
+      assert_equal 10...100, @second_range.int8_range
+      assert_equal 10...Float::INFINITY, @third_range.int8_range
       assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.int8_range)
       assert_nil @empty_range.int8_range
     end
 
     def test_daterange_values
       assert_equal Date.new(2012, 1, 2)...Date.new(2012, 1, 5), @first_range.date_range
-      assert_equal Date.new(2012, 1, 3)...Date.new(2012, 1, 4), @second_range.date_range
-      assert_equal Date.new(2012, 1, 3)...Float::INFINITY, @third_range.date_range
+      assert_equal Date.new(2012, 1, 2)...Date.new(2012, 1, 4), @second_range.date_range
+      assert_equal Date.new(2012, 1, 2)...Float::INFINITY, @third_range.date_range
       assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.date_range)
       assert_nil @empty_range.date_range
     end
@@ -228,6 +228,38 @@ _SQL
     def test_update_int8range
       assert_equal_round_trip(@first_range, :int8_range, 60000...10000000)
       assert_nil_round_trip(@first_range, :int8_range, 39999...39999)
+    end
+
+    def test_exclude_beginning_for_subtypes_with_succ_method_is_deprecated
+      tz = ::ActiveRecord::Base.default_timezone
+
+      silence_warnings {
+        assert_deprecated {
+          range = PostgresqlRange.create!(date_range: "(''2012-01-02'', ''2012-01-04'']")
+          assert_equal Date.new(2012, 1, 3)..Date.new(2012, 1, 4), range.date_range
+        }
+        assert_deprecated {
+          range = PostgresqlRange.create!(ts_range: "(''2010-01-01 14:30'', ''2011-01-01 14:30'']")
+          assert_equal Time.send(tz, 2010, 1, 1, 14, 30, 1)..Time.send(tz, 2011, 1, 1, 14, 30, 0), range.ts_range
+        }
+        assert_deprecated {
+          range = PostgresqlRange.create!(tstz_range: "(''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'']")
+          assert_equal Time.parse('2010-01-01 09:30:01 UTC')..Time.parse('2011-01-01 17:30:00 UTC'), range.tstz_range
+        }
+        assert_deprecated {
+          range = PostgresqlRange.create!(int4_range: "(1, 10]")
+          assert_equal 2..10, range.int4_range
+        }
+        assert_deprecated {
+          range = PostgresqlRange.create!(int8_range: "(10, 100]")
+          assert_equal 11..100, range.int8_range
+        }
+      }
+    end
+
+    def test_exclude_beginning_for_subtypes_without_succ_method_is_not_supported
+      assert_raises(ArgumentError) { PostgresqlRange.create!(num_range: "(0.1, 0.2]") }
+      assert_raises(ArgumentError) { PostgresqlRange.create!(float_range: "(0.5, 0.7]") }
     end
 
     private
