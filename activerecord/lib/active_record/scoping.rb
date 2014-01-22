@@ -27,6 +27,11 @@ module ActiveRecord
       end
     end
 
+    def initialize_internals_callback
+      super
+      populate_with_current_scope_attributes
+    end
+
     # This class stores the +:current_scope+ and +:ignore_default_scope+ values
     # for different classes. The registry is stored as a thread local, which is
     # accessed through +ScopeRegistry.current+.
