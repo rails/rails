@@ -535,7 +535,6 @@ module ActiveRecord
       }
 
       binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
-      binds.merge!(Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }])
 
       Hash[equalities.map { |where|
         name = where.left.name
