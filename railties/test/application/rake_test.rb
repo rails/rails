@@ -54,7 +54,7 @@ module ApplicationTests
       output = Dir.chdir(app_path){ `rake do_nothing` }
       assert_match "Doing something...", output
     end
-
+		
     def test_does_not_explode_when_accessing_a_model
       add_to_config <<-RUBY
         rake_tasks do
@@ -141,6 +141,14 @@ module ApplicationTests
         For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
       MESSAGE
     end
+
+    def test_rake_routes_not_raise_exception_on_helpers_include_in_rake_task
+      app_file "lib/tasks/app.rake", <<-RUBY
+      	include ActionView::Helpers::ControllerHelper
+      RUBY
+      assert_not_match "stack level too deep",
+        Dir.chdir(app_path){ `rake routes` }
+		end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
       add_to_config <<-RUBY
