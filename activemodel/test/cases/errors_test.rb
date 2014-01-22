@@ -51,7 +51,7 @@ class ErrorsTest < ActiveModel::TestCase
   def test_has_key?
     errors = ActiveModel::Errors.new(self)
     errors[:foo] = 'omg'
-    assert errors.has_key?(:foo), 'errors should have key :foo'
+    assert_equal true, errors.has_key?(:foo), 'errors should have key :foo'
   end
 
   def test_has_no_key
