@@ -182,9 +182,7 @@ module ActiveRecord
       @column_types = self.class.column_types
 
       init_internals
-      init_changed_attributes
-      ensure_proper_type
-      populate_with_current_scope_attributes
+      initialize_internals_callback
 
       # +options+ argument is only needed to make protected_attributes gem easier to hook.
       # Remove it when we drop support to this gem.
@@ -255,16 +253,12 @@ module ActiveRecord
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
-      @changed_attributes = {}
-      init_changed_attributes
-
       @aggregation_cache = {}
       @association_cache = {}
       @attributes_cache  = {}
 
       @new_record  = true
 
-      ensure_proper_type
       super
     end
 
@@ -440,13 +434,7 @@ module ActiveRecord
       @reflects_state           = [false]
     end
 
-    def init_changed_attributes
-      # Intentionally avoid using #column_defaults since overridden defaults (as is done in
-      # optimistic locking) won't get written unless they get marked as changed
-      self.class.columns.each do |c|
-        attr, orig_value = c.name, c.default
-        changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
-      end
+    def initialize_internals_callback
     end
 
     # This method is needed to make protected_attributes gem easier to hook.

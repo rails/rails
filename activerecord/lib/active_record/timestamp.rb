@@ -71,7 +71,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      self.record_timestamps && (!partial_writes? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
+      self.record_timestamps && (!partial_writes? || changed?)
     end
 
     def timestamp_attributes_for_create_in_model
