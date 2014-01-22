@@ -1,7 +1,48 @@
 module ActiveSupport
   module Testing
+    class SimpleStubs
+      Stub = Struct.new(:object, :method_name, :original_method)
+
+      def initialize
+        @stubs = {}
+      end
+
+      def stub_object(object, method_name, return_value)
+        key = [object.object_id, method_name]
+
+        if (stub = @stubs[key])
+          unstub_object(stub)
+        end
+
+        @stubs[key] = Stub.new(object, method_name, object.method(method_name))
+
+        object.define_singleton_method(method_name) { return_value }
+      end
+
+      def unstub_all!
+        @stubs.each do |_, stub|
+          unstub_object(stub)
+        end
+        @stubs = {}
+      end
+
+      def unstub_object(stub)
+        stub.object.define_singleton_method(stub.method_name, stub.original_method)
+      end
+    end
+
     # Containing helpers that helps you test passage of time.
     module TimeHelpers
+      def before_setup
+        super
+        @simple_stubs = SimpleStubs.new
+      end
+
+      def after_teardown #:nodoc:
+        @simple_stubs.unstub_all!
+        super
+      end
+
       # Change current time to the time in the future or in the past by a given time difference by
       # stubbing +Time.now+ and +Date.today+. Note that the stubs are automatically removed
       # at the end of each test.
@@ -41,13 +82,12 @@ module ActiveSupport
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time, &block)
-        Time.stubs now: date_or_time.to_time
-        Date.stubs today: date_or_time.to_date
+        @simple_stubs.stub_object(Time, :now, date_or_time.to_time)
+        @simple_stubs.stub_object(Date, :today, date_or_time.to_date)
 
         if block_given?
           block.call
-          Time.unstub :now
-          Date.unstub :today
+          @simple_stubs.unstub_all!
         end
       end
     end
