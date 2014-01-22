@@ -8,6 +8,13 @@ module ActiveRecord
         # serialization as keys and their class restriction as values.
         class_attribute :serialized_attributes, instance_accessor: false
         self.serialized_attributes = {}
+
+        # Contains the options for each serialized attribute. Currently
+        # only contains the value of the dirty property
+        # TODO it would be cleaner if this included the coder...
+        class_attribute :serialized_attribute_options,
+          instance_accessor: false
+        self.serialized_attribute_options = {}
       end
 
       module ClassMethods
@@ -38,8 +45,13 @@ module ActiveRecord
         #   class User < ActiveRecord::Base
         #     serialize :preferences
         #   end
-        def serialize(attr_name, class_name = Object)
+        def serialize(attr_name, class_name = Object, options = {})
           include Behavior
+
+          # The class_name parameter is optional. You can define a
+          # serialized attribute like this
+          # `serialize :some_attribute, dirty: :never
+          class_name, options = Object, class_name if class_name.is_a?(Hash)
 
           coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
                     class_name
@@ -50,6 +62,10 @@ module ActiveRecord
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
           # has its own hash of own serialized attributes
           self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
+
+          options = {dirty: :always}.merge(options)
+          self.serialized_attribute_options = serialized_attribute_options.
+            merge(attr_name.to_s => options)
         end
       end
 
