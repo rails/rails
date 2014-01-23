@@ -40,7 +40,6 @@ module ActiveRecord
         #   end
         def serialize(attr_name, class_name = Object)
           include Behavior
-          include HashComparison
 
           coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
                     class_name
@@ -157,10 +156,6 @@ module ActiveRecord
             super
           end
         end
-      end
-
-      module HashComparison # :nodoc:
-        extend ActiveSupport::Concern
 
         def changed_hashes?
           changed_hashes.present?
@@ -186,25 +181,28 @@ module ActiveRecord
           super | changed_hashes
         end
 
-        def read_attribute(attr_name)
-          super.tap do |value|
-            name = attr_name.to_s
-            @attributes_hashes[name] = value.hash unless @attributes_hashes.key?(name)
-          end
-        end
-
         private
+          def init_changed_attributes
+            super.tap { init_attributes_hashes }
+          end
+
+          def init_attributes_hashes
+            @attributes_hashes = {}
+            (@attributes.keys & self.class.serialized_attributes.keys).each do |attr|
+              @attributes_hashes[attr] = @attributes[attr].unserialized_value.hash
+            end
+          end
 
           def init_internals
-            super.tap { @attributes_hashes = {} }
+            super.tap { init_attributes_hashes }
           end
 
           def changes_applied
-            super.tap { @attributes_hashes = {} }
+            super.tap { init_attributes_hashes }
           end
 
           def reset_changes
-            super.tap { @attributes_hashes = {} }
+            super.tap { init_attributes_hashes }
           end
       end
     end
