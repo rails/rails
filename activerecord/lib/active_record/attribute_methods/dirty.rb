@@ -87,20 +87,6 @@ module ActiveRecord
         partial_writes? ? super(keys_for_partial_write) : super
       end
 
-      # Serialized attributes are written according to their dirty option.
-      # By default (dirty: :always), they are always written because they
-      # may have been changed in place
-      def dirty_serialized_keys
-        self.class.serialized_attributes.keys.select do |key|
-          dirty = self.class.serialized_attribute_options[key][:dirty]
-          # TODO add methods hash and clone here if this gets any traction
-          case dirty
-          when :never then false
-          else true # including :always
-          end
-        end
-      end
-
       def keys_for_partial_write
         changed
       end
