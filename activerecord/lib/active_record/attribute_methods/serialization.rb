@@ -161,7 +161,7 @@ module ActiveRecord
         end
 
         def changed?
-          super || changed_serialized.present?
+          super || changed_serialized_keys.present?
         end
 
         # TODO this breaks when a a serialized attribute is set that was not
@@ -175,12 +175,17 @@ module ActiveRecord
             comp.call(@attributes[attr].unserialized_value)
         end
 
-        def changed_serialized
+        def changed_serialized_keys
           @serialized_comparable.keys.select { |k| changed_serialized?(k) }
         end
 
+        def should_record_timestamps?
+          super || (self.record_timestamps && (attributes.keys &
+            self.class.always_dirty_serialized_keys).present?)
+        end
+
         def keys_for_partial_write
-          super | changed_serialized |
+          super | changed_serialized_keys |
             (attributes.keys & self.class.always_dirty_serialized_keys)
         end
 
