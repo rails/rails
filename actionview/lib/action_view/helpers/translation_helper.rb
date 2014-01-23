@@ -5,7 +5,7 @@ module ActionView
   # = Action View Translation Helpers
   module Helpers
     module TranslationHelper
-      # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
+      # Delegates to <tt>I18n#translate</tt> but also performs four additional functions.
       #
       # First, it will ensure that any thrown +MissingTranslation+ messages will be turned 
       # into inline spans that:
@@ -33,6 +33,22 @@ module ActionView
       # a safe HTML string that won't be escaped by other HTML helper methods. This
       # naming convention helps to identify translations that include HTML tags so that
       # you know what kind of output to expect when you call translate in a template.
+      #
+      # Fourth, a block can be given to set interpolation variables directly or,
+      # optionally, through blocks as well:
+      #
+      #   translate('mr') {|t| t.name 'Fogg'}  # whereas mr: "Mr. %{name}"
+      #
+      #   translate('mr') do |t|
+      #     t.name() { 'Fogg' }
+      #   end
+      #
+      #   <% t('mr') do |t| %>
+      #     <% t.name do %>
+      #       <b><%= mister.name %><b>
+      #     <% end %>
+      #   <% end %>
+      #
       def translate(key, options = {})
         options[:default] = wrap_translate_defaults(options[:default]) if options[:default]
 
