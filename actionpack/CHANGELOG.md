@@ -1,3 +1,9 @@
+*   Fix `rake routes` error when `Rails::Engine` with empty routes is mounted.
+
+    Fixes #13810.
+
+    *Maurizio De Santis*
+
 *   Automatically convert dashes to underscores for shorthand routes, e.g:
 
         get '/our-work/latest'
