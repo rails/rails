@@ -11,6 +11,14 @@
 
     *Maurizio De Santis*
 
+*   Log which keys were affected by deep munge.
+
+    Deep munge solves CVE-2013-0155 security vulnerability, but its
+    behaviour is definately confusing, so now at least information
+    about for which keys values were set to nil is visible in logs.
+
+    *Łukasz Sarnacki*
+
 *   Automatically convert dashes to underscores for shorthand routes, e.g:
 
         get '/our-work/latest'
