@@ -75,7 +75,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_finds_array_of_translations_scoped_by_partial
-    assert_equal 'Foo Bar', @view.render(:file => 'translations/templates/array').strip
+    assert_equal 'Foo Bar', view.render(:file => 'translations/templates/array').strip
   end
 
   def test_default_lookup_scoped_by_partial
@@ -102,6 +102,48 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
     assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => '<World>')
     assert_equal '<a>Hello &lt;World&gt;</a>', translate(:'translations.interpolated_html', :word => stub(:to_s => "<World>"))
+  end
+
+  def test_translate_doesnt_escape_html_safe_interpolations_in_translations_with_a_html_suffix
+    assert_equal '<a>Hello <b>World</b></a>', translate(:'translations.interpolated_html', :word => '<b>World</b>'.html_safe)
+  end
+
+  def test_translate_interpolates_with_a_block
+    assert_equal(
+      '<a>Hello World</a>',
+      translate(:'translations.interpolated_html') do |t|
+        t.word 'World'
+      end
+    )
+  end
+
+  def test_translate_interpolates_with_a_block_and_a_variable_is_set_through_a_block_too
+    assert_equal(
+      '<a>Hello World</a>',
+      translate(:'translations.interpolated_html') do |t|
+        t.word do
+          'World'
+        end
+      end
+    )
+  end
+
+  def test_translate_interpolates_with_a_block_and_a_variable_is_captured_in_through_a_block_in_a_view
+    assert_equal(
+      '<a>Hello World</a>',
+      view.translate(:'translations.interpolated_html') do |t|
+        t.word do
+          view.output_buffer << 'World'
+          nil
+        end
+      end
+    )
+    assert_equal(
+      '<a>Hello <big>World</big></a>',
+      view.render(
+        :inline => "<%= translate(:'translations.interpolated_html') do |t| %><% t.word do %><big>World</big><% end %><% end %>"
+      )
+    )
   end
 
   def test_translate_with_html_count

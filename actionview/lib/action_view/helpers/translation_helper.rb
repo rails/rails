@@ -5,7 +5,7 @@ module ActionView
   # = Action View Translation Helpers
   module Helpers
     module TranslationHelper
-      # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
+      # Delegates to <tt>I18n#translate</tt> but also performs four additional functions.
       #
       # First, it will ensure that any thrown +MissingTranslation+ messages will be turned 
       # into inline spans that:
@@ -33,8 +33,30 @@ module ActionView
       # a safe HTML string that won't be escaped by other HTML helper methods. This
       # naming convention helps to identify translations that include HTML tags so that
       # you know what kind of output to expect when you call translate in a template.
+      #
+      # Fourth, a block can be given to set interpolation variables directly or,
+      # optionally, through blocks as well:
+      #
+      #   translate('mr') {|t| t.name 'Fogg'}  # whereas mr: "Mr. %{name}"
+      #
+      #   translate('mr') do |t|
+      #     t.name() { 'Fogg' }
+      #   end
+      #
+      #   <%= translate('mr') do |t| %>
+      #     <% t.name do %>
+      #       <b><%= mister.name %><b>
+      #     <% end %>
+      #   <% end %>
+      #
       def translate(key, options = {})
         options[:default] = wrap_translate_defaults(options[:default]) if options[:default]
+
+        if block_given?
+          i = Interpolator.new(self)
+          yield i
+          options = i.variables.merge(options)
+        end
 
         # If the user has specified rescue_format then pass it all through, otherwise use
         # raise and do the work ourselves
@@ -76,6 +98,24 @@ module ActionView
       alias :l :localize
 
       private
+        class Interpolator
+          attr_reader :variables
+
+          def initialize(context)
+            @variables = {}
+            @context = context
+          end
+
+          private
+          # NOTE an alternative solution would be to define methods per interpolation variables
+          def method_missing(meth, *args, &block)
+            variables[meth] =
+              args[0] ||
+              @context.respond_to?(:output_buffer) && @context.capture(&block) ||
+              block.try(:call)
+          end
+        end
+
         def scope_key_by_partial(key)
           if key.to_s.first == "."
             if @virtual_path
