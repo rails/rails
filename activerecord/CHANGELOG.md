@@ -1649,4 +1649,8 @@
 
     *Slava Markevich*
 
+*   mysql adapater now reads local_infile option from config. This sets the MYSQL_OPT_LOCAL_INFILE option for mysql
+
+   *Raza Sayed*
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activerecord/CHANGELOG.md) for previous changes.
