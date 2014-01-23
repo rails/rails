@@ -127,4 +127,8 @@ class BaseMailer < ActionMailer::Base
   def with_subject_interpolations
     mail(subject: default_i18n_subject(rapper_or_impersonator: 'Slim Shady'), body: '')
   end
+
+  def with_body_and_template(template_name = '')
+    mail(body: 'I am rendered', template_name: template_name)
+  end
 end

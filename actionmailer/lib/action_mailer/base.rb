@@ -714,6 +714,11 @@ module ActionMailer
     #     format.html
     #   end
     #
+    # Preferences for rendering are in following order:
+    # 1) Blocks
+    # 2) :body parameter
+    # 3) templates
+    #
     def mail(headers = {}, &block)
       return @_message if @_mail_was_called && headers.blank? && !block
 
