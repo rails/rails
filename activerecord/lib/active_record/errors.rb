@@ -69,6 +69,10 @@ module ActiveRecord
     end
   end
 
+  # Raised when executed query cannot be run in transaction
+  class ActiveSqlTransaction < StatementInvalid
+  end
+
   # Defunct wrapper class kept for compatibility.
   # +StatementInvalid+ wraps the original exception now.
   class WrappedDatabaseException < StatementInvalid

@@ -182,6 +182,18 @@ module ActiveRecord
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
+
+    def test_active_sql_transaction_is_translated_to_specific_exception
+      if @connection.adapter_name == "PostgreSQL"
+        assert_raises(ActiveRecord::ActiveSqlTransaction) do
+          @connection.execute %{
+            BEGIN;
+            CREATE  INDEX CONCURRENTLY index_accounts_on_firm_id ON accounts(firm_id);
+            COMMIT;
+          }
+        end
+      end
+    end
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase

@@ -597,6 +597,9 @@ module ActiveRecord
       else
         send(direction)
       end
+    rescue ActiveRecord::ActiveSqlTransaction => e
+      puts "\n\e[31mThe query you were trying to execute cannot be run in transaction block. Consider adding `disable_ddl_transaction!` on top of your migration class. Go to http://guides.rubyonrails.org/migrations.html for more information.\e[0m\n\n"
+      raise e
     ensure
       @connection = nil
     end

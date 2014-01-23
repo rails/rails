@@ -733,8 +733,9 @@ module ActiveRecord
         end
 
         # See http://www.postgresql.org/docs/9.1/static/errcodes-appendix.html
-        FOREIGN_KEY_VIOLATION = "23503"
-        UNIQUE_VIOLATION      = "23505"
+        FOREIGN_KEY_VIOLATION  = "23503"
+        UNIQUE_VIOLATION       = "23505"
+        ACTIVE_SQL_TRANSACTION = "25001"
 
         def translate_exception(exception, message)
           return exception unless exception.respond_to?(:result)
@@ -744,6 +745,8 @@ module ActiveRecord
             RecordNotUnique.new(message, exception)
           when FOREIGN_KEY_VIOLATION
             InvalidForeignKey.new(message, exception)
+          when ACTIVE_SQL_TRANSACTION
+            ActiveSqlTransaction.new(message, exception)
           else
             super
           end
