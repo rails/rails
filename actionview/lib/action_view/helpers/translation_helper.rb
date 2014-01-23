@@ -43,7 +43,7 @@ module ActionView
       #     t.name() { 'Fogg' }
       #   end
       #
-      #   <% t('mr') do |t| %>
+      #   <%= translate('mr') do |t| %>
       #     <% t.name do %>
       #       <b><%= mister.name %><b>
       #     <% end %>
