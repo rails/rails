@@ -341,29 +341,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert !topic.approved_changed?
   end
 
-  def test_attribute_hash_mutation
-    topic = Topic.create!(:content => {:a => "a"})
-    assert !topic.content_changed?
-    assert !topic.changed?
-    assert_equal [], topic.changed_hashes
-    assert !topic.changed_hashes?
-
-    topic.content[:a] = "b"
-    assert topic.changed_hash?("content")
-    assert_equal ["content"], topic.changed_hashes
-    assert topic.changed_hashes?
-    assert topic.changed?
-
-    topic.content[:a] = "a"
-    assert !topic.changed_hash?("content")
-    assert !topic.changed?
-
-    topic = Topic.find_by_id!(topic.id)
-    assert !topic.changed_hashes?
-    topic.content[:a] = "b"
-    assert topic.changed_hash?("content")
-  end
-
   def test_partial_update
     pirate = Pirate.new(:catchphrase => 'foo')
     old_updated_on = 1.hour.ago.beginning_of_day
@@ -463,42 +440,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.changed?
     assert !pirate.parrot_id_changed?
     assert !pirate.catchphrase_changed?
-  end
-
-  def test_save_should_store_serialized_attributes_even_with_partial_writes
-    with_partial_writes(Topic) do
-      topic = Topic.create!(:content => {:a => "a"})
-      topic.content[:b] = "b"
-      assert topic.changed?
-      topic.save!
-      assert_equal "b", topic.content[:b]
-      topic.reload
-      assert_equal "b", topic.content[:b]
-    end
-  end
-
-  def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
-    with_partial_writes(Topic) do
-      topic = Topic.create!(:content => {:a => "a"})
-      topic.save!
-
-      updated_at = topic.updated_at
-      topic.content[:hello] = 'world'
-      topic.save!
-
-      assert_not_equal updated_at, topic.updated_at
-      assert_equal 'world', topic.content[:hello]
-    end
-  end
-
-  def test_save_should_not_save_serialized_attribute_with_partial_writes_if_not_present
-    with_partial_writes(Topic) do
-      Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
-      topic = Topic.select('id, author_name').first
-      topic.update_columns author_name: 'John'
-      topic = Topic.first
-      assert_not_nil topic.content
-    end
   end
 
   def test_previous_changes

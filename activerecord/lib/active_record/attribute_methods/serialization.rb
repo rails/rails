@@ -168,6 +168,10 @@ module ActiveRecord
           @attributes_hashes.keys.select { |attr| changed_hash?(attr) }
         end
 
+        def attribute_changed?(attr)
+          super || changed_hash?(attr)
+        end
+
         def changed_hash?(attr)
           @attributes_hashes[attr] &&
             (@attributes_hashes[attr] != __send__(attr).hash)
