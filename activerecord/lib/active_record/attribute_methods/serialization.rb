@@ -115,14 +115,6 @@ module ActiveRecord
           end
         end
 
-        def should_record_timestamps?
-          super || (self.record_timestamps && (attributes.keys & self.class.serialized_attributes.keys).present?)
-        end
-
-        def keys_for_partial_write
-          super | (attributes.keys & self.class.serialized_attributes.keys)
-        end
-
         def type_cast_attribute_for_write(column, value)
           if column && coder = self.class.serialized_attributes[column.name]
             Attribute.new(coder, value, :unserialized)
@@ -164,6 +156,58 @@ module ActiveRecord
             super
           end
         end
+
+        def changed_hashes?
+          changed_hashes.present?
+        end
+
+        # Returns an array with the name of the columns with changed hashes
+        # These attributes have possibly changed.
+        #
+        def changed_hashes
+          @attributes_hashes.keys.select { |attr| changed_hash?(attr) }
+        end
+
+        def attribute_changed?(attr)
+          super || changed_hash?(attr)
+        end
+
+        def changed_hash?(attr)
+          @attributes_hashes[attr] &&
+            (@attributes_hashes[attr] != __send__(attr).hash)
+        end
+
+        def changed?
+          super || changed_hashes?
+        end
+
+        def keys_for_partial_write
+          super | changed_hashes
+        end
+
+        private
+          def init_changed_attributes
+            super.tap { init_attributes_hashes }
+          end
+
+          def init_attributes_hashes
+            @attributes_hashes = {}
+            (@attributes.keys & self.class.serialized_attributes.keys).each do |attr|
+              @attributes_hashes[attr] = @attributes[attr].unserialized_value.hash
+            end
+          end
+
+          def init_internals
+            super.tap { init_attributes_hashes }
+          end
+
+          def changes_applied
+            super.tap { init_attributes_hashes }
+          end
+
+          def reset_changes
+            super.tap { init_attributes_hashes }
+          end
       end
     end
   end

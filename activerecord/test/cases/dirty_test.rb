@@ -442,42 +442,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.catchphrase_changed?
   end
 
-  def test_save_should_store_serialized_attributes_even_with_partial_writes
-    with_partial_writes(Topic) do
-      topic = Topic.create!(:content => {:a => "a"})
-      topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
-      topic.save!
-      assert_equal "b", topic.content[:b]
-      topic.reload
-      assert_equal "b", topic.content[:b]
-    end
-  end
-
-  def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
-    with_partial_writes(Topic) do
-      topic = Topic.create!(:content => {:a => "a"})
-      topic.save!
-
-      updated_at = topic.updated_at
-      topic.content[:hello] = 'world'
-      topic.save!
-
-      assert_not_equal updated_at, topic.updated_at
-      assert_equal 'world', topic.content[:hello]
-    end
-  end
-
-  def test_save_should_not_save_serialized_attribute_with_partial_writes_if_not_present
-    with_partial_writes(Topic) do
-      Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
-      topic = Topic.select('id, author_name').first
-      topic.update_columns author_name: 'John'
-      topic = Topic.first
-      assert_not_nil topic.content
-    end
-  end
-
   def test_previous_changes
     # original values should be in previous_changes
     pirate = Pirate.new
