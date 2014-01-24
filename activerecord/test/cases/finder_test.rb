@@ -951,14 +951,23 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_one_message_with_custom_primary_key
-    Toy.primary_key = :name
-    begin
-      Toy.find 'Hello World!'
-    rescue ActiveRecord::RecordNotFound => e
-      assert_equal 'Couldn\'t find Toy with name=Hello World!', e.message
+    table_with_custom_primary_key do |model|
+      model.primary_key = :name
+      e = assert_raises(ActiveRecord::RecordNotFound) do
+        model.find 'Hello World!'
+      end
+      assert_equal %Q{Couldn't find MercedesCar with 'name'=Hello World!}, e.message
     end
-  ensure
-    Toy.reset_primary_key
+  end
+
+  def test_find_some_message_with_custom_primary_key
+    table_with_custom_primary_key do |model|
+      model.primary_key = :name
+      e = assert_raises(ActiveRecord::RecordNotFound) do
+        model.find 'Hello', 'World!'
+      end
+      assert_equal %Q{Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2)}, e.message
+    end
   end
 
   def test_find_without_primary_key
@@ -978,5 +987,13 @@ class FinderTest < ActiveRecord::TestCase
       else
         ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
       end
+    end
+
+    def table_with_custom_primary_key
+      yield(Class.new(Toy) do
+        def self.name
+          'MercedesCar'
+        end
+      end)
     end
 end
