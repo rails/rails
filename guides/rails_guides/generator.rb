@@ -119,19 +119,19 @@ module RailsGuides
     end
 
     def mobi
-      "ruby_on_rails_guides_#@version%s.mobi" % (@lang.present? ? ".#@lang" : '')
+      "ruby_on_rails_guides_#{@version}%s.mobi" % (@lang.present? ? ".#{@lang}" : '')
     end
 
     def initialize_dirs(output)
       @guides_dir = File.join(File.dirname(__FILE__), '..')
-      @source_dir = "#@guides_dir/source/#@lang"
+      @source_dir = "#{@guides_dir}/source/#{@lang}"
       @output_dir = if output
-        output
-      elsif kindle?
-        "#@guides_dir/output/kindle/#@lang"
-      else
-        "#@guides_dir/output/#@lang"
-      end.sub(%r</$>, '')
+                      output
+                    elsif kindle?
+                      "#{@guides_dir}/output/kindle/#{@lang}"
+                    else
+                      "#{@guides_dir}/output/#{@lang}"
+                    end.sub(%r</$>, '')
     end
 
     def create_output_dir_if_needed
