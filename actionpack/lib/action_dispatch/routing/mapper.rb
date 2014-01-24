@@ -1442,7 +1442,7 @@ module ActionDispatch
           action = action.to_s.dup
 
           if action =~ /^[\w\-\/]+$/
-            options[:action] ||= action unless action.include?("/")
+            options[:action] ||= action.tr('-', '_') unless action.include?("/")
           else
             action = nil
           end
@@ -1607,10 +1607,11 @@ module ActionDispatch
 
           def prefix_name_for_action(as, action) #:nodoc:
             if as
-              as.to_s
+              prefix = as
             elsif !canonical_action?(action, @scope[:scope_level])
-              action.to_s
+              prefix = action
             end
+            prefix.to_s.tr('-', '_') if prefix
           end
 
           def name_for_action(as, action) #:nodoc:
@@ -1637,7 +1638,6 @@ module ActionDispatch
             when :root
               [name_prefix, collection_name, prefix]
             else
-              prefix.gsub!(/\-/, '_') if prefix.is_a?(String)
               [name_prefix, member_name, prefix]
             end
 

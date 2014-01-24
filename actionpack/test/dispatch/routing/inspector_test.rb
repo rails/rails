@@ -185,12 +185,22 @@ module ActionDispatch
         output = draw do
           get 'about-us' => 'pages#about_us'
           get 'our-work/latest'
+
+          resources :photos, only: [:show] do
+            get 'user-favorites', on: :collection
+            get 'preview-photo', on: :member
+            get 'summary-text'
+          end
         end
 
         assert_equal [
-          "         Prefix Verb URI Pattern                Controller#Action",
-          "       about_us GET  /about-us(.:format)        pages#about_us",
-          "our_work_latest GET  /our-work/latest(.:format) our_work#latest"
+          "               Prefix Verb URI Pattern                              Controller#Action",
+          "             about_us GET  /about-us(.:format)                      pages#about_us",
+          "      our_work_latest GET  /our-work/latest(.:format)               our_work#latest",
+          "user_favorites_photos GET  /photos/user-favorites(.:format)         photos#user_favorites",
+          "  preview_photo_photo GET  /photos/:id/preview-photo(.:format)      photos#preview_photo",
+          "   photo_summary_text GET  /photos/:photo_id/summary-text(.:format) photos#summary_text",
+          "                photo GET  /photos/:id(.:format)                    photos#show"
         ], output
       end
 
