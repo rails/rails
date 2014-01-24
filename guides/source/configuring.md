@@ -410,7 +410,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to false for testing.
 
-* `config.action_mailer.default_options` configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
+* `config.action_mailer.default_options` configures Action Mailer defaults. It accepts a hash of options like `from` or `reply_to` for every mailer. The defaults are initially set to a hash with the following keys:
 
     ```ruby
     :mime_version => "1.0",
