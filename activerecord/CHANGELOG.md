@@ -1,3 +1,7 @@
+*   Update postgres hstore to correctly handle null-terminated strings.
+
+    *Steve Cosman*
+
 *   Reset the collection association when calling `reset` on it.
 
     Before:
