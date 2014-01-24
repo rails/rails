@@ -98,7 +98,6 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "persist changes that are dirty" do
-    old_status = @book.status
     @book.status = :published
     assert @book.attribute_changed?(:status)
     @book.status = :written
