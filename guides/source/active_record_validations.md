@@ -616,16 +616,16 @@ The default error message is _"has already been taken"_.
 This helper passes the record to a separate class for validation.
 
 ```ruby
-class Person < ActiveRecord::Base
-  validates_with GoodnessValidator
-end
-
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if record.first_name == "Evil"
       record.errors[:base] << "This person is evil"
     end
   end
+end
+
+class Person < ActiveRecord::Base
+  validates_with GoodnessValidator
 end
 ```
 
@@ -644,16 +644,16 @@ Like all other validations, `validates_with` takes the `:if`, `:unless` and
 validator class as `options`:
 
 ```ruby
-class Person < ActiveRecord::Base
-  validates_with GoodnessValidator, fields: [:first_name, :last_name]
-end
-
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
       record.errors[:base] << "This person is evil"
     end
   end
+end
+
+class Person < ActiveRecord::Base
+  validates_with GoodnessValidator, fields: [:first_name, :last_name]
 end
 ```
 
