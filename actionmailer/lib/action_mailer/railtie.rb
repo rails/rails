@@ -1,23 +1,23 @@
-require "action_mailer"
-require "rails"
-require "abstract_controller/railties/routes_helpers"
+require 'action_mailer'
+require 'rails'
+require 'abstract_controller/railties/routes_helpers'
 
 module ActionMailer
   class Railtie < Rails::Railtie # :nodoc:
     config.action_mailer = ActiveSupport::OrderedOptions.new
     config.eager_load_namespaces << ActionMailer
 
-    initializer "action_mailer.logger" do
+    initializer 'action_mailer.logger' do
       ActiveSupport.on_load(:action_mailer) { self.logger ||= Rails.logger }
     end
 
-    initializer "action_mailer.set_configs" do |app|
+    initializer 'action_mailer.set_configs' do |app|
       paths   = app.config.paths
       options = app.config.action_mailer
 
-      options.assets_dir      ||= paths["public"].first
-      options.javascripts_dir ||= paths["public/javascripts"].first
-      options.stylesheets_dir ||= paths["public/stylesheets"].first
+      options.assets_dir      ||= paths['public'].first
+      options.javascripts_dir ||= paths['public/javascripts'].first
+      options.stylesheets_dir ||= paths['public/stylesheets'].first
 
       if Rails.env.development?
         options.preview_path  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
@@ -35,11 +35,11 @@ module ActionMailer
         register_interceptors(options.delete(:interceptors))
         register_observers(options.delete(:observers))
 
-        options.each { |k,v| send("#{k}=", v) }
+        options.each { |k, v| send("#{k}=", v) }
       end
     end
 
-    initializer "action_mailer.compile_config_methods" do
+    initializer 'action_mailer.compile_config_methods' do
       ActiveSupport.on_load(:action_mailer) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
       end
