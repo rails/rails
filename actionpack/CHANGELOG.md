@@ -1,3 +1,9 @@
+*   Fix `rake routes` error when `Rails::Engine` with empty routes is mounted.
+
+    Fixes #13810.
+
+    *Maurizio De Santis*
+
 *   Unique the segment keys array for non-optimized url helpers
 
     In Rails 3.2 you only needed pass an argument for dynamic segment once so

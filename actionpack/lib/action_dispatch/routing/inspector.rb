@@ -194,9 +194,9 @@ module ActionDispatch
         end
 
         def widths(routes)
-          [routes.map { |r| r[:name].length }.max,
-           routes.map { |r| r[:verb].length }.max,
-           routes.map { |r| r[:path].length }.max]
+          [routes.map { |r| r[:name].length }.max || 0,
+           routes.map { |r| r[:verb].length }.max || 0,
+           routes.map { |r| r[:path].length }.max || 0]
         end
     end
 
