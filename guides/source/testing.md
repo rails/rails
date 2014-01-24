@@ -361,7 +361,7 @@ NOTE: The execution of each test method stops as soon as any error or an asserti
 
 When a test fails you are presented with the corresponding backtrace. By default
 Rails filters that backtrace and will only print lines relevant to your
-application. This eliminates the framwork noise and helps to focus on your
+application. This eliminates the framework noise and helps to focus on your
 code. However there are situations when you want to see the full
 backtrace. simply set the `BACKTRACE` environment variable to enable this
 behavior:
