@@ -55,7 +55,7 @@ EOS
     end
 
     def self.find_executable
-      EXECUTABLES.find { |exe| File.exist?(exe) }
+      EXECUTABLES.find { |exe| File.file?(exe) }
     end
   end
 end
