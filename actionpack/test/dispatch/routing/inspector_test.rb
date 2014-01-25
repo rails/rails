@@ -185,12 +185,41 @@ module ActionDispatch
         output = draw do
           get 'about-us' => 'pages#about_us'
           get 'our-work/latest'
+          resources :photos do
+            collection do
+              get 'user-favorites'
+            end
+            member do
+              get 'preview-photo'
+            end
+          end
+          scope '/admin-area' do
+            resources :articles, path: 'user-articles'
+          end
         end
 
         assert_equal [
-          "         Prefix Verb URI Pattern                Controller#Action",
-          "       about_us GET  /about-us(.:format)        pages#about_us",
-          "our_work_latest GET  /our-work/latest(.:format) our_work#latest"
+          "               Prefix Verb   URI Pattern                                  Controller#Action",
+          "             about_us GET    /about-us(.:format)                          pages#about_us",
+          "      our_work_latest GET    /our-work/latest(.:format)                   our_work#latest",
+          "user_favorites_photos GET    /photos/user-favorites(.:format)             photos#user-favorites",
+          "  preview_photo_photo GET    /photos/:id/preview-photo(.:format)          photos#preview-photo",
+          "               photos GET    /photos(.:format)                            photos#index",
+          "                      POST   /photos(.:format)                            photos#create",
+          "            new_photo GET    /photos/new(.:format)                        photos#new",
+          "           edit_photo GET    /photos/:id/edit(.:format)                   photos#edit",
+          "                photo GET    /photos/:id(.:format)                        photos#show",
+          "                      PATCH  /photos/:id(.:format)                        photos#update",
+          "                      PUT    /photos/:id(.:format)                        photos#update",
+          "                      DELETE /photos/:id(.:format)                        photos#destroy",
+          "             articles GET    /admin-area/user-articles(.:format)          articles#index",
+          "                      POST   /admin-area/user-articles(.:format)          articles#create",
+          "          new_article GET    /admin-area/user-articles/new(.:format)      articles#new",
+          "         edit_article GET    /admin-area/user-articles/:id/edit(.:format) articles#edit",
+          "              article GET    /admin-area/user-articles/:id(.:format)      articles#show",
+          "                      PATCH  /admin-area/user-articles/:id(.:format)      articles#update",
+          "                      PUT    /admin-area/user-articles/:id(.:format)      articles#update",
+          "                      DELETE /admin-area/user-articles/:id(.:format)      articles#destroy"
         ], output
       end
 
