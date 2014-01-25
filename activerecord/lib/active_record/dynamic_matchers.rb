@@ -6,8 +6,12 @@ module ActiveRecord
     # then we can remove the indirection.
 
     def respond_to?(name, include_private = false)
-      match = Method.match(self, name)
-      match && match.valid? || super
+      if self == Base
+        super
+      else
+        match = Method.match(self, name)
+        match && match.valid? || super
+      end
     end
 
     private
