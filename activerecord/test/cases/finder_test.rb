@@ -980,6 +980,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.offset("3").to_a }
   end
 
+  def test_find_one_message
+    e = assert_raises(ActiveRecord::RecordNotFound) do
+      Post.find 'Test1'
+    end
+    assert_equal %q{Couldn't find Post with 'id'=0}, e.message
+  end
+
+  def test_find_some_message
+    e = assert_raises(ActiveRecord::RecordNotFound) do
+      Post.find 'Test1', 'Test2'
+    end
+    assert_equal %q{Couldn't find all Posts with 'id': (0, 0) (found 0 results, but was looking for 2)}, e.message
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)

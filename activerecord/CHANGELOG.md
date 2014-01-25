@@ -1,3 +1,15 @@
+*   Log type-casted value(s) after `ActiveRecord::RecordNotFound` error. This makes it
+    more transparent what values are actually sent to the database.
+
+        irb(main):002:0> Event.find("im-no-integer")
+        # Before: ... WHERE `events`.`id` = 0 LIMIT 1
+        # ActiveRecord::RecordNotFound: Couldn't find Reference with 'id'=im-no-integer
+
+        # After: ... WHERE `events`.`id` = 0 LIMIT 1
+        # ActiveRecord::RecordNotFound: Couldn't find Reference with 'id'=0
+
+    *Kuldeep Aggarwal*
+
 *   Reset the collection association when calling `reset` on it.
 
     Before:
