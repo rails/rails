@@ -2,6 +2,10 @@ require 'abstract_unit'
 
 class TokenizerTest < ActiveSupport::TestCase
 
+  def test_constructor_should_not_modify_its_argument
+    assert_nothing_raised { HTML::Tokenizer.new("".freeze) }
+  end
+
   def test_blank
     tokenize ""
     assert_end
