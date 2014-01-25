@@ -311,9 +311,10 @@ module ActiveRecord
       conditions = " [#{conditions}]" if conditions
 
       if Array(ids).size == 1
-        error = "Couldn't find #{@klass.name} with '#{primary_key}'=#{ids}#{conditions}"
+        error = "Couldn't find #{@klass.name} with '#{primary_key}'=#{connection.type_cast(ids, columns_hash[primary_key])}#{conditions}"
       else
         error = "Couldn't find all #{@klass.name.pluralize} with '#{primary_key}': "
+        ids.map! { |id| connection.type_cast(id, columns_hash[primary_key]) }
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
       end
 
