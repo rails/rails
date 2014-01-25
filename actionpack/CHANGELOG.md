@@ -1,3 +1,10 @@
+*   Make sure that `#extract!` will keep the `permitted` state of the original
+    `ActionController::Parameters` object.
+
+    Fixes #13830.
+
+    *Robin Dupret*
+
 *   Fix `rake routes` error when `Rails::Engine` with empty routes is mounted.
 
     Fixes #13810.

@@ -260,4 +260,9 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "permitting parameters as an array" do
     assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
+
+  test "extract! kept current permitted state" do
+    @params.permit!
+    assert @params.extract!(:person).permitted?
+  end
 end

@@ -326,6 +326,14 @@ module ActionController
       end
     end
 
+    # Override Hash#extract! in order to make the permitted
+    # attribute's value kept.
+    def extract!(*keys) # :nodoc:
+      super.tap do |result|
+        result.permitted = @permitted
+      end
+    end
+
     protected
       def permitted=(new_permitted)
         @permitted = new_permitted
