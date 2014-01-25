@@ -110,16 +110,34 @@ module ActiveRecord
         end
       end
 
-      # A method name is 'dangerous' if it is already defined by Active Record, but
+      # A method name is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'save' is.)
       def dangerous_attribute_method?(name) # :nodoc:
         method_defined_within?(name, Base)
       end
 
-      def method_defined_within?(name, klass, sup = klass.superclass) # :nodoc:
+      def method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
         if klass.method_defined?(name) || klass.private_method_defined?(name)
-          if sup.method_defined?(name) || sup.private_method_defined?(name)
-            klass.instance_method(name).owner != sup.instance_method(name).owner
+          if superklass.method_defined?(name) || superklass.private_method_defined?(name)
+            klass.instance_method(name).owner != superklass.instance_method(name).owner
+          else
+            true
+          end
+        else
+          false
+        end
+      end
+
+      # A class method is 'dangerous' if it is already (re)defined by Active Record, but
+      # not by any ancestors. (So 'puts' is not dangerous but 'new' is.)
+      def dangerous_class_method?(method_name)
+        class_method_defined_within?(method_name, Base)
+      end
+
+      def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc
+        if klass.respond_to?(name, true)
+          if superklass.respond_to?(name, true)
+            klass.method(name).owner != superklass.method(name).owner
           else
             true
           end

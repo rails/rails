@@ -1,3 +1,13 @@
+*   `scope` now raises on "dangerous" name conflicts
+
+    Similar to dangerous attribute methods, a scope name conflict is
+    dangerous if it conflicts with an existing class method defined within
+    `ActiveRecord::Base` but not its ancestors.
+
+    See also #13389.
+
+    *Godfrey Chan*, *Philippe Creux*
+
 *   Correctly send an user provided statement to a `lock!()` call.
 
         person.lock! 'FOR SHARE NOWAIT'
