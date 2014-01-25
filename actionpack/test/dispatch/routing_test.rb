@@ -2932,6 +2932,32 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/about-us/index', about_us_index_path
   end
 
+  def test_resource_routes_with_dashes_in_path
+    draw do
+      resources :photos, only: [:show] do
+        get 'user-favorites', on: :collection
+        get 'preview-photo', on: :member
+        get 'summary-text'
+      end
+    end
+
+    get '/photos/user-favorites'
+    assert_equal 'photos#user_favorites', @response.body
+    assert_equal '/photos/user-favorites', user_favorites_photos_path
+
+    get '/photos/1/preview-photo'
+    assert_equal 'photos#preview_photo', @response.body
+    assert_equal '/photos/1/preview-photo', preview_photo_photo_path('1')
+
+    get '/photos/1/summary-text'
+    assert_equal 'photos#summary_text', @response.body
+    assert_equal '/photos/1/summary-text', photo_summary_text_path('1')
+
+    get '/photos/1'
+    assert_equal 'photos#show', @response.body
+    assert_equal '/photos/1', photo_path('1')
+  end
+
 private
 
   def draw(&block)
