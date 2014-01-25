@@ -1,3 +1,9 @@
+*   Ensure that `bin/rails` is a file before trying to execute it.
+
+    Fixes #13825.
+
+    *bronzle*
+
 *   Use single quotes in generated files.
 
     *Cristian Mircea Messel*, *Chulki Lee*
