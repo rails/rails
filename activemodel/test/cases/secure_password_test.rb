@@ -2,7 +2,6 @@ require 'cases/helper'
 require 'models/user'
 require 'models/visitor'
 
-require 'active_support/all'
 class SecurePasswordTest < ActiveModel::TestCase
   setup do
     ActiveModel::SecurePassword.min_cost = true
