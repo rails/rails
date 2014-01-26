@@ -163,7 +163,10 @@ class Array
 end
 ```
 
-WARNING: Using a pair of `+...+` for fixed-width font only works with **words**; that is: anything matching `\A\w+\z`. For anything else use `<tt>...</tt>`, notably symbols, setters, inline snippets, etc.
+WARNING: Using `+...+` for fixed-width font only works with simple content like
+ordinary method names, symbols, paths (with forward slashes), etc. Please use
+`<tt>...</tt>` for everything else, notably class or module names with a
+namespace as in `<tt>ActiveRecord::Base</tt>`.
 
 ### Regular Font
 
