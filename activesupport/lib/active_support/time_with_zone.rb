@@ -132,8 +132,8 @@ module ActiveSupport
     end
 
     def xmlschema(fraction_digits = 0)
-      fraction = if fraction_digits > 0
-        (".%06i" % time.usec)[0, fraction_digits + 1]
+      fraction = if fraction_digits.to_i > 0
+        (".%06i" % time.usec)[0, fraction_digits.to_i + 1]
       end
 
       "#{time.strftime("%Y-%m-%dT%H:%M:%S")}#{fraction}#{formatted_offset(true, 'Z')}"
