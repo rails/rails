@@ -1,3 +1,12 @@
+*   Add `ActiveSupport::JSON::Encoding.time_precision` as a way to configure the
+    precision of encoded time values:
+
+        Time.utc(2000, 1, 1).as_json                      # => "2000-01-01T00:00:00.000Z"
+        ActiveSupport::JSON::Encoding.time_precision = 0
+        Time.utc(2000, 1, 1).as_json                      # => "2000-01-01T00:00:00Z"
+
+    *Parker Selbert*
+
 *   Maintain the current timezone when calling `change` during DST overlap
 
     Currently if a time is changed during DST overlap in the autumn then the method
