@@ -460,7 +460,6 @@ module ActionMailer
       # Register an Interceptor which will be called before mail is sent.
       # Either a class, string or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
-      # it will be <tt>constantize</tt>d.
       def register_interceptor(interceptor)
         delivery_interceptor = case interceptor
           when String, Symbol
