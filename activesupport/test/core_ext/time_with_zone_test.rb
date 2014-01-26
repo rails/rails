@@ -511,6 +511,11 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Fri, 31 Dec 1999 19:00:30 EST -05:00", @twz.change(:sec => 30).inspect
   end
 
+  def test_change_at_dst_boundary
+    twz = ActiveSupport::TimeWithZone.new(Time.at(1319936400).getutc, ActiveSupport::TimeZone['Madrid'])
+    assert_equal twz, twz.change(:min => 0)
+  end
+
   def test_advance
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Mon, 31 Dec 2001 19:00:00 EST -05:00", @twz.advance(:years => 2).inspect

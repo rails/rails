@@ -45,7 +45,7 @@ module ActiveSupport
 
     def initialize(utc_time, time_zone, local_time = nil, period = nil)
       @utc, @time_zone, @time = utc_time, time_zone, local_time
-      @period = @utc ? period : get_period_and_ensure_valid_local_time
+      @period = @utc ? period : get_period_and_ensure_valid_local_time(period)
     end
 
     # Returns a Time or DateTime instance that represents the time in +time_zone+.
@@ -292,6 +292,12 @@ module ActiveSupport
       end
     end
 
+    def change(options)
+      new_time = time.change(options)
+      periods = time_zone.periods_for_local(new_time)
+      self.class.new(nil, time_zone, new_time, periods.include?(period) ? period : nil)
+    end
+
     %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
       class_eval <<-EOV, __FILE__, __LINE__ + 1
         def #{method_name}    # def month
@@ -367,12 +373,12 @@ module ActiveSupport
     end
 
     private
-      def get_period_and_ensure_valid_local_time
+      def get_period_and_ensure_valid_local_time(period)
         # we don't want a Time.local instance enforcing its own DST rules as well,
         # so transfer time values to a utc constructor if necessary
         @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
         begin
-          @time_zone.period_for_local(@time)
+          period || @time_zone.period_for_local(@time)
         rescue ::TZInfo::PeriodNotFound
           # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
           @time += 1.hour

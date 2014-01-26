@@ -1,3 +1,15 @@
+*   Maintain the current timezone when calling `change` during DST overlap
+
+    Currently if a time is changed during DST overlap in the autumn then the method
+    `period_for_local` will return the DST period. However if the original time is
+    not DST then this can be surprising and is not what is generally wanted. This
+    commit changes that behavior to maintain the current period if it's in the list
+    of periods returned by `periods_for_local`.
+
+    Fixes #12163.
+
+    *Andrew White*
+
 *   Added `Hash#compact` and `Hash#compact!` for removing items with nil value from hash.
 
     *Celestino Gomes*

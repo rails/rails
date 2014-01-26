@@ -352,6 +352,10 @@ module ActiveSupport
       tzinfo.period_for_local(time, dst)
     end
 
+    def periods_for_local(time) #:nodoc:
+      tzinfo.periods_for_local(time)
+    end
+
     def self.find_tzinfo(name)
       TZInfo::TimezoneProxy.new(MAPPING[name] || name)
     end
