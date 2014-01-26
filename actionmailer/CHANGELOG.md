@@ -1,3 +1,18 @@
+*   Add the ability to intercept emails before previewing in a similar fashion
+    to how emails can be intercepted before delivery, e.g:
+
+        class CSSInlineStyler
+          def self.previewing_email(message)
+            # inline CSS styles
+          end
+        end
+
+        ActionMailer::Base.register_preview_interceptor CSSInlineStyler
+
+    Fixes #13622.
+
+    *Andrew White*
+
 *   Add mailer previews feature based on 37 Signals mail_view gem
 
     *Andrew White*

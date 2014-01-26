@@ -539,12 +539,18 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   class MyInterceptor
-    def self.delivering_email(mail)
-    end
+    def self.delivering_email(mail); end
+    def self.previewing_email(mail); end
   end
 
   class MySecondInterceptor
-    def self.delivering_email(mail)
+    def self.delivering_email(mail); end
+    def self.previewing_email(mail); end
+  end
+
+  class BaseMailerPreview < ActionMailer::Preview
+    def welcome
+      BaseMailer.welcome
     end
   end
 
@@ -568,6 +574,39 @@ class BaseTest < ActiveSupport::TestCase
     MyInterceptor.expects(:delivering_email).with(mail)
     MySecondInterceptor.expects(:delivering_email).with(mail)
     mail.deliver
+  end
+
+  test "you can register a preview interceptor to the mail object that gets passed the mail object before previewing" do
+    ActionMailer::Base.register_preview_interceptor(MyInterceptor)
+    mail = BaseMailer.welcome
+    BaseMailerPreview.stubs(:welcome).returns(mail)
+    MyInterceptor.expects(:previewing_email).with(mail)
+    BaseMailerPreview.call(:welcome)
+  end
+
+  test "you can register a preview interceptor using its stringified name to the mail object that gets passed the mail object before previewing" do
+    ActionMailer::Base.register_preview_interceptor("BaseTest::MyInterceptor")
+    mail = BaseMailer.welcome
+    BaseMailerPreview.stubs(:welcome).returns(mail)
+    MyInterceptor.expects(:previewing_email).with(mail)
+    BaseMailerPreview.call(:welcome)
+  end
+
+  test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before previewing" do
+    ActionMailer::Base.register_preview_interceptor(:"base_test/my_interceptor")
+    mail = BaseMailer.welcome
+    BaseMailerPreview.stubs(:welcome).returns(mail)
+    MyInterceptor.expects(:previewing_email).with(mail)
+    BaseMailerPreview.call(:welcome)
+  end
+
+  test "you can register multiple preview interceptors to the mail object that both get passed the mail object before previewing" do
+    ActionMailer::Base.register_preview_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
+    mail = BaseMailer.welcome
+    BaseMailerPreview.stubs(:welcome).returns(mail)
+    MyInterceptor.expects(:previewing_email).with(mail)
+    MySecondInterceptor.expects(:previewing_email).with(mail)
+    BaseMailerPreview.call(:welcome)
   end
 
   test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do

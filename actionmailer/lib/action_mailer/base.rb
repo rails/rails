@@ -330,6 +330,21 @@ module ActionMailer
   # An overview of all previews is accessible at <tt>http://localhost:3000/rails/mailers</tt>
   # on a running development server instance.
   #
+  # Previews can also be intercepted in a similar manner as deliveries can be by registering
+  # a preview interceptor that has a <tt>previewing_email</tt> method:
+  #
+  #   class CssInlineStyler
+  #     def self.previewing_email(message)
+  #       # inline CSS styles
+  #     end
+  #   end
+  #
+  #   config.action_mailer.register_preview_interceptor :css_inline_styler
+  #
+  # Note that interceptors need to be registered both with <tt>register_interceptor</tt>
+  # and <tt>register_preview_interceptor</tt> if they should operate on both sending and
+  # previewing emails.
+  #
   # = Configuration options
   #
   # These options are specified on the class level, like
