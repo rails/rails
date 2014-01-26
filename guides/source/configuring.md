@@ -386,6 +386,8 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
     The default setting is `true`, which uses the partial at `/admin/posts/_post.erb`. Setting the value to `false` would render `/posts/_post.erb`, which is the same behavior as rendering from a non-namespaced controller such as `PostsController`.
 
+* `config.action_view.raise_on_missing_translations` determines whether an error should be raised for missing translations
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:
