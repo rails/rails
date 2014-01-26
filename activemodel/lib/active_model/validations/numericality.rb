@@ -110,7 +110,7 @@ module ActiveModel
       # * <tt>:even</tt> - Specifies the value must be an even number.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+ .
+      # +:if+, +:unless+, +:on+, <tt>:allow_nil</tt> , <tt>:allow_blank</tt> , and +:strict+.
       # See <tt>ActiveModel::Validation#validates</tt> for more information
       #
       # The following checks can also be supplied with a proc or a symbol which
