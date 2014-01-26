@@ -4,7 +4,7 @@ require 'active_support/core_ext/module/delegation'
 module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
-      :subsecond_fraction_digits, :subsecond_fraction_digits=,
+      :time_precision, :time_precision=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
       :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
       :json_encoder, :json_encoder=,
@@ -106,9 +106,9 @@ module ActiveSupport
         # as a safety measure.
         attr_accessor :escape_html_entities_in_json
 
-        # Configures the inclusion of subsecond resolution when serializing instances
-        # of ActiveSupport::TimeWithZone.
-        attr_accessor :subsecond_fraction_digits
+        # Sets the precision of encoded time values.
+        # Defaults to 3 (equivalent to millisecond precision)
+        attr_accessor :time_precision
 
         # Sets the encoder used by Rails to encode Ruby objects into JSON strings
         # in +Object#to_json+ and +ActiveSupport::JSON.encode+.

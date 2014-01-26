@@ -466,15 +466,15 @@ EXPECTED
     end
   end
 
-  def test_twz_to_json_with_custom_subsecond_resolution
+  def test_twz_to_json_with_custom_time_precision
     with_standard_json_time_format(true) do
-      ActiveSupport::JSON::Encoding.subsecond_fraction_digits = 0
+      ActiveSupport::JSON::Encoding.time_precision = 0
       zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
       time = ActiveSupport::TimeWithZone.new(Time.utc(2000), zone)
       assert_equal "\"1999-12-31T19:00:00-05:00\"", ActiveSupport::JSON.encode(time)
     end
   ensure
-    ActiveSupport::JSON::Encoding.subsecond_fraction_digits = nil
+    ActiveSupport::JSON::Encoding.time_precision = nil
   end
 
   def test_twz_to_json_when_wrapping_a_date_time
