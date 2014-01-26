@@ -444,18 +444,31 @@ module ActionMailer
       end
 
       # Register an Observer which will be notified when mail is delivered.
-      # Either a class or a string can be passed in as the Observer. If a string is passed in
-      # it will be <tt>constantize</tt>d.
+      # Either a class, string or symbol can be passed in as the Observer.
+      # If a string or symbol is passed in it will be camelized and constantized.
       def register_observer(observer)
-        delivery_observer = (observer.is_a?(String) ? observer.constantize : observer)
+        delivery_observer = case observer
+          when String, Symbol
+            observer.to_s.camelize.constantize
+          else
+            observer
+          end
+
         Mail.register_observer(delivery_observer)
       end
 
       # Register an Interceptor which will be called before mail is sent.
-      # Either a class or a string can be passed in as the Interceptor. If a string is passed in
+      # Either a class, string or symbol can be passed in as the Interceptor.
+      # If a string or symbol is passed in it will be camelized and constantized.
       # it will be <tt>constantize</tt>d.
       def register_interceptor(interceptor)
-        delivery_interceptor = (interceptor.is_a?(String) ? interceptor.constantize : interceptor)
+        delivery_interceptor = case interceptor
+          when String, Symbol
+            interceptor.to_s.camelize.constantize
+          else
+            interceptor
+          end
+
         Mail.register_interceptor(delivery_interceptor)
       end
 

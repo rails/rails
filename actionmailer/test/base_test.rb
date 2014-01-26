@@ -530,6 +530,13 @@ class BaseTest < ActiveSupport::TestCase
     mail.deliver
   end
 
+  test "you can register an observer using its symbolized underscored name to the mail object that gets informed on email delivery" do
+    ActionMailer::Base.register_observer(:"base_test/my_observer")
+    mail = BaseMailer.welcome
+    MyObserver.expects(:delivered_email).with(mail)
+    mail.deliver
+  end
+
   test "you can register multiple observers to the mail object that both get informed on email delivery" do
     ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
     mail = BaseMailer.welcome
@@ -563,6 +570,13 @@ class BaseTest < ActiveSupport::TestCase
 
   test "you can register an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
     ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
+    mail = BaseMailer.welcome
+    MyInterceptor.expects(:delivering_email).with(mail)
+    mail.deliver
+  end
+
+  test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before delivery" do
+    ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
     mail = BaseMailer.welcome
     MyInterceptor.expects(:delivering_email).with(mail)
     mail.deliver

@@ -1,3 +1,8 @@
+*   Support the use of underscored symbols when registering interceptors and
+    observers like we do elsewhere within Rails.
+
+    *Andrew White*
+
 *   Add the ability to intercept emails before previewing in a similar fashion
     to how emails can be intercepted before delivery, e.g:
 
