@@ -16,12 +16,12 @@ require 'active_support/core_ext/module/aliasing'
 # otherwise they will always use to_json gem implementation, which is backwards incompatible in
 # several cases (for instance, the JSON implementation for Hash does not work) with inheritance
 # and consequently classes as ActiveSupport::OrderedHash cannot be serialized to json.
-# 
+#
 # On the other hand, we should avoid conflict with ::JSON.{generate,dump}(obj). Unfortunately, the
 # JSON gem's encoder relies on its own to_json implementation to encode objects. Since it always
 # passes a ::JSON::State object as the only argument to to_json, we can detect that and forward the
 # calls to the original to_json method.
-# 
+#
 # It should be noted that when using ::JSON.{generate,dump} directly, ActiveSupport's encoder is
 # bypassed completely. This means that as_json won't be invoked and the JSON gem will simply
 # ignore any options it does not natively understand. This also means that ::JSON.{generate,dump}
@@ -163,7 +163,7 @@ end
 class Time
   def as_json(options = nil) #:nodoc:
     if ActiveSupport.use_standard_json_time_format
-      xmlschema(3)
+      xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
       %(#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
     end
@@ -183,7 +183,7 @@ end
 class DateTime
   def as_json(options = nil) #:nodoc:
     if ActiveSupport.use_standard_json_time_format
-      xmlschema(3)
+      xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
       strftime('%Y/%m/%d %H:%M:%S %z')
     end

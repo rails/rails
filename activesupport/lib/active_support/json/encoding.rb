@@ -166,6 +166,7 @@ module ActiveSupport
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = true
       self.json_encoder = JSONGemEncoder
+      self.time_precision = 3
     end
   end
 end
