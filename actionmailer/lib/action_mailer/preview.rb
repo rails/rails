@@ -9,7 +9,7 @@ module ActionMailer
       #
       #     config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
       #
-      class_attribute :preview_path, instance_writer: false
+      mattr_accessor :preview_path, instance_writer: false
 
       # :nodoc:
       mattr_accessor :preview_interceptors, instance_writer: false
@@ -85,17 +85,13 @@ module ActionMailer
 
       protected
         def load_previews #:nodoc:
-          if preview_path?
+          if preview_path
             Dir["#{preview_path}/**/*_preview.rb"].each{ |file| require_dependency file }
           end
         end
 
         def preview_path #:nodoc:
           Base.preview_path
-        end
-
-        def preview_path? #:nodoc:
-          Base.preview_path?
         end
 
         def inform_preview_interceptors(message) #:nodoc:
