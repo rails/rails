@@ -153,6 +153,10 @@ module ActionView #:nodoc:
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
 
+    # Specify whether an error should be raised for missing translations
+    cattr_accessor :raise_on_missing_translations
+    @@raise_on_missing_translations = false
+
     class_attribute :_routes
     class_attribute :logger
 
