@@ -877,7 +877,7 @@ module ActiveRecord
           subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
           subrelation.name == target_value
         else
-          raise "unscope(where: #{target_value.inspect}) failed: unscoping #{rel.class} is unimplemented."
+          raise "unscope(where: #{target_value.inspect}) failed: unscoping #{rel.class} \"#{rel}\" is unimplemented."
         end
       end
 
