@@ -36,4 +36,20 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
+
+  test "with a class that adds errors on multiple contexts and validating a new model with no arguments" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: [:context1, :context2])
+    topic = Topic.new
+    assert topic.valid?, "Validation doesn't run when 'on' is set to context1 and context2"
+  end
+
+  test "with a class that adds errors on multiple contexts and validating a new model" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: [:context1, :context2])
+    topic = Topic.new
+    assert topic.invalid?(:context1), "Validation does run on context1 when 'on' is set to context1 and context2"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+    topic = Topic.new
+    assert topic.invalid?(:context2), "Validation does run on context2 when 'on' is set to context1 and context2"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+  end
 end
