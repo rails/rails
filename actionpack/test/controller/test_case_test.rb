@@ -706,6 +706,14 @@ XML
     assert @request.params[:foo].blank?
   end
 
+  def test_filtered_parameters_reset_between_requests
+    get :no_op, :foo => "bar"
+    assert_equal "bar", @request.filtered_parameters[:foo]
+
+    get :no_op, :foo => "baz"
+    assert_equal "baz", @request.filtered_parameters[:foo]
+  end
+
   def test_symbolized_path_params_reset_after_request
     get :test_params, :id => "foo"
     assert_equal "foo", @request.symbolized_path_parameters[:id]

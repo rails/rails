@@ -1,3 +1,10 @@
+*   Ensure that `request.filtered_parameters` is reset between calls to `process`
+    in `ActionController::TestCase`.
+
+    Fixes #13803.
+
+    *Andrew White*
+
 *   Fix `rake routes` error when `Rails::Engine` with empty routes is mounted.
 
     Fixes #13810.
