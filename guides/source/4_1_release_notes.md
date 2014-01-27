@@ -502,6 +502,9 @@ for detailed changes.
 
 * Don't create or drop the test database if RAILS_ENV is specified explicitly.
 
+* `Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
+  to an `Array` by calling `#to_a` before using these methods. ([Pull Request](https://github.com/rails/rails/pull/13314))
+
 Active Model
 ------------
 
