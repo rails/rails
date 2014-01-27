@@ -740,7 +740,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_raise(ActiveRecord::RecordInvalid) { reply.update!(title: nil, content: "Have a nice evening") }
   ensure
-    Reply.reset_callbacks(:validate)
+    Reply.clear_validators!
   end
 
   def test_update_attributes!
@@ -761,7 +761,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(title: nil, content: "Have a nice evening") }
   ensure
-    Reply.reset_callbacks(:validate)
+    Reply.clear_validators!
   end
 
   def test_destroyed_returns_boolean
