@@ -201,12 +201,12 @@ module ActiveModel
       #   #      #<StrictValidator:0x007fbff3204a30 @options={strict:true}>
       #   #    ]
       #
-      # If one runs Person.clear_validators! and then checks to see what
+      # If one runs <tt>Person.clear_validators!</tt> and then checks to see what
       # validators this class has, you would obtain:
       #
       #   Person.validators # => []
       #
-      # Also, the callback set by +validate :cannot_be_robot+ will be erased
+      # Also, the callback set by <tt>validate :cannot_be_robot</tt> will be erased
       # so that:
       #
       #   Person._validate_callbacks.empty?  # => true
