@@ -413,10 +413,18 @@ There are a number of settings available on `config.action_mailer`:
 * `config.action_mailer.default_options` configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
 
     ```ruby
-    :mime_version => "1.0",
-    :charset      => "UTF-8",
-    :content_type => "text/plain",
-    :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+    mime_version:  "1.0",
+    charset:       "UTF-8",
+    content_type: "text/plain",
+    parts_order:  ["text/plain", "text/enriched", "text/html"]
+    ```
+
+    Assign a hash to set additional options:
+
+    ```ruby
+    config.action_mailer.default_options = {
+      from: "noreply@example.com"
+    }
     ```
 
 * `config.action_mailer.observers` registers observers which will be notified when mail is delivered.
