@@ -8,7 +8,7 @@ require 'models/person'
 class InclusionValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_validates_inclusion_of_range
@@ -105,7 +105,7 @@ class InclusionValidationTest < ActiveModel::TestCase
     p.karma = "monkey"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 
   def test_validates_inclusion_of_with_lambda
@@ -142,6 +142,6 @@ class InclusionValidationTest < ActiveModel::TestCase
 
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 end

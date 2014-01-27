@@ -11,9 +11,9 @@ class ValidatesTest < ActiveModel::TestCase
   teardown :reset_callbacks
 
   def reset_callbacks
-    Person.reset_callbacks(:validate)
-    Topic.reset_callbacks(:validate)
-    PersonWithValidator.reset_callbacks(:validate)
+    Person.clear_validators!
+    Topic.clear_validators!
+    PersonWithValidator.clear_validators!
   end
 
   def test_validates_with_messages_empty

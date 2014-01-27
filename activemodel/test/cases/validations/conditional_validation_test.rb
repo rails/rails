@@ -6,7 +6,7 @@ require 'models/topic'
 class ConditionalValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_if_validation_using_method_true

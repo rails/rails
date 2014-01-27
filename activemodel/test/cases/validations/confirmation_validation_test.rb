@@ -7,7 +7,7 @@ require 'models/person'
 class ConfirmationValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_no_title_confirmation
@@ -49,7 +49,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     p.karma = "None"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 
   def test_title_confirmation_with_i18n_attribute
