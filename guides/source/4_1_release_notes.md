@@ -585,7 +585,7 @@ for detailed changes.
   [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
 
 * Deprecated `ActiveSupport.encode_big_decimal_as_string` option. This feature has
-  been extracetd into the [activesupport-json_encoder](https://github.com/rails/activesupport-json_encoder)
+  been extracted into the [activesupport-json_encoder](https://github.com/rails/activesupport-json_encoder)
   gem.
   ([Pull Request](https://github.com/rails/rails/pull/13060) /
   [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
