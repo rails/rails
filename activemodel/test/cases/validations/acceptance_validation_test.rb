@@ -63,6 +63,6 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     p.karma = "1"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 end
