@@ -422,11 +422,6 @@ for detailed changes.
 
 * Deprecated `quoted_locking_column` method, which isn't used anywhere.
 
-* Deprecated the delegation of Array bang methods for associations.
-  To use them, instead first call `#to_a` on the association to access the
-  array to be acted
-  on. ([Pull Request](https://github.com/rails/rails/pull/12129))
-
 * Deprecated `ConnectionAdapters::SchemaStatements#distinct`,
   as it is no longer used by internals. ([Pull Request](https://github.com/rails/rails/pull/10556))
 
