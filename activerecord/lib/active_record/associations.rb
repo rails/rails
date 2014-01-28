@@ -1213,7 +1213,8 @@ module ActiveRecord
       #   Returns the associated object. +nil+ is returned if none is found.
       # [association=(associate)]
       #   Assigns the associate object, extracts the primary key, sets it as the foreign key,
-      #   and saves the associate object.
+      #   and saves the associate object. To avoid database inconsistencies, permanently deletes an existing
+      #   associated object when assigning a new one, even if the new one isn't saved to database.
       # [build_association(attributes = {})]
       #   Returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key, but has not
