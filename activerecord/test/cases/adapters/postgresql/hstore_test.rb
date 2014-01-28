@@ -220,6 +220,24 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       assert_cycle('ca' => 'cà', 'ac' => 'àc')
     end
 
+    def test_null_char
+      input = {"a" => "b\0c", "d\0e" => "f", "g\u0000h" => "j\u0000k"}
+      expected = {}
+      input.each {|k,v| expected[Hstore.connection.quote_string(k)] = Hstore.connection.quote_string(v) }
+
+      # test creation
+      x = Hstore.create!(:tags => input)
+      x.reload
+      assert_equal(expected, x.tags)
+
+      # test updating
+      x = Hstore.create!(:tags => {})
+      x.tags = input
+      x.save!
+      x.reload
+      assert_equal(expected, x.tags)
+    end
+
     def test_multiline
       assert_cycle("a\nb" => "c\nd")
     end

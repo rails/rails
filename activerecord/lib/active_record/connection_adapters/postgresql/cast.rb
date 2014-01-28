@@ -137,7 +137,7 @@ module ActiveRecord
               if value == ""
                 '""'
               else
-                '"%s"' % value.to_s.gsub(/(["\\])/, '\\\\\1')
+                '"%s"' % value.to_s.gsub(/\0.*/, '').gsub(/(["\\])/, '\\\\\1')
               end
             end
           end
