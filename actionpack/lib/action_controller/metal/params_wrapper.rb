@@ -231,7 +231,12 @@ module ActionController
     # by the metal call stack.
     def process_action(*args)
       if _wrapper_enabled?
-        wrapped_hash = _wrap_parameters request.request_parameters
+        if request.parameters[_wrapper_key].present?
+          wrapped_hash = _extract_parameters(request.parameters)
+        else
+          wrapped_hash = _wrap_parameters request.request_parameters
+        end
+
         wrapped_keys = request.request_parameters.keys
         wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
 
@@ -259,14 +264,16 @@ module ActionController
 
       # Returns the list of parameters which will be selected for wrapped.
       def _wrap_parameters(parameters)
-        value = if include_only = _wrapper_options.include
+        { _wrapper_key => _extract_parameters(parameters) }
+      end
+
+      def _extract_parameters(parameters)
+        if include_only = _wrapper_options.include
           parameters.slice(*include_only)
         else
           exclude = _wrapper_options.exclude || []
           parameters.except(*(exclude + EXCLUDE_PARAMETERS))
         end
-
-        { _wrapper_key => value }
       end
 
       # Checks if we should perform parameters wrapping.
