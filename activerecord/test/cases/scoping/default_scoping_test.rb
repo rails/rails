@@ -149,6 +149,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_unscope_string_where_clauses_involved
+    dev_relation = Developer.order('salary DESC').where("created_at > ?", 1.year.ago)
+    expected = dev_relation.collect { |dev| dev.name }
+
+    dev_ordered_relation = DeveloperOrderedBySalary.where(name: 'Jamis').where("created_at > ?", 1.year.ago)
+    received = dev_ordered_relation.unscope(where: [:name]).collect { |dev| dev.name }
+
+    assert_equal expected, received
+  end
+
   def test_unscope_with_grouping_attributes
     expected = Developer.order('salary DESC').collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.group(:name).unscope(:group).collect { |dev| dev.name }
