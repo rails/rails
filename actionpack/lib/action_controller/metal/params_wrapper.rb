@@ -235,8 +235,10 @@ module ActionController
         wrapped_keys = request.request_parameters.keys
         wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
 
+        wrapped_hash_present = wrapped_hash.delete_if { |k,v| v.blank? }
+    
         # This will make the wrapped hash accessible from controller and view
-        request.parameters.merge! wrapped_hash
+        request.parameters.merge! request.query_parameters.merge wrapped_hash_present
         request.request_parameters.merge! wrapped_hash
 
         # This will make the wrapped hash displayed in the log file
