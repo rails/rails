@@ -28,7 +28,9 @@ module ActiveRecord
         delegate :table, :table_name, :to => :parent, :prefix => :parent
         delegate :alias_tracker, :to => :join_dependency
 
-        alias :alias_suffix :parent_table_name
+        #TODO - Bogdan - this is only temporary until figuring it out on the missing / undefined parent_table_name attribute
+        #alias :alias_suffix :parent_table_name
+        alias :alias_suffix :table_name
 
         def initialize(reflection, join_dependency, parent = nil)
           reflection.check_validity!
@@ -61,7 +63,9 @@ module ActiveRecord
 
         def join_to(relation)
           tables        = @tables.dup
-          foreign_table = parent_table
+          #TODO - Bogdan - this is only temporary until figuring it out on the missing / undefined parent_table attribute
+          #foreign_table = parent_table
+          foreign_table = parent.table
           foreign_klass = parent.active_record
 
           # The chain starts with the target table, but we want to end with it here (makes
