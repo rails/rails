@@ -147,8 +147,12 @@ module ActiveRecord
     #
     #   Person.sum("2 * age")
     def calculate(operation, column_name, options = {})
-      if options.except(:distinct).present?
-        apply_finder_options(options.except(:distinct)).calculate(operation, column_name, :distinct => options[:distinct])
+      ## RR patch, use :simple_count option so that count on group by queries return the actual count of records
+      if options.except(:distinct, :simple_count).present?
+        simple_count = options.delete(:simple_count)
+        dist_opts    = {:distinct => options[:distinct]}
+        calc_options = (operation.to_s.downcase == "count" && simple_count) ? dist_opts.merge(:simple_count => simple_count) : dist_opts
+        apply_finder_options(options.except(:distinct)).calculate(operation, column_name, calc_options)
       else
         relation = with_default_scope
 
@@ -211,7 +215,11 @@ module ActiveRecord
       end
 
       if @group_values.any?
-        execute_grouped_calculation(operation, column_name, distinct)
+        if options[:simple_count] ## RR patch, if simple count option is present just return the count of records   
+          execute_grouped_calculation(operation, column_name, distinct, true)
+        else
+          execute_grouped_calculation(operation, column_name, distinct)
+        end
       else
         execute_simple_calculation(operation, column_name, distinct)
       end
@@ -251,7 +259,7 @@ module ActiveRecord
       type_cast_calculated_value(@klass.connection.select_value(query_builder), column_for(column_name), operation)
     end
 
-    def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
+    def execute_grouped_calculation(operation, column_name, distinct, simple_count = false) #:nodoc:
       group_attrs = @group_values
 
       if group_attrs.first.respond_to?(:to_sym)
@@ -294,7 +302,16 @@ module ActiveRecord
       relation = except(:group).group(group)
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation)
+      calculated_data = nil
+
+      if simple_count # RR patch
+        # remove "order by" clauses which cause issues with complicated scopes and it's irrelevant for the records count 
+        relation.order_values = []
+        calculated_data = @klass.connection.select_all(relation)
+        return calculated_data.count
+      end
+
+      calculated_data ||= @klass.connection.select_all(relation)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
