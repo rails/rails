@@ -1,3 +1,10 @@
+*   Remove the deprecation about the `#filter` method
+
+    Filter objects should now rely on method corresponding to the filter type
+    (e.g. `#before`)
+
+    *Aaron Patterson*
+
 *   Add `ActiveSupport::JSON::Encoding.time_precision` as a way to configure the
     precision of encoded time values:
 

@@ -709,7 +709,7 @@ class ApplicationController < ActionController::Base
 end
 
 class LoginFilter
-  def self.filter(controller)
+  def self.before(controller)
     unless controller.send(:logged_in?)
       controller.flash[:error] = "You must be logged in to access this section"
       controller.redirect_to controller.new_login_url
@@ -718,7 +718,7 @@ class LoginFilter
 end
 ```
 
-Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method `filter` which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same `filter` method, which will get run in the same way. The method must `yield` to execute the action. Alternatively, it can have both a `before` and an `after` method that are run before and after the action.
+Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class must implement a method with the same name as the filter, so for the `before_action` filter the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
 
 Request Forgery Protection
 --------------------------

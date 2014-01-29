@@ -567,6 +567,9 @@ for detailed changes.
 * Removed deprecated `assert_present` and `assert_blank` methods, use `assert
   object.blank?` and `assert object.present?` instead.
 
+* Remove deprecated `#filter` method for filter objects, use the corresponding
+  method instead (e.g. `#before` for a before filter).
+
 ### Deprecations
 
 * Deprecated `Numeric#{ago,until,since,from_now}`, the user is expected to
