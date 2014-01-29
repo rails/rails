@@ -13,6 +13,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/logger'
 require 'active_support/ordered_hash'
 require 'active_record/fixtures/file'
+require 'shellwords'
 
 if defined? ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -386,6 +387,7 @@ module ActiveRecord
   # Any fixture labeled "DEFAULTS" is safely ignored.
   class Fixtures
     MAX_ID = 2 ** 30 - 1
+    FIXTURE_REALMS = [:default, :sample_data]
 
     @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
 
@@ -490,14 +492,16 @@ module ActiveRecord
 
           connection.transaction(:requires_new => true) do
             fixture_files.each do |ff|
-              conn = ff.model_class.respond_to?(:connection) ? ff.model_class.connection : connection
-              table_rows = ff.table_rows
+              conn = ff.model_class.try(:connection) || connection
 
-              table_rows.keys.each do |table|
-                conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
+              ff.table_rows.keys.each do |table_name|
+                conn.delete "DELETE FROM #{conn.quote_table_name(table_name)}", 'Fixture Delete'
               end
+            end
 
-              table_rows.each do |table_name,rows|
+            fixture_files.each do |ff|
+              conn = ff.model_class.try(:connection) || connection
+              ff.table_rows.each do |table_name, rows|
                 rows.each do |row|
                   conn.insert_fixture(row, table_name)
                 end
@@ -829,6 +833,11 @@ module ActiveRecord
       use_transactional_fixtures &&
         !self.class.uses_transaction?(method_name)
     end
+    
+
+
+    @@active_fixture ||= :none
+    @@current_fixture_realm = :default
 
     def setup_fixtures
       return unless !ActiveRecord::Base.configurations.blank?
@@ -840,30 +849,59 @@ module ActiveRecord
       @fixture_cache = {}
       @fixture_connections = []
       @@already_loaded_fixtures ||= {}
+      
+      if @@current_fixture_realm != fixture_realm
+        @@current_fixture_realm = fixture_realm
+        db_connect(@@current_fixture_realm)
+      end
 
-      # Load fixtures once and begin transaction.
+      if !@@already_loaded_fixtures[self.class].nil?
+        @loaded_fixtures = @@already_loaded_fixtures[self.class]
+      else
+        ActiveRecord::Fixtures.reset_cache
+        #TODO - jpt - HACK: We destroy the triggers to allow fixtures to load and recreate them afterwards.
+        ApplicationModel.drop_triggers!
+        @loaded_fixtures ||= (marshal_hash || create_fixtures_from_yaml)
+        ApplicationModel.recreate_triggers!
+        @@already_loaded_fixtures[self.class] = @loaded_fixtures
+      end
+
       if run_in_transaction?
-        if @@already_loaded_fixtures[self.class]
-          @loaded_fixtures = @@already_loaded_fixtures[self.class]
-        else
-          @loaded_fixtures = load_fixtures
-          @@already_loaded_fixtures[self.class] = @loaded_fixtures
-        end
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
           connection.increment_open_transactions
           connection.transaction_joinable = false
           connection.begin_db_transaction
         end
-      # Load fixtures for every test.
       else
-        ActiveRecord::Fixtures.reset_cache
-        @@already_loaded_fixtures[self.class] = nil
-        @loaded_fixtures = load_fixtures
+        @@already_loaded_fixtures[self.class] = {}
       end
 
       # Instantiate fixtures for every test if requested.
       instantiate_fixtures if use_instantiated_fixtures
+    end
+
+    def create_fixtures_from_yaml
+      fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
+      Hash[fixtures.map { |f| [f.name, f] }]
+    end
+
+    def marshal_hash
+      begin
+        marshal_hash = {}
+        marshal_load = Marshal.load(File.read("#{fixture_path}default.marshal"))
+        marshal_load.each do |yaml_file, (klass, fixtures)|
+          fixture_hash = {}
+          fixtures.each do |fixture_sym, id|
+            fixture_hash[fixture_sym] = Fixture.new({"id" => id}, klass._?.constantize)
+          end
+          marshal_hash[yaml_file] = fixture_hash
+        end
+      rescue Exception => ex
+        puts "Error loading Marshal file #{fixture_path}default.marshal: #{ex}"
+        marshal_hash = nil
+      end
+      marshal_hash
     end
 
     def teardown_fixtures
@@ -890,10 +928,45 @@ module ActiveRecord
       ActiveRecord::Base.connection_handler.connection_pools.values.map(&:connection)
     end
 
+    def load_fixtures
+      Fixtures::FIXTURE_REALMS.each do |fixture_name|
+        db_connect(fixture_name)
+
+        dump_file_name = "#{fixture_path}/#{fixture_name}.sql"
+        File.exists?(dump_file_name) or raise "load_fixtures: Could not find #{dump_file_name}"
+        load_mysql_dump(dump_file_name)
+      end
+    end
+
     private
-      def load_fixtures
-        fixtures = ActiveRecord::Fixtures.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
-        Hash[fixtures.map { |f| [f.name, f] }]
+
+    def db_connect(fixture_realm_sym)
+        current_connection_handler = ActiveRecord::Base.connection_handler
+        current_database_spec = current_connection_handler.retrieve_connection_pool(ActiveRecord::Base).spec
+        new_connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+        ActiveRecord::Base.connection_handler = new_connection_handler
+        new_database_name = ActiveRecord::Base.configurations["test#{"_" + fixture_realm_sym.to_s if fixture_realm_sym != :default}"]['database']
+        new_database_config = current_database_spec.config.merge(:database => new_database_name)
+        new_database_spec = current_database_spec.class.new(new_database_config, current_database_spec.adapter_method)
+        ActiveRecord::Base.establish_connection(new_database_spec.config)
+        ActiveRecord::Base.connection
+      end
+
+      # Possible alternative to the above method
+      #def db_connect(fixture_realm_sym)
+      #  ActiveRecord::Base.establish_connection("test#{'_sample_data' unless fixture_sym == :default}")
+      #end
+
+
+      def load_mysql_dump dump_filename
+        raise "Cannot be used in production!" if Rails.env == 'production'
+        config = ActiveRecord::Base.connection.config
+        dump_cmd = "mysql --user=#{Shellwords.shellescape(config[:username])} --password=#{Shellwords.shellescape(config[:password])} #{Shellwords.shellescape(config[:database])} < #{Shellwords.shellescape(dump_filename)}"
+        system(dump_cmd) or raise("Loading mysql dump failed: #{dump_cmd.inspect} resulted in an error")
+#        IO.readlines(dump_filename).join.split(";\n").each do |statement|
+#          ActiveRecord::Base.connection.execute(statement)
+#        end
+        nil
       end
 
       # for pre_loaded_fixtures, only require the classes once. huge speed improvement
