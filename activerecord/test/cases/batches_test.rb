@@ -153,6 +153,12 @@ class EachTest < ActiveRecord::TestCase
     assert_equal special_posts_ids, posts.map(&:id)
   end
 
+  def test_find_in_batches_should_not_modify_passed_options
+    assert_nothing_raised do
+      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze){}
+    end
+  end
+
   def test_find_in_batches_should_use_any_column_as_primary_key
     nick_order_subscribers = Subscriber.order('nick asc')
     start_nick = nick_order_subscribers.second.nick

@@ -104,8 +104,8 @@ module ActiveRecord
         logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      start = options.delete(:start)
-      batch_size = options.delete(:batch_size) || 1000
+      start = options[:start]
+      batch_size = options[:batch_size] || 1000
 
       relation = relation.reorder(batch_order).limit(batch_size)
       records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
