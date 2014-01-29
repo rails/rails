@@ -33,8 +33,16 @@ module ActionView
       # end
       #
       def url_options
-        return super unless controller.respond_to?(:url_options)
-        controller.url_options
+        # RR patch - check whether controller is defined or not to make this work when url_for is overwritten in a non-controller class
+        if defined?(controller)
+          if controller.respond_to?(:url_options)
+            controller.url_options
+          else #controller does not have url_options
+            return super
+          end
+        else #controller is not defined; e.g. when url_for is overwritten in a model
+          return super
+        end
       end
 
       # Returns the URL for the set of +options+ provided. This takes the
