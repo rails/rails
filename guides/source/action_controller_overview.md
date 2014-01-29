@@ -381,6 +381,28 @@ You can also pass a `:domain` key and specify the domain name for the cookie:
 YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
+You can pass `:serializer` key to specify serializer for serializing session:
+
+```ruby
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: :json_serializer
+```
+
+Default serializer is `:marshal_serializer`. When Symbol or String is passed it
+will look for appropriate class in `ActionDispatch::Session` namespace, so
+passing `:my_custom_serializer` would load
+`ActionDispatch::Session::MyCustomSerializer`.
+
+```ruby
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: :my_custom_serializer
+```
+
+It is also possible to pass serializer object with defined `load` and `dump`
+public methods:
+
+```ruby
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: MyCustomSerializer
+```
+
 Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`
 
 ```ruby

@@ -379,6 +379,39 @@ class CookiesTest < ActionController::TestCase
     assert_equal 'bar', cookies.encrypted[:foo]
   end
 
+  class ActionDispatch::Session::CustomJsonSerializer
+    def self.load(value)
+      JSON.load(value) + " and loaded"
+    end
+
+    def self.dump(value)
+      JSON.dump(value + " was dumped")
+    end
+  end
+
+  def test_encrypted_cookie_using_custom_json_serializer
+    @request.env["action_dispatch.session_serializer"] = :custom_json_serializer
+    get :set_encrypted_cookie
+    assert_equal 'bar was dumped and loaded', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_serializer_object
+    @request.env["action_dispatch.session_serializer"] = ActionDispatch::Session::CustomJsonSerializer
+    get :set_encrypted_cookie
+    assert_equal 'bar was dumped and loaded', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_json_serializer
+    @request.env["action_dispatch.session_serializer"] = :json_serializer
+    get :set_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'bar', cookies[:foo]
+    assert_raises TypeError do
+      cookies.signed[:foo]
+    end
+    assert_equal 'bar', cookies.encrypted[:foo]
+  end
+
   def test_accessing_nonexistant_encrypted_cookie_should_not_raise_invalid_message
     get :set_encrypted_cookie
     assert_nil @controller.send(:cookies).encrypted[:non_existant_attribute]
