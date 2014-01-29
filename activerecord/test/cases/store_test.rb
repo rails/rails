@@ -175,18 +175,19 @@ class StoreTest < ActiveRecord::TestCase
       "preferences" => "--- !ruby/hash:ActiveSupport::HashWithIndifferentAccess\nremember_login: true\n",
       "json_data" => "{\"height\":\"tall\"}", "json_data_empty"=>"{\"is_a_good_guy\":true}",
       "params" => "--- !ruby/hash:ActiveSupport::HashWithIndifferentAccess {}\n",
-      "account_id"=> @john.account_id }
+      "account_id"=> @john.account_id
+    }
+
     assert_equal attributes, @john.attributes_for_coder
   end
 
   test "dump, load and dump again a model" do
-    dumped = YAML.dump( @john )
-    loaded = YAML.load( dumped )
+    dumped = YAML.dump(@john)
+    loaded = YAML.load(dumped)
     assert_equal @john, loaded
 
-    second_dump = YAML.dump( loaded )
+    second_dump = YAML.dump(loaded)
     assert_equal dumped, second_dump
-    assert_equal @john, YAML.load( second_dump )
+    assert_equal @john, YAML.load(second_dump)
   end
-
 end

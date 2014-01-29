@@ -1,4 +1,4 @@
-*   ActiveRecord objects can now be correctly dumped, loaded and dumped again without issues.
+*   Active Record objects can now be correctly dumped, loaded and dumped again without issues.
 
     Previously, if you did `YAML.dump`, `YAML.load` and then `YAML.dump` again
     in an ActiveRecord model that used serialization it would fail at the last

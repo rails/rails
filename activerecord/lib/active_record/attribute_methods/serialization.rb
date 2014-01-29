@@ -76,7 +76,6 @@ module ActiveRecord
       end
 
       class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
-
         def unserialized_value(v = value)
           state == :serialized ? unserialize(v) : value
         end
@@ -167,12 +166,12 @@ module ActiveRecord
         end
 
         def attributes_for_coder
-          attribute_names.each_with_object({}) do |name,attrs|
+          attribute_names.each_with_object({}) do |name, attrs|
             attrs[name] = if self.class.serialized_attributes.include?(name)
-                @attributes[name].serialized_value
-              else
-                read_attribute(name)
-            end
+                            @attributes[name].serialized_value
+                          else
+                            read_attribute(name)
+                          end
           end
         end
       end
