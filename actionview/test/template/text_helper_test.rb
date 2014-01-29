@@ -345,6 +345,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_pluralization
+    ActiveSupport::Inflector::inflections(:fr).plural 'journal', 'journaux'
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))
     assert_equal("1 count", pluralize('1', "count"))
@@ -359,6 +360,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("10 buffaloes", pluralize(10, "buffalo"))
     assert_equal("1 berry", pluralize(1, "berry"))
     assert_equal("12 berries", pluralize(12, "berry"))
+    assert_equal("2 journaux", pluralize(2, "journal", nil, :fr))
+    assert_equal("1 journal", pluralize(1, "journal", nil, :fr))
   end
 
   def test_cycle_class
