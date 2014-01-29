@@ -50,5 +50,36 @@ module ActiveSupport
         "is deprecated. Use Base64.strict_encode64 instead", caller
       ::Base64.strict_encode64(value)
     end
+
+    # Start of RingRevenue patch
+    # from https://rails.lighthouseapp.com/projects/8994/tickets/2078-implement-base64url-encoding-rfc-4648
+    BASE64_PUNCTUATION = '+/'
+    BASE64_URL_PUNCTUATION = '-_'
+
+    # Encodes passed data using "base64url" (as defined by RFC4648). This makes the base64 encoding readily usable as URL parameters
+    # not requiring percent-encoding. No padding '=' or newline breaks are used, and the '+' and '/' characters of standard Base64
+    # encoding are respectively replaced by '-' and '_'.
+    # ==== Examples
+    # ActiveSupport::Base64.encode64("\377\377\276a") # => "//++YQ==\n"
+    # ActiveSupport::Base64.encode64_url("\377\377\276a") # => "__--YQ"
+    # ActiveSupport::Base64.decode64_url("__--YQ") # => "\377\377\276a"
+    def self.encode64_url(data)
+      ::Base64.encode64(data).tr(BASE64_PUNCTUATION, BASE64_URL_PUNCTUATION).gsub(/=*\n/, '')
+    end
+
+    # Decodes a "base64url" encoded string to its original representation.
+    # See <tt>Encoding#encode64_url</tt> for more information.
+    def self.decode64_url(str)
+      # add '=' padding
+      str = case str.length % 4
+        when 2 then str + '=='
+        when 3 then str + '='
+        else
+          str
+      end
+
+      ::Base64.decode64(str.tr(BASE64_URL_PUNCTUATION, BASE64_PUNCTUATION))
+    end
+    # End of RingRevenue patch
   end
 end
