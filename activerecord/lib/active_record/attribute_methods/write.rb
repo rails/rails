@@ -24,6 +24,8 @@ module ActiveRecord
       # for fixnum and float columns are turned into +nil+.
       def write_attribute(attr_name, value)
         attr_name = attr_name.to_s
+        #RR Patch - better error message for write_attribute
+        attr_name.blank? and raise ArgumentError, "attr_name may not be blank! #{attr_name.inspect}"
         attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
         @attributes_cache.delete(attr_name)
         column = column_for_attribute(attr_name)
