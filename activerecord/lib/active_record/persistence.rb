@@ -387,7 +387,7 @@ module ActiveRecord
 
       fresh_object =
         if options && options[:lock]
-          self.class.unscoped { self.class.lock.find(id) }
+          self.class.unscoped { self.class.lock(options[:lock]).find(id) }
         else
           self.class.unscoped { self.class.find(id) }
         end

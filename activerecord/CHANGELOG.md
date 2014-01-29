@@ -1,3 +1,13 @@
+*   Correctly send an user provided statement to a `lock!()` call.
+
+        person.lock! 'FOR SHARE NOWAIT'
+        # Before: SELECT * ... LIMIT 1 FOR UPDATE
+        # After: SELECT * ... LIMIT 1 FOR SHARE NOWAIT
+
+    Fixes #13788.
+
+    *Maurício Linhares*
+
 *   Active Record objects can now be correctly dumped, loaded and dumped again without issues.
 
     Previously, if you did `YAML.dump`, `YAML.load` and then `YAML.dump` again
