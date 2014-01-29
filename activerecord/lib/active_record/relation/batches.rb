@@ -96,16 +96,21 @@ module ActiveRecord
     # the batch sizes.
     def find_in_batches(options = {})
       options.assert_valid_keys(:start, :batch_size)
-      return to_enum(:find_in_batches, options) unless block_given?
 
       relation = self
+      start = options[:start]
+      batch_size = options[:batch_size] || 1000
+
+      unless block_given?
+        return to_enum(:find_in_batches, options) do
+          total = start ? where(table[primary_key].gteq(start)).size : size
+          (total - 1).div(batch_size) + 1
+        end
+      end
 
       if logger && (arel.orders.present? || arel.taken.present?)
         logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
-
-      start = options[:start]
-      batch_size = options[:batch_size] || 1000
 
       relation = relation.reorder(batch_order).limit(batch_size)
       records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a

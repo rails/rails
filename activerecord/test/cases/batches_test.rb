@@ -191,4 +191,14 @@ class EachTest < ActiveRecord::TestCase
       end
     end
   end
+
+  if Enumerator.method_defined? :size
+    def test_find_in_batches_should_return_a_sized_enumerator
+      assert_equal 11, Post.find_in_batches(:batch_size => 1).size
+      assert_equal 6, Post.find_in_batches(:batch_size => 2).size
+      assert_equal 4, Post.find_in_batches(:batch_size => 2, :start => 4).size
+      assert_equal 4, Post.find_in_batches(:batch_size => 3).size
+      assert_equal 1, Post.find_in_batches(:batch_size => 10_000).size
+    end
+  end
 end
