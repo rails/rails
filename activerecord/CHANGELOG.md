@@ -1,3 +1,8 @@
+*   `find_in_batches` now returns an `Enumerator` when called without a block, so that it
+    can be chained with other `Enumerable` methods.
+
+    *Marc-André Lafortune*
+
 *   `enum` now raises on "dangerous" name conflicts
 
     Dangerous name conflicts includes instance or class method conflicts
