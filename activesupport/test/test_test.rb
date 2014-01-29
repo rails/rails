@@ -201,4 +201,17 @@ class TimeHelperTest < ActiveSupport::TestCase
     assert_not_equal expected_time, Time.now
     assert_not_equal Date.new(2004, 11, 24), Date.today
   end
+
+  def test_end_travel_to_remove_the_stubs
+    real_now = Time.now
+    real_today = Date.today
+
+    travel_to Time.new(1976, 04, 23, 12, 45, 05)
+    assert Time.now < real_now
+    assert Date.today < real_today
+
+    end_travel
+    assert Time.now >= real_now
+    assert Date.today >= real_today
+  end
 end

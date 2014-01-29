@@ -10,6 +10,7 @@ module ActiveSupport
       #   travel 1.day
       #   Time.current # => Sun, 10 Nov 2013 15:34:49 EST -05:00
       #   Date.current # => Sun, 10 Nov 2013
+      #   end_travel   # return to the original state
       #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
@@ -31,6 +32,7 @@ module ActiveSupport
       #   travel_to Time.new(2004, 11, 24, 01, 04, 44)
       #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   Date.current # => Wed, 24 Nov 2004
+      #   end_travel   # return to the original state
       #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
@@ -46,9 +48,15 @@ module ActiveSupport
 
         if block_given?
           block.call
-          Time.unstub :now
-          Date.unstub :today
+          end_travel
         end
+      end
+
+      # Remove stubs from +Time.now+ and +Date.today+. This method restores the original
+      # state when +travel+ or +travel_to+ was used.
+      def end_travel
+        Time.unstub :now
+        Date.unstub :today
       end
     end
   end
