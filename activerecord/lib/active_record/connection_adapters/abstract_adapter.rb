@@ -72,6 +72,7 @@ module ActiveRecord
         @query_cache_enabled = false
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
+        @rows_read           = [] # RR patch
       end
 
       def lease
@@ -135,6 +136,12 @@ module ActiveRecord
       # This is false for all adapters but Firebird.
       def prefetch_primary_key?(table_name = nil)
         false
+      end
+
+      # RR patch
+      def reset_rows_read
+        rows_read, @rows_read = @rows_read, []
+        rows_read
       end
 
       # Does this adapter support index sort order?
@@ -274,10 +281,17 @@ module ActiveRecord
         def log(sql, name = "SQL", binds = [])
           @instrumenter.instrument(
             "sql.active_record",
-            :sql           => sql,
-            :name          => name,
-            :connection_id => object_id,
-            :binds         => binds) { yield }
+              hash = {
+              :sql           => sql,
+              :name          => name,
+              :connection_id => object_id,
+              :binds         => binds
+            }
+          ) do
+              yield.tap do |result|
+                hash[:rows] = result.count if result.respond_to?(:count)
+              end
+            end
         rescue Exception => e
           message = "#{e.class.name}: #{e.message}: #{sql}"
           @logger.debug message if @logger
