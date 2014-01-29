@@ -1,3 +1,15 @@
+*   ActiveRecord objects can now be correctly dumped, loaded and dumped again without issues.
+
+    Previously, if you did `YAML.dump`, `YAML.load` and then `YAML.dump` again
+    in an ActiveRecord model that used serialization it would fail at the last
+    dump due to the fields not being correctly serialized before being dumped
+    to YAML. Now it is possible to dump and load the same object as many times
+    as needed without any issues.
+
+    Fixes #13861.
+
+    *Maurício Linhares*
+
 *   `find_in_batches` now returns an `Enumerator` when called without a block, so that it
     can be chained with other `Enumerable` methods.
 
