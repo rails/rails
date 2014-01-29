@@ -252,7 +252,9 @@ module ActiveModel
     def add_on_blank(attributes, options = {})
       [attributes].flatten.each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
-        add(attribute, :blank, options) if value.blank?
+        add(attribute, :blank, options) if value.blank? && !(value.nil? && options[:allow_nil])
+        #                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        # RingRevenue patch - take into account the :allow_nil option
       end
     end
 
