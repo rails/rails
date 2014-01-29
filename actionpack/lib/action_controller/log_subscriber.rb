@@ -53,6 +53,15 @@ module ActionController
       debug("Unpermitted parameters: #{unpermitted_keys.join(", ")}")
     end
 
+    def deep_munge(event)
+      message = "Value for params[:#{event.payload[:keys].join('][:')}] was set"\
+                "to nil, because it was one of [], [null] or [null, null, ...]."\
+                "Go to http://guides.rubyonrails.org/security.html#unsafe-query-generation"\
+                "for more information."\
+
+      debug(message)
+    end
+
     %w(write_fragment read_fragment exist_fragment?
        expire_fragment expire_page write_page).each do |method|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
