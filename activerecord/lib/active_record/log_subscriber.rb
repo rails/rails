@@ -40,6 +40,10 @@ module ActiveRecord
         }.inspect
       end
 
+      if rows = payload[:rows]
+        name += " rows: #{rows}"
+      end
+
       if odd?
         name = color(name, CYAN, true)
         sql  = color(sql, nil, true)
