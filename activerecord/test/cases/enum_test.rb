@@ -163,4 +163,63 @@ class EnumTest < ActiveRecord::TestCase
   test "_before_type_cast returns the enum label (required for form fields)" do
     assert_equal "proposed", @book.status_before_type_cast
   end
+
+  test "reserved enum names" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written, :published]
+    end
+
+    conflicts = [
+      :column,     # generates class method .columns, which conflicts with an AR method
+      :logger,     # generates #logger, which conflicts with an AR method
+      :attributes, # generates #attributes=, which conflicts with an AR method
+    ]
+
+    conflicts.each_with_index do |name, i|
+      assert_raises(ArgumentError, "enum name `#{name}` should not be allowed") do
+        klass.class_eval { enum name => ["value_#{i}"] }
+      end
+    end
+  end
+
+  test "reserved enum values" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written, :published]
+    end
+
+    conflicts = [
+      :new,      # generates a scope that conflicts with an AR class method
+      :valid,    # generates #valid?, which conflicts with an AR method
+      :save,     # generates #save!, which conflicts with an AR method
+      :proposed, # same value as an existing enum
+    ]
+
+    conflicts.each_with_index do |value, i|
+      assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
+        klass.class_eval { enum "status_#{i}" => [value] }
+      end
+    end
+  end
+
+  test "overriding enum method should not raise" do
+    assert_nothing_raised do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+
+        def published!
+          super
+          "do publish work..."
+        end
+
+        enum status: [:proposed, :written, :published]
+
+        def written!
+          super
+          "do written work..."
+        end
+      end
+    end
+  end
 end
