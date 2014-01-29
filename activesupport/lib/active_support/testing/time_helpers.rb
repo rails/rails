@@ -38,13 +38,8 @@ module ActiveSupport
 
     # Containing helpers that helps you test passage of time.
     module TimeHelpers
-      def before_setup
-        super
-        @simple_stubs = SimpleStubs.new
-      end
-
       def after_teardown #:nodoc:
-        @simple_stubs.unstub_all!
+        simple_stubs.unstub_all!
         super
       end
 
@@ -87,13 +82,17 @@ module ActiveSupport
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time, &block)
-        @simple_stubs.stub_object(Time, :now, date_or_time.to_time)
-        @simple_stubs.stub_object(Date, :today, date_or_time.to_date)
+        simple_stubs.stub_object(Time, :now, date_or_time.to_time)
+        simple_stubs.stub_object(Date, :today, date_or_time.to_date)
 
         if block_given?
           block.call
-          @simple_stubs.unstub_all!
+          simple_stubs.unstub_all!
         end
+      end
+
+      def simple_stubs
+        @simple_stubs ||= SimpleStubs.new
       end
     end
   end
