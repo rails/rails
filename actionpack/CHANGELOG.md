@@ -1,3 +1,8 @@
+*   Do not discard query parameters that form a hash with the same root key as
+    the wrapper_key for a request using wrap_parameters
+
+    *Josh Jordan*
+
 *   Ensure that `request.filtered_parameters` is reset between calls to `process`
     in `ActionController::TestCase`.
 
