@@ -35,6 +35,14 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  if Enumerator.method_defined? :size
+    def test_each_should_return_a_sized_enumerator
+      assert_equal 11, Post.find_each(:batch_size => 1).size
+      assert_equal 5, Post.find_each(:batch_size => 2, :start => 7).size
+      assert_equal 11, Post.find_each(:batch_size => 10_000).size
+    end
+  end
+
   def test_each_enumerator_should_execute_one_query_per_batch
     assert_queries(@total + 1) do
       Post.find_each(:batch_size => 1).with_index do |post, index|

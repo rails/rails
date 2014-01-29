@@ -30,5 +30,11 @@ module ActiveRecord
         assert_kind_of Integer, index
       end
     end
+
+    if Enumerator.method_defined? :size
+      def test_each_without_block_returns_a_sized_enumerator
+        assert_equal 3, result.each.size
+      end
+    end
   end
 end

@@ -52,7 +52,9 @@ module ActiveRecord
           records.each { |record| yield record }
         end
       else
-        enum_for :find_each, options
+        enum_for :find_each, options do
+          options[:start] ? where(table[primary_key].gteq(options[:start])).size : size
+        end
       end
     end
 
