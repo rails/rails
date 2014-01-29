@@ -195,7 +195,7 @@ module ActionView
       #
       #   pluralize(0, 'person')
       #   # => 0 people
-      def pluralize(count, singular, plural = nil, locale = :en)
+      def pluralize(count, singular, plural = nil, locale = I18n.locale)
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
         else
