@@ -64,6 +64,8 @@ module ActiveRecord
     #     group.each { |person| person.party_all_night! }
     #   end
     #
+    # To be yielded each record one by one, use #find_each instead.
+    #
     # ==== Options
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
     # * <tt>:start</tt> - Specifies the starting point for the batch processing.
