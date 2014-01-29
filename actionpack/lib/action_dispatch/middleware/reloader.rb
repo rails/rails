@@ -26,8 +26,8 @@ module ActionDispatch
   class Reloader
     include ActiveSupport::Callbacks
 
-    define_callbacks :prepare, :scope => :name
-    define_callbacks :cleanup, :scope => :name
+    define_callbacks :prepare
+    define_callbacks :cleanup
 
     # Add a prepare callback. Prepare callbacks are run before each request, prior
     # to ActionDispatch::Callback's before callbacks.
