@@ -23,7 +23,7 @@ module ActiveSupport
       end
 
       def unstub_all!
-        @stubs.each do |_, stub|
+        @stubs.each_value do |stub|
           unstub_object(stub)
         end
         @stubs = {}
