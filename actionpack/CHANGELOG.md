@@ -1,3 +1,17 @@
+*   Add `:serializer` option for `config.session_store :cookie_store`. This
+    changes default serializer when using `:cookie_store` to
+    `ActionDispatch::Session::MarshalSerializer` which is wrapper on Marshal.
+
+    It is also possible to pass:
+
+    * `:json_serializer` which is secure wrapper on JSON using `JSON.parse` and
+      `JSON.generate` methods with quirks mode;
+    * any other Symbol or String like `:my_custom_serializer` which will be
+      camelized and constantized in `ActionDispatch::Session` namespace;
+    * serializer object with `load` and `dump` methods defined.
+
+    *Łukasz Sarnacki + Matt Aimonetti*
+
 *   Ensure that `request.filtered_parameters` is reset between calls to `process`
     in `ActionController::TestCase`.
 
@@ -48,20 +62,6 @@
     Fixes #12381
 
     *Alessandro Diaferia*
-
-*   Add `:serializer` option for `config.session_store :cookie_store`. This
-    changes default serializer when using `:cookie_store` to
-    `ActionDispatch::Session::MarshalSerializer` which is wrapper on Marshal.
-
-    It is also possible to pass:
-
-    * `:json_serializer` which is secure wrapper on JSON using `JSON.parse` and
-      `JSON.generate` methods with quirks mode;
-    * any other Symbol or String like `:my_custom_serializer` which will be
-      camelized and constantized in `ActionDispatch::Session` namespace;
-    * serializer object with `load` and `dump` methods defined.
-
-    *Łukasz Sarnacki*
 
 *   Allow an absolute controller path inside a module scope. Fixes #12777.
 
