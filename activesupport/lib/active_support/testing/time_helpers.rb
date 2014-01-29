@@ -32,9 +32,10 @@ module ActiveSupport
       private
 
         def unstub_object(stub)
-          stub.object.singleton_class.send :undef_method, stub.method_name
-          stub.object.singleton_class.send :alias_method, stub.method_name, stub.original_method
-          stub.object.singleton_class.send :undef_method, stub.original_method
+          singleton_class = stub.object.singleton_class
+          singleton_class.send :undef_method, stub.method_name
+          singleton_class.send :alias_method, stub.method_name, stub.original_method
+          singleton_class.send :undef_method, stub.original_method
         end
     end
 
