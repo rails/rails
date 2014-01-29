@@ -14,8 +14,11 @@ module ActiveSupport
           unstub_object(stub)
         end
 
-        @stubs[key] = Stub.new(object, method_name, object.method(method_name))
+        new_name = "__simple_stub__#{method_name}"
 
+        @stubs[key] = Stub.new(object, method_name, new_name)
+
+        object.singleton_class.send :alias_method, new_name, method_name
         object.define_singleton_method(method_name) { return_value }
       end
 
@@ -27,7 +30,9 @@ module ActiveSupport
       end
 
       def unstub_object(stub)
-        stub.object.define_singleton_method(stub.method_name, stub.original_method)
+        stub.object.singleton_class.send :undef_method, stub.method_name
+        stub.object.singleton_class.send :alias_method, stub.method_name, stub.original_method
+        stub.object.singleton_class.send :undef_method, stub.original_method
       end
     end
 
