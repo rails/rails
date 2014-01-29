@@ -1,3 +1,15 @@
+*   Active Record objects can now be correctly dumped, loaded and dumped again without issues.
+
+    Previously, if you did `YAML.dump`, `YAML.load` and then `YAML.dump` again
+    in an ActiveRecord model that used serialization it would fail at the last
+    dump due to the fields not being correctly serialized before being dumped
+    to YAML. Now it is possible to dump and load the same object as many times
+    as needed without any issues.
+
+    Fixes #13861.
+
+    *Maurício Linhares*
+
 *   `has_one` and `belongs_to` accessors don't add ORDER BY to the queries anymore.
 
     Since Rails 4.0, we add an ORDER BY in the `first` method to ensure consistent results
