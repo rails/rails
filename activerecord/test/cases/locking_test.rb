@@ -431,6 +431,17 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
       assert_equal old, person.reload.first_name
     end
 
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_lock_sending_custom_lock_statement
+        Person.transaction do
+          person = Person.find(1)
+          assert_sql(/LIMIT 1 FOR SHARE NOWAIT/) do
+            person.lock!('FOR SHARE NOWAIT')
+          end
+        end
+      end
+    end
+
     if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
       def test_no_locks_no_wait
         first, second = duel { Person.find 1 }
