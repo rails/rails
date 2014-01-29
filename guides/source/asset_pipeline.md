@@ -938,7 +938,7 @@ Customizing the Pipeline
 
 ### CSS Compression
 
-There is currently one option for compressing CSS, YUI. The [YUI CSS
+One of the options for compressing CSS is YUI. The [YUI CSS
 compressor](http://yui.github.io/yuicompressor/css.html) provides
 minification.
 
@@ -947,6 +947,11 @@ gem.
 
 ```ruby
 config.assets.css_compressor = :yui
+```
+The other option for compressing CSS if you have the sass-rails gem installed is 
+
+```ruby
+config.assets.css_compressor = :sass
 ```
 
 ### JavaScript Compression
