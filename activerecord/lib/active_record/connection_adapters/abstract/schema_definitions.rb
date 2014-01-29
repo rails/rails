@@ -241,8 +241,8 @@ module ActiveRecord
         column.null      = options[:null]
         self
       end
-
-      %w( string text integer float decimal datetime timestamp time date binary boolean ).each do |column_type|
+      # RingRevenue patch - added 'varbinary'
+      %w( string text integer float decimal datetime timestamp time date binary boolean varbinary ).each do |column_type|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{column_type}(*args)                                   # def string(*args)
             options = args.extract_options!                           #   options = args.extract_options!
