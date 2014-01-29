@@ -1,6 +1,6 @@
 module ActiveSupport
   module Testing
-    class SimpleStubs
+    class SimpleStubs # :nodoc:
       Stub = Struct.new(:object, :method_name, :original_method)
 
       def initialize
@@ -29,11 +29,13 @@ module ActiveSupport
         @stubs = {}
       end
 
-      def unstub_object(stub)
-        stub.object.singleton_class.send :undef_method, stub.method_name
-        stub.object.singleton_class.send :alias_method, stub.method_name, stub.original_method
-        stub.object.singleton_class.send :undef_method, stub.original_method
-      end
+      private
+
+        def unstub_object(stub)
+          stub.object.singleton_class.send :undef_method, stub.method_name
+          stub.object.singleton_class.send :alias_method, stub.method_name, stub.original_method
+          stub.object.singleton_class.send :undef_method, stub.original_method
+        end
     end
 
     # Containing helpers that helps you test passage of time.
@@ -91,9 +93,11 @@ module ActiveSupport
         end
       end
 
-      def simple_stubs
-        @simple_stubs ||= SimpleStubs.new
-      end
+      private
+
+        def simple_stubs
+          @simple_stubs ||= SimpleStubs.new
+        end
     end
   end
 end
