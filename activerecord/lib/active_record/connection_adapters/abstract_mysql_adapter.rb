@@ -61,7 +61,8 @@ module ActiveRecord
             when /tiny/i
               255
             when /medium/i
-              16777215
+              #16777215
+              5592405 # collation of utf8; RingRevenue patch
             when /long/i
               2147483647 # mysql only allows 2^31-1, not 2^32-1, somewhat inconsistently with the tiny/medium/normal cases
             else
@@ -111,18 +112,20 @@ module ActiveRecord
       QUOTED_TRUE, QUOTED_FALSE = '1', '0'
 
       NATIVE_DATABASE_TYPES = {
-        :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
-        :string      => { :name => "varchar", :limit => 255 },
-        :text        => { :name => "text" },
-        :integer     => { :name => "int", :limit => 4 },
-        :float       => { :name => "float" },
-        :decimal     => { :name => "decimal" },
-        :datetime    => { :name => "datetime" },
-        :timestamp   => { :name => "datetime" },
-        :time        => { :name => "time" },
-        :date        => { :name => "date" },
-        :binary      => { :name => "blob" },
-        :boolean     => { :name => "tinyint", :limit => 1 }
+        :primary_key              => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
+        :primary_key_no_increment => "int(11) PRIMARY KEY", #RingRevenue patch
+        :string                   => { :name => "varchar", :limit => 255 },
+        :text                     => { :name => "text" },
+        :integer                  => { :name => "int", :limit => 4 },
+        :float                    => { :name => "float" },
+        :decimal                  => { :name => "decimal" },
+        :datetime                 => { :name => "datetime" },
+        :timestamp                => { :name => "datetime" },
+        :time                     => { :name => "time" },
+        :date                     => { :name => "date" },
+        :binary                   => { :name => "blob" },
+        :boolean                  => { :name => "tinyint", :limit => 1 },
+        :varbinary                => { :name => "varbinary", :limit=> 255 } #RingRevenue patch
       }
 
       class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
@@ -286,10 +289,14 @@ module ActiveRecord
 
       def rollback_to_savepoint
         execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
+      rescue => ex
+        STDERR.puts("ROLLBACK TO SAVEPOINT failed with #{ex}\n#{caller.join("\n")}\n+++++++++++")
       end
 
       def release_savepoint
         execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+      rescue => ex
+        STDERR.puts("RELEASE SAVEPOINT failed with #{ex}\n#{caller.join("\n")}\n+++++++++++")
       end
 
       # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
