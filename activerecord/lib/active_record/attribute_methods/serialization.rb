@@ -76,6 +76,11 @@ module ActiveRecord
       end
 
       class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
+        def initialize(*args)
+          super
+          repair_state
+        end
+
         def unserialized_value(v = value)
           state == :serialized ? unserialize(v) : value
         end
@@ -93,6 +98,11 @@ module ActiveRecord
           self.state = :serialized
           self.value = coder.dump(value)
         end
+
+        private
+          def repair_state
+            self.state = :unserialized if value.is_a?(ActiveSupport::HashWithIndifferentAccess)
+          end
       end
 
       # This is only added to the model when serialize is called, which

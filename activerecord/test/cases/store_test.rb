@@ -166,4 +166,11 @@ class StoreTest < ActiveRecord::TestCase
   test "YAML coder initializes the store when a Nil value is given" do
     assert_equal({}, @john.params)
   end
+
+  test "attributes can be serialized/deserialized repeatedly" do
+    dumped = YAML.dump @john
+    loaded = YAML.load dumped
+
+    assert YAML.dump loaded
+  end
 end
