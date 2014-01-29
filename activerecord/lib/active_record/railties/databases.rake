@@ -410,15 +410,49 @@ db_namespace = namespace :db do
     end
   end
 
+
+      MYSQL_DUMP_HEADER = <<EOS
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+EOS
+
+      MYSQL_DUMP_FOOTER = <<EOS
+
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+EOS
+
   namespace :structure do
     desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql'
     task :dump => [:environment, :load_config] do
       config = current_config
-      filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
+      filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "schema.sql")
       case config['adapter']
       when /mysql/, 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(config)
-        File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
+        File.open(filename, "w+") do |f|
+          f << MYSQL_DUMP_HEADER
+          f << ActiveRecord::Base.connection.structure_dump.gsub(/AUTO_INCREMENT=\d+ /,'')
+          f << MYSQL_DUMP_FOOTER
+        end
+        #File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
       when /postgresql/
         set_psql_env(config)
         search_path = config['schema_search_path']
@@ -449,14 +483,19 @@ db_namespace = namespace :db do
     # desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
       config = current_config
-      filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
+      filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "schema.sql")
       case config['adapter']
       when /mysql/
         ActiveRecord::Base.establish_connection(config)
         ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
-        IO.read(filename).split("\n\n").each do |table|
-          ActiveRecord::Base.connection.execute(table)
-        end
+        File.exists?(filename) or abort %{#{filename} doesn't exist yet. Run "rake db:migrate" to create it then try again. If you do not intend to use a database, you should instead alter #{Rails.root}/config/boot.rb to limit the frameworks that will be loaded}
+        command = "mysql '-u#{config["username"]}' '-p#{config["password"]}' '#{config["database"]}' < '#{filename}'"
+        puts command if ENV['verbose'] != 'false'
+        system( command )
+        $?.success? or raise "#{task.name} failed executing `#{command}`"
+        #IO.read(filename).split("\n\n").each do |table|
+        #  ActiveRecord::Base.connection.execute(table)
+        #end
       when /postgresql/
         set_psql_env(config)
         `psql -f "#{filename}" #{config['database']}`
