@@ -38,7 +38,8 @@ module ActiveRecord
         end
 
         def type_cast_attribute(attr_name, attributes, cache = {}) #:nodoc:
-          return unless attr_name
+          # RR patch - return if attr_name is blank, otherwise the line generated_external_attribute_methods.method_defined?(attr_name) throws exception
+          return if attr_name.blank? #unless attr_name
           attr_name = attr_name.to_s
 
           if generated_external_attribute_methods.method_defined?(attr_name)
