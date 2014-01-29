@@ -1,3 +1,17 @@
+*   Allow repeated serialization of AR objects with store attributes
+
+    Before:
+
+        YAML.dump(YAML.load(YAML.dump obj)) #=> TypeError
+
+    After:
+
+        YAML.dump(YAML.load(YAML.dump obj)) #=> obj.to_yaml
+
+    Fixes #13861
+
+    *Jason Nochlin*
+
 *   Handle aliased attributes `select()`, `order()` and `reorder()`.
 
     *Tsutomu Kuroda*
