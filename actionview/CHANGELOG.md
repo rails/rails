@@ -1,5 +1,5 @@
-*   The `pluralize` helper accepts a language as `locale` to define which language to use
-    Default is current locale
+*   The `pluralize` helper accepts a language as `locale` to define which language to use.
+    Default is current locale.
 
     *Olivier Kaluzny*
 
