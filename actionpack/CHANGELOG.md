@@ -1,14 +1,15 @@
 *   Add `:serializer` option for `config.session_store :cookie_store`. This
-    changes default serializer when using `:cookie_store` to
-    `ActionDispatch::Session::MarshalSerializer` which is wrapper on Marshal.
+    changes default serializer when using `:cookie_store`.
 
-    It is also possible to pass:
+    It is possible to pass:
 
-    * `:json_serializer` which is secure wrapper on JSON using `JSON.parse` and
+    * `:json` which is a secure wrapper on JSON using `JSON.parse` and
       `JSON.generate` methods with quirks mode;
-    * any other Symbol or String like `:my_custom_serializer` which will be
-      camelized and constantized in `ActionDispatch::Session` namespace;
-    * serializer object with `load` and `dump` methods defined.
+    * `:marshal` which is a wrapper on Marshal; 
+    * serializer class with `load` and `dump` methods defined.
+
+    For new apps `:json` option is added by default and :marshal is used
+    when no option is specified.
 
     *Łukasz Sarnacki + Matt Aimonetti*
 

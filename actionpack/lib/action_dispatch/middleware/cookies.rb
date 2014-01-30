@@ -466,10 +466,12 @@ module ActionDispatch
         end
 
         def serializer
-          serializer = @options[:session_serializer] || :marshal_serializer
+          serializer = @options[:session_serializer] || :marshal
           case serializer
-          when Symbol, String
-            ActionDispatch::Session.const_get(serializer.to_s.camelize)
+          when :marshal
+            ActionDispatch::Session::MarshalSerializer
+          when :json
+            ActionDispatch::Session::JsonSerializer
           else
             serializer
           end

@@ -384,20 +384,14 @@ YourApp::Application.config.session_store :cookie_store, key: '_your_app_session
 You can pass `:serializer` key to specify serializer for serializing session:
 
 ```ruby
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: :json_serializer
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: :json
 ```
 
-Default serializer is `:marshal_serializer`. When Symbol or String is passed it
-will look for appropriate class in `ActionDispatch::Session` namespace, so
-passing `:my_custom_serializer` would load
-`ActionDispatch::Session::MyCustomSerializer`.
+The default serializer for new application is `:json`. For compatibility with
+old applications `:marshal` is used when `serializer` option is not specified.
 
-```ruby
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: :my_custom_serializer
-```
-
-It is also possible to pass serializer object with defined `load` and `dump`
-public methods:
+It is also possible to pass a custom serializer class with `load` and `dump`
+public methods defined:
 
 ```ruby
 YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: MyCustomSerializer
