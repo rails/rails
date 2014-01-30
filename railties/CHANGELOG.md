@@ -1,3 +1,9 @@
+*   Added Thor-action for creation of migrations.
+
+    Fixes #13588 and #12674.
+
+    *Gert Goet*
+
 *   Ensure that `bin/rails` is a file before trying to execute it.
 
     Fixes #13825.
