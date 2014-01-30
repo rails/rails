@@ -1,3 +1,9 @@
+*   Added Thor-action for creation of migrations.
+
+    Fixes #13588 and #12674.
+
+    *Gert Goet*
+
 *   Only lookup `config.log_level` for stdlib `::Logger` instances.
     Assign it as is for third party loggers like `Log4r::Logger`.
 
