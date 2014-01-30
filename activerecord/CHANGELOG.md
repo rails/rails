@@ -1,3 +1,11 @@
+*   Fix regressions on `select_*` methods.
+    When `select_*` methods receive a `Relation` object, they should be able to get the arel/binds from it.
+    Also fix regressions on select_rows that was ignoring the binds.
+
+    Fixes #7538, #12017, #13731, #12056.
+
+    *arthurnn*
+
 *   Correctly send an user provided statement to a `lock!()` call.
 
         person.lock! 'FOR SHARE NOWAIT'

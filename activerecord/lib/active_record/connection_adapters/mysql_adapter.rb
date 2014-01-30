@@ -213,9 +213,9 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def select_rows(sql, name = nil)
+      def select_rows(sql, name = nil, binds = [])
         @connection.query_with_result = true
-        rows = exec_query(sql, name).rows
+        rows = exec_query(sql, name, binds).rows
         @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
         rows
       end
