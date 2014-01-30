@@ -942,14 +942,6 @@ module ActiveRecord
           exec_query(sql, name, binds)
         end
 
-        def select_raw(sql, name = nil)
-          res = execute(sql, name)
-          results = result_as_array(res)
-          fields = res.fields
-          res.clear
-          return fields, results
-        end
-
         # Returns the list of a table's column names, data types, and default values.
         #
         # The underlying query is roughly:

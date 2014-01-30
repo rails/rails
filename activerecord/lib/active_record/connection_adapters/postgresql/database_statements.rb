@@ -46,8 +46,8 @@ module ActiveRecord
 
         # Executes a SELECT query and returns an array of rows. Each row is an
         # array of field values.
-        def select_rows(sql, name = nil)
-          select_raw(sql, name).last
+        def select_rows(sql, name = nil, binds = [])
+          exec_query(sql, name, binds).rows
         end
 
         # Executes an INSERT query and returns the new record's ID

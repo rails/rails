@@ -1,5 +1,7 @@
 require "cases/helper"
 require "models/book"
+require "models/post"
+require "models/author"
 
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
@@ -177,6 +179,27 @@ module ActiveRecord
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
+    end
+
+    def test_select_methods_passing_a_association_relation
+      author = Author.create!(name: 'john')
+      Post.create!(author: author, title: 'foo', body: 'bar')
+      query = author.posts.select(:title)
+      assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bind_values))
+      assert_equal({"title" => "foo"}, @connection.select_one(query))
+      assert @connection.select_all(query).is_a?(ActiveRecord::Result)
+      assert_equal "foo", @connection.select_value(query)
+      assert_equal ["foo"], @connection.select_values(query)
+    end
+
+    def test_select_methods_passing_a_relation
+      Post.create!(title: 'foo', body: 'bar')
+      query = Post.where(title: 'foo').select(:title)
+      assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bind_values))
+      assert_equal({"title" => "foo"}, @connection.select_one(query))
+      assert @connection.select_all(query).is_a?(ActiveRecord::Result)
+      assert_equal "foo", @connection.select_value(query)
+      assert_equal ["foo"], @connection.select_values(query)
     end
 
     test "type_to_sql returns a String for unmapped types" do
