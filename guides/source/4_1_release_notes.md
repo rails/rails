@@ -607,8 +607,9 @@ for detailed changes.
   `Time.now` and
   `Date.today`. ([Pull Request](https://github.com/rails/rails/pull/12824))
 
-* Added `ActiveSupport::Testing::TimeHelpers#travel_back`. This method return
-  the current time to the original state. ([Pull Request](https://github.com/rails/rails/pull/13884))
+* Added `ActiveSupport::Testing::TimeHelpers#travel_back`. This method returns
+  the current time to the original state, by removing the stubs added by `travel`
+  and `travel_to`. ([Pull Request](https://github.com/rails/rails/pull/13884))
 
 * Added `Numeric#in_milliseconds`, like `1.hour.in_milliseconds`, so we can feed
   them to JavaScript functions like

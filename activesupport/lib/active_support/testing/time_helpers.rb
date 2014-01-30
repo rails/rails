@@ -41,7 +41,7 @@ module ActiveSupport
 
     # Containing helpers that helps you test passage of time.
     module TimeHelpers
-      # Change current time to the time in the future or in the past by a given time difference by
+      # Changes current time to the time in the future or in the past by a given time difference by
       # stubbing +Time.now+ and +Date.today+.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
@@ -61,7 +61,7 @@ module ActiveSupport
         travel_to Time.now + duration, &block
       end
 
-      # Change current time to the given time by stubbing +Time.now+ and +Date.today+ to return the
+      # Changes current time to the given time by stubbing +Time.now+ and +Date.today+ to return the
       # time or date passed into this method.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
@@ -87,7 +87,8 @@ module ActiveSupport
         end
       end
 
-      # Return the current time back to its original state.
+      # Returns the current time back to its original state, by removing the stubs added by
+      # `travel` and `travel_to`.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.new(2004, 11, 24, 01, 04, 44)
