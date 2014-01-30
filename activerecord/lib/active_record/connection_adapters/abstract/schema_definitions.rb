@@ -247,6 +247,7 @@ module ActiveRecord
       # <tt>:updated_at</tt> to the table.
       def timestamps(*args)
         options = args.extract_options!
+        options[:null] = false unless options.key?(:null)
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)
       end
