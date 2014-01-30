@@ -345,7 +345,6 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_pluralization
-    ActiveSupport::Inflector::inflections(:fr).plural 'journal', 'journaux'
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))
     assert_equal("1 count", pluralize('1', "count"))
@@ -360,10 +359,14 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("10 buffaloes", pluralize(10, "buffalo"))
     assert_equal("1 berry", pluralize(1, "berry"))
     assert_equal("12 berries", pluralize(12, "berry"))
-    assert_equal("2 journaux", pluralize(2, "journal", nil, :fr))
-    assert_equal("1 journal", pluralize(1, "journal", nil, :fr))
-    ActiveSupport::Inflector::inflections(:fr).clear(:plurals)
+
+    inflector_with_dup do
+      ActiveSupport::Inflector::inflections(:fr).plural 'journal', 'journaux'
+      assert_equal("2 journaux", pluralize(2, "journal", nil, :fr))
+      assert_equal("1 journal", pluralize(1, "journal", nil, :fr))
+    end
   end
+
 
   def test_cycle_class
     value = Cycle.new("one", 2, "3")
@@ -488,4 +491,19 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("red", cycle("red", "blue"))
     assert_equal(%w{Specialized Fuji Giant}, @cycles)
   end
+
+  # Dups the singleton and yields, restoring the original inflections later.
+  # Use this in tests what modify the state of the singleton.
+  #
+  # This helper is implemented by setting @__instance__ because in some tests
+  # there are module functions that access ActiveSupport::Inflector.inflections,
+  # so we need to replace the singleton itself.
+  # Copy from with_dup method activesupport/test/inflector_test.rb
+  def inflector_with_dup
+    original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original.dup)
+  ensure
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original)
+  end
+
 end
