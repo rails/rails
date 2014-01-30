@@ -3,6 +3,13 @@
 
     *Olivier Kaluzny*
 
+*   Added `config.action_view.raise_on_missing_translations` to define whether an
+    error should be raised for missing translations.
+
+    Fixes #13196
+
+    *Kassio Borges*
+
 *   Improved ERB dependency detection. New argument types and formattings for the `render`
     calls can be matched.
 
