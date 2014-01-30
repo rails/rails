@@ -42,7 +42,7 @@ module ActiveSupport
     # Containing helpers that helps you test passage of time.
     module TimeHelpers
       def after_teardown #:nodoc:
-        simple_stubs.unstub_all!
+        travel_back
         super
       end
 
@@ -81,7 +81,7 @@ module ActiveSupport
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.new(2004, 11, 24, 01, 04, 44) do
-      #     User.create.created_at # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+      #     Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time, &block)
@@ -90,8 +90,19 @@ module ActiveSupport
 
         if block_given?
           block.call
-          simple_stubs.unstub_all!
+          travel_back
         end
+      end
+
+      # Return the current time back to its original state.
+      #
+      #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #   travel_to Time.new(2004, 11, 24, 01, 04, 44)
+      #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+      #   travel_back
+      #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      def travel_back
+        simple_stubs.unstub_all!
       end
 
       private

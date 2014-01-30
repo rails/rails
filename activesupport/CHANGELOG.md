@@ -1,3 +1,7 @@
+*   Add `travel_back` to remove stubs from `travel` and `travel_to`.
+
+    *Rafael Mendonça França*
+
 *   Remove the deprecation about the `#filter` method.
 
     Filter objects should now rely on method corresponding to the filter type
