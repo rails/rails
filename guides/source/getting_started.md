@@ -315,18 +315,19 @@ Now that you've seen how to create a controller, an action and a view, let's
 create something with a bit more substance.
 
 In the Blog application, you will now create a new _resource_. A resource is the
-term used for a collection of similar objects, such as posts, people or animals.
+term used for a collection of similar objects, such as articles, people or
+animals.
 You can create, read, update and destroy items for a resource and these
 operations are referred to as _CRUD_ operations.
 
 Rails provides a `resources` method which can be used to declare a standard REST
-resource. Here's what `config/routes.rb` should look like after the _post resource_
-is declared.
+resource. Here's what `config/routes.rb` should look like after the
+_article resource_ is declared.
 
 ```ruby
 Blog::Application.routes.draw do
 
-  resources :posts
+  resources :articles
 
   root 'welcome#index'
 end
@@ -335,88 +336,92 @@ end
 If you run `rake routes`, you'll see that it has defined routes for all the
 standard RESTful actions.  The meaning of the prefix column (and other columns)
 will be seen later, but for now notice that Rails has inferred the
-singular form `post` and makes meaningful use of the distinction.
+singular form `article` and makes meaningful use of the distinction.
 
 ```bash
 $ rake routes
-   Prefix Verb   URI Pattern               Controller#Action
-    posts GET    /posts(.:format)          posts#index
-          POST   /posts(.:format)          posts#create
- new_post GET    /posts/new(.:format)      posts#new
-edit_post GET    /posts/:id/edit(.:format) posts#edit
-     post GET    /posts/:id(.:format)      posts#show
-          PATCH  /posts/:id(.:format)      posts#update
-          PUT    /posts/:id(.:format)      posts#update
-          DELETE /posts/:id(.:format)      posts#destroy
-     root        /                         welcome#index
+      Prefix Verb   URI Pattern                  Controller#Action
+    articles GET    /articles(.:format)          articles#index
+             POST   /articles(.:format)          articles#create
+ new_article GET    /articles/new(.:format)      articles#new
+edit_article GET    /articles/:id/edit(.:format) articles#edit
+     article GET    /articles/:id(.:format)      articles#show
+             PATCH  /articles/:id(.:format)      articles#update
+             PUT    /articles/:id(.:format)      articles#update
+             DELETE /articles/:id(.:format)      articles#destroy
+        root GET    /                            welcome#index
 ```
 
-In the next section, you will add the ability to create new posts in your
+In the next section, you will add the ability to create new articles in your
 application and be able to view them. This is the "C" and the "R" from CRUD:
 creation and reading. The form for doing this will look like this:
 
-![The new post form](images/getting_started/new_post.png)
+![The new article form](images/getting_started/new_article.png)
 
 It will look a little basic for now, but that's ok. We'll look at improving the
 styling for it afterwards.
 
 ### Laying down the ground work
 
-The first thing that you are going to need to create a new post within the
-application is a place to do that. A great place for that would be at `/posts/new`.
-With the route already defined, requests can now be made to `/posts/new` in the
-application. Navigate to <http://localhost:3000/posts/new> and you'll see a
-routing error:
+The first thing that you are going to need to create a new article within the
+application is a place to do that. A great place for that would be at
+`/articles/new`.
+With the route already defined, requests can now be made to `/articles/new` in
+the application. Navigate to <http://localhost:3000/articles/new> and you'll see
+a routing error:
 
-![Another routing error, uninitialized constant PostsController](images/getting_started/routing_error_no_controller.png)
+![Another routing error, uninitialized constant ArticlesController](images/getting_started/routing_error_no_controller.png)
 
 This error occurs because the route needs to have a controller defined in order
 to serve the request. The solution to this particular problem is simple: create
-a controller called `PostsController`. You can do this by running this command:
+a controller called `ArticlesController`. You can do this by running this
+command:
 
 ```bash
-$ rails g controller posts
+$ rails g controller articles
 ```
 
-If you open up the newly generated `app/controllers/posts_controller.rb` you'll
-see a fairly empty controller:
+If you open up the newly generated `app/controllers/articles_controller.rb`
+you'll see a fairly empty controller:
 
 ```ruby
-class PostsController < ApplicationController
+class ArticlesController < ApplicationController
 end
 ```
 
-A controller is simply a class that is defined to inherit from `ApplicationController`.
+A controller is simply a class that is defined to inherit from
+`ApplicationController`.
 It's inside this class that you'll define methods that will become the actions
-for this controller. These actions will perform CRUD operations on the posts
+for this controller. These actions will perform CRUD operations on the articles
 within our system.
 
-NOTE: There are `public`, `private` and `protected` methods in Ruby, 
+NOTE: There are `public`, `private` and `protected` methods in Ruby,
 but only `public` methods can be actions for controllers.
 For more details check out [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/).
 
-If you refresh <http://localhost:3000/posts/new> now, you'll get a new error:
+If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
 
-![Unknown action new for PostsController!](images/getting_started/unknown_action_new_for_posts.png)
+![Unknown action new for ArticlesController!](images/getting_started/unknown_action_new_for_articles.png)
 
-This error indicates that Rails cannot find the `new` action inside the `PostsController`
-that you just generated. This is because when controllers are generated in Rails
-they are empty by default, unless you tell it your wanted actions during the
-generation process.
+This error indicates that Rails cannot find the `new` action inside the
+`ArticlesController` that you just generated. This is because when controllers
+are generated in Rails they are empty by default, unless you tell it
+your wanted actions during the generation process.
 
 To manually define an action inside a controller, all you need to do is to
-define a new method inside the controller. Open `app/controllers/posts_controller.rb`
-and inside the `PostsController` class, define a `new` method like this:
+define a new method inside the controller.
+Open `app/controllers/articles_controller.rb` and inside the `ArticlesController`
+class, define a `new` method like this:
 
 ```ruby
 def new
 end
 ```
 
-With the `new` method defined in `PostsController`, if you refresh <http://localhost:3000/posts/new>
-you'll see another error:
+With the `new` method defined in `ArticlesController`, if you refresh
+<http://localhost:3000/articles/new> you'll see another error:
 
-![Template is missing for posts/new](images/getting_started/template_is_missing_posts_new.png)
+![Template is missing for articles/new](images/getting_started/template_is_missing_articles_new.png)
 
 You're getting this error now because Rails expects plain actions like this one
 to have views associated with them to display their information. With no view
@@ -426,16 +431,16 @@ In the above image, the bottom line has been truncated. Let's see what the full
 thing looks like:
 
 <blockquote>
-Missing template posts/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
+Missing template articles/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
 </blockquote>
 
 That's quite a lot of text! Let's quickly go through and understand what each
 part of it does.
 
 The first part identifies what template is missing. In this case, it's the
-`posts/new` template. Rails will first look for this template. If not found,
+`articles/new` template. Rails will first look for this template. If not found,
 then it will attempt to load a template called `application/new`. It looks for
-one here because the `PostsController` inherits from `ApplicationController`.
+one here because the `ArticlesController` inherits from `ApplicationController`.
 
 The next part of the message contains a hash. The `:locale` key in this hash
 simply indicates what spoken language template should be retrieved. By default,
@@ -451,34 +456,35 @@ Templates within a basic Rails application like this are kept in a single
 location, but in more complex applications it could be many different paths.
 
 The simplest template that would work in this case would be one located at
-`app/views/posts/new.html.erb`. The extension of this file name is key: the
+`app/views/articles/new.html.erb`. The extension of this file name is key: the
 first extension is the _format_ of the template, and the second extension is the
 _handler_ that will be used. Rails is attempting to find a template called
-`posts/new` within `app/views` for the application. The format for this template
-can only be `html` and the handler must be one of `erb`, `builder` or `coffee`.
-Because you want to create a new HTML form, you will be using the `ERB`
-language. Therefore the file should be called `posts/new.html.erb` and needs to
-be located inside the `app/views` directory of the application.
+`articles/new` within `app/views` for the application. The format for this
+template can only be `html` and the handler must be one of `erb`, `builder` or
+`coffee`. Because you want to create a new HTML form, you will be using the `ERB`
+language. Therefore the file should be called `articles/new.html.erb` and needs
+to be located inside the `app/views` directory of the application.
 
-Go ahead now and create a new file at `app/views/posts/new.html.erb` and write
-this content in it:
+Go ahead now and create a new file at `app/views/articles/new.html.erb` and
+write this content in it:
 
 ```html
-<h1>New Post</h1>
+<h1>New Article</h1>
 ```
 
-When you refresh <http://localhost:3000/posts/new> you'll now see that the page
-has a title. The route, controller, action and view are now working
-harmoniously! It's time to create the form for a new post.
+When you refresh <http://localhost:3000/articles/new> you'll now see that the
+page has a title. The route, controller, action and view are now working
+harmoniously! It's time to create the form for a new article.
 
 ### The first form
 
 To create a form within this template, you will use a <em>form
 builder</em>. The primary form builder for Rails is provided by a helper
-method called `form_for`. To use this method, add this code into `app/views/posts/new.html.erb`:
+method called `form_for`. To use this method, add this code into
+`app/views/articles/new.html.erb`:
 
 ```html+erb
-<%= form_for :post do |f| %>
+<%= form_for :article do |f| %>
   <p>
     <%= f.label :title %><br>
     <%= f.text_field :title %>
@@ -499,71 +505,72 @@ If you refresh the page now, you'll see the exact same form as in the example.
 Building forms in Rails is really just that easy!
 
 When you call `form_for`, you pass it an identifying object for this
-form. In this case, it's the symbol `:post`. This tells the `form_for`
+form. In this case, it's the symbol `:article`. This tells the `form_for`
 helper what this form is for. Inside the block for this method, the
 `FormBuilder` object - represented by `f` - is used to build two labels and two
-text fields, one each for the title and text of a post. Finally, a call to
+text fields, one each for the title and text of an article. Finally, a call to
 `submit` on the `f` object will create a submit button for the form.
 
 There's one problem with this form though. If you inspect the HTML that is
 generated, by viewing the source of the page, you will see that the `action`
-attribute for the form is pointing at `/posts/new`. This is a problem because
+attribute for the form is pointing at `/articles/new`. This is a problem because
 this route goes to the very page that you're on right at the moment, and that
-route should only be used to display the form for a new post.
+route should only be used to display the form for a new article.
 
 The form needs to use a different URL in order to go somewhere else.
 This can be done quite simply with the `:url` option of `form_for`.
 Typically in Rails, the action that is used for new form submissions
 like this is called "create", and so the form should be pointed to that action.
 
-Edit the `form_for` line inside `app/views/posts/new.html.erb` to look like this:
+Edit the `form_for` line inside `app/views/articles/new.html.erb` to look like
+this:
 
 ```html+erb
-<%= form_for :post, url: posts_path do |f| %>
+<%= form_for :article, url: articles_path do |f| %>
 ```
 
-In this example, the `posts_path` helper is passed to the `:url` option.
+In this example, the `articles_path` helper is passed to the `:url` option.
 To see what Rails will do with this, we look back at the output of
 `rake routes`:
 
 ```bash
 $ rake routes
-   Prefix Verb   URI Pattern               Controller#Action
-    posts GET    /posts(.:format)          posts#index
-          POST   /posts(.:format)          posts#create
- new_post GET    /posts/new(.:format)      posts#new
-edit_post GET    /posts/:id/edit(.:format) posts#edit
-     post GET    /posts/:id(.:format)      posts#show
-          PATCH  /posts/:id(.:format)      posts#update
-          PUT    /posts/:id(.:format)      posts#update
-          DELETE /posts/:id(.:format)      posts#destroy
-     root        /                         welcome#index
+      Prefix Verb   URI Pattern                  Controller#Action
+    articles GET    /articles(.:format)          articles#index
+             POST   /articles(.:format)          articles#create
+ new_article GET    /articles/new(.:format)      articles#new
+edit_article GET    /articles/:id/edit(.:format) articles#edit
+     article GET    /articles/:id(.:format)      articles#show
+             PATCH  /articles/:id(.:format)      articles#update
+             PUT    /articles/:id(.:format)      articles#update
+             DELETE /articles/:id(.:format)      articles#destroy
+        root GET    /                            welcome#index
 ```
 
-The `posts_path` helper tells Rails to point the form
-to the URI Pattern associated with the `posts` prefix; and
+The `articles_path` helper tells Rails to point the form
+to the URI Pattern associated with the `articles` prefix; and
 the form will (by default) send a `POST` request
 to that route.  This is associated with the
-`create` action of the current controller, the `PostsController`.
+`create` action of the current controller, the `ArticlesController`.
 
 With the form and its associated route defined, you will be able to fill in the
 form and then click the submit button to begin the process of creating a new
-post, so go ahead and do that. When you submit the form, you should see a
+article, so go ahead and do that. When you submit the form, you should see a
 familiar error:
 
-![Unknown action create for PostsController](images/getting_started/unknown_action_create_for_posts.png)
+![Unknown action create for ArticlesController](images/getting_started/unknown_action_create_for_articles.png)
 
-You now need to create the `create` action within the `PostsController` for this
-to work.
+You now need to create the `create` action within the `ArticlesController` for
+this to work.
 
-### Creating posts
+### Creating articles
 
 To make the "Unknown action" go away, you can define a `create` action within
-the `PostsController` class in `app/controllers/posts_controller.rb`, underneath
-the `new` action:
+the `ArticlesController` class in `app/controllers/articles_controller.rb`,
+underneath the `new` action:
 
 ```ruby
-class PostsController < ApplicationController
+class ArticlesController < ApplicationController
   def new
   end
 
@@ -574,7 +581,7 @@ end
 
 If you re-submit the form now, you'll see another familiar error: a template is
 missing. That's ok, we can ignore that for now. What the `create` action should
-be doing is saving our new post to a database.
+be doing is saving our new article to the database.
 
 When a form is submitted, the fields of the form are sent to Rails as
 _parameters_. These parameters can then be referenced inside the controller
@@ -583,12 +590,12 @@ look like, change the `create` action to this:
 
 ```ruby
 def create
-  render text: params[:post].inspect
+  render text: params[:article].inspect
 end
 ```
 
 The `render` method here is taking a very simple hash with a key of `text` and
-value of `params[:post].inspect`. The `params` method is the object which
+value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
 method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
 allows you to access the keys of the hash using either strings or symbols. In
@@ -598,14 +605,14 @@ If you re-submit the form one more time you'll now no longer get the missing
 template error. Instead, you'll see something that looks like the following:
 
 ```ruby
-{"title"=>"First post!", "text"=>"This is my first post."}
+{"title"=>"First article!", "text"=>"This is my first article."}
 ```
 
-This action is now displaying the parameters for the post that are coming in
+This action is now displaying the parameters for the article that are coming in
 from the form. However, this isn't really all that helpful. Yes, you can see the
 parameters but nothing in particular is being done with them.
 
-### Creating the Post model
+### Creating the Article model
 
 Models in Rails use a singular name, and their corresponding database tables use
 a plural name. Rails provides a generator for creating models, which
@@ -613,17 +620,17 @@ most Rails developers tend to use when creating new models.
 To create the new model, run this command in your terminal:
 
 ```bash
-$ rails generate model Post title:string text:text
+$ rails generate model Article title:string text:text
 ```
 
-With that command we told Rails that we want a `Post` model, together
+With that command we told Rails that we want a `Article` model, together
 with a _title_ attribute of type string, and a _text_ attribute
-of type text. Those attributes are automatically added to the `posts`
-table in the database and mapped to the `Post` model.
+of type text. Those attributes are automatically added to the `articles`
+table in the database and mapped to the `Article` model.
 
 Rails responded by creating a bunch of files. For
-now, we're only interested in `app/models/post.rb` and
-`db/migrate/20120419084633_create_posts.rb` (your name could be a bit
+now, we're only interested in `app/models/article.rb` and
+`db/migrate/20140120191729_create_articles.rb` (your name could be a bit
 different). The latter is responsible
 for creating the database structure, which is what we'll look at next.
 
@@ -642,13 +649,13 @@ and it's possible to undo a migration after it's been applied to your database.
 Migration filenames include a timestamp to ensure that they're processed in the
 order that they were created.
 
-If you look in the `db/migrate/20120419084633_create_posts.rb` file (remember,
+If you look in the `db/migrate/20140120191729_create_articles.rb` file (remember,
 yours will have a slightly different name), here's what you'll find:
 
 ```ruby
-class CreatePosts < ActiveRecord::Migration
+class CreateArticles < ActiveRecord::Migration
   def change
-    create_table :posts do |t|
+    create_table :articles do |t|
       t.string :title
       t.text :text
 
@@ -658,12 +665,12 @@ class CreatePosts < ActiveRecord::Migration
 end
 ```
 
-The above migration creates a method named `change` which will be called when you
-run this migration. The action defined in this method is also reversible, which
-means Rails knows how to reverse the change made by this migration, in case you
-want to reverse it later. When you run this migration it will create a
-`posts` table with one string column and a text column. It also creates two
-timestamp fields to allow Rails to track post creation and update times.
+The above migration creates a method named `change` which will be called when
+you run this migration. The action defined in this method is also reversible,
+which means Rails knows how to reverse the change made by this migration,
+in case you want to reverse it later. When you run this migration it will create
+an `articles` table with one string column and a text column. It also creates
+two timestamp fields to allow Rails to track article creation and update times.
 
 TIP: For more information about migrations, refer to [Rails Database
 Migrations](migrations.html).
@@ -674,14 +681,14 @@ At this point, you can use a rake command to run the migration:
 $ rake db:migrate
 ```
 
-Rails will execute this migration command and tell you it created the Posts
+Rails will execute this migration command and tell you it created the Articles
 table.
 
 ```bash
-==  CreatePosts: migrating ====================================================
--- create_table(:posts)
+==  CreateArticles: migrating ==================================================
+-- create_table(:articles)
    -> 0.0019s
-==  CreatePosts: migrated (0.0020s) ===========================================
+==  CreateArticles: migrated (0.0020s) =========================================
 ```
 
 NOTE. Because you're working in the development environment by default, this
@@ -692,34 +699,35 @@ invoking the command: `rake db:migrate RAILS_ENV=production`.
 
 ### Saving data in the controller
 
-Back in `PostsController`, we need to change the `create` action
-to use the new `Post` model to save the data in the database. Open `app/controllers/posts_controller.rb`
-and change the `create` action to look like this:
+Back in `ArticlesController`, we need to change the `create` action
+to use the new `Article` model to save the data in the database.
+Open `app/controllers/articles_controller.rb` and change the `create` action to
+look like this:
 
 ```ruby
 def create
-  @post = Post.new(params[:post])
+  @article = Article.new(params[:article])
 
-  @post.save
-  redirect_to @post
+  @article.save
+  redirect_to @article
 end
 ```
 
 Here's what's going on: every Rails model can be initialized with its
 respective attributes, which are automatically mapped to the respective
 database columns. In the first line we do just that
-(remember that `params[:post]` contains the attributes we're interested in).
-Then, `@post.save` is responsible for saving the model in the database.
+(remember that `params[:article]` contains the attributes we're interested in).
+Then, `@article.save` is responsible for saving the model in the database.
 Finally, we redirect the user to the `show` action, which we'll define later.
 
-TIP: As we'll see later, `@post.save` returns a boolean indicating
-whether the model was saved or not.
+TIP: As we'll see later, `@article.save` returns a boolean indicating
+whether the article was saved or not.
 
 If you now go to
-<http://localhost:3000/posts/new> you'll *almost* be able to create a post. Try
-it! You should get an error that looks like this:
+<http://localhost:3000/articles/new> you'll *almost* be able to create an
+article. Try it! You should get an error that looks like this:
 
-![Forbidden attributes for new post](images/getting_started/forbidden_attributes_for_new_post.png)
+![Forbidden attributes for new article](images/getting_started/forbidden_attributes_for_new_article.png)
 
 Rails has several security features that help you write secure applications,
 and you're running into one of them now. This one is called
@@ -730,28 +738,28 @@ look like this:
 
 ```ruby
 def create
-  @post = Post.new(post_params)
+  @article = Article.new(article_params)
 
-  @post.save
-  redirect_to @post
+  @article.save
+  redirect_to @article
 end
 
 private
-  def post_params
-    params.require(:post).permit(:title, :text)
+  def article_params
+    params.require(:article).permit(:title, :text)
   end
 ```
 
 See the `permit`? It allows us to accept both `title` and `text` in this
 action.
 
-TIP: Note that `def post_params` is private. This new approach prevents an
+TIP: Note that `def article_params` is private. This new approach prevents an
 attacker from setting the model's attributes by manipulating the hash passed to
 the model.
 For more information, refer to
-[this blog post about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+[this blog article about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
-### Showing Posts
+### Showing Articles
 
 If you submit the form again now, Rails will complain about not finding
 the `show` action. That's not very useful though, so let's add the
@@ -761,68 +769,70 @@ As we have seen in the output of `rake routes`, the route for `show` action is
 as follows:
 
 ```
-post GET    /posts/:id(.:format)      posts#show
+article GET    /articles/:id(.:format)      articles#show
 ```
 
 The special syntax `:id` tells rails that this route expects an `:id`
-parameter, which in our case will be the id of the post.
+parameter, which in our case will be the id of the article.
 
 As we did before, we need to add the `show` action in
-`app/controllers/posts_controller.rb` and its respective view.
+`app/controllers/articles_controller.rb` and its respective view.
 
 ```ruby
 def show
-  @post = Post.find(params[:id])
+  @article = Article.find(params[:id])
 end
 ```
 
-A couple of things to note. We use `Post.find` to find the post we're
+A couple of things to note. We use `Article.find` to find the article we're
 interested in, passing in `params[:id]` to get the `:id` parameter from the
 request. We also use an instance variable (prefixed by `@`) to hold a
-reference to the post object. We do this because Rails will pass all instance
+reference to the article object. We do this because Rails will pass all instance
 variables to the view.
 
-Now, create a new file `app/views/posts/show.html.erb` with the following
+Now, create a new file `app/views/articles/show.html.erb` with the following
 content:
 
 ```html+erb
 <p>
   <strong>Title:</strong>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 
 <p>
   <strong>Text:</strong>
-  <%= @post.text %>
+  <%= @article.text %>
 </p>
 ```
 
-With this change, you should finally be able to create new posts.
-Visit <http://localhost:3000/posts/new> and give it a try!
+With this change, you should finally be able to create new articles.
+Visit <http://localhost:3000/articles/new> and give it a try!
 
-![Show action for posts](images/getting_started/show_action_for_posts.png)
+![Show action for articles](images/getting_started/show_action_for_articles.png)
 
-### Listing all posts
+### Listing all articles
 
-We still need a way to list all our posts, so let's do that.
+We still need a way to list all our articles, so let's do that.
 The route for this as per output of `rake routes` is:
 
 ```
-posts GET    /posts(.:format)          posts#index
+articles GET    /articles(.:format)          articles#index
 ```
 
-Add the corresponding `index` action for that route inside the `PostsController` in the `app/controllers/posts_controller.rb` file:
+Add the corresponding `index` action for that route inside the
+`ArticlesController` in the `app/controllers/articles_controller.rb` file:
 
 ```ruby
 def index
-  @posts = Post.all
+  @articles = Article.all
 end
 ```
 
-And then finally, add view for this action, located at `app/views/posts/index.html.erb`:
+And then finally, add view for this action, located at
+`app/views/articles/index.html.erb`:
 
 ```html+erb
-<h1>Listing posts</h1>
+<h1>Listing articles</h1>
 
 <table>
   <tr>
@@ -830,70 +840,71 @@ And then finally, add view for this action, located at `app/views/posts/index.ht
     <th>Text</th>
   </tr>
 
-  <% @posts.each do |post| %>
+  <% @articles.each do |article| %>
     <tr>
-      <td><%= post.title %></td>
-      <td><%= post.text %></td>
+      <td><%= article.title %></td>
+      <td><%= article.text %></td>
     </tr>
   <% end %>
 </table>
 ```
 
-Now if you go to `http://localhost:3000/posts` you will see a list of all the
-posts that you have created.
+Now if you go to `http://localhost:3000/articles` you will see a list of all the
+articles that you have created.
 
 ### Adding links
 
-You can now create, show, and list posts. Now let's add some links to
+You can now create, show, and list articles. Now let's add some links to
 navigate through pages.
 
 Open `app/views/welcome/index.html.erb` and modify it as follows:
 
 ```html+erb
 <h1>Hello, Rails!</h1>
-<%= link_to 'My Blog', controller: 'posts' %>
+<%= link_to 'My Blog', controller: 'articles' %>
 ```
 
 The `link_to` method is one of Rails' built-in view helpers. It creates a
 hyperlink based on text to display and where to go - in this case, to the path
-for posts.
+for articles.
 
-Let's add links to the other views as well, starting with adding this "New Post"
-link to `app/views/posts/index.html.erb`, placing it above the `<table>` tag:
+Let's add links to the other views as well, starting with adding this
+"New Article" link to `app/views/articles/index.html.erb`, placing it above the
+`<table>` tag:
 
 ```erb
-<%= link_to 'New post', new_post_path %>
+<%= link_to 'New article', new_article_path %>
 ```
 
-This link will allow you to bring up the form that lets you create a new post.
-You should also add a link to this template - `app/views/posts/new.html.erb` -
-to go back to the `index` action. Do this by adding this underneath the form in
-this template:
+This link will allow you to bring up the form that lets you create a new article.
+You should also add a link to this template - `app/views/articles/new.html.erb`
+- to go back to the `index` action. Do this by adding this underneath the form
+in this template:
 
 ```erb
-<%= form_for :post do |f| %>
+<%= form_for :article do |f| %>
   ...
 <% end %>
 
-<%= link_to 'Back', posts_path %>
+<%= link_to 'Back', articles_path %>
 ```
 
-Finally, add another link to the `app/views/posts/show.html.erb` template to go
-back to the `index` action as well, so that people who are viewing a single post
-can go back and view the whole list again:
+Finally, add another link to the `app/views/articles/show.html.erb` template to
+go back to the `index` action as well, so that people who are viewing a single
+article can go back and view the whole list again:
 
 ```html+erb
 <p>
   <strong>Title:</strong>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 
 <p>
   <strong>Text:</strong>
-  <%= @post.text %>
+  <%= @article.text %>
 </p>
 
-<%= link_to 'Back', posts_path %>
+<%= link_to 'Back', articles_path %>
 ```
 
 TIP: If you want to link to an action in the same controller, you don't
@@ -906,87 +917,88 @@ and restart the web server when a change is made.
 
 ### Adding Some Validation
 
-The model file, `app/models/post.rb` is about as simple as it can get:
+The model file, `app/models/article.rb` is about as simple as it can get:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Article < ActiveRecord::Base
 end
 ```
 
-There isn't much to this file - but note that the `Post` class inherits from
+There isn't much to this file - but note that the `Article` class inherits from
 `ActiveRecord::Base`. Active Record supplies a great deal of functionality to
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
 
 Rails includes methods to help you validate the data that you send to models.
-Open the `app/models/post.rb` file and edit it:
+Open the `app/models/article.rb` file and edit it:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Article < ActiveRecord::Base
   validates :title, presence: true,
                     length: { minimum: 5 }
 end
 ```
 
-These changes will ensure that all posts have a title that is at least five
+These changes will ensure that all articles have a title that is at least five
 characters long. Rails can validate a variety of conditions in a model,
 including the presence or uniqueness of columns, their format, and the
 existence of associated objects. Validations are covered in detail in [Active
 Record Validations](active_record_validations.html)
 
-With the validation now in place, when you call `@post.save` on an invalid
-post, it will return `false`. If you open `app/controllers/posts_controller.rb`
-again, you'll notice that we don't check the result of calling `@post.save`
-inside the `create` action. If `@post.save` fails in this situation, we need to
-show the form back to the user. To do this, change the `new` and `create`
-actions inside `app/controllers/posts_controller.rb` to these:
+With the validation now in place, when you call `@article.save` on an invalid
+article, it will return `false`. If you open
+`app/controllers/articles_controller.rb` again, you'll notice that we don't
+check the result of calling `@article.save` inside the `create` action.
+If `@article.save` fails in this situation, we need to show the form back to the
+user. To do this, change the `new` and `create` actions inside
+`app/controllers/articles_controller.rb` to these:
 
 ```ruby
 def new
-  @post = Post.new
+  @article = Article.new
 end
 
 def create
-  @post = Post.new(post_params)
+  @article = Article.new(article_params)
 
-  if @post.save
-    redirect_to @post
+  if @article.save
+    redirect_to @article
   else
     render 'new'
   end
 end
 
 private
-  def post_params
-    params.require(:post).permit(:title, :text)
+  def article_params
+    params.require(:article).permit(:title, :text)
   end
 ```
 
-The `new` action is now creating a new instance variable called `@post`, and
+The `new` action is now creating a new instance variable called `@article`, and
 you'll see why that is in just a few moments.
 
 Notice that inside the `create` action we use `render` instead of `redirect_to`
-when `save` returns `false`. The `render` method is used so that the `@post`
+when `save` returns `false`. The `render` method is used so that the `@article`
 object is passed back to the `new` template when it is rendered. This rendering
-is done within the same request as the form submission, whereas the `redirect_to`
-will tell the browser to issue another request.
+is done within the same request as the form submission, whereas the
+`redirect_to` will tell the browser to issue another request.
 
 If you reload
-<http://localhost:3000/posts/new> and
-try to save a post without a title, Rails will send you back to the
+<http://localhost:3000/articles/new> and
+try to save an article without a title, Rails will send you back to the
 form, but that's not very useful. You need to tell the user that
 something went wrong. To do that, you'll modify
-`app/views/posts/new.html.erb` to check for error messages:
+`app/views/articles/new.html.erb` to check for error messages:
 
 ```html+erb
-<%= form_for :post, url: posts_path do |f| %>
-  <% if @post.errors.any? %>
+<%= form_for :article, url: articles_path do |f| %>
+  <% if @article.errors.any? %>
   <div id="error_explanation">
-    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
-      this post from being saved:</h2>
+    <h2><%= pluralize(@article.errors.count, "error") %> prohibited
+      this article from being saved:</h2>
     <ul>
-    <% @post.errors.full_messages.each do |msg| %>
+    <% @article.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
     <% end %>
     </ul>
@@ -1007,57 +1019,58 @@ something went wrong. To do that, you'll modify
   </p>
 <% end %>
 
-<%= link_to 'Back', posts_path %>
+<%= link_to 'Back', articles_path %>
 ```
 
 A few things are going on. We check if there are any errors with
-`@post.errors.any?`, and in that case we show a list of all
-errors with `@post.errors.full_messages`.
+`@article.errors.any?`, and in that case we show a list of all
+errors with `@article.errors.full_messages`.
 
 `pluralize` is a rails helper that takes a number and a string as its
 arguments. If the number is greater than one, the string will be automatically
 pluralized.
 
-The reason why we added `@post = Post.new` in the `PostsController` is that
-otherwise `@post` would be `nil` in our view, and calling
-`@post.errors.any?` would throw an error.
+The reason why we added `@article = Article.new` in the `ArticlesController` is
+that otherwise `@article` would be `nil` in our view, and calling
+`@article.errors.any?` would throw an error.
 
 TIP: Rails automatically wraps fields that contain an error with a div
 with class `field_with_errors`. You can define a css rule to make them
 standout.
 
-Now you'll get a nice error message when saving a post without title when you
-attempt to do just that on the new post form [(http://localhost:3000/posts/new)](http://localhost:3000/posts/new).
+Now you'll get a nice error message when saving an article without title when
+you attempt to do just that on the new article form
+[(http://localhost:3000/articles/new)](http://localhost:3000/articles/new).
 
 ![Form With Errors](images/getting_started/form_with_errors.png)
 
-### Updating Posts
+### Updating Articles
 
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
-posts.
+articles.
 
-The first step we'll take is adding an `edit` action to the `PostsController`.
+The first step we'll take is adding an `edit` action to the `ArticlesController`.
 
 ```ruby
 def edit
-  @post = Post.find(params[:id])
+  @article = Article.find(params[:id])
 end
 ```
 
 The view will contain a form similar to the one we used when creating
-new posts. Create a file called `app/views/posts/edit.html.erb` and make
+new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
 
 ```html+erb
-<h1>Editing post</h1>
+<h1>Editing article</h1>
 
-<%= form_for :post, url: post_path(@post), method: :patch do |f| %>
-  <% if @post.errors.any? %>
+<%= form_for :article, url: article_path(@article), method: :patch do |f| %>
+  <% if @article.errors.any? %>
   <div id="error_explanation">
-    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
-      this post from being saved:</h2>
+    <h2><%= pluralize(@article.errors.count, "error") %> prohibited
+      this article from being saved:</h2>
     <ul>
-    <% @post.errors.full_messages.each do |msg| %>
+    <% @article.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
     <% end %>
     </ul>
@@ -1078,7 +1091,7 @@ it look as follows:
   </p>
 <% end %>
 
-<%= link_to 'Back', posts_path %>
+<%= link_to 'Back', articles_path %>
 ```
 
 This time we point the form to the `update` action, which is not defined yet
@@ -1090,40 +1103,42 @@ via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 
 TIP: By default forms built with the _form_for_ helper are sent via `POST`.
 
-Next we need to create the `update` action in `app/controllers/posts_controller.rb`:
+Next we need to create the `update` action in
+`app/controllers/articles_controller.rb`:
 
 ```ruby
 def update
-  @post = Post.find(params[:id])
+  @article = Article.find(params[:id])
 
-  if @post.update(post_params)
-    redirect_to @post
+  if @article.update(article_params)
+    redirect_to @article
   else
     render 'edit'
   end
 end
 
 private
-  def post_params
-    params.require(:post).permit(:title, :text)
+  def article_params
+    params.require(:article).permit(:title, :text)
   end
 ```
 
 The new method, `update`, is used when you want to update a record
 that already exists, and it accepts a hash containing the attributes
 that you want to update. As before, if there was an error updating the
-post we want to show the form back to the user.
+article we want to show the form back to the user.
 
-We reuse the `post_params` method that we defined earlier for the create action.
+We reuse the `article_params` method that we defined earlier for the create
+action.
 
 TIP: You don't need to pass all attributes to `update`. For
-example, if you'd call `@post.update(title: 'A new title')`
+example, if you'd call `@article.update(title: 'A new title')`
 Rails would only update the `title` attribute, leaving all other
 attributes untouched.
 
 Finally, we want to show a link to the `edit` action in the list of all the
-posts, so let's add that now to `app/views/posts/index.html.erb` to make it
-appear next to the "Show" link:
+articles, so let's add that now to `app/views/articles/index.html.erb` to make
+it appear next to the "Show" link:
 
 ```html+erb
 <table>
@@ -1133,26 +1148,26 @@ appear next to the "Show" link:
     <th colspan="2"></th>
   </tr>
 
-<% @posts.each do |post| %>
+<% @articles.each do |article| %>
   <tr>
-    <td><%= post.title %></td>
-    <td><%= post.text %></td>
-    <td><%= link_to 'Show', post_path(post) %></td>
-    <td><%= link_to 'Edit', edit_post_path(post) %></td>
+    <td><%= article.title %></td>
+    <td><%= article.text %></td>
+    <td><%= link_to 'Show', article_path(article) %></td>
+    <td><%= link_to 'Edit', edit_article_path(article) %></td>
   </tr>
 <% end %>
 </table>
 ```
 
-And we'll also add one to the `app/views/posts/show.html.erb` template as well,
-so that there's also an "Edit" link on a post's page. Add this at the bottom of
-the template:
+And we'll also add one to the `app/views/articles/show.html.erb` template as
+well, so that there's also an "Edit" link on an article's page. Add this at the
+bottom of the template:
 
 ```html+erb
 ...
 
-<%= link_to 'Back', posts_path %>
-| <%= link_to 'Edit', edit_post_path(@post) %>
+<%= link_to 'Back', articles_path %>
+| <%= link_to 'Edit', edit_article_path(@article) %>
 ```
 
 And here's how our app looks so far:
@@ -1169,17 +1184,17 @@ underscore.
 TIP: You can read more about partials in the
 [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
-Create a new file `app/views/posts/_form.html.erb` with the following
+Create a new file `app/views/articles/_form.html.erb` with the following
 content:
 
 ```html+erb
-<%= form_for @post do |f| %>
-  <% if @post.errors.any? %>
+<%= form_for @article do |f| %>
+  <% if @article.errors.any? %>
   <div id="error_explanation">
-    <h2><%= pluralize(@post.errors.count, "error") %> prohibited
-      this post from being saved:</h2>
+    <h2><%= pluralize(@article.errors.count, "error") %> prohibited
+      this article from being saved:</h2>
     <ul>
-    <% @post.errors.full_messages.each do |msg| %>
+    <% @article.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
     <% end %>
     </ul>
@@ -1203,41 +1218,41 @@ content:
 
 Everything except for the `form_for` declaration remained the same.
 The reason we can use this shorter, simpler `form_for` declaration
-to stand in for either of the other forms is that `@post` is a *resource*
+to stand in for either of the other forms is that `@article` is a *resource*
 corresponding to a full set of RESTful routes, and Rails is able to infer
 which URI and method to use.
 For more information about this use of `form_for`, see
 [Resource-oriented style](//api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for-label-Resource-oriented+style).
 
-Now, let's update the `app/views/posts/new.html.erb` view to use this new
+Now, let's update the `app/views/articles/new.html.erb` view to use this new
 partial, rewriting it completely:
 
 ```html+erb
-<h1>New post</h1>
+<h1>New article</h1>
 
 <%= render 'form' %>
 
-<%= link_to 'Back', posts_path %>
+<%= link_to 'Back', articles_path %>
 ```
 
-Then do the same for the `app/views/posts/edit.html.erb` view:
+Then do the same for the `app/views/articles/edit.html.erb` view:
 
 ```html+erb
-<h1>Edit post</h1>
+<h1>Edit article</h1>
 
 <%= render 'form' %>
 
-<%= link_to 'Back', posts_path %>
+<%= link_to 'Back', articles_path %>
 ```
 
-### Deleting Posts
+### Deleting Articles
 
-We're now ready to cover the "D" part of CRUD, deleting posts from the
+We're now ready to cover the "D" part of CRUD, deleting articles from the
 database. Following the REST convention, the route for
-deleting posts as per output of `rake routes` is:
+deleting articles as per output of `rake routes` is:
 
 ```ruby
-DELETE /posts/:id(.:format)      posts#destroy
+DELETE /articles/:id(.:format)      articles#destroy
 ```
 
 The `delete` routing method should be used for routes that destroy
@@ -1245,19 +1260,19 @@ resources. If this was left as a typical `get` route, it could be possible for
 people to craft malicious URLs like this:
 
 ```html
-<a href='http://example.com/posts/1/destroy'>look at this cat!</a>
+<a href='http://example.com/articles/1/destroy'>look at this cat!</a>
 ```
 
 We use the `delete` method for destroying resources, and this route is mapped to
-the `destroy` action inside `app/controllers/posts_controller.rb`, which doesn't
-exist yet, but is provided below:
+the `destroy` action inside `app/controllers/articles_controller.rb`, which
+doesn't exist yet, but is provided below:
 
 ```ruby
 def destroy
-  @post = Post.find(params[:id])
-  @post.destroy
+  @article = Article.find(params[:id])
+  @article.destroy
 
-  redirect_to posts_path
+  redirect_to articles_path
 end
 ```
 
@@ -1266,12 +1281,12 @@ them from the database. Note that we don't need to add a view for this
 action since we're redirecting to the `index` action.
 
 Finally, add a 'Destroy' link to your `index` action template
-(`app/views/posts/index.html.erb`) to wrap everything
+(`app/views/articles/index.html.erb`) to wrap everything
 together.
 
 ```html+erb
-<h1>Listing Posts</h1>
-<%= link_to 'New post', new_post_path %>
+<h1>Listing Articles</h1>
+<%= link_to 'New article', new_article_path %>
 <table>
   <tr>
     <th>Title</th>
@@ -1279,13 +1294,13 @@ together.
     <th colspan="3"></th>
   </tr>
 
-<% @posts.each do |post| %>
+<% @articles.each do |article| %>
   <tr>
-    <td><%= post.title %></td>
-    <td><%= post.text %></td>
-    <td><%= link_to 'Show', post_path(post) %></td>
-    <td><%= link_to 'Edit', edit_post_path(post) %></td>
-    <td><%= link_to 'Destroy', post_path(post),
+    <td><%= article.title %></td>
+    <td><%= article.text %></td>
+    <td><%= link_to 'Show', article_path(article) %></td>
+    <td><%= link_to 'Edit', edit_article_path(article) %></td>
+    <td><%= link_to 'Destroy', article_path(article),
                     method: :delete, data: { confirm: 'Are you sure?' } %></td>
   </tr>
 <% end %>
@@ -1304,7 +1319,7 @@ Without this file, the confirmation dialog box wouldn't appear.
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
 Congratulations, you can now create, show, list, update and destroy
-posts.
+articles.
 
 TIP: In general, Rails encourages the use of resources objects in place
 of declaring routes manually.
@@ -1315,23 +1330,23 @@ Adding a Second Model
 ---------------------
 
 It's time to add a second model to the application. The second model will handle
-comments on posts.
+comments on articles.
 
 ### Generating a Model
 
 We're going to see the same generator that we used before when creating
-the `Post` model. This time we'll create a `Comment` model to hold
-reference of post comments. Run this command in your terminal:
+the `Article` model. This time we'll create a `Comment` model to hold
+reference of article comments. Run this command in your terminal:
 
 ```bash
-$ rails generate model Comment commenter:string body:text post:references
+$ rails generate model Comment commenter:string body:text article:references
 ```
 
 This command will generate four files:
 
 | File                                         | Purpose                                                                                                |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| db/migrate/20100207235629_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
+| db/migrate/20140120201010_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
 | app/models/comment.rb                        | The Comment model                                                                                      |
 | test/models/comment_test.rb                  | Testing harness for the comments model                                                                 |
 | test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
@@ -1340,12 +1355,12 @@ First, take a look at `app/models/comment.rb`:
 
 ```ruby
 class Comment < ActiveRecord::Base
-  belongs_to :post
+  belongs_to :article
 end
 ```
 
-This is very similar to the `Post` model that you saw earlier. The difference
-is the line `belongs_to :post`, which sets up an Active Record _association_.
+This is very similar to the `Article` model that you saw earlier. The difference
+is the line `belongs_to :article`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
 In addition to the model, Rails has also made a migration to create the
@@ -1357,7 +1372,7 @@ class CreateComments < ActiveRecord::Migration
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-      t.references :post, index: true
+      t.references :article, index: true
 
       t.timestamps
     end
@@ -1386,26 +1401,27 @@ run against the current database, so in this case you will just see:
 ### Associating Models
 
 Active Record associations let you easily declare the relationship between two
-models. In the case of comments and posts, you could write out the relationships
-this way:
+models. In the case of comments and articles, you could write out the
+relationships this way:
 
-* Each comment belongs to one post.
-* One post can have many comments.
+* Each comment belongs to one article.
+* One article can have many comments.
 
 In fact, this is very close to the syntax that Rails uses to declare this
 association. You've already seen the line of code inside the `Comment` model
-(app/models/comment.rb) that makes each comment belong to a Post:
+(app/models/comment.rb) that makes each comment belong to an Article:
 
 ```ruby
 class Comment < ActiveRecord::Base
-  belongs_to :post
+  belongs_to :article
 end
 ```
 
-You'll need to edit `app/models/post.rb` to add the other side of the association:
+You'll need to edit `app/models/article.rb` to add the other side of the
+association:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Article < ActiveRecord::Base
   has_many :comments
   validates :title, presence: true,
                     length: { minimum: 5 }
@@ -1413,29 +1429,31 @@ end
 ```
 
 These two declarations enable a good bit of automatic behavior. For example, if
-you have an instance variable `@post` containing a post, you can retrieve all
-the comments belonging to that post as an array using `@post.comments`.
+you have an instance variable `@article` containing an article, you can retrieve
+all the comments belonging to that article as an array using
+`@article.comments`.
 
 TIP: For more information on Active Record associations, see the [Active Record
 Associations](association_basics.html) guide.
 
 ### Adding a Route for Comments
 
-As with the `welcome` controller, we will need to add a route so that Rails knows
-where we would like to navigate to see `comments`. Open up the
+As with the `welcome` controller, we will need to add a route so that Rails
+knows where we would like to navigate to see `comments`. Open up the
 `config/routes.rb` file again, and edit it as follows:
 
 ```ruby
-resources :posts do
+resources :articles do
   resources :comments
 end
 ```
 
-This creates `comments` as a _nested resource_ within `posts`. This is another
-part of capturing the hierarchical relationship that exists between posts and
-comments.
+This creates `comments` as a _nested resource_ within `articles`. This is
+another part of capturing the hierarchical relationship that exists between
+articles and comments.
 
-TIP: For more information on routing, see the [Rails Routing](routing.html) guide.
+TIP: For more information on routing, see the [Rails Routing](routing.html)
+guide.
 
 ### Generating a Controller
 
@@ -1459,27 +1477,27 @@ This creates six files and one empty directory:
 | app/assets/stylesheets/comment.css.scss      | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
-reading the post, and once they have added their comment, will be sent back to
-the post show page to see their comment now listed. Due to this, our
+reading the article, and once they have added their comment, will be sent back
+to the article show page to see their comment now listed. Due to this, our
 `CommentsController` is there to provide a method to create comments and delete
 spam comments when they arrive.
 
-So first, we'll wire up the Post show template
-(`app/views/posts/show.html.erb`) to let us make a new comment:
+So first, we'll wire up the Article show template
+(`app/views/articles/show.html.erb`) to let us make a new comment:
 
 ```html+erb
 <p>
   <strong>Title:</strong>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 
 <p>
   <strong>Text:</strong>
-  <%= @post.text %>
+  <%= @article.text %>
 </p>
 
 <h2>Add a comment:</h2>
-<%= form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@article, @article.comments.build]) do |f| %>
   <p>
     <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
@@ -1493,22 +1511,22 @@ So first, we'll wire up the Post show template
   </p>
 <% end %>
 
-<%= link_to 'Back', posts_path %>
-| <%= link_to 'Edit', edit_post_path(@post) %>
+<%= link_to 'Back', articles_path %>
+| <%= link_to 'Edit', edit_article_path(@article) %>
 ```
 
-This adds a form on the `Post` show page that creates a new comment by
+This adds a form on the `Article` show page that creates a new comment by
 calling the `CommentsController` `create` action. The `form_for` call here uses
-an array, which will build a nested route, such as `/posts/1/comments`.
+an array, which will build a nested route, such as `/articles/1/comments`.
 
 Let's wire up the `create` in `app/controllers/comments_controller.rb`:
 
 ```ruby
 class CommentsController < ApplicationController
   def create
-    @post = Post.find(params[:post_id])
-    @comment = @post.comments.create(comment_params)
-    redirect_to post_path(@post)
+    @article = Article.find(params[:article_id])
+    @comment = @article.comments.create(comment_params)
+    redirect_to article_path(@article)
   end
 
   private
@@ -1518,35 +1536,36 @@ class CommentsController < ApplicationController
 end
 ```
 
-You'll see a bit more complexity here than you did in the controller for posts.
-That's a side-effect of the nesting that you've set up. Each request for a
-comment has to keep track of the post to which the comment is attached, thus the
-initial call to the `find` method of the `Post` model to get the post in question.
+You'll see a bit more complexity here than you did in the controller for
+articles. That's a side-effect of the nesting that you've set up. Each request
+for a comment has to keep track of the article to which the comment is attached,
+thus the initial call to the `find` method of the `Article` model to get the
+article in question.
 
 In addition, the code takes advantage of some of the methods available for an
-association. We use the `create` method on `@post.comments` to create and save
-the comment. This will automatically link the comment so that it belongs to that
-particular post.
+association. We use the `create` method on `@article.comments` to create and
+save the comment. This will automatically link the comment so that it belongs to
+that particular article.
 
-Once we have made the new comment, we send the user back to the original post
-using the `post_path(@post)` helper. As we have already seen, this calls the
-`show` action of the `PostsController` which in turn renders the `show.html.erb`
-template. This is where we want the comment to show, so let's add that to the
-`app/views/posts/show.html.erb`.
+Once we have made the new comment, we send the user back to the original article
+using the `article_path(@article)` helper. As we have already seen, this calls
+the `show` action of the `ArticlesController` which in turn renders the
+`show.html.erb` template. This is where we want the comment to show, so let's
+add that to the `app/views/articles/show.html.erb`.
 
 ```html+erb
 <p>
   <strong>Title:</strong>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 
 <p>
   <strong>Text:</strong>
-  <%= @post.text %>
+  <%= @article.text %>
 </p>
 
 <h2>Comments</h2>
-<% @post.comments.each do |comment| %>
+<% @article.comments.each do |comment| %>
   <p>
     <strong>Commenter:</strong>
     <%= comment.commenter %>
@@ -1559,7 +1578,7 @@ template. This is where we want the comment to show, so let's add that to the
 <% end %>
 
 <h2>Add a comment:</h2>
-<%= form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@article, @article.comments.build]) do |f| %>
   <p>
     <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
@@ -1573,26 +1592,26 @@ template. This is where we want the comment to show, so let's add that to the
   </p>
 <% end %>
 
-<%= link_to 'Edit Post', edit_post_path(@post) %> |
-<%= link_to 'Back to Posts', posts_path %>
+<%= link_to 'Edit Article', edit_article_path(@article) %> |
+<%= link_to 'Back to Articles', articles_path %>
 ```
 
-Now you can add posts and comments to your blog and have them show up in the
+Now you can add articles and comments to your blog and have them show up in the
 right places.
 
-![Post with Comments](images/getting_started/post_with_comments.png)
+![Article with Comments](images/getting_started/article_with_comments.png)
 
 Refactoring
 -----------
 
-Now that we have posts and comments working, take a look at the
-`app/views/posts/show.html.erb` template. It is getting long and awkward. We can
-use partials to clean it up.
+Now that we have articles and comments working, take a look at the
+`app/views/articles/show.html.erb` template. It is getting long and awkward. We
+can use partials to clean it up.
 
 ### Rendering Partial Collections
 
-First, we will make a comment partial to extract showing all the comments for the
-post. Create the file `app/views/comments/_comment.html.erb` and put the
+First, we will make a comment partial to extract showing all the comments for
+the article. Create the file `app/views/comments/_comment.html.erb` and put the
 following into it:
 
 ```html+erb
@@ -1607,25 +1626,25 @@ following into it:
 </p>
 ```
 
-Then you can change `app/views/posts/show.html.erb` to look like the
+Then you can change `app/views/articles/show.html.erb` to look like the
 following:
 
 ```html+erb
 <p>
   <strong>Title:</strong>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 
 <p>
   <strong>Text:</strong>
-  <%= @post.text %>
+  <%= @article.text %>
 </p>
 
 <h2>Comments</h2>
-<%= render @post.comments %>
+<%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@article, @article.comments.build]) do |f| %>
   <p>
     <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
@@ -1639,13 +1658,13 @@ following:
   </p>
 <% end %>
 
-<%= link_to 'Edit Post', edit_post_path(@post) %> |
-<%= link_to 'Back to Posts', posts_path %>
+<%= link_to 'Edit Article', edit_article_path(@article) %> |
+<%= link_to 'Back to Articles', articles_path %>
 ```
 
 This will now render the partial in `app/views/comments/_comment.html.erb` once
-for each comment that is in the `@post.comments` collection. As the `render`
-method iterates over the `@post.comments` collection, it assigns each
+for each comment that is in the `@article.comments` collection. As the `render`
+method iterates over the `@article.comments` collection, it assigns each
 comment to a local variable named the same as the partial, in this case
 `comment` which is then available in the partial for us to show.
 
@@ -1655,7 +1674,7 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_for([@post, @post.comments.build]) do |f| %>
+<%= form_for([@article, @article.comments.build]) do |f| %>
   <p>
     <%= f.label :commenter %><br>
     <%= f.text_field :commenter %>
@@ -1670,27 +1689,27 @@ create a file `app/views/comments/_form.html.erb` containing:
 <% end %>
 ```
 
-Then you make the `app/views/posts/show.html.erb` look like the following:
+Then you make the `app/views/articles/show.html.erb` look like the following:
 
 ```html+erb
 <p>
   <strong>Title:</strong>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 
 <p>
   <strong>Text:</strong>
-  <%= @post.text %>
+  <%= @article.text %>
 </p>
 
 <h2>Comments</h2>
-<%= render @post.comments %>
+<%= render @article.comments %>
 
 <h2>Add a comment:</h2>
 <%= render "comments/form" %>
 
-<%= link_to 'Edit Post', edit_post_path(@post) %> |
-<%= link_to 'Back to Posts', posts_path %>
+<%= link_to 'Edit Article', edit_article_path(@article) %> |
+<%= link_to 'Back to Articles', articles_path %>
 ```
 
 The second render just defines the partial template we want to render,
@@ -1698,8 +1717,8 @@ The second render just defines the partial template we want to render,
 string and realize that you want to render the `_form.html.erb` file in
 the `app/views/comments` directory.
 
-The `@post` object is available to any partials rendered in the view because we
-defined it as an instance variable.
+The `@article` object is available to any partials rendered in the view because
+we defined it as an instance variable.
 
 Deleting Comments
 -----------------
@@ -1723,30 +1742,30 @@ So first, let's add the delete link in the
 </p>
 
 <p>
-  <%= link_to 'Destroy Comment', [comment.post, comment],
+  <%= link_to 'Destroy Comment', [comment.article, comment],
                method: :delete,
                data: { confirm: 'Are you sure?' } %>
 </p>
 ```
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE
-/posts/:post_id/comments/:id` to our `CommentsController`, which can then use
-this to find the comment we want to delete, so let's add a `destroy` action to our
-controller (`app/controllers/comments_controller.rb`):
+/articles/:article_id/comments/:id` to our `CommentsController`, which can then
+use this to find the comment we want to delete, so let's add a `destroy` action
+to our controller (`app/controllers/comments_controller.rb`):
 
 ```ruby
 class CommentsController < ApplicationController
   def create
-    @post = Post.find(params[:post_id])
-    @comment = @post.comments.create(comment_params)
-    redirect_to post_path(@post)
+    @article = Article.find(params[:article_id])
+    @comment = @article.comments.create(comment_params)
+    redirect_to article_path(@article)
   end
 
   def destroy
-    @post = Post.find(params[:post_id])
-    @comment = @post.comments.find(params[:id])
+    @article = Article.find(params[:article_id])
+    @comment = @article.comments.find(params[:id])
     @comment.destroy
-    redirect_to post_path(@post)
+    redirect_to article_path(@article)
   end
 
   private
@@ -1756,20 +1775,20 @@ class CommentsController < ApplicationController
 end
 ```
 
-The `destroy` action will find the post we are looking at, locate the comment
-within the `@post.comments` collection, and then remove it from the
-database and send us back to the show action for the post.
+The `destroy` action will find the article we are looking at, locate the comment
+within the `@article.comments` collection, and then remove it from the
+database and send us back to the show action for the article.
 
 
 ### Deleting Associated Objects
 
-If you delete a post then its associated comments will also need to be deleted.
-Otherwise they would simply occupy space in the database. Rails allows you to
-use the `dependent` option of an association to achieve this. Modify the Post
-model, `app/models/post.rb`, as follows:
+If you delete an article then its associated comments will also need to be
+deleted. Otherwise they would simply occupy space in the database. Rails allows
+you to use the `dependent` option of an association to achieve this. Modify the
+Article model, `app/models/article.rb`, as follows:
 
 ```ruby
-class Post < ActiveRecord::Base
+class Article < ActiveRecord::Base
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }
@@ -1782,33 +1801,34 @@ Security
 ### Basic Authentication
 
 If you were to publish your blog online, anybody would be able to add, edit and
-delete posts or delete comments.
+delete articles or delete comments.
 
 Rails provides a very simple HTTP authentication system that will work nicely in
 this situation.
 
-In the `PostsController` we need to have a way to block access to the various
+In the `ArticlesController` we need to have a way to block access to the various
 actions if the person is not authenticated, here we can use the Rails
 `http_basic_authenticate_with` method, allowing access to the requested
 action if that method allows it.
 
 To use the authentication system, we specify it at the top of our
-`PostsController`, in this case, we want the user to be authenticated on every
-action, except for `index` and `show`, so we write that in `app/controllers/posts_controller.rb`:
+`ArticlesController`, in this case, we want the user to be authenticated on
+every action, except for `index` and `show`, so we write that in
+`app/controllers/articles_controller.rb`:
 
 ```ruby
-class PostsController < ApplicationController
+class ArticlesController < ApplicationController
 
   http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   def index
-    @posts = Post.all
+    @articles = Article.all
   end
 
   # snipped for brevity
 ```
 
-We also only want to allow authenticated users to delete comments, so in the
+We also want to allow only authenticated users to delete comments, so in the
 `CommentsController` (`app/controllers/comments_controller.rb`) we write:
 
 ```ruby
@@ -1817,21 +1837,22 @@ class CommentsController < ApplicationController
   http_basic_authenticate_with name: "dhh", password: "secret", only: :destroy
 
   def create
-    @post = Post.find(params[:post_id])
+    @article = Article.find(params[:article_id])
     ...
   end
 
   # snipped for brevity
 ```
 
-Now if you try to create a new post, you will be greeted with a basic HTTP
+Now if you try to create a new article, you will be greeted with a basic HTTP
 Authentication challenge
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
 
 Other authentication methods are available for Rails applications. Two popular
-authentication add-ons for Rails are the [Devise](https://github.com/plataformatec/devise)
-rails engine and the [Authlogic](https://github.com/binarylogic/authlogic) gem,
+authentication add-ons for Rails are the
+[Devise](https://github.com/plataformatec/devise) rails engine and
+the [Authlogic](https://github.com/binarylogic/authlogic) gem,
 along with a number of others.
 
 
@@ -1887,15 +1908,16 @@ cannot be automatically detected by Rails and corrected.
 
 Two very common sources of data that are not UTF-8:
 
-* Your text editor: Most text editors (such as TextMate), default to saving files as
-  UTF-8. If your text editor does not, this can result in special characters that you
-  enter in your templates (such as é) to appear as a diamond with a question mark inside
-  in the browser. This also applies to your i18n translation files.
-  Most editors that do not already default to UTF-8 (such as some versions of
-  Dreamweaver) offer a way to change the default to UTF-8. Do so.
-* Your database: Rails defaults to converting data from your database into UTF-8 at
-  the boundary. However, if your database is not using UTF-8 internally, it may not
-  be able to store all characters that your users enter. For instance, if your database
-  is using Latin-1 internally, and your user enters a Russian, Hebrew, or Japanese
-  character, the data will be lost forever once it enters the database. If possible,
-  use UTF-8 as the internal storage of your database.
+* Your text editor: Most text editors (such as TextMate), default to saving
+  files as UTF-8. If your text editor does not, this can result in special
+  characters that you enter in your templates (such as é) to appear as a diamond
+  with a question mark inside in the browser. This also applies to your i18n
+  translation files. Most editors that do not already default to UTF-8 (such as
+  some versions of Dreamweaver) offer a way to change the default to UTF-8. Do
+  so.
+* Your database: Rails defaults to converting data from your database into UTF-8
+  at the boundary. However, if your database is not using UTF-8 internally, it
+  may not be able to store all characters that your users enter. For instance,
+  if your database is using Latin-1 internally, and your user enters a Russian,
+  Hebrew, or Japanese character, the data will be lost forever once it enters
+  the database. If possible, use UTF-8 as the internal storage of your database.
