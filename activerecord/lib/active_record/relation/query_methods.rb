@@ -120,6 +120,9 @@ module ActiveRecord
     # Will throw an error, but this will work:
     #
     #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
+    #
+    # Note that +includes+ works with association names while +references+ needs
+    # the actual table name.
     def includes(*args)
       check_if_method_has_arguments!(:includes, args)
       spawn.includes!(*args)
@@ -163,24 +166,26 @@ module ActiveRecord
       self
     end
 
-    # Used to indicate that an association is referenced by an SQL string, and should
-    # therefore be JOINed in any query rather than loaded separately.
+    # Use to indicate that the given +table_names+ are referenced by an SQL string,
+    # and should therefore be JOINed in any query rather than loaded separately.
+    # This method only works in conjuction with +includes+.
+    # See #includes for more details.
     #
     #   User.includes(:posts).where("posts.name = 'foo'")
     #   # => Doesn't JOIN the posts table, resulting in an error.
     #
     #   User.includes(:posts).where("posts.name = 'foo'").references(:posts)
     #   # => Query now knows the string references posts, so adds a JOIN
-    def references(*args)
-      check_if_method_has_arguments!(:references, args)
-      spawn.references!(*args)
+    def references(*table_names)
+      check_if_method_has_arguments!(:references, table_names)
+      spawn.references!(*table_names)
     end
 
-    def references!(*args) # :nodoc:
-      args.flatten!
-      args.map!(&:to_s)
+    def references!(*table_names) # :nodoc:
+      table_names.flatten!
+      table_names.map!(&:to_s)
 
-      self.references_values |= args
+      self.references_values |= table_names
       self
     end
 
