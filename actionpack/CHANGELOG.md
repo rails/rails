@@ -1,3 +1,7 @@
+*   Append link to bad code to backtrace when exception is SyntaxError.
+
+    *Boris Kuznetsov*
+    
 *   Swapped the parameters of assert_equal in `assert_select` so that the
     proper values were printed correctly 
 
