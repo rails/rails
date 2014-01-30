@@ -1,3 +1,15 @@
+*   Remove behavior that automatically remove the Date/Time stubs, added by `travel`
+    and `travel_to` methods, after each test case.
+
+    Now users have to use the `travel_back` or the block version of `travel` and
+    `travel_to` methods to clean the stubs.
+
+    *Rafael Mendonça França*
+
+*   Add `travel_back` to remove stubs from `travel` and `travel_to`.
+
+    *Rafael Mendonça França*
+
 *   Remove the deprecation about the `#filter` method.
 
     Filter objects should now rely on method corresponding to the filter type

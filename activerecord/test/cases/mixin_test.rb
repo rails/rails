@@ -6,8 +6,12 @@ end
 class TouchTest < ActiveRecord::TestCase
   fixtures :mixins
 
-  def setup
+  setup do
     travel_to Time.now
+  end
+
+  teardown do
+    travel_back
   end
 
   def test_update
