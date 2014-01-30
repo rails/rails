@@ -23,7 +23,7 @@ prerequisites installed:
 
 * The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or newer
 * The [RubyGems](http://rubygems.org) packaging system
-    * To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org)
+* To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org)
 * A working installation of the [SQLite3 Database](http://www.sqlite.org)
 
 Rails is a web application framework running on the Ruby programming language.
