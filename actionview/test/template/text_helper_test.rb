@@ -362,6 +362,7 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("12 berries", pluralize(12, "berry"))
     assert_equal("2 journaux", pluralize(2, "journal", nil, :fr))
     assert_equal("1 journal", pluralize(1, "journal", nil, :fr))
+    ActiveSupport::Inflector::inflections(:fr).clear(:plurals)
   end
 
   def test_cycle_class
