@@ -162,6 +162,10 @@ class TimeHelperTest < ActiveSupport::TestCase
     Time.stubs now: Time.now
   end
 
+  teardown do
+    travel_back
+  end
+
   def test_time_helper_travel
     expected_time = Time.now + 1.day
     travel 1.day
