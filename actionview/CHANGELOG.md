@@ -1,9 +1,7 @@
-*   Added `config.action_view.raise_on_missing_translations` to define whether an
-    error should be raised for missing translations.
+*   The `pluralize` helper accepts a language as `locale` to define which language to use
+    Default is current locale
 
-    Fixes #13196
-
-    *Kassio Borges*
+    *Olivier Kaluzny*
 
 *   Improved ERB dependency detection. New argument types and formattings for the `render`
     calls can be matched.
