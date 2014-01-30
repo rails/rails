@@ -1,3 +1,11 @@
+*   Fix regressions on `select_*` methods.
+    When `select_*` methods receive a `Relation` object, they should be able to get the arel/binds from it.
+    Also fix regressions on select_rows that was ignoring the binds.
+
+    Fixes #7538, #12017, #13731, #12056.
+
+    *arthurnn*
+
 *   Active Record objects can now be correctly dumped, loaded and dumped again without issues.
 
     Previously, if you did `YAML.dump`, `YAML.load` and then `YAML.dump` again

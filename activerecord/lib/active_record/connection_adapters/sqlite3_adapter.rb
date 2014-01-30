@@ -347,8 +347,8 @@ module ActiveRecord
       end
       alias :create :insert_sql
 
-      def select_rows(sql, name = nil)
-        exec_query(sql, name).rows
+      def select_rows(sql, name = nil, binds = [])
+        exec_query(sql, name, binds).rows
       end
 
       def begin_db_transaction #:nodoc:
