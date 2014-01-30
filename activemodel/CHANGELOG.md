@@ -18,9 +18,12 @@
 
     *Vince Puzzella*
 
-*   `attribute_changed?` now accepts parameters which check the old and new value of the attribute
+*   `attribute_changed?` now accepts a hash to check if the attribute was
+    changed `:from` and/or `:to` a given value.
 
-    `model.name_changed?(from: "Pete", to: "Ringo")`
+    Example:
+
+        model.name_changed?(from: "Pete", to: "Ringo")
 
     *Tejas Dinkar*
 

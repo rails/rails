@@ -5,13 +5,13 @@
 
     * `:json` which is a secure wrapper on JSON using `JSON.parse` and
       `JSON.generate` methods with quirks mode;
-    * `:marshal` which is a wrapper on Marshal; 
+    * `:marshal` which is a wrapper on Marshal;
     * serializer class with `load` and `dump` methods defined.
 
     For new apps `:json` option is added by default and :marshal is used
     when no option is specified.
 
-    *Łukasz Sarnacki + Matt Aimonetti*
+    *Łukasz Sarnacki*, *Matt Aimonetti*
 
 *   Ensure that `request.filtered_parameters` is reset between calls to `process`
     in `ActionController::TestCase`.

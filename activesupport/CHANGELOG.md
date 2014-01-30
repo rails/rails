@@ -1,7 +1,7 @@
-*   Remove the deprecation about the `#filter` method
+*   Remove the deprecation about the `#filter` method.
 
     Filter objects should now rely on method corresponding to the filter type
-    (e.g. `#before`)
+    (e.g. `#before`).
 
     *Aaron Patterson*
 
