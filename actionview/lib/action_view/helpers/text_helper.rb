@@ -182,7 +182,8 @@ module ActionView
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form.
+      # it will use the Inflector to determine the plural form. You can set
+      # +locale+ used to pluralize (defaults to current locale)
       #
       #   pluralize(1, 'person')
       #   # => 1 person
@@ -195,6 +196,9 @@ module ActionView
       #
       #   pluralize(0, 'person')
       #   # => 0 people
+      #
+      #   pluralize(2, 'journal', nil, :fr)
+      #   # => 2 journaux
       def pluralize(count, singular, plural = nil, locale = I18n.locale)
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
