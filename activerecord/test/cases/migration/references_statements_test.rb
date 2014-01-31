@@ -20,6 +20,11 @@ module ActiveRecord
         assert column_exists?(table_name, :user_id, :integer)
       end
 
+      def test_creates_reference_id_column_with_given_foreign_key_type
+        add_reference table_name, :user, foreign_key_type: :string
+        assert column_exists?(table_name, :user_id, :string)
+      end
+
       def test_does_not_create_reference_type_column
         add_reference table_name, :taggable
         assert_not column_exists?(table_name, :taggable_type, :string)

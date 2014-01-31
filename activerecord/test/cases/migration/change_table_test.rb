@@ -23,6 +23,13 @@ module ActiveRecord
         end
       end
 
+      def test_references_column_type_with_foreign_key_type_set_to_uuid
+        with_change_table do |t|
+          @connection.expect :add_reference, nil, [:delete_me, :customer, foreign_key_type: :uuid]
+          t.references :customer, foreign_key_type: :uuid
+        end
+      end
+
       def test_remove_references_column_type_removes_id
         with_change_table do |t|
           @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
@@ -55,6 +62,13 @@ module ActiveRecord
         with_change_table do |t|
           @connection.expect :remove_reference, nil, [:delete_me, :taggable, polymorphic: true]
           t.remove_references :taggable, polymorphic: true
+        end
+      end
+
+      def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
+        with_change_table do |t|
+          @connection.expect :add_reference, nil, [:delete_me, :taggable, polymorphic: true, null: false]
+          t.references :taggable, polymorphic: true, null: false
         end
       end
 

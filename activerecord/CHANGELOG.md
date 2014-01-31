@@ -1,3 +1,14 @@
+*   It is possible to pass `foreign_key_type` option to `add_reference`
+
+    Integer was hardcoded type for reference foreign key field. Now it
+    is possible to set any foreign key type:
+
+    ```ruby
+    add_reference :products, :supplier, foreign_key_type: :uuid
+    ```
+
+    *Łukasz Sarnacki*
+
 *   Active Record objects can now be correctly dumped, loaded and dumped again without issues.
 
     Previously, if you did `YAML.dump`, `YAML.load` and then `YAML.dump` again

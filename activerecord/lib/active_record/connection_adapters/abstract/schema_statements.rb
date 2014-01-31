@@ -312,6 +312,12 @@ module ActiveRecord
       #
       # Creates a <tt>company_id(integer)</tt> column.
       #
+      # ====== Add a foreign key column with specified type
+      #
+      #  change_table(:suppliers) do |t|
+      #    t.references :company, foreign_key_type: :uuid
+      #  end
+      #
       # ====== Add a polymorphic foreign key column
       #
       #  change_table(:suppliers) do |t|
@@ -616,10 +622,15 @@ module ActiveRecord
       #
       #   add_reference(:products, :supplier, polymorphic: true, index: true)
       #
+      # ====== Create a supplier_id with given type
+      #
+      #   add_reference(:products, :supplier, foreign_key_type: :uuid)
+      #
       def add_reference(table_name, ref_name, options = {})
         polymorphic = options.delete(:polymorphic)
         index_options = options.delete(:index)
-        add_column(table_name, "#{ref_name}_id", :integer, options)
+        foreign_key_type = options.delete(:foreign_key_type) || :integer
+        add_column(table_name, "#{ref_name}_id", foreign_key_type, options)
         add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
         add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
       end
