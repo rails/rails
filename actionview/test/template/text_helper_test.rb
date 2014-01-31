@@ -498,12 +498,11 @@ class TextHelperTest < ActionView::TestCase
   # This helper is implemented by setting @__instance__ because in some tests
   # there are module functions that access ActiveSupport::Inflector.inflections,
   # so we need to replace the singleton itself.
-  # Copy from with_dup method activesupport/test/inflector_test.rb
+  # Copy from with_dup method activesupport/test/inflector_test.rb.
   def inflector_with_dup
     original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)
     ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original.dup)
   ensure
     ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original)
   end
-
 end

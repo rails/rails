@@ -1,5 +1,5 @@
-*   The `pluralize` helper accepts a language as `locale` to define which language to use.
-    Default is current locale.
+*   The `pluralize` helper accepts a new `locale` argument to determine which language to use.
+    Defaults to the current I18n locale.
 
     *Olivier Kaluzny*
 
