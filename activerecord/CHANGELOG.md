@@ -16,7 +16,7 @@
 
 *   Fix regressions on `select_*` methods.
     When `select_*` methods receive a `Relation` object, they should be able to get the arel/binds from it.
-    Also fix regressions on select_rows that was ignoring the binds.
+    Also fix regressions on `select_rows` that was ignoring the binds.
 
     Fixes #7538, #12017, #13731, #12056.
 
@@ -25,7 +25,7 @@
 *   Active Record objects can now be correctly dumped, loaded and dumped again without issues.
 
     Previously, if you did `YAML.dump`, `YAML.load` and then `YAML.dump` again
-    in an ActiveRecord model that used serialization it would fail at the last
+    in an Active Record model that used serialization it would fail at the last
     dump due to the fields not being correctly serialized before being dumped
     to YAML. Now it is possible to dump and load the same object as many times
     as needed without any issues.
@@ -39,7 +39,7 @@
 
     *Marc-André Lafortune*
 
-*   `enum` now raises on "dangerous" name conflicts
+*   `enum` now raises on "dangerous" name conflicts.
 
     Dangerous name conflicts includes instance or class method conflicts
     with methods defined within `ActiveRecord::Base` but not its ancestors,
@@ -50,7 +50,7 @@
 
     *Godfrey Chan*
 
-*   `scope` now raises on "dangerous" name conflicts
+*   `scope` now raises on "dangerous" name conflicts.
 
     Similar to dangerous attribute methods, a scope name conflict is
     dangerous if it conflicts with an existing class method defined within
