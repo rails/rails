@@ -205,7 +205,7 @@ class EnumTest < ActiveRecord::TestCase
 
   test "overriding enum method should not raise" do
     assert_nothing_raised do
-      klass = Class.new(ActiveRecord::Base) do
+      Class.new(ActiveRecord::Base) do
         self.table_name = "books"
 
         def published!
