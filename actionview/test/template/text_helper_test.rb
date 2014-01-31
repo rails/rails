@@ -367,7 +367,6 @@ class TextHelperTest < ActionView::TestCase
     end
   end
 
-
   def test_cycle_class
     value = Cycle.new("one", 2, "3")
     assert_equal("one", value.to_s)
