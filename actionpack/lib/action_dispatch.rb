@@ -75,7 +75,6 @@ module ActionDispatch
     autoload :Parameters
     autoload :ParameterFilter
     autoload :FilterParameters
-    autoload :FilterRedirect
     autoload :Upload
     autoload :UploadedFile, 'action_dispatch/http/upload'
     autoload :URL

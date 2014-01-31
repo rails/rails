@@ -1,3 +1,12 @@
+*   Maintain the current timezone when calling `wrap_with_time_zone`
+
+    Extend the solution from the fix for #12163 to the general case where `Time`
+    methods are wrapped with a time zone.
+
+    Fixes #12596.
+
+    *Andrew White*
+
 *   Remove behavior that automatically remove the Date/Time stubs, added by `travel`
     and `travel_to` methods, after each test case.
 

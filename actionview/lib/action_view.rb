@@ -28,6 +28,8 @@ require 'action_view/version'
 module ActionView
   extend ActiveSupport::Autoload
 
+  ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
+
   eager_autoload do
     autoload :Base
     autoload :Context
@@ -80,8 +82,6 @@ module ActionView
   end
 
   autoload :TestCase
-
-  ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 
   def self.eager_load!
     super

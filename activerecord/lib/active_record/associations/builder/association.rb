@@ -26,6 +26,12 @@ module ActiveRecord::Associations::Builder
     attr_reader :name, :scope, :options
 
     def self.build(model, name, scope, options, &block)
+      if model.dangerous_attribute_method?(name)
+        raise ArgumentError, "You tried to define an association named #{name} on the model #{model.name}, but " \
+                             "this will conflict with a method #{name} already defined by Active Record. " \
+                             "Please choose a different association name."
+      end
+
       builder = create_builder model, name, scope, options, &block
       reflection = builder.build(model)
       define_accessors model, reflection
