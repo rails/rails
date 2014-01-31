@@ -1,3 +1,5 @@
+require 'active_record/associations/join_helper'
+
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
