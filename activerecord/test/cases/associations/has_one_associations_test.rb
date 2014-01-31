@@ -564,4 +564,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test 'dangerous association name raises ArgumentError' do
+    [:errors, 'errors', :save, 'save'].each do |name|
+      assert_raises(ArgumentError, "Association #{name} should not be allowed") do
+        Class.new(ActiveRecord::Base) do
+          has_one name
+        end
+      end
+    end
+  end
 end

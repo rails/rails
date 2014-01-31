@@ -1,3 +1,19 @@
+*   Associations now raise `ArgumentError` on name conflicts.
+
+    Dangerous association names conflicts include instance or class methods already
+    defined by `ActiveRecord::Base`.
+
+    Example:
+
+        class Car < ActiveRecord::Base
+          has_many :errors
+        end
+        # Will raise ArgumentError.
+
+    Fixes #13217.
+
+    *Lauro Caetano*
+
 *   Fix regressions on `select_*` methods.
     When `select_*` methods receive a `Relation` object, they should be able to get the arel/binds from it.
     Also fix regressions on select_rows that was ignoring the binds.
