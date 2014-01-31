@@ -288,7 +288,7 @@ module ActionDispatch # :nodoc:
     end
 
     def assign_default_content_type_and_charset!(headers)
-      return if headers[CONTENT_TYPE].present?
+      return if headers[CONTENT_TYPE].present? || @content_type == "none"
 
       @content_type ||= Mime::HTML
       @charset      ||= self.class.default_charset unless @charset == false

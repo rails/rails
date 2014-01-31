@@ -21,7 +21,9 @@ module ActionView
     def determine_template(options) #:nodoc:
       keys = options.fetch(:locals, {}).keys
 
-      if options.key?(:text)
+      if options.key?(:body)
+        Template::Text.new(options[:body])
+      elsif options.key?(:text)
         Template::Text.new(options[:text], formats.first)
       elsif options.key?(:file)
         with_fallbacks { find_template(options[:file], nil, false, keys, @details) }
@@ -35,7 +37,7 @@ module ActionView
           find_template(options[:template], options[:prefixes], false, keys, @details)
         end
       else
-        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file or :text option."
+        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :text or :body option."
       end
     end
 

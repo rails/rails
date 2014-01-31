@@ -1,3 +1,15 @@
+*   Introduce `render :body` as an option for sending a raw content back to
+    browser. Note that this rendering option will unset the default content type
+    and does not include "Content-Type" header back in the response.
+
+    You should only use this option if you are expecting the "Content-Type"
+    header to not be set. More information on "Content-Type" header can be found
+    on RFC 2616, section 7.2.1.
+
+    Please see #12374 for more detail.
+
+    *Prem Sichanugrist*
+
 *   Set stream status to 500 (or 400 on BadRequest) when an error is thrown
     before commiting.
 

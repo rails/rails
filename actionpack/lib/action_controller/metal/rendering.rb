@@ -27,14 +27,19 @@ module ActionController
     end
 
     def render_to_body(options = {})
-      super || options[:text].presence || ' '
+      super || options[:body].presence || options[:text].presence || ' '
     end
 
     private
 
-    def _process_format(format)
+    def _process_format(format, options = {})
       super
       self.content_type ||= format.to_s
+
+      if options[:body].present?
+        self.content_type = "none"
+        self.headers.delete "Content-Type"
+      end
     end
 
     # Normalize arguments by catching blocks and setting them on :update.
@@ -46,12 +51,16 @@ module ActionController
 
     # Normalize both text and status options.
     def _normalize_options(options) #:nodoc:
+      if options.key?(:body) && options[:body].respond_to?(:to_text)
+        options[:body] = options[:body].to_text
+      end
+
       if options.key?(:text) && options[:text].respond_to?(:to_text)
         options[:text] = options[:text].to_text
       end
 
-      if options.delete(:nothing) || (options.key?(:text) && options[:text].nil?)
-        options[:text] = " "
+      if options.delete(:nothing) || (options.key?(:body) && options[:body].nil?) || (options.key?(:text) && options[:text].nil?)
+        options[:body] = " "
       end
 
       if options[:status]
