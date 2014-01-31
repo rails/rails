@@ -292,12 +292,6 @@ module ActiveSupport
       end
     end
 
-    def change(options)
-      new_time = time.change(options)
-      periods = time_zone.periods_for_local(new_time)
-      self.class.new(nil, time_zone, new_time, periods.include?(period) ? period : nil)
-    end
-
     %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
       class_eval <<-EOV, __FILE__, __LINE__ + 1
         def #{method_name}    # def month
@@ -396,7 +390,8 @@ module ActiveSupport
 
       def wrap_with_time_zone(time)
         if time.acts_like?(:time)
-          self.class.new(nil, time_zone, time)
+          periods = time_zone.periods_for_local(time)
+          self.class.new(nil, time_zone, time, periods.include?(period) ? period : nil)
         elsif time.is_a?(Range)
           wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
         else
