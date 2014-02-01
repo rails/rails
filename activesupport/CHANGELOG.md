@@ -1,3 +1,10 @@
+*   Fix parsing bugs in `XmlMini`
+
+    Symbols or boolean parsing would raise an error for non string values (e.g. 
+    integers). Decimal parsing would fail due to a missing requirement.
+
+    *Birkir A. Barkarson*
+
 *   Re-enable support for iterating over `DateTIme` ranges
 
     Fixes #13667.
