@@ -188,6 +188,26 @@ class ParamsWrapperTest < ActionController::TestCase
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu', 'title' => 'Developer' }})
     end
   end
+
+  def test_preserves_query_string_params
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      get :parse, { 'user' => { 'username' => 'nixon' } }
+      assert_parameters(
+        {'user' => { 'username' => 'nixon' } }
+      )
+    end
+  end
+
+  def test_empty_parameter_set
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, {}
+      assert_parameters(
+        {'user' => { } }
+      )
+    end
+  end
 end
 
 class NamespacedParamsWrapperTest < ActionController::TestCase

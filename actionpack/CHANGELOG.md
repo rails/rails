@@ -1,3 +1,8 @@
+*   Do not discard query parameters that form a hash with the same root key as
+    the `wrapper_key` for a request using `wrap_parameters`.
+
+    *Josh Jordan*
+
 *   Add `:serializer` option for `config.session_store :cookie_store`. This
     changes default serializer when using `:cookie_store`.
 
