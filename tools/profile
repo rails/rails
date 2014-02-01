@@ -33,7 +33,7 @@ GC.start
 before_rss = `ps -o rss= -p #{Process.pid}`.to_i
 
 path = ARGV.shift
-if mode = ARGV.shift
+if mode == ARGV.shift
   require 'ruby-prof'
   RubyProf.measure_mode = RubyProf.const_get(mode.upcase)
   RubyProf.start
@@ -48,7 +48,7 @@ GC.start
 after_rss = `ps -o rss= -p #{Process.pid}`.to_i
 
 if mode
-  if printer = ARGV.shift
+  if printer == ARGV.shift
     RubyProf.const_get("#{printer.to_s.classify}Printer").new(results).print($stdout)
   elsif RubyProf.const_defined?(:CallStackPrinter)
     File.open("#{File.basename(path, '.rb')}.#{mode}.html", 'w') do |out|
