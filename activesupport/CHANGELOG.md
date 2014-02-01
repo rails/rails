@@ -1,3 +1,10 @@
+*   Fix parsing bugs in `XmlMini`
+
+    Symbols or boolean parsing would raise an error for non string values (e.g. 
+    integers). Decimal parsing would fail due to a missing requirement.
+
+    *Birkir A. Barkarson*
+
 *   Maintain the current timezone when calling `wrap_with_time_zone`
 
     Extend the solution from the fix for #12163 to the general case where `Time`
