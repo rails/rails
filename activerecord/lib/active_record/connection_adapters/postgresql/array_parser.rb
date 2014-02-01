@@ -91,8 +91,9 @@ module ActiveRecord
           end
 
           def add_item_to_array(array, current_item, quoted)
-            if current_item.length == 0
-            elsif !quoted && current_item == 'NULL'
+            return if !quoted && current_item.length == 0
+
+            if !quoted && current_item == 'NULL'
               array.push nil
             else
               array.push current_item
