@@ -1,3 +1,13 @@
+*   PostgreSQL implementation of SchemaStatements#index_name_exists?
+
+    The database agnostic implementation does not detect with indexes that are
+    not supported by the ActiveRecord schema dumper. For example, expressions
+    indexes would not be detected.
+
+    This fixes #11018.
+
+    *Jonathan Baudanza*
+
 *   Parsing PostgreSQL arrays with empty strings now works correctly.
 
     Previously, if you tried to parse `{"1","","2","","3"}` the result
