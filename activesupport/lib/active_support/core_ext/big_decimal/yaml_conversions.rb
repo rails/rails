@@ -2,6 +2,7 @@ ActiveSupport::Deprecation.warn 'core_ext/big_decimal/yaml_conversions is deprec
 
 require 'bigdecimal'
 require 'yaml'
+require 'active_support/core_ext/big_decimal/conversions'
 
 class BigDecimal
   YAML_MAPPING = { 'Infinity' => '.Inf', '-Infinity' => '-.Inf', 'NaN' => '.NaN' }
