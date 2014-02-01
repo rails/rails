@@ -314,7 +314,9 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     non_conflicts.each do |name|
       assert_nothing_raised do
-        klass.class_eval { scope name, ->{ where(approved: true) } }
+        silence_warnings do
+          klass.class_eval { scope name, ->{ where(approved: true) } }
+        end
       end
 
       assert_nothing_raised do
