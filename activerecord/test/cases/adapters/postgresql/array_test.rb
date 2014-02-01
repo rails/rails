@@ -81,23 +81,19 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   def test_multi_dimensional_with_strings
-    assert_cycle(:tags, [[['1'], ['2']], [['2'], ['3']]])
+    assert_cycle([[['1'], ['2']], [['2'], ['3']]])
   end
 
   def test_with_empty_strings
-    assert_cycle(:tags, [ '1', '2', '', '4', '', '5' ])
+    assert_cycle([ '1', '2', '', '4', '', '5' ])
   end
 
   def test_with_multi_dimensional_empty_strings
-    assert_cycle(:tags, [[['1', '2'], ['', '4'], ['', '5']]])
+    assert_cycle([[['1', '2'], ['', '4'], ['', '5']]])
   end
 
   def test_with_arbitrary_whitespace
-    assert_cycle(:tags, [[['1', '2'], ['    ', '4'], ['    ', '5']]])
-  end
-
-  def test_multi_dimensional_with_integers
-    assert_cycle(:ratings, [[[1], [7]], [[8], [10]]])
+    assert_cycle([[['1', '2'], ['    ', '4'], ['    ', '5']]])
   end
 
   def test_strings_with_quotes
@@ -137,14 +133,15 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   private
-  def assert_cycle array
+
+  def assert_cycle(array)
     # test creation
-    x = PgArray.create!(:tags => array)
+    x = PgArray.create!(tags: array)
     x.reload
     assert_equal(array, x.tags)
 
     # test updating
-    x = PgArray.create!(:tags => [])
+    x = PgArray.create!(tags: [])
     x.tags = array
     x.save!
     x.reload
