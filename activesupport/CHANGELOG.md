@@ -1,6 +1,14 @@
+*   Deprecate custom `BigDecimal` serialization
+
+    Deprecate the custom `BigDecimal` serialization that is included when requiring
+    `active_support/all` as a fix for #12467. Let Ruby handle YAML serialization
+    for `BigDecimal` instead.
+
+    *David Celis*
+
 *   Fix parsing bugs in `XmlMini`
 
-    Symbols or boolean parsing would raise an error for non string values (e.g. 
+    Symbols or boolean parsing would raise an error for non string values (e.g.
     integers). Decimal parsing would fail due to a missing requirement.
 
     *Birkir A. Barkarson*
