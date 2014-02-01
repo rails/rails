@@ -80,8 +80,24 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal(['1','2','3'], x.tags)
   end
 
-  def test_multi_dimensional
-    assert_cycle([['1','2'],['2','3']])
+  def test_multi_dimensional_with_strings
+    assert_cycle(:tags, [[['1'], ['2']], [['2'], ['3']]])
+  end
+
+  def test_with_empty_strings
+    assert_cycle(:tags, [ '1', '2', '', '4', '', '5' ])
+  end
+
+  def test_with_multi_dimensional_empty_strings
+    assert_cycle(:tags, [[['1', '2'], ['', '4'], ['', '5']]])
+  end
+
+  def test_with_arbitrary_whitespace
+    assert_cycle(:tags, [[['1', '2'], ['    ', '4'], ['    ', '5']]])
+  end
+
+  def test_multi_dimensional_with_integers
+    assert_cycle(:ratings, [[[1], [7]], [[8], [10]]])
   end
 
   def test_strings_with_quotes

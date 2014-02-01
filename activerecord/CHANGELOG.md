@@ -1,3 +1,14 @@
+*   Parsing PostgreSQL arrays with empty strings now works correctly.
+
+    Previously, if you tried to parse `{"1","","2","","3"}` the result
+    would be `["1","2","3"]`, removing the empty strings from the array,
+    which would be incorrect. Now it will correctly produce `["1","","2","","3"]`
+    as the result of parsing the above PostgreSQL array.
+
+    Fixes #13907.
+
+    *Maurício Linhares*
+
 *   Fix regressions on `select_*` methods.
     When `select_*` methods receive a `Relation` object, they should be able to get the arel/binds from it.
     Also fix regressions on select_rows that was ignoring the binds.
