@@ -1,3 +1,5 @@
+ActiveSupport::Deprecation.warn "core_ext/big_decimal/conversions is deprecated and will be removed in the future."
+
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'yaml'
