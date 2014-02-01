@@ -1,3 +1,11 @@
+*   Deprecate custom `BigDecimal` serialization
+
+    Deprecate the custom `BigDecimal` serialization that is included when requiring
+    `active_support/all` as a fix for #12467. Let Ruby handle YAML serialization
+    for `BigDecimal` instead.
+
+    *David Celis*
+
 *   Maintain the current timezone when calling `wrap_with_time_zone`
 
     Extend the solution from the fix for #12163 to the general case where `Time`
