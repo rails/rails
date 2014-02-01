@@ -138,12 +138,12 @@ module ActiveRecord
       #   class Post < ActiveRecord::Base
       #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
       #   end
-      def arel_table
+      def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
       # Returns the Arel engine.
-      def arel_engine
+      def arel_engine # :nodoc:
         @arel_engine ||=
           if Base == self || connection_handler.retrieve_connection_pool(self)
             self
