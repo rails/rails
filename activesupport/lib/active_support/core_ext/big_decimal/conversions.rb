@@ -2,13 +2,6 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 
 class BigDecimal
-  # Backport this method if it doesn't exist
-  unless method_defined?(:to_d)
-    def to_d
-      self
-    end
-  end
-
   DEFAULT_STRING_FORMAT = 'F'
   def to_formatted_s(*args)
     if args[0].is_a?(Symbol)
