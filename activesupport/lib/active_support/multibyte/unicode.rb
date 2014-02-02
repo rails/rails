@@ -233,16 +233,16 @@ module ActiveSupport
           # We're going to 'transcode' bytes from UTF-8 when possible, then fall back to
           # CP1252 when we get errors. The final string will be 'converted' back to UTF-8
           # before returning.
-          reader = Encoding::Converter.new(Encoding::UTF_8, Encoding::UTF_8_MAC)
+          reader = Encoding::Converter.new(Encoding::UTF_8, Encoding::UTF_16LE)
 
           source = string.dup
-          out = ''.force_encoding(Encoding::UTF_8_MAC)
+          out = ''.force_encoding(Encoding::UTF_16LE)
 
           loop do
             reader.primitive_convert(source, out)
             _, _, _, error_bytes, _ = reader.primitive_errinfo
             break if error_bytes.nil?
-            out << error_bytes.encode(Encoding::UTF_8_MAC, Encoding::Windows_1252, invalid: :replace, undef: :replace)
+            out << error_bytes.encode(Encoding::UTF_16LE, Encoding::Windows_1252, invalid: :replace, undef: :replace)
           end
 
           reader.finish
