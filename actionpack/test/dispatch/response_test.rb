@@ -217,6 +217,15 @@ class ResponseTest < ActiveSupport::TestCase
     assert_not @response.respond_to?(:method_missing)
     assert @response.respond_to?(:method_missing, true)
   end
+
+  test "can be destructured into status, headers and an enumerable body" do
+    response = ActionDispatch::Response.new(404, { 'Content-Type' => 'text/plain' }, ['Not Found'])
+    status, headers, body = response
+
+    assert_equal 404, status
+    assert_equal({ 'Content-Type' => 'text/plain' }, headers)
+    assert_equal ['Not Found'], body.each.to_a
+  end
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
