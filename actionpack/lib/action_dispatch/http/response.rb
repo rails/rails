@@ -104,6 +104,16 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    # Used in place of the response when converting to a rack response tuple.
+    # Necessary so that `[response].flatten` doesn't recurse infinitely.
+    class ResponseBody
+      delegate :body, :close, :each, :to_path, :to => :@response
+
+      def initialize(response)
+        @response = response
+      end
+    end
+
     # The underlying body, as a streamable object.
     attr_reader :stream
 
@@ -313,7 +323,7 @@ module ActionDispatch # :nodoc:
         header.delete CONTENT_TYPE
         [status, header, []]
       else
-        [status, header, self]
+        [status, header, ResponseBody.new(self)]
       end
     end
   end
