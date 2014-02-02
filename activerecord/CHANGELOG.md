@@ -1,3 +1,29 @@
+*   Stop converting non-numeric values to 0 when column type is
+    integer or float
+
+    Previously, non-numeric values were converted to 0 and 0.0 when
+    column type is integer and float respectively.
+
+    This behavior is inconsistent because with UUID id, invalid string
+    values are passed to database without converting to 0.
+
+    This commit differentiates between invalid values passed as
+    integer/float and normal integers/floats.
+
+    Before:
+
+        Model1.find_by(id: "lol")
+        => SELECT "model1".* FROM "model1" WHERE "model1"."id" = 0 LIMIT 1
+
+    After:
+
+        Model1.find_by(id: "lol")
+        => SELECT "model1".* FROM "model1" WHERE "model1"."id" = 'lol' LIMIT 1
+
+    Fixes #12793.
+
+    *Anup Nivargi*, *Prathamesh Sonpatki*, *Vipul Amler*
+
 *   PostgreSQL implementation of SchemaStatements#index_name_exists?
 
     The database agnostic implementation does not detect with indexes that are

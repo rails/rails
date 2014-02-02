@@ -168,11 +168,13 @@ module ActiveRecord
       def test_quote_string_int_column
         assert_equal "1", @quoter.quote('1', FakeColumn.new(:integer))
         assert_equal "1", @quoter.quote('1.2', FakeColumn.new(:integer))
+        assert_equal "'lol'", @quoter.quote('lol', FakeColumn.new(:integer))
       end
 
       def test_quote_string_float_column
         assert_equal "1.0", @quoter.quote('1', FakeColumn.new(:float))
         assert_equal "1.2", @quoter.quote('1.2', FakeColumn.new(:float))
+        assert_equal "'lol'", @quoter.quote('lol', FakeColumn.new(:float))
       end
 
       def test_quote_as_mb_chars_binary_column
