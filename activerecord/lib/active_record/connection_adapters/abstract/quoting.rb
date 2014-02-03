@@ -3,6 +3,8 @@ require 'active_support/core_ext/big_decimal/conversions'
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module Quoting
+      NUMERIC_REGEX = Regexp.new(/\A[+-]?\d+\.?\d*\Z/).freeze
+
       # Quotes the column value to help prevent
       # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
       def quote(value, column = nil)
@@ -13,13 +15,9 @@ module ActiveRecord
         when String, ActiveSupport::Multibyte::Chars
           value = value.to_s
           return "'#{quote_string(value)}'" unless column
-
-          case column.type
-          when :integer then value.to_i.to_s
-          when :float then value.to_f.to_s
-          else
-            "'#{quote_string(value)}'"
-          end
+          return value.to_i.to_s if numeric?(value) && column.type == :integer
+          return value.to_f.to_s if numeric?(value) && column.type == :float
+          "'#{quote_string(value.to_s)}'"
 
         when true, false
           if column && column.type == :integer
@@ -123,6 +121,12 @@ module ActiveRecord
         end
 
         value.to_s(:db)
+      end
+
+      private
+
+      def numeric?(value)
+        value =~ NUMERIC_REGEX
       end
     end
   end
