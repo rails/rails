@@ -670,7 +670,7 @@ module ActiveRecord
     # column in the posts table.
     #
     # Note: The <tt>attachable_type=</tt> method is being called when assigning an +attachable+.
-    # The +class_name+ of the +attachable+ is being passed as a String.
+    # The +class_name+ of the +attachable+ is passed as a String.
     #
     #   class Asset < ActiveRecord::Base
     #     belongs_to :attachable, polymorphic: true

@@ -5,13 +5,13 @@
 
     *Yves Senn*
 
-*   PostgreSQL implementation of SchemaStatements#index_name_exists?
+*   PostgreSQL implementation of `SchemaStatements#index_name_exists?`.
 
     The database agnostic implementation does not detect with indexes that are
     not supported by the ActiveRecord schema dumper. For example, expressions
     indexes would not be detected.
 
-    This fixes #11018.
+    Fixes #11018.
 
     *Jonathan Baudanza*
 
@@ -884,7 +884,7 @@
 
     *Severin Schoepke*
 
-*   `ActiveRecord::Store` works together with PG `hstore` columns.
+*   `ActiveRecord::Store` works together with PostgreSQL `hstore` columns.
 
     Fixes #12452.
 
@@ -1170,7 +1170,7 @@
 
     *Yves Senn* , *Severin Schoepke*
 
-*   Fix multidimensional PG arrays containing non-string items.
+*   Fix multidimensional PostgreSQL arrays containing non-string items.
 
     *Yves Senn*
 
@@ -1188,7 +1188,7 @@
 
     *Richard Schneeman*
 
-*   Removed redundant override of `xml` column definition for PG,
+*   Removed redundant override of `xml` column definition for PostgreSQL,
     in order to use `xml` column type instead of `text`.
 
     *Paul Nikitochkin*, *Michael Nikitochkin*
