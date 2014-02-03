@@ -16,6 +16,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     after_commit :do_after_commit, on: :create
 
+    attr_accessor :save_on_after_create
+    after_create do
+      self.save! if save_on_after_create
+    end
+
     def history
       @history ||= []
     end
@@ -105,6 +110,16 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     reply = topic.replies.create
 
     assert_equal [], reply.history
+  end
+
+  def test_only_call_after_commit_on_create_and_doesnt_leaky
+    r = ReplyWithCallbacks.new(content: 'foo')
+    r.save_on_after_create = true
+    r.save!
+    r.content = 'bar'
+    r.save!
+    r.save!
+    assert_equal [:commit_on_create], r.history
   end
 
   def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record_on_touch
