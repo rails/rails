@@ -672,8 +672,8 @@ module ActiveRecord
     #   class Asset < ActiveRecord::Base
     #     belongs_to :attachable, polymorphic: true
     #
-    #     def attachable_type=(sType)
-    #        super(sType.to_s.classify.constantize.base_class.to_s)
+    #     def attachable_type=(klass)
+    #        super(klass.to_s.classify.constantize.base_class.to_s)
     #     end
     #   end
     #
