@@ -352,7 +352,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
 
     assert_raise ActiveRecord::EagerLoadPolymorphicError do
-      tags(:general).taggings.includes(:taggable).where('bogus_table.column = 1').references(:bogus_table).to_a
+      tags(:general).taggings.eager_load(:taggable).to_a
     end
   end
 
@@ -682,6 +682,14 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
       assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
+    end
+  end
+
+  def test_always_preload_polymorphic_associations
+    assert_queries(2) do
+      tags = Tag.all.merge!(:includes => {:taggings => [:taggable, :super_tag]}, :where => ['taggings.super_tag_id != ?', 1]).references(:taggings).to_a
+      tags.first.taggings.first.taggable
+      tags.first.taggings.first.super_tag
     end
   end
 
