@@ -600,9 +600,12 @@ module ActiveRecord
     private
 
     def exec_queries
+      polymorphic_includes_values = extract_polymorphic_association(includes_values)
+      self.includes_values = extract_non_polymorphic_association(includes_values)
       @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
 
       preload = preload_values
+      preload += polymorphic_includes_values
       preload +=  includes_values unless eager_loading?
       preloader = ActiveRecord::Associations::Preloader.new
       preload.each do |associations|
@@ -613,6 +616,37 @@ module ActiveRecord
 
       @loaded = true
       @records
+    end
+
+    def fetch_associations(includes_associations, polymorphic_associations = false, parent = nil)
+      k = parent.try(:klass) || klass
+      asso = []
+      Array.wrap(includes_associations).each do |ia|
+        if Hash === ia
+          ia.each do |key, values|
+            if !k.reflections[key].options[:polymorphic]
+              nested_association = fetch_associations(values, polymorphic_associations, k.reflections[key])
+              asso << {key => (nested_association.one? ? nested_association.first : nested_association)} if !nested_association.empty?
+            else
+              asso << {key => values} if polymorphic_associations
+            end
+          end
+        else
+          if (k.reflections[ia.intern].nil? && !polymorphic_associations) ||
+            (k.reflections[ia.intern] && !!k.reflections[ia.intern].options[:polymorphic] == polymorphic_associations)
+            asso << ia
+          end
+        end
+      end
+      asso
+    end
+
+    def extract_polymorphic_association(includes_associations)
+      fetch_associations(includes_associations, true)
+    end
+
+    def extract_non_polymorphic_association(includes_associations)
+      fetch_associations(includes_associations)
     end
 
     def references_eager_loaded_tables?

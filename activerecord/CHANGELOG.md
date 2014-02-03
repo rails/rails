@@ -1,3 +1,13 @@
+*   Always preload included polymorphic associations, you can now include polymorphic associations
+    while using `eager_load` or `references` scope
+
+      Example:
+
+        Tag.includes(taggings: :taggable).where(taggings: {id: 1}).references(:taggings)
+        # Will no more raise an ActiveRecord::EagerLoadPolymorphicError
+
+    *Recca*
+
 *   PostgreSQL implementation of SchemaStatements#index_name_exists?
 
     The database agnostic implementation does not detect with indexes that are
