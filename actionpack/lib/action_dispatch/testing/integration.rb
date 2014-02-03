@@ -398,9 +398,9 @@ module ActionDispatch
       end
 
       private
-        def integration_session
-          @integration_session ||= nil
-        end
+
+        attr_reader :integration_session
+
     end
   end
 
