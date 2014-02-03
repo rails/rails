@@ -669,11 +669,14 @@ module ActiveRecord
     # and member posts that use the posts table for STI. In this case, there must be a +type+
     # column in the posts table.
     #
+    # Note: The <tt>attachable_type=</tt> method is being called when assigning an +attachable+.
+    # The +class_name+ of the +attachable+ is being passed as a String.
+    #
     #   class Asset < ActiveRecord::Base
     #     belongs_to :attachable, polymorphic: true
     #
-    #     def attachable_type=(klass)
-    #        super(klass.to_s.classify.constantize.base_class.to_s)
+    #     def attachable_type=(class_name)
+    #        super(class_name.constantize.base_class.to_s)
     #     end
     #   end
     #
