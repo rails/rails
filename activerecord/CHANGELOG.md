@@ -1,3 +1,10 @@
+*   Pass `has_and_belongs_to_many` `:autosave` option to
+    the underlying `has_many :through` association.
+
+    Fixes #13923.
+
+    *Yves Senn*
+
 *   PostgreSQL implementation of SchemaStatements#index_name_exists?
 
     The database agnostic implementation does not detect with indexes that are

@@ -1183,15 +1183,15 @@ module AutosaveAssociationOnACollectionAssociationTests
   end
 
   def test_should_default_invalid_error_from_i18n
-    I18n.backend.store_translations(:en, :activerecord => {:errors => { :models =>
-      { @association_name.to_s.singularize.to_sym => { :blank => "cannot be blank" } }
+    I18n.backend.store_translations(:en, activerecord: {errors: { models:
+      { @associated_model_name.to_s.to_sym => { blank: "cannot be blank" } }
     }})
 
-    @pirate.send(@association_name).build(:name => '')
+    @pirate.send(@association_name).build(name: '')
 
     assert !@pirate.valid?
     assert_equal ["cannot be blank"], @pirate.errors["#{@association_name}.name"]
-    assert_equal ["#{@association_name.to_s.titleize} name cannot be blank"], @pirate.errors.full_messages
+    assert_equal ["#{@association_name.to_s.humanize} name cannot be blank"], @pirate.errors.full_messages
     assert @pirate.errors[@association_name].empty?
   ensure
     I18n.backend = I18n::Backend::Simple.new
@@ -1307,6 +1307,7 @@ class TestAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
   def setup
     super
     @association_name = :birds
+    @associated_model_name = :bird
 
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @child_1 = @pirate.birds.create(:name => 'Posideons Killer')
@@ -1321,12 +1322,30 @@ class TestAutosaveAssociationOnAHasAndBelongsToManyAssociation < ActiveRecord::T
 
   def setup
     super
-    @association_name = :parrots
+    @association_name = :autosaved_parrots
+    @associated_model_name = :parrot
     @habtm = true
 
-    @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
-    @child_1 = @pirate.parrots.create(:name => 'Posideons Killer')
-    @child_2 = @pirate.parrots.create(:name => 'Killer bandita Dionne')
+    @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    @child_1 = @pirate.parrots.create(name: 'Posideons Killer')
+    @child_2 = @pirate.parrots.create(name: 'Killer bandita Dionne')
+  end
+
+  include AutosaveAssociationOnACollectionAssociationTests
+end
+
+class TestAutosaveAssociationOnAHasAndBelongsToManyAssociationWithAcceptsNestedAttributes < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false unless supports_savepoints?
+
+  def setup
+    super
+    @association_name = :parrots
+    @associated_model_name = :parrot
+    @habtm = true
+
+    @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    @child_1 = @pirate.parrots.create(name: 'Posideons Killer')
+    @child_2 = @pirate.parrots.create(name: 'Killer bandita Dionne')
   end
 
   include AutosaveAssociationOnACollectionAssociationTests
