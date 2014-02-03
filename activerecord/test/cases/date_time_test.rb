@@ -40,4 +40,18 @@ class DateTimeTest < ActiveRecord::TestCase
     topic.bonus_time = ''
     assert_nil topic.bonus_time
   end
+
+
+  def test_saves_time_in_utc
+    with_env_tz 'America/New_York' do
+      with_active_record_default_timezone :utc do
+        time_local = Time.local(2000,1,1,4,59,00)
+        topic = Topic.create(bonus_time: time_local)
+        saved_time = topic.reload.read_attribute(:bonus_time)
+        
+        #saved time returns in UTC, and time_local is in NY time, but both are equal
+        assert_equal saved_time, time_local
+      end
+    end
+  end
 end
