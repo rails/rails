@@ -452,7 +452,7 @@ module ActiveSupport
       # Clear the entire cache. Be careful with this method since it could
       # affect other processes if shared cache is being used.
       #
-      # Options are passed to the underlying cache implementation.
+      # The options hash is passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
       def clear(options = nil)
