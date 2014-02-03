@@ -84,20 +84,24 @@ Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
+TIP. A number of tools exist to help you quickly install Ruby and Ruby
+on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
+while Mac OS X users can use [Rails One Click](http://railsoneclick.com).
+
 ```bash
 $ ruby -v
 ruby 2.0.0p353
 ```
+
+If you don't have Ruby installed have a look at
+[ruby-lang.org](https://www.ruby-lang.org/en/downloads/) for possible ways to
+install Ruby on your platform.
 
 To install Rails, use the `gem install` command provided by RubyGems:
 
 ```bash
 $ gem install rails
 ```
-
-TIP. A number of tools exist to help you quickly install Ruby and Ruby
-on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
-while Mac OS X users can use [Rails One Click](http://railsoneclick.com).
 
 To verify that you have everything installed correctly, you should be able to
 run the following:
