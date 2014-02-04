@@ -111,7 +111,7 @@ module ActiveRecord
             records.each(&:destroy!)
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            if records == :all
+            if records == :all || !reflection.klass.primary_key
               scope = self.scope
             else
               scope = self.scope.where(reflection.klass.primary_key => records)
