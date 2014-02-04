@@ -1,3 +1,7 @@
+*   `#to_param` returns `nil` if `#to_key` returns `nil`. Fixes #11399.
+
+    *Yves Senn*
+
 *   Ability to specify multiple contexts when defining a validation.
 
     Example:

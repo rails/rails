@@ -24,6 +24,16 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal "1", Contact.new(id: 1).to_param
   end
 
+  test "to_param returns nil if to_key is nil" do
+    klass = Class.new(Contact) do
+      def persisted?
+        true
+      end
+    end
+
+    assert_nil klass.new.to_param
+  end
+
   test "to_partial_path default implementation returns a string giving a relative path" do
     assert_equal "contacts/contact", Contact.new.to_partial_path
     assert_equal "helicopters/helicopter", Helicopter.new.to_partial_path,
