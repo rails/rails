@@ -1,4 +1,13 @@
-*   PostgreSQL implementation of SchemaStatements#index_name_exists?
+*   Make sure transaction state gets reset after a commit operation on the record.
+
+    If a new transaction was open inside a callback, the record was loosing track
+    of the transaction level state, and it was leaking that state.
+
+    Fixes #12566.
+
+    *arthurnn*
+
+*   PostgreSQL implementation of `SchemaStatements#index_name_exists?`.
 
     The database agnostic implementation does not detect with indexes that are
     not supported by the ActiveRecord schema dumper. For example, expressions
