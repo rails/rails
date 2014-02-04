@@ -73,6 +73,10 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
                  payments.index_by { |p| p.price })
     assert_equal Enumerator, payments.index_by.class
+    if Enumerator.method_defined? :size
+      assert_equal nil, payments.index_by.size
+      assert_equal 42, (1..42).index_by.size
+    end
     assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
                  payments.index_by.each { |p| p.price })
   end

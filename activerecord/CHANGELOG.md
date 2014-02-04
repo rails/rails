@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-*   `find_in_batches`, `find_each` now
+*   `find_in_batches`, `find_each`, `Result#each` and `Enumerable#index_by` now
     return an `Enumerator` that can calculate its size.
-=======
-*   `find_in_batches`, `find_each`, `Result#each` now returns an `Enumerator`
-    that can calculate its size.
->>>>>>> 5863938... Return sized enumerator from Result#each
 
     See also #13938.
 
