@@ -1,3 +1,12 @@
+*   Make sure transaction state gets reset after a commit operation on the record.
+
+    If a new transaction was open inside a callback, the record was loosing track
+    of the transaction level state, and it was leaking that state.
+
+    Fixes #12566.
+
+    *arthurnn*
+
 *   Pass `has_and_belongs_to_many` `:autosave` option to
     the underlying `has_many :through` association.
 
