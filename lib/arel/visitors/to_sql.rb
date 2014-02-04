@@ -501,8 +501,13 @@ module Arel
       end
 
       def visit_Arel_Nodes_Assignment o, a
-        right = quote(o.right, column_for(o.left))
-        "#{visit o.left, a} = #{right}"
+        case o.right
+        when Arel::Nodes::UnqualifiedColumn, Arel::Attributes::Attribute
+          "#{visit o.left, a} = #{visit o.right, a}"
+        else
+          right = quote(o.right, column_for(o.left))
+          "#{visit o.left, a} = #{right}"
+        end
       end
 
       def visit_Arel_Nodes_Equality o, a
