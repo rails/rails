@@ -1105,7 +1105,11 @@ The `method: :patch` option tells Rails that we want this form to be submitted
 via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
-TIP: By default forms built with the _form_for_ helper are sent via `POST`.
+The first parameter of the `form_tag` can be an object, say, `@article` which would
+cause the helper to fill in the form with the fields of the object. Passing in a
+symbol (`:article`) with the same name as the instance variable (`@article`) also 
+automagically leads to the same behavior. This is what is happening here. More details 
+can be found in [form_for documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
 
 Next we need to create the `update` action in
 `app/controllers/articles_controller.rb`:
@@ -1376,7 +1380,9 @@ class CreateComments < ActiveRecord::Migration
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-      t.references :article, index: true
+
+      # this line adds an integer column called `article_id`.
+      t.references :article, index: true 
 
       t.timestamps
     end
