@@ -575,7 +575,9 @@ This helper validates that the attribute's value is unique right before the
 object gets saved. It does not create a uniqueness constraint in the database,
 so it may happen that two different database connections create two records
 with the same value for a column that you intend to be unique. To avoid that,
-you must create a unique index in your database.
+you must create a unique index on both columns in your database. See
+[the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html)
+for more details about multi column indexes.
 
 ```ruby
 class Account < ActiveRecord::Base
