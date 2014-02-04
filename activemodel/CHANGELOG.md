@@ -1,3 +1,7 @@
+*   `#to_param` returns `nil` if `#to_key` returns `nil`. Fixes #11399.
+
+    *Yves Senn*
+
 ## Rails 4.0.1 (November 01, 2013) ##
 
 *   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
