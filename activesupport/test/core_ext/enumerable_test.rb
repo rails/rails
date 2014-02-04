@@ -20,26 +20,6 @@ class EnumerableTests < ActiveSupport::TestCase
     end
   end
 
-  def test_group_by
-    names = %w(marcel sam david jeremy)
-    klass = Struct.new(:name)
-    objects = (1..50).map do
-      klass.new names.sample
-    end
-
-    enum = GenericEnumerable.new(objects)
-    grouped = enum.group_by { |object| object.name }
-
-    grouped.each do |name, group|
-      assert group.all? { |person| person.name == name }
-    end
-
-    assert_equal objects.uniq.map(&:name), grouped.keys
-    assert({}.merge(grouped), "Could not convert ActiveSupport::OrderedHash into Hash")
-    assert_equal Enumerator, enum.group_by.class
-    assert_equal grouped, enum.group_by.each(&:name)
-  end
-
   def test_sums
     enum = GenericEnumerable.new([5, 15, 10])
     assert_equal 30, enum.sum
