@@ -642,7 +642,7 @@ method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
 on the date of the migration.
 
-Note that running the `db:migrate` also invokes the `db:schema:dump` task, which
+Note that running the `db:migrate` task also invokes the `db:schema:dump` task, which
 will update your `db/schema.rb` file to match the structure of your database.
 
 If you specify a target version, Active Record will run the required migrations
