@@ -8,7 +8,6 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < ActiveSupport::TestCase
-  Enumerator = [].each.class
 
   class GenericEnumerable
     include Enumerable
