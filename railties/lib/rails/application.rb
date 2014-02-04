@@ -206,7 +206,7 @@ module Rails
           "action_dispatch.signed_cookie_salt" => config.action_dispatch.signed_cookie_salt,
           "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
           "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
-          "action_dispatch.session_serializer" => config.session_options[:serializer]
+          "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer
         })
       end
     end

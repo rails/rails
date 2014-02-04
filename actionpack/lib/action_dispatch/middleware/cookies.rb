@@ -89,7 +89,7 @@ module ActionDispatch
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
     SECRET_TOKEN = "action_dispatch.secret_token".freeze
     SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
-    SESSION_SERIALIZER = "action_dispatch.session_serializer".freeze
+    COOKIES_SERIALIZER = "action_dispatch.cookies_serializer".freeze
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -212,7 +212,7 @@ module ActionDispatch
           secret_token: env[SECRET_TOKEN],
           secret_key_base: env[SECRET_KEY_BASE],
           upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?,
-          session_serializer: env[SESSION_SERIALIZER]
+          serializer: env[COOKIES_SERIALIZER]
         }
       end
 
@@ -374,14 +374,40 @@ module ActionDispatch
       end
     end
 
+    class JsonSerializer
+      def self.load(value)
+        JSON.parse(value, quirks_mode: true)
+      end
+
+      def self.dump(value)
+        JSON.generate(value, quirks_mode: true)
+      end
+    end
+
+    module SerializedCookieJars
+      protected
+        def serializer
+          serializer = @options[:serializer] || :marshal
+          case serializer
+          when :marshal
+            Marshal
+          when :json
+            JsonSerializer
+          else
+            serializer
+          end
+        end
+    end
+
     class SignedCookieJar #:nodoc:
       include ChainedCookieJars
+      include SerializedCookieJars
 
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @options = options
         secret = key_generator.generate_key(@options[:signed_cookie_salt])
-        @verifier   = ActiveSupport::MessageVerifier.new(secret)
+        @verifier = ActiveSupport::MessageVerifier.new(secret, serializer: serializer)
       end
 
       def [](name)
@@ -426,6 +452,7 @@ module ActionDispatch
 
     class EncryptedCookieJar #:nodoc:
       include ChainedCookieJars
+      include SerializedCookieJars
 
       def initialize(parent_jar, key_generator, options = {})
         if ActiveSupport::LegacyKeyGenerator === key_generator
@@ -463,18 +490,6 @@ module ActionDispatch
           @encryptor.decrypt_and_verify(encrypted_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
           nil
-        end
-
-        def serializer
-          serializer = @options[:session_serializer] || :marshal
-          case serializer
-          when :marshal
-            ActionDispatch::Session::MarshalSerializer
-          when :json
-            ActionDispatch::Session::JsonSerializer
-          else
-            serializer
-          end
         end
     end
 

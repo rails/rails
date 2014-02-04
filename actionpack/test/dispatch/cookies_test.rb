@@ -379,28 +379,28 @@ class CookiesTest < ActionController::TestCase
     assert_equal 'bar', cookies.encrypted[:foo]
   end
 
-  class CustomJsonSerializer
+  class CustomSerializer
     def self.load(value)
-      JSON.load(value) + " and loaded"
+      value.to_s + " and loaded"
     end
 
     def self.dump(value)
-      JSON.dump(value + " was dumped")
+      value.to_s + " was dumped"
     end
   end
 
   def test_encrypted_cookie_using_serializer_object
-    @request.env["action_dispatch.session_serializer"] = CustomJsonSerializer
+    @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
     get :set_encrypted_cookie
     assert_equal 'bar was dumped and loaded', cookies.encrypted[:foo]
   end
 
   def test_encrypted_cookie_using_json_serializer
-    @request.env["action_dispatch.session_serializer"] = :json
+    @request.env["action_dispatch.cookies_serializer"] = :json
     get :set_encrypted_cookie
     cookies = @controller.send :cookies
     assert_not_equal 'bar', cookies[:foo]
-    assert_raises TypeError do
+    assert_raises ::JSON::ParserError do
       cookies.signed[:foo]
     end
     assert_equal 'bar', cookies.encrypted[:foo]

@@ -381,22 +381,6 @@ You can also pass a `:domain` key and specify the domain name for the cookie:
 YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-You can pass `:serializer` key to specify serializer for serializing session:
-
-```ruby
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: :json
-```
-
-The default serializer for new application is `:json`. For compatibility with
-old applications `:marshal` is used when `serializer` option is not specified.
-
-It is also possible to pass a custom serializer class with `load` and `dump`
-public methods defined:
-
-```ruby
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: MyCustomSerializer
-```
-
 Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`
 
 ```ruby
@@ -587,6 +571,33 @@ end
 ```
 
 Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
+
+Rails also provides a signed cookie jar and an encrypted cookie jar for storing
+sensitive data. The signed cookie jar appends a cryptographic signature on the
+cookie values to protect their integrity. The encrypted cookie jar encrypts the
+values in addition to signing them, so that they cannot be read by the end user.
+Refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+for more details.
+
+These special cookie jars use a serializer to serialize the assigned values into
+strings and deserializes them into Ruby objects on read.
+
+You can specify what serializer to use:
+
+```ruby
+YourApp::Application.config.cookies_serializer :json
+```
+
+The possible options are `:marshal` or `:json`. The default serializer for new
+applications is `:json`. For compatibility with old applications with existing
+cookies, `:marshal` is used when `serializer` option is not specified.
+
+It is also possible to pass a custom serializer class or object that responds
+to `load` and `dump`:
+
+```ruby
+YourApp::Application.config.cookies_serializer MyCustomSerializer
+```
 
 Rendering XML and JSON data
 ---------------------------
