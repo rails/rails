@@ -120,9 +120,9 @@ module ActiveRecord
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false this option is ignored.
       #
-      #   Also note that this just sets the primary key in the table. You additionally
-      #   need to configure the primary key in the model via +self.primary_key=+.
-      #   Models do NOT auto-detect the primary key from their table definition.
+      #   Note that Active Record models will automatically detect their
+      #   primary key. This can be avoided by using +self.primary_key=+ on the model
+      #   to define the key explicitly.
       #
       # [<tt>:options</tt>]
       #   Any extra options you want appended to the table definition.
