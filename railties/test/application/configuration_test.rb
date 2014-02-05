@@ -781,5 +781,22 @@ module ApplicationTests
       assert_not Rails.configuration.respond_to?(:method_missing)
       assert Rails.configuration.respond_to?(:method_missing, true)
     end
+
+    test "config.active_record.dump_schema_after_migration is false on production" do
+      build_app
+      ENV["RAILS_ENV"] = "production"
+
+      require "#{app_path}/config/environment"
+
+      assert_not ActiveRecord::Base.dump_schema_after_migration
+    end
+
+    test "config.active_record.dump_schema_after_migration is true by default on development" do
+      ENV["RAILS_ENV"] = "development"
+
+      require "#{app_path}/config/environment"
+
+      assert ActiveRecord::Base.dump_schema_after_migration
+    end
   end
 end
