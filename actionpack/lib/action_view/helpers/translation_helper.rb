@@ -38,10 +38,10 @@ module ActionView
 
         # If the user has specified rescue_format then pass it all through, otherwise use
         # raise and do the work ourselves
-        if options.key?(:raise) || options.key?(:rescue_format)
-          raise_error = options[:raise] || options[:rescue_format]
-        else
-          raise_error = false
+        options[:raise] ||= ActionView::Base.raise_on_missing_translations
+
+        raise_error = options[:raise] || options.key?(:rescue_format)
+        unless raise_error
           options[:raise] = true
         end
 

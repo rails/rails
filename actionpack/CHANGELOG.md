@@ -1,14 +1,9 @@
-*   Do not discard query parameters that form a hash with the same root key as
-    the `wrapper_key` for a request using `wrap_parameters`.
+*   Added `config.action_view.raise_on_missing_translations` to define whether
+    an error should be raised for missing translations.
 
-    *Josh Jordan*
+    Fixes #13196
 
-*   Ensure that `request.filtered_parameters` is reset between calls to `process`
-    in `ActionController::TestCase`.
-
-    Fixes #13803.
-
-    *Andrew White*
+    *Kassio Borges*
 
 *   Fix `rake routes` error when `Rails::Engine` with empty routes is mounted.
 
