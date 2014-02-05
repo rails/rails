@@ -54,7 +54,7 @@ module ActiveRecord
       if block_given?
         hash_rows.each { |row| yield row }
       else
-        hash_rows.to_enum
+        hash_rows.to_enum { @rows.size }
       end
     end
 

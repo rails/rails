@@ -1,3 +1,10 @@
+*   `find_in_batches`, `find_each`, `Result#each` and `Enumerable#index_by` now
+    return an `Enumerator` that can calculate its size.
+
+    See also #13938.
+
+    *Marc-André Lafortune*
+
 *   Make sure transaction state gets reset after a commit operation on the record.
 
     If a new transaction was open inside a callback, the record was loosing track
