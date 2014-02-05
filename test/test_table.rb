@@ -130,19 +130,19 @@ module Arel
     describe 'take' do
       it "should add a limit" do
         manager = @relation.take 1
-        manager.project SqlLiteral.new '*'
+        manager.project Nodes::SqlLiteral.new '*'
         manager.to_sql.must_be_like %{ SELECT * FROM "users" LIMIT 1 }
       end
     end
 
     describe 'project' do
       it 'can project' do
-        manager = @relation.project SqlLiteral.new '*'
+        manager = @relation.project Nodes::SqlLiteral.new '*'
         manager.to_sql.must_be_like %{ SELECT * FROM "users" }
       end
 
       it 'takes multiple parameters' do
-        manager = @relation.project SqlLiteral.new('*'), SqlLiteral.new('*')
+        manager = @relation.project Nodes::SqlLiteral.new('*'), Nodes::SqlLiteral.new('*')
         manager.to_sql.must_be_like %{ SELECT *, * FROM "users" }
       end
     end

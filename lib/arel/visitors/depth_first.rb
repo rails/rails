@@ -112,7 +112,6 @@ module Arel
       alias :visit_Arel_Nodes_SqlLiteral         :terminal
       alias :visit_Arel_Nodes_BindParam          :terminal
       alias :visit_Arel_Nodes_Window             :terminal
-      alias :visit_Arel_SqlLiteral               :terminal
       alias :visit_BigDecimal                    :terminal
       alias :visit_Bignum                        :terminal
       alias :visit_Class                         :terminal

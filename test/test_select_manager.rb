@@ -33,7 +33,7 @@ module Arel
         it 'accepts symbols' do
           table   = Table.new :users
           manager = Arel::SelectManager.new Table.engine
-          manager.project SqlLiteral.new '*'
+          manager.project Nodes::SqlLiteral.new '*'
           manager.from table
           manager.order :foo
           manager.to_sql.must_be_like %{ SELECT * FROM "users" ORDER BY foo }
@@ -224,7 +224,7 @@ module Arel
       it 'should create an exists clause' do
         table = Table.new(:users)
         manager = Arel::SelectManager.new Table.engine, table
-        manager.project SqlLiteral.new '*'
+        manager.project Nodes::SqlLiteral.new '*'
         m2 = Arel::SelectManager.new(manager.engine)
         m2.project manager.exists
         m2.to_sql.must_be_like %{ SELECT EXISTS (#{manager.to_sql}) }
@@ -233,7 +233,7 @@ module Arel
       it 'can be aliased' do
         table = Table.new(:users)
         manager = Arel::SelectManager.new Table.engine, table
-        manager.project SqlLiteral.new '*'
+        manager.project Nodes::SqlLiteral.new '*'
         m2 = Arel::SelectManager.new(manager.engine)
         m2.project manager.exists.as('foo')
         m2.to_sql.must_be_like %{ SELECT EXISTS (#{manager.to_sql}) AS foo }
@@ -413,7 +413,7 @@ module Arel
       it 'generates order clauses' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        manager.project SqlLiteral.new '*'
+        manager.project Nodes::SqlLiteral.new '*'
         manager.from table
         manager.order table[:id]
         manager.to_sql.must_be_like %{
@@ -425,7 +425,7 @@ module Arel
       it 'takes *args' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        manager.project SqlLiteral.new '*'
+        manager.project Nodes::SqlLiteral.new '*'
         manager.from table
         manager.order table[:id], table[:name]
         manager.to_sql.must_be_like %{
@@ -442,7 +442,7 @@ module Arel
       it 'has order attributes' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        manager.project SqlLiteral.new '*'
+        manager.project Nodes::SqlLiteral.new '*'
         manager.from table
         manager.order table[:id].desc
         manager.to_sql.must_be_like %{
@@ -453,7 +453,7 @@ module Arel
       it 'has order attributes for expressions' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
-        manager.project SqlLiteral.new '*'
+        manager.project Nodes::SqlLiteral.new '*'
         manager.from table
         manager.order table[:id].count.desc
         manager.to_sql.must_be_like %{
@@ -873,7 +873,7 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from table
         manager.take 1
-        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
+        stmt = manager.compile_update(Nodes::SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
         stmt.key = table['id']
 
         stmt.to_sql.must_be_like %{
@@ -887,7 +887,7 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from table
         manager.order :foo
-        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
+        stmt = manager.compile_update(Nodes::SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
         stmt.key = table['id']
 
         stmt.to_sql.must_be_like %{
@@ -900,7 +900,7 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
         manager.from table
-        stmt = manager.compile_update(SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
+        stmt = manager.compile_update(Nodes::SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
 
         stmt.to_sql.must_be_like %{ UPDATE "users" SET foo = bar }
       end

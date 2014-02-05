@@ -24,11 +24,6 @@ require 'arel/update_manager'
 require 'arel/delete_manager'
 require 'arel/nodes'
 
-
-#### these are deprecated
-require 'arel/sql_literal'
-####
-
 module Arel
   VERSION = '5.0.0'
 

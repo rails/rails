@@ -17,7 +17,7 @@ module Arel
       return if fields.empty?
 
       if String === fields
-        @ast.values = SqlLiteral.new(fields)
+        @ast.values = Nodes::SqlLiteral.new(fields)
       else
         @ast.relation ||= fields.first.first.relation
 
