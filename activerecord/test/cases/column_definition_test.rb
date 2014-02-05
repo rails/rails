@@ -82,7 +82,7 @@ module ActiveRecord
           assert_equal "", not_null_text_column.default
         end
 
-        def test_has_default_should_return_false_for_blog_and_test_data_types
+        def test_has_default_should_return_false_for_blob_and_text_data_types
           blob_column = MysqlAdapter::Column.new("title", nil, "blob")
           assert !blob_column.has_default?
 
@@ -116,7 +116,7 @@ module ActiveRecord
           assert_equal "", not_null_text_column.default
         end
 
-        def test_has_default_should_return_false_for_blog_and_test_data_types
+        def test_has_default_should_return_false_for_blob_and_text_data_types
           blob_column = Mysql2Adapter::Column.new("title", nil, "blob")
           assert !blob_column.has_default?
 
