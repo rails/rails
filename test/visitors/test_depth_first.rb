@@ -2,7 +2,7 @@ require 'helper'
 
 module Arel
   module Visitors
-    class TestDepthFirst < MiniTest::Unit::TestCase
+    class TestDepthFirst < Minitest::Test
       Collector = Struct.new(:calls) do
         def call object
           calls << object

@@ -2,7 +2,7 @@ require 'helper'
 
 module Arel
   module Visitors
-    class TestDot < MiniTest::Unit::TestCase
+    class TestDot < Minitest::Test
       def setup
         @visitor = Visitors::Dot.new
       end

@@ -2,7 +2,7 @@ require 'helper'
 
 module Arel
   module Nodes
-    class TestAscending < MiniTest::Unit::TestCase
+    class TestAscending < Minitest::Test
       def test_construct
         ascending = Ascending.new 'zomg'
         assert_equal 'zomg', ascending.expr

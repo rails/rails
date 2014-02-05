@@ -2,7 +2,7 @@ require 'helper'
 
 module Arel
   module Nodes
-    class TestNamedFunction < MiniTest::Unit::TestCase
+    class TestNamedFunction < Minitest::Test
       def test_construct
         function = NamedFunction.new 'omg', 'zomg'
         assert_equal 'omg', function.name

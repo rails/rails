@@ -5,7 +5,7 @@
 source "https://rubygems.org/"
 
 
-gem "minitest", "~>4.4", :group => [:development, :test]
+gem "minitest", "~>5.1", :group => [:development, :test]
 gem "rdoc", "~>4.0", :group => [:development, :test]
 gem "hoe", "~>3.5", :group => [:development, :test]
 
