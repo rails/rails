@@ -1,3 +1,11 @@
+*   Set `dump_schema_after_migration` config values in production and test
+
+    Set `config.active_record.dump_schema_after_migration` as false
+    in generated `config/environments/production.rb` and
+    `config/environments/test.rb` files.
+
+    *Emil Soman*
+
 *   Added Thor-action for creation of migrations.
 
     Fixes #13588 and #12674.

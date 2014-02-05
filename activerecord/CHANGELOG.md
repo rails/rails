@@ -1,3 +1,12 @@
+*   Add flag to disable schema dump after migration
+
+    Add a config on active_record named `dump_schema_after_migration`
+    which is true by default. Now schema dump does not happen at the
+    end of migration rake task if `dump_schema_after_migration` is set
+    to false.
+
+    *Emil Soman*
+
 *   Make sure transaction state gets reset after a commit operation on the record.
 
     If a new transaction was open inside a callback, the record was loosing track
