@@ -937,7 +937,6 @@ Here's a unit test to test a mailer named `UserMailer` whose action `invite` is 
 require 'test_helper'
 
 class UserMailerTest < ActionMailer::TestCase
-  # tests UserMailer
   test "invite" do
     # Send the email, then test that it got queued
     email = UserMailer.create_invite('me@example.com',
