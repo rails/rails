@@ -8,6 +8,13 @@
 
   * Fix serializing a relation when calling `to_yaml`
 
+=== 4.0.2 / 2014-02-05
+
+ * Bug Fixes
+
+  * Fix `SqlLiteral` YAML serialization
+  * PostgreSQL bugfix for invalid SQL in subqueries
+
 == 4.0.1 / 2013-10-22
 
 * Enhancements
