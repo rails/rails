@@ -194,6 +194,40 @@ module Arel
         @visitor.accept(test).must_be_like %{ "users"."bool" = 't' }
       end
 
+      describe "Nodes::Matches" do
+        it "should know how to visit" do
+          node = @table[:name].matches('foo%')
+          @visitor.accept(node).must_be_like %{
+            "users"."name" LIKE 'foo%'
+          }
+        end
+
+        it 'can handle subqueries' do
+          subquery = @table.project(:id).where(@table[:name].matches('foo%'))
+          node = @attr.in subquery
+          @visitor.accept(node).must_be_like %{
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" LIKE 'foo%')
+          }
+        end
+      end
+
+      describe "Nodes::DoesNotMatch" do
+        it "should know how to visit" do
+          node = @table[:name].does_not_match('foo%')
+          @visitor.accept(node).must_be_like %{
+            "users"."name" NOT LIKE 'foo%'
+          }
+        end
+
+        it 'can handle subqueries' do
+          subquery = @table.project(:id).where(@table[:name].does_not_match('foo%'))
+          node = @attr.in subquery
+          @visitor.accept(node).must_be_like %{
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" NOT LIKE 'foo%')
+          }
+        end
+      end
+
       describe "Nodes::Ordering" do
         it "should know how to visit" do
           node = @attr.desc
