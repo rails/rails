@@ -369,11 +369,6 @@ class CookiesTest < ActionController::TestCase
     assert_equal 'Jamie', @controller.send(:cookies).permanent[:user_name]
   end
 
-  def test_signed_cookie
-    get :set_signed_cookie
-    assert_equal 45, @controller.send(:cookies).signed[:user_id]
-  end
-
   def test_signed_cookie_using_default_serializer
     get :set_signed_cookie
     cookies = @controller.send :cookies
