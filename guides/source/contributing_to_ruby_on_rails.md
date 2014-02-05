@@ -201,7 +201,8 @@ If your comment simply says "+1", then odds are that other reviewers aren't goin
 Contributing to the Rails Documentation
 ---------------------------------------
 
-Ruby on Rails has two main sets of documentation: the guides help you in learning about Ruby on Rails, and the API is a reference.
+Ruby on Rails has two main sets of documentation: the guides, which help you
+learn about Ruby on Rails, and the API, which serves as a reference.
 
 You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
 
@@ -258,10 +259,10 @@ more if the source code is mounted in `/vagrant` as happens in the recommended
 workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
 
 As a compromise, test what your code obviously affects, and if the change is
-not in railties run the whole test suite of the affected component. If all is
-green that's enough to propose your contribution. We have [Travis CI](https://travis-ci.org/rails/rails)
-as a safety net for catching unexpected breakages
-elsewhere.
+not in railties, run the whole test suite of the affected component. If all
+tests are passing, that's enough to propose your contribution. We have
+[Travis CI](https://travis-ci.org/rails/rails) as a safety net for catching
+unexpected breakages elsewhere.
 
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
 
