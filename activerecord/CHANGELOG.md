@@ -1,9 +1,9 @@
-*   Add flag to disable schema dump after migration
+*   Add flag to disable schema dump after migration.
 
     Add a config on active_record named `dump_schema_after_migration`
-    which is true by default. Now schema dump does not happen at the
+    which is `true` by default. Now schema dump does not happen at the
     end of migration rake task if `dump_schema_after_migration` is set
-    to false.
+    to `false`.
 
     *Emil Soman*
 

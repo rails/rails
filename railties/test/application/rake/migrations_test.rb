@@ -184,7 +184,6 @@ module ApplicationTests
           assert_match(/create_table \"books\"/, structure_dump)
         end
       end
-
     end
   end
 end

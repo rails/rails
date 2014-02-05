@@ -79,8 +79,8 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Specify whether schema dump should happen at the end of
-      # db:migrate rake task. This is true by default, which is useful for
-      # development environment. This should ideally be false in production
+      # db:migrate rake task. This is +true+ by default, which is useful for
+      # development environment. This should ideally be +false+ in production
       # environment where dumping schema is rarely needed.
       mattr_accessor :dump_schema_after_migration, instance_writer: false
       self.dump_schema_after_migration = true
