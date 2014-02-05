@@ -258,8 +258,7 @@ more if the source code is mounted in `/vagrant` as happens in the recommended
 workflow with the [rails-dev-box](https://github.com/rails/rails-dev-box).
 
 As a compromise, test what your code obviously affects, and if the change is
-not in railties, run the whole test suite of the affected component. If all is
-green that's enough to propose your contribution. We have [Travis CI](https://travis-ci.org/rails/rails)
+not in railties, run the whole test suite of the affected component. If all tests are passing, that's enough to propose your contribution. We have [Travis CI](https://travis-ci.org/rails/rails)
 as a safety net for catching unexpected breakages
 elsewhere.
 
