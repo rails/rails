@@ -201,7 +201,7 @@ If your comment simply says "+1", then odds are that other reviewers aren't goin
 Contributing to the Rails Documentation
 ---------------------------------------
 
-Ruby on Rails has two main sets of documentation: the guides help you in learning about Ruby on Rails, and the API is a reference.
+Ruby on Rails has two main sets of documentation: the guides help you learn about Ruby on Rails, and the API serves as a reference.
 
 You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/rails/docrails/translating-rails-guides).
 
