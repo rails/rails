@@ -384,6 +384,18 @@ module ActionDispatch
       end
     end
 
+    class HybridSerializer < JsonSerializer
+      MARSHAL_SIGNATURE = "\x04\x08".freeze
+
+      def self.load(value)
+        if value.start_with?(MARSHAL_SIGNATURE)
+          Marshal.load(value)
+        else
+          super
+        end
+      end
+    end
+
     module SerializedCookieJars
       protected
         def serializer
@@ -393,6 +405,8 @@ module ActionDispatch
             Marshal
           when :json
             JsonSerializer
+          when :hybrid
+            HybridSerializer
           else
             serializer
           end
