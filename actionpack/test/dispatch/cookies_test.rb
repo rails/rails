@@ -11,6 +11,16 @@ require 'active_support/key_generator'
 require 'active_support/message_verifier'
 
 class CookiesTest < ActionController::TestCase
+  class CustomSerializer
+    def self.load(value)
+      value.to_s + " and loaded"
+    end
+
+    def self.dump(value)
+      value.to_s + " was dumped"
+    end
+  end
+
   class TestController < ActionController::Base
     def authenticate
       cookies["user_name"] = "david"
@@ -364,12 +374,53 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
   end
 
+  def test_signed_cookie_using_default_serializer
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_marshal_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :marshal
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_json_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_custom_serializer
+    @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
+    get :set_signed_cookie
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal '45 was dumped and loaded', cookies.signed[:user_id]
+  end
+
   def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
     assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
   end
 
-  def test_encrypted_cookie
+  def test_encrypted_cookie_using_default_serializer
+    get :set_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'bar', cookies[:foo]
+    assert_raise TypeError do
+      cookies.signed[:foo]
+    end
+    assert_equal 'bar', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_marshal_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :marshal
     get :set_encrypted_cookie
     cookies = @controller.send :cookies
     assert_not_equal 'bar', cookies[:foo]
@@ -377,22 +428,6 @@ class CookiesTest < ActionController::TestCase
       cookies.signed[:foo]
     end
     assert_equal 'bar', cookies.encrypted[:foo]
-  end
-
-  class CustomSerializer
-    def self.load(value)
-      value.to_s + " and loaded"
-    end
-
-    def self.dump(value)
-      value.to_s + " was dumped"
-    end
-  end
-
-  def test_encrypted_cookie_using_serializer_object
-    @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
-    get :set_encrypted_cookie
-    assert_equal 'bar was dumped and loaded', cookies.encrypted[:foo]
   end
 
   def test_encrypted_cookie_using_json_serializer
@@ -404,6 +439,13 @@ class CookiesTest < ActionController::TestCase
       cookies.signed[:foo]
     end
     assert_equal 'bar', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_custom_serializer
+    @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
+    get :set_encrypted_cookie
+    assert_not_equal 45, cookies.encrypted[:foo]
+    assert_equal 'bar was dumped and loaded', cookies.encrypted[:foo]
   end
 
   def test_accessing_nonexistant_encrypted_cookie_should_not_raise_invalid_message
