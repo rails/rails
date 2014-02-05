@@ -117,7 +117,7 @@ module ActiveSupport
       result.gsub!(/([a-z\d]*)/i) { |match|
         "#{inflections.acronyms[match] || match.downcase}"
       }
-      result.gsub!(/^\w/) { $&.upcase } if options.fetch(:capitalize, true)
+      result.gsub!(/^\w/) { |match| match.upcase } if options.fetch(:capitalize, true)
       result
     end
 
