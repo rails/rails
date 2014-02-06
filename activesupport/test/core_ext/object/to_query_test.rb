@@ -46,6 +46,15 @@ class ToQueryTest < ActiveSupport::TestCase
       :person => {:id => [20, 10]}
   end
 
+  def test_nested_empty_hash
+    assert_query_equal 'a=1&b%5Bc%5D=3&b%5Bd%5D=',
+      { a: 1, b: { c: 3, d: {} } }
+    assert_query_equal 'b%5Bc%5D=3&b%5Be%5D=&b%5Bf%5D=&p=12',
+      { p: 12, b: { c: 3, e: nil, f: '' } }
+    assert_query_equal 'b%5Bc%5D=3&b%5Bf%5D=&b%5Bk%5D=',
+      { b: { c: 3, k: {}, f: '' } }
+  end
+
   private
     def assert_query_equal(expected, actual)
       assert_equal expected.split('&'), actual.to_query.split('&')
