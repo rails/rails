@@ -12,7 +12,7 @@
 
     *Hincu Petru*
 
-*   Deprecate custom `BigDecimal` serialization
+*   Deprecate custom `BigDecimal` serialization.
 
     Deprecate the custom `BigDecimal` serialization that is included when requiring
     `active_support/all` as a fix for #12467. Let Ruby handle YAML serialization
@@ -76,7 +76,8 @@
 
     *Andrew White*
 
-*   Added `Hash#compact` and `Hash#compact!` for removing items with nil value from hash.
+*   Added `Hash#compact` and `Hash#compact!` for removing items with nil value
+    from hash.
 
     *Celestino Gomes*
 

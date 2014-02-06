@@ -59,14 +59,16 @@
     *Lauro Caetano*
 
 *   Fix regressions on `select_*` methods.
-    When `select_*` methods receive a `Relation` object, they should be able to get the arel/binds from it.
+    When `select_*` methods receive a `Relation` object, they should be able to
+    get the arel/binds from it.
     Also fix regressions on `select_rows` that was ignoring the binds.
 
     Fixes #7538, #12017, #13731, #12056.
 
     *arthurnn*
 
-*   Active Record objects can now be correctly dumped, loaded and dumped again without issues.
+*   Active Record objects can now be correctly dumped, loaded and dumped again
+    without issues.
 
     Previously, if you did `YAML.dump`, `YAML.load` and then `YAML.dump` again
     in an Active Record model that used serialization it would fail at the last
@@ -154,12 +156,14 @@
 
     *Rafael Mendonça França*
 
-*   `has_one` and `belongs_to` accessors don't add ORDER BY to the queries anymore.
+*   `has_one` and `belongs_to` accessors don't add ORDER BY to the queries
+    anymore.
 
-    Since Rails 4.0, we add an ORDER BY in the `first` method to ensure consistent results
-    among different database engines. But for singular associations this behavior is not needed
-    since we will have one record to return. As this ORDER BY option can lead some performance
-    issues we are removing it for singular associations accessors.
+    Since Rails 4.0, we add an ORDER BY in the `first` method to ensure
+    consistent results among different database engines. But for singular
+    associations this behavior is not needed since we will have one record to
+    return. As this ORDER BY option can lead some performance issues we are
+    removing it for singular associations accessors.
 
     Fixes #12623.
 
@@ -227,7 +231,7 @@
 
     *Harry Brundage*
 
-*   Enable partial indexes for sqlite >= 3.8.0
+*   Enable partial indexes for `sqlite >= 3.8.0`.
 
     See http://www.sqlite.org/partialindex.html
 
@@ -355,7 +359,7 @@
     This ensures that `change_table` and `create_table` will use
     similar objects.
 
-    Fixes #13577 and #13503.
+    Fixes #13577, #13503.
 
     *Nishant Modak*, *Prathamesh Sonpatki*, *Rafael Mendonça França*
 

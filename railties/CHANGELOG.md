@@ -1,6 +1,6 @@
 *   Added Thor-action for creation of migrations.
 
-    Fixes #13588 and #12674.
+    Fixes #13588, #12674.
 
     *Gert Goet*
 

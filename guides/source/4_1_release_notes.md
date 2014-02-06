@@ -175,6 +175,8 @@ conversation.active? # => false
 conversation.status  # => "archived"
 
 Conversation.archived # => Relation for all archived Conversations
+
+Conversation.statuses # => { "active" => 0, "archived" => 1 }
 ```
 
 See its
@@ -241,6 +243,7 @@ unless they use `xhr`. Upgrade your tests to be explicit about expecting
 XmlHttpRequests. Instead of `post :create, format: :js`, switch to the explicit
 `xhr :post, :create, format: :js`.
 
+
 Railties
 --------
 
@@ -278,7 +281,7 @@ for detailed changes.
 * Exposed `MiddlewareStack#unshift` to environment
   configuration. ([Pull Request](https://github.com/rails/rails/pull/12479))
 
-* Add `Application#message_verifier` method to return a message
+* Added `Application#message_verifier` method to return a message
   verifier. ([Pull Request](https://github.com/rails/rails/pull/12995))
 
 * The `test_help.rb` file which is required by the default generated test
@@ -287,6 +290,7 @@ for detailed changes.
   reloading the schema does not resolve all pending migrations. Opt out
   with `config.active_record.maintain_test_schema = false`. ([Pull
   Request](https://github.com/rails/rails/pull/13528))
+
 
 Action Pack
 -----------
@@ -335,6 +339,18 @@ for detailed changes.
 * Separated Action View completely from Action
   Pack. ([Pull Request](https://github.com/rails/rails/pull/11032))
 
+* Log which keys were affected by deep
+  munge. ([Pull Request](https://github.com/rails/rails/pull/13813))
+
+* New config option `config.action_dispatch.perform_deep_munge` to opt out of
+  params "deep munging" that was used to address security vulnerability
+  CVE-2013-0155. ([Pull Request](https://github.com/rails/rails/pull/13188))
+
+* Added `:serializer` option for `config.session_store :cookie_store`. This
+  changes default serializer when using
+  `:cookie_store`. ([Pull Request](https://github.com/rails/rails/pull/13692))
+
+
 Action Mailer
 -------------
 
@@ -344,8 +360,12 @@ for detailed changes.
 
 ### Notable changes
 
+* Added mailer previews feature based on 37 Signals mail_view
+  gem. ([Commit](https://github.com/rails/rails/commit/d6dec7fcb6b8fddf8c170182d4fe64ecfc7b2261))
+
 * Instrument the generation of Action Mailer messages. The time it takes to
   generate a message is written to the log. ([Pull Request](https://github.com/rails/rails/pull/12556))
+
 
 Active Record
 -------------
@@ -495,10 +515,31 @@ for detailed changes.
   object. Helper methods used by multiple fixtures should be defined on modules
   included in `ActiveRecord::FixtureSet.context_class`. ([Pull Request](https://github.com/rails/rails/pull/13022))
 
-* Don't create or drop the test database if RAILS_ENV is specified explicitly.
+* Don't create or drop the test database if RAILS_ENV is specified
+  explicitly. ([Pull Request](https://github.com/rails/rails/pull/13629))
 
 * `Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
   to an `Array` by calling `#to_a` before using these methods. ([Pull Request](https://github.com/rails/rails/pull/13314))
+
+* `find_in_batches`, `find_each`, `Result#each` and `Enumerable#index_by` now
+  return an `Enumerator` that can calculate its
+  size. ([Pull Request](https://github.com/rails/rails/pull/13938))
+
+* `scope` and `endum` now raise on "dangerous" name
+  conflicts. ([Pull Request](https://github.com/rails/rails/pull/13450))
+
+* `second` through `fifth` methods act like the `first`
+  finder. ([Pull Request](https://github.com/rails/rails/pull/13757))
+
+* Make `touch` fire the `after_commit` and `after_rollback`
+  callbacks. ([Pull Request](https://github.com/rails/rails/pull/12031))
+
+* Enable partial indexes for `sqlite >=
+  3.8.0`. ([Pull Request](https://github.com/rails/rails/pull/13350))
+
+* Make `change_column_null`
+  revertable. ([Commit](https://github.com/rails/rails/commit/724509a9d5322ff502aefa90dd282ba33a281a96))
+
 
 Active Model
 ------------
@@ -516,6 +557,13 @@ for detailed changes.
 
 * Added new API methods `reset_changes` and `changes_applied` to
   `ActiveModel::Dirty` that control changes state.
+
+* Ability to specify multiple contexts when defining a
+  validation. ([Pull Request](https://github.com/rails/rails/pull/13754))
+
+* `attribute_changed?` now accepts a hash to check if the attribute was changed
+  `:from` and/or `:to` a given
+  value. ([Pull Request](https://github.com/rails/rails/pull/13131))
 
 
 Active Support
@@ -570,6 +618,9 @@ for detailed changes.
 * Remove deprecated `#filter` method for filter objects, use the corresponding
   method instead (e.g. `#before` for a before filter).
 
+* Removed 'cow' => 'kine' irregular inflection from default
+  inflections. ([Commit](https://github.com/rails/rails/commit/c300dca9963bda78b8f358dbcb59cabcdc5e1dc9))
+
 ### Deprecations
 
 * Deprecated `Numeric#{ago,until,since,from_now}`, the user is expected to
@@ -590,6 +641,9 @@ for detailed changes.
   gem.
   ([Pull Request](https://github.com/rails/rails/pull/13060) /
   [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
+
+* Deprecate custom `BigDecimal`
+  serialization. ([Pull Request](https://github.com/rails/rails/pull/13911))
 
 ### Notable changes
 
@@ -620,11 +674,30 @@ for detailed changes.
   `at_middle_of_day` as
   aliases. ([Pull Request](https://github.com/rails/rails/pull/10879))
 
+* Added `Date#all_week/month/quarter/year` for generating date
+  ranges. ([Pull Request](https://github.com/rails/rails/pull/9685))
+
+* Added `Time.zone.yesterday` and
+  `Time.zone.tomorrow`. ([Pull Request](https://github.com/rails/rails/pull/12822))
+
 * Added `String#remove(pattern)` as a short-hand for the common pattern of
   `String#gsub(pattern,'')`. ([Commit](https://github.com/rails/rails/commit/5da23a3f921f0a4a3139495d2779ab0d3bd4cb5f))
 
-* Removed 'cow' => 'kine' irregular inflection from default
-  inflections. ([Commit](https://github.com/rails/rails/commit/c300dca9963bda78b8f358dbcb59cabcdc5e1dc9))
+* Added `Hash#compact` and `Hash#compact!` for removing items with nil value
+  from hash. ([Pull Request](https://github.com/rails/rails/pull/13632))
+
+* `blank?` and `present?` commit to return
+  singletons. ([Commit](https://github.com/rails/rails/commit/126dc47665c65cd129967cbd8a5926dddd0aa514))
+
+* Default the new `I18n.enforce_available_locales` config to `true`, meaning
+  `I18n` will make sure that all locales passed to it must be declared in the
+  `available_locales`
+  list. ([Pull Request](https://github.com/rails/rails/commit/8e21ae37ad9fef6b7393a84f9b5f2e18a831e49a))
+
+* Introduce Module#concerning: a natural, low-ceremony way to separate
+  responsibilities within a
+  class. ([Commit](https://github.com/rails/rails/commit/1eee0ca6de975b42524105a59e0521d18b38ab81))
+
 
 Credits
 -------

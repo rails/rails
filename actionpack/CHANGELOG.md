@@ -91,7 +91,7 @@
 
     *Andrew White*
 
-*   Show full route constraints in error message
+*   Show full route constraints in error message.
 
     When an optimized helper fails to generate, show the full route constraints
     in the error message. Previously it would only show the contraints that were
