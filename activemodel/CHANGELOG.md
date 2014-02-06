@@ -1,3 +1,7 @@
+*   `::translate` for lazy translations.
+
+    *Max Melentiev*
+
 *   `#to_param` returns `nil` if `#to_key` returns `nil`. Fixes #11399.
 
     *Yves Senn*
