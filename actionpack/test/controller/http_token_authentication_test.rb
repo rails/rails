@@ -60,6 +60,13 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
       assert_response :success
       assert_equal 'Only for loooooong credentials', @response.body, "Authentication failed for request header #{header} and long credentials"
     end
+    test "successful authentication with #{header.downcase} including unquoted values" do
+      @request.env[header] = %{Token token=lifo, algorithm=test}
+      get :index
+
+      assert_response :success
+      assert_equal 'Hello Secret', @response.body, "Authentication failed for request header #{header}"
+    end
   end
 
   AUTH_HEADERS.each do |header|
