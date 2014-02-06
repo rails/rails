@@ -525,8 +525,9 @@ for detailed changes.
   return an `Enumerator` that can calculate its
   size. ([Pull Request](https://github.com/rails/rails/pull/13938))
 
-* `scope` and `endum` now raise on "dangerous" name
-  conflicts. ([Pull Request](https://github.com/rails/rails/pull/13450))
+* `scope`, `enum` and Associations now raise on "dangerous" name
+  conflicts. ([Pull Request](https://github.com/rails/rails/pull/13450),
+  [Pull Request](https://github.com/rails/rails/pull/13896))
 
 * `second` through `fifth` methods act like the `first`
   finder. ([Pull Request](https://github.com/rails/rails/pull/13757))
