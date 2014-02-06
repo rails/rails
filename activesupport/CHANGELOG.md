@@ -1,3 +1,17 @@
+*   Fix `to_param` behavior when there are nested empty hashes.
+
+    Before:
+
+        params = {c: 3, d: {}}.to_param # => "&c=3"
+
+    After:
+
+        params = {c: 3, d: {}}.to_param # => "c=3&d="
+
+    Fixes #13892.
+
+    *Hincu Petru*
+
 *   Deprecate custom `BigDecimal` serialization
 
     Deprecate the custom `BigDecimal` serialization that is included when requiring
