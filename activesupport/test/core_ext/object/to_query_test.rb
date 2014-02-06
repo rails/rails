@@ -55,6 +55,8 @@ class ToQueryTest < ActiveSupport::TestCase
       { p: 12, b: { c: false, e: nil, f: '' } }
     assert_query_equal 'b%5Bc%5D=3&b%5Bf%5D=&b%5Bk%5D=',
       { b: { c: 3, k: {}, f: '' } }
+    assert_query_equal 'a%5B%5D=&b=3',
+      {a: [], b: 3}
   end
 
   private
