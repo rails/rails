@@ -34,7 +34,7 @@ db_namespace = namespace :db do
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
       ENV["SCOPE"].blank? || (ENV["SCOPE"] == migration.scope)
     end
-    db_namespace['_dump'].invoke
+    db_namespace['_dump'].invoke if ActiveRecord::Base.dump_schema_after_migration
   end
 
   task :_dump do

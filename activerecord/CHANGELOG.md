@@ -1,3 +1,11 @@
+*   Add flag to disable schema dump after migration.
+
+    Add a config parameter on Active Record named `dump_schema_after_migration`
+    which is true by default. Now schema dump does not happen at the
+    end of migration rake task if `dump_schema_after_migration` is false.
+
+    *Emil Soman*
+
 *   `find_in_batches`, `find_each`, `Result#each` and `Enumerable#index_by` now
     return an `Enumerator` that can calculate its size.
 

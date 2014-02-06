@@ -76,6 +76,15 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
+      ##
+      # :singleton-method:
+      # Specify whether schema dump should happen at the end of the
+      # db:migrate rake task. This is true by default, which is useful for the
+      # development environment. This should ideally be false in the production
+      # environment where dumping schema is rarely needed.
+      mattr_accessor :dump_schema_after_migration, instance_writer: false
+      self.dump_schema_after_migration = true
+
       # :nodoc:
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
