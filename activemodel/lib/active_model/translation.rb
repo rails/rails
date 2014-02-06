@@ -1,5 +1,4 @@
 module ActiveModel
-
   # == Active \Model \Translation
   #
   # Provides integration between your object and the Rails internationalization
@@ -31,7 +30,7 @@ module ActiveModel
     # ActiveModel::Errors#full_messages and
     # ActiveModel::Translation#human_attribute_name.
     def lookup_ancestors
-      self.ancestors.select { |x| x.respond_to?(:model_name) }
+      ancestors.select { |x| x.respond_to?(:model_name) }
     end
 
     # Transforms attribute names into a more human format, such as "First name"
@@ -45,7 +44,7 @@ module ActiveModel
       parts     = attribute.to_s.split(".")
       attribute = parts.pop
       namespace = parts.join("/") unless parts.empty?
-      attributes_scope = "#{self.i18n_scope}.attributes"
+      attributes_scope = "#{i18n_scope}.attributes"
 
       if namespace
         defaults = lookup_ancestors.map do |klass|
@@ -65,5 +64,25 @@ module ActiveModel
       options[:default] = defaults
       I18n.translate(defaults.shift, options)
     end
+
+    # Delegates to <tt>I18n#translate</tt> but also performs scoping if key
+    # starts with a period. So if you call <tt>translate(".foo")</tt>
+    # translation will be searched in <tt>I18N_SCOPE.strings.MODEL.foo</tt>
+    # then the same key for all the ancestors and finally in <tt>strings.foo</tt>.
+    def translate(key, options = {})
+      return I18n.translate(key, options) unless key.to_s.first == '.'
+
+      strings_scope = "#{i18n_scope}.strings"
+
+      defaults = lookup_ancestors.map do |klass|
+        :"#{strings_scope}.#{klass.model_name.i18n_key}#{key}"
+      end
+      defaults << :"strings#{key}"
+      defaults << options.delete(:default) if options[:default]
+
+      options[:default] = defaults
+      I18n.translate(defaults.shift, options)
+    end
+    alias :t :translate
   end
 end
