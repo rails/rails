@@ -1,3 +1,8 @@
+*   Properly require `action_view` in `AbstractController::Rendering` to prevent
+    uninitialized constant error for `ENCODING_FLAG`.
+
+    *Philipe Fatio*
+
 *   Do not discard query parameters that form a hash with the same root key as
     the `wrapper_key` for a request using `wrap_parameters`.
 
