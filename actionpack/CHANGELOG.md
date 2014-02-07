@@ -1,3 +1,11 @@
+*   Introduce `render :plain` as an option to render content with a content type
+    of `text/plain`. This is the preferred option if you are planning to render
+    a plain text content.
+
+    Please see #12374 for more detail.
+
+    *Prem Sichanugrist*
+
 *   Introduce `render :body` as an option for sending a raw content back to
     browser. Note that this rendering option will unset the default content type
     and does not include "Content-Type" header back in the response.

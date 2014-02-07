@@ -27,7 +27,7 @@ module ActionController
     end
 
     def render_to_body(options = {})
-      super || options[:body].presence || options[:text].presence || ' '
+      super || options[:body].presence || options[:text].presence || options[:plain].presence || ' '
     end
 
     private
@@ -39,6 +39,10 @@ module ActionController
       if options[:body].present?
         self.content_type = "none"
         self.headers.delete "Content-Type"
+      end
+
+      if options[:plain].present?
+        self.content_type = Mime::TEXT
       end
     end
 
@@ -59,7 +63,11 @@ module ActionController
         options[:text] = options[:text].to_text
       end
 
-      if options.delete(:nothing) || (options.key?(:body) && options[:body].nil?) || (options.key?(:text) && options[:text].nil?)
+      if options.key?(:plain) && options[:plain].respond_to?(:to_text)
+        options[:plain] = options[:plain].to_text
+      end
+
+      if options.delete(:nothing) || (options.key?(:body) && options[:body].nil?) || (options.key?(:text) && options[:text].nil?) || (options.key?(:plain) && options[:plain].nil?)
         options[:body] = " "
       end
 
