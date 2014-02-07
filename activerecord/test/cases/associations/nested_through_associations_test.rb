@@ -17,6 +17,7 @@ require 'models/member_detail'
 require 'models/member_type'
 require 'models/sponsor'
 require 'models/club'
+require 'models/hotel'
 require 'models/organization'
 require 'models/category'
 require 'models/categorization'
@@ -564,6 +565,17 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert !c.post_taggings.empty?
     c.save
     assert !c.post_taggings.empty?
+  end
+
+  def test_polymorphic_join_table_used_multiple_times_in_query
+    club = clubs(:moustache_club)
+    author = authors(:david)
+    hotel = Hotel.create
+    club.sponsored_authors << author
+    club.sponsored_hotels << hotel
+
+    assert_equal 1, Club.with_sponsored_author_and_hotel(author, hotel).count
+    assert_equal 1, author.sponsor_clubs.with_sponsored_hotel(hotel).count
   end
 
   private
