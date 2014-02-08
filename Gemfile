@@ -7,6 +7,7 @@ gemspec
 # ensure correct loading order
 gem 'mocha', '~> 0.14', require: false
 
+gem 'rack', github: 'rack/rack'
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks'

@@ -200,10 +200,12 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
-           GemfileEntry.github('arel', 'rails/arel')]
+           GemfileEntry.github('arel', 'rails/arel'),
+           GemfileEntry.github('rack', 'rack/rack')]
         elsif options.edge?
           [GemfileEntry.github('rails', 'rails/rails'),
-           GemfileEntry.github('arel', 'rails/arel')]
+           GemfileEntry.github('arel', 'rails/arel'),
+           GemfileEntry.github('rack', 'rack/rack')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,

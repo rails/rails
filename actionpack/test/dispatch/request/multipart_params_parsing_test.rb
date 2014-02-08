@@ -8,7 +8,11 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
 
     def parse
-      self.class.last_request_parameters = request.request_parameters
+      self.class.last_request_parameters = begin
+        request.request_parameters
+      rescue EOFError
+        {}
+      end
       self.class.last_parameters = request.parameters
       head :ok
     end
