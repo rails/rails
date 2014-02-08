@@ -446,11 +446,34 @@ class DirtyTest < ActiveRecord::TestCase
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
+      assert topic.changed?
       topic.save!
       assert_equal "b", topic.content[:b]
       topic.reload
       assert_equal "b", topic.content[:b]
+    end
+  end
+
+  def test_changed_should_check_serialized_attributes
+    with_partial_writes(Topic) do
+      topic = Topic.create!
+      assert !topic.changed?
+      topic.content = {a: "a"}
+      assert topic.changed?
+      topic.content[:b] = "b"
+      assert topic.changed?
+      topic.save!
+      assert_equal "b", topic.content[:b]
+      assert !topic.changed?
+      topic.reload
+      assert_equal "b", topic.content[:b]
+      assert !topic.changed?
+      topic.content['b'] = "c"
+      assert topic.changed?
+      topic.save
+      assert !topic.changed?
+      topic.content = nil
+      assert topic.changed?
     end
   end
 

@@ -139,6 +139,23 @@ module ActiveRecord
           end
         end
 
+        def read_attribute(attr)
+          if serialized_attribute?(attr)
+            super.tap do |value|
+              unless original_serialized_attributes.has_key?(attr.to_s)
+                clone_value = value.duplicable? ? value.clone : value
+                original_serialized_attributes[attr.to_s] = clone_value
+              end
+            end
+          else
+            super
+          end
+        end
+
+        def changed_attributes
+          super.reverse_merge!(changed_serialized_attributes)
+        end
+
         def read_attribute_before_type_cast(attr_name)
           if serialized_attribute?(attr_name)
             super.unserialized_value
@@ -179,6 +196,36 @@ module ActiveRecord
 
         def serialized_attribute?(attr_name)
           self.class.serialized_attributes.include?(attr_name)
+        end
+
+        def reset_changes
+          super
+          reset_original_serialized_attributes
+        end
+
+        def changes_applied
+          super
+          reset_original_serialized_attributes
+        end
+
+        def changed_serialized_attributes
+          original_serialized_attributes.inject({}) do |changed_hash, (attr, value)|
+            if self.read_attribute(attr) != value
+              changed_hash[attr] = value
+            end
+            changed_hash
+          end
+        end
+
+        #Cannot use HashWithIndifferentAccess because deep comparison
+        #of hashes in dirty check needs to tell difference between
+        #String and Symbol
+        def original_serialized_attributes
+          @original_serialized_attributes ||= {}
+        end
+
+        def reset_original_serialized_attributes
+          @original_serialized_attributes = {}
         end
       end
     end
