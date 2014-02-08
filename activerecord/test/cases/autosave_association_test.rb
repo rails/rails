@@ -17,6 +17,8 @@ require 'models/tag'
 require 'models/tagging'
 require 'models/treasure'
 require 'models/eye'
+require 'models/electron'
+require 'models/molecule'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
@@ -340,6 +342,33 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     auditlog.developer_id = valid_developer.id
 
     assert auditlog.valid?
+  end
+end
+
+class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttributes < ActiveRecord::TestCase
+  def test_invalid_adding_with_nested_attributes
+    molecule = Molecule.new
+    valid_electron = Electron.new(name: 'electron')
+    invalid_electron = Electron.new
+
+    molecule.electrons = [valid_electron, invalid_electron]
+    molecule.save
+
+    assert_not invalid_electron.valid?
+    assert valid_electron.valid?
+    assert_not molecule.persisted?, 'Molecule should not be persisted when its electrons are invalid'
+  end
+
+  def test_valid_adding_with_nested_attributes
+    molecule = Molecule.new
+    valid_electron = Electron.new(name: 'electron')
+
+    molecule.electrons = [valid_electron]
+    molecule.save
+
+    assert valid_electron.valid?
+    assert molecule.persisted?
+    assert_equal 1, molecule.electrons.count
   end
 end
 
