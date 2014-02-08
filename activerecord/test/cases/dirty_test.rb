@@ -477,17 +477,22 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
+  def test_save_should_update_timestamps_with_partial_writes_only_when_serialized_attributes_change
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.save!
 
-      updated_at = topic.updated_at
+      updated_at = 1.month.ago
+      topic.update_column(:updated_at, updated_at)
       topic.content[:hello] = 'world'
       topic.save!
 
       assert_not_equal updated_at, topic.updated_at
       assert_equal 'world', topic.content[:hello]
+
+      topic.update_column(:updated_at, updated_at)
+      topic.save!
+      assert_equal updated_at, topic.updated_at
     end
   end
 
