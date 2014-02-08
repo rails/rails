@@ -493,7 +493,7 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, cookies.encrypted[:user_id]
   end
 
-  def test_encrypted_cookie_using_hybrid_serializer_can_read_from_marshal_json_value
+  def test_encrypted_cookie_using_hybrid_serializer_can_read_from_json_dumped_value
     @request.env["action_dispatch.cookies_serializer"] = :hybrid
 
     key_generator = @request.env["action_dispatch.key_generator"]
