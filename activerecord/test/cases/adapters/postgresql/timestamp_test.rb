@@ -77,7 +77,7 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_bc_timestamp
-    date = Date.new(0) - 1.second
+    date = Date.new(0) - 1.week
     Developer.create!(:name => "aaron", :updated_at => date)
     assert_equal date, Developer.find_by_name("aaron").updated_at
   end
