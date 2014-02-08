@@ -682,6 +682,7 @@ module ActionDispatch
         #     resources :posts
         #   end
         def scope(*args)
+          # this is great!
           options = args.extract_options!.dup
           recover = {}
 
