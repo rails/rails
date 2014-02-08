@@ -132,7 +132,7 @@ module ActiveRecord
         end
 
         def _field_changed?(attr, old, value)
-          if self.class.serialized_attributes.include?(attr)
+          if serialized_attribute?(attr)
             old != value
           else
             super
@@ -140,7 +140,7 @@ module ActiveRecord
         end
 
         def read_attribute_before_type_cast(attr_name)
-          if self.class.serialized_attributes.include?(attr_name)
+          if serialized_attribute?(attr_name)
             super.unserialized_value
           else
             super
@@ -158,7 +158,7 @@ module ActiveRecord
         end
 
         def typecasted_attribute_value(name)
-          if self.class.serialized_attributes.include?(name)
+          if serialized_attribute?(name)
             @attributes[name].serialized_value
           else
             super
@@ -167,12 +167,18 @@ module ActiveRecord
 
         def attributes_for_coder
           attribute_names.each_with_object({}) do |name, attrs|
-            attrs[name] = if self.class.serialized_attributes.include?(name)
+            attrs[name] = if serialized_attribute?(name)
                             @attributes[name].serialized_value
                           else
                             read_attribute(name)
                           end
           end
+        end
+
+        private
+
+        def serialized_attribute?(attr_name)
+          self.class.serialized_attributes.include?(attr_name)
         end
       end
     end
