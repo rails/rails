@@ -24,7 +24,7 @@ module ActionDispatch
   #   cookies[:user_name] = "david"
   #
   #   # Cookie values are String based. Other data types need to be serialized.
-  #   cookies[:lat_lon] = JSON.dump([47.68, -122.37])
+  #   cookies[:lat_lon] = JSON.generate([47.68, -122.37])
   #
   #   # Sets a cookie that expires in 1 hour.
   #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
@@ -42,10 +42,10 @@ module ActionDispatch
   #
   # Examples of reading:
   #
-  #   cookies[:user_name]          # => "david"
-  #   cookies.size                 # => 2
-  #   JSON.load(cookies[:lat_lon]) # => [47.68, -122.37]
-  #   cookies.signed[:login]       # => "XJ-122"
+  #   cookies[:user_name]           # => "david"
+  #   cookies.size                  # => 2
+  #   JSON.parse(cookies[:lat_lon]) # => [47.68, -122.37]
+  #   cookies.signed[:login]        # => "XJ-122"
   #
   # Example for deleting:
   #
