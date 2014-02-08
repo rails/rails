@@ -665,6 +665,14 @@ module ActiveSupport #:nodoc:
       constants = normalized.split('::')
       to_remove = constants.pop
 
+      # Remove the file path from the loaded list.
+      file_path = search_for_file(const.underscore)
+      if file_path
+        expanded = File.expand_path(file_path)
+        expanded.sub!(/\.rb\z/, '')
+        self.loaded.delete(expanded)
+      end
+
       if constants.empty?
         parent = Object
       else
