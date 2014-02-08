@@ -92,7 +92,14 @@ module Arel
         assert_equal 'omg(*, *)', @visitor.accept(function)
       end
 
-      describe 'equality' do
+      describe 'Nodes::Equality' do
+        it "should escape strings" do
+          test = Table.new(:users)[:name].eq 'Aaron Patterson'
+          @visitor.accept(test).must_be_like %{
+            "users"."name" = 'Aaron Patterson'
+          }
+        end
+
         it 'should handle false' do
           sql = @visitor.accept Nodes::Equality.new(false, false)
           sql.must_be_like %{ 'f' = 'f' }
@@ -102,6 +109,23 @@ module Arel
           table = Table.new(:users)
           sql = @visitor.accept Nodes::Equality.new(table[:id], '1-fooo')
           sql.must_be_like %{ "users"."id" = 1 }
+        end
+
+        it 'should handle nil' do
+          sql = @visitor.accept Nodes::Equality.new(@table[:name], nil)
+          sql.must_be_like %{ "users"."name" IS NULL }
+        end
+      end
+
+      describe 'Nodes::NotEqual' do
+        it 'should handle false' do
+          sql = @visitor.accept Nodes::NotEqual.new(@table[:active], false)
+          sql.must_be_like %{ "users"."active" != 'f' }
+        end
+
+        it 'should handle nil' do
+          sql = @visitor.accept Nodes::NotEqual.new(@table[:name], nil)
+          sql.must_be_like %{ "users"."name" IS NOT NULL }
         end
       end
 
@@ -409,15 +433,6 @@ module Arel
             x.name == 'name'
           }
           visitor.accept(in_node).must_equal %("users"."name" NOT IN ('a', 'b', 'c'))
-        end
-      end
-
-      describe 'Equality' do
-        it "should escape strings" do
-          test = Table.new(:users)[:name].eq 'Aaron Patterson'
-          @visitor.accept(test).must_be_like %{
-            "users"."name" = 'Aaron Patterson'
-          }
         end
       end
 
