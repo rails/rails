@@ -30,8 +30,8 @@ module ActionDispatch
   #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
-  #   # The cookie is signed by your app's <tt>secrets.secret_key_base</tt> value.
-  #   # It can be read using the signed method <tt>cookies.signed[:name]</tt>
+  #   # The cookie is signed by your app's `secrets.secret_key_base` value.
+  #   # It can be read using the signed method `cookies.signed[:name]`
   #   cookies.signed[:user_id] = current_user.id
   #
   #   # Sets a "permanent" cookie (which expires in 20 years from now).
