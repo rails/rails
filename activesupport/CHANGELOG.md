@@ -1,3 +1,9 @@
+*   Fix general singularization rule for words ending in "aves"
+
+    For example "waves" => "wave", "caves" => "cave", "slaves" => "slave".
+
+    *Tom Wey*
+
 *   Fix `to_param` behavior when there are nested empty hashes.
 
     Before:

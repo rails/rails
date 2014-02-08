@@ -30,6 +30,10 @@ module InflectorTestCases
     "safe"        => "saves",
     "half"        => "halves",
 
+    "wave"        => "waves",
+    "cave"        => "caves",
+    "slave"       => "slaves",
+
     "move"        => "moves",
 
     "salesperson" => "salespeople",

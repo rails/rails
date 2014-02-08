@@ -31,6 +31,7 @@ module ActiveSupport
     inflect.singular(/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, '\1sis')
     inflect.singular(/(^analy)(sis|ses)$/i, '\1sis')
     inflect.singular(/([^f])ves$/i, '\1fe')
+    inflect.singular(/([^s]ave)s$/i, '\1')
     inflect.singular(/(hive)s$/i, '\1')
     inflect.singular(/(tive)s$/i, '\1')
     inflect.singular(/([lr])ves$/i, '\1f')
