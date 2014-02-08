@@ -18,7 +18,18 @@ module ActiveRecord
       def create_migration_file
         return unless options[:migration] && options[:parent].nil?
         attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false
-        migration_template "../../migration/templates/create_table_migration.rb", "db/migrate/create_#{table_name}.rb"
+        ensure_migration_source_paths
+        migration_template "create_table_migration.rb", "db/migrate/create_#{table_name}.rb"
+      end
+
+      def ensure_migration_source_paths
+        return if @migration_source_paths_added
+        Rails::Generators.templates_path.each do |path|
+          source_paths << File.join(path, self.class.base_name, "migration")
+        end
+        path = File.expand_path(File.join(self.class.base_name, "migration", "templates"), self.class.base_root)
+        source_paths << path
+        @migration_source_paths_added = true
       end
 
       def create_model_file
