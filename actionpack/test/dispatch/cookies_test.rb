@@ -399,6 +399,38 @@ class CookiesTest < ActionController::TestCase
     assert_equal '45 was dumped and loaded', cookies.signed[:user_id]
   end
 
+  def test_signed_cookie_using_hybrid_serializer_can_read_from_marshal_dumped_value
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    signed_cookie_salt = @request.env["action_dispatch.signed_cookie_salt"]
+    secret = key_generator.generate_key(signed_cookie_salt)
+    legacy_value = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal).generate(45)
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+
+    get :get_signed_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_hybrid_serializer_can_read_from_json_dumped_value
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    signed_cookie_salt = @request.env["action_dispatch.signed_cookie_salt"]
+    secret = key_generator.generate_key(signed_cookie_salt)
+    legacy_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+
+    get :get_signed_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
   def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
     assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
@@ -441,6 +473,42 @@ class CookiesTest < ActionController::TestCase
     get :set_encrypted_cookie
     assert_not_equal 45, cookies.encrypted[:foo]
     assert_equal 'bar was dumped and loaded', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_hybrid_serializer_can_read_from_marshal_dumped_value
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt)
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    legacy_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: Marshal).encrypt_and_sign(45)
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.encrypted[:user_id]
+  end
+
+  def test_encrypted_cookie_using_hybrid_serializer_can_read_from_marshal_json_value
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt)
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    legacy_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON).encrypt_and_sign(45)
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.encrypted[:user_id]
   end
 
   def test_accessing_nonexistant_encrypted_cookie_should_not_raise_invalid_message
