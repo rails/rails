@@ -23,8 +23,8 @@ module ActionDispatch
   #   # This cookie will be deleted when the user's browser is closed.
   #   cookies[:user_name] = "david"
   #
-  #   # Assign an array of values to a cookie.
-  #   cookies[:lat_lon] = [47.68, -122.37]
+  #   # Cookie values are String based. Other data types need to be serialized.
+  #   cookies[:lat_lon] = JSON.dump([47.68, -122.37])
   #
   #   # Sets a cookie that expires in 1 hour.
   #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
@@ -42,10 +42,10 @@ module ActionDispatch
   #
   # Examples of reading:
   #
-  #   cookies[:user_name]    # => "david"
-  #   cookies.size           # => 2
-  #   cookies[:lat_lon]      # => [47.68, -122.37]
-  #   cookies.signed[:login] # => "XJ-122"
+  #   cookies[:user_name]          # => "david"
+  #   cookies.size                 # => 2
+  #   JSON.load(cookies[:lat_lon]) # => [47.68, -122.37]
+  #   cookies.signed[:login]       # => "XJ-122"
   #
   # Example for deleting:
   #
@@ -63,7 +63,7 @@ module ActionDispatch
   #
   # The option symbols for setting cookies are:
   #
-  # * <tt>:value</tt> - The cookie's value or list of values (as an array).
+  # * <tt>:value</tt> - The cookie's value.
   # * <tt>:path</tt> - The path for which this cookie applies. Defaults to the root
   #   of the application.
   # * <tt>:domain</tt> - The domain for which this cookie applies so you can
