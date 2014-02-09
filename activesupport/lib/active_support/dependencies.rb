@@ -11,7 +11,6 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
-require 'active_support/core_ext/string/starts_ends_with'
 require 'active_support/inflector'
 
 module ActiveSupport #:nodoc:
