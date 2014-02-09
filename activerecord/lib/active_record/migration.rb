@@ -832,7 +832,7 @@ module ActiveRecord
 
       def current_version(connection = Base.connection)
         sm_table = schema_migrations_table_name
-        if Base.connection.table_exists?(sm_table)
+        if connection.table_exists?(sm_table)
           get_all_versions.max || 0
         else
           0
