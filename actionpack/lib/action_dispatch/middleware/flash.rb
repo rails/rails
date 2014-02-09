@@ -50,13 +50,14 @@ module ActionDispatch
       end
 
       def []=(k, v)
+        k = k.to_s
         @flash[k] = v
         @flash.discard(k)
         v
       end
 
       def [](k)
-        @flash[k]
+        @flash[k.to_s]
       end
 
       # Convenience accessor for <tt>flash.now[:alert]=</tt>.
@@ -92,7 +93,7 @@ module ActionDispatch
       end
 
       def initialize(flashes = {}, discard = []) #:nodoc:
-        @discard = Set.new(discard)
+        @discard = Set.new(stringify_array(discard))
         @flashes = flashes
         @now     = nil
       end
@@ -106,16 +107,17 @@ module ActionDispatch
       end
 
       def []=(k, v)
+        k = k.to_s
         @discard.delete k
         @flashes[k] = v
       end
 
       def [](k)
-        @flashes[k]
+        @flashes[k.to_s]
       end
 
       def update(h) #:nodoc:
-        @discard.subtract h.keys
+        @discard.subtract stringify_array(h.keys)
         @flashes.update h
         self
       end
@@ -129,6 +131,7 @@ module ActionDispatch
       end
 
       def delete(key)
+        key = key.to_s
         @discard.delete key
         @flashes.delete key
         self
@@ -186,6 +189,7 @@ module ActionDispatch
       #    flash.keep            # keeps the entire flash
       #    flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k = nil)
+        k = k.to_s if k
         @discard.subtract Array(k || keys)
         k ? self[k] : self
       end
@@ -195,6 +199,7 @@ module ActionDispatch
       #     flash.discard              # discard the entire flash at the end of the current action
       #     flash.discard(:warning)    # discard only the "warning" entry at the end of the current action
       def discard(k = nil)
+        k = k.to_s if k
         @discard.merge Array(k || keys)
         k ? self[k] : self
       end
@@ -230,6 +235,12 @@ module ActionDispatch
       protected
       def now_is_loaded?
         @now
+      end
+
+      def stringify_array(array)
+        array.map do |item|
+          item.kind_of?(Symbol) ? item.to_s : item
+        end
       end
     end
 
