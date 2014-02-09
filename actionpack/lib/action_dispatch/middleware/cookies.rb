@@ -384,29 +384,48 @@ module ActionDispatch
       end
     end
 
-    class HybridSerializer < JsonSerializer
-      MARSHAL_SIGNATURE = "\x04\x08".freeze
-
+    # Passing the NullSerializer downstream to the Message{Encryptor,Verifier}
+    # allows us to handle the (de)serialization step within the cookie jar,
+    # which gives us the opportunity to detect and migrate legacy cookies.
+    class NullSerializer
       def self.load(value)
-        if value.start_with?(MARSHAL_SIGNATURE)
-          Marshal.load(value)
-        else
-          super
-        end
+        value
+      end
+
+      def self.dump(value)
+        value
       end
     end
 
     module SerializedCookieJars
+      MARSHAL_SIGNATURE = "\x04\x08".freeze
+
       protected
+        def needs_migration?(value)
+          @options[:serializer] == :hybrid && value.start_with?(MARSHAL_SIGNATURE)
+        end
+
+        def serialize(name, value)
+          serializer.dump(value)
+        end
+
+        def deserialize(name, value)
+          if value
+            if needs_migration?(value)
+              self[name] = Marshal.load(value)
+            else
+              serializer.load(value)
+            end
+          end
+        end
+
         def serializer
           serializer = @options[:serializer] || :marshal
           case serializer
           when :marshal
             Marshal
-          when :json
+          when :json, :hybrid
             JsonSerializer
-          when :hybrid
-            HybridSerializer
           else
             serializer
           end
@@ -421,21 +440,21 @@ module ActionDispatch
         @parent_jar = parent_jar
         @options = options
         secret = key_generator.generate_key(@options[:signed_cookie_salt])
-        @verifier = ActiveSupport::MessageVerifier.new(secret, serializer: serializer)
+        @verifier = ActiveSupport::MessageVerifier.new(secret, serializer: NullSerializer)
       end
 
       def [](name)
         if signed_message = @parent_jar[name]
-          verify(signed_message)
+          deserialize name, verify(signed_message)
         end
       end
 
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
-          options[:value] = @verifier.generate(options[:value])
+          options[:value] = @verifier.generate(serialize(name, options[:value]))
         else
-          options = { :value => @verifier.generate(options) }
+          options = { :value => @verifier.generate(serialize(name, options)) }
         end
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
@@ -459,7 +478,7 @@ module ActionDispatch
 
       def [](name)
         if signed_message = @parent_jar[name]
-          verify(signed_message) || verify_and_upgrade_legacy_signed_message(name, signed_message)
+          deserialize(name, verify(signed_message)) || verify_and_upgrade_legacy_signed_message(name, signed_message)
         end
       end
     end
@@ -478,12 +497,12 @@ module ActionDispatch
         @options = options
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
-        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: serializer)
+        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: NullSerializer)
       end
 
       def [](name)
         if encrypted_message = @parent_jar[name]
-          decrypt_and_verify(encrypted_message)
+          deserialize name, decrypt_and_verify(encrypted_message)
         end
       end
 
@@ -493,7 +512,8 @@ module ActionDispatch
         else
           options = { :value => options }
         end
-        options[:value] = @encryptor.encrypt_and_sign(options[:value])
+
+        options[:value] = @encryptor.encrypt_and_sign(serialize(name, options[:value]))
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[name] = options
@@ -516,7 +536,7 @@ module ActionDispatch
 
       def [](name)
         if encrypted_or_signed_message = @parent_jar[name]
-          decrypt_and_verify(encrypted_or_signed_message) || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
+          deserialize(name, decrypt_and_verify(encrypted_or_signed_message)) || verify_and_upgrade_legacy_signed_message(name, encrypted_or_signed_message)
         end
       end
     end

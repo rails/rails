@@ -415,8 +415,8 @@ class CookiesTest < ActionController::TestCase
     assert_not_equal 45, cookies[:user_id]
     assert_equal 45, cookies.signed[:user_id]
 
-    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
-    assert_equal @response.cookies['user_id'], json_value
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON)
+    assert_equal 45, verifier.verify(@response.cookies['user_id'])
   end
 
   def test_signed_cookie_using_hybrid_serializer_can_read_from_json_dumped_value
@@ -433,6 +433,8 @@ class CookiesTest < ActionController::TestCase
     cookies = @controller.send :cookies
     assert_not_equal 45, cookies[:user_id]
     assert_equal 45, cookies.signed[:user_id]
+
+    assert_nil @response.cookies["user_id"]
   end
 
   def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
@@ -475,7 +477,7 @@ class CookiesTest < ActionController::TestCase
   def test_encrypted_cookie_using_custom_serializer
     @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
     get :set_encrypted_cookie
-    assert_not_equal 45, cookies.encrypted[:foo]
+    assert_not_equal 'bar', cookies.encrypted[:foo]
     assert_equal 'bar was dumped and loaded', cookies.encrypted[:foo]
   end
 
@@ -488,17 +490,17 @@ class CookiesTest < ActionController::TestCase
     secret = key_generator.generate_key(encrypted_cookie_salt)
     sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
 
-    marshal_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: Marshal).encrypt_and_sign(45)
-    @request.headers["Cookie"] = "user_id=#{marshal_value}"
+    marshal_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: Marshal).encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{marshal_value}"
 
     get :get_encrypted_cookie
 
     cookies = @controller.send :cookies
-    assert_not_equal 45, cookies[:user_id]
-    assert_equal 45, cookies.encrypted[:user_id]
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
 
-    json_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON).encrypt_and_sign(45)
-    assert_equal @response.cookies["user_id"], json_value
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON)
+    assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
   def test_encrypted_cookie_using_hybrid_serializer_can_read_from_json_dumped_value
@@ -509,14 +511,16 @@ class CookiesTest < ActionController::TestCase
     encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
     secret = key_generator.generate_key(encrypted_cookie_salt)
     sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
-    json_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON).encrypt_and_sign(45)
-    @request.headers["Cookie"] = "user_id=#{json_value}"
+    json_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON).encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{json_value}"
 
     get :get_encrypted_cookie
 
     cookies = @controller.send :cookies
-    assert_not_equal 45, cookies[:user_id]
-    assert_equal 45, cookies.encrypted[:user_id]
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+
+    assert_nil @response.cookies["foo"]
   end
 
   def test_accessing_nonexistant_encrypted_cookie_should_not_raise_invalid_message
@@ -833,8 +837,6 @@ class CookiesTest < ActionController::TestCase
     assert_equal "dhh", cookies[:user_name]
     assert_equal "dhh", cookies['user_name']
   end
-
-
 
   def test_setting_request_cookies_is_indifferent_access
     cookies.clear
