@@ -74,7 +74,6 @@ module ActionDispatch
     autoload :MimeNegotiation
     autoload :Parameters
     autoload :ParameterFilter
-    autoload :FilterParameters
     autoload :Upload
     autoload :UploadedFile, 'action_dispatch/http/upload'
     autoload :URL
