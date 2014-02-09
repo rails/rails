@@ -385,8 +385,8 @@ module ActiveRecord
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
 
-      def check_pending!
-        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
+      def check_pending!(connection = Base.connection)
+        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
       end
 
       def load_schema_if_pending!
@@ -830,7 +830,7 @@ module ActiveRecord
         SchemaMigration.all.map { |x| x.version.to_i }.sort
       end
 
-      def current_version
+      def current_version(connection = Base.connection)
         sm_table = schema_migrations_table_name
         if Base.connection.table_exists?(sm_table)
           get_all_versions.max || 0
@@ -839,8 +839,8 @@ module ActiveRecord
         end
       end
 
-      def needs_migration?
-        current_version < last_version
+      def needs_migration?(connection = Base.connection)
+        current_version(connection) < last_version
       end
 
       def last_version
