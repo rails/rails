@@ -880,9 +880,9 @@ Let's add links to the other views as well, starting with adding this
 ```
 
 This link will allow you to bring up the form that lets you create a new article.
-You should also add a link to this template - `app/views/articles/new.html.erb`
-- to go back to the `index` action. Do this by adding this underneath the form
-in this template:
+
+Also add a link in `app/views/articles/new.html.erb`, underneath the form, to
+go back to the `index` action:
 
 ```erb
 <%= form_for :article do |f| %>
