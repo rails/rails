@@ -367,10 +367,10 @@ styling for it afterwards.
 
 ### Laying down the ground work
 
-Firstly, you need a place within the application to create a new article. A 
-great place for that would be at `/articles/new`. With the route already 
-defined, requests can now be made to `/articles/new` in the application. 
-Navigate to <http://localhost:3000/articles/new> and you'll see a routing 
+Firstly, you need a place within the application to create a new article. A
+great place for that would be at `/articles/new`. With the route already
+defined, requests can now be made to `/articles/new` in the application.
+Navigate to <http://localhost:3000/articles/new> and you'll see a routing
 error:
 
 ![Another routing error, uninitialized constant ArticlesController](images/getting_started/routing_error_no_controller.png)
