@@ -1,3 +1,11 @@
+*   Set the `:shallow_path` scope option as each scope is generated rather than
+    waiting until the `shallow` option is set. Also make the behavior of the
+    `:shallow` resource option consistent with the behavior of the `shallow` method.
+
+    Fixes #12498.
+
+    *Andrew White*, *Aleksi Aalto*
+
 *   Do not discard query parameters that form a hash with the same root key as
     the `wrapper_key` for a request using `wrap_parameters`.
 
