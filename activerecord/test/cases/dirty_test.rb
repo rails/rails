@@ -471,9 +471,12 @@ class DirtyTest < ActiveRecord::TestCase
       topic.content['b'] = "c"
       assert topic.changed?
       topic.save
+      original_content = topic.content.dup
       assert !topic.changed?
       topic.content = nil
       assert topic.changed?
+      topic.content = original_content
+      assert !topic.changed?
     end
   end
 

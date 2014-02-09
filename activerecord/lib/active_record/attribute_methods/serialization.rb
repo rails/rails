@@ -145,7 +145,7 @@ module ActiveRecord
         end
 
         def changed_attributes
-          super.reverse_merge!(changed_serialized_attributes)
+          super.except!(*self.class.serialized_attributes.keys).merge!(changed_serialized_attributes)
         end
 
         def read_attribute_before_type_cast(attr_name)
@@ -198,6 +198,14 @@ module ActiveRecord
         def changes_applied
           super
           reset_original_serialized_attributes
+        end
+
+        def init_changed_attribute(attr, orig_value)
+          if serialized_attribute?(attr)
+            original_serialized_attributes[attr] = orig_value
+          else
+            super
+          end
         end
 
         def changed_serialized_attributes
