@@ -577,7 +577,7 @@ so it may happen that two different database connections create two records
 with the same value for a column that you intend to be unique. To avoid that,
 you must create a unique index on both columns in your database. See
 [the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html)
-for more details about multi column indexes.
+for more details about multiple column indexes.
 
 ```ruby
 class Account < ActiveRecord::Base

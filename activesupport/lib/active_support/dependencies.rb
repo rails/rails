@@ -407,7 +407,8 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      # to_s works around a ruby1.9 issue where #starts_with?(Pathname) will always return false
+      # to_s works around a ruby1.9 issue where String#starts_with?(Pathname)
+      # will raise a TypeError: no implicit conversion of Pathname into String
       autoload_once_paths.any? { |base| path.starts_with? base.to_s }
     end
 
