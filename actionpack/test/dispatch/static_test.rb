@@ -144,7 +144,7 @@ module StaticTests
 
       yield file
     ensure
-      File.delete(path) if File.exists? path
+      File.delete(path) if File.exist? path
     end
 end
 
