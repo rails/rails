@@ -313,7 +313,7 @@ module ActionDispatch # :nodoc:
         header.delete CONTENT_TYPE
         [status, header, []]
       else
-        [status, header, self]
+        [status, header, Rack::BodyProxy.new(self){}]
       end
     end
   end
