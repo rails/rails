@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/keys'
+
 module ActionDispatch
   class Request < Rack::Request
     # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
@@ -94,7 +96,7 @@ module ActionDispatch
 
       def initialize(flashes = {}, discard = []) #:nodoc:
         @discard = Set.new(stringify_array(discard))
-        @flashes = flashes
+        @flashes = flashes.stringify_keys
         @now     = nil
       end
 
