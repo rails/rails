@@ -213,7 +213,7 @@ module ActiveSupport
       end
 
       # Ruby >= 2.1 has String#scrub, which is faster than the workaround used for < 2.1.
-      if RUBY_VERSION >= '2.1'
+      if '<3'.respond_to?(:scrub)
         # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
         # resulting in a valid UTF-8 string.
         #
