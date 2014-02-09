@@ -41,6 +41,10 @@ class DirtyTest < ActiveModel::TestCase
     def save
       changes_applied
     end
+
+    def reload
+      reset_changes
+    end
   end
 
   setup do
@@ -156,5 +160,20 @@ class DirtyTest < ActiveModel::TestCase
   test "using attribute_will_change! with a symbol" do
     @model.size = 1
     assert @model.size_changed?
+  end
+
+  test "reload should reset all changes" do
+    @model.name = 'Dmitry'
+    @model.name_changed?
+    @model.save
+    @model.name = 'Bob'
+
+    assert_equal [nil, 'Dmitry'], @model.previous_changes['name']
+    assert_equal 'Dmitry', @model.changed_attributes['name']
+
+    @model.reload
+
+    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
+    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
   end
 end
