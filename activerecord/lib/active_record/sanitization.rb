@@ -29,6 +29,7 @@ module ActiveRecord
         end
       end
       alias_method :sanitize_sql, :sanitize_sql_for_conditions
+      alias_method :sanitize_conditions, :sanitize_sql
 
       # Accepts an array, hash, or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a SET clause.
@@ -121,8 +122,6 @@ module ActiveRecord
           statement % values.collect { |value| connection.quote_string(value.to_s) }
         end
       end
-
-      alias_method :sanitize_conditions, :sanitize_sql
 
       def replace_bind_variables(statement, values) #:nodoc:
         raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
