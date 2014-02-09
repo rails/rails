@@ -69,7 +69,7 @@ module ActiveRecord
         conn = pool.checkout
         count = pool.connections.length
 
-        conn.extend(Module.new { def active?; false; end; })
+        conn.extend(Module.new { def active_threadsafe?; false; end; })
 
         while count == pool.connections.length
           Thread.pass

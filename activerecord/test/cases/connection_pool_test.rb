@@ -141,7 +141,7 @@ module ActiveRecord
 
         connections = @pool.connections.dup
         connections.each do |conn|
-          conn.extend(Module.new { def active?; false; end; })
+          conn.extend(Module.new { def active_threadsafe?; false; end; })
         end
 
         @pool.reap
