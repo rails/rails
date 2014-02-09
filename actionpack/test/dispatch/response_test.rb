@@ -226,6 +226,15 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal({ 'Content-Type' => 'text/plain' }, headers)
     assert_equal ['Not Found'], body.each.to_a
   end
+
+  test "[response].flatten does not recurse infinitely" do
+    Timeout.timeout(1) do # use a timeout to prevent it stalling indefinitely
+      status, headers, body = [@response].flatten
+      assert_equal @response.status, status
+      assert_equal @response.headers, headers
+      assert_equal @response.body, body.each.to_a.join
+    end
+  end
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
