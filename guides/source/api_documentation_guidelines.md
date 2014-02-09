@@ -172,7 +172,7 @@ def empty?
 end
 ```
 
-The API is careful not to commit to any particular value, the predicate has
+The API is careful not to commit to any particular value, the method has
 predicate semantics, that's enough.
 
 Filenames
