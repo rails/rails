@@ -1,3 +1,10 @@
+*   Fix the implementation of Multibyte::Unicode.tidy_bytes for JRuby
+
+    The existing implementation caused JRuby to raise the error:
+    `Encoding::ConverterNotFoundError: code converter not found (UTF-8 to UTF8-MAC)`
+
+    *Justin Coyne*
+
 *   Fix `to_param` behavior when there are nested empty hashes.
 
     Before:
