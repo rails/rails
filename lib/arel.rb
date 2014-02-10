@@ -11,10 +11,6 @@ require 'arel/table'
 require 'arel/attributes'
 require 'arel/compatibility/wheres'
 
-#### these are deprecated
-require 'arel/expression'
-####
-
 require 'arel/visitors'
 
 require 'arel/tree_manager'
@@ -23,13 +19,6 @@ require 'arel/select_manager'
 require 'arel/update_manager'
 require 'arel/delete_manager'
 require 'arel/nodes'
-
-
-#### these are deprecated
-require 'arel/deprecated'
-require 'arel/sql/engine'
-require 'arel/sql_literal'
-####
 
 module Arel
   VERSION = '5.0.0'

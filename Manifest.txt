@@ -15,8 +15,6 @@ lib/arel/attributes/attribute.rb
 lib/arel/compatibility/wheres.rb
 lib/arel/crud.rb
 lib/arel/delete_manager.rb
-lib/arel/deprecated.rb
-lib/arel/expression.rb
 lib/arel/expressions.rb
 lib/arel/factory_methods.rb
 lib/arel/insert_manager.rb
@@ -58,8 +56,6 @@ lib/arel/nodes/with.rb
 lib/arel/order_predications.rb
 lib/arel/predications.rb
 lib/arel/select_manager.rb
-lib/arel/sql/engine.rb
-lib/arel/sql_literal.rb
 lib/arel/table.rb
 lib/arel/tree_manager.rb
 lib/arel/update_manager.rb

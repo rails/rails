@@ -1,12 +1,6 @@
 require 'helper'
 
 describe Arel::Nodes::Count do
-  describe 'backwards compatibility' do
-    it 'must be an expression' do
-      Arel::Nodes::Count.new('foo').must_be_kind_of Arel::Expression
-    end
-  end
-
   describe "as" do
     it 'should alias the count' do
       table = Arel::Table.new :users

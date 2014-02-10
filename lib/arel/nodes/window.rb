@@ -1,7 +1,6 @@
 module Arel
   module Nodes
     class Window < Arel::Nodes::Node
-      include Arel::Expression
       attr_accessor :orders, :framing
 
       def initialize

@@ -130,7 +130,7 @@ module Arel
       # FIXME: converting these to SQLLiterals is probably not good, but
       # rails tests require it.
       @ctx.projections.concat projections.map { |x|
-        STRING_OR_SYMBOL_CLASS.include?(x.class) ? SqlLiteral.new(x.to_s) : x
+        STRING_OR_SYMBOL_CLASS.include?(x.class) ? Nodes::SqlLiteral.new(x.to_s) : x
       }
       self
     end
@@ -235,14 +235,6 @@ module Arel
       @ctx.source
     end
 
-    def joins manager
-      if $VERBOSE
-        warn "joins is deprecated and will be removed in 4.0.0"
-        warn "please remove your call to joins from #{caller.first}"
-      end
-      manager.join_sql
-    end
-
     class Row < Struct.new(:data) # :nodoc:
       def id
         data['id']
@@ -253,12 +245,6 @@ module Arel
         return data[name] if data.key?(name)
         super
       end
-    end
-
-    def to_a # :nodoc:
-      warn "to_a is deprecated. Please remove it from #{caller[0]}"
-      # FIXME: I think `select` should be made public...
-      @engine.connection.send(:select, to_sql, 'AREL').map { |x| Row.new(x) }
     end
 
     private
