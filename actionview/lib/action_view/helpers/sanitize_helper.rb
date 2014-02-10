@@ -121,40 +121,28 @@ module ActionView
       module ClassMethods #:nodoc:
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
-        def sanitized_protocol_separator
-          ActiveSupport::Deprecation.warn('sanitized_protocol_separator is deprecated and has no effect.')
-        end
+        [:protocol_separator,
+         :uri_attributes,
+         :bad_tags,
+         :allowed_css_properties,
+         :allowed_css_keywords,
+         :shorthand_css_properties,
+         :allowed_protocols].each do |meth|
+          meth_name = "sanitized_#{meth}"
+          imp = lambda do |name|
+            ActiveSupport::Deprecation.warn("#{name} is deprecated and has no effect.")
+          end
 
-        def sanitized_uri_attributes
-          white_list_sanitizer.uri_attributes
-        end
-
-        def sanitized_bad_tags
-          ActiveSupport::Deprecation.warn('sanitized_bad_tags is deprecated and has no effect. Affect the sanitized_allowed_tags  using sanitized_bad_tags= instead.')
+          define_method(meth_name) { imp.(meth_name) }
+          define_method("#{meth_name}=") { |value| imp.("#{meth_name}=") }
         end
 
         def sanitized_allowed_tags
-          white_list_sanitizer.allowed_tags
+          Rails::Html::WhiteListSanitizer.allowed_tags
         end
 
         def sanitized_allowed_attributes
-          white_list_sanitizer.allowed_attributes
-        end
-
-        def sanitized_allowed_css_properties
-          white_list_sanitizer.allowed_css_properties
-        end
-
-        def sanitized_allowed_css_keywords
-          white_list_sanitizer.allowed_css_keywords
-        end
-
-        def sanitized_shorthand_css_properties
-          white_list_sanitizer.shorthand_css_properties
-        end
-
-        def sanitized_allowed_protocols
-          white_list_sanitizer.allowed_protocols
+          Rails::Html::WhiteListSanitizer.allowed_attributes
         end
 
         # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
@@ -190,89 +178,24 @@ module ActionView
           @white_list_sanitizer ||= Rails::Html::WhiteListSanitizer.new
         end
 
-
-        def sanitized_protocol_separator=(value)
-          ActiveSupport::Deprecation.warn('sanitized_protocol_separator= is deprecated and has no effect.')
-        end
-
-        # Adds valid HTML attributes that the +sanitize+ helper checks for URIs.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_uri_attributes = 'lowsrc', 'target'
-        #   end
-        #
-        def sanitized_uri_attributes=(attributes)
-          Rails::Html::WhiteListSanitizer.update_uri_attributes(attributes)
-        end
-
-        # Adds to the Set of 'bad' tags for the +sanitize+ helper.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_bad_tags = 'embed', 'object'
-        #   end
-        #
-        def sanitized_bad_tags=(attributes)
-          Rails::Html::WhiteListSanitizer.bad_tags = attributes
-        end
-
-        # Adds to the Set of allowed tags for the +sanitize+ helper.
+        # Replaces the Set of allowed tags for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
         #   end
         #
-        def sanitized_allowed_tags=(attributes)
-          Rails::Html::WhiteListSanitizer.update_allowed_tags(attributes)
+        def sanitized_allowed_tags=(*tags)
+          Rails::Html::WhiteListSanitizer.allowed_tags = tags
         end
 
-        # Adds to the Set of allowed HTML attributes for the +sanitize+ helper.
+        # Replaces the Set of allowed HTML attributes for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_attributes = ['onclick', 'longdesc']
         #   end
         #
-        def sanitized_allowed_attributes=(attributes)
-          Rails::Html::WhiteListSanitizer.update_allowed_attributes(attributes)
-        end
-
-        # Adds to the Set of allowed CSS properties for the #sanitize and +sanitize_css+ helpers.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_css_properties = 'expression'
-        #   end
-        #
-        def sanitized_allowed_css_properties=(attributes)
-          Rails::Html::WhiteListSanitizer.update_allowed_css_properties(attributes)
-        end
-
-        # Adds to the Set of allowed CSS keywords for the +sanitize+ and +sanitize_css+ helpers.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_css_keywords = 'expression'
-        #   end
-        #
-        def sanitized_allowed_css_keywords=(attributes)
-          Rails::Html::WhiteListSanitizer.update_allowed_css_keywords(attributes)
-        end
-
-        # Adds to the Set of allowed shorthand CSS properties for the +sanitize+ and +sanitize_css+ helpers.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_shorthand_css_properties = 'expression'
-        #   end
-        #
-        def sanitized_shorthand_css_properties=(attributes)
-          Rails::Html::WhiteListSanitizer.update_shorthand_css_properties(attributes)
-        end
-
-        # Adds to the Set of allowed protocols for the +sanitize+ helper.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_protocols = 'ssh', 'feed'
-        #   end
-        #
-        def sanitized_allowed_protocols=(attributes)
-          Rails::Html::WhiteListSanitizer.update_allowed_protocols(attributes)
+        def sanitized_allowed_attributes=(*attributes)
+          Rails::Html::WhiteListSanitizer.allowed_attributes = attributes
         end
       end
     end
