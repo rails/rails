@@ -1,3 +1,15 @@
+=== NEXT / 2014-02-10
+
+* Enhancements
+
+  * Remove deprecated `Arel::Expression`
+  * Remove deprecated `Arel::SqlLiteral`
+  * Remove deprecated `SelectManager#joins`
+  * Remove deprecated `SelectManager#to_a`
+  * Remove deprecated `Arel::Sql::Engine`
+  * Remove deprecated `Arel::InnerJoin` constant
+  * Remove deprecated `Arel::OuterJoin` constant
+
 == 5.0.0 / 2013-12-04
 
 * Enhancements
