@@ -21,7 +21,7 @@ module ActionDispatch
       match = matches.detect { |m| File.file?(m) }
       if match
         match.sub!(@compiled_root, '')
-        ::Rack::Utils.escape(match)
+        match.gsub('+', '%2B')
       end
     end
 
