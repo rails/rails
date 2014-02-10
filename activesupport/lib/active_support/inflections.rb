@@ -1,5 +1,9 @@
 require 'active_support/inflector/inflections'
 
+# Define the standard inflection rules. These define a starting point for
+# new projects and are not considered complete. The current set of inflection
+# rules is frozen. This means, we do not change them to become more complete.
+# This is a safety measure to keep existing applications from breaking.
 module ActiveSupport
   Inflector.inflections(:en) do |inflect|
     inflect.plural(/$/, 's')
