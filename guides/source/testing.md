@@ -518,8 +518,10 @@ You also have access to three instance variables in your functional tests:
 
 ### Setting Headers and CGI variables
 
-Headers and cgi variables can be set directly on the `@request`
-instance variable:
+[HTTP headers](http://tools.ietf.org/search/rfc2616#section-5.3)
+and
+[CGI variables](http://tools.ietf.org/search/rfc3875#section-4.1)
+can be set directly on the `@request` instance variable:
 
 ```ruby
 # setting a HTTP Header
