@@ -11,10 +11,6 @@ require 'arel/table'
 require 'arel/attributes'
 require 'arel/compatibility/wheres'
 
-#### these are deprecated
-require 'arel/expression'
-####
-
 require 'arel/visitors'
 
 require 'arel/tree_manager'

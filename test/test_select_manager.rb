@@ -449,18 +449,6 @@ module Arel
           SELECT * FROM "users" ORDER BY "users"."id" DESC
         }
       end
-
-      it 'has order attributes for expressions' do
-        table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
-        manager.project Nodes::SqlLiteral.new '*'
-        manager.from table
-        manager.order table[:id].count.desc
-        manager.to_sql.must_be_like %{
-          SELECT * FROM "users" ORDER BY COUNT("users"."id") DESC
-        }
-      end
-
     end
 
     describe 'on' do
