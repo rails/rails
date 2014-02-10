@@ -4,8 +4,8 @@ require 'active_support/core_ext/kernel/reporting'
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
 silence_warnings do
-  Encoding.default_internal = "UTF-8"
-  Encoding.default_external = "UTF-8"
+  Encoding.default_internal = 'UTF-8'
+  Encoding.default_external = 'UTF-8'
 end
 
 require 'active_support/testing/autorun'
@@ -24,17 +24,13 @@ ActiveSupport::Deprecation.debug = true
 I18n.enforce_available_locales = false
 
 # Bogus template processors
-ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!".inspect }
-ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup".inspect }
+ActionView::Template.register_template_handler :haml, lambda { |template| 'Look its HAML!'.inspect }
+ActionView::Template.register_template_handler :bak, lambda { |template| 'Lame backup'.inspect }
 
 FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
 class MockSMTP
-  def self.deliveries
-    @@deliveries
-  end
-
   def initialize
     @@deliveries = []
   end
@@ -51,6 +47,12 @@ end
 class Net::SMTP
   def self.new(*args)
     MockSMTP.new
+  end
+end
+
+class Rails
+  def self.root
+    File.expand_path('../', File.dirname(__FILE__))
   end
 end
 

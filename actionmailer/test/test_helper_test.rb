@@ -1,11 +1,12 @@
+# encoding: utf-8
 require 'abstract_unit'
 
 class TestHelperMailer < ActionMailer::Base
   def test
-    @world = "Earth"
-    mail body: render(inline: "Hello, <%= @world %>"),
-      to: "test@example.com",
-      from: "tester@example.com"
+    @world = 'Earth'
+    mail body: render(inline: 'Hello, <%= @world %>'),
+      to: 'test@example.com',
+      from: 'tester@example.com'
   end
 end
 
@@ -18,8 +19,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_setup_creates_the_expected_mailer
     assert_kind_of Mail::Message, @expected
-    assert_equal "1.0", @expected.mime_version
-    assert_equal "text/plain", @expected.mime_type
+    assert_equal '1.0', @expected.mime_version
+    assert_equal 'text/plain', @expected.mime_type
   end
 
   def test_mailer_class_is_correctly_inferred
@@ -28,12 +29,20 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_determine_default_mailer_raises_correct_error
     assert_raise(ActionMailer::NonInferrableMailerError) do
-      self.class.determine_default_mailer("NotAMailerTest")
+      self.class.determine_default_mailer('NotAMailerTest')
     end
   end
 
   def test_charset_is_utf_8
-    assert_equal "UTF-8", charset
+    assert_equal 'UTF-8', charset
+  end
+
+  def test_encode
+    assert_equal '=?UTF-8?Q?This_is_=E3=81=82_string?=', encode('This is あ string')
+  end
+
+  def test_read_fixture
+    assert_equal ['Welcome!'], read_fixture('welcome')
   end
 
   def test_assert_emails
@@ -116,7 +125,7 @@ class AnotherTestHelperMailerTest < ActionMailer::TestCase
   tests TestHelperMailer
 
   def setup
-    @test_var = "a value"
+    @test_var = 'a value'
   end
 
   def test_setup_shouldnt_conflict_with_mailer_setup

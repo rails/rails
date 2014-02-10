@@ -3,8 +3,8 @@ require 'active_support/test_case'
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
     def initialize(name)
-      super "Unable to determine the mailer to test from #{name}. " +
-        "You'll need to specify it using tests YourMailer in your " +
+      super "Unable to determine the mailer to test from #{name}. " \
+        "You'll need to specify it using tests YourMailer in your " \
         "test case definition"
     end
   end
@@ -53,31 +53,31 @@ module ActionMailer
 
       protected
 
-        def initialize_test_deliveries
-          ActionMailer::Base.delivery_method = :test
-          ActionMailer::Base.perform_deliveries = true
-          ActionMailer::Base.deliveries.clear
-        end
+      def initialize_test_deliveries
+        ActionMailer::Base.delivery_method = :test
+        ActionMailer::Base.perform_deliveries = true
+        ActionMailer::Base.deliveries.clear
+      end
 
-        def set_expected_mail
-          @expected = Mail.new
-          @expected.content_type ["text", "plain", { "charset" => charset }]
-          @expected.mime_version = '1.0'
-        end
+      def set_expected_mail
+        @expected = Mail.new
+        @expected.content_type ['text', 'plain', {'charset' => charset}]
+        @expected.mime_version = '1.0'
+      end
 
       private
 
-        def charset
-          "UTF-8"
-        end
+      def charset
+        'UTF-8'
+      end
 
-        def encode(subject)
-          Mail::Encodings.q_value_encode(subject, charset)
-        end
+      def encode(subject)
+        Mail::Encodings.q_value_encode(subject, charset)
+      end
 
-        def read_fixture(action)
-          IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
-        end
+      def read_fixture(action)
+        IO.readlines(File.join(Rails.root, 'test', 'fixtures', self.class.mailer_class.name.underscore, action))
+      end
     end
 
     include Behavior
