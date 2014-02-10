@@ -4,7 +4,7 @@ module ActiveRecord
     module JoinHelper #:nodoc:
 
       def join_type
-        Arel::InnerJoin
+        Arel::Nodes::InnerJoin
       end
 
       private
