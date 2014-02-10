@@ -22,13 +22,15 @@ end
 
 class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
   test "default smtp settings" do
-    settings = { address:              "localhost",
-                 port:                 25,
-                 domain:               'localhost.localdomain',
-                 user_name:            nil,
-                 password:             nil,
-                 authentication:       nil,
-                 enable_starttls_auto: true }
+    settings = {
+      address: 'localhost',
+      port: 25,
+      domain: 'localhost.localdomain',
+      user_name: nil,
+      password: nil,
+      authentication: nil,
+      enable_starttls_auto: true
+    }
     assert_equal settings, ActionMailer::Base.smtp_settings
   end
 
@@ -119,7 +121,6 @@ class MailDeliveryTest < ActiveSupport::TestCase
   test "delivery method can be customized in subclasses not changing the parent" do
     DeliveryMailer.delivery_method = :test
     assert_equal :smtp, ActionMailer::Base.delivery_method
-    $BREAK = true
     email = DeliveryMailer.welcome.deliver
     assert_instance_of Mail::TestMailer, email.delivery_method
   end

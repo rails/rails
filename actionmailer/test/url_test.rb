@@ -19,24 +19,26 @@ class UrlTestMailer < ActionMailer::Base
 
   def signed_up_with_url(recipient)
     @recipient   = recipient
-    @welcome_url = url_for host: "example.com", controller: "welcome", action: "greeting"
-    mail(to: recipient, subject: "[Signed up] Welcome #{recipient}",
-      from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
+    @welcome_url = url_for host: 'example.com', controller: 'welcome', action: 'greeting'
+    mail(
+      to: recipient,
+      subject: "[Signed up] Welcome #{recipient}",
+      from: 'system@loudthinking.com',
+      date: Time.local(2004, 12, 12)
+    )
   end
 end
 
 class ActionMailerUrlTest < ActionMailer::TestCase
 
-  def encode( text, charset="UTF-8" )
-    quoted_printable( text, charset )
-  end
-
-  def new_mail( charset="UTF-8" )
+  def new_mail(charset = 'UTF-8')
     mail = Mail.new
-    mail.mime_version = "1.0"
+    mail.mime_version = '1.0'
+
     if charset
-      mail.content_type ["text", "plain", { "charset" => charset }]
+      mail.content_type ['text', 'plain', {'charset' => charset}]
     end
+
     mail
   end
 
@@ -49,16 +51,16 @@ class ActionMailerUrlTest < ActionMailer::TestCase
 
     AppRoutes.draw do
       get ':controller(/:action(/:id))'
-      get '/welcome' => "foo#bar", as: "welcome"
+      get '/welcome' => 'foo#bar', as: 'welcome'
     end
 
     expected = new_mail
-    expected.to      = @recipient
+    expected.to = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
-    expected.body    = "Hello there,\n\nMr. #{@recipient}. Please see our greeting at http://example.com/welcome/greeting http://www.basecamphq.com/welcome\n\n<img alt=\"Somelogo\" src=\"/images/somelogo.png\" />"
-    expected.from    = "system@loudthinking.com"
-    expected.date    = Time.local(2004, 12, 12)
-    expected.content_type = "text/html"
+    expected.body = "Hello there,\n\nMr. #{@recipient}. Please see our greeting at http://example.com/welcome/greeting http://www.basecamphq.com/welcome\n\n<img alt=\"Somelogo\" src=\"/images/somelogo.png\" />"
+    expected.from = 'system@loudthinking.com'
+    expected.date = Time.local(2004, 12, 12)
+    expected.content_type = 'text/html'
 
     created = nil
     assert_nothing_raised { created = UrlTestMailer.signed_up_with_url(@recipient) }
