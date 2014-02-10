@@ -147,20 +147,20 @@ of the files and folders that Rails created by default:
 
 | File/Folder | Purpose |
 | ----------- | ------- |
-|app|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
+|app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
+|bin/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
-|db|Contains your current database schema, as well as the database migrations.|
+|db/|Contains your current database schema, as well as the database migrations.|
 |Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com).|
-|lib|Extended modules for your application.|
-|log|Application log files.|
-|public|The only folder seen by the world as-is. Contains static files and compiled assets.|
+|lib/|Extended modules for your application.|
+|log/|Application log files.|
+|public/|The only folder seen by the world as-is. Contains static files and compiled assets.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
-|test|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
-|tmp|Temporary files (like cache, pid, and session files).|
-|vendor|A place for all third-party code. In a typical Rails application this includes vendored gems.|
+|test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
+|tmp/|Temporary files (like cache, pid, and session files).|
+|vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
 
 Hello, Rails!
 -------------
