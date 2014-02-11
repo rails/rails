@@ -2,7 +2,12 @@ module ActionDispatch
   module Session
     class JsonSerializer
       def self.load(value)
-        JSON.parse(value, quirks_mode: true)
+        case result = JSON.parse(value, quirks_mode: true)
+        when Hash
+          result.with_indifferent_access
+        else
+          result
+        end
       end
 
       def self.dump(value)
