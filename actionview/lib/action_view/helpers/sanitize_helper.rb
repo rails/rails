@@ -178,7 +178,7 @@ module ActionView
           @white_list_sanitizer ||= Rails::Html::WhiteListSanitizer.new
         end
 
-        # Replaces the Set of allowed tags for the +sanitize+ helper.
+        # Replaces the allowed tags for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
@@ -188,7 +188,7 @@ module ActionView
           Rails::Html::WhiteListSanitizer.allowed_tags = tags
         end
 
-        # Replaces the Set of allowed HTML attributes for the +sanitize+ helper.
+        # Replaces the allowed HTML attributes for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_attributes = ['onclick', 'longdesc']
