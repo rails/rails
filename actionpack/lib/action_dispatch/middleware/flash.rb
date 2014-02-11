@@ -160,7 +160,7 @@ module ActionDispatch
 
       def replace(h) #:nodoc:
         @discard.clear
-        @flashes.replace h
+        @flashes.replace h.stringify_keys
         self
       end
 
