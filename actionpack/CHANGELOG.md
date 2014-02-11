@@ -1,3 +1,7 @@
+*   `FlashHash` now behaves like a `HashWithIndifferentAccess`.
+
+    *Guillermo Iguaran*
+
 *   Set the `:shallow_path` scope option as each scope is generated rather than
     waiting until the `shallow` option is set. Also make the behavior of the
     `:shallow` resource option consistent with the behavior of the `shallow` method.
