@@ -412,8 +412,8 @@ module ActionDispatch
         def deserialize(name, value)
           if value
             if needs_migration?(value)
-              Marshal.load(value).tap do |value|
-                self[name] = { value: value }
+              Marshal.load(value).tap do |v|
+                self[name] = { value: v }
               end
             else
               serializer.load(value)
