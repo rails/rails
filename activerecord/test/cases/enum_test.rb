@@ -222,4 +222,9 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test "attributes hash includes enum label" do
+    assert_equal "proposed", @book.attributes["status"]
+  end
+
 end
