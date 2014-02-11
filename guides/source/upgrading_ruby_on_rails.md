@@ -98,6 +98,19 @@ If your test helper contains a call to
 is now done automatically when you `require 'test_help'`, although
 leaving this line in your helper is not harmful in any way.
 
+### Cookies serializer
+
+Applications created before Rails 4.1 uses `Marshal` to serialize cookie values into
+the signed and encrypted cookie jars. If you want to use the new `JSON`-based format
+in your application, you can add an initializer file with the following content:
+
+  ```ruby
+  Rails.application.config.cookies_serializer :hybrid
+  ```
+
+This would transparently migrate your existing `Marshal`-serialized cookies into the
+new `JSON`-based format.
+
 ### Changes in JSON handling
 
 There are a few major changes related to JSON handling in Rails 4.1.

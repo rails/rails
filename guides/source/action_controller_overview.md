@@ -585,18 +585,23 @@ strings and deserializes them into Ruby objects on read.
 You can specify what serializer to use:
 
 ```ruby
-YourApp::Application.config.cookies_serializer :json
+Rails.application.config.action_dispatch.cookies_serializer = :json
 ```
 
-The possible options are `:marshal` or `:json`. The default serializer for new
-applications is `:json`. For compatibility with old applications with existing
-cookies, `:marshal` is used when `serializer` option is not specified.
+The default serializer for new applications is `:json`. For compatibility with
+old applications with existing cookies, `:marshal` is used when `serializer`
+option is not specified.
 
-It is also possible to pass a custom serializer class or object that responds
-to `load` and `dump`:
+You may also set this option to `:hybrid`, in which case Rails would transparently
+deserialize existing (`Marshal`-serialized) cookies on read and re-write them in
+the `JSON` format. This is useful for migrating existing applications to the
+`:json` serializer.
+
+It is also possible to pass a custom serializer that responds to `load` and
+`dump`:
 
 ```ruby
-YourApp::Application.config.cookies_serializer MyCustomSerializer
+Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
 ```
 
 Rendering XML and JSON data

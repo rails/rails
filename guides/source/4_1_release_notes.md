@@ -346,10 +346,8 @@ for detailed changes.
   params "deep munging" that was used to address security vulnerability
   CVE-2013-0155. ([Pull Request](https://github.com/rails/rails/pull/13188))
 
-* Added `:serializer` option for `config.session_store :cookie_store`. This
-  changes default serializer when using
-  `:cookie_store`. ([Pull Request](https://github.com/rails/rails/pull/13692))
-
+* New config option `config.action_dispatch.cookies_serializer` for specifying
+  a serializer for the signed and encrypted cookie jars. (Pull Requests [1](https://github.com/rails/rails/pull/13692), [2](https://github.com/rails/rails/pull/13945) / [More Details](upgrading_ruby_on_rails.html#cookies-serializer))
 
 Action Mailer
 -------------
