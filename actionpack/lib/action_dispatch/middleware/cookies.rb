@@ -181,7 +181,7 @@ module ActionDispatch
 
       def verify_and_upgrade_legacy_signed_message(name, signed_message)
         @legacy_verifier.verify(signed_message).tap do |value|
-          self[name] = value
+          self[name] = { value: value }
         end
       rescue ActiveSupport::MessageVerifier::InvalidSignature
         nil
@@ -412,7 +412,9 @@ module ActionDispatch
         def deserialize(name, value)
           if value
             if needs_migration?(value)
-              self[name] = Marshal.load(value)
+              Marshal.load(value).tap do |value|
+                self[name] = { value: value }
+              end
             else
               serializer.load(value)
             end
