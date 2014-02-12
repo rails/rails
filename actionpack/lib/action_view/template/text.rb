@@ -23,7 +23,7 @@ module ActionView #:nodoc:
       end
 
       def formats
-        [@mime_type.to_sym]
+        [@mime_type.respond_to?(:ref) ? @mime_type.ref : @mime_type.to_s]
       end
     end
   end
