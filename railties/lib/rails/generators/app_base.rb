@@ -412,7 +412,8 @@ module Rails
 
         require 'bundler'
         Bundler.with_clean_env do
-          print `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
+          output = `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
+          print output unless options[:quiet]
         end
       end
 
