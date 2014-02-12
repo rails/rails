@@ -477,13 +477,13 @@ module ActiveRecord
 
     def create_or_update
       raise ReadOnlyRecord if readonly?
-      result = new_record? ? create_record : update_record
+      result = new_record? ? create : update
       result != false
     end
 
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def update_record(attribute_names = @attributes.keys)
+    def update(attribute_names = @attributes.keys)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
         0
@@ -494,7 +494,7 @@ module ActiveRecord
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create_record(attribute_names = @attributes.keys)
+    def create(attribute_names = @attributes.keys)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values
