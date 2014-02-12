@@ -76,11 +76,6 @@ platforms :jruby do
   end
 end
 
-platforms :rbx do
-  gem 'psych', '~> 2.0'
-  gem 'rubysl', '~> 2.0'
-end
-
 # gems that are necessary for ActiveRecord tests with Oracle database
 if ENV['ORACLE_ENHANCED']
   platforms :ruby do
