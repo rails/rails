@@ -302,11 +302,11 @@ module ActiveRecord
       run_callbacks(:save) { super }
     end
 
-    def create_record #:nodoc:
+    def create #:nodoc:
       run_callbacks(:create) { super }
     end
 
-    def update_record(*) #:nodoc:
+    def update(*) #:nodoc:
       run_callbacks(:update) { super }
     end
   end
