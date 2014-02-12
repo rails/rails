@@ -43,6 +43,7 @@ class Developer < ActiveRecord::Base
 
   has_many :audit_logs
   has_many :contracts
+  has_many :recent_contracts, ->{ limit(3) }, class_name: "Contract"
   has_many :firms, :through => :contracts, :source => :firm
 
   scope :jamises, -> { where(:name => 'Jamis') }

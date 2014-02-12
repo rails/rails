@@ -1840,4 +1840,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal false, pirate.valid?(:conference)
     assert_equal "can't be blank", ship.errors[:name].first
   end
+
+  test "included association gets loaded with limit if it was defined" do
+    developer = Developer.create!(name: "Dmitriy")
+    5.times { developer.contracts.create! }
+
+    assert_sql(/LIMIT 3|ROWNUM <= 3/) { Developer.includes(:recent_contracts).load }
+  end
 end
