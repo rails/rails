@@ -197,6 +197,7 @@ ActiveRecord::Schema.define do
   create_table :computers, :force => true do |t|
     t.integer :developer, :null => false
     t.integer :extendedWarranty, :null => false
+    t.string :system
   end
 
   create_table :contracts, :force => true do |t|
