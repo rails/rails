@@ -1,3 +1,7 @@
+*   Do not crash when `config/secrets.yml` is empty.
+
+    *Yves Senn*
+
 *   Set `dump_schema_after_migration` config values in production.
 
     Set `config.active_record.dump_schema_after_migration` as false

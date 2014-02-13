@@ -336,6 +336,14 @@ module ApplicationTests
       assert_equal 'myamazonsecretaccesskey', app.secrets.aws_secret_access_key
     end
 
+    test "blank config/secrets.yml does not crash the loading process" do
+      app_file 'config/secrets.yml', <<-YAML
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_nil app.secrets.not_defined
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 
