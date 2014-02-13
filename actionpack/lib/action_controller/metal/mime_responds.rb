@@ -236,6 +236,18 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
+    # You can also set an array of variants:
+    #
+    #   request.variant = [:tablet, :phone]
+    #
+    # which will work similarly to formats and MIME types negotiation. If there will be no
+    # :tablet variant declared, :phone variant will be picked:
+    #
+    #   respond_to do |format|
+    #     format.html.none
+    #     format.html.phone # this gets rendered
+    #   end
+    #
     # Be sure to check the documentation of +respond_with+ and
     # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
     def respond_to(*mimes, &block)
@@ -488,7 +500,7 @@ module ActionController #:nodoc:
           response
         else # `format.html{ |variant| variant.phone }` - variant block syntax
           variant_collector = VariantCollector.new(@variant)
-          response.call(variant_collector) #call format block with variants collector
+          response.call(variant_collector) # call format block with variants collector
           variant_collector.variant
         end
       end
@@ -519,15 +531,15 @@ module ActionController #:nodoc:
         end
 
         def variant
-          key = if @variant.nil?
-            :none
-          elsif @variants.has_key?(@variant)
-            @variant
+          if @variant.nil?
+            @variants[:none]
+          elsif (@variants.keys & @variant).any?
+            @variant.each do |v|
+              return @variants[v] if @variants.key?(v)
+            end
           else
-            :any
+            @variants[:any]
           end
-
-          @variants[key]
         end
       end
     end
