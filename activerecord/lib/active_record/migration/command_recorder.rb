@@ -139,7 +139,12 @@ module ActiveRecord
 
       def invert_add_index(args)
         table, columns, options = *args
-        [:remove_index, [table, (options || {}).merge(column: columns)]]
+        options ||= {}
+
+        index_name = options[:name]
+        options_hash = index_name ? { name: index_name } : { column: columns }
+
+        [:remove_index, [table, options_hash]]
       end
 
       def invert_remove_index(args)

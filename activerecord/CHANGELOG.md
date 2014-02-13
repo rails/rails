@@ -1,3 +1,15 @@
+*   When inverting add_index use the index name if present instead of
+    the columns.
+
+    If there are two indices with matching columns and one of them is
+    explicitly named then reverting the migration adding the named one
+    would instead drop the unnamed one.
+
+    The inversion of add_index will now drop the index by its name if
+    it is present.
+
+    *Hubert Dąbrowski*
+
 *   Make sure transaction state gets reset after a commit operation on the record.
 
     If a new transaction was open inside a callback, the record was loosing track
