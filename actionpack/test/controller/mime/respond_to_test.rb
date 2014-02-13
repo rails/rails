@@ -671,6 +671,10 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_variant_any_any
+    get :variant_any_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+
     @request.variant = :phone
     get :variant_any_any
     assert_equal "text/html", @response.content_type

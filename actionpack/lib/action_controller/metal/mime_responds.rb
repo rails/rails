@@ -532,7 +532,7 @@ module ActionController #:nodoc:
 
         def variant
           if @variant.nil?
-            @variants[:none]
+            @variants[:none] || @variants[:any]
           elsif (@variants.keys & @variant).any?
             @variant.each do |v|
               return @variants[v] if @variants.key?(v)
