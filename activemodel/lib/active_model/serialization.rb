@@ -101,7 +101,7 @@ module ActiveModel
 
       hash = set_serializable_attributes(attribute_names)
       if methods = options[:methods]
-        hash.merge!(serializable_methods_hash(methods))
+        hash = serializable_methods_hash(methods, hash)
       end
 
       serializable_add_includes(options) do |association, records, opts|
@@ -180,8 +180,7 @@ module ActiveModel
       # Returns a Hash of serialized method names given from #serialized_hash
       # options, to be merged with the Hash setup in
       # #set_serializable_attributes
-      def serializable_methods_hash(methods)
-        hash = {}
+      def serializable_methods_hash(methods, hash)
         Array(methods).each do |m|
           hash[m.to_s] = send(m) if respond_to?(m)
         end
