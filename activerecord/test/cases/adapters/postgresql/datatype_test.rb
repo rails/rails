@@ -184,6 +184,14 @@ _SQL
     assert_equal :text, @first_array.column_for_attribute(:nicknames).type
   end
 
+  def test_array_escaping
+    unknown = %(foo\\",bar,baz,\\)
+    nicknames = ["hello_#{unknown}"]
+    ar = PostgresqlArray.create!(nicknames: nicknames, id: 100)
+    ar.reload
+    assert_equal nicknames, ar.nicknames
+  end
+
   def test_data_type_of_range_types
     skip "PostgreSQL 9.2 required for range datatypes" unless @connection.supports_ranges?
     assert_equal :daterange, @first_range.column_for_attribute(:date_range).type
