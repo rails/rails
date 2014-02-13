@@ -25,7 +25,8 @@ module ActiveRecord
           joins         = []
           tables        = tables.reverse
 
-          scope_chain_iter = scope_chain.reverse_each
+          scope_chain_index = 0
+          scope_chain = scope_chain.reverse
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
@@ -44,13 +45,14 @@ module ActiveRecord
 
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
-            scope_chain_items = scope_chain_iter.next.map do |item|
+            scope_chain_items = scope_chain[scope_chain_index].map do |item|
               if item.is_a?(Relation)
                 item
               else
                 ActiveRecord::Relation.create(klass, table).instance_exec(node, &item)
               end
             end
+            scope_chain_index += 1
 
             scope_chain_items.concat [klass.send(:build_default_scope)].compact
 
