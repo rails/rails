@@ -3,8 +3,8 @@ module ActiveRecord
     class AssociationScope #:nodoc:
       attr_reader :association, :alias_tracker
 
-      delegate :klass, :owner, :reflection, :to => :association
-      delegate :chain, :scope_chain, :options, :to => :reflection
+      delegate :klass, :reflection, :to => :association
+      delegate :chain, :scope_chain, :to => :reflection
 
       def initialize(association)
         @association   = association
@@ -13,8 +13,10 @@ module ActiveRecord
 
       def scope
         scope = klass.unscoped
-        scope.extending! Array(options[:extend])
-        add_constraints(scope)
+        scope.extending! Array(reflection.options[:extend])
+
+        owner = association.owner
+        add_constraints(scope, owner)
       end
 
       def join_type
@@ -59,7 +61,7 @@ module ActiveRecord
         bind_value scope, column, value
       end
 
-      def add_constraints(scope)
+      def add_constraints(scope, owner)
         tables = construct_tables
 
         chain.each_with_index do |reflection, i|
@@ -105,7 +107,7 @@ module ActiveRecord
           # Exclude the scope of the association itself, because that
           # was already merged in the #scope method.
           scope_chain[i].each do |scope_chain_item|
-            item  = eval_scope(klass, scope_chain_item)
+            item  = eval_scope(klass, scope_chain_item, owner)
 
             if scope_chain_item == self.reflection.scope
               scope.merge! item.except(:where, :includes, :bind)
@@ -138,7 +140,7 @@ module ActiveRecord
         end
       end
 
-      def eval_scope(klass, scope)
+      def eval_scope(klass, scope, owner)
         if scope.is_a?(Relation)
           scope
         else
