@@ -3,8 +3,8 @@ module ActiveRecord
     class AssociationScope #:nodoc:
       attr_reader :association, :alias_tracker
 
-      delegate :klass, :owner, :reflection, :interpolate, :to => :association
-      delegate :chain, :scope_chain, :options, :source_options, :active_record, :to => :reflection
+      delegate :klass, :owner, :reflection, :to => :association
+      delegate :chain, :scope_chain, :options, :to => :reflection
 
       def initialize(association)
         @association   = association
