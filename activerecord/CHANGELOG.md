@@ -1,3 +1,10 @@
+*   Fixed STI classes not defining an attribute method if there is a
+    conflicting private method defined on its ancestors.
+
+    Fixes #11569.
+
+    *Godfrey Chan*
+
 *   Default scopes are no longer overriden by chained conditions.
 
     Before this change when you defined a `default_scope` in a model
