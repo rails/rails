@@ -75,7 +75,7 @@ db_namespace = namespace :db do
     # desc 'Runs the "down" for a given migration VERSION.'
     task :down => [:environment, :load_config] do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
-      raise 'VERSION is required' unless version
+      raise 'VERSION is required - To go down one migration, run db:rollback' unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
       db_namespace['_dump'].invoke
     end
