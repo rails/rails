@@ -4,7 +4,7 @@ module ActiveRecord
       attr_reader :association, :alias_tracker
 
       delegate :klass, :reflection, :to => :association
-      delegate :chain, :scope_chain, :to => :reflection
+      delegate :chain, :to => :reflection
 
       def initialize(association)
         @association   = association
@@ -16,7 +16,7 @@ module ActiveRecord
         scope.extending! Array(reflection.options[:extend])
 
         owner = association.owner
-        add_constraints(scope, owner)
+        add_constraints(scope, owner, reflection.scope_chain)
       end
 
       def join_type
@@ -61,7 +61,7 @@ module ActiveRecord
         bind_value scope, column, value
       end
 
-      def add_constraints(scope, owner)
+      def add_constraints(scope, owner, scope_chain)
         tables = construct_tables
 
         chain.each_with_index do |reflection, i|
