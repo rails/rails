@@ -156,7 +156,7 @@ module ActiveModel
       end
 
       # Returns a Hash of serialized attributes including explictly specified
-      # keys and excluding keys marked as except.
+      # keys and excluding keys included in the optional +:except+ Array.
       def serializable_attribute_names(attribute_keys, options = nil)
         attribute_names = attribute_keys
         if only = options[:only]
@@ -167,8 +167,7 @@ module ActiveModel
         attribute_names
       end
 
-      # Initial setup of serialized attributes hash given an Array of attribute
-      # names.
+      # Setup the serialized attributes hash given an Array of attribute names.
       def set_serializable_attributes(attribute_names)
         hash = {}
         attribute_names.each do |n|
@@ -177,9 +176,11 @@ module ActiveModel
         hash
       end
 
-      # Returns a Hash of serialized method names given from #serialized_hash
-      # options, to be merged with the Hash setup in
-      # #set_serializable_attributes
+      # Sets keys of the given +hash+ for each method name given from the
+      # +methods+ which are received from options in #serializable_hash.
+      #
+      # These methods are then serialized into the existing hash, originally
+      # setup in #set_serializable_attributes
       def serializable_methods_hash(methods, hash)
         Array(methods).each do |m|
           hash[m.to_s] = send(m) if respond_to?(m)
