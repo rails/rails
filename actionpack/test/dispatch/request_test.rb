@@ -852,6 +852,14 @@ class RequestTest < ActiveSupport::TestCase
 
     request.variant = [:phone, :tablet]
     assert_equal [:phone, :tablet], request.variant
+
+    assert_raise ArgumentError do
+      request.variant = [:phone, "tablet"]
+    end
+
+    assert_raise ArgumentError do
+      request.variant = "yolo"
+    end
   end
 
   test "setting variant with non symbol value" do
