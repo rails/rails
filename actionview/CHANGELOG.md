@@ -1,3 +1,8 @@
+*   The `pluralize` helper accepts a new `locale` argument to determine which language to use.
+    Defaults to the current I18n locale.
+
+    *Olivier Kaluzny*
+
 *   Added `config.action_view.raise_on_missing_translations` to define whether an
     error should be raised for missing translations.
 
