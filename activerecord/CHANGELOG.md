@@ -1,3 +1,15 @@
+*   When inverting add_index use the index name if present instead of
+    the columns.
+
+    If there are two indices with matching columns and one of them is
+    explicitly named then reverting the migration adding the named one
+    would instead drop the unnamed one.
+
+    The inversion of add_index will now drop the index by its name if
+    it is present.
+
+    *Hubert Dąbrowski*
+
 *   Add flag to disable schema dump after migration.
 
     Add a config parameter on Active Record named `dump_schema_after_migration`
