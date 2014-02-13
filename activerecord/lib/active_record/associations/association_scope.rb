@@ -1,10 +1,6 @@
-require 'active_record/associations/join_helper'
-
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
-      include JoinHelper
-
       attr_reader :association, :alias_tracker
 
       delegate :klass, :owner, :reflection, :interpolate, :to => :association
@@ -21,7 +17,31 @@ module ActiveRecord
         add_constraints(scope)
       end
 
+      def join_type
+        Arel::Nodes::InnerJoin
+      end
+
       private
+
+      def construct_tables
+        chain.map do |reflection|
+          alias_tracker.aliased_table_for(
+            table_name_for(reflection),
+            table_alias_for(reflection, reflection != self.reflection)
+          )
+        end
+      end
+
+
+      def table_alias_for(reflection, join = false)
+        name = "#{reflection.plural_name}_#{alias_suffix}"
+        name << "_join" if join
+        name
+      end
+
+      def join(table, constraint)
+        table.create_join(table, table.create_on(constraint), join_type)
+      end
 
       def column_for(table_name, column_name)
         columns = alias_tracker.connection.schema_cache.columns_hash(table_name)
@@ -115,7 +135,7 @@ module ActiveRecord
           # the owner
           klass.table_name
         else
-          super
+          reflection.table_name
         end
       end
 
