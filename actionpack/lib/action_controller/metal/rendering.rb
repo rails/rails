@@ -27,7 +27,7 @@ module ActionController
     end
 
     def render_to_body(options = {})
-      super || options[:body].presence || options[:text].presence || options[:plain].presence || ' '
+      super || options[:body].presence || options[:text].presence || options[:plain].presence || ERB::Util.h(options[:html]).presence || ' '
     end
 
     private
@@ -67,7 +67,7 @@ module ActionController
         options[:plain] = options[:plain].to_text
       end
 
-      if options.delete(:nothing) || (options.key?(:body) && options[:body].nil?) || (options.key?(:text) && options[:text].nil?) || (options.key?(:plain) && options[:plain].nil?)
+      if options.delete(:nothing) || (options.key?(:body) && options[:body].nil?) || (options.key?(:text) && options[:text].nil?) || (options.key?(:plain) && options[:plain].nil?) || (options.key?(:html) && options[:html].nil?)
         options[:body] = " "
       end
 

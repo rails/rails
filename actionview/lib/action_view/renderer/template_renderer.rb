@@ -27,6 +27,8 @@ module ActionView
         Template::Text.new(options[:text], formats.first)
       elsif options.key?(:plain)
         Template::Text.new(options[:plain])
+      elsif options.key?(:html)
+        Template::HTML.new(options[:html], formats.first)
       elsif options.key?(:file)
         with_fallbacks { find_template(options[:file], nil, false, keys, @details) }
       elsif options.key?(:inline)

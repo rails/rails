@@ -1,3 +1,12 @@
+*   Introduce `render :html` as an option to render HTML content with a content
+    type of `text/html`. This rendering option calls `ERB::Util.html_escape`
+    internally to escape unsafe HTML string, so you will have to mark your
+    string as html safe if you have any HTML tag in it.
+
+    Please see #12374 for more detail.
+
+    *Prem Sichanugrist*
+
 *   Introduce `render :plain` as an option to render content with a content type
     of `text/plain`. This is the preferred option if you are planning to render
     a plain text content.

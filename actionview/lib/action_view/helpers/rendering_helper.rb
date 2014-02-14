@@ -14,6 +14,9 @@ module ActionView
       # * <tt>:text</tt> - Renders the text passed in out.
       # * <tt>:plain</tt> - Renders the text passed in out. Setting the content
       # type as <tt>text/plain</tt>.
+      # * <tt>:html</tt> - Renders the html safe string passed in out, otherwise
+      # performs html escape on the string first. Setting the content type as
+      # <tt>text/html</tt>.
       # * <tt>:body</tt> - Renders the text passed in, and does not set content
       # type in the response.
       #
