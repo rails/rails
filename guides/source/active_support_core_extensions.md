@@ -1380,6 +1380,8 @@ The third argument, `indent_empty_lines`, is a flag that says whether empty line
 
 The `indent!` method performs indentation in-place.
 
+NOTE: Defined in `active_support/core_ext/string/indent.rb`.
+
 ### Access
 
 #### `at(position)`
