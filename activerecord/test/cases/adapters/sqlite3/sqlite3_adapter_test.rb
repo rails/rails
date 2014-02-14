@@ -276,6 +276,16 @@ module ActiveRecord
         assert_equal 0, @conn.select_rows(count_sql).first.first
       end
 
+      def test_views
+        assert_equal %w{ items }, @conn.tables
+
+        @conn.execute <<-eosql
+          CREATE VIEW items_view AS
+            select id from items;
+        eosql
+        assert @conn.table_exists?('items_view')
+      end
+
       def test_tables
         assert_equal %w{ items }, @conn.tables
 

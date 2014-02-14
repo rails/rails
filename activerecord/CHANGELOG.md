@@ -1,3 +1,9 @@
+*   SQLite3Adapter now checks for views in `table_exists?`
+
+    Fixes #14041
+
+    *Girish Sonawane*
+
 *   When inverting add_index use the index name if present instead of
     the columns.
 

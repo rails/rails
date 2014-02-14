@@ -369,7 +369,7 @@ module ActiveRecord
         sql = <<-SQL
           SELECT name
           FROM sqlite_master
-          WHERE type = 'table' AND NOT name = 'sqlite_sequence'
+          WHERE (type = 'table' OR type = 'view') AND NOT name = 'sqlite_sequence'
         SQL
         sql << " AND name = #{quote_table_name(table_name)}" if table_name
 
