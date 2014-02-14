@@ -238,7 +238,7 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "does not add default content-type if Content-Type is none" do
     resp = ActionDispatch::Response.new.tap { |response|
-      response.content_type = 'none'
+      response.no_content_type = true
     }
 
     assert_not resp.headers.has_key?('Content-Type')
