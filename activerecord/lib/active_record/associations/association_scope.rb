@@ -1,6 +1,12 @@
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
+      INSTANCE = new
+
+      def self.scope(association, connection)
+        INSTANCE.scope association, connection
+      end
+
       def scope(association, connection)
         klass         = association.klass
         reflection    = association.reflection
