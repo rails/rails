@@ -285,6 +285,16 @@ module ActiveRecord
         end
       end
 
+      def test_views
+        assert_equal %w{ items }, @conn.tables
+
+        @conn.execute <<-eosql
+          CREATE VIEW items_view AS
+            select id from items;
+        eosql
+        assert @conn.table_exists?('items_view')
+      end
+
       def test_tables
         with_example_table do
           assert_equal %w{ ex }, @conn.tables
