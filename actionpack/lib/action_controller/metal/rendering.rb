@@ -2,6 +2,8 @@ module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
+    RENDER_FORMATS_IN_PRIORITY = [:body, :text, :plain, :html]
+
     # Before processing, set the request formats in current controller formats.
     def process_action(*) #:nodoc:
       self.formats = request.formats.map(&:ref).compact
@@ -27,10 +29,18 @@ module ActionController
     end
 
     def render_to_body(options = {})
-      super || options[:body].presence || options[:text].presence || options[:plain].presence || ERB::Util.h(options[:html]).presence || ' '
+      super || _render_in_priorities(options) || ' '
     end
 
     private
+
+    def _render_in_priorities(options)
+      RENDER_FORMATS_IN_PRIORITY.each do |format|
+        return options[format] if options.key?(format)
+      end
+
+      nil
+    end
 
     def _process_format(format, options = {})
       super
@@ -55,19 +65,13 @@ module ActionController
 
     # Normalize both text and status options.
     def _normalize_options(options) #:nodoc:
-      if options.key?(:body) && options[:body].respond_to?(:to_text)
-        options[:body] = options[:body].to_text
+      _normalize_text(options)
+
+      if options[:html]
+        options[:html] = ERB::Util.html_escape(options[:html])
       end
 
-      if options.key?(:text) && options[:text].respond_to?(:to_text)
-        options[:text] = options[:text].to_text
-      end
-
-      if options.key?(:plain) && options[:plain].respond_to?(:to_text)
-        options[:plain] = options[:plain].to_text
-      end
-
-      if options.delete(:nothing) || (options.key?(:body) && options[:body].nil?) || (options.key?(:text) && options[:text].nil?) || (options.key?(:plain) && options[:plain].nil?) || (options.key?(:html) && options[:html].nil?)
+      if options.delete(:nothing) || _any_render_format_is_nil?(options)
         options[:body] = " "
       end
 
@@ -76,6 +80,18 @@ module ActionController
       end
 
       super
+    end
+
+    def _normalize_text(options)
+      RENDER_FORMATS_IN_PRIORITY.each do |format|
+        if options.key?(format) && options[format].respond_to?(:to_text)
+          options[format] = options[format].to_text
+        end
+      end
+    end
+
+    def _any_render_format_is_nil?(options)
+      RENDER_FORMATS_IN_PRIORITY.any? { |format| options.key?(format) && options[format].nil? }
     end
 
     # Process controller specific options, as status, content-type and location.
