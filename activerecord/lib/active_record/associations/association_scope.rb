@@ -1,18 +1,12 @@
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
-      attr_reader :association
-
-      def initialize(association)
-        @association   = association
-      end
-
-      def scope
+      def scope(association, connection)
         klass         = association.klass
         reflection    = association.reflection
         scope         = klass.unscoped
         owner         = association.owner
-        alias_tracker = AliasTracker.new klass.connection
+        alias_tracker = AliasTracker.new connection
 
         scope.extending! Array(reflection.options[:extend])
         add_constraints(scope, owner, klass, reflection, alias_tracker)
