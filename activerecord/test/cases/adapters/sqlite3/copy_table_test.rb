@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class CopyTableTest < ActiveRecord::TestCase
-  fixtures :customers, :companies, :comments, :binaries
+  fixtures :customers
 
   def setup
     @connection = ActiveRecord::Base.connection
