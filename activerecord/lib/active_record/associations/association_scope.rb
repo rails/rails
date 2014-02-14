@@ -3,21 +3,22 @@ module ActiveRecord
     class AssociationScope #:nodoc:
       attr_reader :association, :alias_tracker
 
-      delegate :klass, :reflection, :to => :association
+      delegate :reflection, :to => :association
 
       def initialize(association)
         @association   = association
-        @alias_tracker = AliasTracker.new klass.connection
+        @alias_tracker = AliasTracker.new association.klass.connection
       end
 
       def scope
+        klass = association.klass
         scope = klass.unscoped
         scope.extending! Array(reflection.options[:extend])
 
         owner = association.owner
         scope_chain = reflection.scope_chain
         chain = reflection.chain
-        add_constraints(scope, owner, scope_chain, chain)
+        add_constraints(scope, owner, scope_chain, chain, klass)
       end
 
       def join_type
@@ -26,10 +27,10 @@ module ActiveRecord
 
       private
 
-      def construct_tables(chain)
+      def construct_tables(chain, klass)
         chain.map do |reflection|
           alias_tracker.aliased_table_for(
-            table_name_for(reflection),
+            table_name_for(reflection, klass),
             table_alias_for(reflection, reflection != self.reflection)
           )
         end
@@ -62,15 +63,15 @@ module ActiveRecord
         bind_value scope, column, value
       end
 
-      def add_constraints(scope, owner, scope_chain, chain)
-        tables = construct_tables(chain)
+      def add_constraints(scope, owner, scope_chain, chain, assoc_klass)
+        tables = construct_tables(chain, assoc_klass)
 
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
 
           if reflection.source_macro == :belongs_to
             if reflection.options[:polymorphic]
-              key = reflection.association_primary_key(self.klass)
+              key = reflection.association_primary_key(assoc_klass)
             else
               key = reflection.association_primary_key
             end
@@ -103,7 +104,7 @@ module ActiveRecord
           end
 
           is_first_chain = i == 0
-          klass = is_first_chain ? self.klass : reflection.klass
+          klass = is_first_chain ? assoc_klass : reflection.klass
 
           # Exclude the scope of the association itself, because that
           # was already merged in the #scope method.
@@ -130,7 +131,7 @@ module ActiveRecord
         reflection.name
       end
 
-      def table_name_for(reflection)
+      def table_name_for(reflection, klass)
         if reflection == self.reflection
           # If this is a polymorphic belongs_to, we want to get the klass from the
           # association because it depends on the polymorphic_type attribute of
