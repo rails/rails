@@ -10,7 +10,7 @@ namespace :rails do
     require 'rails/generators'
     require 'rails/generators/rails/app/app_generator'
     generator = Rails::Generators::AppGenerator.new [Rails.root], {}, destination_root: Rails.root
-    generator.send :apply, template, verbose: false
+    generator.apply template, verbose: false
   end
 
   namespace :templates do

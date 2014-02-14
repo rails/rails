@@ -14,7 +14,6 @@ module Rails
       DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
-      attr_accessor :app_template
       add_shebang_option!
 
       argument :app_path, type: :string
@@ -25,9 +24,6 @@ module Rails
 
       def self.add_shared_options_for(name)
         class_option :template,           type: :string, aliases: '-m',
-                                          desc: "Path to some #{name} template (can be a filesystem path or URL)"
-
-        class_option :app_template,       type: :string, aliases: '-n',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
@@ -126,10 +122,6 @@ module Rails
         }.curry[@gem_filter]
       end
 
-      def remove_gem(name)
-        add_gem_entry_filter { |gem| gem.name != name }
-      end
-
       def builder
         @builder ||= begin
           builder_class = get_builder_class
@@ -149,92 +141,21 @@ module Rails
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
-      class TemplateRecorder < ::BasicObject # :nodoc:
-        attr_reader :gems
-
-        def initialize(target)
-          @target         = target
-          # unfortunately, instance eval has access to these ivars
-          @app_const      = target.send :app_const if target.respond_to?(:app_const, true)
-          @app_const_base = target.send :app_const_base if target.respond_to?(:app_const_base, true)
-          @app_name       = target.send :app_name if target.respond_to?(:app_name, true)
-          @commands       = []
-          @gems           = []
-        end
-
-        def gemfile_entry(*args)
-          @target.send :gemfile_entry, *args
-        end
-
-        def add_gem_entry_filter(*args, &block)
-          @target.send :add_gem_entry_filter, *args, &block
-        end
-
-        def remove_gem(*args, &block)
-          @target.send :remove_gem, *args, &block
-        end
-
-        def method_missing(name, *args, &block)
-          @commands << [name, args, block]
-        end
-
-        def respond_to_missing?(method, priv = false)
-          super || @target.respond_to?(method, priv)
-        end
-
-        def replay!
-          @commands.each do |name, args, block|
-            @target.send name, *args, &block
-          end
-        end
-      end
-
       def apply_rails_template
-        @recorder = TemplateRecorder.new self
-
-        apply(rails_template, target: self) if rails_template
-        apply(app_template, target: @recorder) if app_template
+        apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
 
-      def replay_template
-        @recorder.replay! if @recorder
-      end
-
-      def apply(path, config={})
-        verbose = config.fetch(:verbose, true)
-        target  = config.fetch(:target, self)
-        is_uri  = path =~ /^https?\:\/\//
-        path    = find_in_source_paths(path) unless is_uri
-
-        say_status :apply, path, verbose
-        shell.padding += 1 if verbose
-
-        if is_uri
-          contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-        else
-          contents = open(path) {|io| io.read }
-        end
-
-        target.instance_eval(contents, path)
-        shell.padding -= 1 if verbose
-      end
-
       def set_default_accessors!
         self.destination_root = File.expand_path(app_path, destination_root)
-        self.rails_template = expand_template options[:template]
-        self.app_template = expand_template options[:app_template]
-      end
-
-      def expand_template(name)
-        case name
-        when /^https?:\/\//
-          name
-        when String
-          File.expand_path(name, Dir.pwd)
-        else
-          name
+        self.rails_template = case options[:template]
+          when /^https?:\/\//
+            options[:template]
+          when String
+            File.expand_path(options[:template], Dir.pwd)
+          else
+            options[:template]
         end
       end
 
