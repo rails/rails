@@ -1,21 +1,21 @@
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
-      attr_reader :association, :alias_tracker
+      attr_reader :association
 
       def initialize(association)
         @association   = association
-        @alias_tracker = AliasTracker.new association.klass.connection
       end
 
       def scope
-        klass      = association.klass
-        reflection = association.reflection
-        scope      = klass.unscoped
-        owner      = association.owner
+        klass         = association.klass
+        reflection    = association.reflection
+        scope         = klass.unscoped
+        owner         = association.owner
+        alias_tracker = AliasTracker.new klass.connection
 
         scope.extending! Array(reflection.options[:extend])
-        add_constraints(scope, owner, klass, reflection)
+        add_constraints(scope, owner, klass, reflection, alias_tracker)
       end
 
       def join_type
@@ -24,7 +24,7 @@ module ActiveRecord
 
       private
 
-      def construct_tables(chain, klass, refl)
+      def construct_tables(chain, klass, refl, alias_tracker)
         chain.map do |reflection|
           alias_tracker.aliased_table_for(
             table_name_for(reflection, klass, refl),
@@ -43,28 +43,28 @@ module ActiveRecord
         table.create_join(table, table.create_on(constraint), join_type)
       end
 
-      def column_for(table_name, column_name)
+      def column_for(table_name, column_name, alias_tracker)
         columns = alias_tracker.connection.schema_cache.columns_hash(table_name)
         columns[column_name]
       end
 
-      def bind_value(scope, column, value)
+      def bind_value(scope, column, value, alias_tracker)
         substitute = alias_tracker.connection.substitute_at(
           column, scope.bind_values.length)
         scope.bind_values += [[column, value]]
         substitute
       end
 
-      def bind(scope, table_name, column_name, value)
-        column   = column_for table_name, column_name
-        bind_value scope, column, value
+      def bind(scope, table_name, column_name, value, tracker)
+        column   = column_for table_name, column_name, tracker
+        bind_value scope, column, value, tracker
       end
 
-      def add_constraints(scope, owner, assoc_klass, refl)
+      def add_constraints(scope, owner, assoc_klass, refl, tracker)
         chain = refl.chain
         scope_chain = refl.scope_chain
 
-        tables = construct_tables(chain, assoc_klass, refl)
+        tables = construct_tables(chain, assoc_klass, refl, tracker)
 
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
@@ -83,12 +83,12 @@ module ActiveRecord
           end
 
           if reflection == chain.last
-            bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key]
+            bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key], tracker
             scope    = scope.where(table[key].eq(bind_val))
 
             if reflection.type
               value    = owner.class.base_class.name
-              bind_val = bind scope, table.table_name, reflection.type.to_s, value
+              bind_val = bind scope, table.table_name, reflection.type.to_s, value, tracker
               scope    = scope.where(table[reflection.type].eq(bind_val))
             end
           else
@@ -96,7 +96,7 @@ module ActiveRecord
 
             if reflection.type
               value    = chain[i + 1].klass.base_class.name
-              bind_val = bind scope, table.table_name, reflection.type.to_s, value
+              bind_val = bind scope, table.table_name, reflection.type.to_s, value, tracker
               scope    = scope.where(table[reflection.type].eq(bind_val))
             end
 
