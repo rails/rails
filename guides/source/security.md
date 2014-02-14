@@ -549,7 +549,7 @@ Injection is very tricky, because the same code or parameter can be malicious in
 
 ### Whitelists versus Blacklists
 
-NOTE: _When sanitizing, protecting or verifying something, whitelists over blacklists._
+NOTE: _When sanitizing, protecting or verifying something, prefer whitelists over blacklists._
 
 A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a whitelist which lists the good e-mail addresses, public actions, good HTML tags and so on. Although sometimes it is not possible to create a whitelist (in a SPAM filter, for example), _prefer to use whitelist approaches_:
 
