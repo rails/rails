@@ -1,3 +1,8 @@
+*   Added `:plain`, `:html` and `:body` option for `render` method. Please see
+    Action Pack's release note for more detail.
+
+    *Prem Sichanugrist*
+
 *   Date select helpers accept a format string for the months selector via the
     new option `:month_format_string`.
 
