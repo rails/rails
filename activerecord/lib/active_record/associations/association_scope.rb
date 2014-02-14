@@ -3,8 +3,6 @@ module ActiveRecord
     class AssociationScope #:nodoc:
       attr_reader :association, :alias_tracker
 
-      delegate :reflection, :to => :association
-
       def initialize(association)
         @association   = association
         @alias_tracker = AliasTracker.new association.klass.connection
@@ -12,13 +10,14 @@ module ActiveRecord
 
       def scope
         klass = association.klass
+        reflection = association.reflection
         scope = klass.unscoped
         scope.extending! Array(reflection.options[:extend])
 
         owner = association.owner
         scope_chain = reflection.scope_chain
         chain = reflection.chain
-        add_constraints(scope, owner, scope_chain, chain, klass)
+        add_constraints(scope, owner, scope_chain, chain, klass, reflection)
       end
 
       def join_type
@@ -27,17 +26,17 @@ module ActiveRecord
 
       private
 
-      def construct_tables(chain, klass)
+      def construct_tables(chain, klass, refl)
         chain.map do |reflection|
           alias_tracker.aliased_table_for(
-            table_name_for(reflection, klass),
-            table_alias_for(reflection, reflection != self.reflection)
+            table_name_for(reflection, klass, refl),
+            table_alias_for(reflection, refl, reflection != refl)
           )
         end
       end
 
-      def table_alias_for(reflection, join = false)
-        name = "#{reflection.plural_name}_#{alias_suffix}"
+      def table_alias_for(reflection, refl, join = false)
+        name = "#{reflection.plural_name}_#{alias_suffix(refl)}"
         name << "_join" if join
         name
       end
@@ -63,8 +62,8 @@ module ActiveRecord
         bind_value scope, column, value
       end
 
-      def add_constraints(scope, owner, scope_chain, chain, assoc_klass)
-        tables = construct_tables(chain, assoc_klass)
+      def add_constraints(scope, owner, scope_chain, chain, assoc_klass, refl)
+        tables = construct_tables(chain, assoc_klass, refl)
 
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
@@ -111,7 +110,7 @@ module ActiveRecord
           scope_chain[i].each do |scope_chain_item|
             item  = eval_scope(klass, scope_chain_item, owner)
 
-            if scope_chain_item == self.reflection.scope
+            if scope_chain_item == refl.scope
               scope.merge! item.except(:where, :includes, :bind)
             end
 
@@ -127,12 +126,12 @@ module ActiveRecord
         scope
       end
 
-      def alias_suffix
-        reflection.name
+      def alias_suffix(refl)
+        refl.name
       end
 
-      def table_name_for(reflection, klass)
-        if reflection == self.reflection
+      def table_name_for(reflection, klass, refl)
+        if reflection == refl
           # If this is a polymorphic belongs_to, we want to get the klass from the
           # association because it depends on the polymorphic_type attribute of
           # the owner
