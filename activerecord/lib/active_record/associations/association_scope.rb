@@ -9,15 +9,13 @@ module ActiveRecord
       end
 
       def scope
-        klass = association.klass
+        klass      = association.klass
         reflection = association.reflection
-        scope = klass.unscoped
-        scope.extending! Array(reflection.options[:extend])
+        scope      = klass.unscoped
+        owner      = association.owner
 
-        owner = association.owner
-        scope_chain = reflection.scope_chain
-        chain = reflection.chain
-        add_constraints(scope, owner, scope_chain, chain, klass, reflection)
+        scope.extending! Array(reflection.options[:extend])
+        add_constraints(scope, owner, klass, reflection)
       end
 
       def join_type
@@ -62,7 +60,10 @@ module ActiveRecord
         bind_value scope, column, value
       end
 
-      def add_constraints(scope, owner, scope_chain, chain, assoc_klass, refl)
+      def add_constraints(scope, owner, assoc_klass, refl)
+        chain = refl.chain
+        scope_chain = refl.scope_chain
+
         tables = construct_tables(chain, assoc_klass, refl)
 
         chain.each_with_index do |reflection, i|
