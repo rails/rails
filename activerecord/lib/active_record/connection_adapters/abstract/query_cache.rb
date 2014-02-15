@@ -73,10 +73,11 @@ module ActiveRecord
 
       private
         def cache_sql(sql)
+          value_from_cache = @query_cache[sql]
           result =
-            if @query_cache.has_key?(sql)
+            if value_from_cache
               log_info(sql, "CACHE", 0.0)
-              @query_cache[sql]
+              value_from_cache
             else
               @query_cache[sql] = yield
             end
