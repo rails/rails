@@ -1,3 +1,17 @@
+*   Date select helpers accept a format string for the months selector via the
+    new option `:month_format_string`.
+
+    When rendered, the format string gets passed keys `:number` (integer), and
+    `:name` (string), in order to be able to interpolate them as in
+
+        '%{name} (%<number>02d)'
+
+    for example.
+
+    This option is motivated by #13618.
+
+    *Xavier Noria*
+
 *   Added `config.action_view.raise_on_missing_translations` to define whether an
     error should be raised for missing translations.
 
