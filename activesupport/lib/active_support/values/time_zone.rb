@@ -186,8 +186,6 @@ module ActiveSupport
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
 
-    @zones_hash = ThreadSafe::Cache.new
-    @lazy_zones_hash = ThreadSafe::Cache.new
     @lazy_zones_map = ThreadSafe::Cache.new
 
     # Assumes self represents an offset from UTC in seconds (as returned from
@@ -245,12 +243,7 @@ module ActiveSupport
     # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
     # if a match is found.
     def =~(re)
-      begin
-        mapping = I18n.translate("timezone.mappings", :raise => true)
-        re === name || re === mapping[name]
-      rescue I18n::MissingTranslationData
-        re === name || re === MAPPING[name]
-      end
+      re === name || re === MAPPING[name]
     end
 
     # Returns a textual representation of this time zone.
@@ -364,13 +357,7 @@ module ActiveSupport
     end
 
     def self.find_tzinfo(name)
-      begin
-        locale = I18n.locale.to_sym
-        mapping = I18n.translate("timezone.mappings", :raise => true)
-        TZInfo::TimezoneProxy.new(mapping[name.to_sym] || name)
-      rescue I18n::MissingTranslationData
-        TZInfo::TimezoneProxy.new(MAPPING[name] || name)
-      end
+      TZInfo::TimezoneProxy.new(MAPPING[name] || name)
     end
 
     class << self
@@ -387,24 +374,13 @@ module ActiveSupport
       # TimeZone objects per time zone, in many cases, to make it easier
       # for users to find their own time zone.
       def all
-        begin
-          locale = I18n.locale.to_sym
-          @zones_hash[locale] ||= zones_map(I18n.translate("timezone.mappings", :raise => true)).values.sort
-        rescue I18n::MissingTranslationData
-          @zones ||= zones_map.values.sort
-        end
+        @zones ||= zones_map.values.sort
       end
 
-      def zones_map(other_map = nil)
-        if other_map
-          locale = I18n.locale.to_sym
-          other_map.each_key {|place| self[place]} # load all the zones
-          @lazy_zones_hash[locale]
-        else
-          @zones_map ||= begin
-            MAPPING.each_key {|place| self[place]} # load all the zones
-            @lazy_zones_map
-          end
+      def zones_map
+        @zones_map ||= begin
+          MAPPING.each_key {|place| self[place]} # load all the zones
+          @lazy_zones_map
         end
       end
 
@@ -416,17 +392,8 @@ module ActiveSupport
       def [](arg)
         case arg
           when String
-            begin
-              @lazy_zones_map[arg] ||= create(arg).tap { |tz| tz.utc_offset }
-            rescue TZInfo::InvalidTimezoneIdentifier
-              nil
-            end
-          when Symbol
           begin
-            arg = arg.to_s
-            locale = I18n.locale.to_sym
-            @lazy_zones_hash[locale] ||= ThreadSafe::Cache.new
-            @lazy_zones_hash[locale][arg] ||= create(arg).tap { |tz| tz.utc_offset }
+            @lazy_zones_map[arg] ||= create(arg).tap { |tz| tz.utc_offset }
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
