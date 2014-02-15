@@ -8,13 +8,13 @@ module ActiveRecord
       attr_reader :aliases, :table_joins, :connection
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(connection = Base.connection, table_joins = [])
+      def initialize(connection, table_joins = [])
         @aliases     = Hash.new { |h,k| h[k] = initial_count_for(k) }
         @table_joins = table_joins
         @connection  = connection
       end
 
-      def aliased_table_for(table_name, aliased_name = nil)
+      def aliased_table_for(table_name, aliased_name)
         table_alias = aliased_name_for(table_name, aliased_name)
 
         if table_alias == table_name
@@ -24,9 +24,7 @@ module ActiveRecord
         end
       end
 
-      def aliased_name_for(table_name, aliased_name = nil)
-        aliased_name ||= table_name
-
+      def aliased_name_for(table_name, aliased_name)
         if aliases[table_name].zero?
           # If it's zero, we can have our table_name
           aliases[table_name] = 1
