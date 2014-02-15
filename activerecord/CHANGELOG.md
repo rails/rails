@@ -1,3 +1,10 @@
+*   Properly detect if a connection is still active before using it
+    in multi-threaded environments.
+
+    Fixes #12867.
+
+    *Kevin Casey*, *Matthew Draper*, *William (B.J.) Snow Orvis*
+
 *   When inverting add_index use the index name if present instead of
     the columns.
 
