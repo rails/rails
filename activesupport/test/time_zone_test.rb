@@ -382,6 +382,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
   end
 
+  def test_locale_defined_zones
+    I18n.locale = :does_not_exist #cache locale defined zones to somewhere else
+    I18n.stubs translate: {Paris: "Europe/Paris", Curacao: "America/Curacao"}
+    zones = ActiveSupport::TimeZone.all
+    assert_equal 2, zones.count
+    assert zones.include?(ActiveSupport::TimeZone["Paris"])
+    assert zones.include?(ActiveSupport::TimeZone["Curacao"])
+    I18n.locale= :en
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
