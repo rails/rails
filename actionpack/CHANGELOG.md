@@ -1,3 +1,10 @@
+*   Set stream status to 500 (or 400 on BadRequest) when an error is thrown
+    before commiting.
+
+    Fixes #12552.
+
+    *Kevin Casey*
+
 *   Add new config option `config.action_dispatch.cookies_serializer` for
     specifying a serializer for the signed and encrypted cookie jars.
 

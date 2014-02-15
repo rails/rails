@@ -205,6 +205,8 @@ module ActionController
         begin
           super(name)
         rescue => e
+          @_response.status = 500 unless @_response.committed?
+          @_response.status = 400 if e.class == ActionController::BadRequest
           begin
             @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
             @_response.stream.call_on_error
