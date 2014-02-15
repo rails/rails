@@ -7,10 +7,43 @@ module ActiveRecord
     class AliasTracker # :nodoc:
       attr_reader :aliases, :connection
 
+      def self.empty(connection)
+        new connection, Hash.new(0)
+      end
+
+      def self.create(connection, table_joins)
+        if table_joins.empty?
+          empty connection
+        else
+          aliases = Hash.new { |h,k|
+            h[k] = initial_count_for(connection, k, table_joins)
+          }
+          new connection, aliases
+        end
+      end
+
+      def self.initial_count_for(connection, name, table_joins)
+        # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
+        quoted_name = connection.quote_table_name(name).downcase
+
+        counts = table_joins.map do |join|
+          if join.is_a?(Arel::Nodes::StringJoin)
+            # Table names + table aliases
+            join.left.downcase.scan(
+              /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
+            ).size
+          else
+            join.left.table_name == name ? 1 : 0
+          end
+        end
+
+        counts.sum
+      end
+
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(connection, table_joins)
-        @aliases = Hash.new { |h,k| h[k] = initial_count_for(k, table_joins) }
-        @connection  = connection
+      def initialize(connection, aliases)
+        @aliases    = aliases
+        @connection = connection
       end
 
       def aliased_table_for(table_name, aliased_name)
@@ -44,24 +77,6 @@ module ActiveRecord
       end
 
       private
-
-        def initial_count_for(name, table_joins)
-          # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
-          quoted_name = connection.quote_table_name(name).downcase
-
-          counts = table_joins.map do |join|
-            if join.is_a?(Arel::Nodes::StringJoin)
-              # Table names + table aliases
-              join.left.downcase.scan(
-                /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
-              ).size
-            else
-              join.left.table_name == name ? 1 : 0
-            end
-          end
-
-          counts.sum
-        end
 
         def truncate(name)
           name.slice(0, connection.table_alias_length - 2)

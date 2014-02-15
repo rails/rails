@@ -93,7 +93,7 @@ module ActiveRecord
       #    joins # =>  []
       #
       def initialize(base, associations, joins)
-        @alias_tracker = AliasTracker.new(base.connection, joins)
+        @alias_tracker = AliasTracker.create(base.connection, joins)
         @alias_tracker.aliased_name_for(base.table_name, base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
         @join_root = JoinBase.new base, build(tree, base)

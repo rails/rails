@@ -12,7 +12,7 @@ module ActiveRecord
         reflection    = association.reflection
         scope         = klass.unscoped
         owner         = association.owner
-        alias_tracker = AliasTracker.new(connection, [])
+        alias_tracker = AliasTracker.empty connection
 
         scope.extending! Array(reflection.options[:extend])
         add_constraints(scope, owner, klass, reflection, alias_tracker)
