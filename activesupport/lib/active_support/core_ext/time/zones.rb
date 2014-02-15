@@ -51,13 +51,13 @@ class Time
     end
 
     # Returns a TimeZone instance or nil, or raises an ArgumentError for invalid timezones.
-    def find_zone!(time_zone)
+    def find_zone!(time_zone, use_mapping = true)
       if !time_zone || time_zone.is_a?(ActiveSupport::TimeZone)
         time_zone
       else
         # lookup timezone based on identifier (unless we've been passed a TZInfo::Timezone)
         unless time_zone.respond_to?(:period_for_local)
-          time_zone = ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
+          time_zone = use_mapping && ActiveSupport::TimeZone[time_zone] || TZInfo::Timezone.get(time_zone)
         end
 
         # Return if a TimeZone instance, or wrap in a TimeZone instance if a TZInfo::Timezone

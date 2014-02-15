@@ -1,3 +1,10 @@
+*   Add possibility of overwriting TimeZone default MAPPING by providing your
+    own within timezones.rb initializer.
+
+    This is done in response to #10276.
+
+    *Aleksi Aalto*
+
 *   Fix the implementation of Multibyte::Unicode.tidy_bytes for JRuby
 
     The existing implementation caused JRuby to raise the error:

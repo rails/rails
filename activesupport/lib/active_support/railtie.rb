@@ -17,7 +17,13 @@ module ActiveSupport
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer "active_support.initialize_time_zone" do |app|
       require 'active_support/core_ext/time/zones'
-      zone_default = Time.find_zone!(app.config.time_zone)
+
+      begin
+        zone_default = Time.find_zone!(app.config.time_zone, false)
+      rescue TZInfo::InvalidTimezoneIdentifier
+        zone_default = Time.find_zone!(app.config.time_zone, true)
+        ActiveSupport::Deprecation.warn("Setting the default time zone using a 'friendly' name is deprecated; change your config to use: config.timezone = 'Australia/Adelaide'")
+      end
 
       unless zone_default
         raise 'Value assigned to config.time_zone not recognized. ' \
