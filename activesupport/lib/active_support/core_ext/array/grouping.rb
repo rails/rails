@@ -50,8 +50,8 @@ class Array
   #
   #   %w(1 2 3 4 5 6 7).in_groups(3, false) {|group| p group}
   #   ["1", "2", "3"]
-  #   ["4", "5"]
-  #   ["6", "7"]
+  #   ["4", "5", "6"]
+  #   ["7"]
   def in_groups(number, fill_with = nil)
     # size.div number gives minor group size;
     # size % number gives how many objects need extra accommodation;
