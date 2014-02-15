@@ -401,6 +401,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       response.headers.delete params[:header]
       head :ok, 'c' => '3'
     end
+
+    def options
+      render :text => 'options are cool'
+    end
+
   end
 
   def test_get
@@ -584,6 +589,13 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_options
+    with_test_route_set do
+      process :options, "/specials/options"
+      assert_equal "options are cool", body
+    end
+  end
+
   def test_generate_url_with_controller
     assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
   end
@@ -670,7 +682,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
         set.draw do
           get 'moved' => redirect('/method')
-
+          match 'specials/:action', :to => controller, :via => :options
           match ':action', :to => controller, :via => [:get, :post], :as => :action
           get 'get/:action', :to => controller, :as => :get_action
         end

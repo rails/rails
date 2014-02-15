@@ -284,10 +284,66 @@ module ActionDispatch
       #   session.host! "www.example.com"
       alias :host! :host=
 
-      private
-        def _mock_session
-          @_mock_session ||= Rack::MockSession.new(@app, host)
+      # Performs the actual request.
+      def process(method, path, params: nil, headers: nil, env: nil, xhr: false)
+        if path =~ %r{://}
+          location = URI.parse(path)
+          https! URI::HTTPS === location if location.scheme
+          host! "#{location.host}:#{location.port}" if location.host
+          path = location.query ? "#{location.path}?#{location.query}" : location.path
         end
+
+        hostname, port = host.split(':')
+
+        request_env = {
+          :method => method,
+          :params => params,
+
+          "SERVER_NAME"     => hostname,
+          "SERVER_PORT"     => port || (https? ? "443" : "80"),
+          "HTTPS"           => https? ? "on" : "off",
+          "rack.url_scheme" => https? ? "https" : "http",
+
+          "REQUEST_URI"    => path,
+          "HTTP_HOST"      => host,
+          "REMOTE_ADDR"    => remote_addr,
+          "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
+          "HTTP_ACCEPT"    => accept
+        }
+
+        if xhr
+          headers ||= {}
+          headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+          headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        end
+
+        # this modifies the passed request_env directly
+        if headers.present?
+          Http::Headers.new(request_env).merge!(headers)
+        end
+        if env.present?
+          Http::Headers.new(request_env).merge!(env)
+        end
+
+        session = Rack::Test::Session.new(_mock_session)
+
+        # NOTE: rack-test v0.5 doesn't build a default uri correctly
+        # Make sure requested path is always a full uri
+        session.request(build_full_uri(path, request_env), request_env)
+
+        @request_count += 1
+        @request  = ActionDispatch::Request.new(session.last_request.env)
+        response = _mock_session.last_response
+        @response = ActionDispatch::TestResponse.from_response(response)
+        @html_document = nil
+        @url_options = nil
+
+        @controller = session.last_request.env['action_controller.instance']
+
+        response.status
+      end
+
+      private
 
         def process_with_kwargs(http_method, path, *args)
           if kwarg_request?(*args)
@@ -319,63 +375,8 @@ module ActionDispatch
           MSG
         end
 
-        # Performs the actual request.
-        def process(method, path, params: nil, headers: nil, env: nil, xhr: false)
-          if path =~ %r{://}
-            location = URI.parse(path)
-            https! URI::HTTPS === location if location.scheme
-            host! "#{location.host}:#{location.port}" if location.host
-            path = location.query ? "#{location.path}?#{location.query}" : location.path
-          end
-
-          hostname, port = host.split(':')
-
-          request_env = {
-            :method => method,
-            :params => params,
-
-            "SERVER_NAME"     => hostname,
-            "SERVER_PORT"     => port || (https? ? "443" : "80"),
-            "HTTPS"           => https? ? "on" : "off",
-            "rack.url_scheme" => https? ? "https" : "http",
-
-            "REQUEST_URI"    => path,
-            "HTTP_HOST"      => host,
-            "REMOTE_ADDR"    => remote_addr,
-            "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
-            "HTTP_ACCEPT"    => accept
-          }
-
-          if xhr
-            headers ||= {}
-            headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-            headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
-          end
-
-          # this modifies the passed request_env directly
-          if headers.present?
-            Http::Headers.new(request_env).merge!(headers)
-          end
-          if env.present?
-            Http::Headers.new(request_env).merge!(env)
-          end
-
-          session = Rack::Test::Session.new(_mock_session)
-
-          # NOTE: rack-test v0.5 doesn't build a default uri correctly
-          # Make sure requested path is always a full uri
-          session.request(build_full_uri(path, request_env), request_env)
-
-          @request_count += 1
-          @request  = ActionDispatch::Request.new(session.last_request.env)
-          response = _mock_session.last_response
-          @response = ActionDispatch::TestResponse.from_response(response)
-          @html_document = nil
-          @url_options = nil
-
-          @controller = session.last_request.env['action_controller.instance']
-
-          response.status
+        def _mock_session
+          @_mock_session ||= Rack::MockSession.new(@app, host)
         end
 
         def build_full_uri(path, env)

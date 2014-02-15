@@ -1,3 +1,10 @@
+*   `process` at `ActionDispatch::Integration::RequestHelpers::Session` is
+    now public to conform to Ruby's 2.0 and onwards `respond_to?` implementation
+    that only checks for public methods by default. This allows `process` to be
+    called again from integration tests for uncommon methods like `options`.
+
+    *Maurício Linhares*
+
 *   Fix regression in functional tests. Responses should have default headers
     assigned.
 
