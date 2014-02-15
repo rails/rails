@@ -5,12 +5,11 @@ module ActiveRecord
     # Keeps track of table aliases for ActiveRecord::Associations::ClassMethods::JoinDependency and
     # ActiveRecord::Associations::ThroughAssociationScope
     class AliasTracker # :nodoc:
-      attr_reader :aliases, :table_joins, :connection
+      attr_reader :aliases, :connection
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
       def initialize(connection, table_joins = [])
-        @aliases     = Hash.new { |h,k| h[k] = initial_count_for(k) }
-        @table_joins = table_joins
+        @aliases     = Hash.new { |h,k| h[k] = initial_count_for(k, table_joins) }
         @connection  = connection
       end
 
@@ -46,7 +45,7 @@ module ActiveRecord
 
       private
 
-        def initial_count_for(name)
+        def initial_count_for(name, table_joins)
           return 0 if Arel::Table === table_joins
 
           # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
