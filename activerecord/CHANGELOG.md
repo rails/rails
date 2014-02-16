@@ -1,3 +1,9 @@
+*   Do not try to write timestamps when a table has no timestamps columns.
+
+    Fixes #8813.
+
+    *Sergey Potapov*
+
 *   Properly detect if a connection is still active before using it
     in multi-threaded environments.
 

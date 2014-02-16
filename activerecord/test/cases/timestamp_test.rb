@@ -9,11 +9,26 @@ require 'models/task'
 class TimestampTest < ActiveRecord::TestCase
   fixtures :developers, :owners, :pets, :toys, :cars, :tasks
 
+  # Model with timestamp attribute accessors, but without timestamps columns.
+  class TimestampAttributePost < ActiveRecord::Base
+    attr_accessor :created_at, :updated_at
+  end
+
+
   def setup
     @developer = Developer.first
     @owner = Owner.first
     @developer.update_columns(updated_at: Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
+
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table 'timestamp_attribute_posts', :force => true do |t|
+      # Must have no timestamps
+    end
+  end
+
+  def teardown
+    @connection.execute 'drop table if exists timestamp_attribute_posts'
   end
 
   def test_saving_a_changed_record_updates_its_timestamp
@@ -378,5 +393,12 @@ class TimestampTest < ActiveRecord::TestCase
   def test_all_timestamp_attributes_in_model
     toy = Toy.first
     assert_equal [:created_at, :updated_at], toy.send(:all_timestamp_attributes_in_model)
+  end
+
+  def test_do_not_write_timestamps_on_save_if_they_are_not_attributes
+    post = TimestampAttributePost.new
+    assert_nothing_raised ActiveModel::MissingAttributeError do
+      post.run_callbacks :save
+    end
   end
 end
