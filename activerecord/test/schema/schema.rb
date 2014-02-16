@@ -98,6 +98,8 @@ ActiveRecord::Schema.define do
     t.column :status, :integer, default: 0
     t.column :read_status, :integer, default: 0
     t.column :nullable_status, :integer
+    t.string :print_status, default: 'in_print'
+    t.string :review_status, default: 'good'
   end
 
   create_table :booleans, force: true do |t|

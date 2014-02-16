@@ -1793,4 +1793,25 @@
 
     *Slava Markevich*
 
+*   `enum` uses Strings for columns of type `:string`
+
+    An enum on a databse column with type `:string` will store the enumerated values as Strings in the databse,
+    rather than as the ordinal of the value as a string.
+
+    create_table examples do |t|
+      t.column :status, :string, default: 'ok'
+    end
+
+    class Example < ActiveRecord::Base
+      enum status: [:ok, :not_ok]
+    end
+
+    example = Example.new
+    example.status = :ok
+    example.save
+    # => <Example id: 1, status: 'ok'>
+
+    *Peter Marsh*
+    
+
 Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activerecord/CHANGELOG.md) for previous changes.

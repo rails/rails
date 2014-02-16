@@ -1,9 +1,15 @@
 module ActiveRecord
-  # Declare an enum attribute where the values map to integers in the database,
-  # but can be queried by name. Example:
+  # Declare an enum attribute where the values can be queried by name. The underlying
+  # column can be have the types: +:integer+ or +:string+. Example:
+  #
+  #   create_table :conversations do |t|
+  #    t.column :integer, :status
+  #    t.column :string, :severity
+  #   end
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: [ :active, :archived ]
+  #     enum severity: [ :friendly, :heated ]
   #   end
   #
   #   # conversation.update! status: 0
@@ -11,10 +17,10 @@ module ActiveRecord
   #   conversation.active? # => true
   #   conversation.status  # => "active"
   #
-  #   # conversation.update! status: 1
-  #   conversation.archived!
-  #   conversation.archived? # => true
-  #   conversation.status    # => "archived"
+  #   # conversation.update! severity: :friendly
+  #   conversation.friendly!
+  #   conversation.friendly? # => true
+  #   conversation.status    # => :friendly
   #
   #   # conversation.update! status: 1
   #   conversation.status = "archived"
@@ -26,12 +32,13 @@ module ActiveRecord
   #
   # Scopes based on the allowed values of the enum field will be provided
   # as well. With the above example, it will create an +active+ and +archived+
-  # scope.
+  # scope as well as a +friendly+ and +heated+ scope.
   #
   # You can set the default value from the database declaration, like:
   #
   #   create_table :conversations do |t|
   #     t.column :status, :integer, default: 0
+  #     t.column :severity :string, default: 'friendly'
   #   end
   #
   # Good practice is to let the first declared status be the default.
@@ -41,29 +48,34 @@ module ActiveRecord
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 0, archived: 1 }
+  #     enum severity: { friendly: 'Friendly', heated: 'Heated'}
   #   end
   #
-  # Note that when an +Array+ is used, the implicit mapping from the values to database
-  # integers is derived from the order the values appear in the array. In the example,
-  # <tt>:active</tt> is mapped to +0+ as it's the first element, and <tt>:archived</tt>
-  # is mapped to +1+. In general, the +i+-th element is mapped to <tt>i-1</tt> in the
-  # database.
+  # Note that when an +Array+ is used for an +:integer+ attribuute, the implicit mapping
+  # from the values to database integers is derived from the order the values appear
+  # in the array. In the example, <tt>:active</tt> is mapped to +0+ as it's the first
+  # element, and <tt>:archived</tt>  is mapped to +1+. In general, the +i+-th element
+  # is mapped to <tt>i-1</tt> in the database.
   #
   # Therefore, once a value is added to the enum array, its position in the array must
   # be maintained, and new values should only be added to the end of the array. To
   # remove unused values, the explicit +Hash+ syntax should be used.
+  #
+  # For enums for +:string+ database columns only the string value of the enum value
+  # matters and each value must have a unique string representation.
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
   # name:
   #
   #   Conversation.statuses # => { "active" => 0, "archived" => 1 }
+  #   Conversation.severities # => { "friendly" => :friendly, "heated" => :heated }
   #
-  # Use that class method when you need to know the ordinal value of an enum:
+  # Use that class method when you need to know the value of an enum for a given name:
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
-  # Where conditions on an enum attribute must use the ordinal value of an enum.
+  # Where conditions on an enum attribute must use the value of an enum.
   module Enum
     DEFINED_ENUMS = {} # :nodoc:
 
@@ -76,6 +88,7 @@ module ActiveRecord
       definitions.each do |name, values|
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
+        strings = use_string_values?(klass, name)
         name        = name.to_sym
 
         # def self.statuses statuses end
@@ -106,7 +119,8 @@ module ActiveRecord
           klass.send(:detect_enum_conflict!, name, "#{name}_before_type_cast")
           define_method("#{name}_before_type_cast") { enum_values.key self[name] }
 
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          pairs = klass.send(:enum_value_pairs, values, strings)
+
           pairs.each do |value, i|
             enum_values[value] = i
 
@@ -190,5 +204,21 @@ module ActiveRecord
           }
         end
       end
+
+      def enum_value_pairs(values, strings = false)
+          if values.respond_to?(:each_pair)
+            values.each_pair
+          elsif strings
+            values.map{ |value| [value, value] }
+          else
+            values.each_with_index
+          end
+      end
+
+      def use_string_values?(klass, name)
+        column = klass.columns_hash[name.to_s]
+        column != nil ? (column.type == :string) : false
+      end
+
   end
 end

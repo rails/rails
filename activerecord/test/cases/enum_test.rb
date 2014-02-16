@@ -148,6 +148,11 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal 0, Book.statuses[:proposed]
     assert_equal 1, Book.statuses["written"]
     assert_equal 2, Book.statuses[:published]
+    assert_equal :in_print, Book.print_statuses[:in_print]
+    assert_equal :out_of_print, Book.print_statuses['out_of_print']
+    assert_equal 'A+', Book.review_statuses[:good]
+    assert_equal 'D', Book.review_statuses['bad']
+    assert_equal nil, Book.review_statuses[:not_reviewed]
   end
 
   test "building new objects with enum scopes" do
@@ -162,6 +167,21 @@ class EnumTest < ActiveRecord::TestCase
 
   test "_before_type_cast returns the enum label (required for form fields)" do
     assert_equal "proposed", @book.status_before_type_cast
+  end
+
+  test "assigning string values" do
+    @book.update! print_status: :out_of_print
+    assert @book.out_of_print?
+    assert_equal 'out_of_print', @book.print_status
+    @book.update! review_status: :bad
+    assert @book.bad?
+    assert_equal 'bad', @book.review_status
+  end
+
+  test "string value mapped to nil" do
+    @book.update! review_status: :not_reviewed
+    assert @book.not_reviewed?
+    assert_equal 'not_reviewed', @book.review_status
   end
 
   test "reserved enum names" do
