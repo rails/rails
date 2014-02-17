@@ -290,9 +290,10 @@ module ActiveModel
     #
     #   person.errors.messages # => {}
     #
-    # If the +message+ being added makes use of an interpolated <tt>count</tt>,
-    # a <tt>:count</tt> option must be specified. Failure to do so will
-    # result in an I18n::MissingInterpolationArgument exception.
+    # If the +message+ being added makes use of an interpolated value
+    # (e.g., +count+), this value must be specified as an option. Failure
+    # to do so will result in an +I18n::MissingInterpolationArgument+
+    # exception.
     #
     #   person.errors.add(:name, :too_short)
     #   # => I18n::MissingInterpolationArgument
@@ -341,11 +342,12 @@ module ActiveModel
     #   person.errors.add :name, :blank
     #   person.errors.added? :name, :blank # => true
     #
-    # When used to check for a +message+ that includes an interpolated <tt>count</tt>, it 
-    # requires a <tt>:count</tt> option. This interpolated value is used
-    # in the check for the message's presence. A <tt>:count</tt> that does not
-    # match the <tt>:count</tt> provided in +add+ for an attribute-message pair
-    # will result in a +false+ return value.
+    # When used to check for a +message+ that includes an interpolated value
+    # (e.g., +count+), it requires that we specify this value as an option.
+    # This interpolated value is used in the check for the message's presence.
+    # For instance, providing a ++:count++ that does not match the ++:count++
+    # provided in +add+ for an attribute-message pair will result in a +false+
+    # return value.
     #
     #   person.errors.add(:name, :too_long, count: 22)
     #   person.errors.added?(:name, :too_long) # => I18n::MissingInterpolationArgument
