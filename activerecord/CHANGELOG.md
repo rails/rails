@@ -763,7 +763,7 @@
 *   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child
     marked with `dependent: destroy` fails to be destroyed.
 
-    Fixex #12812.
+    Fixes #12812.
 
     *Brian Thomas Storti*
 
