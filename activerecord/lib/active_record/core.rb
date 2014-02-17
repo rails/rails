@@ -94,6 +94,7 @@ module ActiveRecord
       end
 
       class_attribute :default_connection_handler, instance_writer: false
+      class_attribute :find_by_statement_cache
 
       def self.connection_handler
         ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
@@ -107,6 +108,40 @@ module ActiveRecord
     end
 
     module ClassMethods
+      def initialize_find_by_cache
+        self.find_by_statement_cache = {}.extend(Mutex_m)
+      end
+
+      def inherited(child_class)
+        child_class.initialize_find_by_cache
+        super
+      end
+
+      def find_by(*args)
+        return super if current_scope || args.length > 1 || reflect_on_all_aggregations.any?
+
+        hash = args.first
+
+        return super if hash.values.any? { |v| v.nil? || Array === v }
+
+        key  = hash.keys
+
+        klass = self
+        s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
+          find_by_statement_cache[key] ||= StatementCache.new { |params|
+            wheres = key.each_with_object({}) { |param,o|
+              o[param] = params[param]
+            }
+            klass.where(wheres).limit(1)
+          }
+        }
+        begin
+          s.execute(hash).first
+        rescue TypeError => e
+          raise ActiveRecord::StatementInvalid.new(e.message, e)
+        end
+      end
+
       def initialize_generated_modules
         super
 
