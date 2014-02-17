@@ -33,9 +33,8 @@ module ActiveRecord
         end
       end
 
-      def test_connect_with_url
-        skip "can't establish new connection when using memory db" if in_memory_db?
-        begin
+      unless in_memory_db?
+        def test_connect_with_url
           original_connection = ActiveRecord::Base.remove_connection
           tf = Tempfile.open 'whatever'
           url = "sqlite3://#{tf.path}"
@@ -46,11 +45,8 @@ module ActiveRecord
           tf.unlink
           ActiveRecord::Base.establish_connection(original_connection)
         end
-      end
 
-      def test_connect_memory_with_url
-        skip "can't establish new connection when using memory db" if in_memory_db?
-        begin
+        def test_connect_memory_with_url
           original_connection = ActiveRecord::Base.remove_connection
           url = "sqlite3:///:memory:"
           ActiveRecord::Base.establish_connection(url)

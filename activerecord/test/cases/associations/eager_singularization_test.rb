@@ -1,6 +1,7 @@
 require "cases/helper"
 
 
+if ActiveRecord::Base.connection.supports_migrations?
 class EagerSingularizationTest < ActiveRecord::TestCase
   class Virus < ActiveRecord::Base
     belongs_to :octopus
@@ -50,8 +51,6 @@ class EagerSingularizationTest < ActiveRecord::TestCase
   end
 
   def setup
-    skip 'Does not support migrations' unless connection.supports_migrations?
-
     connection.create_table :viri do |t|
       t.column :octopus_id, :integer
       t.column :species, :string
@@ -145,4 +144,5 @@ class EagerSingularizationTest < ActiveRecord::TestCase
       Crisis.all.merge!(:includes => :compresses).to_a
     end
   end
+end
 end
