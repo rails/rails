@@ -1,3 +1,17 @@
+*  Add new options for ActiveSupport::MessageVerifier to generate url safe data
+   
+   If user wants url safe data then  it will encode using urlsafe_encode64 and decode using urlsafe_decoe64.
+
+   Before:
+       data = ::Base64.strict_encode64(Marshal.dump(90366))
+        => "BAhpA/5gAQ=="
+   
+   After
+       data = ::Base64.strict_encode64(Marshal.dump(90366),  url_safe: true)
+        => "BAhpA_5gAQ==" 
+
+    *Rajarshi Das* 
+
 *   Fix the implementation of Multibyte::Unicode.tidy_bytes for JRuby
 
     The existing implementation caused JRuby to raise the error:

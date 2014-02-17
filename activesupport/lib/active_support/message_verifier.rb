@@ -23,6 +23,13 @@ module ActiveSupport
   # hash upon initialization:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
+  #
+  #
+  # By default it is not generating url safe data but if you want to generate 
+  # an url safe data , you can make it true  in the options upon hash uponinitialization:
+  # 
+  # @verifier = ActiveSupport::MessageVerifier.new('s3Krit', url_safe: true)
+
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
@@ -30,6 +37,7 @@ module ActiveSupport
       @secret = secret
       @digest = options[:digest] || 'SHA1'
       @serializer = options[:serializer] || Marshal
+      @url_safe = options[:url_safe] || false
     end
 
     def verify(signed_message)
@@ -38,7 +46,7 @@ module ActiveSupport
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
         begin
-          @serializer.load(::Base64.strict_decode64(data))
+          @serializer.load(decode(data))
         rescue ArgumentError => argument_error
           raise InvalidSignature if argument_error.message =~ %r{invalid base64}
           raise
@@ -49,7 +57,7 @@ module ActiveSupport
     end
 
     def generate(value)
-      data = ::Base64.strict_encode64(@serializer.dump(value))
+      data = encode(@serializer.dump(value))
       "#{data}--#{generate_digest(data)}"
     end
 
@@ -63,6 +71,22 @@ module ActiveSupport
         res = 0
         b.each_byte { |byte| res |= byte ^ l.shift }
         res == 0
+      end
+      #encoding url safer or simple strict 
+      def encode(value)
+        unless @url_safe
+          ::Base64.strict_encode64(value)
+        else
+          ::Base64.urlsafe_encode64(value)
+        end
+      end  
+      #decoding url safer or simple strict  
+      def decode(value)
+        unless @url_safe
+          ::Base64.strict_decode64(value)
+        else
+          ::Base64.urlsafe_decode64(value)
+        end
       end
 
       def generate_digest(data)
