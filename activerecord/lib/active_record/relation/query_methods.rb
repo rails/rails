@@ -240,7 +240,7 @@ module ActiveRecord
     def select!(*fields) # :nodoc:
       fields.flatten!
       fields.map! do |field|
-        klass.attribute_alias?(field) ? klass.attribute_alias(field).to_sym : field
+        klass.attribute_alias?(field) ? klass.attribute_alias(field) : field
       end
       self.select_values += fields
       self
@@ -1052,11 +1052,11 @@ module ActiveRecord
       order_args.map! do |arg|
         case arg
         when Symbol
-          arg = klass.attribute_alias(arg).to_sym if klass.attribute_alias?(arg)
+          arg = klass.attribute_alias(arg) if klass.attribute_alias?(arg)
           table[arg].asc
         when Hash
           arg.map { |field, dir|
-            field = klass.attribute_alias(field).to_sym if klass.attribute_alias?(field)
+            field = klass.attribute_alias(field) if klass.attribute_alias?(field)
             table[field].send(dir)
           }
         else
