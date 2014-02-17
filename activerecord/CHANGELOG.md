@@ -533,22 +533,6 @@
 
     *Damien Mathieu*
 
-*   Improve the default select when `from` is used.
-
-    Previously, if you did something like Topic.from(:temp_topics), it
-    would generate SQL like:
-
-        SELECT topics.* FROM temp_topics;
-
-    Which is will cause an error since there's not a topics table to select
-    from.
-
-    Now the default if you use from is just `*`:
-
-        SELECT * FROM temp_topics;
-
-    *Cody Cutrer*
-
 *   Fix `PostgreSQL` insert to properly extract table name from multiline string SQL.
 
     Previously, executing an insert SQL in `PostgreSQL` with a command like this:

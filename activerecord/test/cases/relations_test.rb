@@ -151,10 +151,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal relation.to_a, Comment.select('a.*').from(relation, :a).to_a
   end
 
-  def test_finding_with_subquery_without_select
-    relation = Topic.where(:approved => true)
-    assert_equal relation.to_a, Topic.from(relation).to_a
+  def test_finding_with_subquery_without_select_does_not_change_the_select
+    relation = Topic.where(approved: true)
+    assert_raises(ActiveRecord::StatementInvalid) do
+      Topic.from(relation).to_a
+    end
   end
+
 
   def test_finding_with_conditions
     assert_equal ["David"], Author.where(:name => 'David').map(&:name)

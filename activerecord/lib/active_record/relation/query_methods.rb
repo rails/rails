@@ -995,8 +995,6 @@ module ActiveRecord
           columns_hash.key?(field.to_s) ? arel_table[field] : field
         end
         arel.project(*expanded_select)
-      elsif from_value
-        arel.project(Arel.star)
       else
         arel.project(@klass.arel_table[Arel.star])
       end
