@@ -169,6 +169,9 @@ module ActionView
       #   "2 - February" instead of "February").
       # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
       #   Note: You can also use Rails' i18n functionality for this.
+      # * <tt>:month_format_string</tt> - Set to a format string. The string gets passed keys +:number+ (integer)
+      #   and +:name+ (string). A format string would be something like "%{name} (%<number>02d)" for example.
+      #   See <tt>Kernel.sprintf</tt> for documentation on format sequences.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
       # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt>if
       #   you are creating new record. While editing existing record, <tt>:start_year</tt> defaults to
@@ -850,24 +853,36 @@ module ActionView
           I18n.translate(key, :locale => @options[:locale])
         end
 
-        # Lookup month name for number.
-        #  month_name(1) => "January"
+        # Looks up month names by number (1-based):
         #
-        # If <tt>:use_month_numbers</tt> option is passed
-        #  month_name(1) => 1
+        #   month_name(1) # => "January"
         #
-        # If <tt>:use_two_month_numbers</tt> option is passed
-        #  month_name(1) => '01'
+        # If the <tt>:use_month_numbers</tt> option is passed:
         #
-        # If <tt>:add_month_numbers</tt> option is passed
-        #  month_name(1) => "1 - January"
+        #   month_name(1) # => 1
+        #
+        # If the <tt>:use_two_month_numbers</tt> option is passed:
+        #
+        #   month_name(1) # => '01'
+        #
+        # If the <tt>:add_month_numbers</tt> option is passed:
+        #
+        #   month_name(1) # => "1 - January"
+        #
+        # If the <tt>:month_format_string</tt> option is passed:
+        #
+        #   month_name(1) # => "January (01)"
+        #
+        # depending on the format string.
         def month_name(number)
           if @options[:use_month_numbers]
             number
           elsif @options[:use_two_digit_numbers]
-            sprintf "%02d", number
+            '%02d' % number
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
+          elsif format_string = @options[:month_format_string]
+            format_string % {number: number, name: month_names[number]}
           else
             month_names[number]
           end

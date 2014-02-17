@@ -67,6 +67,16 @@ module ActionDispatch
       assert_equal({'flashes' => {'message' => 'Hello'}, 'discard' => %w[message]}, hash.to_session_value)
     end
 
+    def test_from_session_value_on_json_serializer
+      decrypted_data = "{ \"session_id\":\"d98bdf6d129618fc2548c354c161cfb5\", \"flash\":{\"discard\":[], \"flashes\":{\"message\":\"hey you\"}} }"
+      session = ActionDispatch::Cookies::JsonSerializer.load(decrypted_data)
+      hash = Flash::FlashHash.from_session_value(session['flash'])
+
+      assert_equal({'discard' => %w[message], 'flashes' => { 'message' => 'hey you'}}, hash.to_session_value)
+      assert_equal "hey you", hash[:message]
+      assert_equal "hey you", hash["message"]
+    end
+
     def test_empty?
       assert @hash.empty?
       @hash['zomg'] = 'bears'

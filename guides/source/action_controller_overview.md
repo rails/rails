@@ -112,6 +112,10 @@ NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&id
 
 The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.
 
+NOTE: Values such as `[]`, `[nil]` or `[nil, nil, ...]` in `params` are replaced
+with `nil` for security reasons by default. See [Security Guide](security.html#unsafe-query-generation)
+for more information.
+
 To send a hash you include the key name inside the brackets:
 
 ```html
@@ -568,6 +572,38 @@ end
 
 Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
 
+Rails also provides a signed cookie jar and an encrypted cookie jar for storing
+sensitive data. The signed cookie jar appends a cryptographic signature on the
+cookie values to protect their integrity. The encrypted cookie jar encrypts the
+values in addition to signing them, so that they cannot be read by the end user.
+Refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+for more details.
+
+These special cookie jars use a serializer to serialize the assigned values into
+strings and deserializes them into Ruby objects on read.
+
+You can specify what serializer to use:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = :json
+```
+
+The default serializer for new applications is `:json`. For compatibility with
+old applications with existing cookies, `:marshal` is used when `serializer`
+option is not specified.
+
+You may also set this option to `:hybrid`, in which case Rails would transparently
+deserialize existing (`Marshal`-serialized) cookies on read and re-write them in
+the `JSON` format. This is useful for migrating existing applications to the
+`:json` serializer.
+
+It is also possible to pass a custom serializer that responds to `load` and
+`dump`:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
+```
+
 Rendering XML and JSON data
 ---------------------------
 
@@ -683,7 +719,7 @@ class ApplicationController < ActionController::Base
 end
 
 class LoginFilter
-  def self.filter(controller)
+  def self.before(controller)
     unless controller.send(:logged_in?)
       controller.flash[:error] = "You must be logged in to access this section"
       controller.redirect_to controller.new_login_url
@@ -692,7 +728,7 @@ class LoginFilter
 end
 ```
 
-Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method `filter` which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same `filter` method, which will get run in the same way. The method must `yield` to execute the action. Alternatively, it can have both a `before` and an `after` method that are run before and after the action.
+Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class must implement a method with the same name as the filter, so for the `before_action` filter the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
 
 Request Forgery Protection
 --------------------------

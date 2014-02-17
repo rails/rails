@@ -575,7 +575,9 @@ This helper validates that the attribute's value is unique right before the
 object gets saved. It does not create a uniqueness constraint in the database,
 so it may happen that two different database connections create two records
 with the same value for a column that you intend to be unique. To avoid that,
-you must create a unique index in your database.
+you must create a unique index on both columns in your database. See
+[the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html)
+for more details about multiple column indexes.
 
 ```ruby
 class Account < ActiveRecord::Base
@@ -616,16 +618,16 @@ The default error message is _"has already been taken"_.
 This helper passes the record to a separate class for validation.
 
 ```ruby
-class Person < ActiveRecord::Base
-  validates_with GoodnessValidator
-end
-
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if record.first_name == "Evil"
       record.errors[:base] << "This person is evil"
     end
   end
+end
+
+class Person < ActiveRecord::Base
+  validates_with GoodnessValidator
 end
 ```
 
@@ -644,16 +646,16 @@ Like all other validations, `validates_with` takes the `:if`, `:unless` and
 validator class as `options`:
 
 ```ruby
-class Person < ActiveRecord::Base
-  validates_with GoodnessValidator, fields: [:first_name, :last_name]
-end
-
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
       record.errors[:base] << "This person is evil"
     end
   end
+end
+
+class Person < ActiveRecord::Base
+  validates_with GoodnessValidator, fields: [:first_name, :last_name]
 end
 ```
 

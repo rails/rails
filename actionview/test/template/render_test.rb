@@ -304,6 +304,16 @@ module RenderTestCases
     assert_equal "Hola: david", @controller_view.render('customer_greeting', :greeting => 'Hola', :customer_greeting => Customer.new("david"))
   end
 
+  def test_render_partial_with_object_uses_render_partial_path
+    assert_equal "Hello: lifo",
+      @controller_view.render(:partial => Customer.new("lifo"), :locals => {:greeting => "Hello"})
+  end
+
+  def test_render_partial_with_object_and_format_uses_render_partial_path
+    assert_equal "<greeting>Hello</greeting><name>lifo</name>",
+      @controller_view.render(:partial => Customer.new("lifo"), :formats => :xml, :locals => {:greeting => "Hello"})
+  end
+
   def test_render_partial_using_object
     assert_equal "Hello: lifo",
       @controller_view.render(Customer.new("lifo"), :greeting => "Hello")

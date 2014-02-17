@@ -1,4 +1,90 @@
-*   Added `Hash#compact` and `Hash#compact!` for removing items with nil value from hash.
+*   Fix the implementation of Multibyte::Unicode.tidy_bytes for JRuby
+
+    The existing implementation caused JRuby to raise the error:
+    `Encoding::ConverterNotFoundError: code converter not found (UTF-8 to UTF8-MAC)`
+
+    *Justin Coyne*
+
+*   Fix `to_param` behavior when there are nested empty hashes.
+
+    Before:
+
+        params = {c: 3, d: {}}.to_param # => "&c=3"
+
+    After:
+
+        params = {c: 3, d: {}}.to_param # => "c=3&d="
+
+    Fixes #13892.
+
+    *Hincu Petru*
+
+*   Deprecate custom `BigDecimal` serialization.
+
+    Deprecate the custom `BigDecimal` serialization that is included when requiring
+    `active_support/all` as a fix for #12467. Let Ruby handle YAML serialization
+    for `BigDecimal` instead.
+
+    *David Celis*
+
+*   Fix parsing bugs in `XmlMini`
+
+    Symbols or boolean parsing would raise an error for non string values (e.g.
+    integers). Decimal parsing would fail due to a missing requirement.
+
+    *Birkir A. Barkarson*
+
+*   Maintain the current timezone when calling `wrap_with_time_zone`
+
+    Extend the solution from the fix for #12163 to the general case where `Time`
+    methods are wrapped with a time zone.
+
+    Fixes #12596.
+
+    *Andrew White*
+
+*   Remove behavior that automatically remove the Date/Time stubs, added by `travel`
+    and `travel_to` methods, after each test case.
+
+    Now users have to use the `travel_back` or the block version of `travel` and
+    `travel_to` methods to clean the stubs.
+
+    *Rafael Mendonça França*
+
+*   Add `travel_back` to remove stubs from `travel` and `travel_to`.
+
+    *Rafael Mendonça França*
+
+*   Remove the deprecation about the `#filter` method.
+
+    Filter objects should now rely on method corresponding to the filter type
+    (e.g. `#before`).
+
+    *Aaron Patterson*
+
+*   Add `ActiveSupport::JSON::Encoding.time_precision` as a way to configure the
+    precision of encoded time values:
+
+        Time.utc(2000, 1, 1).as_json                      # => "2000-01-01T00:00:00.000Z"
+        ActiveSupport::JSON::Encoding.time_precision = 0
+        Time.utc(2000, 1, 1).as_json                      # => "2000-01-01T00:00:00Z"
+
+    *Parker Selbert*
+
+*   Maintain the current timezone when calling `change` during DST overlap
+
+    Currently if a time is changed during DST overlap in the autumn then the method
+    `period_for_local` will return the DST period. However if the original time is
+    not DST then this can be surprising and is not what is generally wanted. This
+    commit changes that behavior to maintain the current period if it's in the list
+    of periods returned by `periods_for_local`.
+
+    Fixes #12163.
+
+    *Andrew White*
+
+*   Added `Hash#compact` and `Hash#compact!` for removing items with nil value
+    from hash.
 
     *Celestino Gomes*
 

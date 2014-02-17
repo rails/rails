@@ -407,7 +407,8 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      # to_s works around a ruby1.9 issue where #starts_with?(Pathname) will always return false
+      # to_s works around a ruby1.9 issue where String#starts_with?(Pathname)
+      # will raise a TypeError: no implicit conversion of Pathname into String
       autoload_once_paths.any? { |base| path.starts_with? base.to_s }
     end
 
@@ -664,6 +665,14 @@ module ActiveSupport #:nodoc:
 
       constants = normalized.split('::')
       to_remove = constants.pop
+
+      # Remove the file path from the loaded list.
+      file_path = search_for_file(const.underscore)
+      if file_path
+        expanded = File.expand_path(file_path)
+        expanded.sub!(/\.rb\z/, '')
+        self.loaded.delete(expanded)
+      end
 
       if constants.empty?
         parent = Object

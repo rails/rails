@@ -31,6 +31,8 @@ module ActiveRecord
           object_id = ActiveRecord::Base.connection.object_id
 
           rd, wr = IO.pipe
+          rd.binmode
+          wr.binmode
 
           pid = fork {
             rd.close

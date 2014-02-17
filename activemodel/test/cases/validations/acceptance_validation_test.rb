@@ -8,7 +8,7 @@ require 'models/person'
 class AcceptanceValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_terms_of_service_agreement_no_acceptance
@@ -63,6 +63,6 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     p.karma = "1"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 end

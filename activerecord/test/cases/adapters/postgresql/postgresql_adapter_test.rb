@@ -6,21 +6,21 @@ module ActiveRecord
     class PostgreSQLAdapterTest < ActiveRecord::TestCase
       def setup
         @connection = ActiveRecord::Base.connection
-        @connection.exec_query('drop table if exists ex')
-        @connection.exec_query('create table ex(id serial primary key, number integer, data character varying(255))')
       end
 
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
           configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'should_not_exist-cinco-dog-db')
           connection = ActiveRecord::Base.postgresql_connection(configuration)
-          connection.exec_query('drop table if exists ex')
+          connection.exec_query('SELECT 1')
         end
       end
 
       def test_valid_column
-        column = @connection.columns('ex').find { |col| col.name == 'id' }
-        assert @connection.valid_type?(column.type)
+        with_example_table do
+          column = @connection.columns('ex').find { |col| col.name == 'id' }
+          assert @connection.valid_type?(column.type)
+        end
       end
 
       def test_invalid_column
@@ -28,7 +28,9 @@ module ActiveRecord
       end
 
       def test_primary_key
-        assert_equal 'id', @connection.primary_key('ex')
+        with_example_table do
+          assert_equal 'id', @connection.primary_key('ex')
+        end
       end
 
       def test_primary_key_works_tables_containing_capital_letters
@@ -36,15 +38,15 @@ module ActiveRecord
       end
 
       def test_non_standard_primary_key
-        @connection.exec_query('drop table if exists ex')
-        @connection.exec_query('create table ex(data character varying(255) primary key)')
-        assert_equal 'data', @connection.primary_key('ex')
+        with_example_table 'data character varying(255) primary key' do
+          assert_equal 'data', @connection.primary_key('ex')
+        end
       end
 
       def test_primary_key_returns_nil_for_no_pk
-        @connection.exec_query('drop table if exists ex')
-        @connection.exec_query('create table ex(id integer)')
-        assert_nil @connection.primary_key('ex')
+        with_example_table 'id integer' do
+          assert_nil @connection.primary_key('ex')
+        end
       end
 
       def test_primary_key_raises_error_if_table_not_found
@@ -54,32 +56,40 @@ module ActiveRecord
       end
 
       def test_insert_sql_with_proprietary_returning_clause
-        id = @connection.insert_sql("insert into ex (number) values(5150)", nil, "number")
-        assert_equal "5150", id
+        with_example_table do
+          id = @connection.insert_sql("insert into ex (number) values(5150)", nil, "number")
+          assert_equal "5150", id
+        end
       end
 
       def test_insert_sql_with_quoted_schema_and_table_name
-        id = @connection.insert_sql('insert into "public"."ex" (number) values(5150)')
-        expect = @connection.query('select max(id) from ex').first.first
-        assert_equal expect, id
+        with_example_table do
+          id = @connection.insert_sql('insert into "public"."ex" (number) values(5150)')
+          expect = @connection.query('select max(id) from ex').first.first
+          assert_equal expect, id
+        end
       end
 
       def test_insert_sql_with_no_space_after_table_name
-        id = @connection.insert_sql("insert into ex(number) values(5150)")
-        expect = @connection.query('select max(id) from ex').first.first
-        assert_equal expect, id
+        with_example_table do
+          id = @connection.insert_sql("insert into ex(number) values(5150)")
+          expect = @connection.query('select max(id) from ex').first.first
+          assert_equal expect, id
+        end
       end
 
       def test_multiline_insert_sql
-        id = @connection.insert_sql(<<-SQL)
-        insert into ex(
-          number)
-        values(
-          5152
-        )
-        SQL
-        expect = @connection.query('select max(id) from ex').first.first
-        assert_equal expect, id
+        with_example_table do
+          id = @connection.insert_sql(<<-SQL)
+          insert into ex(
+                         number)
+          values(
+                 5152
+                 )
+          SQL
+          expect = @connection.query('select max(id) from ex').first.first
+          assert_equal expect, id
+        end
       end
 
       def test_insert_sql_with_returning_disabled
@@ -135,29 +145,31 @@ module ActiveRecord
       end
 
       def test_pk_and_sequence_for
-        pk, seq = @connection.pk_and_sequence_for('ex')
-        assert_equal 'id', pk
-        assert_equal @connection.default_sequence_name('ex', 'id'), seq
+        with_example_table do
+          pk, seq = @connection.pk_and_sequence_for('ex')
+          assert_equal 'id', pk
+          assert_equal @connection.default_sequence_name('ex', 'id'), seq
+        end
       end
 
       def test_pk_and_sequence_for_with_non_standard_primary_key
-        @connection.exec_query('drop table if exists ex')
-        @connection.exec_query('create table ex(code serial primary key)')
-        pk, seq = @connection.pk_and_sequence_for('ex')
-        assert_equal 'code', pk
-        assert_equal @connection.default_sequence_name('ex', 'code'), seq
+        with_example_table 'code serial primary key' do
+          pk, seq = @connection.pk_and_sequence_for('ex')
+          assert_equal 'code', pk
+          assert_equal @connection.default_sequence_name('ex', 'code'), seq
+        end
       end
 
       def test_pk_and_sequence_for_returns_nil_if_no_seq
-        @connection.exec_query('drop table if exists ex')
-        @connection.exec_query('create table ex(id integer primary key)')
-        assert_nil @connection.pk_and_sequence_for('ex')
+        with_example_table 'id integer primary key' do
+          assert_nil @connection.pk_and_sequence_for('ex')
+        end
       end
 
       def test_pk_and_sequence_for_returns_nil_if_no_pk
-        @connection.exec_query('drop table if exists ex')
-        @connection.exec_query('create table ex(id integer)')
-        assert_nil @connection.pk_and_sequence_for('ex')
+        with_example_table 'id integer' do
+          assert_nil @connection.pk_and_sequence_for('ex')
+        end
       end
 
       def test_pk_and_sequence_for_returns_nil_if_table_not_found
@@ -165,23 +177,27 @@ module ActiveRecord
       end
 
       def test_exec_insert_number
-        insert(@connection, 'number' => 10)
+        with_example_table do
+          insert(@connection, 'number' => 10)
 
-        result = @connection.exec_query('SELECT number FROM ex WHERE number = 10')
+          result = @connection.exec_query('SELECT number FROM ex WHERE number = 10')
 
-        assert_equal 1, result.rows.length
-        assert_equal "10", result.rows.last.last
+          assert_equal 1, result.rows.length
+          assert_equal "10", result.rows.last.last
+        end
       end
 
       def test_exec_insert_string
-        str = 'いただきます！'
-        insert(@connection, 'number' => 10, 'data' => str)
+        with_example_table do
+          str = 'いただきます！'
+          insert(@connection, 'number' => 10, 'data' => str)
 
-        result = @connection.exec_query('SELECT number, data FROM ex WHERE number = 10')
+          result = @connection.exec_query('SELECT number, data FROM ex WHERE number = 10')
 
-        value = result.rows.last.last
+          value = result.rows.last.last
 
-        assert_equal str, value
+          assert_equal str, value
+        end
       end
 
       def test_table_alias_length
@@ -191,44 +207,50 @@ module ActiveRecord
       end
 
       def test_exec_no_binds
-        result = @connection.exec_query('SELECT id, data FROM ex')
-        assert_equal 0, result.rows.length
-        assert_equal 2, result.columns.length
-        assert_equal %w{ id data }, result.columns
+        with_example_table do
+          result = @connection.exec_query('SELECT id, data FROM ex')
+          assert_equal 0, result.rows.length
+          assert_equal 2, result.columns.length
+          assert_equal %w{ id data }, result.columns
 
-        string = @connection.quote('foo')
-        @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
-        result = @connection.exec_query('SELECT id, data FROM ex')
-        assert_equal 1, result.rows.length
-        assert_equal 2, result.columns.length
+          string = @connection.quote('foo')
+          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+          result = @connection.exec_query('SELECT id, data FROM ex')
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-        assert_equal [['1', 'foo']], result.rows
+          assert_equal [['1', 'foo']], result.rows
+        end
       end
 
       def test_exec_with_binds
-        string = @connection.quote('foo')
-        @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
-        result = @connection.exec_query(
-          'SELECT id, data FROM ex WHERE id = $1', nil, [[nil, 1]])
+        with_example_table do
+          string = @connection.quote('foo')
+          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+          result = @connection.exec_query(
+                                          'SELECT id, data FROM ex WHERE id = $1', nil, [[nil, 1]])
 
-        assert_equal 1, result.rows.length
-        assert_equal 2, result.columns.length
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-        assert_equal [['1', 'foo']], result.rows
+          assert_equal [['1', 'foo']], result.rows
+        end
       end
 
       def test_exec_typecasts_bind_vals
-        string = @connection.quote('foo')
-        @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
+        with_example_table do
+          string = @connection.quote('foo')
+          @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-        column = @connection.columns('ex').find { |col| col.name == 'id' }
-        result = @connection.exec_query(
-          'SELECT id, data FROM ex WHERE id = $1', nil, [[column, '1-fuu']])
+          column = @connection.columns('ex').find { |col| col.name == 'id' }
+          result = @connection.exec_query(
+                                          'SELECT id, data FROM ex WHERE id = $1', nil, [[column, '1-fuu']])
 
-        assert_equal 1, result.rows.length
-        assert_equal 2, result.columns.length
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-        assert_equal [['1', 'foo']], result.rows
+          assert_equal [['1', 'foo']], result.rows
+        end
       end
 
       def test_substitute_at
@@ -240,9 +262,11 @@ module ActiveRecord
       end
 
       def test_partial_index
-        @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => "number > 100"
-        index = @connection.indexes('ex').find { |idx| idx.name == 'partial' }
-        assert_equal "(number > 100)", index.where
+        with_example_table do
+          @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => "number > 100"
+          index = @connection.indexes('ex').find { |idx| idx.name == 'partial' }
+          assert_equal "(number > 100)", index.where
+        end
       end
 
       def test_columns_for_distinct_zero_orders
@@ -298,6 +322,14 @@ module ActiveRecord
                VALUES (#{bind_subs.join(', ')})"
 
         ctx.exec_insert(sql, 'SQL', binds)
+      end
+
+      def with_example_table(definition = nil)
+        definition ||= 'id serial primary key, number integer, data character varying(255)'
+        @connection.exec_query("create table ex(#{definition})")
+        yield
+      ensure
+        @connection.exec_query('drop table if exists ex')
       end
 
       def connection_without_insert_returning

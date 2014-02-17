@@ -76,6 +76,15 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
+      ##
+      # :singleton-method:
+      # Specify whether schema dump should happen at the end of the
+      # db:migrate rake task. This is true by default, which is useful for the
+      # development environment. This should ideally be false in the production
+      # environment where dumping schema is rarely needed.
+      mattr_accessor :dump_schema_after_migration, instance_writer: false
+      self.dump_schema_after_migration = true
+
       # :nodoc:
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
@@ -138,12 +147,12 @@ module ActiveRecord
       #   class Post < ActiveRecord::Base
       #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
       #   end
-      def arel_table
+      def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
       # Returns the Arel engine.
-      def arel_engine
+      def arel_engine # :nodoc:
         @arel_engine ||=
           if Base == self || connection_handler.retrieve_connection_pool(self)
             self
@@ -182,9 +191,7 @@ module ActiveRecord
       @column_types = self.class.column_types
 
       init_internals
-      init_changed_attributes
-      ensure_proper_type
-      populate_with_current_scope_attributes
+      initialize_internals_callback
 
       # +options+ argument is only needed to make protected_attributes gem easier to hook.
       # Remove it when we drop support to this gem.
@@ -255,16 +262,12 @@ module ActiveRecord
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
-      @changed_attributes = {}
-      init_changed_attributes
-
       @aggregation_cache = {}
       @association_cache = {}
       @attributes_cache  = {}
 
       @new_record  = true
 
-      ensure_proper_type
       super
     end
 
@@ -281,7 +284,7 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      coder['attributes'] = attributes
+      coder['attributes'] = attributes_for_coder
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
@@ -397,13 +400,10 @@ module ActiveRecord
     end
 
     def update_attributes_from_transaction_state(transaction_state, depth)
-      if transaction_state && !has_transactional_callbacks?
+      if transaction_state && transaction_state.finalized? && !has_transactional_callbacks?
         unless @reflects_state[depth]
-          if transaction_state.committed?
-            committed!
-          elsif transaction_state.rolledback?
-            rolledback!
-          end
+          restore_transaction_record_state if transaction_state.rolledback?
+          clear_transaction_record_state
           @reflects_state[depth] = true
         end
 
@@ -443,13 +443,7 @@ module ActiveRecord
       @reflects_state           = [false]
     end
 
-    def init_changed_attributes
-      # Intentionally avoid using #column_defaults since overridden defaults (as is done in
-      # optimistic locking) won't get written unless they get marked as changed
-      self.class.columns.each do |c|
-        attr, orig_value = c.name, c.default
-        changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
-      end
+    def initialize_internals_callback
     end
 
     # This method is needed to make protected_attributes gem easier to hook.

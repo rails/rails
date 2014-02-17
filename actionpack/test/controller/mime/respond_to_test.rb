@@ -671,6 +671,10 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_variant_any_any
+    get :variant_any_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+
     @request.variant = :phone
     get :variant_any_any
     assert_equal "text/html", @response.content_type
@@ -739,5 +743,26 @@ class RespondToControllerTest < ActionController::TestCase
     get :format_any_variant_any, format: :js
     assert_equal "text/javascript", @response.content_type
     assert_equal "tablet", @response.body
+  end
+
+  def test_variant_negotiation_inline_syntax
+    @request.variant = [:tablet, :phone]
+    get :variant_inline_syntax_without_block
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+  end
+
+  def test_variant_negotiation_block_syntax
+    @request.variant = [:tablet, :phone]
+    get :variant_plus_none_for_format
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+  end
+
+  def test_variant_negotiation_without_block
+    @request.variant = [:tablet, :phone]
+    get :variant_inline_syntax_without_block
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
   end
 end

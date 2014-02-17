@@ -266,6 +266,65 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 'lifo', topic.author_name
   end
 
+  def test_reserved_scope_names
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      scope :approved, -> { where(approved: true) }
+
+      class << self
+        public
+          def pub; end
+
+        private
+          def pri; end
+
+        protected
+          def pro; end
+      end
+    end
+
+    subklass = Class.new(klass)
+
+    conflicts = [
+      :create,        # public class method on AR::Base
+      :relation,      # private class method on AR::Base
+      :new,           # redefined class method on AR::Base
+      :all,           # a default scope
+    ]
+
+    non_conflicts = [
+      :find_by_title, # dynamic finder method
+      :approved,      # existing scope
+      :pub,           # existing public class method
+      :pri,           # existing private class method
+      :pro,           # existing protected class method
+      :open,          # a ::Kernel method
+    ]
+
+    conflicts.each do |name|
+      assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
+        klass.class_eval { scope name, ->{ where(approved: true) } }
+      end
+
+      assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
+        subklass.class_eval { scope name, ->{ where(approved: true) } }
+      end
+    end
+
+    non_conflicts.each do |name|
+      assert_nothing_raised do
+        silence_warnings do
+          klass.class_eval { scope name, ->{ where(approved: true) } }
+        end
+      end
+
+      assert_nothing_raised do
+        subklass.class_eval { scope name, ->{ where(approved: true) } }
+      end
+    end
+  end
+
   # Method delegation for scope names which look like /\A[a-zA-Z_]\w*[!?]?\z/
   # has been done by evaluating a string with a plain def statement. For scope
   # names which contain spaces this approach doesn't work.
@@ -344,13 +403,13 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_batch_finders
-    assert_equal 3, Topic.approved.count
+    assert_equal 4, Topic.approved.count
 
-    assert_queries(4) do
+    assert_queries(5) do
       Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
     end
 
-    assert_queries(2) do
+    assert_queries(3) do
       Topic.approved.find_in_batches(:batch_size => 2) do |group|
         group.each {|t| assert t.approved? }
       end
@@ -366,7 +425,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_on_relations
     # Topic.replied
     approved_topics = Topic.all.approved.order('id DESC')
-    assert_equal topics(:fourth), approved_topics.first
+    assert_equal topics(:fifth), approved_topics.first
 
     replied_approved_topics = approved_topics.replied
     assert_equal topics(:third), replied_approved_topics.first

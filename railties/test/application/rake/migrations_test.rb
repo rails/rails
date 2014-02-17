@@ -153,6 +153,37 @@ module ApplicationTests
            assert_match(/up\s+\d{3,}\s+Add email to users/, output)
         end
       end
+
+      test 'schema generation when dump_schema_after_migration is set' do
+        add_to_config('config.active_record.dump_schema_after_migration = false')
+
+        Dir.chdir(app_path) do
+          `rails generate model book title:string;
+           bundle exec rake db:migrate`
+
+          assert !File.exist?("db/schema.rb")
+        end
+
+        add_to_config('config.active_record.dump_schema_after_migration = true')
+
+        Dir.chdir(app_path) do
+          `rails generate model author name:string;
+           bundle exec rake db:migrate`
+
+          structure_dump = File.read("db/schema.rb")
+          assert_match(/create_table "authors"/, structure_dump)
+        end
+      end
+
+      test 'default schema generation after migration' do
+        Dir.chdir(app_path) do
+          `rails generate model book title:string;
+           bundle exec rake db:migrate`
+
+          structure_dump = File.read("db/schema.rb")
+          assert_match(/create_table "books"/, structure_dump)
+        end
+      end
     end
   end
 end

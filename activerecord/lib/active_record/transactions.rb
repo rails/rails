@@ -295,7 +295,7 @@ module ActiveRecord
     def committed! #:nodoc:
       run_callbacks :commit if destroyed? || persisted?
     ensure
-      clear_transaction_record_state
+      @_start_transaction_state.clear
     end
 
     # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record

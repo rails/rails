@@ -270,7 +270,7 @@ def parse_options(args)
   options = default_options
 
   # Don't evaluate CGI ISINDEX parameters.
-  # http://hoohoo.ncsa.uiuc.edu/cgi/cl.html
+  # http://www.meb.uni-bonn.de/docs/cgi/cl.html
   args.clear if ENV.include?("REQUEST_METHOD")
 
   options.merge! opt_parser.parse! args
@@ -522,7 +522,7 @@ I18n and Rails configuration are all being defined here.
 ### Back to `config/environment.rb`
 
 The rest of `config/application.rb` defines the configuration for the
-`Rails::Application` which will be used once the application is fully 
+`Rails::Application` which will be used once the application is fully
 initialized. When `config/application.rb` has finished loading Rails and defined
 the application namespace, we go back to `config/environment.rb`,
 where the application is initialized. For example, if the application was called

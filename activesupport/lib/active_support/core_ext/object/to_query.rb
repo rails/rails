@@ -18,7 +18,12 @@ class Array
   #   ['Rails', 'coding'].to_query('hobbies') # => "hobbies%5B%5D=Rails&hobbies%5B%5D=coding"
   def to_query(key)
     prefix = "#{key}[]"
-    collect { |value| value.to_query(prefix) }.join '&'
+
+    if empty?
+      nil.to_query(prefix)
+    else
+      collect { |value| value.to_query(prefix) }.join '&'
+    end
   end
 end
 

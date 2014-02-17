@@ -298,11 +298,7 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
-        if name == :skip_logging
-          @connection.query(sql)
-        else
-          log(sql, name) { @connection.query(sql) }
-        end
+        log(sql, name) { @connection.query(sql) }
       end
 
       # MysqlAdapter has to free a result after using it, so we use this method to write
@@ -775,7 +771,7 @@ module ActiveRecord
         end.compact.join(', ')
 
         # ...and send them all in one query
-        execute("SET #{encoding} #{variable_assignments}", :skip_logging)
+        @connection.query  "SET #{encoding} #{variable_assignments}"
       end
     end
   end

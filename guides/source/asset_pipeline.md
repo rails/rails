@@ -496,16 +496,11 @@ In this example, `require_self` is used. This puts the CSS contained within the
 file (if any) at the precise location of the `require_self` call. If
 `require_self` is called more than once, only the last call is respected.
 
-NOTE. If you want to use multiple Sass files, you should generally use the [Sass
-`@import`
-rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import) instead
-of these Sprockets directives. Using Sprockets directives all Sass files exist
-within their own scope, making variables or mixins only available within the
-document they were defined in. You can do file globbing as well using
-`@import "*"`, and `@import "**/*"` to add the whole tree equivalent to how
-`require_tree` works. Check the [sass-rails
-documentation](https://github.com/rails/sass-rails#features) for more info and
-important caveats.
+NOTE. If you want to use multiple Sass files, you should generally use the [Sass `@import` rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import)
+instead of these Sprockets directives. Using Sprockets directives all Sass files exist within
+their own scope, making variables or mixins only available within the document they were defined in.
+You can do file globbing as well using `@import "*"`, and `@import "**/*"` to add the whole tree
+equivalent to how `require_tree` works. Check the [sass-rails documentation](https://github.com/rails/sass-rails#features) for more info and important caveats.
 
 You can have as many manifest files as you need. For example, the `admin.css`
 and `admin.js` manifest could contain the JS and CSS files that are used for the
@@ -938,7 +933,7 @@ Customizing the Pipeline
 
 ### CSS Compression
 
-There is currently one option for compressing CSS, YUI. The [YUI CSS
+One of the options for compressing CSS is YUI. The [YUI CSS
 compressor](http://yui.github.io/yuicompressor/css.html) provides
 minification.
 
@@ -947,6 +942,11 @@ gem.
 
 ```ruby
 config.assets.css_compressor = :yui
+```
+The other option for compressing CSS if you have the sass-rails gem installed is 
+
+```ruby
+config.assets.css_compressor = :sass
 ```
 
 ### JavaScript Compression
@@ -1018,7 +1018,8 @@ The X-Sendfile header is a directive to the web server to ignore the response
 from the application, and instead serve a specified file from disk. This option
 is off by default, but can be enabled if your server supports it. When enabled,
 this passes responsibility for serving the file to the web server, which is
-faster.
+faster. Have a look at [send_file](http://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file) 
+on how to use this feature.
 
 Apache and nginx support this option, which can be enabled in
 `config/environments/production.rb`:
@@ -1032,6 +1033,10 @@ WARNING: If you are upgrading an existing application and intend to use this
 option, take care to paste this configuration option only into `production.rb`
 and any other environments you define with production behavior (not
 `application.rb`).
+
+TIP: For further details have a look at the docs of your production web server:
+- [Apache](https://tn123.org/mod_xsendfile/)
+- [Nginx](http://wiki.nginx.org/XSendfile)
 
 Assets Cache Store
 ------------------
@@ -1145,7 +1150,7 @@ config.assets.digest = true
 ```
 
 Rails 4 no longer sets default config values for Sprockets in `test.rb`, so
-`test.rb` now requies Sprockets configuration. The old defaults in the test
+`test.rb` now requires Sprockets configuration. The old defaults in the test
 environment are: `config.assets.compile = true`, `config.assets.compress =
 false`, `config.assets.debug = false` and `config.assets.digest = false`.
 

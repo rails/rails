@@ -266,6 +266,12 @@ module ActiveRecord
       def active?
       end
 
+      # Adapter should redefine this if it needs a threadsafe way to approximate
+      # if the connection is active
+      def active_threadsafe?
+        active?
+      end
+
       # Disconnects from the database if already connected, and establishes a
       # new connection with the database. Implementors should call super if they
       # override the default implementation.

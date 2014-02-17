@@ -9,7 +9,7 @@ gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.1.2'
-gem 'jquery-rails', '~> 2.2.0'
+gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'arel', github: 'rails/arel'
@@ -75,11 +75,6 @@ platforms :jruby do
       gem 'activerecord-jdbcpostgresql-adapter', '>= 1.3.0'
     end
   end
-end
-
-platforms :rbx do
-  gem 'psych', '~> 2.0'
-  gem 'rubysl', '~> 2.0'
 end
 
 # gems that are necessary for ActiveRecord tests with Oracle database

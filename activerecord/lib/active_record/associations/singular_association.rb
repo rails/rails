@@ -39,7 +39,7 @@ module ActiveRecord
         end
 
         def find_target
-          if record = scope.first
+          if record = scope.take
             set_inverse_instance record
           end
         end

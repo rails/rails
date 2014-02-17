@@ -1,3 +1,84 @@
+*   Add new config option `config.action_dispatch.cookies_serializer` for
+    specifying a serializer for the signed and encrypted cookie jars.
+
+    The possible values are:
+
+    * `:json` - serialize cookie values with `JSON`
+    * `:marshal` - serialize cookie values with `Marshal`
+    * `:hybrid` - transparently migrate existing `Marshal` cookie values to `JSON`
+
+    For new apps `:json` option is added by default and `:marshal` is used
+    when no option is specified to maintain backwards compatibility.
+
+    *Łukasz Sarnacki*, *Matt Aimonetti*, *Guillermo Iguaran*, *Godfrey Chan*, *Rafael Mendonça França*
+
+*   `FlashHash` now behaves like a `HashWithIndifferentAccess`.
+
+    *Guillermo Iguaran*
+
+*   Set the `:shallow_path` scope option as each scope is generated rather than
+    waiting until the `shallow` option is set. Also make the behavior of the
+    `:shallow` resource option consistent with the behavior of the `shallow` method.
+
+    Fixes #12498.
+
+    *Andrew White*, *Aleksi Aalto*
+
+*   Properly require `action_view` in `AbstractController::Rendering` to prevent
+    uninitialized constant error for `ENCODING_FLAG`.
+
+    *Philipe Fatio*
+
+*   Do not discard query parameters that form a hash with the same root key as
+    the `wrapper_key` for a request using `wrap_parameters`.
+
+    *Josh Jordan*
+
+*   Ensure that `request.filtered_parameters` is reset between calls to `process`
+    in `ActionController::TestCase`.
+
+    Fixes #13803.
+
+    *Andrew White*
+
+*   Fix `rake routes` error when `Rails::Engine` with empty routes is mounted.
+
+    Fixes #13810.
+
+    *Maurizio De Santis*
+
+*   Log which keys were affected by deep munge.
+
+    Deep munge solves CVE-2013-0155 security vulnerability, but its
+    behaviour is definately confusing, so now at least information
+    about for which keys values were set to nil is visible in logs.
+
+    *Łukasz Sarnacki*
+
+*   Automatically convert dashes to underscores for shorthand routes, e.g:
+
+        get '/our-work/latest'
+
+    When running `rake routes` you will get the following output:
+
+                 Prefix Verb URI Pattern                Controller#Action
+        our_work_latest GET  /our-work/latest(.:format) our_work#latest
+
+    *Mikko Johansson*
+
+*   Automatically convert dashes to underscores for url helpers, e.g:
+
+        get '/contact-us' => 'pages#contact'
+        get '/about-us'   => 'pages#about_us'
+
+    When running `rake routes` you will get the following output:
+
+            Prefix Verb URI Pattern           Controller#Action
+        contact_us GET  /contact-us(.:format) pages#contact
+          about_us GET  /about-us(.:format)   pages#about_us
+
+    *Amr Tamimi*
+
 *   Fix stream closing when sending file with `ActionController::Live` included.
 
     Fixes #12381
@@ -26,7 +107,7 @@
 
     *Andrew White*
 
-*   Show full route constraints in error message
+*   Show full route constraints in error message.
 
     When an optimized helper fails to generate, show the full route constraints
     in the error message. Previously it would only show the contraints that were

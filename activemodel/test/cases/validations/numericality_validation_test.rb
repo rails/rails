@@ -9,7 +9,7 @@ require 'bigdecimal'
 class NumericalityValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   NIL = [nil]
@@ -157,7 +157,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     p.karma = "1234"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 
   def test_validates_numericality_with_invalid_args

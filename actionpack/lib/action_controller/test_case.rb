@@ -213,6 +213,9 @@ module ActionController
       # Clear the combined params hash in case it was already referenced.
       @env.delete("action_dispatch.request.parameters")
 
+      # Clear the filter cache variables so they're not stale
+      @filtered_parameters = @filtered_env = @filtered_path = nil
+
       params = self.request_parameters.dup
       %w(controller action only_path).each do |k|
         params.delete(k)

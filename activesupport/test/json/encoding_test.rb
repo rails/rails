@@ -3,6 +3,7 @@ require 'securerandom'
 require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
+require 'active_support/time'
 
 class TestJSONEncoding < ActiveSupport::TestCase
   class Foo
@@ -226,21 +227,17 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_time_to_json_includes_local_offset
-    prev = ActiveSupport.use_standard_json_time_format
-    ActiveSupport.use_standard_json_time_format = true
-    with_env_tz 'US/Eastern' do
-      assert_equal %("2005-02-01T15:15:10.000-05:00"), ActiveSupport::JSON.encode(Time.local(2005,2,1,15,15,10))
+    with_standard_json_time_format(true) do
+      with_env_tz 'US/Eastern' do
+        assert_equal %("2005-02-01T15:15:10.000-05:00"), ActiveSupport::JSON.encode(Time.local(2005,2,1,15,15,10))
+      end
     end
-  ensure
-    ActiveSupport.use_standard_json_time_format = prev
   end
 
   def test_hash_with_time_to_json
-    prev = ActiveSupport.use_standard_json_time_format
-    ActiveSupport.use_standard_json_time_format = false
-    assert_equal '{"time":"2009/01/01 00:00:00 +0000"}', { :time => Time.utc(2009) }.to_json
-  ensure
-    ActiveSupport.use_standard_json_time_format = prev
+    with_standard_json_time_format(false) do
+      assert_equal '{"time":"2009/01/01 00:00:00 +0000"}', { :time => Time.utc(2009) }.to_json
+    end
   end
 
   def test_nested_hash_with_float
@@ -453,6 +450,57 @@ EXPECTED
     assert_nil h.as_json_called
   end
 
+  def test_twz_to_json_with_use_standard_json_time_format_config_set_to_false
+    with_standard_json_time_format(false) do
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      time = ActiveSupport::TimeWithZone.new(Time.utc(2000), zone)
+      assert_equal "\"1999/12/31 19:00:00 -0500\"", ActiveSupport::JSON.encode(time)
+    end
+  end
+
+  def test_twz_to_json_with_use_standard_json_time_format_config_set_to_true
+    with_standard_json_time_format(true) do
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      time = ActiveSupport::TimeWithZone.new(Time.utc(2000), zone)
+      assert_equal "\"1999-12-31T19:00:00.000-05:00\"", ActiveSupport::JSON.encode(time)
+    end
+  end
+
+  def test_twz_to_json_with_custom_time_precision
+    with_standard_json_time_format(true) do
+      ActiveSupport::JSON::Encoding.time_precision = 0
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      time = ActiveSupport::TimeWithZone.new(Time.utc(2000), zone)
+      assert_equal "\"1999-12-31T19:00:00-05:00\"", ActiveSupport::JSON.encode(time)
+    end
+  ensure
+    ActiveSupport::JSON::Encoding.time_precision = 3
+  end
+
+  def test_time_to_json_with_custom_time_precision
+    with_standard_json_time_format(true) do
+      ActiveSupport::JSON::Encoding.time_precision = 0
+      assert_equal "\"2000-01-01T00:00:00Z\"", ActiveSupport::JSON.encode(Time.utc(2000))
+    end
+  ensure
+    ActiveSupport::JSON::Encoding.time_precision = 3
+  end
+
+  def test_datetime_to_json_with_custom_time_precision
+    with_standard_json_time_format(true) do
+      ActiveSupport::JSON::Encoding.time_precision = 0
+      assert_equal "\"2000-01-01T00:00:00+00:00\"", ActiveSupport::JSON.encode(DateTime.new(2000))
+    end
+  ensure
+    ActiveSupport::JSON::Encoding.time_precision = 3
+  end
+
+  def test_twz_to_json_when_wrapping_a_date_time
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    time = ActiveSupport::TimeWithZone.new(DateTime.new(2000), zone)
+    assert_equal '"1999-12-31T19:00:00.000-05:00"', ActiveSupport::JSON.encode(time)
+  end
+
   protected
 
     def object_keys(json_object)
@@ -464,5 +512,12 @@ EXPECTED
       yield
     ensure
       old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
+
+    def with_standard_json_time_format(boolean = true)
+      old, ActiveSupport.use_standard_json_time_format = ActiveSupport.use_standard_json_time_format, boolean
+      yield
+    ensure
+      ActiveSupport.use_standard_json_time_format = old
     end
 end

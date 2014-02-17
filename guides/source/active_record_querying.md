@@ -1455,7 +1455,7 @@ If you'd like to use your own SQL to find records in a table you can use `find_b
 ```ruby
 Client.find_by_sql("SELECT * FROM clients
   INNER JOIN orders ON clients.id = orders.client_id
-  ORDER clients.created_at desc")
+  ORDER BY clients.created_at desc")
 ```
 
 `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.

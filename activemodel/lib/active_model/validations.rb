@@ -66,8 +66,10 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies the context where this validation is active
-      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt>)
+      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      #   You can pass a symbol or an array of symbols.
+      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt> or
+      #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
@@ -124,10 +126,10 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies the context where this validation is active
-      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt>)
-      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
-      # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
+      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      #   You can pass a symbol or an array of symbols.
+      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt> or
+      #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
@@ -143,7 +145,7 @@ module ActiveModel
           options = options.dup
           options[:if] = Array(options[:if])
           options[:if].unshift lambda { |o|
-            o.validation_context == options[:on]
+            Array(options[:on]).include?(o.validation_context)
           }
         end
         args << options
@@ -199,12 +201,12 @@ module ActiveModel
       #   #      #<StrictValidator:0x007fbff3204a30 @options={strict:true}>
       #   #    ]
       #
-      # If one runs Person.clear_validators! and then checks to see what
+      # If one runs <tt>Person.clear_validators!</tt> and then checks to see what
       # validators this class has, you would obtain:
       #
       #   Person.validators # => []
       #
-      # Also, the callback set by +validate :cannot_be_robot+ will be erased
+      # Also, the callback set by <tt>validate :cannot_be_robot</tt> will be erased
       # so that:
       #
       #   Person._validate_callbacks.empty?  # => true

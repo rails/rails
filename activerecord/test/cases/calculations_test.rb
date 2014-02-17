@@ -278,7 +278,7 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Company.group("UPPER(#{QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
-    assert_equal 4, c['CLIENT']
+    assert_equal 5, c['CLIENT']
     assert_equal 2, c['FIRM']
   end
 
@@ -286,7 +286,7 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Company.group("UPPER(companies.#{QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
-    assert_equal 4, c['CLIENT']
+    assert_equal 5, c['CLIENT']
     assert_equal 2, c['FIRM']
   end
 
@@ -466,14 +466,14 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_distinct_is_honored_when_used_with_count_operation_after_group
     # Count the number of authors for approved topics
     approved_topics_count = Topic.group(:approved).count(:author_name)[true]
-    assert_equal approved_topics_count, 3
+    assert_equal approved_topics_count, 4
     # Count the number of distinct authors for approved Topics
     distinct_authors_for_approved_count = Topic.group(:approved).distinct.count(:author_name)[true]
-    assert_equal distinct_authors_for_approved_count, 2
+    assert_equal distinct_authors_for_approved_count, 3
   end
 
   def test_pluck
-    assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
+    assert_equal [1,2,3,4,5], Topic.order(:id).pluck(:id)
   end
 
   def test_pluck_without_column_names
@@ -509,7 +509,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_qualified_column_name
-    assert_equal [1,2,3,4], Topic.order(:id).pluck("topics.id")
+    assert_equal [1,2,3,4,5], Topic.order(:id).pluck("topics.id")
   end
 
   def test_pluck_auto_table_name_prefix
@@ -557,11 +557,13 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_multiple_columns
     assert_equal [
       [1, "The First Topic"], [2, "The Second Topic of the day"],
-      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"]
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
     ], Topic.order(:id).pluck(:id, :title)
     assert_equal [
       [1, "The First Topic", "David"], [2, "The Second Topic of the day", "Mary"],
-      [3, "The Third Topic of the day", "Carl"], [4, "The Fourth Topic of the day", "Carl"]
+      [3, "The Third Topic of the day", "Carl"], [4, "The Fourth Topic of the day", "Carl"],
+      [5, "The Fifth Topic of the day", "Jason"]
     ], Topic.order(:id).pluck(:id, :title, :author_name)
   end
 
@@ -587,7 +589,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_replaces_select_clause
     taks_relation = Topic.select(:approved, :id).order(:id)
-    assert_equal [1,2,3,4], taks_relation.pluck(:id)
-    assert_equal [false, true, true, true], taks_relation.pluck(:approved)
+    assert_equal [1,2,3,4,5], taks_relation.pluck(:id)
+    assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
   end
 end

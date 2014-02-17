@@ -34,7 +34,7 @@ db_namespace = namespace :db do
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
       ENV["SCOPE"].blank? || (ENV["SCOPE"] == migration.scope)
     end
-    db_namespace['_dump'].invoke
+    db_namespace['_dump'].invoke if ActiveRecord::Base.dump_schema_after_migration
   end
 
   task :_dump do
@@ -75,7 +75,7 @@ db_namespace = namespace :db do
     # desc 'Runs the "down" for a given migration VERSION.'
     task :down => [:environment, :load_config] do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
-      raise 'VERSION is required' unless version
+      raise 'VERSION is required - To go down one migration, run db:rollback' unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
       db_namespace['_dump'].invoke
     end

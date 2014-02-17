@@ -15,12 +15,10 @@ module Rails
       # Set controller variables on initialization.
       def initialize(*args) #:nodoc:
         super
+        controller_name = name
         if options[:model_name]
-          controller_name = name
           self.name = options[:model_name]
           assign_names!(self.name)
-        else
-          controller_name = name
         end
 
         if name == name.pluralize && name.singularize != name.pluralize && !options[:force_plural]

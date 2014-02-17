@@ -7,7 +7,7 @@ require 'models/person'
 class PresenceValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_validate_format
@@ -68,11 +68,11 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert t.invalid?
     assert_equal ["can't be Invalid title"], t.errors[:title]
   end
-  
+
   def test_validate_format_of_with_multiline_regexp_should_raise_error
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, with: /^Valid Title$/) }
   end
-  
+
   def test_validate_format_of_with_multiline_regexp_and_option
     assert_nothing_raised(ArgumentError) do
       Topic.validates_format_of(:title, with: /^Valid Title$/, multiline: true)
@@ -144,6 +144,6 @@ class PresenceValidationTest < ActiveModel::TestCase
     p.karma = "1234"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 end

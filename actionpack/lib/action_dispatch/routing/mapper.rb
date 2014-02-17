@@ -707,6 +707,10 @@ module ActionDispatch
           options[:path] = args.flatten.join('/') if args.any?
           options[:constraints] ||= {}
 
+          unless shallow?
+            options[:shallow_path] = options[:path] if args.any?
+          end
+
           if options[:constraints].is_a?(Hash)
             defaults = options[:constraints].select do
               |k, v| URL_OPTIONS.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum))
@@ -1369,7 +1373,7 @@ module ActionDispatch
         end
 
         def shallow
-          scope(:shallow => true, :shallow_path => @scope[:path]) do
+          scope(:shallow => true) do
             yield
           end
         end
@@ -1410,6 +1414,7 @@ module ActionDispatch
             path_without_format = _path.to_s.sub(/\(\.:format\)$/, '')
             if using_match_shorthand?(path_without_format, route_options)
               route_options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
+              route_options[:to].tr!("-", "_")
             end
 
             decomposed_match(_path, route_options)
@@ -1440,8 +1445,8 @@ module ActionDispatch
           path = path_for_action(action, options.delete(:path))
           action = action.to_s.dup
 
-          if action =~ /^[\w\/]+$/
-            options[:action] ||= action unless action.include?("/")
+          if action =~ /^[\w\-\/]+$/
+            options[:action] ||= action.tr('-', '_') unless action.include?("/")
           else
             action = nil
           end
@@ -1486,6 +1491,13 @@ module ActionDispatch
           def apply_common_behavior_for(method, resources, options, &block) #:nodoc:
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
+              return true
+            end
+
+            if options.delete(:shallow)
+              shallow do
+                send(method, resources.pop, options, &block)
+              end
               return true
             end
 
@@ -1606,10 +1618,11 @@ module ActionDispatch
 
           def prefix_name_for_action(as, action) #:nodoc:
             if as
-              as.to_s
+              prefix = as
             elsif !canonical_action?(action, @scope[:scope_level])
-              action.to_s
+              prefix = action
             end
+            prefix.to_s.tr('-', '_') if prefix
           end
 
           def name_for_action(as, action) #:nodoc:

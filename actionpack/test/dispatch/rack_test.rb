@@ -119,7 +119,7 @@ class RackRequestTest < BaseRackTest
     assert_equal "[2001:1234:5678:9abc:def0::dead:beef]", @request.host
   end
 
-  test "cgi environment variables" do
+  test "CGI environment variables" do
     assert_equal "Basic", @request.auth_type
     assert_equal 0, @request.content_length
     assert_equal nil, @request.content_mime_type

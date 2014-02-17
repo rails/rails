@@ -1,3 +1,26 @@
+*   Do not crash when `config/secrets.yml` is empty.
+
+    *Yves Senn*
+
+*   Set `dump_schema_after_migration` config values in production.
+
+    Set `config.active_record.dump_schema_after_migration` as false
+    in the generated `config/environments/production.rb` file.
+
+    *Emil Soman*
+
+*   Added Thor-action for creation of migrations.
+
+    Fixes #13588, #12674.
+
+    *Gert Goet*
+
+*   Ensure that `bin/rails` is a file before trying to execute it.
+
+    Fixes #13825.
+
+    *bronzle*
+
 *   Use single quotes in generated files.
 
     *Cristian Mircea Messel*, *Chulki Lee*
@@ -87,7 +110,7 @@
     *Rafael Mendonça França*
 
 *   The [Spring application
-    preloader](https://github.com/jonleighton/spring) is now installed
+    preloader](https://github.com/rails/spring) is now installed
     by default for new applications. It uses the development group of
     the Gemfile, so will not be installed in production.
 

@@ -24,6 +24,7 @@ module ActiveRecord
       @klass  = klass
       @table  = table
       @values = values
+      @offsets = {}
       @loaded = false
     end
 
@@ -496,9 +497,10 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
+      @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
       @should_eager_load = @join_dependency = nil
       @records = []
+      @offsets = {}
       self
     end
 
@@ -534,7 +536,6 @@ module ActiveRecord
       }
 
       binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
-      binds.merge!(Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }])
 
       Hash[equalities.map { |where|
         name = where.left.name

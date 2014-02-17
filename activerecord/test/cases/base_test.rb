@@ -321,7 +321,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_load
     topics = Topic.all.merge!(:order => 'id').to_a
-    assert_equal(4, topics.size)
+    assert_equal(5, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
@@ -1380,6 +1380,8 @@ class BasicsTest < ActiveRecord::TestCase
       })
 
       rd, wr = IO.pipe
+      rd.binmode
+      wr.binmode
 
       ActiveRecord::Base.connection_handler.clear_all_connections!
 

@@ -254,6 +254,94 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_second
+    assert_equal topics(:second).title, Topic.second.title
+  end
+
+  def test_second_with_offset
+    assert_equal topics(:fifth), Topic.offset(3).second
+  end
+
+  def test_second_have_primary_key_order_by_default
+    expected = topics(:second)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.second
+  end
+
+  def test_model_class_responds_to_second_bang
+    assert Topic.second!
+    Topic.delete_all
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.second!
+    end
+  end
+
+  def test_third
+    assert_equal topics(:third).title, Topic.third.title
+  end
+
+  def test_third_with_offset
+    assert_equal topics(:fifth), Topic.offset(2).third
+  end
+
+  def test_third_have_primary_key_order_by_default
+    expected = topics(:third)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.third
+  end
+
+  def test_model_class_responds_to_third_bang
+    assert Topic.third!
+    Topic.delete_all
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.third!
+    end
+  end
+
+  def test_fourth
+    assert_equal topics(:fourth).title, Topic.fourth.title
+  end
+
+  def test_fourth_with_offset
+    assert_equal topics(:fifth), Topic.offset(1).fourth
+  end
+
+  def test_fourth_have_primary_key_order_by_default
+    expected = topics(:fourth)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.fourth
+  end
+
+  def test_model_class_responds_to_fourth_bang
+    assert Topic.fourth!
+    Topic.delete_all
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.fourth!
+    end
+  end
+
+  def test_fifth
+    assert_equal topics(:fifth).title, Topic.fifth.title
+  end
+
+  def test_fifth_with_offset
+    assert_equal topics(:fifth), Topic.offset(0).fifth
+  end
+
+  def test_fifth_have_primary_key_order_by_default
+    expected = topics(:fifth)
+    expected.touch # PostgreSQL changes the default order if no order clause is used
+    assert_equal expected, Topic.fifth
+  end
+
+  def test_model_class_responds_to_fifth_bang
+    assert Topic.fifth!
+    Topic.delete_all
+    assert_raises ActiveRecord::RecordNotFound do
+      Topic.fifth!
+    end
+  end
+
   def test_last_bang_present
     assert_nothing_raised do
       assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!
@@ -267,7 +355,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_model_class_responds_to_last_bang
-    assert_equal topics(:fourth), Topic.last!
+    assert_equal topics(:fifth), Topic.last!
     assert_raises ActiveRecord::RecordNotFound do
       Topic.delete_all
       Topic.last!
@@ -812,8 +900,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_select_values
-    assert_equal ["1","2","3","4","5","6","7","8","9", "10"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map! { |i| i.to_s }
-    assert_equal ["37signals","Summit","Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy", "Ex Nihilo Part Deux"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
+    assert_equal ["1","2","3","4","5","6","7","8","9", "10", "11"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map! { |i| i.to_s }
+    assert_equal ["37signals","Summit","Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy", "Ex Nihilo Part Deux", "Apex"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
   end
 
   def test_select_rows
@@ -863,14 +951,23 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_one_message_with_custom_primary_key
-    Toy.primary_key = :name
-    begin
-      Toy.find 'Hello World!'
-    rescue ActiveRecord::RecordNotFound => e
-      assert_equal 'Couldn\'t find Toy with name=Hello World!', e.message
+    table_with_custom_primary_key do |model|
+      model.primary_key = :name
+      e = assert_raises(ActiveRecord::RecordNotFound) do
+        model.find 'Hello World!'
+      end
+      assert_equal %Q{Couldn't find MercedesCar with 'name'=Hello World!}, e.message
     end
-  ensure
-    Toy.reset_primary_key
+  end
+
+  def test_find_some_message_with_custom_primary_key
+    table_with_custom_primary_key do |model|
+      model.primary_key = :name
+      e = assert_raises(ActiveRecord::RecordNotFound) do
+        model.find 'Hello', 'World!'
+      end
+      assert_equal %Q{Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2)}, e.message
+    end
   end
 
   def test_find_without_primary_key
@@ -890,5 +987,13 @@ class FinderTest < ActiveRecord::TestCase
       else
         ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
       end
+    end
+
+    def table_with_custom_primary_key
+      yield(Class.new(Toy) do
+        def self.name
+          'MercedesCar'
+        end
+      end)
     end
 end

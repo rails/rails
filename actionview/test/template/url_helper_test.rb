@@ -56,6 +56,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /></div></form>}, button_to("Hello", "http://www.example.com")
   end
 
+  def test_button_to_with_path
+    assert_dom_equal(
+      %{<form method="post" action="/article/Hello" class="button_to"><div><input type="submit" value="Hello" /></div></form>},
+      button_to("Hello", article_path("Hello".html_safe))
+    )
+  end
+
   def test_button_to_with_straight_url_and_request_forgery
     self.request_forgery = true
 

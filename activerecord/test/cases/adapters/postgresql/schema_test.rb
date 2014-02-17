@@ -246,6 +246,18 @@ class SchemaTest < ActiveRecord::TestCase
     assert_nothing_raised { with_schema_search_path nil }
   end
 
+  def test_index_name_exists
+    with_schema_search_path(SCHEMA_NAME) do
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_A_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_B_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_C_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_D_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME, true)
+      assert_not @connection.index_name_exists?(TABLE_NAME, 'missing_index', true)
+    end
+  end
+
   def test_dump_indexes_for_schema_one
     do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN, INDEX_E_COLUMN)
   end

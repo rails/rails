@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'rails/generators/actions/create_migration'
 
 module Rails
   module Generators
@@ -29,6 +30,19 @@ module Rails
         end
       end
 
+      def create_migration(destination, data, config = {}, &block)
+        action Rails::Generators::Actions::CreateMigration.new(self, destination, block || data.to_s, config)
+      end
+
+      def set_migration_assigns!(destination)
+        destination = File.expand_path(destination, self.destination_root)
+
+        migration_dir = File.dirname(destination)
+        @migration_number     = self.class.next_migration_number(migration_dir)
+        @migration_file_name  = File.basename(destination, '.rb')
+        @migration_class_name = @migration_file_name.camelize
+      end
+
       # Creates a migration template at the given destination. The difference
       # to the default template method is that the migration version is appended
       # to the destination file name.
@@ -37,26 +51,18 @@ module Rails
       # available as instance variables in the template to be rendered.
       #
       #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
-      def migration_template(source, destination=nil, config={})
-        destination = File.expand_path(destination || source, self.destination_root)
+      def migration_template(source, destination, config = {})
+        source  = File.expand_path(find_in_source_paths(source.to_s))
 
-        migration_dir = File.dirname(destination)
-        @migration_number     = self.class.next_migration_number(migration_dir)
-        @migration_file_name  = File.basename(destination).sub(/\.rb$/, '')
-        @migration_class_name = @migration_file_name.camelize
+        set_migration_assigns!(destination)
+        context = instance_eval('binding')
 
-        destination = self.class.migration_exists?(migration_dir, @migration_file_name)
+        dir, base = File.split(destination)
+        numbered_destination = File.join(dir, ["%migration_number%", base].join('_'))
 
-        if !(destination && options[:skip]) && behavior == :invoke
-          if destination && options.force?
-            remove_file(destination)
-          elsif destination
-            raise Error, "Another migration is already named #{@migration_file_name}: #{destination}. Use --force to remove the old migration file and replace it."
-          end
-          destination = File.join(migration_dir, "#{@migration_number}_#{@migration_file_name}.rb")
+        create_migration numbered_destination, nil, config do
+          ERB.new(::File.binread(source), nil, '-', '@output_buffer').result(context)
         end
-
-        template(source, destination, config)
       end
     end
   end

@@ -14,6 +14,10 @@ module ActiveRecord
       def relation_delegate_class(klass)
         self.class.relation_delegate_class(klass)
       end
+
+      def attribute_alias?(name)
+        false
+      end
     end
 
     def relation

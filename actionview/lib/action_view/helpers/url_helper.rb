@@ -232,6 +232,11 @@ module ActionView
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
+      #   <%= button_to "New", new_articles_path %>
+      #   # => "<form method="post" action="/articles/new" class="button_to">
+      #   #      <div><input value="New" type="submit" /></div>
+      #   #    </form>"
+      #
       #   <%= button_to [:make_happy, @user] do %>
       #     Make happy <strong><%= @user.name %></strong>
       #   <% end %>

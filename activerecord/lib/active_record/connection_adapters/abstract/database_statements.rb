@@ -26,6 +26,14 @@ module ActiveRecord
 
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [])
+        if arel.is_a?(Relation)
+          relation = arel
+          arel = relation.arel
+          if !binds || binds.empty?
+            binds = relation.bind_values
+          end
+        end
+
         select(to_sql(arel, binds), name, binds)
       end
 
@@ -45,13 +53,16 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil)
-        select_rows(to_sql(arel, []), name)
-          .map { |v| v[0] }
+        binds = []
+        if arel.is_a?(Relation)
+          arel, binds = arel.arel, arel.bind_values
+        end
+        select_rows(to_sql(arel, binds), name, binds).map(&:first)
       end
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
-      def select_rows(sql, name = nil)
+      def select_rows(sql, name = nil, binds = [])
       end
       undef_method :select_rows
 

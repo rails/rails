@@ -136,10 +136,15 @@ module StaticTests
 
     def with_static_file(file)
       path = "#{FIXTURE_LOAD_PATH}/#{public_path}" + file
-      File.open(path, "wb+") { |f| f.write(file) }
+      begin
+        File.open(path, "wb+") { |f| f.write(file) }
+      rescue Errno::EPROTO
+        skip "Couldn't create a file #{path}"
+      end
+
       yield file
     ensure
-      File.delete(path)
+      File.delete(path) if File.exist? path
     end
 end
 

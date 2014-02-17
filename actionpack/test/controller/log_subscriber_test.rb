@@ -137,6 +137,17 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal 'Parameters: {"id"=>"10"}', logs[1]
   end
 
+  def test_multiple_process_with_parameters
+    get :show, :id => '10'
+    get :show, :id => '20'
+
+    wait
+
+    assert_equal 6, logs.size
+    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
+    assert_equal 'Parameters: {"id"=>"20"}', logs[4]
+  end
+
   def test_process_action_with_wrapped_parameters
     @request.env['CONTENT_TYPE'] = 'application/json'
     post :show, :id => '10', :name => 'jose'

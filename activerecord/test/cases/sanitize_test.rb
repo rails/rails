@@ -46,4 +46,9 @@ class SanitizeTest < ActiveRecord::TestCase
     select_author_sql = Post.send(:sanitize_sql_array, ['id in (:post_ids)', post_ids: david_posts])
     assert_match(sub_query_pattern, select_author_sql, 'should sanitize `Relation` as subquery for named bind variables')
   end
+
+  def test_sanitize_sql_array_handles_empty_statement
+    select_author_sql = Post.send(:sanitize_sql_array, [''])
+    assert_equal('', select_author_sql)
+  end
 end

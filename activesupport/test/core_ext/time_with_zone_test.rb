@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'active_support/time'
-require 'active_support/json'
 
 class TimeWithZoneTest < ActiveSupport::TestCase
 
@@ -66,25 +65,6 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal 'EDT', ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone #dst
   end
 
-  def test_to_json_with_use_standard_json_time_format_config_set_to_false
-    old, ActiveSupport.use_standard_json_time_format = ActiveSupport.use_standard_json_time_format, false
-    assert_equal "\"1999/12/31 19:00:00 -0500\"", ActiveSupport::JSON.encode(@twz)
-  ensure
-    ActiveSupport.use_standard_json_time_format = old
-  end
-
-  def test_to_json_with_use_standard_json_time_format_config_set_to_true
-    old, ActiveSupport.use_standard_json_time_format = ActiveSupport.use_standard_json_time_format, true
-    assert_equal "\"1999-12-31T19:00:00.000-05:00\"", ActiveSupport::JSON.encode(@twz)
-  ensure
-    ActiveSupport.use_standard_json_time_format = old
-  end
-
-  def test_to_json_when_wrapping_a_date_time
-    twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone)
-    assert_equal '"1999-12-31T19:00:00.000-05:00"', ActiveSupport::JSON.encode(twz)
-  end
-
   def test_nsec
     local     = Time.local(2011,6,7,23,59,59,Rational(999999999, 1000))
     with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], local)
@@ -129,6 +109,10 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31T19:00:00.001-05:00", @twz.xmlschema(3)
     assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(6)
     assert_equal "1999-12-31T19:00:00.001234-05:00", @twz.xmlschema(12)
+  end
+
+  def test_xmlschema_with_nil_fractional_seconds
+    assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema(nil)
   end
 
   def test_to_yaml
@@ -509,6 +493,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Fri, 31 Dec 1999 06:00:00 EST -05:00", @twz.change(:hour => 6).inspect
     assert_equal "Fri, 31 Dec 1999 19:15:00 EST -05:00", @twz.change(:min => 15).inspect
     assert_equal "Fri, 31 Dec 1999 19:00:30 EST -05:00", @twz.change(:sec => 30).inspect
+  end
+
+  def test_change_at_dst_boundary
+    twz = ActiveSupport::TimeWithZone.new(Time.at(1319936400).getutc, ActiveSupport::TimeZone['Madrid'])
+    assert_equal twz, twz.change(:min => 0)
+  end
+
+  def test_round_at_dst_boundary
+    twz = ActiveSupport::TimeWithZone.new(Time.at(1319936400).getutc, ActiveSupport::TimeZone['Madrid'])
+    assert_equal twz, twz.round
   end
 
   def test_advance

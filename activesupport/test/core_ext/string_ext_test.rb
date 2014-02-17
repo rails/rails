@@ -161,6 +161,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_humanize_with_html_escape
+    assert_equal 'Hello', ERB::Util.html_escape("hello").humanize
+  end
+
   def test_ord
     assert_equal 97, 'a'.ord
     assert_equal 97, 'abc'.ord

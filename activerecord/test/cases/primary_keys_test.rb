@@ -180,6 +180,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       assert !col1.equal?(col2)
     end
   end
+
+  def test_auto_detect_primary_key_from_schema
+    MixedCaseMonkey.reset_primary_key
+    assert_equal "monkeyID", MixedCaseMonkey.primary_key
+  end
 end
 
 class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
@@ -214,4 +219,3 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     end
   end
 end
-

@@ -136,7 +136,7 @@ module ActiveModel
     #   person.save
     #   person.previous_changes # => {"name" => ["bob", "robert"]}
     def previous_changes
-      @previously_changed ||= {}
+      @previously_changed ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
     # Returns a hash of the attributes with unsaved changes indicating their original
@@ -167,13 +167,13 @@ module ActiveModel
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied
         @previously_changed = changes
-        @changed_attributes = {}
+        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
       # Removes all dirty data: current changes and previous changes
       def reset_changes
-        @previously_changed = {}
-        @changed_attributes = {}
+        @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
+        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.

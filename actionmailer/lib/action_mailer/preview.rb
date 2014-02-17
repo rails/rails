@@ -9,7 +9,32 @@ module ActionMailer
       #
       #     config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
       #
-      class_attribute :preview_path, instance_writer: false
+      mattr_accessor :preview_path, instance_writer: false
+
+      # :nodoc:
+      mattr_accessor :preview_interceptors, instance_writer: false
+      self.preview_interceptors = []
+
+      # Register one or more Interceptors which will be called before mail is previewed.
+      def register_preview_interceptors(*interceptors)
+        interceptors.flatten.compact.each { |interceptor| register_preview_interceptor(interceptor) }
+      end
+
+      # Register am Interceptor which will be called before mail is previewed.
+      # Either a class or a string can be passed in as the Interceptor. If a
+      # string is passed in it will be <tt>constantize</tt>d.
+      def register_preview_interceptor(interceptor)
+        preview_interceptor = case interceptor
+          when String, Symbol
+            interceptor.to_s.camelize.constantize
+          else
+            interceptor
+          end
+
+        unless preview_interceptors.include?(preview_interceptor)
+          preview_interceptors << preview_interceptor
+        end
+      end
     end
   end
 
@@ -23,10 +48,14 @@ module ActionMailer
         descendants
       end
 
-      # Returns the mail object for the given email name
+      # Returns the mail object for the given email name. The registered preview
+      # interceptors will be informed so that they can transform the message
+      # as they would if the mail was actually being delivered.
       def call(email)
         preview = self.new
-        preview.public_send(email)
+        message = preview.public_send(email)
+        inform_preview_interceptors(message)
+        message
       end
 
       # Returns all of the available email previews
@@ -56,7 +85,7 @@ module ActionMailer
 
       protected
         def load_previews #:nodoc:
-          if preview_path?
+          if preview_path
             Dir["#{preview_path}/**/*_preview.rb"].each{ |file| require_dependency file }
           end
         end
@@ -65,8 +94,10 @@ module ActionMailer
           Base.preview_path
         end
 
-        def preview_path? #:nodoc:
-          Base.preview_path?
+        def inform_preview_interceptors(message) #:nodoc:
+          Base.preview_interceptors.each do |interceptor|
+            interceptor.previewing_email(message)
+          end
         end
     end
   end

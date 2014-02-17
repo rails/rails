@@ -23,6 +23,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses boolean and number json params for application json" do
+    assert_parses(
+      {"item" => {"enabled" => false, "count" => 10}},
+      "{\"item\": {\"enabled\": false, \"count\": 10}}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+  end
+
   test "parses json params for application jsonrequest" do
     assert_parses(
       {"person" => {"name" => "David"}},

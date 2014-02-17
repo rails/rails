@@ -775,6 +775,16 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert project.developers.include?(developer)
   end
 
+  def test_destruction_does_not_error_without_primary_key
+    redbeard = pirates(:redbeard)
+    george = parrots(:george)
+    redbeard.parrots << george
+    assert_equal 2, george.pirates.count
+    Pirate.includes(:parrots).where(parrot: redbeard.parrot).find(redbeard.id).destroy
+    assert_equal 1, george.pirates.count
+    assert_equal [], Pirate.where(id: redbeard.id)
+  end
+
   test "has and belongs to many associations on new records use null relations" do
     projects = Developer.new.projects
     assert_no_queries do

@@ -128,6 +128,53 @@ On the other hand, regular comments do not use an arrow:
 #   polymorphic_url(record)  # same as comment_url(record)
 ```
 
+Booleans
+--------
+
+In predicates and flags prefer documenting boolean semantics over exact values.
+
+When "true" or "false" are used as defined in Ruby use regular font. The
+singletons `true` and `false` need fixed-width font. Please avoid terms like
+"truthy", Ruby defines what is true and false in the language, and thus those
+words have a technical meaning and need no substitutes.
+
+As a rule of thumb, do not document singletons unless absolutely necessary. That
+prevents artificial constructs like `!!` or ternaries, allows refactors, and the
+code does not need to rely on the exact values returned by methods being called
+in the implementation.
+
+For example:
+
+```markdown
+`config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default
+```
+
+the user does not need to know which is the actual default value of the flag,
+and so we only document its boolean semantics.
+
+An example with a predicate:
+
+```ruby
+# Returns true if the collection is empty.
+#
+# If the collection has been loaded
+# it is equivalent to <tt>collection.size.zero?</tt>. If the
+# collection has not been loaded, it is equivalent to
+# <tt>collection.exists?</tt>. If the collection has not already been
+# loaded and you are going to fetch the records anyway it is better to
+# check <tt>collection.length.zero?</tt>.
+def empty?
+  if loaded?
+    size.zero?
+  else
+    @target.blank? && !scope.exists?
+  end
+end
+```
+
+The API is careful not to commit to any particular value, the method has
+predicate semantics, that's enough.
+
 Filenames
 ---------
 
@@ -163,7 +210,10 @@ class Array
 end
 ```
 
-WARNING: Using a pair of `+...+` for fixed-width font only works with **words**; that is: anything matching `\A\w+\z`. For anything else use `<tt>...</tt>`, notably symbols, setters, inline snippets, etc.
+WARNING: Using `+...+` for fixed-width font only works with simple content like
+ordinary method names, symbols, paths (with forward slashes), etc. Please use
+`<tt>...</tt>` for everything else, notably class or module names with a
+namespace as in `<tt>ActiveRecord::Base</tt>`.
 
 ### Regular Font
 

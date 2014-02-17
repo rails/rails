@@ -6,8 +6,9 @@ module ActiveRecord
   module Associations
     class AssociationScopeTest < ActiveRecord::TestCase
       test 'does not duplicate conditions' do
-        association_scope = AssociationScope.new(Author.new.association(:welcome_posts))
-        scope = association_scope.scope
+        scope = AssociationScope.scope(Author.new.association(:welcome_posts),
+                                        Author.connection)
+        wheres = scope.where_values.map(&:right)
         binds = scope.bind_values.map(&:last)
         wheres = scope.where_values.map(&:right).reject { |node|
           Arel::Nodes::BindParam === node

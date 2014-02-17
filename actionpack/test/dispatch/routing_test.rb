@@ -1889,6 +1889,65 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'notes#destroy', @response.body
   end
 
+  def test_shallow_option_nested_resources_within_scope
+    draw do
+      scope '/hello' do
+        resources :notes, :shallow => true do
+          resources :trackbacks
+        end
+      end
+    end
+
+    get '/hello/notes/1/trackbacks'
+    assert_equal 'trackbacks#index', @response.body
+    assert_equal '/hello/notes/1/trackbacks', note_trackbacks_path(:note_id => 1)
+
+    get '/hello/notes/1/edit'
+    assert_equal 'notes#edit', @response.body
+    assert_equal '/hello/notes/1/edit', edit_note_path(:id => '1')
+
+    get '/hello/notes/1/trackbacks/new'
+    assert_equal 'trackbacks#new', @response.body
+    assert_equal '/hello/notes/1/trackbacks/new', new_note_trackback_path(:note_id => 1)
+
+    get '/hello/trackbacks/1'
+    assert_equal 'trackbacks#show', @response.body
+    assert_equal '/hello/trackbacks/1', trackback_path(:id => '1')
+
+    get '/hello/trackbacks/1/edit'
+    assert_equal 'trackbacks#edit', @response.body
+    assert_equal '/hello/trackbacks/1/edit', edit_trackback_path(:id => '1')
+
+    put '/hello/trackbacks/1'
+    assert_equal 'trackbacks#update', @response.body
+
+    post '/hello/notes/1/trackbacks'
+    assert_equal 'trackbacks#create', @response.body
+
+    delete '/hello/trackbacks/1'
+    assert_equal 'trackbacks#destroy', @response.body
+
+    get '/hello/notes'
+    assert_equal 'notes#index', @response.body
+
+    post '/hello/notes'
+    assert_equal 'notes#create', @response.body
+
+    get '/hello/notes/new'
+    assert_equal 'notes#new', @response.body
+    assert_equal '/hello/notes/new', new_note_path
+
+    get '/hello/notes/1'
+    assert_equal 'notes#show', @response.body
+    assert_equal '/hello/notes/1', note_path(:id => 1)
+
+    put '/hello/notes/1'
+    assert_equal 'notes#update', @response.body
+
+    delete '/hello/notes/1'
+    assert_equal 'notes#destroy', @response.body
+  end
+
   def test_custom_resource_routes_are_scoped
     draw do
       resources :customers do
@@ -2910,6 +2969,68 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/streams/?foobar'
     assert @response.ok?, 'route with trailing slash and with QUERY_STRING should work'
+  end
+
+  def test_route_with_dashes_in_path
+    draw do
+      get '/contact-us', to: 'pages#contact_us'
+    end
+
+    get '/contact-us'
+    assert_equal 'pages#contact_us', @response.body
+    assert_equal '/contact-us', contact_us_path
+  end
+
+  def test_shorthand_route_with_dashes_in_path
+    draw do
+      get '/about-us/index'
+    end
+
+    get '/about-us/index'
+    assert_equal 'about_us#index', @response.body
+    assert_equal '/about-us/index', about_us_index_path
+  end
+
+  def test_resource_routes_with_dashes_in_path
+    draw do
+      resources :photos, only: [:show] do
+        get 'user-favorites', on: :collection
+        get 'preview-photo', on: :member
+        get 'summary-text'
+      end
+    end
+
+    get '/photos/user-favorites'
+    assert_equal 'photos#user_favorites', @response.body
+    assert_equal '/photos/user-favorites', user_favorites_photos_path
+
+    get '/photos/1/preview-photo'
+    assert_equal 'photos#preview_photo', @response.body
+    assert_equal '/photos/1/preview-photo', preview_photo_photo_path('1')
+
+    get '/photos/1/summary-text'
+    assert_equal 'photos#summary_text', @response.body
+    assert_equal '/photos/1/summary-text', photo_summary_text_path('1')
+
+    get '/photos/1'
+    assert_equal 'photos#show', @response.body
+    assert_equal '/photos/1', photo_path('1')
+  end
+
+  def test_shallow_path_inside_namespace_is_not_added_twice
+    draw do
+      namespace :admin do
+        shallow do
+          resources :posts do
+            resources :comments
+          end
+        end
+      end
+    end
+
+    get '/admin/posts/1/comments'
+    assert_equal 'admin/comments#index', @response.body
+    assert_equal '/admin/posts/1/comments', admin_post_comments_path('1')
   end
 
 private

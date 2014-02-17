@@ -8,7 +8,6 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < ActiveSupport::TestCase
-  Enumerator = [].each.class
 
   class GenericEnumerable
     include Enumerable
@@ -19,26 +18,6 @@ class EnumerableTests < ActiveSupport::TestCase
     def each
       @values.each{|v| yield v}
     end
-  end
-
-  def test_group_by
-    names = %w(marcel sam david jeremy)
-    klass = Struct.new(:name)
-    objects = (1..50).map do
-      klass.new names.sample
-    end
-
-    enum = GenericEnumerable.new(objects)
-    grouped = enum.group_by { |object| object.name }
-
-    grouped.each do |name, group|
-      assert group.all? { |person| person.name == name }
-    end
-
-    assert_equal objects.uniq.map(&:name), grouped.keys
-    assert({}.merge(grouped), "Could not convert ActiveSupport::OrderedHash into Hash")
-    assert_equal Enumerator, enum.group_by.class
-    assert_equal grouped, enum.group_by.each(&:name)
   end
 
   def test_sums
@@ -94,6 +73,10 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
                  payments.index_by { |p| p.price })
     assert_equal Enumerator, payments.index_by.class
+    if Enumerator.method_defined? :size
+      assert_equal nil, payments.index_by.size
+      assert_equal 42, (1..42).index_by.size
+    end
     assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
                  payments.index_by.each { |p| p.price })
   end

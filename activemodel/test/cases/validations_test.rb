@@ -10,17 +10,10 @@ require 'active_support/json'
 require 'active_support/xml_mini'
 
 class ValidationsTest < ActiveModel::TestCase
-
   class CustomStrictValidationException < StandardError; end
 
-  def setup
-    Topic._validators.clear
-  end
-
-  # Most of the tests mess with the validations of Topic, so lets repair it all the time.
-  # Other classes we mess with will be dealt with in the specific tests
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_single_field_validation

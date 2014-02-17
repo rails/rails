@@ -138,7 +138,7 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 
 Mailers are really just another way to render a view. Instead of rendering a
 view and sending out the HTTP protocol, they are just sending it out through the
-Email protocols instead. Due to this, it makes sense to just have your
+email protocols instead. Due to this, it makes sense to just have your
 controller tell the Mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
@@ -164,7 +164,7 @@ class UsersController < ApplicationController
 
     respond_to do |format|
       if @user.save
-        # Tell the UserMailer to send a welcome Email after save
+        # Tell the UserMailer to send a welcome email after save
         UserMailer.welcome_email(@user).deliver
 
         format.html { redirect_to(@user, notice: 'User was successfully created.') }
@@ -611,7 +611,7 @@ files (environment.rb, production.rb, etc...)
 |`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>`:port` - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
 |`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i -t`.</li></ul>|
 |`raise_delivery_errors`|Whether or not errors should be raised if the email fails to be delivered. This only works if the external email server is configured for immediate delivery.|
-|`delivery_method`|Defines a delivery method. Possible values are `:smtp` (default), `:sendmail`, `:file` and `:test`.|
+|`delivery_method`|Defines a delivery method. Possible values are:<ul><li>`:smtp` (default), can be configured by using `config.action_mailer.smtp_settings`.</li><li>`:sendmail`, can be configured by using `config.action_mailer.sendmail_settings`.</li><li>`:file`: save emails to files; can be configured by using `config.action_mailer.file_settings`.</li><li>`:test`: save emails to `ActionMailer::Base.deliveries` array.</li></ul>See [API docs](http://api.rubyonrails.org/classes/ActionMailer/Base.html) for more info.|
 |`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing.|
 |`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
@@ -639,8 +639,8 @@ config.action_mailer.default_options = {from: 'no-reply@example.com'}
 
 ### Action Mailer Configuration for Gmail
 
-As Action Mailer now uses the Mail gem, this becomes as simple as adding to your
-`config/environments/$RAILS_ENV.rb` file:
+As Action Mailer now uses the [Mail gem](https://github.com/mikel/mail), this
+becomes as simple as adding to your `config/environments/$RAILS_ENV.rb` file:
 
 ```ruby
 config.action_mailer.delivery_method = :smtp

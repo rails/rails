@@ -13,6 +13,7 @@ class Pirate < ActiveRecord::Base
     :after_add     => proc {|p,pa| p.ship_log << "after_adding_proc_parrot_#{pa.id || '<new>'}"},
     :before_remove => proc {|p,pa| p.ship_log << "before_removing_proc_parrot_#{pa.id}"},
     :after_remove  => proc {|p,pa| p.ship_log << "after_removing_proc_parrot_#{pa.id}"}
+  has_and_belongs_to_many :autosaved_parrots, class_name: "Parrot", autosave: true
 
   has_many :treasures, :as => :looter
   has_many :treasure_estimates, :through => :treasures, :source => :price_estimates
@@ -83,4 +84,12 @@ end
 
 class DestructivePirate < Pirate
   has_one :dependent_ship, :class_name => 'Ship', :foreign_key => :pirate_id, :dependent => :destroy
+end
+
+class FamousPirate < ActiveRecord::Base
+  self.table_name = 'pirates'
+
+  has_many :famous_ships
+
+  validates_presence_of :catchphrase, on: :conference
 end

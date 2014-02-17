@@ -225,6 +225,10 @@ class FilterTest < ActionController::TestCase
     skip_before_filter :clean_up_tmp, if: -> { true }
   end
 
+  class ClassController < ConditionalFilterController
+    before_filter ConditionalClassFilter
+  end
+
   class PrependingController < TestController
     prepend_before_filter :wonderful_life
     # skip_before_filter :fire_flash
@@ -608,6 +612,18 @@ class FilterTest < ActionController::TestCase
   def test_running_conditional_skip_options
     test_process(ConditionalOptionsSkipFilter)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
+  end
+
+  def test_skipping_class_filters
+    test_process(ClassController)
+    assert_equal true, assigns["ran_class_filter"]
+
+    skipping_class_controller = Class.new(ClassController) do
+      skip_before_filter ConditionalClassFilter
+    end
+
+    test_process(skipping_class_controller)
+    assert_nil assigns['ran_class_filter']
   end
 
   def test_running_collection_condition_filters

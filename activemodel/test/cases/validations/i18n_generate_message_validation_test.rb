@@ -4,7 +4,7 @@ require 'models/person'
 
 class I18nGenerateMessageValidationTest < ActiveModel::TestCase
   def setup
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
     @person = Person.new
   end
 

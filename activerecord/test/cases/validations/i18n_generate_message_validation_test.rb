@@ -3,7 +3,7 @@ require 'models/topic'
 
 class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
   def setup
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
     @topic = Topic.new
     I18n.backend = I18n::Backend::Simple.new
   end

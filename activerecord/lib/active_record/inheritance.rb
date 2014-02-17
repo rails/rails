@@ -195,7 +195,17 @@ module ActiveRecord
       end
     end
 
+    def initialize_dup(other)
+      super
+      ensure_proper_type
+    end
+
     private
+
+    def initialize_internals_callback
+      super
+      ensure_proper_type
+    end
 
     # Sets the attribute used for single table inheritance to this class name if this is not the
     # ActiveRecord::Base descendant.

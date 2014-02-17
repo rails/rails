@@ -574,7 +574,7 @@ The following methods have been removed because they are no longer used in the f
 Action Mailer
 -------------
 
-Action Mailer has been given a new API with TMail being replaced out with the new [Mail](http://github.com/mikel/mail) as the Email library. Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched. The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.
+Action Mailer has been given a new API with TMail being replaced out with the new [Mail](http://github.com/mikel/mail) as the email library. Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched. The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.
 
 * All mailers are now in `app/mailers` by default.
 * Can now send email using new API with three methods: `attachments`, `headers` and `mail`.

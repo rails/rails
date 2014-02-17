@@ -204,9 +204,6 @@ module AbstractController
       end
 
       def test_relative_url_root_is_respected
-        # ROUTES TODO: Tests should not have to pass :relative_url_root directly. This
-        # should probably come from routes.
-
         add_host!
         assert_equal('https://www.basecamphq.com/subdir/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :script_name => '/subdir')

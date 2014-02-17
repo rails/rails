@@ -586,9 +586,14 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.connect_poll != PG::PGRES_POLLING_FAILED
+        @connection.query 'SELECT 1'
+        true
       rescue PGError
         false
+      end
+
+      def active_threadsafe?
+        @connection.connect_poll != PG::PGRES_POLLING_FAILED
       end
 
       # Close then reopen the connection.
@@ -940,14 +945,6 @@ module ActiveRecord
         # conversions that are required to be performed here instead of in PostgreSQLColumn.
         def select(sql, name = nil, binds = [])
           exec_query(sql, name, binds)
-        end
-
-        def select_raw(sql, name = nil)
-          res = execute(sql, name)
-          results = result_as_array(res)
-          fields = res.fields
-          res.clear
-          return fields, results
         end
 
         # Returns the list of a table's column names, data types, and default values.

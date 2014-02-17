@@ -65,7 +65,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_scoped
     topics = Topic.all
     assert_kind_of ActiveRecord::Relation, topics
-    assert_equal 4, topics.size
+    assert_equal 5, topics.size
   end
 
   def test_to_json
@@ -86,14 +86,14 @@ class RelationTest < ActiveRecord::TestCase
   def test_scoped_all
     topics = Topic.all.to_a
     assert_kind_of Array, topics
-    assert_no_queries { assert_equal 4, topics.size }
+    assert_no_queries { assert_equal 5, topics.size }
   end
 
   def test_loaded_all
     topics = Topic.all
 
     assert_queries(1) do
-      2.times { assert_equal 4, topics.to_a.size }
+      2.times { assert_equal 5, topics.to_a.size }
     end
 
     assert topics.loaded?
@@ -164,27 +164,27 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_order
     topics = Topic.order('id')
-    assert_equal 4, topics.to_a.size
+    assert_equal 5, topics.to_a.size
     assert_equal topics(:first).title, topics.first.title
   end
 
 
   def test_finding_with_arel_order
     topics = Topic.order(Topic.arel_table[:id].asc)
-    assert_equal 4, topics.to_a.size
+    assert_equal 5, topics.to_a.size
     assert_equal topics(:first).title, topics.first.title
   end
 
   def test_finding_with_assoc_order
     topics = Topic.order(:id => :desc)
-    assert_equal 4, topics.to_a.size
-    assert_equal topics(:fourth).title, topics.first.title
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_finding_with_reverted_assoc_order
     topics = Topic.order(:id => :asc).reverse_order
-    assert_equal 4, topics.to_a.size
-    assert_equal topics(:fourth).title, topics.first.title
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_order_with_hash_and_symbol_generates_the_same_sql
@@ -197,19 +197,43 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_last_with_arel_order
     topics = Topic.order(Topic.arel_table[:id].asc)
-    assert_equal topics(:fourth).title, topics.last.title
+    assert_equal topics(:fifth).title, topics.last.title
   end
 
   def test_finding_with_order_concatenated
     topics = Topic.order('author_name').order('title')
-    assert_equal 4, topics.to_a.size
+    assert_equal 5, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
+  end
+
+  def test_finding_with_order_by_aliased_attributes
+    topics = Topic.order(:heading)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_assoc_order_by_aliased_attributes
+    topics = Topic.order(heading: :desc)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:third).title, topics.first.title
   end
 
   def test_finding_with_reorder
     topics = Topic.order('author_name').order('title').reorder('id').to_a
     topics_titles = topics.map{ |t| t.title }
-    assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day'], topics_titles
+    assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day', 'The Fifth Topic of the day'], topics_titles
+  end
+
+  def test_finding_with_reorder_by_aliased_attributes
+    topics = Topic.order('author_name').reorder(:heading)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_assoc_reorder_by_aliased_attributes
+    topics = Topic.order('author_name').reorder(heading: :desc)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:third).title, topics.first.title
   end
 
   def test_finding_with_order_and_take
@@ -773,6 +797,13 @@ class RelationTest < ActiveRecord::TestCase
     developer = Developer.where(id: david.id).select(:name, :salary).first
     assert_equal david.name, developer.name
     assert_equal david.salary, developer.salary
+  end
+
+  def test_select_takes_an_aliased_attribute
+    first = topics(:first)
+
+    topic = Topic.where(id: first.id).select(:heading).first
+    assert_equal first.heading, topic.heading
   end
 
   def test_select_argument_error
@@ -1503,6 +1534,12 @@ class RelationTest < ActiveRecord::TestCase
       expected = [[1, nil], [5, "David"], [3, "Mary"], [2, "Bob"]]
       assert_equal expected, result
     end
+  end
+
+  test "joins with select" do
+    posts = Post.joins(:author).select("id", "authors.author_address_id").order("posts.id").limit(3)
+    assert_equal [1, 2, 4], posts.map(&:id)
+    assert_equal [1, 1, 1], posts.map(&:author_address_id)
   end
 
   test "delegations do not leak to other classes" do

@@ -294,6 +294,7 @@ module ActiveRecord #:nodoc:
     extend Enum
     extend Delegation::DelegateCache
 
+    include Core
     include Persistence
     include NoTouching
     include ReadonlyAttributes
@@ -320,7 +321,6 @@ module ActiveRecord #:nodoc:
     include Reflection
     include Serialization
     include Store
-    include Core
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)
