@@ -1,3 +1,9 @@
+*   Perform necessary deeper encoding when hstore is inside an array.
+
+    Fixes #11135.
+
+    *Josh Goodall*, *Genadi Samokovarov*
+
 *   Properly detect if a connection is still active before using it
     in multi-threaded environments.
 
@@ -527,22 +533,6 @@
 
     *Damien Mathieu*
 
-*   Improve the default select when `from` is used.
-
-    Previously, if you did something like Topic.from(:temp_topics), it
-    would generate SQL like:
-
-        SELECT topics.* FROM temp_topics;
-
-    Which is will cause an error since there's not a topics table to select
-    from.
-
-    Now the default if you use from is just `*`:
-
-        SELECT * FROM temp_topics;
-
-    *Cody Cutrer*
-
 *   Fix `PostgreSQL` insert to properly extract table name from multiline string SQL.
 
     Previously, executing an insert SQL in `PostgreSQL` with a command like this:
@@ -757,7 +747,7 @@
 *   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child
     marked with `dependent: destroy` fails to be destroyed.
 
-    Fixex #12812.
+    Fixes #12812.
 
     *Brian Thomas Storti*
 
