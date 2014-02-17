@@ -74,6 +74,12 @@ class MessageVerifierTest < ActiveSupport::TestCase
       @verifier.verify(message)
     end
   end
+
+  def test_url_safe
+    verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", :url_safe => true)  
+    message = verifier.generate(Marshal.dump(90366))
+    assert_not message.include?("/")
+  end  
 end
 
 end
