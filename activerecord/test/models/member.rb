@@ -27,6 +27,9 @@ class Member < ActiveRecord::Base
   has_many :clubs, :through => :current_memberships
 
   has_one :club_through_many, :through => :current_memberships, :source => :club
+
+  has_one :member_logs, :class_name => "MemberLog"
+  has_one :error_logs, :through => :member_logs
 end
 
 class SelfMember < ActiveRecord::Base

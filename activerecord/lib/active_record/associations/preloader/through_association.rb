@@ -57,6 +57,10 @@ module ActiveRecord
           }
         end
 
+        def use_where_reflection_scope?
+          reflection.scope.present? && reflection_scope.where_values.present?
+        end
+
         private
 
         def reset_association(owners, association_name)
@@ -78,7 +82,9 @@ module ActiveRecord
           if options[:source_type]
             scope.where! reflection.foreign_type => options[:source_type]
           else
-            unless reflection_scope.where_values.empty?
+            # This is for cover case with STI on through association. AR should not use where
+            # values if reflection.scope is blank.
+            if use_where_reflection_scope?
               scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
               scope.where_values    = reflection_scope.values[:where]
             end

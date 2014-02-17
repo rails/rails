@@ -1,0 +1,2 @@
+class ErrorLog < Log
+end

@@ -23,12 +23,16 @@ require 'models/membership'
 require 'models/club'
 require 'models/categorization'
 require 'models/sponsor'
+require 'models/member_log'
+require 'models/log'
+require 'models/error_log'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
+            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
+            :member_logs, :error_logs
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(:includes => :favourite_club).find(members(:some_other_guy).id)
@@ -77,6 +81,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_has_many_through_with_order
     authors = Author.includes(:favorite_authors).to_a
     assert_no_queries { authors.map(&:favorite_authors) }
+  end
+
+  def test_eager_with_has_many_through_join_model_with_STI_on_the_through
+    assert Member.all.merge!(:includes => :error_logs).find(members(:groucho).id)
   end
 
   def test_with_two_tables_in_from_without_getting_double_quoted
