@@ -345,7 +345,7 @@ module ActiveModel
     # When used to check for a +message+ that includes an interpolated value
     # (e.g., +count+), it requires that we specify this value as an option.
     # This interpolated value is used in the check for the message's presence.
-    # For instance, providing a ++:count++ that does not match the ++:count++
+    # For instance, providing a +:count+ that does not match the +:count+
     # provided in +add+ for an attribute-message pair will result in a +false+
     # return value.
     #
