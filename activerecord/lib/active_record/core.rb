@@ -117,6 +117,32 @@ module ActiveRecord
         super
       end
 
+      def find(*ids)
+        # We don't have cache keys for this stuff yet
+        return super unless ids.length == 1
+        return super if block_given? ||
+                        primary_key.nil? ||
+                        default_scopes.any? ||
+                        columns_hash.include?(inheritance_column) ||
+                        !connection.prepared_statements ||
+                        ids.first.kind_of?(Array)
+
+        id  = ids.first
+        id  = id.id if ActiveRecord::Base === id
+        key = primary_key
+
+        s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
+          find_by_statement_cache[key] ||= StatementCache.new { |params|
+            where(key => params[key]).limit(1)
+          }
+        }
+        record = s.execute(key => id).first
+        unless record
+          raise RecordNotFound, "Couldn't find #{name} with '#{primary_key}'=#{id}"
+        end
+        record
+      end
+
       def find_by(*args)
         return super if current_scope || args.length > 1 || reflect_on_all_aggregations.any?
 

@@ -90,6 +90,8 @@ module ActiveRecord
         end
       end
 
+      attr_reader :prepared_statements
+
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
         super()
 
