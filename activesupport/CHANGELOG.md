@@ -2,6 +2,18 @@
 
     *Xavier Noria*
 
+*   Added Object#present_in to simplify value whitelisting.
+
+    Before:
+    
+      params[:bucket_type].in?(%w( project calendar )) ? params[:bucket_type] : nil
+      
+    After:
+    
+      params[:bucket_type].present_in %w( project calendar )
+    
+    *DHH*
+
 *   Fix the implementation of Multibyte::Unicode.tidy_bytes for JRuby
 
     The existing implementation caused JRuby to raise the error:
