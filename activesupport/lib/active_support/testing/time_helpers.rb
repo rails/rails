@@ -10,7 +10,7 @@ module ActiveSupport
       def stub_object(object, method_name, return_value)
         key = [object.object_id, method_name]
 
-        if (stub = @stubs[key])
+        if stub = @stubs[key]
           unstub_object(stub)
         end
 
@@ -97,8 +97,11 @@ module ActiveSupport
         simple_stubs.stub_object(Date, :today, now.to_date)
 
         if block_given?
-          block.call
-          travel_back
+          begin
+            block.call
+          ensure
+            travel_back
+          end
         end
       end
 

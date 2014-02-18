@@ -138,6 +138,18 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_travel_to_travels_back_and_reraises_if_the_block_raises
+    ts = Time.current - 1.second
+
+    travel_to ts do
+      raise
+    end
+
+    flunk # ensure travel_to re-raises
+  rescue
+    assert_not_equal ts, Time.current
+  end
+
   def test_local
     time = ActiveSupport::TimeZone["Hawaii"].local(2007, 2, 5, 15, 30, 45)
     assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time
