@@ -1,18 +1,18 @@
+*   Added `Object#present_in` to simplify value whitelisting.
+
+    Before:
+
+        params[:bucket_type].in?(%w( project calendar )) ? params[:bucket_type] : nil
+
+    After:
+
+        params[:bucket_type].present_in %w( project calendar )
+
+    *DHH*
+
 *   Time helpers honor the application time zone when passed a date.
 
     *Xavier Noria*
-
-*   Added Object#present_in to simplify value whitelisting.
-
-    Before:
-    
-      params[:bucket_type].in?(%w( project calendar )) ? params[:bucket_type] : nil
-      
-    After:
-    
-      params[:bucket_type].present_in %w( project calendar )
-    
-    *DHH*
 
 *   Fix the implementation of Multibyte::Unicode.tidy_bytes for JRuby
 
