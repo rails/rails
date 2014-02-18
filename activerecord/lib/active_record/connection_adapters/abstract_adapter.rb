@@ -12,6 +12,7 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :Column
+    autoload :NullColumn
     autoload :ConnectionSpecification
 
     autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
