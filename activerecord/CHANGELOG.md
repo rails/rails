@@ -1,3 +1,64 @@
+*   Default scopes are no longer overriden by chained conditions.
+
+    Before this change when you defined a `default_scope` in a model
+    it was overriden by chained conditions in the same field. Now it
+    is merged like any other scope.
+
+    Before:
+
+        class User < ActiveRecord::Base
+          default_scope { where state: 'pending' }
+          scope :active, -> { where state: 'active' }
+          scope :inactive, -> { where state: 'inactive' }
+        end
+
+        User.all
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+        User.active
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+        User.where(state: 'inactive')
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+
+    After:
+
+        class User < ActiveRecord::Base
+          default_scope { where state: 'pending' }
+          scope :active, -> { where state: 'active' }
+          scope :inactive, -> { where state: 'inactive' }
+        end
+
+        User.all
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+        User.active
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
+
+        User.where(state: 'inactive')
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
+
+    To get the previous behavior it is needed to explicitly remove the
+    `default_scope` condition using `unscoped`, `unscope`, `rewhere` or
+    `except`.
+
+    Example:
+
+        class User < ActiveRecord::Base
+          default_scope { where state: 'pending' }
+          scope :active, -> { unescope(where: :state).where(state: 'active') }
+          scope :inactive, -> { rewhere state: 'inactive' }
+        end
+
+        User.all
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+        User.active
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+        User.inactive
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+
 *   Perform necessary deeper encoding when hstore is inside an array.
 
     Fixes #11135.

@@ -262,6 +262,73 @@ authors = Author.where(name: 'Hank Moody').to_a
 authors.compact!
 ```
 
+### Changes on Default Scopes
+
+Default scopes are no longer overriden by chained conditions.
+
+In previous versions when you defined a `default_scope` in a model
+it was overriden by chained conditions in the same field. Now it
+is merged like any other scope.
+
+Before:
+
+```ruby
+class User < ActiveRecord::Base
+  default_scope { where state: 'pending' }
+  scope :active, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
+end
+
+User.all
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+User.active
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+User.where(state: 'inactive')
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+```
+
+After:
+
+```ruby
+class User < ActiveRecord::Base
+  default_scope { where state: 'pending' }
+  scope :active, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
+end
+
+User.all
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+User.active
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
+
+User.where(state: 'inactive')
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
+```
+
+To get the previous behavior it is needed to explicitly remove the
+`default_scope` condition using `unscoped`, `unscope`, `rewhere` or
+`except`.
+
+```ruby
+class User < ActiveRecord::Base
+  default_scope { where state: 'pending' }
+  scope :active, -> { unescope(where: :state).where(state: 'active') }
+  scope :inactive, -> { rewhere state: 'inactive' }
+end
+
+User.all
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+User.active
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+User.inactive
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+```
+
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
