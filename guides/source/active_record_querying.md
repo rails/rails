@@ -1246,7 +1246,7 @@ User.active.inactive
 ```
 
 We can mix and match `scope` and `where` conditions and the final sql
-will have all conditions joined with `AND` .
+will have all conditions joined with `AND`.
 
 ```ruby
 User.active.where(state: 'finished')
@@ -1254,7 +1254,7 @@ User.active.where(state: 'finished')
 ```
 
 If we do want the `last where clause` to win then `Relation#merge` can
-be used .
+be used.
 
 ```ruby
 User.active.merge(User.inactive)
@@ -1275,10 +1275,10 @@ User.all
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users"  WHERE "users"."status" = 'pending' AND "users"."status" = 'active'
+# => SELECT "users".* FROM "users" WHERE "users"."status" = 'pending' AND "users"."status" = 'active'
 
 User.where(state: 'inactive')
-# => SELECT "users".* FROM "users"  WHERE "users"."status" = 'pending' AND "users"."status" = 'inactive'
+# => SELECT "users".* FROM "users" WHERE "users"."status" = 'pending' AND "users"."status" = 'inactive'
 ```
 
 As you can see above the `default_scope` is being merged in both
