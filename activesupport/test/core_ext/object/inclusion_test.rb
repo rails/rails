@@ -50,6 +50,6 @@ class InTest < ActiveSupport::TestCase
   
   def test_present_in
     assert_equal "stuff", "stuff".present_in(%w( lots of stuff ))
-    assert_not "stuff".present_in(%w( lots of crap ))
+    assert_nil "stuff".present_in(%w( lots of crap ))
   end
 end
