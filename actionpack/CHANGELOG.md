@@ -166,7 +166,15 @@
 
     *Brendon Murphy*, *Doug Cole*
 
-## Rails 4.0.2 ##
+
+## Rails 4.0.3 (February 18, 2014) ##
+
+*   Escape format, negative_format and units options of number helpers
+
+    Fixes: CVE-2014-0081
+
+
+## Rails 4.0.2 (December 02, 2013) ##
 
 *   Ensure simple_format escapes its html attributes. This fixes CVE-2013-6416
 
