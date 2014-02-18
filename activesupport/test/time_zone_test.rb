@@ -130,10 +130,10 @@ class TimeZoneTest < ActiveSupport::TestCase
         date = Date.new(2014, 2, 18)
         time = date.midnight
 
-        travel_to date
-
-        assert_equal date, Date.current
-        assert_equal time, Time.current
+        travel_to date do
+          assert_equal date, Date.current
+          assert_equal time, Time.current
+        end
       end
     end
   end
