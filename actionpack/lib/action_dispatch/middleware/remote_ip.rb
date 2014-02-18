@@ -47,12 +47,12 @@ module ActionDispatch
     # clients (like WAP devices), or behind proxies that set headers in an
     # incorrect or confusing way (like AWS ELB).
     #
-    # The +custom_trusted+ argument can take a regex, which will be used
+    # The +custom_proxies+ argument can take a regex, which will be used
     # instead of +TRUSTED_PROXIES+, or a string, which will be used in addition
     # to +TRUSTED_PROXIES+. Any proxy setup will put the value you want in the
     # middle (or at the beginning) of the X-Forwarded-For list, with your proxy
     # servers after it. If your proxies aren't removed, pass them in via the
-    # +custom_trusted+ parameter. That way, the middleware will ignore those
+    # +custom_proxies+ parameter. That way, the middleware will ignore those
     # IP addresses, and return the one that you want.
     def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
       @app = app

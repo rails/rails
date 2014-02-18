@@ -1,3 +1,8 @@
+*   Added `:plain`, `:html` and `:body` option for `render` method. Please see
+    Action Pack's release note for more detail.
+
+    *Prem Sichanugrist*
+
 *   Date select helpers accept a format string for the months selector via the
     new option `:month_format_string`.
 
@@ -39,6 +44,10 @@
     the generated tag will be the same.
 
     *Kuldeep Aggarwal*
+
+*   Escape format, negative_format and units options of number helpers
+
+    Fixes: CVE-2014-0081
 
 *   A Cycle object should accept an array and cycle through it as it would with a set of
     comma-separated objects.

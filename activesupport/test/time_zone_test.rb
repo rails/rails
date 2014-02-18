@@ -124,6 +124,32 @@ class TimeZoneTest < ActiveSupport::TestCase
     travel_back
   end
 
+  def test_travel_to_a_date
+    with_env_tz do
+      Time.use_zone('Hawaii') do
+        date = Date.new(2014, 2, 18)
+        time = date.midnight
+
+        travel_to date do
+          assert_equal date, Date.current
+          assert_equal time, Time.current
+        end
+      end
+    end
+  end
+
+  def test_travel_to_travels_back_and_reraises_if_the_block_raises
+    ts = Time.current - 1.second
+
+    travel_to ts do
+      raise
+    end
+
+    flunk # ensure travel_to re-raises
+  rescue
+    assert_not_equal ts, Time.current
+  end
+
   def test_local
     time = ActiveSupport::TimeZone["Hawaii"].local(2007, 2, 5, 15, 30, 45)
     assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time

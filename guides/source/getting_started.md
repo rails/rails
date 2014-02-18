@@ -608,7 +608,7 @@ look like, change the `create` action to this:
 
 ```ruby
 def create
-  render text: params[:article].inspect
+  render plain: params[:article].inspect
 end
 ```
 

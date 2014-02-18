@@ -262,6 +262,92 @@ authors = Author.where(name: 'Hank Moody').to_a
 authors.compact!
 ```
 
+### Changes on Default Scopes
+
+Default scopes are no longer overriden by chained conditions.
+
+In previous versions when you defined a `default_scope` in a model
+it was overriden by chained conditions in the same field. Now it
+is merged like any other scope.
+
+Before:
+
+```ruby
+class User < ActiveRecord::Base
+  default_scope { where state: 'pending' }
+  scope :active, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
+end
+
+User.all
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+User.active
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+User.where(state: 'inactive')
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+```
+
+After:
+
+```ruby
+class User < ActiveRecord::Base
+  default_scope { where state: 'pending' }
+  scope :active, -> { where state: 'active' }
+  scope :inactive, -> { where state: 'inactive' }
+end
+
+User.all
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+User.active
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
+
+User.where(state: 'inactive')
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
+```
+
+To get the previous behavior it is needed to explicitly remove the
+`default_scope` condition using `unscoped`, `unscope`, `rewhere` or
+`except`.
+
+```ruby
+class User < ActiveRecord::Base
+  default_scope { where state: 'pending' }
+  scope :active, -> { unscope(where: :state).where(state: 'active') }
+  scope :inactive, -> { rewhere state: 'inactive' }
+end
+
+User.all
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+User.active
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+User.inactive
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+```
+
+### Rendering content from string
+
+Rails 4.1 introduces `:plain`, `:html`, and `:body` options to `render`. Those
+options are now the preferred way to render string-based content, as it allows
+you to specify which content type you want the response sent as.
+
+* `render :plain` will set the content type to `text/plain`
+* `render :html` will set the content type to `text/html`
+* `render :body` will *not* set the content type header.
+
+From the security standpoint, if you don't expect to have any markup in your
+response body, you should be using `render :plain` as most browsers will escape
+unsafe content in the response for you.
+
+We will be deprecating the use of `render :text` in a future version. So please
+start using the more precise `:plain:`, `:html`, and `:body` options instead.
+Using `render :text` may pose a security risk, as the content is sent as
+`text/html`.
+
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
@@ -567,9 +653,8 @@ Active Record Observer and Action Controller Sweeper have been extracted to the 
 
 ### sprockets-rails
 
-* `assets:precompile:primary` has been removed. Use `assets:precompile` instead.
-* The `config.assets.compress` option should be changed to
-`config.assets.js_compressor` like so for instance:
+* `assets:precompile:primary` and `assets:precompile:all` have been removed. Use `assets:precompile` instead.
+* The `config.assets.compress` option should be changed to `config.assets.js_compressor` like so for instance:
 
 ```ruby
 config.assets.js_compressor = :uglifier
@@ -577,7 +662,7 @@ config.assets.js_compressor = :uglifier
 
 ### sass-rails
 
-* `asset-url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`
+* `asset-url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`.
 
 Upgrading from Rails 3.1 to Rails 3.2
 -------------------------------------

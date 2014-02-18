@@ -420,7 +420,7 @@ module ActionView
     end
 
     def _include_layout?(options)
-      (options.keys & [:text, :inline, :partial]).empty? || options.key?(:layout)
+      (options.keys & [:body, :text, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
     end
   end
 end

@@ -156,6 +156,14 @@ module ActionController
         raise 'An exception occurred...'
       end
 
+      def exception_in_controller
+        raise 'Exception in controller'
+      end
+
+      def bad_request_error
+        raise ActionController::BadRequest
+      end
+
       def exception_in_exception_callback
         response.headers['Content-Type'] = 'text/event-stream'
         response.stream.on_error do
@@ -273,6 +281,16 @@ module ActionController
         assert_match 'An exception occurred...', output.rewind && output.read
         assert_stream_closed
       end
+    end
+
+    def test_exception_in_controller_before_streaming
+      response = get :exception_in_controller, format: 'text/event-stream'
+      assert_equal 500, response.status
+    end
+
+    def test_bad_request_in_controller_before_streaming
+      response = get :bad_request_error, format: 'text/event-stream'
+      assert_equal 400, response.status
     end
 
     def test_exceptions_raised_handling_exceptions

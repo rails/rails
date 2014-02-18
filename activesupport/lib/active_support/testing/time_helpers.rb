@@ -10,7 +10,7 @@ module ActiveSupport
       def stub_object(object, method_name, return_value)
         key = [object.object_id, method_name]
 
-        if (stub = @stubs[key])
+        if stub = @stubs[key]
           unstub_object(stub)
         end
 
@@ -61,13 +61,22 @@ module ActiveSupport
         travel_to Time.now + duration, &block
       end
 
-      # Changes current time to the given time by stubbing +Time.now+ and +Date.today+ to return the
-      # time or date passed into this method.
+      # Changes current time to the given time by stubbing +Time.now+ and
+      # +Date.today+ to return the time or date passed into this method.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.new(2004, 11, 24, 01, 04, 44)
       #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   Date.current # => Wed, 24 Nov 2004
+      #
+      # Dates are taken as their timestamp at the beginning of the day in the
+      # application time zone. <tt>Time.current</tt> returns said timestamp,
+      # and <tt>Time.now</tt> its equivalent in the system time zone. Similarly,
+      # <tt>Date.current</tt> returns a date equal to the argument, and
+      # <tt>Date.today</tt> the date according to <tt>Time.now</tt>, which may
+      # be different. (Note that you rarely want to deal with <tt>Time.now</tt>,
+      # or <tt>Date.today</tt>, in order to honor the application time zone
+      # please always use <tt>Time.current</tt> and <tt>Date.current</tt>.)
       #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
@@ -78,12 +87,21 @@ module ActiveSupport
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       def travel_to(date_or_time, &block)
-        simple_stubs.stub_object(Time, :now, date_or_time.to_time)
-        simple_stubs.stub_object(Date, :today, date_or_time.to_date)
+        if date_or_time.is_a?(Date) && !date_or_time.is_a?(DateTime)
+          now = date_or_time.midnight.to_time
+        else
+          now = date_or_time.to_time
+        end
+
+        simple_stubs.stub_object(Time, :now, now)
+        simple_stubs.stub_object(Date, :today, now.to_date)
 
         if block_given?
-          block.call
-          travel_back
+          begin
+            block.call
+          ensure
+            travel_back
+          end
         end
       end
 

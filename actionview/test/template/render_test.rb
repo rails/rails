@@ -22,7 +22,7 @@ module RenderTestCases
 
   def test_render_without_options
     e = assert_raises(ArgumentError) { @view.render() }
-    assert_match "You invoked render but did not give any of :partial, :template, :inline, :file or :text option.", e.message
+    assert_match(/You invoked render but did not give any of (.+) option./, e.message)
   end
 
   def test_render_file
