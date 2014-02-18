@@ -1261,8 +1261,8 @@ User.active.merge(User.inactive)
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
-One important caveat is that `default_scope` will be overridden by
-`scope` and `where` conditions.
+However, any constraints in a `default_scope` will be overridden by
+constraints on the same columns in `scope` and `where` conditions.
 
 ```ruby
 class User < ActiveRecord::Base
@@ -1279,6 +1279,9 @@ User.active
 
 User.where(state: 'inactive')
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+
+User.where(name: 'John')
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."name" = 'John'
 ```
 
 As you can see above the `default_scope` is being overridden by both
