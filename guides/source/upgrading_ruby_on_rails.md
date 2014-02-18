@@ -329,6 +329,25 @@ User.inactive
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
+### Rendering content from string
+
+Rails 4.1 introduces `:plain`, `:html`, and `:body` options to `render`. Those
+options are now the preferred way to render string-based content, as it allows
+you to specify which content type you want the response sent as.
+
+* `render :plain` will set the content type to `text/plain`
+* `render :html` will set the content type to `text/html`
+* `render :body` will *not* set the content type header.
+
+From the security standpoint, if you don't expect to have any markup in your
+response body, you should be using `render :plain` as most browsers will escape
+unsafe content in the response for you.
+
+We will be deprecating the use of `render :text` in a future version. So please
+start using the more precise `:plain:`, `:html`, and `:body` options instead.
+Using `render :text` may pose a security risk, as the content is sent as
+`text/html`.
+
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
 
