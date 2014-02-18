@@ -707,7 +707,7 @@ You can additionally unscope specific where clauses. For example:
 
 ```ruby
 Post.where(id: 10, trashed: false).unscope(where: :id)
-# => SELECT "posts".* FROM "posts" WHERE trashed = 0
+# SELECT "posts".* FROM "posts" WHERE trashed = 0
 ```
 
 A relation which has used `unscope` will affect any relation it is
@@ -715,7 +715,7 @@ merged in to:
 
 ```ruby
 Post.order('id asc').merge(Post.unscope(:order))
-# => SELECT "posts".* FROM "posts"
+# SELECT "posts".* FROM "posts"
 ```
 
 ### `only`
@@ -1242,7 +1242,7 @@ class User < ActiveRecord::Base
 end
 
 User.active.inactive
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
 ```
 
 We can mix and match `scope` and `where` conditions and the final sql
@@ -1250,7 +1250,7 @@ will have all conditions joined with `AND`.
 
 ```ruby
 User.active.where(state: 'finished')
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
 ```
 
 If we do want the `last where clause` to win then `Relation#merge` can
@@ -1258,7 +1258,7 @@ be used.
 
 ```ruby
 User.active.merge(User.inactive)
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
 One important caveat is that `default_scope` will be prepended in
@@ -1272,13 +1272,13 @@ class User < ActiveRecord::Base
 end
 
 User.all
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
 
 User.where(state: 'inactive')
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
 ```
 
 As you can see above the `default_scope` is being merged in both

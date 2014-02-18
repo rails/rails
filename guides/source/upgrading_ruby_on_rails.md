@@ -280,13 +280,13 @@ class User < ActiveRecord::Base
 end
 
 User.all
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
 
 User.where(state: 'inactive')
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
 After:
@@ -299,13 +299,13 @@ class User < ActiveRecord::Base
 end
 
 User.all
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
 
 User.where(state: 'inactive')
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
 ```
 
 To get the previous behavior it is needed to explicitly remove the
@@ -320,13 +320,13 @@ class User < ActiveRecord::Base
 end
 
 User.all
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
 
 User.inactive
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
 Upgrading from Rails 3.2 to Rails 4.0
