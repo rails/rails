@@ -453,6 +453,12 @@ for detailed changes.
 
 ### Notable changes
 
+* Default scopes are no longer overriden by chained conditions.
+
+  Before this change when you defined a `default_scope` in a model
+  it was overriden by chained conditions in the same field. Now it
+  is merged like any other scope. [More Details](upgrading_ruby_on_rails.html#changes-on-default-scopes).
+
 * Added `ActiveRecord::Base.to_param` for convenient "pretty" URLs derived from
   a model's attribute or
   method. ([Pull Request](https://github.com/rails/rails/pull/12891))
