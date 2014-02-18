@@ -315,7 +315,7 @@ To get the previous behavior it is needed to explicitly remove the
 ```ruby
 class User < ActiveRecord::Base
   default_scope { where state: 'pending' }
-  scope :active, -> { unescope(where: :state).where(state: 'active') }
+  scope :active, -> { unscope(where: :state).where(state: 'active') }
   scope :inactive, -> { rewhere state: 'inactive' }
 end
 
