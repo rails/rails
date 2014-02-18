@@ -137,7 +137,7 @@ module ActiveRecord
               if value == ""
                 '""'
               else
-                '"%s"' % value.to_s.gsub(/(["\\])/, '\\\\\1')
+                '"%s"' % escape_quotes(value.to_s)
               end
             end
           end
@@ -147,8 +147,12 @@ module ActiveRecord
             when "NULL", Numeric
               value
             else
-              "\"#{value.gsub(/"/,"\\\"")}\""
+              "\"#{escape_quotes value}\""
             end
+          end
+
+          def escape_quotes(value)
+            value.gsub(/(["\\])/, '\\\\\1')
           end
 
           def type_cast_array(oid, value)
