@@ -1261,7 +1261,7 @@ User.active.merge(User.inactive)
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
-One important caveat is that `default_scope` will be overridden by
+One important caveat is that `default_scope` will be merged in
 `scope` and `where` conditions.
 
 ```ruby
@@ -1275,13 +1275,13 @@ User.all
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+# => SELECT "users".* FROM "users"  WHERE "users"."status" = 'pending' AND "users"."status" = 'active'
 
 User.where(state: 'inactive')
-# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+# => SELECT "users".* FROM "users"  WHERE "users"."status" = 'pending' AND "users"."status" = 'inactive'
 ```
 
-As you can see above the `default_scope` is being overridden by both
+As you can see above the `default_scope` is being merged in both
 `scope` and `where` conditions.
 
 
