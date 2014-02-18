@@ -1,3 +1,7 @@
+*   Time helpers honor the application time zone when passed a date.
+
+    *Xavier Noria*
+
 *   Fix the implementation of Multibyte::Unicode.tidy_bytes for JRuby
 
     The existing implementation caused JRuby to raise the error:

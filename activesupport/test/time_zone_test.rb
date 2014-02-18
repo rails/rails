@@ -124,6 +124,20 @@ class TimeZoneTest < ActiveSupport::TestCase
     travel_back
   end
 
+  def test_travel_to_a_date
+    with_env_tz do
+      Time.use_zone('Hawaii') do
+        date = Date.new(2014, 2, 18)
+        time = date.midnight
+
+        travel_to date
+
+        assert_equal date, Date.current
+        assert_equal time, Time.current
+      end
+    end
+  end
+
   def test_local
     time = ActiveSupport::TimeZone["Hawaii"].local(2007, 2, 5, 15, 30, 45)
     assert_equal Time.utc(2007, 2, 5, 15, 30, 45), time.time
