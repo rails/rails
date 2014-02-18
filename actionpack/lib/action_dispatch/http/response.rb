@@ -63,6 +63,8 @@ module ActionDispatch # :nodoc:
     # content you're giving them, so we need to send that along.
     attr_accessor :charset
 
+    attr_accessor :no_content_type # :nodoc:
+
     CONTENT_TYPE = "Content-Type".freeze
     SET_COOKIE   = "Set-Cookie".freeze
     LOCATION     = "Location".freeze
@@ -303,8 +305,17 @@ module ActionDispatch # :nodoc:
       !@sending_file && @charset != false
     end
 
+    def remove_content_type!
+      headers.delete CONTENT_TYPE
+    end
+
     def rack_response(status, header)
-      assign_default_content_type_and_charset!(header)
+      if no_content_type
+        remove_content_type!
+      else
+        assign_default_content_type_and_charset!(header)
+      end
+
       handle_conditional_get!
 
       header[SET_COOKIE] = header[SET_COOKIE].join("\n") if header[SET_COOKIE].respond_to?(:join)

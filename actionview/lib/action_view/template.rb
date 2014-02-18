@@ -90,6 +90,7 @@ module ActionView
     eager_autoload do
       autoload :Error
       autoload :Handlers
+      autoload :HTML
       autoload :Text
       autoload :Types
     end

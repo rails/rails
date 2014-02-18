@@ -1,12 +1,12 @@
 require 'abstract_unit'
 
-module RenderText
+module RenderPlain
   class MinimalController < ActionController::Metal
     include AbstractController::Rendering
     include ActionController::Rendering
 
     def index
-      render text: "Hello World!"
+      render plain: "Hello World!"
     end
   end
 
@@ -14,66 +14,66 @@ module RenderText
     self.view_paths = [ActionView::FixtureResolver.new]
 
     def index
-      render text: "hello david"
+      render plain: "hello david"
     end
   end
 
   class WithLayoutController < ::ApplicationController
     self.view_paths = [ActionView::FixtureResolver.new(
-      "layouts/application.html.erb" => "<%= yield %>, I'm here!",
-      "layouts/greetings.html.erb"   => "<%= yield %>, I wish thee well.",
-      "layouts/ivar.html.erb"        => "<%= yield %>, <%= @ivar %>"
+      "layouts/application.text.erb" => "<%= yield %>, I'm here!",
+      "layouts/greetings.text.erb"   => "<%= yield %>, I wish thee well.",
+      "layouts/ivar.text.erb"        => "<%= yield %>, <%= @ivar %>"
     )]
 
     def index
-      render text: "hello david"
+      render plain: "hello david"
     end
 
     def custom_code
-      render text: "hello world", status: 404
+      render plain: "hello world", status: 404
     end
 
     def with_custom_code_as_string
-      render text: "hello world", status: "404 Not Found"
+      render plain: "hello world", status: "404 Not Found"
     end
 
     def with_nil
-      render text: nil
+      render plain: nil
     end
 
     def with_nil_and_status
-      render text: nil, status: 403
+      render plain: nil, status: 403
     end
 
     def with_false
-      render text: false
+      render plain: false
     end
 
     def with_layout_true
-      render text: "hello world", layout: true
+      render plain: "hello world", layout: true
     end
 
     def with_layout_false
-      render text: "hello world", layout: false
+      render plain: "hello world", layout: false
     end
 
     def with_layout_nil
-      render text: "hello world", layout: nil
+      render plain: "hello world", layout: nil
     end
 
     def with_custom_layout
-      render text: "hello world", layout: "greetings"
+      render plain: "hello world", layout: "greetings"
     end
 
     def with_ivar_in_layout
       @ivar = "hello world"
-      render text: "hello world", layout: "ivar"
+      render plain: "hello world", layout: "ivar"
     end
   end
 
-  class RenderTextTest < Rack::TestCase
+  class RenderPlainTest < Rack::TestCase
     test "rendering text from a minimal controller" do
-      get "/render_text/minimal/index"
+      get "/render_plain/minimal/index"
       assert_body "Hello World!"
       assert_status 200
     end
@@ -82,7 +82,7 @@ module RenderText
       with_routing do |set|
         set.draw { get ':controller', action: 'index' }
 
-        get "/render_text/simple"
+        get "/render_plain/simple"
         assert_body "hello david"
         assert_status 200
       end
@@ -92,7 +92,7 @@ module RenderText
       with_routing do |set|
         set.draw { get ':controller', action: 'index' }
 
-        get "/render_text/with_layout"
+        get "/render_plain/with_layout"
 
         assert_body "hello david"
         assert_status 200
@@ -100,59 +100,69 @@ module RenderText
     end
 
     test "rendering text, while also providing a custom status code" do
-      get "/render_text/with_layout/custom_code"
+      get "/render_plain/with_layout/custom_code"
 
       assert_body "hello world"
       assert_status 404
     end
 
     test "rendering text with nil returns an empty body padded for Safari" do
-      get "/render_text/with_layout/with_nil"
+      get "/render_plain/with_layout/with_nil"
 
       assert_body " "
       assert_status 200
     end
 
     test "Rendering text with nil and custom status code returns an empty body padded for Safari and the status" do
-      get "/render_text/with_layout/with_nil_and_status"
+      get "/render_plain/with_layout/with_nil_and_status"
 
       assert_body " "
       assert_status 403
     end
 
     test "rendering text with false returns the string 'false'" do
-      get "/render_text/with_layout/with_false"
+      get "/render_plain/with_layout/with_false"
 
       assert_body "false"
       assert_status 200
     end
 
     test "rendering text with layout: true" do
-      get "/render_text/with_layout/with_layout_true"
+      get "/render_plain/with_layout/with_layout_true"
 
       assert_body "hello world, I'm here!"
       assert_status 200
     end
 
     test "rendering text with layout: 'greetings'" do
-      get "/render_text/with_layout/with_custom_layout"
+      get "/render_plain/with_layout/with_custom_layout"
 
       assert_body "hello world, I wish thee well."
       assert_status 200
     end
 
     test "rendering text with layout: false" do
-      get "/render_text/with_layout/with_layout_false"
+      get "/render_plain/with_layout/with_layout_false"
 
       assert_body "hello world"
       assert_status 200
     end
 
     test "rendering text with layout: nil" do
-      get "/render_text/with_layout/with_layout_nil"
+      get "/render_plain/with_layout/with_layout_nil"
 
       assert_body "hello world"
       assert_status 200
+    end
+
+    test "rendering from minimal controller returns response with text/plain content type" do
+      get "/render_plain/minimal/index"
+      assert_content_type "text/plain"
+    end
+
+    test "rendering from normal controller returns response with text/plain content type" do
+      get "/render_plain/simple/index"
+      assert_content_type "text/plain; charset=utf-8"
     end
   end
 end
