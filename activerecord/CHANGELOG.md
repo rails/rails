@@ -1,3 +1,7 @@
+*   Correctly escape PostgreSQL arrays.
+
+    Fixes: CVE-2014-0080
+
 *   `Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
     to an `Array` by calling `#to_a` before using these methods.
 

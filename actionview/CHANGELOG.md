@@ -1,3 +1,7 @@
+*   Escape format, negative_format and units options of number helpers
+
+    Fixes: CVE-2014-0081
+
 *   A Cycle object should accept an array and cycle through it as it would with a set of
     comma-separated objects.
 
