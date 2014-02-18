@@ -138,12 +138,18 @@ module ActionView
 
         options.symbolize_keys!
 
+        options[:delimiter] = ERB::Util.html_escape(options[:delimiter]) if options[:delimiter]
+        options[:separator] = ERB::Util.html_escape(options[:separator]) if options[:separator]
+        options[:format] = ERB::Util.html_escape(options[:format]) if options[:format]
+        options[:negative_format] = ERB::Util.html_escape(options[:negative_format]) if options[:negative_format]
+
         defaults  = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         currency  = I18n.translate(:'number.currency.format', :locale => options[:locale], :default => {})
         currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
 
         defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults).merge!(currency)
         defaults[:negative_format] = "-" + options[:format] if options[:format]
+
         options   = defaults.merge!(options)
 
         unit      = options.delete(:unit)
@@ -206,6 +212,9 @@ module ActionView
 
         options.symbolize_keys!
 
+        options[:delimiter] = ERB::Util.html_escape(options[:delimiter]) if options[:delimiter]
+        options[:separator] = ERB::Util.html_escape(options[:separator]) if options[:separator]
+
         defaults   = I18n.translate(:'number.format', :locale => options[:locale], :default => {})
         percentage = I18n.translate(:'number.percentage.format', :locale => options[:locale], :default => {})
         defaults  = defaults.merge(percentage)
@@ -254,6 +263,9 @@ module ActionView
       #  number_with_delimiter("112a", :raise => true)          # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
         options.symbolize_keys!
+
+        options[:delimiter] = ERB::Util.html_escape(options[:delimiter]) if options[:delimiter]
+        options[:separator] = ERB::Util.html_escape(options[:separator]) if options[:separator]
 
         begin
           Float(number)
@@ -578,7 +590,7 @@ module ActionView
         units = options.delete :units
         unit_exponents = case units
         when Hash
-          units
+          units = Hash[units.map { |k, v| [k, ERB::Util.html_escape(v)] }]
         when String, Symbol
           I18n.translate(:"#{units}", :locale => options[:locale], :raise => true)
         when nil
