@@ -4,6 +4,8 @@
 
 ## DESCRIPTION
 
+Arel Really Exasperates Logicians
+
 Arel is a SQL AST manager for Ruby. It
 
 1. Simplifies the generation of complex SQL queries
@@ -35,7 +37,7 @@ query.to_sql
 
 ### More Sophisticated Queries
 
-Here is a whirlwind tour through the most common relational operators. These will probably cover 80% of all interaction with the database.
+Here is a whirlwind tour through the most common SQL operators. These will probably cover 80% of all interaction with the database.
 
 First is the 'restriction' operator, `where`:
 
@@ -72,7 +74,7 @@ users.project(users[:name]).group(users[:name])
 # => SELECT users.name FROM users GROUP BY users.name
 ```
 
-The best property of the Relational Algebra is its "composability", or closure under all operations. For example, to restrict AND project, just "chain" the method invocations:
+The best property of arel is its "composability", or closure under all operations. For example, to restrict AND project, just "chain" the method invocations:
 
 ```ruby
 users                                 \
