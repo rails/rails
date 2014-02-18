@@ -283,10 +283,10 @@ User.all
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."status" = 'active'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
 
 User.where(state: 'inactive')
-# => SELECT "users".* FROM "users" WHERE "users"."status" = 'inactive'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
 After:
@@ -302,10 +302,10 @@ User.all
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."status" = 'pending' AND "users"."status" = 'active'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
 
 User.where(state: 'inactive')
-# => SELECT "users".* FROM "users" WHERE "users"."status" = 'pending' AND "users"."status" = 'inactive'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
 ```
 
 To get the previous behavior it is needed to explicitly remove the
@@ -323,10 +323,10 @@ User.all
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."status" = 'active'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
 
 User.inactive
-# => SELECT "users".* FROM "users" WHERE "users"."status" = 'inactive'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
 Upgrading from Rails 3.2 to Rails 4.0

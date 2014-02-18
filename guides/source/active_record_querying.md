@@ -1275,10 +1275,10 @@ User.all
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
 User.active
-# => SELECT "users".* FROM "users" WHERE "users"."status" = 'pending' AND "users"."status" = 'active'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
 
 User.where(state: 'inactive')
-# => SELECT "users".* FROM "users" WHERE "users"."status" = 'pending' AND "users"."status" = 'inactive'
+# => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
 ```
 
 As you can see above the `default_scope` is being merged in both

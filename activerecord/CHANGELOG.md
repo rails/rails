@@ -16,10 +16,10 @@
         # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
         User.active
-        # => SELECT "users".* FROM "users" WHERE "users"."status" = 'active'
+        # => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
 
         User.where(state: 'inactive')
-        # => SELECT "users".* FROM "users" WHERE "users"."status" = 'inactive'
+        # => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 
     After:
 
@@ -33,10 +33,10 @@
         # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
         User.active
-        # => SELECT "users".* FROM "users" WHERE "users"."status" = 'pending' AND "users"."status" = 'active'
+        # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
 
         User.where(state: 'inactive')
-        # => SELECT "users".* FROM "users" WHERE "users"."status" = 'pending' AND "users"."status" = 'inactive'
+        # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
 
     To get the previous behavior it is needed to explicitly remove the
     `default_scope` condition using `unscoped`, `unscope`, `rewhere` or
@@ -54,10 +54,10 @@
         # => SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
 
         User.active
-        # => SELECT "users".* FROM "users" WHERE "users"."status" = 'active'
+        # => SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
 
         User.inactive
-        # => SELECT "users".* FROM "users" WHERE "users"."status" = 'inactive'
+        # => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 
 *   Perform necessary deeper encoding when hstore is inside an array.
 
