@@ -1261,7 +1261,7 @@ User.active.merge(User.inactive)
 # => SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
-One important caveat is that `default_scope` will be merged in
+One important caveat is that `default_scope` will be prepended in
 `scope` and `where` conditions.
 
 ```ruby
