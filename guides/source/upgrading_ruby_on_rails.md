@@ -567,9 +567,8 @@ Active Record Observer and Action Controller Sweeper have been extracted to the 
 
 ### sprockets-rails
 
-* `assets:precompile:primary` and `assets:precompile:all` has been removed. Use `assets:precompile` instead.
-* The `config.assets.compress` option should be changed to
-`config.assets.js_compressor` like so for instance:
+* `assets:precompile:primary` and `assets:precompile:all` have been removed. Use `assets:precompile` instead.
+* The `config.assets.compress` option should be changed to `config.assets.js_compressor` like so for instance:
 
 ```ruby
 config.assets.js_compressor = :uglifier
@@ -577,7 +576,7 @@ config.assets.js_compressor = :uglifier
 
 ### sass-rails
 
-* `asset-url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`
+* `asset-url` with two arguments is deprecated. For example: `asset-url("rails.png", image)` becomes `asset-url("rails.png")`.
 
 Upgrading from Rails 3.1 to Rails 3.2
 -------------------------------------
