@@ -349,6 +349,10 @@ for detailed changes.
 * New config option `config.action_dispatch.cookies_serializer` for specifying
   a serializer for the signed and encrypted cookie jars. (Pull Requests [1](https://github.com/rails/rails/pull/13692), [2](https://github.com/rails/rails/pull/13945) / [More Details](upgrading_ruby_on_rails.html#cookies-serializer))
 
+* Added `render :plain`, `render :html` and `render :body`. ([Pull Request](https://github.com/rails/rails/pull/14062) /
+  [More Details](upgrading_ruby_on_rails.html#rendering-content-from-string))
+
+
 Action Mailer
 -------------
 
@@ -545,6 +549,9 @@ for detailed changes.
 * Make `change_column_null`
   revertable. ([Commit](https://github.com/rails/rails/commit/724509a9d5322ff502aefa90dd282ba33a281a96))
 
+* Added a flag to disable schema dump after migration. This is set to `false`
+  by defualt in the production environment for new applications. ([Pull Request](https://github.com/rails/rails/pull/13948))
+
 
 Active Model
 ------------
@@ -662,9 +669,8 @@ for detailed changes.
   [More Details](upgrading_ruby_on_rails.html#changes-in-json-handling))
 
 * Added `ActiveSupport::Testing::TimeHelpers#travel` and `#travel_to`. These
-  methods change current time to the given time or time difference by stubbing
-  `Time.now` and
-  `Date.today`. ([Pull Request](https://github.com/rails/rails/pull/12824))
+  methods change current time to the given time or duration by stubbing
+  `Time.now` and `Date.today`.
 
 * Added `ActiveSupport::Testing::TimeHelpers#travel_back`. This method returns
   the current time to the original state, by removing the stubs added by `travel`
@@ -702,6 +708,8 @@ for detailed changes.
 * Introduce Module#concerning: a natural, low-ceremony way to separate
   responsibilities within a
   class. ([Commit](https://github.com/rails/rails/commit/1eee0ca6de975b42524105a59e0521d18b38ab81))
+
+* Added `Object#present_in` to simplify value whitelisting. ([Commit](https://github.com/rails/rails/commit/4edca106daacc5a159289eae255207d160f22396))
 
 
 Credits
