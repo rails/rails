@@ -1,3 +1,13 @@
+*   Correctly escape PostgreSQL arrays.
+
+    Fixes: CVE-2014-0080
+
+
+## Rails 4.0.2 (December 02, 2013) ##
+
+*No changes*
+
+
 ## Rails 4.0.1 (November 01, 2013) ##
 
 *   `NullRelation#pluck` takes a list of columns

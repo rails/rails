@@ -1,3 +1,9 @@
+*   Escape format, negative_format and units options of number helpers
+
+    Fixes: CVE-2014-0081
+
+## Rails 4.0.2 (December 02, 2013) ##
+
 *   Ensure simple_format escapes its html attributes. This fixes CVE-2013-6416
 
 *   Deep Munge the parameters for GET and POST Fixes CVE-2013-6417
