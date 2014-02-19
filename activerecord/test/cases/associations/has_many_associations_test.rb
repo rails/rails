@@ -1838,6 +1838,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     pirate.famous_ships << ship = FamousShip.new
     assert_equal true, pirate.valid?
     assert_equal false, pirate.valid?(:conference)
-    assert_equal "can't be blank", ship.errors[:name].first
+    assert_equal "can’t be blank", ship.errors[:name].first
   end
 end

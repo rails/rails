@@ -44,7 +44,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     p.karma_confirmation = "None"
     assert p.invalid?
 
-    assert_equal ["doesn't match Karma"], p.errors[:karma_confirmation]
+    assert_equal ["doesn’t match Karma"], p.errors[:karma_confirmation]
 
     p.karma = "None"
     assert p.valid?
@@ -57,7 +57,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations('en', {
-      errors: { messages: { confirmation: "doesn't match %{attribute}" } },
+      errors: { messages: { confirmation: "doesn’t match %{attribute}" } },
       activemodel: { attributes: { topic: { title: 'Test Title'} } }
     })
 
@@ -65,7 +65,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
 
     t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
     assert t.invalid?
-    assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
+    assert_equal ["doesn’t match Test Title"], t.errors[:title_confirmation]
 
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend

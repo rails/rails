@@ -182,21 +182,21 @@ end
 >> p.valid?
 # => false
 >> p.errors.messages
-# => {name:["can't be blank"]}
+# => {name:["can’t be blank"]}
 
 >> p = Person.create
 # => #<Person id: nil, name: nil>
 >> p.errors.messages
-# => {name:["can't be blank"]}
+# => {name:["can’t be blank"]}
 
 >> p.save
 # => false
 
 >> p.save!
-# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
 
 >> Person.create!
-# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
 ```
 
 `invalid?` is simply the inverse of `valid?`. It triggers your validations,
@@ -327,7 +327,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
-The default error message for this helper is _"doesn't match confirmation"_.
+The default error message for this helper is _"doesn’t match %{attribute}"_.
 
 ### `exclusion`
 
@@ -526,7 +526,7 @@ If you validate the presence of an object associated via a `has_one` or
 Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use `validates :field_name, inclusion: { in: [true, false] }`.
 
-The default error message is _"can't be blank"_.
+The default error message is _"can’t be blank"_.
 
 ### `absence`
 
@@ -780,7 +780,7 @@ class Person < ActiveRecord::Base
   validates :name, presence: { strict: true }
 end
 
-Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
+Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can’t be blank
 ```
 
 There is also an ability to pass custom exception to `:strict` option.
@@ -790,7 +790,7 @@ class Person < ActiveRecord::Base
   validates :token, presence: true, uniqueness: true, strict: TokenGenerationException
 end
 
-Person.new.valid?  # => TokenGenerationException: Token can't be blank
+Person.new.valid?  # => TokenGenerationException: Token can’t be blank
 ```
 
 Conditional Validation
@@ -993,7 +993,7 @@ end
 person = Person.new
 person.valid? # => false
 person.errors.messages
- # => {:name=>["can't be blank", "is too short (minimum is 3 characters)"]}
+ # => {:name=>["can’t be blank", "is too short (minimum is 3 characters)"]}
 
 person = Person.new(name: "John Doe")
 person.valid? # => true
@@ -1020,7 +1020,7 @@ person.errors[:name] # => ["is too short (minimum is 3 characters)"]
 person = Person.new
 person.valid? # => false
 person.errors[:name]
- # => ["can't be blank", "is too short (minimum is 3 characters)"]
+ # => ["can’t be blank", "is too short (minimum is 3 characters)"]
 ```
 
 ### `errors.add`
@@ -1085,7 +1085,7 @@ end
 person = Person.new
 person.valid? # => false
 person.errors[:name]
- # => ["can't be blank", "is too short (minimum is 3 characters)"]
+ # => ["can’t be blank", "is too short (minimum is 3 characters)"]
 
 person.errors.clear
 person.errors.empty? # => true
@@ -1093,7 +1093,7 @@ person.errors.empty? # => true
 p.save # => false
 
 p.errors[:name]
-# => ["can't be blank", "is too short (minimum is 3 characters)"]
+# => ["can’t be blank", "is too short (minimum is 3 characters)"]
 ```
 
 ### `errors.size`

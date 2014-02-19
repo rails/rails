@@ -323,7 +323,7 @@ class User < ActiveRecord::Base
 end
 
 User.create  # => false
-User.create! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+User.create! # => ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
 ```
 
 You can learn more about validations in the [Active Record Validations
