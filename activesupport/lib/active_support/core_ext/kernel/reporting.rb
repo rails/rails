@@ -41,6 +41,8 @@ module Kernel
   #   end
   #
   #   puts 'But this will'
+  #
+  # This method is not thread-safe.
   def silence_stream(stream)
     old_stream = stream.dup
     stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
@@ -100,6 +102,8 @@ module Kernel
   # Silences both STDOUT and STDERR, even for subprocesses.
   #
   #   quietly { system 'bundle install' }
+  #
+  # This method is not thread-safe.
   def quietly
     silence_stream(STDOUT) do
       silence_stream(STDERR) do
