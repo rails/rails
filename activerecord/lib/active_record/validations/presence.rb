@@ -43,7 +43,7 @@ module ActiveRecord
       # state.
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "can't be blank").
+      # * <tt>:message</tt> - A custom error message (default is: "can’t be blank").
       # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
       #   validation contexts by default (+nil+), other options are <tt>:create</tt>
       #   and <tt>:update</tt>.

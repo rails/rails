@@ -172,12 +172,12 @@ class ValidationsTest < ActiveModel::TestCase
 
     xml = t.errors.to_xml
     assert_match %r{<errors>}, xml
-    assert_match %r{<error>Title can't be blank</error>}, xml
-    assert_match %r{<error>Content can't be blank</error>}, xml
+    assert_match %r{<error>Title can’t be blank</error>}, xml
+    assert_match %r{<error>Content can’t be blank</error>}, xml
 
     hash = {}
-    hash[:title] = ["can't be blank"]
-    hash[:content] = ["can't be blank"]
+    hash[:title] = ["can’t be blank"]
+    hash[:content] = ["can’t be blank"]
     assert_equal t.errors.to_json, hash.to_json
   end
 
@@ -187,7 +187,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     t = Topic.new("title" => "")
     assert t.invalid?
-    assert_equal "can't be blank", t.errors["title"].first
+    assert_equal "can’t be blank", t.errors["title"].first
     Topic.validates_presence_of :title, :author_name
     Topic.validate {errors.add('author_email_address', 'will never be valid')}
     Topic.validates_length_of :title, :content, minimum: 2
@@ -196,10 +196,10 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.invalid?
 
     assert_equal :title, key = t.errors.keys[0]
-    assert_equal "can't be blank", t.errors[key][0]
+    assert_equal "can’t be blank", t.errors[key][0]
     assert_equal 'is too short (minimum is 2 characters)', t.errors[key][1]
     assert_equal :author_name, key = t.errors.keys[1]
-    assert_equal "can't be blank", t.errors[key][0]
+    assert_equal "can’t be blank", t.errors[key][0]
     assert_equal :author_email_address, key = t.errors.keys[2]
     assert_equal 'will never be valid', t.errors[key][0]
     assert_equal :content, key = t.errors.keys[3]
@@ -343,7 +343,7 @@ class ValidationsTest < ActiveModel::TestCase
     exception = assert_raises(ActiveModel::StrictValidationFailed) do
       Topic.new.valid?
     end
-    assert_equal "Title can't be blank", exception.message
+    assert_equal "Title can’t be blank", exception.message
   end
 
   def test_does_not_modify_options_argument

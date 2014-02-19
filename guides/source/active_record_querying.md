@@ -1412,7 +1412,7 @@ to your `Client` model. If you try to create a new `Client` without passing an `
 
 ```ruby
 Client.find_or_create_by!(first_name: 'Andy')
-# => ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Orders count can’t be blank
 ```
 
 ### `find_or_initialize_by`

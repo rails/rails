@@ -304,7 +304,7 @@ module ActiveModel
     #
     #   person.errors.add_on_empty(:name)
     #   person.errors.messages
-    #   # => {:name=>["can't be empty"]}
+    #   # => {:name=>["can’t be empty"]}
     def add_on_empty(attributes, options = {})
       Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
@@ -318,7 +318,7 @@ module ActiveModel
     #
     #   person.errors.add_on_blank(:name)
     #   person.errors.messages
-    #   # => {:name=>["can't be blank"]}
+    #   # => {:name=>["can’t be blank"]}
     def add_on_blank(attributes, options = {})
       Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
@@ -345,7 +345,7 @@ module ActiveModel
     #
     #   person = Person.create(address: '123 First St.')
     #   person.errors.full_messages
-    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can’t be blank", "Email can’t be blank"]
     def full_messages
       map { |attribute, message| full_message(attribute, message) }
     end
@@ -359,7 +359,7 @@ module ActiveModel
     #
     #   person = Person.create()
     #   person.errors.full_messages_for(:name)
-    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can’t be blank"]
     def full_messages_for(attribute)
       (get(attribute) || []).map { |message| full_message(attribute, message) }
     end
@@ -462,7 +462,7 @@ module ActiveModel
   #   person = Person.new
   #   person.name = nil
   #   person.valid?
-  #   # => ActiveModel::StrictValidationFailed: Name can't be blank
+  #   # => ActiveModel::StrictValidationFailed: Name can’t be blank
   class StrictValidationFailed < StandardError
   end
 end

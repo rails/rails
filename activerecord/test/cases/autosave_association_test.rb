@@ -1008,7 +1008,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.ship.name   = ""
     @pirate.catchphrase = nil
     assert @pirate.invalid?
-    assert_equal ["can't be blank", "is invalid"], @pirate.errors[:"ship.name"]
+    assert_equal ["can’t be blank", "is invalid"], @pirate.errors[:"ship.name"]
   end
 
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
@@ -1199,7 +1199,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each { |child| child.name = '' }
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[@association_name].empty?
   end
 
@@ -1207,7 +1207,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).build(:name => '')
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[@association_name].empty?
   end
 
@@ -1231,7 +1231,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = nil
 
     assert !@pirate.valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[:catchphrase].any?
   end
 

@@ -53,8 +53,8 @@ module ActiveModel
       #   validates_presence_of :password_confirmation, if: :password_changed?
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "doesn't match
-      #   confirmation").
+      # * <tt>:message</tt> - A custom error message (default is: "doesn’t match
+      #   %{attribute}").
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
