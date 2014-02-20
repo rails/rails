@@ -248,7 +248,7 @@ To see how a test failure is reported, you can add a failing test to the `post_t
 ```ruby
 test "should not save post without title" do
   post = Post.new
-  assert !post.save
+  assert_not post.save
 end
 ```
 
@@ -272,7 +272,7 @@ In the output, `F` denotes a failure. You can see the corresponding trace shown 
 ```ruby
 test "should not save post without title" do
   post = Post.new
-  assert !post.save, "Saved the post without a title"
+  assert_not post.save, "Saved the post without a title"
 end
 ```
 
@@ -943,7 +943,7 @@ class UserMailerTest < ActionMailer::TestCase
     # Send the email, then test that it got queued
     email = UserMailer.create_invite('me@example.com',
                                      'friend@example.com', Time.now).deliver
-    assert !ActionMailer::Base.deliveries.empty?
+    assert_not ActionMailer::Base.deliveries.empty?
 
     # Test the body of the sent email contains what we expect it to
     assert_equal ['me@example.com'], email.from
