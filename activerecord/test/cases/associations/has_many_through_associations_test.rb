@@ -817,6 +817,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert author.named_categories(true).include?(category)
   end
 
+  def test_collection_exists
+    author   = authors(:mary)
+    category = Category.create!(author_ids: [author.id], name: "Primary")
+    assert category.authors.exists?(id: author.id)
+    assert category.reload.authors.exists?(id: author.id)
+  end
+
   def test_collection_delete_with_nonstandard_primary_key_on_belongs_to
     author   = authors(:mary)
     category = author.named_categories.create(:name => "Primary")
