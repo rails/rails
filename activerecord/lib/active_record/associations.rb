@@ -130,7 +130,6 @@ module ActiveRecord
       autoload :JoinDependency,   'active_record/associations/join_dependency'
       autoload :AssociationScope, 'active_record/associations/association_scope'
       autoload :AliasTracker,     'active_record/associations/alias_tracker'
-      autoload :JoinHelper,       'active_record/associations/join_helper'
     end
 
     # Clears out the association cache.

@@ -84,8 +84,6 @@ module ActionDispatch
     autoload :CookieStore,       'action_dispatch/middleware/session/cookie_store'
     autoload :MemCacheStore,     'action_dispatch/middleware/session/mem_cache_store'
     autoload :CacheStore,        'action_dispatch/middleware/session/cache_store'
-    autoload :JsonSerializer,    'action_dispatch/middleware/session/json_serializer'
-    autoload :MarshalSerializer, 'action_dispatch/middleware/session/marshal_serializer'
   end
 
   mattr_accessor :test_app

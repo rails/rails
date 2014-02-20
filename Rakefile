@@ -74,7 +74,6 @@ task :update_versions do
   end
 end
 
-#
 # We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
 #
@@ -84,11 +83,6 @@ end
 #   * if there's a new stable tag, generates and publishes stable docs
 #
 # Everything is automated and you do NOT need to run this task normally.
-#
-# We publish a new version by tagging, and pushing a tag does not trigger
-# that webhook. Stable docs would be updated by any subsequent regular
-# push, but if you want that to happen right away just run this.
-#
 desc 'Publishes docs, run this AFTER a new stable tag has been pushed'
 task :publish_docs do
   Net::HTTP.new('api.rubyonrails.org', 8080).start do |http|

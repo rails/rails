@@ -302,7 +302,7 @@ Sprockets uses files named `index` (with the relevant extensions) for a special
 purpose.
 
 For example, if you have a jQuery library with many modules, which is stored in
-`lib/assets/library_name`, the file `lib/assets/library_name/index.js` serves as
+`lib/assets/javascripts/library_name`, the file `lib/assets/javascripts/library_name/index.js` serves as
 the manifest for all files in this library. This file could include a list of
 all the required files in order, or a simple `require_tree` directive.
 
@@ -1018,7 +1018,8 @@ The X-Sendfile header is a directive to the web server to ignore the response
 from the application, and instead serve a specified file from disk. This option
 is off by default, but can be enabled if your server supports it. When enabled,
 this passes responsibility for serving the file to the web server, which is
-faster.
+faster. Have a look at [send_file](http://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file) 
+on how to use this feature.
 
 Apache and nginx support this option, which can be enabled in
 `config/environments/production.rb`:
@@ -1032,6 +1033,10 @@ WARNING: If you are upgrading an existing application and intend to use this
 option, take care to paste this configuration option only into `production.rb`
 and any other environments you define with production behavior (not
 `application.rb`).
+
+TIP: For further details have a look at the docs of your production web server:
+- [Apache](https://tn123.org/mod_xsendfile/)
+- [Nginx](http://wiki.nginx.org/XSendfile)
 
 Assets Cache Store
 ------------------

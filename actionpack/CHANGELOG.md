@@ -1,3 +1,57 @@
+*   Introduce `render :html` as an option to render HTML content with a content
+    type of `text/html`. This rendering option calls `ERB::Util.html_escape`
+    internally to escape unsafe HTML string, so you will have to mark your
+    string as html safe if you have any HTML tag in it.
+
+    Please see #12374 for more detail.
+
+    *Prem Sichanugrist*
+
+*   Introduce `render :plain` as an option to render content with a content type
+    of `text/plain`. This is the preferred option if you are planning to render
+    a plain text content.
+
+    Please see #12374 for more detail.
+
+    *Prem Sichanugrist*
+
+*   Introduce `render :body` as an option for sending a raw content back to
+    browser. Note that this rendering option will unset the default content type
+    and does not include "Content-Type" header back in the response.
+
+    You should only use this option if you are expecting the "Content-Type"
+    header to not be set. More information on "Content-Type" header can be found
+    on RFC 2616, section 7.2.1.
+
+    Please see #12374 for more detail.
+
+    *Prem Sichanugrist*
+
+*   Set stream status to 500 (or 400 on BadRequest) when an error is thrown
+    before commiting.
+
+    Fixes #12552.
+
+    *Kevin Casey*
+
+*   Add new config option `config.action_dispatch.cookies_serializer` for
+    specifying a serializer for the signed and encrypted cookie jars.
+
+    The possible values are:
+
+    * `:json` - serialize cookie values with `JSON`
+    * `:marshal` - serialize cookie values with `Marshal`
+    * `:hybrid` - transparently migrate existing `Marshal` cookie values to `JSON`
+
+    For new apps `:json` option is added by default and `:marshal` is used
+    when no option is specified to maintain backwards compatibility.
+
+    *Łukasz Sarnacki*, *Matt Aimonetti*, *Guillermo Iguaran*, *Godfrey Chan*, *Rafael Mendonça França*
+
+*   `FlashHash` now behaves like a `HashWithIndifferentAccess`.
+
+    *Guillermo Iguaran*
+
 *   Set the `:shallow_path` scope option as each scope is generated rather than
     waiting until the `shallow` option is set. Also make the behavior of the
     `:shallow` resource option consistent with the behavior of the `shallow` method.
@@ -15,21 +69,6 @@
     the `wrapper_key` for a request using `wrap_parameters`.
 
     *Josh Jordan*
-
-*   Add `:serializer` option for `config.session_store :cookie_store`. This
-    changes default serializer when using `:cookie_store`.
-
-    It is possible to pass:
-
-    * `:json` which is a secure wrapper on JSON using `JSON.parse` and
-      `JSON.generate` methods with quirks mode;
-    * `:marshal` which is a wrapper on Marshal;
-    * serializer class with `load` and `dump` methods defined.
-
-    For new apps `:json` option is added by default and :marshal is used
-    when no option is specified.
-
-    *Łukasz Sarnacki*, *Matt Aimonetti*
 
 *   Ensure that `request.filtered_parameters` is reset between calls to `process`
     in `ActionController::TestCase`.

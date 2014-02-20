@@ -185,7 +185,6 @@ task default: :test
       end
 
       public_task :set_default_accessors!
-      public_task :apply_rails_template
       public_task :create_root
 
       def create_root_files
@@ -242,6 +241,7 @@ task default: :test
         build(:leftovers)
       end
 
+      public_task :apply_rails_template, :run_bundle
 
       def name
         @name ||= begin
@@ -254,9 +254,6 @@ task default: :test
           underscored
         end
       end
-
-      public_task :run_bundle
-      public_task :replay_template
 
     protected
 

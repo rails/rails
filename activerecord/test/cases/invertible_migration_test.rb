@@ -106,6 +106,22 @@ module ActiveRecord
       end
     end
 
+    class RevertNamedIndexMigration1 < SilentMigration
+      def change
+        create_table("horses") do |t|
+          t.column :content, :string
+          t.column :remind_at, :datetime
+        end
+        add_index :horses, :content
+      end
+    end
+
+    class RevertNamedIndexMigration2 < SilentMigration
+      def change
+        add_index :horses, :content, name: "horses_index_named"
+      end
+    end
+
     def teardown
       %w[horses new_horses].each do |table|
         if ActiveRecord::Base.connection.table_exists?(table)
@@ -253,6 +269,18 @@ module ActiveRecord
       assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist"
     ensure
       ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''
+    end
+
+    def test_migrate_revert_add_index_with_name
+      RevertNamedIndexMigration1.new.migrate(:up)
+      RevertNamedIndexMigration2.new.migrate(:up)
+      RevertNamedIndexMigration2.new.migrate(:down)
+
+      connection = ActiveRecord::Base.connection
+      assert connection.index_exists?(:horses, :content),
+             "index on content should exist"
+      assert !connection.index_exists?(:horses, :content, name: "horses_index_named"),
+             "horses_index_named index should not exist"
     end
 
   end

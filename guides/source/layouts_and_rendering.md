@@ -236,15 +236,34 @@ render inline: "xml.p {'Horrid coding practice!'}", type: :builder
 
 #### Rendering Text
 
-You can send plain text - with no markup at all - back to the browser by using the `:text` option to `render`:
+You can send plain text - with no markup at all - back to the browser by using
+the `:plain` option to `render`:
 
 ```ruby
-render text: "OK"
+render plain: "OK"
 ```
 
-TIP: Rendering pure text is most useful when you're responding to Ajax or web service requests that are expecting something other than proper HTML.
+TIP: Rendering pure text is most useful when you're responding to Ajax or web
+service requests that are expecting something other than proper HTML.
 
-NOTE: By default, if you use the `:text` option, the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the `layout: true` option.
+NOTE: By default, if you use the `:plain` option, the text is rendered without
+using the current layout. If you want Rails to put the text into the current
+layout, you need to add the `layout: true` option.
+
+#### Rendering HTML
+
+You can send a HTML string back to the browser by using the `:html` option to
+`render`:
+
+```ruby
+render html: "<strong>Not Found</strong>".html_safe
+```
+
+TIP: This is useful when you're rendering a small snippet of HTML code.
+However, you might want to consider moving it to a template file if the markup
+is complex.
+
+NOTE: This option will escape HTML entities if the string is not html safe.
 
 #### Rendering JSON
 
@@ -275,6 +294,19 @@ render js: "alert('Hello Rails');"
 ```
 
 This will send the supplied string to the browser with a MIME type of `text/javascript`.
+
+#### Rendering raw body
+
+You can send a raw content back to the browser, without setting any content
+type, by using the `:body` option to `render`:
+
+```ruby
+render body: "raw"
+```
+
+TIP: This option should be used only if you explicitly want the content type to
+be unset. Using `:plain` or `:html` might be more appropriate in most of the
+time.
 
 #### Options for `render`
 

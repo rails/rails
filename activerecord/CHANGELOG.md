@@ -1,3 +1,89 @@
+*   Default scopes are no longer overriden by chained conditions.
+
+    Before this change when you defined a `default_scope` in a model
+    it was overriden by chained conditions in the same field. Now it
+    is merged like any other scope.
+
+    Before:
+
+        class User < ActiveRecord::Base
+          default_scope { where state: 'pending' }
+          scope :active, -> { where state: 'active' }
+          scope :inactive, -> { where state: 'inactive' }
+        end
+
+        User.all
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+        User.active
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+        User.where(state: 'inactive')
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+
+    After:
+
+        class User < ActiveRecord::Base
+          default_scope { where state: 'pending' }
+          scope :active, -> { where state: 'active' }
+          scope :inactive, -> { where state: 'inactive' }
+        end
+
+        User.all
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+        User.active
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
+
+        User.where(state: 'inactive')
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
+
+    To get the previous behavior it is needed to explicitly remove the
+    `default_scope` condition using `unscoped`, `unscope`, `rewhere` or
+    `except`.
+
+    Example:
+
+        class User < ActiveRecord::Base
+          default_scope { where state: 'pending' }
+          scope :active, -> { unscope(where: :state).where(state: 'active') }
+          scope :inactive, -> { rewhere state: 'inactive' }
+        end
+
+        User.all
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+
+        User.active
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
+
+        User.inactive
+        # SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
+
+*   Perform necessary deeper encoding when hstore is inside an array.
+
+    Fixes #11135.
+
+    *Josh Goodall*, *Genadi Samokovarov*
+
+*   Properly detect if a connection is still active before using it
+    in multi-threaded environments.
+
+    Fixes #12867.
+
+    *Kevin Casey*, *Matthew Draper*, *William (B.J.) Snow Orvis*
+
+*   When inverting add_index use the index name if present instead of
+    the columns.
+
+    If there are two indices with matching columns and one of them is
+    explicitly named then reverting the migration adding the named one
+    would instead drop the unnamed one.
+
+    The inversion of add_index will now drop the index by its name if
+    it is present.
+
+    *Hubert Dąbrowski*
+
 *   Add flag to disable schema dump after migration.
 
     Add a config parameter on Active Record named `dump_schema_after_migration`
@@ -508,22 +594,6 @@
 
     *Damien Mathieu*
 
-*   Improve the default select when `from` is used.
-
-    Previously, if you did something like Topic.from(:temp_topics), it
-    would generate SQL like:
-
-        SELECT topics.* FROM temp_topics;
-
-    Which is will cause an error since there's not a topics table to select
-    from.
-
-    Now the default if you use from is just `*`:
-
-        SELECT * FROM temp_topics;
-
-    *Cody Cutrer*
-
 *   Fix `PostgreSQL` insert to properly extract table name from multiline string SQL.
 
     Previously, executing an insert SQL in `PostgreSQL` with a command like this:
@@ -538,6 +608,10 @@
     table name.
 
     *Kuldeep Aggarwal*
+
+*   Correctly escape PostgreSQL arrays.
+
+    Fixes: CVE-2014-0080
 
 *   `Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
     to an `Array` by calling `#to_a` before using these methods.
@@ -738,7 +812,7 @@
 *   Raise `ActiveRecord::RecordNotDestroyed` when a replaced child
     marked with `dependent: destroy` fails to be destroyed.
 
-    Fixex #12812.
+    Fixes #12812.
 
     *Brian Thomas Storti*
 

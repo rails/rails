@@ -45,7 +45,7 @@ module ActionController
   #
   #   def server_ip
   #     location = request.env["SERVER_ADDR"]
-  #     render text: "This server hosted at #{location}"
+  #     render plain: "This server hosted at #{location}"
   #   end
   #
   # == Parameters

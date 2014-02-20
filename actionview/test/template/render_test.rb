@@ -22,7 +22,7 @@ module RenderTestCases
 
   def test_render_without_options
     e = assert_raises(ArgumentError) { @view.render() }
-    assert_match "You invoked render but did not give any of :partial, :template, :inline, :file or :text option.", e.message
+    assert_match(/You invoked render but did not give any of (.+) option./, e.message)
   end
 
   def test_render_file
@@ -302,6 +302,16 @@ module RenderTestCases
 
   def test_render_partial_with_locals_using_string
     assert_equal "Hola: david", @controller_view.render('customer_greeting', :greeting => 'Hola', :customer_greeting => Customer.new("david"))
+  end
+
+  def test_render_partial_with_object_uses_render_partial_path
+    assert_equal "Hello: lifo",
+      @controller_view.render(:partial => Customer.new("lifo"), :locals => {:greeting => "Hello"})
+  end
+
+  def test_render_partial_with_object_and_format_uses_render_partial_path
+    assert_equal "<greeting>Hello</greeting><name>lifo</name>",
+      @controller_view.render(:partial => Customer.new("lifo"), :formats => :xml, :locals => {:greeting => "Hello"})
   end
 
   def test_render_partial_using_object

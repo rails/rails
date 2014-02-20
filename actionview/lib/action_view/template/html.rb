@@ -1,25 +1,25 @@
 module ActionView #:nodoc:
-  # = Action View Text Template
+  # = Action View HTML Template
   class Template
-    class Text #:nodoc:
+    class HTML #:nodoc:
       attr_accessor :type
 
       def initialize(string, type = nil)
         @string = string.to_s
         @type   = Types[type] || type if type
-        @type ||= Types[:text]
+        @type ||= Types[:html]
       end
 
       def identifier
-        'text template'
+        'html template'
       end
 
       def inspect
-        'text template'
+        'html template'
       end
 
       def to_str
-        @string
+        ERB::Util.h(@string)
       end
 
       def render(*args)
