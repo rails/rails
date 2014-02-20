@@ -17,8 +17,8 @@ module Erb # :nodoc:
         :erb
       end
 
-      def filename_with_extensions(name, format)
-        [name, format, handler].compact.join(".")
+      def filename_with_extensions(name, format_override=nil)
+        [name, format_override || self.format, handler].compact.join(".")
       end
     end
   end
