@@ -137,7 +137,7 @@ module ActionView
           source = "#{relative_url_root}#{source}" unless source.starts_with?("#{relative_url_root}/")
         end
 
-        if host = compute_asset_host(source, options)
+        if host = compute_asset_host("#{source}#{tail}", options)
           source = "#{host}#{source}"
         end
 
