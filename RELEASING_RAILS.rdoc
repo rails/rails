@@ -203,34 +203,3 @@ There are two simple steps for fixing the CI:
 2. Fix it
 
 Repeat these steps until the CI is green.
-
-=== Manually trigger docs generation
-
-We have a post-receive hook in GitHub that calls the docs server on pushes.
-It triggers generation and publication of edge docs, updates the contrib app,
-and generates and publishes stable docs if a new stable tag is detected.
-
-The hook unfortunately is not invoked by tag pushing, so once the new stable
-tag has been pushed to origin, please run
-
-    rake publish_docs
-
-You should see something like this:
-
-    Rails master hook tasks scheduled:
-
-      * updates the local checkout
-      * updates Rails Contributors
-      * generates and publishes edge docs
-
-    If a new stable tag is detected it also
-
-      * generates and publishes stable docs
-
-    This needs typically a few minutes.
-
-Note you do not need to specify the tag, the docs server figures it out.
-
-Also, don't worry if you call that multiple times or the hook is triggered
-again by some immediate regular push, if the scripts are running new calls
-are just queued (in a queue of size 1).
