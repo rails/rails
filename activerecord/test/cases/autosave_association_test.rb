@@ -21,6 +21,31 @@ require 'models/electron'
 require 'models/molecule'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
+  def test_autosave_validation
+    person = Class.new(ActiveRecord::Base) {
+      self.table_name = 'people'
+      validate :should_be_cool, :on => :create
+      def self.name; 'Person'; end
+
+      private
+
+      def should_be_cool
+        unless self.first_name == 'cool'
+          errors.add :first_name, "not cool"
+        end
+      end
+    }
+    reference = Class.new(ActiveRecord::Base) {
+      self.table_name = "references"
+      def self.name; 'Reference'; end
+      belongs_to :person, autosave: true, class: person
+    }
+
+    u = person.create!(first_name: 'cool')
+    u.update_attributes!(first_name: 'nah') # still valid because validation only applies on 'create'
+    assert reference.create!(person: u).persisted?
+  end
+
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
   end
