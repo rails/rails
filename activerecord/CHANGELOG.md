@@ -1,3 +1,8 @@
+*   The `:index` option in migrations, which previously was only available for
+    `references`, now works with any column types.
+
+    *Marc Schütz*
+
 *   Add support for counter name to be passed as parameter on `CounterCache::ClassMethods#reset_counters`.
 
     *jnormore*
