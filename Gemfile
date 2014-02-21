@@ -4,10 +4,14 @@ gemspec
 
 gem 'mocha', '~> 0.13.0', require: false
 gem 'rack-cache', '~> 1.2'
-gem 'bcrypt-ruby', '~> 3.1.2'
 gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0', github: 'rails/coffee-rails'
+
+# require: false so bcrypt is loaded only when has_secure_password is used.
+# This is to avoid ActiveModel (and by extension the entire framework)
+# being dependent on a binary library.
+gem 'bcrypt', '~> 3.1.7', require: false
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
