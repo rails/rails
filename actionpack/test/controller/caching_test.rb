@@ -227,6 +227,22 @@ CACHED
       @store.read("views/test.host/functional_caching/inline_fragment_cached/#{template_digest("functional_caching/inline_fragment_cached")}"))
   end
 
+  def test_fragment_cache_instrumentation
+    payload = nil
+
+    subscriber = proc do |*args|
+      event = ActiveSupport::Notifications::Event.new(*args)
+      payload = event.payload
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_controller") do
+      get :inline_fragment_cached
+    end
+
+    assert_equal "functional_caching", payload[:controller]
+    assert_equal "inline_fragment_cached", payload[:action]
+  end
+
   def test_html_formatted_fragment_caching
     get :formatted_fragment_cached, :format => "html"
     assert_response :success
