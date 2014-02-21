@@ -379,9 +379,9 @@ module ActiveModel
       attr_name = attribute.to_s.tr('.', '_').humanize
       attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
       I18n.t(:"errors.format", {
-        default:  "%{attribute} %{message}",
-        attribute: attr_name,
-        message:   message
+        default:    "%{attribute} %{message}",
+        attribute:  attr_name,
+        message:    message
       })
     end
 
@@ -433,10 +433,11 @@ module ActiveModel
       value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
 
       options = {
-        default: defaults,
-        model: @base.class.model_name.human,
-        attribute: @base.class.human_attribute_name(attribute),
-        value: value
+        default:    defaults,
+        model:      @base.class.model_name.human,
+        instance:   @base,
+        attribute:  @base.class.human_attribute_name(attribute),
+        value:      value
       }.merge!(options)
 
       I18n.translate(key, options)
