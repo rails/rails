@@ -139,6 +139,8 @@ module ActiveModel
     # class version of this method for more information.
     def validates_with(*args, &block)
       options = args.extract_options!
+      options[:class] = self.class
+
       args.each do |klass|
         validator = klass.new(options, &block)
         validator.validate(self)
