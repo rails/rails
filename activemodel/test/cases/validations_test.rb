@@ -284,10 +284,11 @@ class ValidationsTest < ActiveModel::TestCase
     auto = Automobile.new
 
     assert          auto.invalid?
-    assert_equal 2, auto.errors.size
+    assert_equal 3, auto.errors.size
 
     auto.make  = 'Toyota'
     auto.model = 'Corolla'
+    auto.approved = '1'
 
     assert auto.valid?
   end
