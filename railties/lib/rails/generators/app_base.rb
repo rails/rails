@@ -178,8 +178,12 @@ module Rails
           super
         end
 
-        def self.github(name, github, comment = nil)
-          new(name, nil, comment, github: github)
+        def self.github(name, github, branch = nil, comment = nil)
+          if branch
+            new(name, nil, comment, github: github, branch: branch)
+          else
+            new(name, nil, comment, github: github)
+          end
         end
 
         def self.version(name, version, comment = nil)
@@ -198,10 +202,10 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
-           GemfileEntry.github('arel', 'rails/arel')]
+           GemfileEntry.github('arel', 'rails/arel', '5-0-stable')]
         elsif options.edge?
-          [GemfileEntry.github('rails', 'rails/rails'),
-           GemfileEntry.github('arel', 'rails/arel')]
+          [GemfileEntry.github('rails', 'rails/rails', '4-1-stable'),
+           GemfileEntry.github('arel', 'rails/arel', '5-0-stable')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
@@ -241,9 +245,9 @@ module Rails
 
         gems = []
         if options.dev? || options.edge?
-          gems << GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails',
+          gems << GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails', nil,
                                     'Use edge version of sprockets-rails')
-          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails',
+          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails', nil,
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails',
@@ -279,7 +283,7 @@ module Rails
       def coffee_gemfile_entry
         comment = 'Use CoffeeScript for .js.coffee assets and views'
         if options.dev? || options.edge?
-          GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', comment
+          GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', nil, comment
         else
           GemfileEntry.version 'coffee-rails', '~> 4.0.0', comment
         end
