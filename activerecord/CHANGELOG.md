@@ -1,3 +1,7 @@
+*   Use type column first in multi-column indexes created with `add-reference`
+
+    *Derek Prior*
+
 *   `AR::UnknownAttributeError` now includes the class name of a record.
 
         User.new(name: "Yuki Nishijima", project_attributes: {name: "kaminari"})
