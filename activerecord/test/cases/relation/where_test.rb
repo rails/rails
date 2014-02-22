@@ -67,26 +67,26 @@ module ActiveRecord
       expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: treasure)
 
-      assert_equal expected.to_sql, actual.to_sql
+      assert_equal wrap_polymorphic(expected.to_sql), actual.to_sql
     end
 
     def test_polymorphic_nested_array_where
-      treasure = Treasure.new
+      treasure = Treasure.new id: 1
       treasure.id = 1
-      hidden = HiddenTreasure.new
+      hidden = HiddenTreasure.new id: 2
       hidden.id = 2
 
       expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: [treasure, hidden])
       actual   = PriceEstimate.where(estimate_of: [treasure, hidden])
 
-      assert_equal expected.to_sql, actual.to_sql
+      assert_equal wrap_polymorphic(expected.to_sql), actual.to_sql
     end
 
     def test_polymorphic_nested_relation_where
       expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: Treasure.where(id: [1,2]))
       actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1,2]))
 
-      assert_equal expected.to_sql, actual.to_sql
+      assert_equal wrap_polymorphic(expected.to_sql), actual.to_sql
     end
 
     def test_polymorphic_sti_shallow_where
@@ -96,7 +96,7 @@ module ActiveRecord
       expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: treasure)
 
-      assert_equal expected.to_sql, actual.to_sql
+      assert_equal wrap_polymorphic(expected.to_sql), actual.to_sql
     end
 
     def test_polymorphic_nested_where
@@ -106,7 +106,7 @@ module ActiveRecord
       expected = Treasure.where(price_estimates: { thing_type: 'Post', thing_id: 1 }).joins(:price_estimates)
       actual   = Treasure.where(price_estimates: { thing: thing }).joins(:price_estimates)
 
-      assert_equal expected.to_sql, actual.to_sql
+      assert_equal wrap_polymorphic(expected.to_sql), actual.to_sql
     end
 
     def test_polymorphic_sti_nested_where
@@ -116,7 +116,7 @@ module ActiveRecord
       expected = Treasure.where(price_estimates: { estimate_of_type: 'Treasure', estimate_of_id: 1 }).joins(:price_estimates)
       actual   = Treasure.where(price_estimates: { estimate_of: treasure }).joins(:price_estimates)
 
-      assert_equal expected.to_sql, actual.to_sql
+      assert_equal wrap_polymorphic(expected.to_sql), actual.to_sql
     end
 
     def test_decorated_polymorphic_where
@@ -141,7 +141,7 @@ module ActiveRecord
       expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
       actual   = PriceEstimate.where(estimate_of: decorated_treasure)
 
-      assert_equal expected.to_sql, actual.to_sql
+      assert_equal wrap_polymorphic(expected.to_sql), actual.to_sql
     end
 
     def test_aliased_attribute
