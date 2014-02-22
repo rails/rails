@@ -37,6 +37,11 @@ class BaseMailer < ActionMailer::Base
     mail(hash)
   end
 
+  def attachment_with_quotes_in_filename(hash = {})
+    attachments['invoice "for you".pdf'] = 'This is test File content'
+    mail(hash)
+  end
+
   def attachment_with_hash
     attachments['invoice.jpg'] = { data: ::Base64.encode64("\312\213\254\232)b"),
                                    mime_type: "image/x-jpg",
