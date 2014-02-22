@@ -641,7 +641,7 @@ module ActiveSupport
       end
         
       def time_since_expired
-        Time.now.to_f - expires_at
+        Time.now.to_f - expires_at if expired?
       end
 
       # Returns the size of the cached value. This could be less than
