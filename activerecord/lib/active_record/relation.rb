@@ -140,15 +140,35 @@ module ActiveRecord
       scoping { @klass.create!(*args, &block) }
     end
 
-    def first_or_create(attributes = nil, &block) # :nodoc:
+    # Returns the first record from the collection or creates a new record with
+    # the given attributes if record is not found.
+    #
+    # ==== Examples
+    #
+    #   # Finds the first user named 'Marty McFly' or creates a new user with
+    #   # given attributes:
+    #   User.where(name: 'Marty McFly').first_or_create(name: 'Marty McFly', email: 'marty@backtothefuture.com')
+    #   # => #<User id: 1, first_name: "Marty McFly", email: "marty@backtothefuture.com">
+    def first_or_create(attributes = nil, &block)
       first || create(attributes, &block)
     end
 
-    def first_or_create!(attributes = nil, &block) # :nodoc:
+    # Similar to #first_or_create, but it raises an exception if a validation
+    # error occurs.
+    def first_or_create!(attributes = nil, &block)
       first || create!(attributes, &block)
     end
 
-    def first_or_initialize(attributes = nil, &block) # :nodoc:
+    # Returns the first record from the collection or creates a new instance of
+    # the collection with the given attributes if record is not found.
+    #
+    # ==== Examples
+    #
+    #   # Finds the first user named 'Marty McFly' or creates a new instance of user
+    #   # with given attributes:
+    #   User.where(name: 'Marty McFly').first_or_create(name: 'Marty McFly', email: 'marty@backtothefuture.com')
+    #   # => #<User id: nil, first_name: "Marty McFly", email: "marty@backtothefuture.com">
+    def first_or_initialize(attributes = nil, &block)
       first || new(attributes, &block)
     end
 
