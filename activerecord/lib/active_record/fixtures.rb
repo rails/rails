@@ -549,7 +549,7 @@ module ActiveRecord
     end
 
     # Returns a consistent, platform-independent identifier for +label+.
-    # Identifiers are positive integers less than 2^32.
+    # Identifiers are positive integers less than 2^30.
     def self.identify(label)
       Zlib.crc32(label.to_s) % MAX_ID
     end
