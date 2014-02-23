@@ -1,3 +1,18 @@
+*   Deprecate half-baked support for PostgreSQL range values with excluding beginnings.
+    We currently map PostgreSQL ranges to Ruby ranges. This conversion is not fully
+    possible because the Ruby range does not support excluded beginnings.
+
+    The current solution of incrementing the beginning is not correct and is now
+    deprecated. For subtypes where we don't know how to increment (e.g. `#succ`
+    is not defined) it will raise an ArgumentException for ranges with excluding
+    beginnings.
+
+    *Yves Senn*
+
+*   Support for user created range types in PostgreSQL.
+
+    *Yves Senn*
+
 *   Default scopes are no longer overriden by chained conditions.
 
     Before this change when you defined a `default_scope` in a model
