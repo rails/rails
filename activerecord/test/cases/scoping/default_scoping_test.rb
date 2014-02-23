@@ -395,4 +395,22 @@ class DefaultScopingTest < ActiveRecord::TestCase
       threads.each(&:join)
     end
   end
+
+  test "additional conditions are ANDed with the default scope" do
+    scope = DeveloperCalledJamis.where(name: "David")
+    assert_equal 2, scope.where_values.length
+    assert_equal [], scope.to_a
+  end
+
+  test "additional conditions in a scope are ANDed with the default scope" do
+    scope = DeveloperCalledJamis.david
+    assert_equal 2, scope.where_values.length
+    assert_equal [], scope.to_a
+  end
+
+  test "a scope can remove the condition from the default scope" do
+    scope = DeveloperCalledJamis.david2
+    assert_equal 1, scope.where_values.length
+    assert_equal Developer.where(name: "David").map(&:id), scope.map(&:id)
+  end
 end
