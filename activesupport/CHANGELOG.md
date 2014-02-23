@@ -1,3 +1,31 @@
+*   Introduce `Concern#class_methods` as a sleek alternative to clunky
+    `module ClassMethods`. Add `Kernel#concern` to define at the toplevel
+    without chunky `module Foo; extend ActiveSupport::Concern` boilerplate.
+
+        # app/models/concerns/authentication.rb
+        concern :Authentication do
+          included do
+            after_create :generate_private_key
+          end
+
+          class_methods do
+            def authenticate(credentials)
+              # ...
+            end
+          end
+
+          def generate_private_key
+            # ...
+          end
+        end
+
+        # app/models/user.rb
+        class User < ActiveRecord::Base
+          include Authentication
+        end
+
+    *Jeremy Kemper*
+
 *   Added `Object#present_in` to simplify value whitelisting.
 
     Before:
