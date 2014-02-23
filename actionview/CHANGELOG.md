@@ -325,3 +325,9 @@
     *Piotr Sarnacki*, *Łukasz Strzałkowski*
 
 Please check [4-0-stable (ActionPack's CHANGELOG)](https://github.com/rails/rails/blob/4-0-stable/actionpack/CHANGELOG.md) for previous changes.
+
+*   Nested hashes on a data tag now generates one attribute per leaf.
+    So the hash `{ data: one: { { two: 'value2', three: 'value3' } } }`
+    generates the attributes `data-one-two='value2' data-one-three='value3'`
+
+    *Felipe Tanus*

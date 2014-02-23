@@ -142,9 +142,7 @@ module ActionView
           attrs = []
           options.each_pair do |key, value|
             if key.to_s == 'data' && value.is_a?(Hash)
-              value.each_pair do |k, v|
-                attrs << data_tag_option(k, v, escape)
-              end
+              attrs += data_tag_options(key, value, escape)
             elsif BOOLEAN_ATTRIBUTES.include?(key)
               attrs << boolean_tag_option(key) if value
             elsif !value.nil?
@@ -154,12 +152,17 @@ module ActionView
           " #{attrs.sort! * ' '}" unless attrs.empty?
         end
 
-        def data_tag_option(key, value, escape)
-          key   = "data-#{key.to_s.dasherize}"
-          unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
-            value = value.to_json
+        def data_tag_options(key, value, escape)
+          if value.is_a?(Hash)
+            value.map { |k,v|
+              data_tag_options("#{key.to_s.dasherize}-#{k.to_s.dasherize}", v, escape)
+            }.flatten
+          else
+            unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
+              value = value.to_json
+            end
+            tag_option(key, value, escape)
           end
-          tag_option(key, value, escape)
         end
 
         def boolean_tag_option(key)
