@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module Batches
     # Looping through a collection of records from the database
@@ -38,11 +37,6 @@ module ActiveRecord
     #   Person.find_each(start: 2000, batch_size: 2000) do |person|
     #     person.party_all_night!
     #   end
-    #
-    # NOTE: It's not possible to set the order. That is automatically set to
-    # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also means that this method only works with integer-based
-    # primary keys.
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
@@ -89,15 +83,13 @@ module ActiveRecord
     #     group.each { |person| person.party_all_night! }
     #   end
     #
-    # NOTE: It's not possible to set the order. That is automatically set to
-    # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also means that this method only works with integer-based
-    # primary keys.
-    #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
     def find_in_batches(options = {})
       options.assert_valid_keys(:start, :batch_size)
+      if logger && arel.taken.present?
+        logger.warn("Scoped limit is ignored, it's forced to be batch size")
+      end
 
       relation = self
       start = options[:start]
@@ -105,28 +97,24 @@ module ActiveRecord
 
       unless block_given?
         return to_enum(:find_in_batches, options) do
-          total = start ? where(table[primary_key].gteq(start)).size : size
+          total = offset(start).size
           (total - 1).div(batch_size) + 1
         end
       end
-
-      if logger && (arel.orders.present? || arel.taken.present?)
-        logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
-      end
-
-      relation = relation.reorder(batch_order).limit(batch_size)
-      records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
+      
+      relation = relation.limit(batch_size).offset(start)
+      relation = relation.reorder(batch_order) unless arel.orders.present?
+      records = relation.to_a
 
       while records.any?
         records_size = records.size
-        primary_key_offset = records.last.id
-        raise "Primary key not included in the custom select clause" unless primary_key_offset
+        start += records_size
 
         yield records
 
         break if records_size < batch_size
 
-        records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
+        records = relation.limit(batch_size).offset(start)
       end
     end
 
