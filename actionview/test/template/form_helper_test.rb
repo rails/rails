@@ -158,6 +158,12 @@ class FormHelperTest < ActionView::TestCase
     assert_raise(NotImplementedError) { FooTag.new.render }
   end
 
+  def test_tags_base_value_honors_public_private
+    test_object = Class.new { private def my_method ; end }.new
+    tag = ActionView::Helpers::Tags::Base.new 'test_object', :my_method, nil
+    assert_raise(NoMethodError) { tag.send :value, test_object }
+  end
+
   def test_label
     assert_dom_equal('<label for="post_title">Title</label>', label("post", "title"))
     assert_dom_equal(
