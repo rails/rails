@@ -2391,15 +2391,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_nested_fields_label_translation_with_more_than_10_records
-    with_locale(:locale) do
-      @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
+    @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
 
-      I18n.expects(:t).with('post.comments.body', default: [:"comment.body", ''], scope: "helpers.label").times(11).returns "Write body here"
+    I18n.expects(:t).with('post.comments.body', default: [:"comment.body", ''], scope: "helpers.label").times(11).returns "Write body here"
 
-      form_for(@post) do |f|
-        f.fields_for(:comments) do |cf|
-          concat cf.label(:body)
-        end
+    form_for(@post) do |f|
+      f.fields_for(:comments) do |cf|
+        concat cf.label(:body)
       end
     end
   end
