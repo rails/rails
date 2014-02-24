@@ -1,3 +1,7 @@
+*   Fix ActionView label translation for more than 10 nested elements.
+
+    *Vladimir Krylov*
+
 *   Added `:plain`, `:html` and `:body` option for `render` method. Please see
     Action Pack's release note for more detail.
 
@@ -320,7 +324,7 @@
 
     *Bryan Ricker*
 
-*   First release, ActionView extracted from ActionPack
+*   First release, ActionView extracted from ActionPack.
 
     *Piotr Sarnacki*, *Łukasz Strzałkowski*
 
