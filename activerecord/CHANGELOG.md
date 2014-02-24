@@ -1,3 +1,10 @@
+*   Fixed STI classes not defining an attribute method if there is a
+    conflicting private method defined on its ancestors.
+
+    Fixes #11569.
+
+    *Godfrey Chan*
+
 *   Deprecate half-baked support for PostgreSQL range values with excluding beginnings.
     We currently map PostgreSQL ranges to Ruby ranges. This conversion is not fully
     possible because the Ruby range does not support excluded beginnings.
