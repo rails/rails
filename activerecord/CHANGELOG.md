@@ -1,3 +1,10 @@
+*   Fixed regression on has many association, where calling a child from parent in child's callback
+    results in same child records getting added repeatedly to target.
+
+    Fixes #13387.
+
+    *Vipul A M*, *Jon Hinson*
+
 *   Deprecate half-baked support for PostgreSQL range values with excluding beginnings.
     We currently map PostgreSQL ranges to Ruby ranges. This conversion is not fully
     possible because the Ruby range does not support excluded beginnings.

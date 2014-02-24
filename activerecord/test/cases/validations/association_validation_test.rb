@@ -5,6 +5,7 @@ require 'models/reply'
 require 'models/owner'
 require 'models/pet'
 require 'models/man'
+require 'models/zine'
 require 'models/interest'
 
 class AssociationValidationTest < ActiveRecord::TestCase

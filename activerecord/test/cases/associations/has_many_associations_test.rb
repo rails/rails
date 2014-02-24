@@ -22,6 +22,8 @@ require 'models/engine'
 require 'models/categorization'
 require 'models/minivan'
 require 'models/speedometer'
+require 'models/zine'
+require 'models/interest'
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
@@ -1830,4 +1832,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test "calling child from parent in child callback doesn't add extra repeated records to target" do
+    man = Zine.create!
+    man.interests << Interest.new
+
+    assert_equal 1, man.interests.count
+    assert_equal 1, man.interests.to_a.count
+  end
+
 end

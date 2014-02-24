@@ -20,6 +20,7 @@ require 'models/molecule'
 require 'models/electron'
 require 'models/man'
 require 'models/interest'
+require 'models/zine'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
