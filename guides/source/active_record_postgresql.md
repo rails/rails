@@ -250,24 +250,6 @@ revision = Revision.first
 revision.identifier # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 ```
 
-#### as primary key
-
-```ruby
-# db/migrate/20131220144913_create_devices.rb
-enable_extension 'uuid-ossp' unless extension_enabled?('uuid-ossp')
-create_table :devices, id: :uuid, default: 'uuid_generate_v4()' do |t|
-  t.string :kind
-end
-
-# app/models/device.rb
-class Device < ActiveRecord::Base
-end
-
-# Usage
-device = Device.create
-device.id # => "814865cd-5a1d-4771-9306-4268f188fe9e"
-```
-
 ### Bit String Types
 
   * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-bit.html)
@@ -304,6 +286,52 @@ The types `inet` and `cidr` are mapped to Ruby [`IPAddr`]() objects. The
   * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-geometric.html)
 
 All geometric types are mapped to normal text.
+
+
+UUID Primary Keys
+-----------------
+
+NOTE: you need to enable the `uuid-ossp` extension to generate UUIDs.
+
+```ruby
+# db/migrate/20131220144913_create_devices.rb
+enable_extension 'uuid-ossp' unless extension_enabled?('uuid-ossp')
+create_table :devices, id: :uuid, default: 'uuid_generate_v4()' do |t|
+  t.string :kind
+end
+
+# app/models/device.rb
+class Device < ActiveRecord::Base
+end
+
+# Usage
+device = Device.create
+device.id # => "814865cd-5a1d-4771-9306-4268f188fe9e"
+```
+
+Full Text Search
+----------------
+
+```ruby
+# db/migrate/20131220144913_create_documents.rb
+create_table :documents do |t|
+  t.string 'title'
+  t.string 'body'
+end
+
+execute "CREATE INDEX documents_idx ON documents USING gin(to_tsvector('english', title || ' ' || body));"
+
+# app/models/document.rb
+class Document < ActiveRecord::Base
+end
+
+# Usage
+Document.create(title: "Cats and Dogs", body: "are nice!")
+
+## all documents matching 'cat & dog'
+Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
+                 "cat & dog")
+```
 
 Views
 -----
