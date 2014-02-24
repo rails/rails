@@ -1,3 +1,7 @@
+*   Fix label translation for more than 10 nested elements.
+
+    *Vladimir Krylov*
+
 *   Use a custom route visitor for optimized url generation. Fixes #13349.
 
     *Andrew White*
