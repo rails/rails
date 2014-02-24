@@ -26,7 +26,7 @@
 
     *Jeremy Kemper*
 
-*   Added `Object#present_in` to simplify value whitelisting.
+*   Added `Object#presence_in` to simplify value whitelisting.
 
     Before:
 
@@ -34,7 +34,7 @@
 
     After:
 
-        params[:bucket_type].present_in %w( project calendar )
+        params[:bucket_type].presence_in %w( project calendar )
 
     *DHH*
 
