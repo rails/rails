@@ -125,7 +125,10 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_tags_base_value_honors_public_private
-    test_object = Class.new { private def my_method ; end }.new
+    test_object = Class.new do
+      def my_method ; end
+      private :my_method
+    end.new
     tag = ActionView::Helpers::Tags::Base.new 'test_object', :my_method, nil
     assert_raise(NoMethodError) { tag.send :value, test_object }
   end
