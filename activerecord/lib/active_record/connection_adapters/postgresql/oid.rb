@@ -18,6 +18,14 @@ module ActiveRecord
           end
         end
 
+        class Text < Type
+          def type_cast(value)
+            return if value.nil?
+
+            value.to_s
+          end
+        end
+
         class Bit < Type
           def type_cast(value)
             if String === value
@@ -329,7 +337,7 @@ This is not reliable and will be removed in the future.
         alias_type    'oid',  'int2'
 
         register_type 'numeric', OID::Decimal.new
-        register_type 'text', OID::Identity.new
+        register_type 'text', OID::Text.new
         alias_type 'varchar', 'text'
         alias_type 'char', 'text'
         alias_type 'bpchar', 'text'
@@ -355,13 +363,13 @@ This is not reliable and will be removed in the future.
         register_type 'date', OID::Date.new
         register_type 'time', OID::Time.new
 
-        register_type 'path', OID::Identity.new
+        register_type 'path', OID::Text.new
         register_type 'point', OID::Point.new
-        register_type 'polygon', OID::Identity.new
-        register_type 'circle', OID::Identity.new
+        register_type 'polygon', OID::Text.new
+        register_type 'circle', OID::Text.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
-        register_type 'ltree', OID::Identity.new
+        register_type 'ltree', OID::Text.new
 
         register_type 'cidr', OID::Cidr.new
         alias_type 'inet', 'cidr'
