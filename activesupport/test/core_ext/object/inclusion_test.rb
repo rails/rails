@@ -48,8 +48,8 @@ class InTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { 1.in?(1) }
   end
   
-  def test_present_in
-    assert_equal "stuff", "stuff".present_in(%w( lots of stuff ))
-    assert_nil "stuff".present_in(%w( lots of crap ))
+  def test_presence_in
+    assert_equal "stuff", "stuff".presence_in(%w( lots of stuff ))
+    assert_nil "stuff".presence_in(%w( lots of crap ))
   end
 end
