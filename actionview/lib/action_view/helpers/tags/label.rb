@@ -36,7 +36,7 @@ module ActionView
             content = @template_object.capture(&block)
           else
             content = if @content.blank?
-                        @object_name.gsub!(/\[(.*)_attributes\]\[\d\]/, '.\1')
+                        @object_name.gsub!(/\[(.*)_attributes\]\[\d+\]/, '.\1')
                         method_and_value = tag_value.present? ? "#{@method_name}.#{tag_value}" : @method_name
 
                         if object.respond_to?(:to_model)
