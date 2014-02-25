@@ -93,16 +93,12 @@ module ActiveRecord
         # the connection URL. This hash responds to any string key with
         # resolved connection information.
         def default_url_hash
-          if @raw_config.blank?
-            Hash.new do |hash, key|
-              hash[key] = if key.is_a? String
-                 ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(@url).to_hash
-              else
-                nil
-              end
+          Hash.new do |hash, key|
+            hash[key] = if key.is_a? String
+               ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(@url).to_hash
+            else
+              nil
             end
-          else
-            {}
           end
         end
     end
