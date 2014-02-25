@@ -157,7 +157,7 @@ By default, these preview classes live in `test/mailers/previews`.
 This can be configured using the `preview_path` option.
 
 See its
-[documentation](http://api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
+[documentation](http://edgeapi.rubyonrails.org/classes/ActionMailer/Base.html)
 for a detailed write up.
 
 ### Active Record enums
@@ -180,7 +180,7 @@ Conversation.statuses # => { "active" => 0, "archived" => 1 }
 ```
 
 See its
-[documentation](http://api.rubyonrails.org/v4.1.0/classes/ActiveRecord/Enum.html)
+[documentation](http://edgeapi.rubyonrails.org/classes/ActiveRecord/Enum.html)
 for a detailed write up.
 
 ### Message Verifiers
@@ -229,7 +229,7 @@ extending it with `ActiveSupport::Concern`, then mixing it in to the
 `Todo` class.
 
 See its
-[documentation](http://api.rubyonrails.org/v4.1.0/classes/Module/Concerning.html)
+[documentation](http://edgeapi.rubyonrails.org/classes/Module/Concerning.html)
 for a detailed write up and the intended use cases.
 
 ### CSRF protection from remote `<script>` tags
