@@ -92,12 +92,12 @@ Run `rake` to run the test. This test should fail because we haven't implemented
 
 Great - now you are ready to start development.
 
-In `lib/yaffle.rb`, add `require "yaffle/core_ext"`:
+In `lib/yaffle.rb`, add `require 'yaffle/core_ext'`:
 
 ```ruby
 # yaffle/lib/yaffle.rb
 
-require "yaffle/core_ext"
+require 'yaffle/core_ext'
 
 module Yaffle
 end
@@ -149,7 +149,7 @@ end
 ```ruby
 # yaffle/lib/yaffle.rb
 
-require "yaffle/core_ext"
+require 'yaffle/core_ext'
 require 'yaffle/acts_as_yaffle'
 
 module Yaffle
