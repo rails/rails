@@ -40,7 +40,7 @@ module ActiveRecord
       #   index_exists?(:suppliers, :company_id, unique: true)
       #
       #   # Check an index with a custom name exists
-      #   index_exists?(:suppliers, :company_id, name: "idx_company_id"
+      #   index_exists?(:suppliers, :company_id, name: "idx_company_id")
       #
       def index_exists?(table_name, column_name, options = {})
         column_names = Array(column_name)
