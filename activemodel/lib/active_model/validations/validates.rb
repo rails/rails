@@ -105,6 +105,7 @@ module ActiveModel
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
+        raise ArgumentError, "You need to supply attributes only once for validation" if attributes.uniq!
 
         defaults[:attributes] = attributes
 

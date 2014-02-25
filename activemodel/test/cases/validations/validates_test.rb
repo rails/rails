@@ -125,6 +125,10 @@ class ValidatesTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Person.validates :karma, unknown: true }
   end
 
+  def test_validates_with_duplicated_attributes
+    assert_raise(ArgumentError) { Person.validates :karma, :karma, presence: true }
+  end
+
   def test_validates_with_included_validator
     PersonWithValidator.validates :title, presence: true
     person = PersonWithValidator.new
