@@ -5,7 +5,7 @@ before_install:
 rvm:
   - 1.9.3
   - 2.0.0
-  - 2.1.0
+  - 2.1.1
   - rbx-2
   - jruby
 env:
@@ -35,4 +35,3 @@ notifications:
 bundler_args: --path vendor/bundle --without test
 services:
   - memcached
-
