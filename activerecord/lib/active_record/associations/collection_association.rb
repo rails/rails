@@ -513,13 +513,13 @@ module ActiveRecord
           target
         end
 
-        def concat_records(records)
+        def concat_records(records, should_raise = false)
           result = true
 
           records.flatten.each do |record|
             raise_on_type_mismatch!(record)
             add_to_target(record) do |rec|
-              result &&= insert_record(rec) unless owner.new_record?
+              result &&= insert_record(rec, true, should_raise) unless owner.new_record?
             end
           end
 

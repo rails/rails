@@ -1,3 +1,11 @@
+* `before_add` callbacks are fired before the record is saved on
+  `has_and_belongs_to_many` assocations *and* on `has_many :through`
+  associations.  Before this change, `before_add` callbacks would be fired
+  before the record was saved on `has_and_belongs_to_many` associations, but
+  *not* on `has_many :through` associations.
+
+  Fixes #14144
+
 *   Fixed STI classes not defining an attribute method if there is a
     conflicting private method defined on its ancestors.
 
