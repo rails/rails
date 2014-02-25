@@ -105,8 +105,9 @@ module ActiveRecord
           super
         else
           # If B < A and A defines its own attribute method, then we don't want to overwrite that.
-          defined = method_defined_within?(method_name, superclass, superclass.generated_attribute_methods)
-          defined && !ActiveRecord::Base.method_defined?(method_name) || super
+          defined = method_defined_within?(method_name, superclass) &&
+            superclass.instance_method(method_name).owner != superclass.generated_attribute_methods
+          defined || super
         end
       end
 

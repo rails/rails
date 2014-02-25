@@ -1,3 +1,10 @@
+*   Fixed STI classes not defining an attribute method if there is a
+    conflicting private method defined on its ancestors.
+
+    Fixes #11569.
+
+    *Godfrey Chan*
+
 *   Coerce strings when reading attributes.
     Fixes #10485.
 
