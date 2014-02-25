@@ -57,9 +57,9 @@ learned elsewhere, you may have a less happy experience.
 
 The Rails philosophy includes two major guiding principles:
 
-* **Don't Repeat Yourself:** DRY is a principle of software development which 
+* **Don't Repeat Yourself:** DRY is a principle of software development which
   states that "Every piece of knowledge must have a single, unambiguous, authoritative
-  representation within a system." By not writing the same information over and over 
+  representation within a system." By not writing the same information over and over
   again, our code is more maintainable, more extensible, and less buggy.
 * **Convention Over Configuration:** Rails has opinions about the best way to do many
   things in a web application, and defaults to this set of conventions, rather than
@@ -206,7 +206,7 @@ This will fire up WEBrick, a web server distributed with Ruby by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
-![Welcome aboard screenshot](images/getting_started/rails_welcome.jpg)
+![Welcome aboard screenshot](images/getting_started/rails_welcome.png)
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
@@ -1121,8 +1121,8 @@ via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 
 The first parameter of the `form_tag` can be an object, say, `@article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
-symbol (`:article`) with the same name as the instance variable (`@article`) also 
-automagically leads to the same behavior. This is what is happening here. More details 
+symbol (`:article`) with the same name as the instance variable (`@article`) also
+automagically leads to the same behavior. This is what is happening here. More details
 can be found in [form_for documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
 
 Next we need to create the `update` action in
@@ -1396,7 +1396,7 @@ class CreateComments < ActiveRecord::Migration
       t.text :body
 
       # this line adds an integer column called `article_id`.
-      t.references :article, index: true 
+      t.references :article, index: true
 
       t.timestamps
     end
