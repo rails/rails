@@ -271,16 +271,19 @@ module ActiveRecord
       ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''
     end
 
-    def test_migrate_revert_add_index_with_name
-      RevertNamedIndexMigration1.new.migrate(:up)
-      RevertNamedIndexMigration2.new.migrate(:up)
-      RevertNamedIndexMigration2.new.migrate(:down)
+    # MySQL 5.7 and Oracle do not allow to create duplicate indexes on the same columns
+    unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :OracleAdapter)
+      def test_migrate_revert_add_index_with_name
+        RevertNamedIndexMigration1.new.migrate(:up)
+        RevertNamedIndexMigration2.new.migrate(:up)
+        RevertNamedIndexMigration2.new.migrate(:down)
 
-      connection = ActiveRecord::Base.connection
-      assert connection.index_exists?(:horses, :content),
-             "index on content should exist"
-      assert !connection.index_exists?(:horses, :content, name: "horses_index_named"),
-             "horses_index_named index should not exist"
+        connection = ActiveRecord::Base.connection
+        assert connection.index_exists?(:horses, :content),
+               "index on content should exist"
+        assert !connection.index_exists?(:horses, :content, name: "horses_index_named"),
+              "horses_index_named index should not exist"
+      end
     end
 
   end
