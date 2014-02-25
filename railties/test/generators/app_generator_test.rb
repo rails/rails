@@ -265,7 +265,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_plateform_dependent_gems
+  def test_inclusion_of_platform_dependent_gems
     run_generator([destination_root])
     if RUBY_ENGINE == 'rbx'
       assert_gem 'rubysl'
