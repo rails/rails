@@ -208,6 +208,17 @@ module Arel
         }
       end
 
+      it "should visit_Arel_Nodes_Assignment" do
+	column = @table["id"] 
+	node = Nodes::Assignment.new(
+            Nodes::UnqualifiedColumn.new(column),
+            Nodes::UnqualifiedColumn.new(column)
+          )
+        @visitor.accept(node).must_be_like %{
+	  "id" = "id"
+	}
+      end
+
       it "should visit visit_Arel_Attributes_Time" do
         attr = Attributes::Time.new(@attr.relation, @attr.name)
         @visitor.accept attr
