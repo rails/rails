@@ -5,6 +5,7 @@ require 'models/reply'
 require 'models/warehouse_thing'
 require 'models/guid'
 require 'models/event'
+require 'models/book'
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -402,5 +403,21 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   def test_validate_uniqueness_on_empty_relation
     topic = TopicWithUniqEvent.new
     assert topic.valid?
+  end
+
+  def test_validate_enum_uniqueness
+    Book.validates_uniqueness_of :status
+
+    b = Book.new(:status => 'proposed')
+    assert b.save, 'Should save b as unique'
+
+    b2 = Book.new(:status => 'written')
+    assert b2.valid?, 'Should be valid'
+    assert b2.save, 'Should save b2 as unique'
+
+    b3 = Book.new(:status => 'proposed')
+    assert_not_equal b3.valid?, 'Should be not valid'
+    assert_not_equal b3.save, 'Should not save b3'
+    assert ['has already been taken'], b3.errors[:status]
   end
 end
