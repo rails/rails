@@ -288,7 +288,7 @@ module ActionDispatch
           value = options[:value]
         else
           value = options
-          options = { :value => value }
+          options = { value: value }
         end
 
         handle_options(options)
@@ -366,7 +366,7 @@ module ActionDispatch
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
-          options = { :value => options }
+          options = { value: options }
         end
 
         options[:expires] = 20.years.from_now
@@ -456,7 +456,7 @@ module ActionDispatch
           options.symbolize_keys!
           options[:value] = @verifier.generate(serialize(name, options[:value]))
         else
-          options = { :value => @verifier.generate(serialize(name, options)) }
+          options = { value: @verifier.generate(serialize(name, options)) }
         end
 
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
@@ -512,7 +512,7 @@ module ActionDispatch
         if options.is_a?(Hash)
           options.symbolize_keys!
         else
-          options = { :value => options }
+          options = { value: options }
         end
 
         options[:value] = @encryptor.encrypt_and_sign(serialize(name, options[:value]))

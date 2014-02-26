@@ -5,7 +5,7 @@ class Object
   # Unix on the former but not the latter.
   def `(command) #:nodoc:
     super
-  rescue Errno::ENOENT => e
+  rescue Errno:ENOENT: e
     STDERR.puts "#$0: #{e}"
   end
 end

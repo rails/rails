@@ -22,10 +22,10 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_save_infinity_and_beyond
-    d = Developer.create!(:name => 'aaron', :updated_at => 1.0 / 0.0)
+    d = Developer.create!(name: 'aaron', updated_at: 1.0 / 0.0)
     assert_equal(1.0 / 0.0, d.updated_at)
 
-    d = Developer.create!(:name => 'aaron', :updated_at => -1.0 / 0.0)
+    d = Developer.create!(name: 'aaron', updated_at: -1.0 / 0.0)
     assert_equal(-1.0 / 0.0, d.updated_at)
   end
 
@@ -38,15 +38,15 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_timestamp_data_type_with_precision
     ActiveRecord::Base.connection.create_table(:foos)
-    ActiveRecord::Base.connection.add_column :foos, :created_at, :datetime, :precision => 0
-    ActiveRecord::Base.connection.add_column :foos, :updated_at, :datetime, :precision => 5
+    ActiveRecord::Base.connection.add_column :foos, :created_at, :datetime, precision: 0
+    ActiveRecord::Base.connection.add_column :foos, :updated_at, :datetime, precision: 5
     assert_equal 0, activerecord_column_option('foos', 'created_at', 'precision')
     assert_equal 5, activerecord_column_option('foos', 'updated_at', 'precision')
   end
 
   def test_timestamps_helper_with_custom_precision
     ActiveRecord::Base.connection.create_table(:foos) do |t|
-      t.timestamps :precision => 4
+      t.timestamps precision: 4
     end
     assert_equal 4, activerecord_column_option('foos', 'created_at', 'precision')
     assert_equal 4, activerecord_column_option('foos', 'updated_at', 'precision')
@@ -54,7 +54,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_passing_precision_to_timestamp_does_not_set_limit
     ActiveRecord::Base.connection.create_table(:foos) do |t|
-      t.timestamps :precision => 4
+      t.timestamps precision: 4
     end
     assert_nil activerecord_column_option("foos", "created_at", "limit")
     assert_nil activerecord_column_option("foos", "updated_at", "limit")
@@ -63,14 +63,14 @@ class TimestampTest < ActiveRecord::TestCase
   def test_invalid_timestamp_precision_raises_error
     assert_raises ActiveRecord::ActiveRecordError do
       ActiveRecord::Base.connection.create_table(:foos) do |t|
-        t.timestamps :precision => 7
+        t.timestamps precision: 7
       end
     end
   end
 
   def test_postgres_agrees_with_activerecord_about_precision
     ActiveRecord::Base.connection.create_table(:foos) do |t|
-      t.timestamps :precision => 4
+      t.timestamps precision: 4
     end
     assert_equal '4', pg_datetime_precision('foos', 'created_at')
     assert_equal '4', pg_datetime_precision('foos', 'updated_at')
@@ -78,7 +78,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_bc_timestamp
     date = Date.new(0) - 1.week
-    Developer.create!(:name => "aaron", :updated_at => date)
+    Developer.create!(name: "aaron", updated_at: date)
     assert_equal date, Developer.find_by_name("aaron").updated_at
   end
 

@@ -25,10 +25,10 @@ class EagerSingularizationTest < ActiveRecord::TestCase
 
   class Crisis < ActiveRecord::Base
     has_and_belongs_to_many :messes
-    has_many :analyses, :dependent => :destroy
-    has_many :successes, :through => :analyses
-    has_many :dresses, :dependent => :destroy
-    has_many :compresses, :through => :dresses
+    has_many :analyses, dependent: :destroy
+    has_many :successes, through: :analyses
+    has_many :dresses, dependent: :destroy
+    has_many :compresses, through: :dresses
   end
 
   class Analysis < ActiveRecord::Base
@@ -37,8 +37,8 @@ class EagerSingularizationTest < ActiveRecord::TestCase
   end
 
   class Success < ActiveRecord::Base
-    has_many :analyses, :dependent => :destroy
-    has_many :crises, :through => :analyses
+    has_many :analyses, dependent: :destroy
+    has_many :crises, through: :analyses
   end
 
   class Dress < ActiveRecord::Base
@@ -65,7 +65,7 @@ class EagerSingularizationTest < ActiveRecord::TestCase
     connection.create_table :buses do |t|
       t.column :name, :string
     end
-    connection.create_table :crises_messes, :id => false do |t|
+    connection.create_table :crises_messes, id: false do |t|
       t.column :crisis_id, :integer
       t.column :mess_id, :integer
     end
@@ -110,38 +110,38 @@ class EagerSingularizationTest < ActiveRecord::TestCase
 
   def test_eager_no_extra_singularization_belongs_to
     assert_nothing_raised do
-      Virus.all.merge!(:includes => :octopus).to_a
+      Virus.all.merge!(includes: :octopus).to_a
     end
   end
 
   def test_eager_no_extra_singularization_has_one
     assert_nothing_raised do
-      Octopus.all.merge!(:includes => :virus).to_a
+      Octopus.all.merge!(includes: :virus).to_a
     end
   end
 
   def test_eager_no_extra_singularization_has_many
     assert_nothing_raised do
-      Bus.all.merge!(:includes => :passes).to_a
+      Bus.all.merge!(includes: :passes).to_a
     end
   end
 
   def test_eager_no_extra_singularization_has_and_belongs_to_many
     assert_nothing_raised do
-      Crisis.all.merge!(:includes => :messes).to_a
-      Mess.all.merge!(:includes => :crises).to_a
+      Crisis.all.merge!(includes: :messes).to_a
+      Mess.all.merge!(includes: :crises).to_a
     end
   end
 
   def test_eager_no_extra_singularization_has_many_through_belongs_to
     assert_nothing_raised do
-      Crisis.all.merge!(:includes => :successes).to_a
+      Crisis.all.merge!(includes: :successes).to_a
     end
   end
 
   def test_eager_no_extra_singularization_has_many_through_has_many
     assert_nothing_raised do
-      Crisis.all.merge!(:includes => :compresses).to_a
+      Crisis.all.merge!(includes: :compresses).to_a
     end
   end
 end

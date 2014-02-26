@@ -57,7 +57,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
     Person.connection.remove_column("people", "first_name") rescue nil
     Person.connection.remove_column("people", "middle_name") rescue nil
-    Person.connection.add_column("people", "first_name", :string, :limit => 40)
+    Person.connection.add_column("people", "first_name", :string, limit: 40)
     Person.reset_column_information
   end
 
@@ -94,7 +94,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_not_equal temp_conn, Person.connection
 
-    temp_conn.create_table :testings2, :force => true do |t|
+    temp_conn.create_table :testings2, force: true do |t|
       t.column :foo, :string
     end
   ensure
@@ -129,11 +129,11 @@ class MigrationTest < ActiveRecord::TestCase
     GiveMeBigNumbers.up
 
     assert BigNumber.create(
-      :bank_balance => 1586.43,
-      :big_bank_balance => BigDecimal("1000234000567.95"),
-      :world_population => 6000000000,
-      :my_house_population => 3,
-      :value_of_e => BigDecimal("2.7182818284590452353602875")
+      bank_balance: 1586.43,
+      big_bank_balance: BigDecimal("1000234000567.95"),
+      world_population: 6000000000,
+      my_house_population: 3,
+      value_of_e: BigDecimal("2.7182818284590452353602875")
     )
 
     b = BigNumber.first
@@ -437,7 +437,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_nothing_raised {
       Person.connection.create_table :binary_testings do |t|
-        t.column "data", :binary, :null => false
+        t.column "data", :binary, null: false
       end
     }
 
@@ -482,7 +482,7 @@ class MigrationTest < ActiveRecord::TestCase
       assert_nothing_raised do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok do |t|
-            t.column :foo, :string, :null => false
+            t.column :foo, :string, null: false
           end
         ensure
           Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
@@ -493,15 +493,15 @@ class MigrationTest < ActiveRecord::TestCase
       assert_nothing_raised do
         begin
           Person.connection.create_table :table_with_name_thats_just_ok,
-            :sequence_name => 'suitably_short_seq' do |t|
-            t.column :foo, :string, :null => false
+            sequence_name: 'suitably_short_seq' do |t|
+            t.column :foo, :string, null: false
           end
 
           Person.connection.execute("select suitably_short_seq.nextval from dual")
 
         ensure
           Person.connection.drop_table :table_with_name_thats_just_ok,
-            :sequence_name => 'suitably_short_seq' rescue nil
+            sequence_name: 'suitably_short_seq' rescue nil
         end
       end
 
@@ -516,15 +516,15 @@ class MigrationTest < ActiveRecord::TestCase
     def test_out_of_range_limit_should_raise
       Person.connection.drop_table :test_limits rescue nil
       assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
-        Person.connection.create_table :test_integer_limits, :force => true do |t|
-          t.column :bigone, :integer, :limit => 10
+        Person.connection.create_table :test_integer_limits, force: true do |t|
+          t.column :bigone, :integer, limit: 10
         end
       end
 
       unless current_adapter?(:PostgreSQLAdapter)
         assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
-          Person.connection.create_table :test_text_limits, :force => true do |t|
-            t.column :bigtext, :text, :limit => 0xfffffffff
+          Person.connection.create_table :test_text_limits, force: true do |t|
+            t.column :bigtext, :text, limit: 0xfffffffff
           end
         end
       end
@@ -547,13 +547,13 @@ end
 class ReservedWordsMigrationTest < ActiveRecord::TestCase
   def test_drop_index_from_table_named_values
     connection = Person.connection
-    connection.create_table :values, :force => true do |t|
+    connection.create_table :values, force: true do |t|
       t.integer :value
     end
 
     assert_nothing_raised do
       connection.add_index :values, :value
-      connection.remove_index :values, :column => :value
+      connection.remove_index :values, column: :value
     end
 
     connection.drop_table :values rescue nil
@@ -580,7 +580,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
   class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
     def setup
       @connection = Person.connection
-      @connection.create_table(:delete_me, :force => true) {|t| }
+      @connection.create_table(:delete_me, force: true) {|t| }
       Person.reset_column_information
       Person.reset_sequence_name
     end
@@ -594,7 +594,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         with_bulk_change_table do |t|
           t.column :name, :string
           t.string :qualification, :experience
-          t.integer :age, :default => 0
+          t.integer :age, default: 0
           t.date :birthdate
           t.timestamps
         end
@@ -633,7 +633,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       # Adding an index fires a query every time to check if an index already exists or not
       assert_queries(3) do
         with_bulk_change_table do |t|
-          t.index :username, :unique => true, :name => :awesome_username_index
+          t.index :username, unique: true, name: :awesome_username_index
           t.index [:name, :age]
         end
       end
@@ -658,7 +658,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_queries(3) do
         with_bulk_change_table do |t|
           t.remove_index :name
-          t.index :name, :name => :new_name_index, :unique => true
+          t.index :name, name: :new_name_index, unique: true
         end
       end
 
@@ -680,9 +680,9 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       # One query for columns (delete_me table)
       # One query for primary key (delete_me table)
       # One query to do the bulk change
-      assert_queries(3, :ignore_none => true) do
+      assert_queries(3, ignore_none: true) do
         with_bulk_change_table do |t|
-          t.change :name, :string, :default => 'NONAME'
+          t.change :name, :string, default: 'NONAME'
           t.change :birthdate, :datetime
         end
       end
@@ -697,7 +697,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       # Reset columns/indexes cache as we're changing the table
       @columns = @indexes = nil
 
-      Person.connection.change_table(:delete_me, :bulk => true) do |t|
+      Person.connection.change_table(:delete_me, bulk: true) do |t|
         yield t
       end
     end
@@ -736,7 +736,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
+    copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy"})
     assert File.exist?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
     assert File.exist?(@migrations_path + "/5_people_have_descriptions.bukkits.rb")
     assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied.map(&:filename)
@@ -745,7 +745,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[0].chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
-    copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy"})
+    copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy"})
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
     assert copied.empty?
   ensure
@@ -778,7 +778,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
       expected = [@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb",
@@ -786,7 +786,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       assert_equal expected, copied.map(&:filename)
 
       files_count = Dir[@migrations_path + "/*.rb"].length
-      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
       assert copied.empty?
     end
@@ -823,12 +823,12 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
     travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
-      ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert File.exist?(@migrations_path + "/20100301010102_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100301010103_people_have_descriptions.bukkits.rb")
 
       files_count = Dir[@migrations_path + "/*.rb"].length
-      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
       assert copied.empty?
     end
@@ -841,7 +841,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @migrations_path = MIGRATIONS_ROOT + "/valid"
     @existing_migrations = Dir[@migrations_path + "/*.rb"]
 
-    copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/magic"})
+    copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/magic"})
     assert File.exist?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
     assert_equal [@migrations_path + "/4_currencies_have_symbols.bukkits.rb"], copied.map(&:filename)
 
@@ -849,7 +849,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..1].join.chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
-    copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/magic"})
+    copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/magic"})
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
     assert copied.empty?
   ensure
@@ -866,7 +866,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
     skipped = []
     on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
-    copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+    copied = ActiveRecord::Migration.copy(@migrations_path, sources, on_skip: on_skip)
     assert_equal 2, copied.length
 
     assert_equal 1, skipped.length
@@ -884,8 +884,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
     skipped = []
     on_skip = Proc.new { |name, migration| skipped << "#{name} #{migration.name}" }
-    copied = ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
-    ActiveRecord::Migration.copy(@migrations_path, sources, :on_skip => on_skip)
+    copied = ActiveRecord::Migration.copy(@migrations_path, sources, on_skip: on_skip)
+    ActiveRecord::Migration.copy(@migrations_path, sources, on_skip: on_skip)
 
     assert_equal 2, copied.length
     assert_equal 0, skipped.length
@@ -898,7 +898,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @existing_migrations = []
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
       assert_equal 2, copied.length
@@ -913,7 +913,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     @existing_migrations = []
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
-      copied = ActiveRecord::Migration.copy(@migrations_path, {:bukkits => MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
+      copied = ActiveRecord::Migration.copy(@migrations_path, {bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps"})
       assert File.exist?(@migrations_path + "/20100726101010_people_have_hobbies.bukkits.rb")
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
       assert_equal 2, copied.length

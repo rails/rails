@@ -39,8 +39,8 @@ class TestController < ActionController::Base
   end
 
   def conditional_hello
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123])
-      render :action => 'hello_world'
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123])
+      render action: 'hello_world'
     end
   end
 
@@ -48,79 +48,79 @@ class TestController < ActionController::Base
     record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
 
     if stale?(record)
-      render :action => 'hello_world'
+      render action: 'hello_world'
     end
   end
 
   def conditional_hello_with_public_header
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123], public: true)
+      render action: 'hello_world'
     end
   end
 
   def conditional_hello_with_public_header_with_record
     record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
 
-    if stale?(record, :public => true)
-      render :action => 'hello_world'
+    if stale?(record, public: true)
+      render action: 'hello_world'
     end
   end
 
   def conditional_hello_with_public_header_and_expires_at
     expires_in 1.minute
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123], public: true)
+      render action: 'hello_world'
     end
   end
 
   def conditional_hello_with_expires_in
     expires_in 60.1.seconds
-    render :action => 'hello_world'
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public
-    expires_in 1.minute, :public => true
-    render :action => 'hello_world'
+    expires_in 1.minute, public: true
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_must_revalidate
-    expires_in 1.minute, :must_revalidate => true
-    render :action => 'hello_world'
+    expires_in 1.minute, must_revalidate: true
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public_and_must_revalidate
-    expires_in 1.minute, :public => true, :must_revalidate => true
-    render :action => 'hello_world'
+    expires_in 1.minute, public: true, must_revalidate: true
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys
-    expires_in 1.minute, :public => true, 's-maxage' => 5.hours
-    render :action => 'hello_world'
+    expires_in 1.minute, public: true, 's-maxage' => 5.hours
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax
-    expires_in 1.minute, :public => true, :private => nil, 's-maxage' => 5.hours
-    render :action => 'hello_world'
+    expires_in 1.minute, public: true, private: nil, 's-maxage' => 5.hours
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_expires_now
     expires_now
-    render :action => 'hello_world'
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_cache_control_headers
     response.headers['Cache-Control'] = 'no-transform'
     expires_now
-    render :action => 'hello_world'
+    render action: 'hello_world'
   end
 
   def conditional_hello_with_bangs
-    render :action => 'hello_world'
+    render action: 'hello_world'
   end
-  before_action :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
+  before_action :handle_last_modified_and_etags, only::conditional_hello_with_bangs
 
   def handle_last_modified_and_etags
-    fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
+    fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
   end
 
   def heading
@@ -129,42 +129,42 @@ class TestController < ActionController::Base
 
   # :ported:
   def double_render
-    render :text => "hello"
-    render :text => "world"
+    render text: "hello"
+    render text: "world"
   end
 
   def double_redirect
-    redirect_to :action => "double_render"
-    redirect_to :action => "double_render"
+    redirect_to action: "double_render"
+    redirect_to action: "double_render"
   end
 
   def render_and_redirect
-    render :text => "hello"
-    redirect_to :action => "double_render"
+    render text: "hello"
+    redirect_to action: "double_render"
   end
 
   def render_to_string_and_render
-    @stuff = render_to_string :text => "here is some cached stuff"
-    render :text => "Hi web users! #{@stuff}"
+    @stuff = render_to_string text: "here is some cached stuff"
+    render text: "Hi web users! #{@stuff}"
   end
 
   def render_to_string_with_inline_and_render
-    render_to_string :inline => "<%= 'dlrow olleh'.reverse %>"
-    render :template => "test/hello_world"
+    render_to_string inline: "<%= 'dlrow olleh'.reverse %>"
+    render template: "test/hello_world"
   end
 
   def rendering_with_conflicting_local_vars
     @name = "David"
-    render :action => "potential_conflicts"
+    render action: "potential_conflicts"
   end
 
   def hello_world_from_rxml_using_action
-    render :action => "hello_world_from_rxml", :handlers => [:builder]
+    render action: "hello_world_from_rxml", handlers: [:builder]
   end
 
   # :deprecated:
   def hello_world_from_rxml_using_template
-    render :template => "test/hello_world_from_rxml", :handlers => [:builder]
+    render template: "test/hello_world_from_rxml", handlers: [:builder]
   end
 
   def head_created
@@ -172,35 +172,35 @@ class TestController < ActionController::Base
   end
 
   def head_created_with_application_json_content_type
-    head :created, :content_type => "application/json"
+    head :created, content_type: "application/json"
   end
 
   def head_ok_with_image_png_content_type
-    head :ok, :content_type => "image/png"
+    head :ok, content_type: "image/png"
   end
 
   def head_with_location_header
-    head :location => "/foo"
+    head location: "/foo"
   end
 
   def head_with_location_object
-    head :location => Customer.new("david", 1)
+    head location: Customer.new("david", 1)
   end
 
   def head_with_symbolic_status
-    head :status => params[:status].intern
+    head status: params[:status].intern
   end
 
   def head_with_integer_status
-    head :status => params[:status].to_i
+    head status: params[:status].to_i
   end
 
   def head_with_string_status
-    head :status => params[:status]
+    head status: params[:status]
   end
 
   def head_with_custom_header
-    head :x_custom_header => "something"
+    head x_custom_header: "something"
   end
 
   def head_with_www_authenticate_header
@@ -208,7 +208,7 @@ class TestController < ActionController::Base
   end
 
   def head_with_status_code_first
-    head :forbidden, :x_custom_header => "something"
+    head :forbidden, x_custom_header: "something"
   end
 
   private
@@ -244,7 +244,7 @@ class MetalTestController < ActionController::Metal
   include ActionController::Rendering
 
   def accessing_logger_in_template
-    render :inline =>  "<%= logger.class %>"
+    render inline:  "<%= logger.class %>"
   end
 end
 
@@ -488,21 +488,21 @@ class HeadRenderTest < ActionController::TestCase
   end
 
   def test_head_with_symbolic_status
-    get :head_with_symbolic_status, :status => "ok"
+    get :head_with_symbolic_status, status: "ok"
     assert_equal 200, @response.status
     assert_response :ok
 
-    get :head_with_symbolic_status, :status => "not_found"
+    get :head_with_symbolic_status, status: "not_found"
     assert_equal 404, @response.status
     assert_response :not_found
 
-    get :head_with_symbolic_status, :status => "no_content"
+    get :head_with_symbolic_status, status: "no_content"
     assert_equal 204, @response.status
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
     Rack::Utils::SYMBOL_TO_STATUS_CODE.each do |status, code|
-      get :head_with_symbolic_status, :status => status.to_s
+      get :head_with_symbolic_status, status: status.to_s
       assert_equal code, @response.response_code
       assert_response status
     end
@@ -510,13 +510,13 @@ class HeadRenderTest < ActionController::TestCase
 
   def test_head_with_integer_status
     Rack::Utils::HTTP_STATUS_CODES.each do |code, message|
-      get :head_with_integer_status, :status => code.to_s
+      get :head_with_integer_status, status: code.to_s
       assert_equal message, @response.message
     end
   end
 
   def test_head_with_string_status
-    get :head_with_string_status, :status => "404 Eat Dirt"
+    get :head_with_string_status, status: "404 Eat Dirt"
     assert_equal 404, @response.response_code
     assert_equal "Not Found", @response.message
     assert_response :not_found

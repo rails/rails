@@ -76,16 +76,16 @@ module ActionController
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?
         options = {
-          :protocol => 'https://',
-          :host     => request.host,
-          :path     => request.fullpath,
-          :status   => :moved_permanently
+          protocol: 'https://',
+          host: request.host,
+          path: request.fullpath,
+          status: :moved_permanently
         }
 
         if host_or_options.is_a?(Hash)
           options.merge!(host_or_options)
         elsif host_or_options
-          options.merge!(:host => host_or_options)
+          options.merge!(host: host_or_options)
         end
 
         secure_url = ActionDispatch::Http::URL.url_for(options.slice(*URL_OPTIONS))

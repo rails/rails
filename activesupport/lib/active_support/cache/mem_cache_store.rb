@@ -67,7 +67,7 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
         keys_to_names = Hash[names.map{|name| [escape_key(namespaced_key(name, options)), name]}]
-        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+        raw_values = @data.get_multi(keys_to_names.keys, raw: true)
         values = {}
         raw_values.each do |key, value|
           entry = deserialize_entry(value)
@@ -82,10 +82,10 @@ module ActiveSupport
       # to zero.
       def increment(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        instrument(:increment, name, :amount => amount) do
+        instrument(:increment, name, amount: amount) do
           @data.incr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue Dalli::DalliError => e
+      rescue Dalli:DalliError: e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
@@ -96,10 +96,10 @@ module ActiveSupport
       # to zero.
       def decrement(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        instrument(:decrement, name, :amount => amount) do
+        instrument(:decrement, name, amount: amount) do
           @data.decr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue Dalli::DalliError => e
+      rescue Dalli:DalliError: e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
@@ -108,7 +108,7 @@ module ActiveSupport
       # be used with care when shared cache is being used.
       def clear(options = nil)
         @data.flush_all
-      rescue Dalli::DalliError => e
+      rescue Dalli:DalliError: e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
@@ -122,7 +122,7 @@ module ActiveSupport
         # Read an entry from the cache.
         def read_entry(key, options) # :nodoc:
           deserialize_entry(@data.get(escape_key(key), options))
-        rescue Dalli::DalliError => e
+        rescue Dalli:DalliError: e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           nil
         end
@@ -137,7 +137,7 @@ module ActiveSupport
             expires_in += 5.minutes
           end
           @data.send(method, escape_key(key), value, expires_in, options)
-        rescue Dalli::DalliError => e
+        rescue Dalli:DalliError: e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           false
         end
@@ -145,7 +145,7 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, options) # :nodoc:
           @data.delete(escape_key(key))
-        rescue Dalli::DalliError => e
+        rescue Dalli:DalliError: e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           false
         end

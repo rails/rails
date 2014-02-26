@@ -293,7 +293,7 @@ module ActionDispatch
           end
 
           def dispatcher
-            Routing::RouteSet::Dispatcher.new(:defaults => defaults)
+            Routing::RouteSet::Dispatcher.new(defaults: defaults)
           end
 
           def to
@@ -337,7 +337,7 @@ module ActionDispatch
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(options = {})
-          match '/', { :as => :root, :via => :get }.merge!(options)
+          match '/', { as: :root, via: :get }.merge!(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -510,7 +510,7 @@ module ActionDispatch
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false))
+          match(path, options.merge(to: app, anchor: false, format: false))
 
           define_generate_prefix(app, target_as)
           self
@@ -792,8 +792,8 @@ module ActionDispatch
         #   end
         def namespace(path, options = {})
           path = path.to_s
-          options = { :path => path, :as => path, :module => path,
-                      :shallow_path => path, :shallow_prefix => path }.merge!(options)
+          options = { path: path, as: path, module: path,
+                      shallow_path: path, shallow_prefix: path }.merge!(options)
           scope(options) { yield }
         end
 
@@ -853,7 +853,7 @@ module ActionDispatch
         #      resources :iphones
         #    end
         def constraints(constraints = {})
-          scope(:constraints => constraints) { yield }
+          scope(constraints: constraints) { yield }
         end
 
         # Allows you to set default parameters for a route, such as this:
@@ -862,7 +862,7 @@ module ActionDispatch
         #   end
         # Using this, the +:id+ parameter here will default to 'home'.
         def defaults(defaults = {})
-          scope(:defaults => defaults) { yield }
+          scope(defaults: defaults) { yield }
         end
 
         private
@@ -1020,7 +1020,7 @@ module ActionDispatch
           end
 
           def resource_scope
-            { :controller => controller }
+            { controller: controller }
           end
 
           alias :collection_scope :path
@@ -1352,7 +1352,7 @@ module ActionDispatch
                 if @scope[:shallow_path].blank?
                   scope(parent_resource.nested_scope, nested_options) { yield }
                 else
-                  scope(@scope[:shallow_path], :as => @scope[:shallow_prefix]) do
+                  scope(@scope[:shallow_path], as: @scope[:shallow_prefix]) do
                     scope(parent_resource.nested_scope, nested_options) { yield }
                   end
                 end
@@ -1373,7 +1373,7 @@ module ActionDispatch
         end
 
         def shallow
-          scope(:shallow => true) do
+          scope(shallow: true) do
             yield
           end
         end
@@ -1576,7 +1576,7 @@ module ActionDispatch
           end
 
           def nested_options #:nodoc:
-            options = { :as => parent_resource.member_name }
+            options = { as: parent_resource.member_name }
             options[:constraints] = {
               parent_resource.nested_param => param_constraint
             } if param_constraint?
@@ -1784,7 +1784,7 @@ module ActionDispatch
 
       def initialize(set) #:nodoc:
         @set = set
-        @scope = { :path_names => @set.resources_path_names }
+        @scope = { path_names: @set.resources_path_names }
         @concerns = {}
       end
 

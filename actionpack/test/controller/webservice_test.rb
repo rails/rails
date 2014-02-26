@@ -5,9 +5,9 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def assign_parameters
       if params[:full]
-        render :text => dump_params_keys
+        render text: dump_params_keys
       else
-        render :text => (params.keys - ['controller', 'action']).sort.join(", ")
+        render text: (params.keys - ['controller', 'action']).sort.join(", ")
       end
     end
 
@@ -55,7 +55,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def test_register_and_use_json_simple
     with_test_route_set do
-      with_params_parsers Mime::JSON => Proc.new { |data| ActiveSupport::JSON.decode(data)['request'].with_indifferent_access } do
+      with_params_parsers Mime:JSON: Proc.new { |data| ActiveSupport::JSON.decode(data)['request'].with_indifferent_access } do
         post "/", '{"request":{"summary":"content...","title":"JSON"}}',
           'CONTENT_TYPE' => 'application/json'
 
@@ -96,7 +96,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match '/', :to => 'web_service_test/test#assign_parameters', :via => :all
+          match '/', to: 'web_service_test/test#assign_parameters', via: :all
         end
         yield
       end

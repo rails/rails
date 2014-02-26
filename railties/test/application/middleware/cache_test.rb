@@ -33,7 +33,7 @@ module ApplicationTests
           end
 
           def keeps_if_modified_since
-            render :text => request.headers['If-Modified-Since']
+            render text: request.headers['If-Modified-Since']
           end
         private
           def render_conditionally(headers)

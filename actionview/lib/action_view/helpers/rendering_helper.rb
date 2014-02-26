@@ -26,12 +26,12 @@ module ActionView
         case options
         when Hash
           if block_given?
-            view_renderer.render_partial(self, options.merge(:partial => options[:layout]), &block)
+            view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
           else
             view_renderer.render(self, options)
           end
         else
-          view_renderer.render_partial(self, :partial => options, :locals => locals)
+          view_renderer.render_partial(self, partial: options, locals: locals)
         end
       end
 

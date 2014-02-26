@@ -8,9 +8,9 @@ module ActiveRecord
     class SQLite3Adapter
       class QuotingTest < ActiveRecord::TestCase
         def setup
-          @conn = Base.sqlite3_connection :database => ':memory:',
-            :adapter => 'sqlite3',
-            :timeout => 100
+          @conn = Base.sqlite3_connection database: ':memory:',
+            adapter: 'sqlite3',
+            timeout: 100
         end
 
         def test_type_cast_binary_encoding_without_logger

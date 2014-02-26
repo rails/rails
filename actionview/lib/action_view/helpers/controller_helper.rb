@@ -8,7 +8,7 @@ module ActionView
       attr_internal :controller, :request
 
       delegate :request_forgery_protection_token, :params, :session, :cookies, :response, :headers,
-               :flash, :action_name, :controller_name, :controller_path, :to => :controller
+               :flash, :action_name, :controller_name, :controller_path, to: :controller
 
       def assign_controller(controller)
         if @_controller = controller

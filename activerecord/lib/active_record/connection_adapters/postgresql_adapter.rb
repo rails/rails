@@ -844,7 +844,7 @@ module ActiveRecord
             @connection.block
             @connection.get_last_result
           end
-        rescue ActiveRecord::StatementInvalid => e
+        rescue ActiveRecord:StatementInvalid: e
           pgerror = e.original_exception
 
           # Get the PG code for the failure.  Annoyingly, the code for
@@ -904,7 +904,7 @@ module ActiveRecord
           PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
 
           configure_connection
-        rescue ::PG::Error => error
+        rescue ::PG:Error: error
           if error.message.include?("does not exist")
             raise ActiveRecord::NoDatabaseError.new(error.message)
           else

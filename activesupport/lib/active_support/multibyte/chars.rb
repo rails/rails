@@ -46,7 +46,7 @@ module ActiveSupport #:nodoc:
       alias to_s wrapped_string
       alias to_str wrapped_string
 
-      delegate :<=>, :=~, :acts_like_string?, :to => :wrapped_string
+      delegate :<=>, :=~, :acts_like_string?, to: :wrapped_string
 
       # Creates a new Chars instance by wrapping _string_.
       def initialize(string)

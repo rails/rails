@@ -39,7 +39,7 @@ module ActiveSupport
       # Preemptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
-        instrument(:cleanup, :size => @data.size) do
+        instrument(:cleanup, size: @data.size) do
           keys = synchronize{ @data.keys }
           keys.each do |key|
             entry = @data[key]
@@ -56,7 +56,7 @@ module ActiveSupport
         begin
           start_time = Time.now
           cleanup
-          instrument(:prune, target_size, :from => @cache_size) do
+          instrument(:prune, target_size, from: @cache_size) do
             keys = synchronize{ @key_access.keys.sort{|a,b| @key_access[a].to_f <=> @key_access[b].to_f} }
             keys.each do |key|
               delete_entry(key, options)

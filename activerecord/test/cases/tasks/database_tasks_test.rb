@@ -175,7 +175,7 @@ module ActiveRecord
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = {:development => {'database' => 'my-db'}}
+      @configurations = {development: {'database' => 'my-db'}}
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end

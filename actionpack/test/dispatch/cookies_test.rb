@@ -38,7 +38,7 @@ class CookiesTest < ActionController::TestCase
     end
 
     def authenticate_for_fourteen_days_with_symbols
-      cookies[:user_name] = { :value => "david", :expires => Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
       head :ok
     end
 
@@ -61,17 +61,17 @@ class CookiesTest < ActionController::TestCase
     alias delete_cookie logout
 
     def delete_cookie_with_path
-      cookies.delete("user_name", :path => '/beaten')
+      cookies.delete("user_name", path: '/beaten')
       head :ok
     end
 
     def authenticate_with_http_only
-      cookies["user_name"] = { :value => "david", :httponly => true }
+      cookies["user_name"] = { value: "david", httponly: true }
       head :ok
     end
 
     def authenticate_with_secure
-      cookies["user_name"] = { :value => "david", :secure => true }
+      cookies["user_name"] = { value: "david", secure: true }
       head :ok
     end
 
@@ -123,37 +123,37 @@ class CookiesTest < ActionController::TestCase
 
     def delete_and_set_cookie
       cookies.delete :user_name
-      cookies[:user_name] = { :value => "david", :expires => Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
       head :ok
     end
 
     def set_cookie_with_domain
-      cookies[:user_name] = {:value => "rizwanreza", :domain => :all}
+      cookies[:user_name] = {value: "rizwanreza", domain: :all}
       head :ok
     end
 
     def delete_cookie_with_domain
-      cookies.delete(:user_name, :domain => :all)
+      cookies.delete(:user_name, domain: :all)
       head :ok
     end
 
     def set_cookie_with_domain_and_tld
-      cookies[:user_name] = {:value => "rizwanreza", :domain => :all, :tld_length => 2}
+      cookies[:user_name] = {value: "rizwanreza", domain: :all, tld_length: 2}
       head :ok
     end
 
     def delete_cookie_with_domain_and_tld
-      cookies.delete(:user_name, :domain => :all, :tld_length => 2)
+      cookies.delete(:user_name, domain: :all, tld_length: 2)
       head :ok
     end
 
     def set_cookie_with_domains
-      cookies[:user_name] = {:value => "rizwanreza", :domain => %w(example1.com example2.com .example3.com)}
+      cookies[:user_name] = {value: "rizwanreza", domain: %w(example1.com example2.com .example3.com)}
       head :ok
     end
 
     def delete_cookie_with_domains
-      cookies.delete(:user_name, :domain => %w(example1.com example2.com .example3.com))
+      cookies.delete(:user_name, domain: %w(example1.com example2.com .example3.com))
       head :ok
     end
 
@@ -349,8 +349,8 @@ class CookiesTest < ActionController::TestCase
 
   def test_deleted_cookie_predicate_with_mismatching_options
     cookies[:user_name] = 'Joe'
-    cookies.delete("user_name", :path => "/path")
-    assert_equal false, cookies.deleted?("user_name", :path => "/different")
+    cookies.delete("user_name", path: "/path")
+    assert_equal false, cookies.deleted?("user_name", path: "/different")
   end
 
   def test_cookies_persist_throughout_request

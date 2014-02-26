@@ -18,11 +18,11 @@ module Render
     end
 
     def access_request
-      render :action => "access_request"
+      render action: "access_request"
     end
 
     def render_action_name
-      render :action => "access_action_name"
+      render action: "access_action_name"
     end
 
     def overridden_with_own_view_paths_appended
@@ -37,14 +37,14 @@ module Render
     private
 
     def secretz
-      render :text => "FAIL WHALE!"
+      render text: "FAIL WHALE!"
     end
   end
 
   class DoubleRenderController < ActionController::Base
     def index
-      render :text => "hello"
-      render :text => "world"
+      render text: "hello"
+      render text: "world"
     end
   end
 
@@ -57,7 +57,7 @@ module Render
     test "render with blank" do
       with_routing do |set|
         set.draw do
-          get ":controller", :action => 'index'
+          get ":controller", action: 'index'
         end
 
         get "/render/blank_render"
@@ -70,7 +70,7 @@ module Render
     test "rendering more than once raises an exception" do
       with_routing do |set|
         set.draw do
-          get ":controller", :action => 'index'
+          get ":controller", action: 'index'
         end
 
         assert_raises(AbstractController::DoubleRenderError) do

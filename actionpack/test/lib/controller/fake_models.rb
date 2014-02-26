@@ -33,7 +33,7 @@ class ValidatedCustomer < Customer
     if name =~ /Sikachu/i
       []
     else
-      [{:name => "is invalid"}]
+      [{name: "is invalid"}]
     end
   end
 end
@@ -113,6 +113,6 @@ end
 
 class RenderJsonTestException < Exception
   def as_json(options = nil)
-    { :error => self.class.name, :message => self.to_s }
+    { error: self.class.name, message: self.to_s }
   end
 end

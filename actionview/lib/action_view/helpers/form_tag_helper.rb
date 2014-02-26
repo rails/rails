@@ -127,11 +127,11 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.delete(:include_blank)
-          option_tags = content_tag(:option, '', :value => '').safe_concat(option_tags)
+          option_tags = content_tag(:option, '', value: '').safe_concat(option_tags)
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = content_tag(:option, prompt, :value => '').safe_concat(option_tags)
+          option_tags = content_tag(:option, prompt, value: '').safe_concat(option_tags)
         end
 
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
@@ -465,7 +465,7 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
-      #   button_tag "Checkout", data: { :disable_with => "Please wait..." }
+      #   button_tag "Checkout", data: { disable_with: "Please wait..." }
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
@@ -677,7 +677,7 @@ module ActionView
       # Creates the hidden UTF8 enforcer tag. Override this method in a helper
       # to customize the tag.
       def utf8_enforcer_tag
-        tag(:input, :type => "hidden", :name => "utf8", :value => "&#x2713;".html_safe)
+        tag(:input, type: "hidden", name: "utf8", value: "&#x2713;".html_safe)
       end
 
       private
@@ -722,7 +722,7 @@ module ActionView
 
           enforce_utf8 = html_options.delete("enforce_utf8") { true }
           tags = (enforce_utf8 ? utf8_enforcer_tag : ''.html_safe) << method_tag
-          content_tag(:div, tags, :style => 'display:none')
+          content_tag(:div, tags, style: 'display:none')
         end
 
         def form_tag_html(html_options)

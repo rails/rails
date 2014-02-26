@@ -16,7 +16,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     begin
       @connection.transaction do
         @connection.create_table('json_data_type') do |t|
-          t.json 'payload', :default => {}
+          t.json 'payload', default: {}
           t.json 'settings'
         end
       end
@@ -50,7 +50,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
   end
 
   def test_cast_value_on_write
-    x = JsonDataType.new payload: {"string" => "foo", :symbol => :bar}
+    x = JsonDataType.new payload: {"string" => "foo", symbol: :bar}
     assert_equal({"string" => "foo", "symbol" => "bar"}, x.payload)
     x.save
     assert_equal({"string" => "foo", "symbol" => "bar"}, x.reload.payload)

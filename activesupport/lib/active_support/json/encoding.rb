@@ -8,7 +8,7 @@ module ActiveSupport
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
       :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
       :json_encoder, :json_encoder=,
-      :to => :'ActiveSupport::JSON::Encoding'
+      to: :'ActiveSupport::JSON::Encoding'
   end
 
   module JSON

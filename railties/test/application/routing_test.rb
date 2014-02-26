@@ -283,15 +283,15 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render :text => "foo"
+            render text: "foo"
           end
         end
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
-          get 'foo', :to => 'foo#index'
-          root :to => 'foo#index'
+          get 'foo', to: 'foo#index'
+          root to: 'foo#index'
         end
       RUBY
 
@@ -399,7 +399,7 @@ module ApplicationTests
 
       get '/en/foo'
       assert_equal 'foo', last_response.body
-      assert_equal '/en/foo', Rails.application.routes.url_helpers.foo_path(:locale => 'en')
+      assert_equal '/en/foo', Rails.application.routes.url_helpers.foo_path(locale: 'en')
 
       app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
@@ -414,7 +414,7 @@ module ApplicationTests
 
       get '/en/bar'
       assert_equal 'bar', last_response.body
-      assert_equal '/en/bar', Rails.application.routes.url_helpers.foo_path(:locale => 'en')
+      assert_equal '/en/bar', Rails.application.routes.url_helpers.foo_path(locale: 'en')
     end
 
     test 'resource routing with irregular inflection' do

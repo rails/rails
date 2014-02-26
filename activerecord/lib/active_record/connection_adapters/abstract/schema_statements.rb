@@ -44,7 +44,7 @@ module ActiveRecord
       #
       def index_exists?(table_name, column_name, options = {})
         column_names = Array(column_name)
-        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, :column => column_names)
+        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, column: column_names)
         if options[:unique]
           indexes(table_name).any?{ |i| i.unique && i.name == index_name }
         else
@@ -587,7 +587,7 @@ module ActiveRecord
             raise ArgumentError, "You must specify the index name"
           end
         else
-          index_name(table_name, :column => options)
+          index_name(table_name, column: options)
         end
       end
 

@@ -23,7 +23,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
     @connection.transaction do
       @connection.create_table('hstores') do |t|
-        t.hstore 'tags', :default => ''
+        t.hstore 'tags', default: ''
         t.hstore 'payload', array: true
         t.hstore 'settings'
       end
@@ -278,12 +278,12 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
     def assert_cycle(hash)
       # test creation
-      x = Hstore.create!(:tags => hash)
+      x = Hstore.create!(tags: hash)
       x.reload
       assert_equal(hash, x.tags)
 
       # test updating
-      x = Hstore.create!(:tags => {})
+      x = Hstore.create!(tags: {})
       x.tags = hash
       x.save!
       x.reload

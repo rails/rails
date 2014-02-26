@@ -28,7 +28,7 @@ module AbstractControllerTests
       self.view_paths = []
 
       def index
-        render :template => ActionView::Template::Text.new("Hello blank!")
+        render template: ActionView::Template::Text.new("Hello blank!")
       end
     end
 
@@ -36,23 +36,23 @@ module AbstractControllerTests
       layout "hello"
 
       def index
-        render :template => ActionView::Template::Text.new("Hello string!")
+        render template: ActionView::Template::Text.new("Hello string!")
       end
 
       def overwrite_default
-        render :template => ActionView::Template::Text.new("Hello string!"), :layout => :default
+        render template: ActionView::Template::Text.new("Hello string!"), layout: :default
       end
 
       def overwrite_false
-        render :template => ActionView::Template::Text.new("Hello string!"), :layout => false
+        render template: ActionView::Template::Text.new("Hello string!"), layout: false
       end
 
       def overwrite_string
-        render :template => ActionView::Template::Text.new("Hello string!"), :layout => "overwrite"
+        render template: ActionView::Template::Text.new("Hello string!"), layout: "overwrite"
       end
 
       def overwrite_skip
-        render :text => "Hello text!"
+        render text: "Hello text!"
       end
     end
 
@@ -78,7 +78,7 @@ module AbstractControllerTests
       layout proc { "overwrite" }
 
       def index
-        render :template => ActionView::Template::Text.new("Hello proc!")
+        render template: ActionView::Template::Text.new("Hello proc!")
       end
     end
 
@@ -94,7 +94,7 @@ module AbstractControllerTests
       layout proc { "overwrite" }
 
       def index
-        render :template => ActionView::Template::Text.new("Hello zero arity proc!")
+        render template: ActionView::Template::Text.new("Hello zero arity proc!")
       end
     end
 
@@ -107,7 +107,7 @@ module AbstractControllerTests
       }
 
       def index
-        render :template => ActionView::Template::Text.new("Hello again zero arity proc!")
+        render template: ActionView::Template::Text.new("Hello again zero arity proc!")
       end
     end
 
@@ -115,7 +115,7 @@ module AbstractControllerTests
       layout :hello
 
       def index
-        render :template => ActionView::Template::Text.new("Hello symbol!")
+        render template: ActionView::Template::Text.new("Hello symbol!")
       end
     private
       def hello
@@ -127,7 +127,7 @@ module AbstractControllerTests
       layout :nilz
 
       def index
-        render :template => ActionView::Template::Text.new("Hello nilz!")
+        render template: ActionView::Template::Text.new("Hello nilz!")
       end
 
       def nilz() end
@@ -137,7 +137,7 @@ module AbstractControllerTests
       layout :objekt
 
       def index
-        render :template => ActionView::Template::Text.new("Hello nilz!")
+        render template: ActionView::Template::Text.new("Hello nilz!")
       end
 
       def objekt
@@ -149,7 +149,7 @@ module AbstractControllerTests
       layout :no_method
 
       def index
-        render :template => ActionView::Template::Text.new("Hello boom!")
+        render template: ActionView::Template::Text.new("Hello boom!")
       end
     end
 
@@ -157,7 +157,7 @@ module AbstractControllerTests
       layout "missing"
 
       def index
-        render :template => ActionView::Template::Text.new("Hello missing!")
+        render template: ActionView::Template::Text.new("Hello missing!")
       end
     end
 
@@ -165,7 +165,7 @@ module AbstractControllerTests
       layout false
 
       def index
-        render :template => ActionView::Template::Text.new("Hello false!")
+        render template: ActionView::Template::Text.new("Hello false!")
       end
     end
 
@@ -173,31 +173,31 @@ module AbstractControllerTests
       layout nil
 
       def index
-        render :template => ActionView::Template::Text.new("Hello nil!")
+        render template: ActionView::Template::Text.new("Hello nil!")
       end
     end
 
     class WithOnlyConditional < WithStringImpliedChild
-      layout "overwrite", :only => :show
+      layout "overwrite", only: :show
 
       def index
-        render :template => ActionView::Template::Text.new("Hello index!")
+        render template: ActionView::Template::Text.new("Hello index!")
       end
 
       def show
-        render :template => ActionView::Template::Text.new("Hello show!")
+        render template: ActionView::Template::Text.new("Hello show!")
       end
     end
 
     class WithExceptConditional < WithStringImpliedChild
-      layout "overwrite", :except => :show
+      layout "overwrite", except: :show
 
       def index
-        render :template => ActionView::Template::Text.new("Hello index!")
+        render template: ActionView::Template::Text.new("Hello index!")
       end
 
       def show
-        render :template => ActionView::Template::Text.new("Hello show!")
+        render template: ActionView::Template::Text.new("Hello show!")
       end
     end
 
@@ -371,7 +371,7 @@ module AbstractControllerTests
       test "layout for anonymous controller" do
         klass = Class.new(WithString) do
           def index
-            render :text => 'index', :layout => true
+            render text: 'index', layout: true
           end
         end
 

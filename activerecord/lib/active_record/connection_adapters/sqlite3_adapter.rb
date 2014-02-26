@@ -25,13 +25,13 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        :results_as_hash => true
+        results_as_hash: true
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
-    rescue Errno::ENOENT => error
+    rescue Errno:ENOENT: error
       if error.message.include?("No such file or directory")
         raise ActiveRecord::NoDatabaseError.new(error.message)
       else
@@ -305,7 +305,7 @@ module ActiveRecord
             stmt = records
           else
             cache = @statements[sql] ||= {
-              :stmt => @connection.prepare(sql)
+              stmt: @connection.prepare(sql)
             }
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
@@ -498,7 +498,7 @@ module ActiveRecord
         unless columns(table_name).detect{|c| c.name == column_name.to_s }
           raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
         end
-        alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
+        alter_table(table_name, rename: {column_name.to_s => new_column_name.to_s})
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
@@ -519,7 +519,7 @@ module ActiveRecord
 
           transaction do
             move_table(table_name, altered_table_name,
-              options.merge(:temporary => true))
+              options.merge(temporary: true))
             move_table(altered_table_name, table_name, &caller)
           end
         end
@@ -543,9 +543,9 @@ module ActiveRecord
               next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
-                :limit => column.limit, :default => column.default,
-                :precision => column.precision, :scale => column.scale,
-                :null => column.null)
+                limit: column.limit, default: column.default,
+                precision: column.precision, scale: column.scale,
+                null: column.null)
             end
             yield @definition if block_given?
           end

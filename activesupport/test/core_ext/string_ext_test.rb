@@ -210,16 +210,16 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_with_omission_and_seperator
-    assert_equal "Hello[...]", "Hello World!".truncate(10, :omission => "[...]")
-    assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => ' ')
-    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => ' ')
-    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => ' ')
+    assert_equal "Hello[...]", "Hello World!".truncate(10, omission: "[...]")
+    assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: ' ')
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: ' ')
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: ' ')
   end
 
   def test_truncate_with_omission_and_regexp_seperator
-    assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => /\s/)
-    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => /\s/)
-    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => /\s/)
+    assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: /\s/)
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: /\s/)
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/)
   end
 
   def test_truncate_multibyte
@@ -693,7 +693,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test 'emits normal string yaml' do
-    assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
+    assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(foo: 1)
   end
 
   test "call to_param returns a normal string" do

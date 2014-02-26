@@ -31,94 +31,94 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_request_via_redirect_uses_given_method
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.expects(:process).with(:put, path, args, headers)
     @session.stubs(:redirect?).returns(false)
     @session.request_via_redirect(:put, path, args, headers)
   end
 
   def test_request_via_redirect_follows_redirects
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stubs(:redirect?).returns(true, true, false)
     @session.expects(:follow_redirect!).times(2)
     @session.request_via_redirect(:get, path, args, headers)
   end
 
   def test_request_via_redirect_returns_status
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue"}
     @session.stubs(:redirect?).returns(false)
     @session.stubs(:status).returns(200)
     assert_equal 200, @session.request_via_redirect(:get, path, args, headers)
   end
 
   def test_get_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:get, path, args, headers)
     @session.get_via_redirect(path, args, headers)
   end
 
   def test_post_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:post, path, args, headers)
     @session.post_via_redirect(path, args, headers)
   end
 
   def test_patch_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:patch, path, args, headers)
     @session.patch_via_redirect(path, args, headers)
   end
 
   def test_put_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:put, path, args, headers)
     @session.put_via_redirect(path, args, headers)
   end
 
   def test_delete_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = {id: '1'}; headers = {"X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:delete, path, args, headers)
     @session.delete_via_redirect(path, args, headers)
   end
 
   def test_get
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:get,path,params,headers)
     @session.get(path,params,headers)
   end
 
   def test_post
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:post,path,params,headers)
     @session.post(path,params,headers)
   end
 
   def test_patch
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:patch,path,params,headers)
     @session.patch(path,params,headers)
   end
 
   def test_put
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:put,path,params,headers)
     @session.put(path,params,headers)
   end
 
   def test_delete
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:delete,path,params,headers)
     @session.delete(path,params,headers)
   end
 
   def test_head
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     @session.expects(:process).with(:head,path,params,headers)
     @session.head(path,params,headers)
   end
 
   def test_xml_http_request_get
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -128,7 +128,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_post
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -138,7 +138,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_patch
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -148,7 +148,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_put
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -158,7 +158,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_delete
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -168,7 +168,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_head
-    path = "/index"; params = "blah"; headers = {:location => 'blah'}
+    path = "/index"; params = "blah"; headers = {location: 'blah'}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
       "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
@@ -178,7 +178,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_xml_http_request_override_accept
-    path = "/index"; params = "blah"; headers = {:location => 'blah', "HTTP_ACCEPT" => "application/xml"}
+    path = "/index"; params = "blah"; headers = {location: 'blah', "HTTP_ACCEPT" => "application/xml"}
     headers_after_xhr = headers.merge(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
     )
@@ -244,27 +244,27 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
-        format.html { render :text => "OK", :status => 200 }
-        format.js { render :text => "JS OK", :status => 200 }
+        format.html { render text: "OK", status: 200 }
+        format.js { render text: "JS OK", status: 200 }
       end
     end
 
     def get_with_params
-      render :text => "foo: #{params[:foo]}", :status => 200
+      render text: "foo: #{params[:foo]}", status: 200
     end
 
     def post
-      render :text => "Created", :status => 201
+      render text: "Created", status: 201
     end
 
     def method
-      render :text => "method: #{request.method.downcase}"
+      render text: "method: #{request.method.downcase}"
     end
 
     def cookie_monster
       cookies["cookie_1"] = nil
       cookies["cookie_3"] = "chocolate"
-      render :text => "Gone", :status => 410
+      render text: "Gone", status: 410
     end
 
     def set_cookie
@@ -273,7 +273,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def get_cookie
-      render :text => cookies["foo"]
+      render text: cookies["foo"]
     end
 
     def redirect
@@ -414,7 +414,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   def test_get_with_parameters
     with_test_route_set do
-      get '/get_with_params', :foo => "bar"
+      get '/get_with_params', foo: "bar"
       assert_equal '/get_with_params', request.env["PATH_INFO"]
       assert_equal '/get_with_params', request.path_info
       assert_equal 'foo=bar', request.env["QUERY_STRING"]
@@ -447,7 +447,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_with_controller
-    assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
+    assert_equal 'http://www.example.com/foo', url_for(controller: "foo")
   end
 
   def test_port_via_host!
@@ -511,8 +511,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          match ':action', :to => controller, :via => [:get, :post], :as => :action
-          get 'get/:action', :to => controller, :as => :get_action
+          match ':action', to: controller, via: [:get, :post], as: :action
+          get 'get/:action', to: controller, as: :get_action
         end
 
         self.singleton_class.send(:include, set.url_helpers)
@@ -555,7 +555,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   def test_generate_url_without_controller
-    assert_equal 'http://www.example.com/foo', url_for(:controller => "foo")
+    assert_equal 'http://www.example.com/foo', url_for(controller: "foo")
   end
 
   def test_pass_headers
@@ -577,7 +577,7 @@ end
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def index
-      render :text => "index"
+      render text: "index"
     end
   end
 
@@ -595,7 +595,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     end
 
     routes.draw do
-      get 'baz', :to => 'application_integration_test/test#index', :as => :baz
+      get 'baz', to: 'application_integration_test/test#index', as: :baz
     end
 
     def self.call(*)
@@ -603,12 +603,12 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    get '',    :to => 'application_integration_test/test#index', :as => :empty_string
+    get '',    to: 'application_integration_test/test#index', as: :empty_string
 
-    get 'foo', :to => 'application_integration_test/test#index', :as => :foo
-    get 'bar', :to => 'application_integration_test/test#index', :as => :bar
+    get 'foo', to: 'application_integration_test/test#index', as: :foo
+    get 'bar', to: 'application_integration_test/test#index', as: :bar
 
-    mount MountedApp => '/mounted', :as => "mounted"
+    mount MountedApp => '/mounted', as: "mounted"
   end
 
   def app
@@ -646,7 +646,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "process do not modify the env passed as argument" do
-    env = { :SERVER_NAME => 'server', 'action_dispatch.custom' => 'custom' }
+    env = { SERVER_NAME: 'server', 'action_dispatch.custom' => 'custom' }
     old_env = env.dup
     get '/foo', nil, env
     assert_equal old_env, env
@@ -656,7 +656,7 @@ end
 class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     def post
-      render :text => "Created", :status => 201
+      render text: "Created", status: 201
     end
   end
 
@@ -670,7 +670,7 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    match '/post', :to => 'environment_filter_integration_test/test#post', :via => :post
+    match '/post', to: 'environment_filter_integration_test/test#post', via: :post
   end
 
   def app
@@ -678,7 +678,7 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "filters rack request form vars" do
-    post "/post", :username => 'cjolly', :password => 'secret'
+    post "/post", username: 'cjolly', password: 'secret'
 
     assert_equal 'cjolly', request.filtered_parameters['username']
     assert_equal '[FILTERED]', request.filtered_parameters['password']
@@ -689,25 +689,25 @@ end
 class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def index
-      render :text => "foo#index"
+      render text: "foo#index"
     end
 
     def show
-      render :text => "foo#show"
+      render text: "foo#show"
     end
 
     def edit
-      render :text => "foo#show"
+      render text: "foo#show"
     end
   end
 
   class BarController < ActionController::Base
     def default_url_options
-      { :host => "bar.com" }
+      { host: "bar.com" }
     end
 
     def index
-      render :text => "foo#index"
+      render text: "foo#index"
     end
   end
 
@@ -724,13 +724,13 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   routes.draw do
-    default_url_options :host => "foo.com"
+    default_url_options host: "foo.com"
 
-    scope :module => "url_options_integration_test" do
-      get "/foo" => "foo#index", :as => :foos
-      get "/foo/:id" => "foo#show", :as => :foo
-      get "/foo/:id/edit" => "foo#edit", :as => :edit_foo
-      get "/bar" => "bar#index", :as => :bars
+    scope module: "url_options_integration_test" do
+      get "/foo" => "foo#index", as: :foos
+      get "/foo/:id" => "foo#show", as: :foo
+      get "/foo/:id/edit" => "foo#edit", as: :edit_foo
+      get "/bar" => "bar#index", as: :bars
     end
   end
 
@@ -766,6 +766,6 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   test "current request path parameters are recalled" do
     get "/foo/1"
     assert_response :success
-    assert_equal "/foo/1/edit", url_for(:action => 'edit', :only_path => true)
+    assert_equal "/foo/1/edit", url_for(action: 'edit', only_path: true)
   end
 end

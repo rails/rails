@@ -18,7 +18,7 @@ module ActiveRecord
       client = Mysql2::Client.new(config)
       options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
-    rescue Mysql2::Error => error
+    rescue Mysql2:Error: error
       if error.message.include?("Unknown database")
         raise ActiveRecord::NoDatabaseError.new(error.message)
       else
@@ -61,7 +61,7 @@ module ActiveRecord
 
       def each_hash(result) # :nodoc:
         if block_given?
-          result.each(:as => :hash, :symbolize_keys => true) do |row|
+          result.each(as: :hash, symbolize_keys: true) do |row|
             yield row
           end
         else
@@ -268,7 +268,7 @@ module ActiveRecord
       end
 
       def configure_connection
-        @connection.query_options.merge!(:as => :array)
+        @connection.query_options.merge!(as: :array)
         super
       end
 

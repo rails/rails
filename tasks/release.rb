@@ -53,14 +53,14 @@ directory "pkg"
       sh cmd
     end
 
-    task :build => [:clean, gem]
-    task :install => :build do
+    task build: [:clean, gem]
+    task install: :build do
       sh "gem install #{gem}"
     end
 
-    task :prep_release => [:ensure_clean_state, :build]
+    task prep_release: [:ensure_clean_state, :build]
 
-    task :push => :build do
+    task push: :build do
       sh "gem push #{gem}"
     end
   end
@@ -93,9 +93,9 @@ namespace :changelog do
 end
 
 namespace :all do
-  task :build   => FRAMEWORKS.map { |f| "#{f}:build"   } + ['rails:build']
-  task :install => FRAMEWORKS.map { |f| "#{f}:install" } + ['rails:install']
-  task :push    => FRAMEWORKS.map { |f| "#{f}:push"    } + ['rails:push']
+  task build: FRAMEWORKS.map { |f| "#{f}:build"   } + ['rails:build']
+  task install: FRAMEWORKS.map { |f| "#{f}:install" } + ['rails:install']
+  task push: FRAMEWORKS.map { |f| "#{f}:push"    } + ['rails:push']
 
   task :ensure_clean_state do
     unless `git status -s | grep -v RAILS_VERSION`.strip.empty?
@@ -124,5 +124,5 @@ namespace :all do
     sh "git push --tags"
   end
 
-  task :release => %w(ensure_clean_state build commit tag push)
+  task release: %w(ensure_clean_state build commit tag push)
 end

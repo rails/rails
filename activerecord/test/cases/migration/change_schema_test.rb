@@ -40,7 +40,7 @@ module ActiveRecord
 
       def test_create_table_with_not_null_column
         connection.create_table :testings do |t|
-          t.column :foo, :string, :null => false
+          t.column :foo, :string, null: false
         end
 
         assert_raises(ActiveRecord::StatementInvalid) do
@@ -53,11 +53,11 @@ module ActiveRecord
         mysql = current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 
         connection.create_table :testings do |t|
-          t.column :one, :string, :default => "hello"
-          t.column :two, :boolean, :default => true
-          t.column :three, :boolean, :default => false
-          t.column :four, :integer, :default => 1
-          t.column :five, :text, :default => "hello" unless mysql
+          t.column :one, :string, default: "hello"
+          t.column :two, :boolean, default: true
+          t.column :three, :boolean, default: false
+          t.column :four, :integer, default: 1
+          t.column :five, :text, default: "hello" unless mysql
         end
 
         columns = connection.columns(:testings)
@@ -77,7 +77,7 @@ module ActiveRecord
       if current_adapter?(:PostgreSQLAdapter)
         def test_add_column_with_array
           connection.create_table :testings
-          connection.add_column :testings, :foo, :string, :array => true
+          connection.add_column :testings, :foo, :string, array: true
 
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
@@ -87,7 +87,7 @@ module ActiveRecord
 
         def test_create_table_with_array_column
           connection.create_table :testings do |t|
-            t.string :foo, :array => true
+            t.string :foo, array: true
           end
 
           columns = connection.columns(:testings)
@@ -99,13 +99,13 @@ module ActiveRecord
 
       def test_create_table_with_limits
         connection.create_table :testings do |t|
-          t.column :foo, :string, :limit => 255
+          t.column :foo, :string, limit: 255
 
           t.column :default_int, :integer
 
-          t.column :one_int,    :integer, :limit => 1
-          t.column :four_int,   :integer, :limit => 4
-          t.column :eight_int,  :integer, :limit => 8
+          t.column :one_int,    :integer, limit: 1
+          t.column :four_int,   :integer, limit: 4
+          t.column :eight_int,  :integer, limit: 8
         end
 
         columns = connection.columns(:testings)
@@ -190,7 +190,7 @@ module ActiveRecord
 
       def test_create_table_with_timestamps_should_create_datetime_columns_with_options
         connection.create_table table_name do |t|
-          t.timestamps :null => false
+          t.timestamps null: false
         end
         created_columns = connection.columns(table_name)
 
@@ -212,7 +212,7 @@ module ActiveRecord
           connection.create_table :testings do |t|
             t.column :foo, :string
           end
-          connection.add_column :testings, :bar, :string, :null => false
+          connection.add_column :testings, :bar, :string, null: false
 
           assert_raise(ActiveRecord::StatementInvalid) do
             connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
@@ -229,7 +229,7 @@ module ActiveRecord
         connection.enable_identity_insert("testings", true) if current_adapter?(:SybaseAdapter)
         connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
         connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
-        assert_nothing_raised {connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
+        assert_nothing_raised {connection.add_column :testings, :bar, :string, null: false, default: "default" }
 
         assert_raises(ActiveRecord::StatementInvalid) do
           unless current_adapter?(:OpenBaseAdapter)
@@ -246,7 +246,7 @@ module ActiveRecord
           t.column :select, :string
         end
 
-        connection.change_column :testings, :select, :string, :limit => 10
+        connection.change_column :testings, :select, :string, limit: 10
 
         # Oracle needs primary key value from sequence
         if current_adapter?(:OracleAdapter)
@@ -263,7 +263,7 @@ module ActiveRecord
         person_klass = Class.new(ActiveRecord::Base)
         person_klass.table_name = 'testings'
 
-        person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
+        person_klass.connection.add_column "testings", "wealth", :integer, null: false, default: 99
         person_klass.reset_column_information
         assert_equal 99, person_klass.columns_hash["wealth"].default
         assert_equal false, person_klass.columns_hash["wealth"].null
@@ -288,13 +288,13 @@ module ActiveRecord
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column
-        person_klass.connection.change_column "testings", "money", :integer, :null => false, :default => 1000
+        person_klass.connection.change_column "testings", "money", :integer, null: false, default: 1000
         person_klass.reset_column_information
         assert_equal 1000, person_klass.columns_hash["money"].default
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column, make it nullable and clear default
-        person_klass.connection.change_column "testings", "money", :integer, :null => true, :default => nil
+        person_klass.connection.change_column "testings", "money", :integer, null: true, default: nil
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["money"].default
         assert_equal true, person_klass.columns_hash["money"].null
@@ -336,7 +336,7 @@ module ActiveRecord
       def test_column_exists_with_type
         connection.create_table :testings do |t|
           t.column :foo, :string
-          t.column :bar, :decimal, :precision => 8, :scale => 2
+          t.column :bar, :decimal, precision: 8, scale: 2
         end
 
         assert connection.column_exists?(:testings, :foo, :string)
@@ -376,7 +376,7 @@ module ActiveRecord
 
       private
       def testing_table_with_only_foo_attribute
-        connection.create_table :testings, :id => false do |t|
+        connection.create_table :testings, id: false do |t|
           t.column :foo, :string
         end
 

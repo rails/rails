@@ -477,7 +477,7 @@ module ActiveRecord
     # in the Active Record class.
     class ThroughReflection < AssociationReflection #:nodoc:
       delegate :foreign_key, :foreign_type, :association_foreign_key,
-               :active_record_primary_key, :type, :to => :source_reflection
+               :active_record_primary_key, :type, to: :source_reflection
 
       def initialize(macro, name, scope, options, active_record)
         super
@@ -535,7 +535,7 @@ module ActiveRecord
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.chain
-      #   # => [<ActiveRecord::Reflection::ThroughReflection: @macro=:has_many, @name=:tags, @options={:through=>:taggings}, @active_record=Post>,
+      #   # => [<ActiveRecord::Reflection::ThroughReflection: @macro=:has_many, @name=:tags, @options={through::taggings}, @active_record=Post>,
       #         <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @options={}, @active_record=Post>]
       #
       def chain

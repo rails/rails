@@ -7,15 +7,15 @@ class ControllerWithBeforeActionAndDefaultUrlOptions < ActionController::Base
   after_action { I18n.locale = "en" }
 
   def target
-    render :text => "final response"
+    render text: "final response"
   end
 
   def redirect
-    redirect_to :action => "target"
+    redirect_to action: "target"
   end
 
   def default_url_options
-    {:locale => "de"}
+    {locale: "de"}
   end
 end
 
@@ -23,7 +23,7 @@ class ControllerWithBeforeActionAndDefaultUrlOptionsTest < ActionController::Tes
 
   # This test has its roots in issue #1872
   test "should redirect with correct locale :de" do
-    get :redirect, :locale => "de"
+    get :redirect, locale: "de"
     assert_redirected_to "/controller_with_before_action_and_default_url_options/target?locale=de"
   end
 end

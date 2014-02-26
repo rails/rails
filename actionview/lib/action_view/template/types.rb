@@ -28,7 +28,7 @@ module ActionView
           @symbol = symbol.to_sym
         end
 
-        delegate :to_s, :to_sym, :to => :symbol
+        delegate :to_s, :to_sym, to: :symbol
         alias to_str to_s
 
         def ref

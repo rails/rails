@@ -6,7 +6,7 @@ module ActiveRecord
   #
   #   begin
   #     complex_operation_that_calls_save!_internally
-  #   rescue ActiveRecord::RecordInvalid => invalid
+  #   rescue ActiveRecord:RecordInvalid: invalid
   #     puts invalid.record.errors
   #   end
   class RecordInvalid < ActiveRecordError
@@ -14,7 +14,7 @@ module ActiveRecord
     def initialize(record) # :nodoc:
       @record = record
       errors = @record.errors.full_messages.join(", ")
-      super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", :errors => errors, :default => :"errors.messages.record_invalid"))
+      super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", errors: errors, default: :"errors.messages.record_invalid"))
     end
   end
 

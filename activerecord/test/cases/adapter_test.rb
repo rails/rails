@@ -43,7 +43,7 @@ module ActiveRecord
         indexes = @connection.indexes("accounts")
         assert indexes.empty?
 
-        @connection.add_index :accounts, :firm_id, :name => idx_name
+        @connection.add_index :accounts, :firm_id, name: idx_name
         indexes = @connection.indexes("accounts")
         assert_equal "accounts", indexes.first.table
         # OpenBase does not have the concept of a named index
@@ -56,7 +56,7 @@ module ActiveRecord
       end
 
     ensure
-      @connection.remove_index(:accounts, :name => idx_name) rescue nil
+      @connection.remove_index(:accounts, name: idx_name) rescue nil
     end
 
     def test_current_database
@@ -124,14 +124,14 @@ module ActiveRecord
       def test_reset_empty_table_with_custom_pk
         Movie.delete_all
         Movie.connection.reset_pk_sequence! 'movies'
-        assert_equal 1, Movie.create(:name => 'fight club').id
+        assert_equal 1, Movie.create(name: 'fight club').id
       end
 
       if ActiveRecord::Base.connection.adapter_name != "FrontBase"
         def test_reset_table_with_non_integer_pk
           Subscriber.delete_all
           Subscriber.connection.reset_pk_sequence! 'subscribers'
-          sub = Subscriber.new(:name => 'robert drake')
+          sub = Subscriber.new(name: 'robert drake')
           sub.id = 'bob drake'
           assert_nothing_raised { sub.save! }
         end
