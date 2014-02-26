@@ -84,7 +84,7 @@ module ActiveModel
       def _to_partial_path #:nodoc:
         @_to_partial_path ||= begin
           element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self))
-          collection = ActiveSupport::Inflector.tableize(self)
+          collection = ActiveSupport::Inflector.tableize(name)
           "#{collection}/#{element}".freeze
         end
       end
