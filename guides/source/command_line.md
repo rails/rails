@@ -411,7 +411,7 @@ The `doc:` namespace has the tools to generate documentation for your app, API d
 
 ### `notes`
 
-`rake notes` will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is done in files with extension `.builder`, `.rb`, `.erb`, `.haml` and `.slim` for both default and custom annotations.
+`rake notes` will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is done in files with extension `.builder`, `.rb`, `.erb`, `.haml`, `.slim`, `.css`, `.scss`, `.js`, `.coffee`, `.rake`, `.sass` and `.less` for both default and custom annotations.
 
 ```bash
 $ rake notes
