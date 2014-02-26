@@ -222,4 +222,31 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test "validate uniqueness" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Book'; end
+      enum status: [:proposed, :written]
+      validates_uniqueness_of :status
+    end
+    klass.delete_all
+    klass.create!(status: "proposed")
+    book = klass.new(status: "written")
+    assert book.valid?
+    book.status = "proposed"
+    assert_not book.valid?
+  end
+
+  test "validate inclusion of value in array" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Book'; end
+      enum status: [:proposed, :written]
+      validates_inclusion_of :status, in: ["written"]
+    end
+    klass.delete_all
+    invalid_book = klass.new(status: "proposed")
+    assert_not invalid_book.valid?
+    valid_book = klass.new(status: "written")
+    assert valid_book.valid?
+  end
 end
