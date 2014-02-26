@@ -5,41 +5,41 @@ class RespondToController < ActionController::Base
 
   def html_xml_or_rss
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
-      type.rss  { render :text => "RSS"     }
-      type.all  { render :text => "Nothing" }
+      type.html { render text: "HTML"    }
+      type.xml  { render text: "XML"     }
+      type.rss  { render text: "RSS"     }
+      type.all  { render text: "Nothing" }
     end
   end
 
   def js_or_html
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.js   { render :text => "JS"      }
-      type.all  { render :text => "Nothing" }
+      type.html { render text: "HTML"    }
+      type.js   { render text: "JS"      }
+      type.all  { render text: "Nothing" }
     end
   end
 
   def json_or_yaml
     respond_to do |type|
-      type.json { render :text => "JSON" }
-      type.yaml { render :text => "YAML" }
+      type.json { render text: "JSON" }
+      type.yaml { render text: "YAML" }
     end
   end
 
   def html_or_xml
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
-      type.all  { render :text => "Nothing" }
+      type.html { render text: "HTML"    }
+      type.xml  { render text: "XML"     }
+      type.all  { render text: "Nothing" }
     end
   end
 
   def json_xml_or_html
     respond_to do |type|
-      type.json { render :text => 'JSON' }
-      type.xml { render :xml => 'XML' }
-      type.html { render :text => 'HTML' }
+      type.json { render text: 'JSON' }
+      type.xml { render xml: 'XML' }
+      type.html { render text: 'HTML' }
     end
   end
 
@@ -48,14 +48,14 @@ class RespondToController < ActionController::Base
     request.format = :xml
 
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.xml  { render :text => "XML"     }
+      type.html { render text: "HTML"    }
+      type.xml  { render text: "XML"     }
     end
   end
 
   def just_xml
     respond_to do |type|
-      type.xml  { render :text => "XML" }
+      type.xml  { render text: "XML" }
     end
   end
 
@@ -79,46 +79,46 @@ class RespondToController < ActionController::Base
 
   def made_for_content_type
     respond_to do |type|
-      type.rss  { render :text => "RSS"  }
-      type.atom { render :text => "ATOM" }
-      type.all  { render :text => "Nothing" }
+      type.rss  { render text: "RSS"  }
+      type.atom { render text: "ATOM" }
+      type.all  { render text: "Nothing" }
     end
   end
 
   def custom_type_handling
     respond_to do |type|
-      type.html { render :text => "HTML"    }
-      type.custom("application/crazy-xml")  { render :text => "Crazy XML"  }
-      type.all  { render :text => "Nothing" }
+      type.html { render text: "HTML"    }
+      type.custom("application/crazy-xml")  { render text: "Crazy XML"  }
+      type.all  { render text: "Nothing" }
     end
   end
 
 
   def custom_constant_handling
     respond_to do |type|
-      type.html   { render :text => "HTML"   }
-      type.mobile { render :text => "Mobile" }
+      type.html   { render text: "HTML"   }
+      type.mobile { render text: "Mobile" }
     end
   end
 
   def custom_constant_handling_without_block
     respond_to do |type|
-      type.html   { render :text => "HTML"   }
+      type.html   { render text: "HTML"   }
       type.mobile
     end
   end
 
   def handle_any
     respond_to do |type|
-      type.html { render :text => "HTML" }
-      type.any(:js, :xml) { render :text => "Either JS or XML" }
+      type.html { render text: "HTML" }
+      type.any(:js, :xml) { render text: "Either JS or XML" }
     end
   end
 
   def handle_any_any
     respond_to do |type|
-      type.html { render :text => 'HTML' }
-      type.any { render :text => 'Whatever you ask for, I got it' }
+      type.html { render text: 'HTML' }
+      type.any { render text: 'Whatever you ask for, I got it' }
     end
   end
 
@@ -141,8 +141,8 @@ class RespondToController < ActionController::Base
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
 
     respond_to do |type|
-      type.html   { @type = "Firefox"; render :action => "iphone_with_html_response_type" }
-      type.iphone { @type = "iPhone" ; render :action => "iphone_with_html_response_type" }
+      type.html   { @type = "Firefox"; render action: "iphone_with_html_response_type" }
+      type.iphone { @type = "iPhone" ; render action: "iphone_with_html_response_type" }
     end
   end
 
@@ -334,10 +334,10 @@ class RespondToControllerTest < ActionController::TestCase
     xhr :get, :json_or_yaml
     assert_equal 'JSON', @response.body
 
-    get :json_or_yaml, :format => 'json'
+    get :json_or_yaml, format: 'json'
     assert_equal 'JSON', @response.body
 
-    get :json_or_yaml, :format => 'yaml'
+    get :json_or_yaml, format: 'yaml'
     assert_equal 'YAML', @response.body
 
     { 'YAML' => %w(text/yaml),
@@ -470,7 +470,7 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_handle_any_any_parameter_format
-    get :handle_any_any, {:format=>'html'}
+    get :handle_any_any, {format:'html'}
     assert_equal 'HTML', @response.body
   end
 
@@ -514,13 +514,13 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_custom_constant
-    get :custom_constant_handling, :format => "mobile"
+    get :custom_constant_handling, format: "mobile"
     assert_equal "text/x-mobile", @response.content_type
     assert_equal "Mobile", @response.body
   end
 
   def test_custom_constant_handling_without_block
-    get :custom_constant_handling_without_block, :format => "mobile"
+    get :custom_constant_handling_without_block, format: "mobile"
     assert_equal "text/x-mobile", @response.content_type
     assert_equal "Mobile", @response.body
   end
@@ -529,13 +529,13 @@ class RespondToControllerTest < ActionController::TestCase
     get :html_xml_or_rss
     assert_equal "HTML", @response.body
 
-    get :html_xml_or_rss, :format => "html"
+    get :html_xml_or_rss, format: "html"
     assert_equal "HTML", @response.body
 
-    get :html_xml_or_rss, :format => "xml"
+    get :html_xml_or_rss, format: "xml"
     assert_equal "XML", @response.body
 
-    get :html_xml_or_rss, :format => "rss"
+    get :html_xml_or_rss, format: "rss"
     assert_equal "RSS", @response.body
   end
 
@@ -543,12 +543,12 @@ class RespondToControllerTest < ActionController::TestCase
     get :forced_xml
     assert_equal "XML", @response.body
 
-    get :forced_xml, :format => "html"
+    get :forced_xml, format: "html"
     assert_equal "XML", @response.body
   end
 
   def test_extension_synonyms
-    get :html_xml_or_rss, :format => "xhtml"
+    get :html_xml_or_rss, format: "xhtml"
     assert_equal "HTML", @response.body
   end
 
@@ -565,7 +565,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :using_defaults
     assert_equal "using_defaults - #{[:html].to_s}", @response.body
 
-    get :using_defaults, :format => "xml"
+    get :using_defaults, format: "xml"
     assert_equal "using_defaults - #{[:xml].to_s}", @response.body
   end
 
@@ -573,7 +573,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :iphone_with_html_response_type
     assert_equal '<html><div id="html">Hello future from Firefox!</div></html>', @response.body
 
-    get :iphone_with_html_response_type, :format => "iphone"
+    get :iphone_with_html_response_type, format: "iphone"
     assert_equal "text/html", @response.content_type
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
   end
@@ -587,7 +587,7 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_invalid_format
     assert_raises(ActionController::UnknownFormat) do
-      get :using_defaults, :format => "invalidformat"
+      get :using_defaults, format: "invalidformat"
     end
   end
 

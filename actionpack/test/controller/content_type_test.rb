@@ -4,29 +4,29 @@ class OldContentTypeController < ActionController::Base
   # :ported:
   def render_content_type_from_body
     response.content_type = Mime::RSS
-    render :text => "hello world!"
+    render text: "hello world!"
   end
 
   # :ported:
   def render_defaults
-    render :text => "hello world!"
+    render text: "hello world!"
   end
 
   # :ported:
   def render_content_type_from_render
-    render :text => "hello world!", :content_type => Mime::RSS
+    render text: "hello world!", content_type: Mime::RSS
   end
 
   # :ported:
   def render_charset_from_body
     response.charset = "utf-16"
-    render :text => "hello world!"
+    render text: "hello world!"
   end
 
   # :ported:
   def render_nil_charset_from_body
     response.charset = nil
-    render :text => "hello world!"
+    render text: "hello world!"
   end
 
   def render_default_for_erb
@@ -37,15 +37,15 @@ class OldContentTypeController < ActionController::Base
 
   def render_change_for_builder
     response.content_type = Mime::HTML
-    render :action => "render_default_for_builder"
+    render action: "render_default_for_builder"
   end
 
   def render_default_content_types_for_respond_to
     respond_to do |format|
-      format.html { render :text   => "hello world!" }
-      format.xml  { render :action => "render_default_content_types_for_respond_to" }
-      format.js   { render :text   => "hello world!" }
-      format.rss  { render :text   => "hello world!", :content_type => Mime::XML }
+      format.html { render text: "hello world!" }
+      format.xml  { render action: "render_default_content_types_for_respond_to" }
+      format.js   { render text: "hello world!" }
+      format.rss  { render text: "hello world!", content_type: Mime::XML }
     end
   end
 end

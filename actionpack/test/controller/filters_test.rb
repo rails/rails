@@ -32,7 +32,7 @@ class FilterTest < ActionController::TestCase
     after_filter  :clean_up
 
     def show
-      render :inline => "ran action"
+      render inline: "ran action"
     end
 
     private
@@ -48,10 +48,10 @@ class FilterTest < ActionController::TestCase
   end
 
   class ChangingTheRequirementsController < TestController
-    before_filter :ensure_login, :except => [:go_wild]
+    before_filter :ensure_login, except: [:go_wild]
 
     def go_wild
-      render :text => "gobble"
+      render text: "gobble"
     end
   end
 
@@ -62,7 +62,7 @@ class FilterTest < ActionController::TestCase
 
     (1..3).each do |i|
       define_method "fail_#{i}" do
-        render :text => i.to_s
+        render text: i.to_s
       end
     end
 
@@ -83,14 +83,14 @@ class FilterTest < ActionController::TestCase
 
     def show
       @ran_action = true
-      render :inline => "ran action"
+      render inline: "ran action"
     end
 
     private
       def before_filter_rendering
         @ran_filter ||= []
         @ran_filter << "before_filter_rendering"
-        render :inline => "something else"
+        render inline: "something else"
       end
 
       def unreached_after_filter
@@ -113,19 +113,19 @@ class FilterTest < ActionController::TestCase
 
     def show
       @ran_action = true
-      render :inline => "ran show action"
+      render inline: "ran show action"
     end
 
     def target_of_redirection
       @ran_target_of_redirection = true
-      render :inline => "ran target_of_redirection action"
+      render inline: "ran target_of_redirection action"
     end
 
     private
       def before_filter_redirects
         @ran_filter ||= []
         @ran_filter << "before_filter_redirects"
-        redirect_to(:action => 'target_of_redirection')
+        redirect_to(action: 'target_of_redirection')
       end
 
       def unreached_after_filter
@@ -144,15 +144,15 @@ class FilterTest < ActionController::TestCase
 
   class ConditionalFilterController < ActionController::Base
     def show
-      render :inline => "ran action"
+      render inline: "ran action"
     end
 
     def another_action
-      render :inline => "ran action"
+      render inline: "ran action"
     end
 
     def show_without_filter
-      render :inline => "ran action without filter"
+      render inline: "ran action without filter"
     end
 
     private
@@ -168,28 +168,28 @@ class FilterTest < ActionController::TestCase
   end
 
   class ConditionalCollectionFilterController < ConditionalFilterController
-    before_filter :ensure_login, :except => [ :show_without_filter, :another_action ]
+    before_filter :ensure_login, except: [ :show_without_filter, :another_action ]
   end
 
   class OnlyConditionSymController < ConditionalFilterController
-    before_filter :ensure_login, :only => :show
+    before_filter :ensure_login, only: :show
   end
 
   class ExceptConditionSymController < ConditionalFilterController
-    before_filter :ensure_login, :except => :show_without_filter
+    before_filter :ensure_login, except: :show_without_filter
   end
 
   class BeforeAndAfterConditionController < ConditionalFilterController
-    before_filter :ensure_login, :only => :show
-    after_filter  :clean_up_tmp, :only => :show
+    before_filter :ensure_login, only: :show
+    after_filter  :clean_up_tmp, only: :show
   end
 
   class OnlyConditionProcController < ConditionalFilterController
-    before_filter(:only => :show) {|c| c.instance_variable_set(:"@ran_proc_filter", true) }
+    before_filter(only: :show) {|c| c.instance_variable_set(:"@ran_proc_filter", true) }
   end
 
   class ExceptConditionProcController < ConditionalFilterController
-    before_filter(:except => :show_without_filter) {|c| c.instance_variable_set(:"@ran_proc_filter", true) }
+    before_filter(except: :show_without_filter) {|c| c.instance_variable_set(:"@ran_proc_filter", true) }
   end
 
   class ConditionalClassFilter
@@ -197,24 +197,24 @@ class FilterTest < ActionController::TestCase
   end
 
   class OnlyConditionClassController < ConditionalFilterController
-    before_filter ConditionalClassFilter, :only => :show
+    before_filter ConditionalClassFilter, only: :show
   end
 
   class ExceptConditionClassController < ConditionalFilterController
-    before_filter ConditionalClassFilter, :except => :show_without_filter
+    before_filter ConditionalClassFilter, except: :show_without_filter
   end
 
   class AnomolousYetValidConditionController < ConditionalFilterController
-    before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:"@ran_proc_filter1", true)}, :except => :show_without_filter) { |c| c.instance_variable_set(:"@ran_proc_filter2", true)}
+    before_filter(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:"@ran_proc_filter1", true)}, except: :show_without_filter) { |c| c.instance_variable_set(:"@ran_proc_filter2", true)}
   end
 
   class OnlyConditionalOptionsFilter < ConditionalFilterController
-    before_filter :ensure_login, :only => :index, :if => Proc.new {|c| c.instance_variable_set(:"@ran_conditional_index_proc", true) }
+    before_filter :ensure_login, only: :index, if: Proc.new {|c| c.instance_variable_set(:"@ran_conditional_index_proc", true) }
   end
 
   class ConditionalOptionsFilter < ConditionalFilterController
-    before_filter :ensure_login, :if => Proc.new { |c| true }
-    before_filter :clean_up_tmp, :if => Proc.new { |c| false }
+    before_filter :ensure_login, if: Proc.new { |c| true }
+    before_filter :clean_up_tmp, if: Proc.new { |c| false }
   end
 
   class ConditionalOptionsSkipFilter < ConditionalFilterController
@@ -242,14 +242,14 @@ class FilterTest < ActionController::TestCase
 
   class SkippingAndLimitedController < TestController
     skip_before_filter :ensure_login
-    before_filter :ensure_login, :only => :index
+    before_filter :ensure_login, only: :index
 
     def index
-      render :text => 'ok'
+      render text: 'ok'
     end
 
     def public
-      render :text => 'ok'
+      render text: 'ok'
     end
   end
 
@@ -259,7 +259,7 @@ class FilterTest < ActionController::TestCase
     before_filter :ensure_login
 
     def index
-      render :text => 'ok'
+      render text: 'ok'
     end
 
     private
@@ -270,17 +270,17 @@ class FilterTest < ActionController::TestCase
   end
 
   class ConditionalSkippingController < TestController
-    skip_before_filter :ensure_login, :only => [ :login ]
-    skip_after_filter  :clean_up,     :only => [ :login ]
+    skip_before_filter :ensure_login, only: [ :login ]
+    skip_after_filter  :clean_up,     only: [ :login ]
 
-    before_filter :find_user, :only => [ :change_password ]
+    before_filter :find_user, only: [ :change_password ]
 
     def login
-      render :inline => "ran action"
+      render inline: "ran action"
     end
 
     def change_password
-      render :inline => "ran action"
+      render inline: "ran action"
     end
 
     protected
@@ -291,8 +291,8 @@ class FilterTest < ActionController::TestCase
   end
 
   class ConditionalParentOfConditionalSkippingController < ConditionalFilterController
-    before_filter :conditional_in_parent_before, :only => [:show, :another_action]
-    after_filter  :conditional_in_parent_after, :only => [:show, :another_action]
+    before_filter :conditional_in_parent_before, only: [:show, :another_action]
+    after_filter  :conditional_in_parent_after, only: [:show, :another_action]
 
     private
 
@@ -308,12 +308,12 @@ class FilterTest < ActionController::TestCase
   end
 
   class ChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
-    skip_before_filter :conditional_in_parent_before, :only => :another_action
-    skip_after_filter  :conditional_in_parent_after, :only => :another_action
+    skip_before_filter :conditional_in_parent_before, only: :another_action
+    skip_after_filter  :conditional_in_parent_after, only: :another_action
   end
 
   class AnotherChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
-    skip_before_filter :conditional_in_parent_before, :only => :show
+    skip_before_filter :conditional_in_parent_before, only: :show
   end
 
   class ProcController < PrependingController
@@ -370,7 +370,7 @@ class FilterTest < ActionController::TestCase
     before_filter(AuditFilter)
 
     def show
-      render :text => "hello"
+      render text: "hello"
     end
   end
 
@@ -405,14 +405,14 @@ class FilterTest < ActionController::TestCase
     class OutOfOrder < StandardError; end
 
     before_filter :first
-    before_filter :second, :only => :foo
+    before_filter :second, only: :foo
 
     def foo
-      render :text => 'foo'
+      render text: 'foo'
     end
 
     def bar
-      render :text => 'bar'
+      render text: 'bar'
     end
 
     protected
@@ -429,7 +429,7 @@ class FilterTest < ActionController::TestCase
     before_filter :choose
 
     %w(foo bar baz).each do |action|
-      define_method(action) { render :text => action }
+      define_method(action) { render text: action }
     end
 
     private
@@ -458,7 +458,7 @@ class FilterTest < ActionController::TestCase
       @ran_filter << 'between_before_all_and_after_all'
     end
     def show
-      render :text => 'hello'
+      render text: 'hello'
     end
   end
 
@@ -468,7 +468,7 @@ class FilterTest < ActionController::TestCase
     def around(controller)
       yield
     rescue ErrorToRescue => ex
-      controller.__send__ :render, :text => "I rescued this: #{ex.inspect}"
+      controller.__send__ :render, text: "I rescued this: #{ex.inspect}"
     end
   end
 
@@ -488,7 +488,7 @@ class FilterTest < ActionController::TestCase
     after_filter :filter_three
 
     def index
-      render :inline => "index"
+      render inline: "index"
     end
 
     private
@@ -514,8 +514,8 @@ class FilterTest < ActionController::TestCase
   end
 
   class ImplicitActionsController < ActionController::Base
-    before_filter :find_only, :only => :edit
-    before_filter :find_except, :except => :edit
+    before_filter :find_only, only: :edit
+    before_filter :find_except, except: :edit
 
     private
 
@@ -856,14 +856,14 @@ class PostsController < ActionController::Base
 
   private
     def default_action
-      render :inline => "#{action_name} called"
+      render inline: "#{action_name} called"
     end
 end
 
 class ControllerWithSymbolAsFilter < PostsController
-  around_filter :raise_before, :only => :raises_before
-  around_filter :raise_after, :only => :raises_after
-  around_filter :without_exception, :only => :no_raise
+  around_filter :raise_before, only: :raises_before
+  around_filter :raise_after, only: :raises_after
+  around_filter :without_exception, only: :no_raise
 
   private
     def raise_before
@@ -895,7 +895,7 @@ class ControllerWithFilterClass < PostsController
     end
   end
 
-  around_filter YieldingFilter, :only => :raises_after
+  around_filter YieldingFilter, only: :raises_after
 end
 
 class ControllerWithFilterInstance < PostsController
@@ -906,11 +906,11 @@ class ControllerWithFilterInstance < PostsController
     end
   end
 
-  around_filter YieldingFilter.new, :only => :raises_after
+  around_filter YieldingFilter.new, only: :raises_after
 end
 
 class ControllerWithProcFilter < PostsController
-  around_filter(:only => :no_raise) do |c,b|
+  around_filter(only: :no_raise) do |c,b|
     c.instance_variable_set(:"@before", true)
     b.call
     c.instance_variable_set(:"@after", true)
@@ -918,7 +918,7 @@ class ControllerWithProcFilter < PostsController
 end
 
 class ControllerWithNestedFilters < ControllerWithSymbolAsFilter
-  around_filter :raise_before, :raise_after, :without_exception, :only => :raises_both
+  around_filter :raise_before, :raise_after, :without_exception, only: :raises_both
 end
 
 class ControllerWithAllTypesOfFilters < PostsController

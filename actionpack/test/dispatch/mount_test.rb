@@ -18,18 +18,18 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
       [200, {"Content-Type" => "text/html"}, ["#{env["SCRIPT_NAME"]} -- #{env["PATH_INFO"]}"]]
     }
 
-    mount SprocketsApp, :at => "/sprockets"
+    mount SprocketsApp, at: "/sprockets"
     mount SprocketsApp => "/shorthand"
 
-    mount FakeEngine, :at => "/fakeengine", :as => :fake
-    mount FakeEngine, :at => "/getfake", :via => :get
+    mount FakeEngine, at: "/fakeengine", as: :fake
+    mount FakeEngine, at: "/getfake", via: :get
 
     scope "/its_a" do
-      mount SprocketsApp, :at => "/sprocket"
+      mount SprocketsApp, at: "/sprocket"
     end
 
     resources :users do
-      mount FakeEngine, :at => "/fakeengine", :as => :fake_mounted_at_resource
+      mount FakeEngine, at: "/fakeengine", as: :fake_mounted_at_resource
     end
   end
 

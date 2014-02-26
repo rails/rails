@@ -20,7 +20,7 @@ module ActionView
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
 
       PRE_CONTENT_STRINGS = {
-        :textarea => "\n"
+        textarea: "\n"
       }
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML

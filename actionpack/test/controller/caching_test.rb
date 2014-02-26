@@ -50,7 +50,7 @@ class FragmentCachingTest < ActionController::TestCase
     @controller = FragmentCachingTestController.new
     @controller.perform_caching = true
     @controller.cache_store = @store
-    @params = {:controller => 'posts', :action => 'index'}
+    @params = {controller: 'posts', action: 'index'}
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
     @controller.params = @params
@@ -61,7 +61,7 @@ class FragmentCachingTest < ActionController::TestCase
   def test_fragment_cache_key
     assert_equal 'views/what a key', @controller.fragment_cache_key('what a key')
     assert_equal "views/test.host/fragment_caching_test/some_action",
-                  @controller.fragment_cache_key(:controller => 'fragment_caching_test',:action => 'some_action')
+                  @controller.fragment_cache_key(controller: 'fragment_caching_test',action: 'some_action')
   end
 
   def test_read_fragment_with_caching_enabled
@@ -203,7 +203,7 @@ CACHED
   end
 
   def test_skipping_fragment_cache_digesting
-    get :fragment_cached_without_digest, :format => "html"
+    get :fragment_cached_without_digest, format: "html"
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
@@ -221,7 +221,7 @@ CACHED
   end
 
   def test_html_formatted_fragment_caching
-    get :formatted_fragment_cached, :format => "html"
+    get :formatted_fragment_cached, format: "html"
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
@@ -232,7 +232,7 @@ CACHED
   end
 
   def test_xml_formatted_fragment_caching
-    get :formatted_fragment_cached, :format => "xml"
+    get :formatted_fragment_cached, format: "xml"
     assert_response :success
     expected_body = "<body>\n  <p>Builder</p>\n</body>\n"
 

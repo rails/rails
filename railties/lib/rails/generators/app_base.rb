@@ -142,7 +142,7 @@ module Rails
 
       def apply_rails_template
         apply rails_template if rails_template
-      rescue Thor::Error, LoadError, Errno::ENOENT => e
+      rescue Thor::Error, LoadError, Errno:ENOENT: e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
 

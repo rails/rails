@@ -149,7 +149,7 @@ module ActionView
       # will use +asset_path+ internally, so most of their behaviors
       # will be the same.
       def asset_url(source, options = {})
-        path_to_asset(source, options.merge(:protocol => :request))
+        path_to_asset(source, options.merge(protocol: :request))
       end
       alias_method :url_to_asset, :asset_url # aliased to avoid conflicts with an asset_url named route
 

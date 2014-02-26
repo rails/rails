@@ -56,7 +56,7 @@ module HTML
   end
 
   class LinkSanitizer < FullSanitizer
-    cattr_accessor :included_tags, :instance_writer => false
+    cattr_accessor :included_tags, instance_writer: false
     self.included_tags = Set.new(%w(a href))
 
     def sanitizeable?(text)
@@ -72,7 +72,7 @@ module HTML
   class WhiteListSanitizer < Sanitizer
     [:protocol_separator, :uri_attributes, :allowed_attributes, :allowed_tags, :allowed_protocols, :bad_tags,
      :allowed_css_properties, :allowed_css_keywords, :shorthand_css_properties].each do |attr|
-      class_attribute attr, :instance_writer => false
+      class_attribute attr, instance_writer: false
     end
 
     # A regular expression of the valid characters used to separate protocols like

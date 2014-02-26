@@ -207,25 +207,25 @@ class SchemaTest < ActiveRecord::TestCase
     assert_equal 0, Thing3.count
     assert_equal 0, Thing4.count
 
-    Thing1.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
     assert_equal 1, Thing1.count
     assert_equal 0, Thing2.count
     assert_equal 0, Thing3.count
     assert_equal 0, Thing4.count
 
-    Thing2.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+    Thing2.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
     assert_equal 1, Thing1.count
     assert_equal 1, Thing2.count
     assert_equal 0, Thing3.count
     assert_equal 0, Thing4.count
 
-    Thing3.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+    Thing3.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
     assert_equal 1, Thing1.count
     assert_equal 1, Thing2.count
     assert_equal 1, Thing3.count
     assert_equal 0, Thing4.count
 
-    Thing4.create(:id => 1, :name => "thing1", :email => "thing1@localhost", :moment => Time.now)
+    Thing4.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
     assert_equal 1, Thing1.count
     assert_equal 1, Thing2.count
     assert_equal 1, Thing3.count
@@ -330,10 +330,10 @@ class SchemaTest < ActiveRecord::TestCase
   def test_prepared_statements_with_multiple_schemas
 
     @connection.schema_search_path = SCHEMA_NAME
-    Thing5.create(:id => 1, :name => "thing inside #{SCHEMA_NAME}", :email => "thing1@localhost", :moment => Time.now)
+    Thing5.create(id: 1, name: "thing inside #{SCHEMA_NAME}", email: "thing1@localhost", moment: Time.now)
 
     @connection.schema_search_path = SCHEMA2_NAME
-    Thing5.create(:id => 1, :name => "thing inside #{SCHEMA2_NAME}", :email => "thing1@localhost", :moment => Time.now)
+    Thing5.create(id: 1, name: "thing inside #{SCHEMA2_NAME}", email: "thing1@localhost", moment: Time.now)
 
     @connection.schema_search_path = SCHEMA_NAME
     assert_equal 1, Thing5.count

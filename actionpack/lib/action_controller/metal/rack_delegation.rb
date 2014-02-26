@@ -6,7 +6,7 @@ module ActionController
     extend ActiveSupport::Concern
 
     delegate :headers, :status=, :location=, :content_type=, :no_content_type=,
-             :status, :location, :content_type, :no_content_type, :to => "@_response"
+             :status, :location, :content_type, :no_content_type, to: "@_response"
 
     def dispatch(action, request)
       set_response!(request)

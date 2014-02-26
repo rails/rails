@@ -24,7 +24,7 @@ class DocumentTest < ActiveSupport::TestCase
         </body>
       </html>
     HTML
-    assert doc.find(:tag=>"img", :attributes=>{"src"=>"hello.gif"})
+    assert doc.find(tag:"img", attributes:{"src"=>"hello.gif"})
   end
 
   def test_find_all
@@ -39,7 +39,7 @@ class DocumentTest < ActiveSupport::TestCase
         </body>
       </html>
     HTML
-    all = doc.find_all :attributes => { :class => "test" }
+    all = doc.find_all attributes: { class: "test" }
     assert_equal 3, all.length
     assert_equal [ "p", "p", "em" ], all.map { |n| n.name }
   end
@@ -52,10 +52,10 @@ class DocumentTest < ActiveSupport::TestCase
         </body>
       </html>
     HTML
-    assert doc.find(:content => "Some text")
-    assert doc.find(:tag => "p", :child => { :content => "Some text" })
-    assert doc.find(:tag => "p", :child => "Some text")
-    assert doc.find(:tag => "p", :content => "Some text")
+    assert doc.find(content: "Some text")
+    assert doc.find(tag: "p", child: { content: "Some text" })
+    assert doc.find(tag: "p", child: "Some text")
+    assert doc.find(tag: "p", content: "Some text")
   end
 
   def test_parse_xml
@@ -71,7 +71,7 @@ class DocumentTest < ActiveSupport::TestCase
         </table>
       </div>
     HTML
-    assert_not_nil doc.find(:tag => "div", :children => { :count => 1, :only => { :tag => "table" } })
+    assert_not_nil doc.find(tag: "div", children: { count: 1, only: { tag: "table" } })
   end
 
   def test_tag_nesting_nothing_to_s
@@ -108,17 +108,17 @@ class DocumentTest < ActiveSupport::TestCase
 </html>
 HTML
 
-    assert_nil doc.find(:tag => "title", :descendant => { :tag => "br" })
-    assert doc.find(:tag => "title", :child => "<br>")
+    assert_nil doc.find(tag: "title", descendant: { tag: "br" })
+    assert doc.find(tag: "title", child: "<br>")
   end
 
   def test_find_empty_tag
     doc = HTML::Document.new("<div id='map'></div>")
-    assert_nil doc.find(:tag => "div", :attributes => { :id => "map" }, :content => /./)
-    assert doc.find(:tag => "div", :attributes => { :id => "map" }, :content => /\A\Z/)
-    assert doc.find(:tag => "div", :attributes => { :id => "map" }, :content => /^$/)
-    assert doc.find(:tag => "div", :attributes => { :id => "map" }, :content => "")
-    assert doc.find(:tag => "div", :attributes => { :id => "map" }, :content => nil)
+    assert_nil doc.find(tag: "div", attributes: { id: "map" }, content: /./)
+    assert doc.find(tag: "div", attributes: { id: "map" }, content: /\A\Z/)
+    assert doc.find(tag: "div", attributes: { id: "map" }, content: /^$/)
+    assert doc.find(tag: "div", attributes: { id: "map" }, content: "")
+    assert doc.find(tag: "div", attributes: { id: "map" }, content: nil)
   end
 
   def test_parse_invalid_document

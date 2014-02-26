@@ -78,7 +78,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_delete_all_with_joins_and_where_part_is_hash
-    where_args = {:toys => {:name => 'Bone'}}
+    where_args = {toys: {name: 'Bone'}}
     count = Pet.joins(:toys).where(where_args).count
 
     assert_equal count, 1
@@ -119,7 +119,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_destroy_all
     conditions = "author_name = 'Mary'"
-    topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
+    topics_by_mary = Topic.all.merge!(where: conditions, order: 'id').to_a
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
@@ -130,7 +130,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_destroy_many
-    clients = Client.all.merge!(:order => 'id').find([2, 3])
+    clients = Client.all.merge!(order: 'id').find([2, 3])
 
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)
@@ -145,7 +145,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_becomes_includes_errors
-    company = Company.new(:name => nil)
+    company = Company.new(name: nil)
     assert !company.valid?
     original_errors = company.errors
     client = company.becomes(Client)
@@ -200,7 +200,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_save!
-    topic = Topic.new(:title => "New Topic")
+    topic = Topic.new(title: "New Topic")
     assert topic.save!
 
     reply = WrongReply.new
@@ -230,7 +230,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_save_for_record_with_only_primary_key_that_is_provided
-    assert_nothing_raised { Minimalistic.create!(:id => 2) }
+    assert_nothing_raised { Minimalistic.create!(id: 2) }
   end
 
   def test_create_many
@@ -384,7 +384,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_all_with_hash
     assert_not_nil Topic.find(1).last_read
-    assert_equal Topic.count, Topic.update_all(:content => 'bulk updated with hash!', :last_read => nil)
+    assert_equal Topic.count, Topic.update_all(content: 'bulk updated with hash!', last_read: nil)
     assert_equal "bulk updated with hash!", Topic.find(1).content
     assert_equal "bulk updated with hash!", Topic.find(2).content
     assert_nil Topic.find(1).last_read
@@ -586,7 +586,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update({ "content" => "Have a nice day", :author_name => "Jose" })
+    topic.update({ "content" => "Have a nice day", author_name: "Jose" })
 
     topic.reload
     topic.update_columns({ content: "You too", "author_name" => "Sebastian" })
@@ -777,7 +777,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_persisted_returns_boolean
-    developer = Developer.new(:name => "Jose")
+    developer = Developer.new(name: "Jose")
     assert_equal false, developer.persisted?
     developer.save!
     assert_equal true, developer.persisted?
@@ -815,7 +815,7 @@ class PersistenceTest < ActiveRecord::TestCase
     custom_datetime = 1.hour.ago.beginning_of_day
 
     %w(created_at created_on updated_at updated_on).each do |attribute|
-      parrot = LiveParrot.create(:name => "colombian", attribute => custom_datetime)
+      parrot = LiveParrot.create(name: "colombian", attribute => custom_datetime)
       assert_equal custom_datetime, parrot[attribute]
     end
   end

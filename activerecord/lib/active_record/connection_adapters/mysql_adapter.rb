@@ -34,7 +34,7 @@ module ActiveRecord
       default_flags |= Mysql::CLIENT_FOUND_ROWS if Mysql.const_defined?(:CLIENT_FOUND_ROWS)
       options = [host, username, password, database, port, socket, default_flags]
       ConnectionAdapters::MysqlAdapter.new(mysql, logger, options, config)
-    rescue Mysql::Error => error
+    rescue Mysql:Error: error
       if error.message.include?("Unknown database")
         raise ActiveRecord::NoDatabaseError.new(error.message)
       else
@@ -488,14 +488,14 @@ module ActiveRecord
             stmt = @connection.prepare(sql)
           else
             cache = @statements[sql] ||= {
-              :stmt => @connection.prepare(sql)
+              stmt: @connection.prepare(sql)
             }
             stmt = cache[:stmt]
           end
 
           begin
             stmt.execute(*type_casted_binds.map { |_, val| val })
-          rescue Mysql::Error => e
+          rescue Mysql:Error: e
             # Older versions of MySQL leave the prepared statement in a bad
             # place when an error occurs. To support older mysql versions, we
             # need to close the statement and delete the statement from the

@@ -7,9 +7,9 @@ module ActionDispatch
         routes = Routes.new
         exp    = Router::Strexp.new '/foo(/:id)', {}, ['/.?']
         path   = Path::Pattern.new exp
-        requirements = { :hello => /world/ }
+        requirements = { hello: /world/ }
 
-        routes.add_route nil, path, requirements, {:id => nil}, {}
+        routes.add_route nil, path, requirements, {id: nil}, {}
         assert_equal 1, routes.length
 
         routes.clear

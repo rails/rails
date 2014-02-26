@@ -184,7 +184,7 @@ _SQL
       BEFORE INSERT ON postgresql_partitioned_table_parent
       FOR EACH ROW EXECUTE PROCEDURE partitioned_insert_trigger();
 _SQL
-  rescue ActiveRecord::StatementInvalid => e
+  rescue ActiveRecord:StatementInvalid: e
     if e.message =~ /language "plpgsql" does not exist/
       execute "CREATE LANGUAGE 'plpgsql';"
       retry

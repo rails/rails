@@ -3,7 +3,7 @@ require 'abstract_unit'
 class OutputBufferTest < ActionController::TestCase
   class TestController < ActionController::Base
     def index
-      render :text => 'foo'
+      render text: 'foo'
     end
   end
 

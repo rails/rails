@@ -61,21 +61,21 @@ class ArrayExtToSentenceTests < ActiveSupport::TestCase
   end
 
   def test_to_sentence_with_words_connector
-    assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(:words_connector => ' ')
-    assert_equal "one & two, and three", ['one', 'two', 'three'].to_sentence(:words_connector => ' & ')
-    assert_equal "onetwo, and three", ['one', 'two', 'three'].to_sentence(:words_connector => nil)
+    assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(words_connector: ' ')
+    assert_equal "one & two, and three", ['one', 'two', 'three'].to_sentence(words_connector: ' & ')
+    assert_equal "onetwo, and three", ['one', 'two', 'three'].to_sentence(words_connector: nil)
   end
 
   def test_to_sentence_with_last_word_connector
-    assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ', and also ')
-    assert_equal "one, twothree", ['one', 'two', 'three'].to_sentence(:last_word_connector => nil)
-    assert_equal "one, two three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ' ')
-    assert_equal "one, two and three", ['one', 'two', 'three'].to_sentence(:last_word_connector => ' and ')
+    assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(last_word_connector: ', and also ')
+    assert_equal "one, twothree", ['one', 'two', 'three'].to_sentence(last_word_connector: nil)
+    assert_equal "one, two three", ['one', 'two', 'three'].to_sentence(last_word_connector: ' ')
+    assert_equal "one, two and three", ['one', 'two', 'three'].to_sentence(last_word_connector: ' and ')
   end
 
   def test_two_elements
     assert_equal "one and two", ['one', 'two'].to_sentence
-    assert_equal "one two", ['one', 'two'].to_sentence(:two_words_connector => ' ')
+    assert_equal "one two", ['one', 'two'].to_sentence(two_words_connector: ' ')
   end
 
   def test_one_element
@@ -236,9 +236,9 @@ end
 class ArrayToXmlTests < ActiveSupport::TestCase
   def test_to_xml
     xml = [
-      { :name => "David", :age => 26, :age_in_millis => 820497600000 },
-      { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
-    ].to_xml(:skip_instruct => true, :indent => 0)
+      { name: "David", age: 26, age_in_millis: 820497600000 },
+      { name: "Jason", age: 31, age_in_millis: BigDecimal.new('1.0') }
+    ].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object>', xml.first(30)
     assert xml.include?(%(<age type="integer">26</age>)), xml
@@ -251,16 +251,16 @@ class ArrayToXmlTests < ActiveSupport::TestCase
 
   def test_to_xml_with_dedicated_name
     xml = [
-      { :name => "David", :age => 26, :age_in_millis => 820497600000 }, { :name => "Jason", :age => 31 }
-    ].to_xml(:skip_instruct => true, :indent => 0, :root => "people")
+      { name: "David", age: 26, age_in_millis: 820497600000 }, { name: "Jason", age: 31 }
+    ].to_xml(skip_instruct: true, indent: 0, root: "people")
 
     assert_equal '<people type="array"><person>', xml.first(29)
   end
 
   def test_to_xml_with_options
     xml = [
-      { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
-    ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0)
+      { name: "David", street_address: "Paulina" }, { name: "Jason", street_address: "Evergreen" }
+    ].to_xml(skip_instruct: true, skip_types: true, indent: 0)
 
     assert_equal "<objects><object>", xml.first(17)
     assert xml.include?(%(<street-address>Paulina</street-address>))
@@ -271,8 +271,8 @@ class ArrayToXmlTests < ActiveSupport::TestCase
 
   def test_to_xml_with_dasherize_false
     xml = [
-      { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
-    ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0, :dasherize => false)
+      { name: "David", street_address: "Paulina" }, { name: "Jason", street_address: "Evergreen" }
+    ].to_xml(skip_instruct: true, skip_types: true, indent: 0, dasherize: false)
 
     assert_equal "<objects><object>", xml.first(17)
     assert xml.include?(%(<street_address>Paulina</street_address>))
@@ -281,8 +281,8 @@ class ArrayToXmlTests < ActiveSupport::TestCase
 
   def test_to_xml_with_dasherize_true
     xml = [
-      { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
-    ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0, :dasherize => true)
+      { name: "David", street_address: "Paulina" }, { name: "Jason", street_address: "Evergreen" }
+    ].to_xml(skip_instruct: true, skip_types: true, indent: 0, dasherize: true)
 
     assert_equal "<objects><object>", xml.first(17)
     assert xml.include?(%(<street-address>Paulina</street-address>))
@@ -291,9 +291,9 @@ class ArrayToXmlTests < ActiveSupport::TestCase
 
   def test_to_with_instruct
     xml = [
-      { :name => "David", :age => 26, :age_in_millis => 820497600000 },
-      { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
-    ].to_xml(:skip_instruct => false, :indent => 0)
+      { name: "David", age: 26, age_in_millis: 820497600000 },
+      { name: "Jason", age: 31, age_in_millis: BigDecimal.new('1.0') }
+    ].to_xml(skip_instruct: false, indent: 0)
 
     assert_match(/^<\?xml [^>]*/, xml)
     assert_equal 0, xml.rindex(/<\?xml /)
@@ -301,9 +301,9 @@ class ArrayToXmlTests < ActiveSupport::TestCase
 
   def test_to_xml_with_block
     xml = [
-      { :name => "David", :age => 26, :age_in_millis => 820497600000 },
-      { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
-    ].to_xml(:skip_instruct => true, :indent => 0) do |builder|
+      { name: "David", age: 26, age_in_millis: 820497600000 },
+      { name: "Jason", age: 31, age_in_millis: BigDecimal.new('1.0') }
+    ].to_xml(skip_instruct: true, indent: 0) do |builder|
       builder.count 2
     end
 
@@ -316,10 +316,10 @@ class ArrayToXmlTests < ActiveSupport::TestCase
   end
 
   def test_to_xml_dups_options
-    options = {:skip_instruct => true}
+    options = {skip_instruct: true}
     [].to_xml(options)
     # :builder, etc, shouldn't be added to options
-    assert_equal({:skip_instruct => true}, options)
+    assert_equal({skip_instruct: true}, options)
   end
 end
 
@@ -336,8 +336,8 @@ class ArrayExtractOptionsTests < ActiveSupport::TestCase
   def test_extract_options
     assert_equal({}, [].extract_options!)
     assert_equal({}, [1].extract_options!)
-    assert_equal({:a=>:b}, [{:a=>:b}].extract_options!)
-    assert_equal({:a=>:b}, [1, {:a=>:b}].extract_options!)
+    assert_equal({a::b}, [{a::b}].extract_options!)
+    assert_equal({a::b}, [1, {a::b}].extract_options!)
   end
 
   def test_extract_options_doesnt_extract_hash_subclasses
@@ -354,12 +354,12 @@ class ArrayExtractOptionsTests < ActiveSupport::TestCase
     hash[:foo] = 1
     array = [hash]
     options = array.extract_options!
-    assert_equal({:foo => 1}, options)
+    assert_equal({foo: 1}, options)
     assert_equal [], array
   end
 
   def test_extract_options_extracts_hwia
-    hash = [{:foo => 1}.with_indifferent_access]
+    hash = [{foo: 1}.with_indifferent_access]
     options = hash.extract_options!
     assert_equal 1, options[:foo]
   end

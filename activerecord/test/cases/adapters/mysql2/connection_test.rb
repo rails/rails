@@ -59,7 +59,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
 
   def test_mysql_strict_mode_disabled_dont_override_global_sql_mode
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge({:strict => false}))
+      ActiveRecord::Base.establish_connection(orig_connection.merge({strict: false}))
       global_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.sql_mode"
       session_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.sql_mode"
       assert_equal global_sql_mode.rows, session_sql_mode.rows
@@ -68,7 +68,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
 
   def test_mysql_set_session_variable
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => 3}}))
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge({variables: {default_week_format: 3}}))
       session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
       assert_equal 3, session_mode.rows.first.first.to_i
     end
@@ -76,7 +76,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
 
   def test_mysql_set_session_variable_to_default
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => :default}}))
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge({variables: {default_week_format: :default}}))
       global_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.DEFAULT_WEEK_FORMAT"
       session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
       assert_equal global_mode.rows, session_mode.rows

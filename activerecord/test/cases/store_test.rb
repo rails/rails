@@ -6,7 +6,7 @@ class StoreTest < ActiveRecord::TestCase
   fixtures :'admin/users'
 
   setup do
-    @john = Admin::User.create!(:name => 'John Doe', :color => 'black', :remember_login => true, :height => 'tall', :is_a_good_guy => true)
+    @john = Admin::User.create!(name: 'John Doe', color: 'black', remember_login: true, height: 'tall', is_a_good_guy: true)
   end
 
   test "reading store attributes through accessors" do
@@ -79,7 +79,7 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "preserve store attributes data in HashWithIndifferentAccess format without any conversion" do
-    @john.json_data = ActiveSupport::HashWithIndifferentAccess.new(:height => 'tall', 'weight' => 'heavy')
+    @john.json_data = ActiveSupport::HashWithIndifferentAccess.new(height: 'tall', 'weight' => 'heavy')
     @john.height = 'low'
     assert_equal true, @john.json_data.instance_of?(ActiveSupport::HashWithIndifferentAccess)
     assert_equal 'low', @john.json_data[:height]

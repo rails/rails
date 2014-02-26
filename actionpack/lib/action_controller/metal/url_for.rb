@@ -24,10 +24,10 @@ module ActionController
 
     def url_options
       @_url_options ||= super.reverse_merge(
-        :host => request.host,
-        :port => request.optional_port,
-        :protocol => request.protocol,
-        :_recall => request.symbolized_path_parameters
+        host: request.host,
+        port: request.optional_port,
+        protocol: request.protocol,
+        _recall: request.symbolized_path_parameters
       ).freeze
 
       if (same_origin = _routes.equal?(env["action_dispatch.routes"])) ||

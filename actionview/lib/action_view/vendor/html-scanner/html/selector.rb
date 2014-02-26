@@ -680,7 +680,7 @@ module HTML
       end
 
       # Return hash. The keys are mapped to instance variables.
-      {:tag_name=>tag_name, :attributes=>attributes, :pseudo=>pseudo, :negation=>negation}
+      {tag_name:tag_name, attributes:attributes, pseudo:pseudo, negation:negation}
     end
 
 

@@ -12,9 +12,9 @@ module ActiveRecord
       end
 
       def setup
-        @conn = Base.sqlite3_connection :database => ':memory:',
-                                       :adapter => 'sqlite3',
-                                       :timeout => 100
+        @conn = Base.sqlite3_connection database: ':memory:',
+                                       adapter: 'sqlite3',
+                                       timeout: 100
         @conn.execute <<-eosql
           CREATE TABLE items (
             id integer PRIMARY KEY AUTOINCREMENT,
@@ -75,7 +75,7 @@ module ActiveRecord
       end
 
       def test_column_types
-        owner = Owner.create!(:name => "hello".encode('ascii-8bit'))
+        owner = Owner.create!(name: "hello".encode('ascii-8bit'))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ', '
         result = Owner.connection.exec_query <<-esql
@@ -112,17 +112,17 @@ module ActiveRecord
 
       def test_bad_timeout
         assert_raises(TypeError) do
-          Base.sqlite3_connection :database => ':memory:',
-                                  :adapter => 'sqlite3',
-                                  :timeout => 'usa'
+          Base.sqlite3_connection database: ':memory:',
+                                  adapter: 'sqlite3',
+                                  timeout: 'usa'
         end
       end
 
       # connection is OK with a nil timeout
       def test_nil_timeout
-        conn = Base.sqlite3_connection :database => ':memory:',
-                                       :adapter => 'sqlite3',
-                                       :timeout => nil
+        conn = Base.sqlite3_connection database: ':memory:',
+                                       adapter: 'sqlite3',
+                                       timeout: nil
         assert conn, 'made a connection'
       end
 
@@ -190,7 +190,7 @@ module ActiveRecord
           )
         eosql
         str = "\x80".force_encoding("ASCII-8BIT")
-        binary = DualEncoding.new :name => 'いただきます！', :data => str
+        binary = DualEncoding.new name: 'いただきます！', data: str
         binary.save!
         assert_equal str, binary.data
 
@@ -348,7 +348,7 @@ module ActiveRecord
       end
 
       def test_index
-        @conn.add_index 'items', 'id', :unique => true, :name => 'fun'
+        @conn.add_index 'items', 'id', unique: true, name: 'fun'
         index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
 
         assert_equal 'items', index.table
@@ -357,13 +357,13 @@ module ActiveRecord
       end
 
       def test_non_unique_index
-        @conn.add_index 'items', 'id', :name => 'fun'
+        @conn.add_index 'items', 'id', name: 'fun'
         index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
         assert !index.unique, 'index is not unique'
       end
 
       def test_compound_index
-        @conn.add_index 'items', %w{ id number }, :name => 'fun'
+        @conn.add_index 'items', %w{ id number }, name: 'fun'
         index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
         assert_equal %w{ id number }.sort, index.columns.sort
       end

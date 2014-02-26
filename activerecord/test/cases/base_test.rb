@@ -294,13 +294,13 @@ class BasicsTest < ActiveRecord::TestCase
   def test_initialize_with_invalid_attribute
     Topic.new({ "title" => "test",
       "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
-  rescue ActiveRecord::MultiparameterAssignmentErrors => ex
+  rescue ActiveRecord:MultiparameterAssignmentErrors: ex
     assert_equal(1, ex.errors.size)
     assert_equal("last_read", ex.errors[0].attribute)
   end
 
   def test_create_after_initialize_without_block
-    cb = CustomBulb.create(:name => 'Dude')
+    cb = CustomBulb.create(name: 'Dude')
     assert_equal('Dude', cb.name)
     assert_equal(true, cb.frickinawesome)
   end
@@ -320,13 +320,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_load
-    topics = Topic.all.merge!(:order => 'id').to_a
+    topics = Topic.all.merge!(order: 'id').to_a
     assert_equal(5, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
   def test_load_with_condition
-    topics = Topic.all.merge!(:where => "author_name = 'Mary'").to_a
+    topics = Topic.all.merge!(where: "author_name = 'Mary'").to_a
 
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
@@ -448,7 +448,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_update_all_with_order_and_limit
-      assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')
+      assert_equal 1, Topic.limit(1).order('id DESC').update_all(content: 'bulk updated!')
     end
   end
 
@@ -536,7 +536,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_equality_of_destroyed_records
-    topic_1 = Topic.new(:title => 'test_1')
+    topic_1 = Topic.new(title: 'test_1')
     topic_1.save
     topic_2 = Topic.find(topic_1.id)
     topic_1.destroy
@@ -563,7 +563,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_create_without_prepared_statement
     topic = Topic.connection.unprepared_statement do
-      Topic.create(:title => 'foo')
+      Topic.create(title: 'foo')
     end
 
     assert_equal topic, Topic.find(topic.id)
@@ -579,14 +579,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_blank_ids
-    one = Subscriber.new(:id => '')
-    two = Subscriber.new(:id => '')
+    one = Subscriber.new(id: '')
+    two = Subscriber.new(id: '')
     assert_equal one, two
   end
 
   def test_comparison_with_different_objects
     topic = Topic.create
-    category = Category.create(:name => "comparison")
+    category = Category.create(name: "comparison")
     assert_nil topic <=> category
   end
 
@@ -600,7 +600,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_readonly_attributes
     assert_equal Set.new([ 'title' , 'comments_count' ]), ReadonlyTitlePost.readonly_attributes
 
-    post = ReadonlyTitlePost.create(:title => "cannot change this", :body => "changeable")
+    post = ReadonlyTitlePost.create(title: "cannot change this", body: "changeable")
     post.reload
     assert_equal "cannot change this", post.title
 
@@ -643,7 +643,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_group_weirds_by_from
-    Weird.create('a$b' => 'value', :from => 'aaron')
+    Weird.create('a$b' => 'value', from: 'aaron')
     count = Weird.group(Weird.arel_table[:from]).count
     assert_equal 1, count['aaron']
   end
@@ -797,7 +797,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_clone_of_new_object_marks_attributes_as_dirty
-    developer = Developer.new :name => 'Bjorn', :salary => 100000
+    developer = Developer.new name: 'Bjorn', salary: 100000
     assert developer.name_changed?
     assert developer.salary_changed?
 
@@ -807,7 +807,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
-    developer = Developer.new :name => 'Bjorn'
+    developer = Developer.new name: 'Bjorn'
     assert developer.name_changed?            # obviously
     assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
 
@@ -817,7 +817,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_dup_of_saved_object_marks_attributes_as_dirty
-    developer = Developer.create! :name => 'Bjorn', :salary => 100000
+    developer = Developer.create! name: 'Bjorn', salary: 100000
     assert !developer.name_changed?
     assert !developer.salary_changed?
 
@@ -827,7 +827,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
-    developer = Developer.create! :name => 'Bjorn'
+    developer = Developer.create! name: 'Bjorn'
     assert !developer.name_changed?           # both attributes of saved object should be treated as not changed
     assert !developer.salary_changed?
 
@@ -869,13 +869,13 @@ class BasicsTest < ActiveRecord::TestCase
       # values can be a mix of float or integer
 
       g = Geometric.new(
-        :a_point        => '(5.0, 6.1)',
-        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
-        :a_line_segment => '(2.0, 3), (5.5, 7.0)',
-        :a_box          => '2.0, 3, 5.5, 7.0',
-        :a_path         => '[(2.0, 3), (5.5, 7.0), (8.5, 11.0)]',  # [ ] is an open path
-        :a_polygon      => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',
-        :a_circle       => '<(5.3, 10.4), 2>'
+        a_point: '(5.0, 6.1)',
+        #a_line: '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
+        a_line_segment: '(2.0, 3), (5.5, 7.0)',
+        a_box: '2.0, 3, 5.5, 7.0',
+        a_path: '[(2.0, 3), (5.5, 7.0), (8.5, 11.0)]',  # [ ] is an open path
+        a_polygon: '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',
+        a_circle: '<(5.3, 10.4), 2>'
       )
 
       assert g.save
@@ -898,13 +898,13 @@ class BasicsTest < ActiveRecord::TestCase
       # test alternate formats when defining the geometric types
 
       g = Geometric.new(
-        :a_point        => '5.0, 6.1',
-        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
-        :a_line_segment => '((2.0, 3), (5.5, 7.0))',
-        :a_box          => '(2.0, 3), (5.5, 7.0)',
-        :a_path         => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
-        :a_polygon      => '2.0, 3, 5.5, 7.0, 8.5, 11.0',
-        :a_circle       => '((5.3, 10.4), 2)'
+        a_point: '5.0, 6.1',
+        #a_line: '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
+        a_line_segment: '((2.0, 3), (5.5, 7.0))',
+        a_box: '(2.0, 3), (5.5, 7.0)',
+        a_path: '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
+        a_polygon: '2.0, 3, 5.5, 7.0, 8.5, 11.0',
+        a_circle: '((5.3, 10.4), 2)'
       )
 
       assert g.save
@@ -926,13 +926,13 @@ class BasicsTest < ActiveRecord::TestCase
 
       # test native ruby formats when defining the geometric types
       g = Geometric.new(
-        :a_point        => [5.0, 6.1],
-        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
-        :a_line_segment => '((2.0, 3), (5.5, 7.0))',
-        :a_box          => '(2.0, 3), (5.5, 7.0)',
-        :a_path         => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
-        :a_polygon      => '2.0, 3, 5.5, 7.0, 8.5, 11.0',
-        :a_circle       => '((5.3, 10.4), 2)'
+        a_point: [5.0, 6.1],
+        #a_line: '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
+        a_line_segment: '((2.0, 3), (5.5, 7.0))',
+        a_box: '(2.0, 3), (5.5, 7.0)',
+        a_path: '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
+        a_polygon: '2.0, 3, 5.5, 7.0, 8.5, 11.0',
+        a_circle: '((5.3, 10.4), 2)'
       )
 
       assert g.save
@@ -955,10 +955,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_big_decimal_conditions
     m = NumericData.new(
-      :bank_balance => 1586.43,
-      :big_bank_balance => BigDecimal("1000234000567.95"),
-      :world_population => 6000000000,
-      :my_house_population => 3
+      bank_balance: 1586.43,
+      big_bank_balance: BigDecimal("1000234000567.95"),
+      world_population: 6000000000,
+      my_house_population: 3
     )
     assert m.save
     assert_equal 0, NumericData.where("bank_balance > ?", 2000.0).count
@@ -966,10 +966,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_numeric_fields
     m = NumericData.new(
-      :bank_balance => 1586.43,
-      :big_bank_balance => BigDecimal("1000234000567.95"),
-      :world_population => 6000000000,
-      :my_house_population => 3
+      bank_balance: 1586.43,
+      big_bank_balance: BigDecimal("1000234000567.95"),
+      world_population: 6000000000,
+      my_house_population: 3
     )
     assert m.save
 
@@ -1015,10 +1015,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_quoting_arrays
-    replies = Reply.all.merge!(:where => [ "id IN (?)", topics(:first).replies.collect(&:id) ]).to_a
+    replies = Reply.all.merge!(where: [ "id IN (?)", topics(:first).replies.collect(&:id) ]).to_a
     assert_equal topics(:first).replies.size, replies.size
 
-    replies = Reply.all.merge!(:where => [ "id IN (?)", [] ]).to_a
+    replies = Reply.all.merge!(where: [ "id IN (?)", [] ]).to_a
     assert_equal 0, replies.size
   end
 
@@ -1164,17 +1164,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_no_limit_offset
     assert_nothing_raised do
-      Developer.all.merge!(:offset => 2).to_a
+      Developer.all.merge!(offset: 2).to_a
     end
   end
 
   def test_find_last
     last  = Developer.last
-    assert_equal last, Developer.all.merge!(:order => 'id desc').first
+    assert_equal last, Developer.all.merge!(order: 'id desc').first
   end
 
   def test_last
-    assert_equal Developer.all.merge!(:order => 'id desc').first, Developer.last
+    assert_equal Developer.all.merge!(order: 'id desc').first, Developer.last
   end
 
   def test_all
@@ -1184,37 +1184,37 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_all_with_conditions
-    assert_equal Developer.all.merge!(:order => 'id desc').to_a, Developer.order('id desc').to_a
+    assert_equal Developer.all.merge!(order: 'id desc').to_a, Developer.order('id desc').to_a
   end
 
   def test_find_ordered_last
-    last  = Developer.all.merge!(:order => 'developers.salary ASC').last
-    assert_equal last, Developer.all.merge!(:order => 'developers.salary ASC').to_a.last
+    last  = Developer.all.merge!(order: 'developers.salary ASC').last
+    assert_equal last, Developer.all.merge!(order: 'developers.salary ASC').to_a.last
   end
 
   def test_find_reverse_ordered_last
-    last  = Developer.all.merge!(:order => 'developers.salary DESC').last
-    assert_equal last, Developer.all.merge!(:order => 'developers.salary DESC').to_a.last
+    last  = Developer.all.merge!(order: 'developers.salary DESC').last
+    assert_equal last, Developer.all.merge!(order: 'developers.salary DESC').to_a.last
   end
 
   def test_find_multiple_ordered_last
-    last  = Developer.all.merge!(:order => 'developers.name, developers.salary DESC').last
-    assert_equal last, Developer.all.merge!(:order => 'developers.name, developers.salary DESC').to_a.last
+    last  = Developer.all.merge!(order: 'developers.name, developers.salary DESC').last
+    assert_equal last, Developer.all.merge!(order: 'developers.name, developers.salary DESC').to_a.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.all.merge!(:order => 'developers.name, developers.salary').to_a
-    assert_equal combined, Developer.all.merge!(:order => ['developers.name', 'developers.salary']).to_a
+    combined = Developer.all.merge!(order: 'developers.name, developers.salary').to_a
+    assert_equal combined, Developer.all.merge!(order: ['developers.name', 'developers.salary']).to_a
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.all.merge!(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on').to_a
-    assert_equal combined, Developer.all.merge!(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at', 'developers.created_on', 'developers.updated_on']).to_a
+    combined = Developer.all.merge!(group: 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on').to_a
+    assert_equal combined, Developer.all.merge!(group: ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at', 'developers.created_on', 'developers.updated_on']).to_a
   end
 
   def test_find_symbol_ordered_last
-    last  = Developer.all.merge!(:order => :salary).last
-    assert_equal last, Developer.all.merge!(:order => :salary).to_a.last
+    last  = Developer.all.merge!(order: :salary).last
+    assert_equal last, Developer.all.merge!(order: :salary).to_a.last
   end
 
   def test_abstract_class
@@ -1257,7 +1257,7 @@ class BasicsTest < ActiveRecord::TestCase
     old_class = LooseDescendant
     Object.send :remove_const, :LooseDescendant
 
-    descendant = old_class.create! :first_name => 'bob'
+    descendant = old_class.create! first_name: 'bob'
     assert_not_nil LoosePerson.find(descendant.id), "Should have found instance of LooseDescendant when finding abstract LoosePerson: #{descendant.inspect}"
   ensure
     unless Object.const_defined?(:LooseDescendant)
@@ -1277,9 +1277,9 @@ class BasicsTest < ActiveRecord::TestCase
     log = StringIO.new
     ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
     ActiveRecord::Base.logger.level = Logger::WARN
-    ActiveRecord::Base.benchmark("Debug Topic Count", :level => :debug) { Topic.count }
-    ActiveRecord::Base.benchmark("Warn Topic Count",  :level => :warn)  { Topic.count }
-    ActiveRecord::Base.benchmark("Error Topic Count", :level => :error) { Topic.count }
+    ActiveRecord::Base.benchmark("Debug Topic Count", level: :debug) { Topic.count }
+    ActiveRecord::Base.benchmark("Warn Topic Count",  level: :warn)  { Topic.count }
+    ActiveRecord::Base.benchmark("Error Topic Count", level: :error) { Topic.count }
     assert_no_match(/Debug Topic Count/, log.string)
     assert_match(/Warn Topic Count/, log.string)
     assert_match(/Error Topic Count/, log.string)
@@ -1291,7 +1291,7 @@ class BasicsTest < ActiveRecord::TestCase
     original_logger = ActiveRecord::Base.logger
     log = StringIO.new
     ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-    ActiveRecord::Base.benchmark("Logging", :level => :debug, :silence => false)  { ActiveRecord::Base.logger.debug "Quiet" }
+    ActiveRecord::Base.benchmark("Logging", level: :debug, silence: false)  { ActiveRecord::Base.logger.debug "Quiet" }
     assert_match(/Quiet/, log.string)
   ensure
     ActiveRecord::Base.logger = original_logger
@@ -1422,7 +1422,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_touch_should_raise_error_on_a_new_object
-    company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
+    company = Company.new(rating: 1, name: "37signals", firm_name: "37signals")
     assert_raises(ActiveRecord::ActiveRecordError) do
       company.touch :updated_at
     end
@@ -1430,13 +1430,13 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_uniq_delegates_to_scoped
     scope = stub
-    Bird.stubs(:all).returns(mock(:uniq => scope))
+    Bird.stubs(:all).returns(mock(uniq: scope))
     assert_equal scope, Bird.uniq
   end
 
   def test_distinct_delegates_to_scoped
     scope = stub
-    Bird.stubs(:all).returns(mock(:distinct => scope))
+    Bird.stubs(:all).returns(mock(distinct: scope))
     assert_equal scope, Bird.distinct
   end
 
@@ -1469,7 +1469,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_slice
-    company = Company.new(:rating => 1, :name => "37signals", :firm_name => "37signals")
+    company = Company.new(rating: 1, name: "37signals", firm_name: "37signals")
     hash = company.slice(:name, :rating, "arbitrary_method")
     assert_equal hash[:name], company.name
     assert_equal hash['name'], company.name
@@ -1494,7 +1494,7 @@ class BasicsTest < ActiveRecord::TestCase
       scope.expects(meth).with(:foo, :bar).returns(record)
 
       klass = Class.new(ActiveRecord::Base)
-      klass.stubs(:all => scope)
+      klass.stubs(all: scope)
 
       assert_equal record, klass.public_send(meth, :foo, :bar)
     end

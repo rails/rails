@@ -18,16 +18,16 @@ class AssertSelectTest < ActionController::TestCase
 
   class AssertSelectMailer < ActionMailer::Base
     def test(html)
-      mail :body => html, :content_type => "text/html",
-        :subject => "Test e-mail", :from => "test@test.host", :to => "test <test@test.host>"
+      mail body: html, content_type: "text/html",
+        subject: "Test e-mail", from: "test@test.host", to: "test <test@test.host>"
     end
   end
 
   class AssertMultipartSelectMailer < ActionMailer::Base
     def test(options)
-      mail :subject => "Test e-mail", :from => "test@test.host", :to => "test <test@test.host>" do |format|
-        format.text { render :text => options[:text] }
-        format.html { render :text => options[:html] }
+      mail subject: "Test e-mail", from: "test@test.host", to: "test <test@test.host>" do |format|
+        format.text { render text: options[:text] }
+        format.html { render text: options[:html] }
       end
     end
   end
@@ -42,12 +42,12 @@ class AssertSelectTest < ActionController::TestCase
     end
 
     def html()
-      render :text=>@content, :layout=>false, :content_type=>Mime::HTML
+      render text:@content, layout:false, content_type:Mime::HTML
       @content = nil
     end
 
     def xml()
-      render :text=>@content, :layout=>false, :content_type=>Mime::XML
+      render text:@content, layout:false, content_type:Mime::XML
       @content = nil
     end
   end
@@ -107,13 +107,13 @@ class AssertSelectTest < ActionController::TestCase
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
     assert_nothing_raised    { assert_select "div", "foo" }
     assert_raise(Assertion) { assert_select "div", "bar" }
-    assert_nothing_raised    { assert_select "div", :text=>"foo" }
-    assert_raise(Assertion) { assert_select "div", :text=>"bar" }
+    assert_nothing_raised    { assert_select "div", text:"foo" }
+    assert_raise(Assertion) { assert_select "div", text:"bar" }
     assert_nothing_raised    { assert_select "div", /(foo|bar)/ }
     assert_raise(Assertion) { assert_select "div", /foobar/ }
-    assert_nothing_raised    { assert_select "div", :text=>/(foo|bar)/ }
-    assert_raise(Assertion) { assert_select "div", :text=>/foobar/ }
-    assert_raise(Assertion) { assert_select "p", :text=>/foobar/ }
+    assert_nothing_raised    { assert_select "div", text:/(foo|bar)/ }
+    assert_raise(Assertion) { assert_select "div", text:/foobar/ }
+    assert_raise(Assertion) { assert_select "p", text:/foobar/ }
   end
 
   def test_equality_of_html
@@ -122,16 +122,16 @@ class AssertSelectTest < ActionController::TestCase
     html = "<em>\"This is <strong>not</strong> a big problem,\"</em> he said."
     assert_nothing_raised    { assert_select "p", text }
     assert_raise(Assertion) { assert_select "p", html }
-    assert_nothing_raised    { assert_select "p", :html=>html }
-    assert_raise(Assertion) { assert_select "p", :html=>text }
+    assert_nothing_raised    { assert_select "p", html:html }
+    assert_raise(Assertion) { assert_select "p", html:text }
     # No stripping for pre.
     render_html %Q{<pre>\n<em>"This is <strong>not</strong> a big problem,"</em> he said.\n</pre>}
     text = "\n\"This is not a big problem,\" he said.\n"
     html = "\n<em>\"This is <strong>not</strong> a big problem,\"</em> he said.\n"
     assert_nothing_raised    { assert_select "pre", text }
     assert_raise(Assertion) { assert_select "pre", html }
-    assert_nothing_raised    { assert_select "pre", :html=>html }
-    assert_raise(Assertion) { assert_select "pre", :html=>text }
+    assert_nothing_raised    { assert_select "pre", html:html }
+    assert_raise(Assertion) { assert_select "pre", html:text }
   end
 
   def test_strip_textarea
@@ -151,23 +151,23 @@ class AssertSelectTest < ActionController::TestCase
     assert_failure(/Expected between 3 and 4 elements matching \"div\", found 2/) do
       assert_select "div", 3..4
     end
-    assert_nothing_raised               { assert_select "div", :count=>2 }
+    assert_nothing_raised               { assert_select "div", count:2 }
     assert_failure(/Expected exactly 3 elements matching \"div\", found 2/) do
-      assert_select "div", :count=>3
+      assert_select "div", count:3
     end
-    assert_nothing_raised               { assert_select "div", :minimum=>1 }
-    assert_nothing_raised               { assert_select "div", :minimum=>2 }
+    assert_nothing_raised               { assert_select "div", minimum:1 }
+    assert_nothing_raised               { assert_select "div", minimum:2 }
     assert_failure(/Expected at least 3 elements matching \"div\", found 2/) do
-      assert_select "div", :minimum=>3
+      assert_select "div", minimum:3
     end
-    assert_nothing_raised               { assert_select "div", :maximum=>2 }
-    assert_nothing_raised               { assert_select "div", :maximum=>3 }
+    assert_nothing_raised               { assert_select "div", maximum:2 }
+    assert_nothing_raised               { assert_select "div", maximum:3 }
     assert_failure(/Expected at most 1 element matching \"div\", found 2/) do
-      assert_select "div", :maximum=>1
+      assert_select "div", maximum:1
     end
-    assert_nothing_raised               { assert_select "div", :minimum=>1, :maximum=>2 }
+    assert_nothing_raised               { assert_select "div", minimum:1, maximum:2 }
     assert_failure(/Expected between 3 and 4 elements matching \"div\", found 2/) do
-      assert_select "div", :minimum=>3, :maximum=>4
+      assert_select "div", minimum:3, maximum:4
     end
   end
 
@@ -217,13 +217,13 @@ class AssertSelectTest < ActionController::TestCase
       assert_nothing_raised    { assert_select "div", "foo" }
       assert_nothing_raised    { assert_select "div", "bar" }
       assert_nothing_raised    { assert_select "div", /\w*/ }
-      assert_nothing_raised    { assert_select "div", :text => /\w*/, :count=>2 }
-      assert_raise(Assertion)  { assert_select "div", :text=>"foo", :count=>2 }
-      assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
-      assert_nothing_raised    { assert_select "div", :html=>"<span>bar</span>" }
-      assert_nothing_raised    { assert_select "div", :html=>/\w*/ }
-      assert_nothing_raised    { assert_select "div", :html=>/\w*/, :count=>2 }
-      assert_raise(Assertion)  { assert_select "div", :html=>"<span>foo</span>", :count=>2 }
+      assert_nothing_raised    { assert_select "div", text: /\w*/, count:2 }
+      assert_raise(Assertion)  { assert_select "div", text:"foo", count:2 }
+      assert_nothing_raised    { assert_select "div", html:"<span>bar</span>" }
+      assert_nothing_raised    { assert_select "div", html:"<span>bar</span>" }
+      assert_nothing_raised    { assert_select "div", html:/\w*/ }
+      assert_nothing_raised    { assert_select "div", html:/\w*/, count:2 }
+      assert_raise(Assertion)  { assert_select "div", html:"<span>foo</span>", count:2 }
     end
   end
 
@@ -284,15 +284,15 @@ EOF
     assert_select "channel item description" do
       # Test element regardless of wrapper.
       assert_select_encoded do
-        assert_select "p", :count=>2, :text=>/Test/
+        assert_select "p", count:2, text:/Test/
       end
       # Test through encoded wrapper.
       assert_select_encoded do
-        assert_select "encoded p", :count=>2, :text=>/Test/
+        assert_select "encoded p", count:2, text:/Test/
       end
       # Use :root instead (recommended)
       assert_select_encoded do
-        assert_select ":root p", :count=>2, :text=>/Test/
+        assert_select ":root p", count:2, text:/Test/
       end
       # Test individually.
       assert_select "description" do |elements|
@@ -329,7 +329,7 @@ EOF
   end
 
   def test_assert_select_email_multipart
-    AssertMultipartSelectMailer.test(:html => "<div><p>foo</p><p>bar</p></div>", :text => 'foo bar').deliver
+    AssertMultipartSelectMailer.test(html: "<div><p>foo</p><p>bar</p></div>", text: 'foo bar').deliver
     assert_select_email do
       assert_select "div:root" do
         assert_select "p:first-child", "foo"

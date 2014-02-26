@@ -141,11 +141,11 @@ module ActionDispatch
       include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
-        delegate method, :to => :response, :allow_nil => true
+        delegate method, to: :response, allow_nil: true
       end
 
       %w( path ).each do |method|
-        delegate method, :to => :request, :allow_nil => true
+        delegate method, to: :request, allow_nil: true
       end
 
       # The hostname used in the last request.
@@ -205,7 +205,7 @@ module ActionDispatch
             url_options.reverse_merge!(@app.routes.default_url_options)
           end
 
-          url_options.reverse_merge!(:host => host, :protocol => https? ? "https" : "http")
+          url_options.reverse_merge!(host: host, protocol: https? ? "https" : "http")
         end
       end
 
@@ -279,8 +279,8 @@ module ActionDispatch
           hostname, port = host.split(':')
 
           env = {
-            :method => method,
-            :params => parameters,
+            method: method,
+            params: parameters,
 
             "SERVER_NAME"     => hostname,
             "SERVER_PORT"     => port || (https? ? "443" : "80"),

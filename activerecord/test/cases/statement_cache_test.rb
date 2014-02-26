@@ -31,7 +31,7 @@ module ActiveRecord
 
     def test_statement_cache_with_complex_statement
       cache = ActiveRecord::StatementCache.new do
-        Liquid.joins(:molecules => :electrons).where('molecules.name' => 'dioxane', 'electrons.name' => 'lepton')
+        Liquid.joins(molecules: :electrons).where('molecules.name' => 'dioxane', 'electrons.name' => 'lepton')
       end
 
       salty = Liquid.create(name: 'salty')

@@ -3,14 +3,14 @@ require 'rails/generators/active_record'
 module ActiveRecord
   module Generators # :nodoc:
     class ModelGenerator < Base # :nodoc:
-      argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
+      argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
       check_class_collision
 
-      class_option :migration,  :type => :boolean
-      class_option :timestamps, :type => :boolean
-      class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
-      class_option :indexes,    :type => :boolean, :default => true, :desc => "Add indexes for references and belongs_to columns"
+      class_option :migration,  type: :boolean
+      class_option :timestamps, type: :boolean
+      class_option :parent,     type: :string, desc: "The parent class for the generated model"
+      class_option :indexes,    type: :boolean, default: true, desc: "Add indexes for references and belongs_to columns"
 
       
       # creates the migration file for the model.

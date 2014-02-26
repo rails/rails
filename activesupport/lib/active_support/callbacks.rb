@@ -358,8 +358,8 @@ module ActiveSupport
 
       def merge(chain, new_options)
         options = {
-          :if     => @if.dup,
-          :unless => @unless.dup
+          if: @if.dup,
+          unless: @unless.dup
         }
 
         options[:if].concat     Array(new_options.fetch(:unless, []))
@@ -473,7 +473,7 @@ module ActiveSupport
       def initialize(name, config)
         @name = name
         @config = {
-          :scope => [ :kind ]
+          scope: [ :kind ]
         }.merge!(config)
         @chain = []
         @callbacks = nil

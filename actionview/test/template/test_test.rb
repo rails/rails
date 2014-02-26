@@ -37,7 +37,7 @@ class PeopleHelperTest < ActionView::TestCase
 
   def test_link_to_person
     with_test_route_set do
-      person = mock(:name => "David")
+      person = mock(name: "David")
       person.class.extend ActiveModel::Naming
       expects(:mocha_mock_path).with(person).returns("/people/1")
       assert_equal '<a href="/people/1">David</a>', link_to_person(person)
@@ -48,7 +48,7 @@ class PeopleHelperTest < ActionView::TestCase
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          get 'people', :to => 'people#index', :as => :people
+          get 'people', to: 'people#index', as: :people
         end
         yield
       end

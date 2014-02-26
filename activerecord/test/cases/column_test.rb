@@ -57,7 +57,7 @@ module ActiveRecord
 
       def test_type_cast_activerecord_to_integer
         column = Column.new("field", nil, "integer")
-        firm = Firm.create(:name => 'Apple')
+        firm = Firm.create(name: 'Apple')
         assert_nil column.type_cast(firm)
       end
 

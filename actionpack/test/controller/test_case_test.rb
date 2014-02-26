@@ -5,57 +5,57 @@ require 'active_support/json/decoding'
 class TestCaseTest < ActionController::TestCase
   class TestController < ActionController::Base
     def no_op
-      render :text => 'dummy'
+      render text: 'dummy'
     end
 
     def set_flash
       flash["test"] = ">#{flash["test"]}<"
-      render :text => 'ignore me'
+      render text: 'ignore me'
     end
 
     def set_flash_now
       flash.now["test_now"] = ">#{flash["test_now"]}<"
-      render :text => 'ignore me'
+      render text: 'ignore me'
     end
 
     def set_session
       session['string'] = 'A wonder'
       session[:symbol] = 'it works'
-      render :text => 'Success'
+      render text: 'Success'
     end
 
     def reset_the_session
       reset_session
-      render :text => 'ignore me'
+      render text: 'ignore me'
     end
 
     def render_raw_post
       raise ActiveSupport::TestCase::Assertion, "#raw_post is blank" if request.raw_post.blank?
-      render :text => request.raw_post
+      render text: request.raw_post
     end
 
     def render_body
-      render :text => request.body.read
+      render text: request.body.read
     end
 
     def test_params
-      render :text => params.inspect
+      render text: params.inspect
     end
 
     def test_uri
-      render :text => request.fullpath
+      render text: request.fullpath
     end
 
     def test_format
-      render :text => request.format
+      render text: request.format
     end
 
     def test_query_string
-      render :text => request.query_string
+      render text: request.query_string
     end
 
     def test_protocol
-      render :text => request.protocol
+      render text: request.protocol
     end
 
     def test_headers
@@ -63,7 +63,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_html_output
-      render :text => <<HTML
+      render text: <<HTML
 <html>
   <body>
     <a href="/"><img src="/images/button.png" /></a>
@@ -85,7 +85,7 @@ HTML
 
     def test_xml_output
       response.content_type = "application/xml"
-      render :text => <<XML
+      render text: <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
   <area>area is an empty tag in HTML, raising an error if not in xml mode</area>
@@ -94,15 +94,15 @@ XML
     end
 
     def test_only_one_param
-      render :text => (params[:left] && params[:right]) ? "EEP, Both here!" : "OK"
+      render text: (params[:left] && params[:right]) ? "EEP, Both here!" : "OK"
     end
 
     def test_remote_addr
-      render :text => (request.remote_addr || "not specified")
+      render text: (request.remote_addr || "not specified")
     end
 
     def test_file_upload
-      render :text => params[:file].size
+      render text: params[:file].size
     end
 
     def test_send_file
@@ -110,32 +110,32 @@ XML
     end
 
     def redirect_to_same_controller
-      redirect_to :controller => 'test', :action => 'test_uri', :id => 5
+      redirect_to controller: 'test', action: 'test_uri', id: 5
     end
 
     def redirect_to_different_controller
-      redirect_to :controller => 'fail', :id => 5
+      redirect_to controller: 'fail', id: 5
     end
 
     def create
-      head :created, :location => 'created resource'
+      head :created, location: 'created resource'
     end
 
     def delete_cookie
       cookies.delete("foo")
-      render :nothing => true
+      render nothing: true
     end
 
     def test_assigns
       @foo = "foo"
-      @foo_hash = {:foo => :bar}
-      render :nothing => true
+      @foo_hash = {foo: :bar}
+      render nothing: true
     end
 
     private
 
       def generate_url(opts)
-        url_for(opts.merge(:action => "test_uri"))
+        url_for(opts.merge(action: "test_uri"))
       end
   end
 
@@ -155,7 +155,7 @@ XML
   class ViewAssignsController < ActionController::Base
     def test_assigns
       @foo = "foo"
-      render :nothing => true
+      render nothing: true
     end
 
     def view_assigns
@@ -164,14 +164,14 @@ XML
   end
 
   def test_raw_post_handling
-    params = Hash[:page, {:name => 'page name'}, 'some key', 123]
+    params = Hash[:page, {name: 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup
 
     assert_equal params.to_query, @response.body
   end
 
   def test_body_stream
-    params = Hash[:page, { :name => 'page name' }, 'some key', 123]
+    params = Hash[:page, { name: 'page name' }, 'some key', 123]
 
     post :render_body, params.dup
 
@@ -179,7 +179,7 @@ XML
   end
 
   def test_document_body_and_params_with_post
-    post :test_params, :id => 1
+    post :test_params, id: 1
     assert_equal("{\"id\"=>\"1\", \"controller\"=>\"test_case_test/test\", \"action\"=>\"test_params\"}", @response.body)
   end
 
@@ -199,7 +199,7 @@ XML
   end
 
   def test_head_params_as_sting
-    assert_raise(NoMethodError) { head :test_params, "document body", :id => 10 }
+    assert_raise(NoMethodError) { head :test_params, "document body", id: 10 }
   end
 
   def test_process_without_flash
@@ -226,7 +226,7 @@ XML
   end
 
   def test_process_with_session_arg
-    process :no_op, "GET", nil, { 'string' => 'value1', :symbol => 'value2' }
+    process :no_op, "GET", nil, { 'string' => 'value1', symbol: 'value2' }
     assert_equal 'value1', session['string']
     assert_equal 'value1', session[:string]
     assert_equal 'value2', session['symbol']
@@ -235,13 +235,13 @@ XML
 
   def test_process_merges_session_arg
     session[:foo] = 'bar'
-    get :no_op, nil, { :bar => 'baz' }
+    get :no_op, nil, { bar: 'baz' }
     assert_equal 'bar', session[:foo]
     assert_equal 'baz', session[:bar]
   end
 
   def test_merged_session_arg_is_retained_across_requests
-    get :no_op, nil, { :foo => 'bar' }
+    get :no_op, nil, { foo: 'bar' }
     assert_equal 'bar', session[:foo]
     get :no_op
     assert_equal 'bar', session[:foo]
@@ -249,7 +249,7 @@ XML
 
   def test_process_overwrites_existing_session_arg
     session[:foo] = 'bar'
-    get :no_op, nil, { :foo => 'baz' }
+    get :no_op, nil, { foo: 'baz' }
     assert_equal 'baz', session[:foo]
   end
 
@@ -277,18 +277,18 @@ XML
   end
 
   def test_process_with_request_uri_with_params
-    process :test_uri, "GET", :id => 7
+    process :test_uri, "GET", id: 7
     assert_equal "/test_case_test/test/test_uri/7", @response.body
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
     @request.env['PATH_INFO'] = "/explicit/uri"
-    process :test_uri, "GET", :id => 7
+    process :test_uri, "GET", id: 7
     assert_equal "/explicit/uri", @response.body
   end
 
   def test_process_with_query_string
-    process :test_query_string, "GET", :q => 'test'
+    process :test_query_string, "GET", q: 'test'
     assert_equal "q=test", @response.body
   end
 
@@ -300,9 +300,9 @@ XML
   end
 
   def test_multiple_calls
-    process :test_only_one_param, "GET", :left => true
+    process :test_only_one_param, "GET", left: true
     assert_equal "OK", @response.body
-    process :test_only_one_param, "GET", :right => true
+    process :test_only_one_param, "GET", right: true
     assert_equal "OK", @response.body
   end
 
@@ -317,7 +317,7 @@ XML
     assert_equal "foo", assigns["foo"]
 
     # but the assigned variable should not have its own keys stringified
-    expected_hash = { :foo => :bar }
+    expected_hash = { foo: :bar }
     assert_equal expected_hash, assigns(:foo_hash)
   end
 
@@ -334,129 +334,129 @@ XML
     process :test_html_output
 
     # there is a 'form' tag
-    assert_tag :tag => 'form'
+    assert_tag tag: 'form'
     # there is not an 'hr' tag
-    assert_no_tag :tag => 'hr'
+    assert_no_tag tag: 'hr'
   end
 
   def test_assert_tag_attributes
     process :test_html_output
 
     # there is a tag with an 'id' of 'bar'
-    assert_tag :attributes => { :id => "bar" }
+    assert_tag attributes: { id: "bar" }
     # there is no tag with a 'name' of 'baz'
-    assert_no_tag :attributes => { :name => "baz" }
+    assert_no_tag attributes: { name: "baz" }
   end
 
   def test_assert_tag_parent
     process :test_html_output
 
     # there is a tag with a parent 'form' tag
-    assert_tag :parent => { :tag => "form" }
+    assert_tag parent: { tag: "form" }
     # there is no tag with a parent of 'input'
-    assert_no_tag :parent => { :tag => "input" }
+    assert_no_tag parent: { tag: "input" }
   end
 
   def test_assert_tag_child
     process :test_html_output
 
     # there is a tag with a child 'input' tag
-    assert_tag :child => { :tag => "input" }
+    assert_tag child: { tag: "input" }
     # there is no tag with a child 'strong' tag
-    assert_no_tag :child => { :tag => "strong" }
+    assert_no_tag child: { tag: "strong" }
   end
 
   def test_assert_tag_ancestor
     process :test_html_output
 
     # there is a 'li' tag with an ancestor having an id of 'foo'
-    assert_tag :ancestor => { :attributes => { :id => "foo" } }, :tag => "li"
+    assert_tag ancestor: { attributes: { id: "foo" } }, tag: "li"
     # there is no tag of any kind with an ancestor having an href matching 'foo'
-    assert_no_tag :ancestor => { :attributes => { :href => /foo/ } }
+    assert_no_tag ancestor: { attributes: { href: /foo/ } }
   end
 
   def test_assert_tag_descendant
     process :test_html_output
 
     # there is a tag with a descendant 'li' tag
-    assert_tag :descendant => { :tag => "li" }
+    assert_tag descendant: { tag: "li" }
     # there is no tag with a descendant 'html' tag
-    assert_no_tag :descendant => { :tag => "html" }
+    assert_no_tag descendant: { tag: "html" }
   end
 
   def test_assert_tag_sibling
     process :test_html_output
 
     # there is a tag with a sibling of class 'item'
-    assert_tag :sibling => { :attributes => { :class => "item" } }
+    assert_tag sibling: { attributes: { class: "item" } }
     # there is no tag with a sibling 'ul' tag
-    assert_no_tag :sibling => { :tag => "ul" }
+    assert_no_tag sibling: { tag: "ul" }
   end
 
   def test_assert_tag_after
     process :test_html_output
 
     # there is a tag following a sibling 'div' tag
-    assert_tag :after => { :tag => "div" }
+    assert_tag after: { tag: "div" }
     # there is no tag following a sibling tag with id 'bar'
-    assert_no_tag :after => { :attributes => { :id => "bar" } }
+    assert_no_tag after: { attributes: { id: "bar" } }
   end
 
   def test_assert_tag_before
     process :test_html_output
 
     # there is a tag preceding a tag with id 'bar'
-    assert_tag :before => { :attributes => { :id => "bar" } }
+    assert_tag before: { attributes: { id: "bar" } }
     # there is no tag preceding a 'form' tag
-    assert_no_tag :before => { :tag => "form" }
+    assert_no_tag before: { tag: "form" }
   end
 
   def test_assert_tag_children_count
     process :test_html_output
 
     # there is a tag with 2 children
-    assert_tag :children => { :count => 2 }
+    assert_tag children: { count: 2 }
     # in particular, there is a <ul> tag with two children (a nameless pair of <li>s)
-    assert_tag :tag => 'ul', :children => { :count => 2 }
+    assert_tag tag: 'ul', children: { count: 2 }
     # there is no tag with 4 children
-    assert_no_tag :children => { :count => 4 }
+    assert_no_tag children: { count: 4 }
   end
 
   def test_assert_tag_children_less_than
     process :test_html_output
 
     # there is a tag with less than 5 children
-    assert_tag :children => { :less_than => 5 }
+    assert_tag children: { less_than: 5 }
     # there is no 'ul' tag with less than 2 children
-    assert_no_tag :children => { :less_than => 2 }, :tag => "ul"
+    assert_no_tag children: { less_than: 2 }, tag: "ul"
   end
 
   def test_assert_tag_children_greater_than
     process :test_html_output
 
     # there is a 'body' tag with more than 1 children
-    assert_tag :children => { :greater_than => 1 }, :tag => "body"
+    assert_tag children: { greater_than: 1 }, tag: "body"
     # there is no tag with more than 10 children
-    assert_no_tag :children => { :greater_than => 10 }
+    assert_no_tag children: { greater_than: 10 }
   end
 
   def test_assert_tag_children_only
     process :test_html_output
 
     # there is a tag containing only one child with an id of 'foo'
-    assert_tag :children => { :count => 1,
-                              :only => { :attributes => { :id => "foo" } } }
+    assert_tag children: { count: 1,
+                              only: { attributes: { id: "foo" } } }
     # there is no tag containing only one 'li' child
-    assert_no_tag :children => { :count => 1, :only => { :tag => "li" } }
+    assert_no_tag children: { count: 1, only: { tag: "li" } }
   end
 
   def test_assert_tag_content
     process :test_html_output
 
     # the output contains the string "Name"
-    assert_tag :content => /Name/
+    assert_tag content: /Name/
     # the output does not contain the string "test"
-    assert_no_tag :content => /test/
+    assert_no_tag content: /test/
   end
 
   def test_assert_tag_multiple
@@ -464,32 +464,32 @@ XML
 
     # there is a 'div', id='bar', with an immediate child whose 'action'
     # attribute matches the regexp /somewhere/.
-    assert_tag :tag => "div", :attributes => { :id => "bar" },
-               :child => { :attributes => { :action => /somewhere/ } }
+    assert_tag tag: "div", attributes: { id: "bar" },
+               child: { attributes: { action: /somewhere/ } }
 
     # there is no 'div', id='foo', with a 'ul' child with more than
     # 2 "li" children.
-    assert_no_tag :tag => "div", :attributes => { :id => "foo" },
-                  :child => {
-                    :tag => "ul",
-                    :children => { :greater_than => 2,
-                                   :only => { :tag => "li" } } }
+    assert_no_tag tag: "div", attributes: { id: "foo" },
+                  child: {
+                    tag: "ul",
+                    children: { greater_than: 2,
+                                   only: { tag: "li" } } }
   end
 
   def test_assert_tag_children_without_content
     process :test_html_output
 
     # there is a form tag with an 'input' child which is a self closing tag
-    assert_tag :tag => "form",
-      :children => { :count => 1,
-        :only => { :tag => "input" } }
+    assert_tag tag: "form",
+      children: { count: 1,
+        only: { tag: "input" } }
 
     # the body tag has an 'a' child which in turn has an 'img' child
-    assert_tag :tag => "body",
-      :children => { :count => 1,
-        :only => { :tag => "a",
-          :children => { :count => 1,
-            :only => { :tag => "img" } } } }
+    assert_tag tag: "body",
+      children: { count: 1,
+        only: { tag: "a",
+          children: { count: 1,
+            only: { tag: "img" } } } }
   end
 
   def test_should_not_impose_childless_html_tags_in_xml
@@ -508,37 +508,37 @@ XML
 
   def test_assert_tag_attribute_matching
     @response.body = '<input type="text" name="my_name">'
-    assert_tag :tag => 'input',
-                 :attributes => { :name => /my/, :type => 'text' }
-    assert_no_tag :tag => 'input',
-                 :attributes => { :name => 'my', :type => 'text' }
-    assert_no_tag :tag => 'input',
-                 :attributes => { :name => /^my$/, :type => 'text' }
+    assert_tag tag: 'input',
+                 attributes: { name: /my/, type: 'text' }
+    assert_no_tag tag: 'input',
+                 attributes: { name: 'my', type: 'text' }
+    assert_no_tag tag: 'input',
+                 attributes: { name: /^my$/, type: 'text' }
   end
 
   def test_assert_tag_content_matching
     @response.body = "<p>hello world</p>"
-    assert_tag :tag => "p", :content => "hello world"
-    assert_tag :tag => "p", :content => /hello/
-    assert_no_tag :tag => "p", :content => "hello"
+    assert_tag tag: "p", content: "hello world"
+    assert_tag tag: "p", content: /hello/
+    assert_no_tag tag: "p", content: "hello"
   end
 
   def test_assert_generates
-    assert_generates 'controller/action/5', :controller => 'controller', :action => 'action', :id => '5'
-    assert_generates 'controller/action/7', {:id => "7"}, {:controller => "controller", :action => "action"}
-    assert_generates 'controller/action/5', {:controller => "controller", :action => "action", :id => "5", :name => "bob"}, {}, {:name => "bob"}
-    assert_generates 'controller/action/7', {:id => "7", :name => "bob"}, {:controller => "controller", :action => "action"}, {:name => "bob"}
-    assert_generates 'controller/action/7', {:id => "7"}, {:controller => "controller", :action => "action", :name => "bob"}, {}
+    assert_generates 'controller/action/5', controller: 'controller', action: 'action', id: '5'
+    assert_generates 'controller/action/7', {id: "7"}, {controller: "controller", action: "action"}
+    assert_generates 'controller/action/5', {controller: "controller", action: "action", id: "5", name: "bob"}, {}, {name: "bob"}
+    assert_generates 'controller/action/7', {id: "7", name: "bob"}, {controller: "controller", action: "action"}, {name: "bob"}
+    assert_generates 'controller/action/7', {id: "7"}, {controller: "controller", action: "action", name: "bob"}, {}
   end
 
   def test_assert_routing
-    assert_routing 'content', :controller => 'content', :action => 'index'
+    assert_routing 'content', controller: 'content', action: 'index'
   end
 
   def test_assert_routing_with_method
     with_routing do |set|
       set.draw { resources(:content) }
-      assert_routing({ :method => 'post', :path => 'content' }, { :controller => 'content', :action => 'create' })
+      assert_routing({ method: 'post', path: 'content' }, { controller: 'content', action: 'create' })
     end
   end
 
@@ -550,19 +550,19 @@ XML
         end
       end
 
-      assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
+      assert_routing 'admin/user', controller: 'admin/user', action: 'index'
     end
   end
 
   def test_assert_routing_with_glob
     with_routing do |set|
       set.draw { get('*path' => "pages#show") }
-      assert_routing('/company/about', { :controller => 'pages', :action => 'show', :path => 'company/about' })
+      assert_routing('/company/about', { controller: 'pages', action: 'show', path: 'company/about' })
     end
   end
 
   def test_params_passing
-    get :test_params, :page => {:name => "Page name", :month => '4', :year => '2004', :day => '6'}
+    get :test_params, page: {name: "Page name", month: '4', year: '2004', day: '6'}
     parsed_params = eval(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
@@ -572,7 +572,7 @@ XML
   end
 
   def test_params_passing_with_fixnums
-    get :test_params, :page => {:name => "Page name", :month => 4, :year => 2004, :day => 6}
+    get :test_params, page: {name: "Page name", month: 4, year: 2004, day: 6}
     parsed_params = eval(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
@@ -582,7 +582,7 @@ XML
   end
 
   def test_params_passing_with_fixnums_when_not_html_request
-    get :test_params, :format => 'json', :count => 999
+    get :test_params, format: 'json', count: 999
     parsed_params = eval(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
@@ -592,7 +592,7 @@ XML
   end
 
   def test_params_passing_path_parameter_is_string_when_not_html_request
-    get :test_params, :format => 'json', :id => 1
+    get :test_params, format: 'json', id: 1
     parsed_params = eval(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',
@@ -603,7 +603,7 @@ XML
 
   def test_params_passing_with_frozen_values
     assert_nothing_raised do
-      get :test_params, :frozen => 'icy'.freeze, :frozens => ['icy'.freeze].freeze, :deepfreeze => { :frozen => 'icy'.freeze }.freeze
+      get :test_params, frozen: 'icy'.freeze, frozens: ['icy'.freeze].freeze, deepfreeze: { frozen: 'icy'.freeze }.freeze
     end
     parsed_params = eval(@response.body)
     assert_equal(
@@ -614,8 +614,8 @@ XML
   end
 
   def test_params_passing_doesnt_modify_in_place
-    page = {:name => "Page name", :month => 4, :year => 2004, :day => 6}
-    get :test_params, :page => page
+    page = {name: "Page name", month: 4, year: 2004, day: 6}
+    get :test_params, page: page
     assert_equal 2004, page[:year]
   end
 
@@ -638,25 +638,25 @@ XML
   end
 
   def test_id_converted_to_string
-    get :test_params, :id => 20, :foo => Object.new
+    get :test_params, id: 20, foo: Object.new
     assert_kind_of String, @request.path_parameters['id']
   end
 
   def test_array_path_parameter_handled_properly
     with_routing do |set|
       set.draw do
-        get 'file/*path', :to => 'test_case_test/test#test_params'
+        get 'file/*path', to: 'test_case_test/test#test_params'
         get ':controller/:action'
       end
 
-      get :test_params, :path => ['hello', 'world']
+      get :test_params, path: ['hello', 'world']
       assert_equal ['hello', 'world'], @request.path_parameters['path']
       assert_equal 'hello/world', @request.path_parameters['path'].to_param
     end
   end
 
   def test_assert_realistic_path_parameters
-    get :test_params, :id => 20, :foo => Object.new
+    get :test_params, id: 20, foo: Object.new
 
     # All elements of path_parameters should use string keys
     @request.path_parameters.keys.each do |key|
@@ -699,7 +699,7 @@ XML
   end
 
   def test_params_reset_after_post_request
-    post :no_op, :foo => "bar"
+    post :no_op, foo: "bar"
     assert_equal "bar", @request.params[:foo]
     @request.recycle!
     post :no_op
@@ -707,15 +707,15 @@ XML
   end
 
   def test_filtered_parameters_reset_between_requests
-    get :no_op, :foo => "bar"
+    get :no_op, foo: "bar"
     assert_equal "bar", @request.filtered_parameters[:foo]
 
-    get :no_op, :foo => "baz"
+    get :no_op, foo: "baz"
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
   def test_symbolized_path_params_reset_after_request
-    get :test_params, :id => "foo"
+    get :test_params, id: "foo"
     assert_equal "foo", @request.symbolized_path_parameters[:id]
     @request.recycle!
     get :test_params
@@ -736,13 +736,13 @@ XML
   end
 
   def test_request_format
-    get :test_format, :format => 'html'
+    get :test_format, format: 'html'
     assert_equal 'text/html', @response.body
 
-    get :test_format, :format => 'json'
+    get :test_format, format: 'json'
     assert_equal 'application/json', @response.body
 
-    get :test_format, :format => 'xml'
+    get :test_format, format: 'xml'
     assert_equal 'application/xml', @response.body
 
     get :test_format
@@ -833,7 +833,7 @@ XML
   end
 
   def test_fixture_file_upload
-    post :test_file_upload, :file => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+    post :test_file_upload, file: fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
     assert_equal '159528', @response.body
   end
 
@@ -852,7 +852,7 @@ XML
   def test_action_dispatch_uploaded_file_upload
     filename = 'mona_lisa.jpg'
     path = "#{FILES_DIR}/#{filename}"
-    post :test_file_upload, :file => ActionDispatch::Http::UploadedFile.new(:filename => path, :type => "image/jpg", :tempfile => File.open(path))
+    post :test_file_upload, file: ActionDispatch::Http::UploadedFile.new(filename: path, type: "image/jpg", tempfile: File.open(path))
     assert_equal '159528', @response.body
   end
 
@@ -925,7 +925,7 @@ class NamedRoutesControllerTest < ActionController::TestCase
     with_routing do |set|
       set.draw { resources :contents }
       assert_equal 'http://test.host/contents/new', new_content_url
-      assert_equal 'http://test.host/contents/1', content_url(:id => 1)
+      assert_equal 'http://test.host/contents/1', content_url(id: 1)
     end
   end
 end
@@ -934,7 +934,7 @@ class AnonymousControllerTest < ActionController::TestCase
   def setup
     @controller = Class.new(ActionController::Base) do
       def index
-        render :text => params[:controller]
+        render text: params[:controller]
       end
     end.new
 
@@ -955,29 +955,29 @@ class RoutingDefaultsTest < ActionController::TestCase
   def setup
     @controller = Class.new(ActionController::Base) do
       def post
-        render :text => request.fullpath
+        render text: request.fullpath
       end
 
       def project
-        render :text => request.fullpath
+        render text: request.fullpath
       end
     end.new
 
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        get '/posts/:id', :to => 'anonymous#post', :bucket_type => 'post'
-        get '/projects/:id', :to => 'anonymous#project', :defaults => { :bucket_type => 'project' }
+        get '/posts/:id', to: 'anonymous#post', bucket_type: 'post'
+        get '/projects/:id', to: 'anonymous#project', defaults: { bucket_type: 'project' }
       end
     end
   end
 
   def test_route_option_can_be_passed_via_process
-    get :post, :id => 1, :bucket_type => 'post'
+    get :post, id: 1, bucket_type: 'post'
     assert_equal '/posts/1', @response.body
   end
 
   def test_route_default_is_not_required_for_building_request_uri
-    get :project, :id => 2
+    get :project, id: 2
     assert_equal '/projects/2', @response.body
   end
 end

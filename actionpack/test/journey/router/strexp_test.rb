@@ -7,7 +7,7 @@ module ActionDispatch
         def test_many_names
           exp = Strexp.new(
             "/:controller(/:action(/:id(.:format)))",
-            {:controller=>/.+?/},
+            {controller:/.+?/},
             ["/", ".", "?"],
             true)
 

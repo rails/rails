@@ -181,11 +181,11 @@ module ActionController
       super
 
       self.session = TestSession.new
-      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
+      self.session_options = TestSession::DEFAULT_OPTIONS.merge(id: SecureRandom.hex(16))
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
-      parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
+      parameters = parameters.symbolize_keys.merge(controller: controller_path, action: action)
       extra_keys = routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
@@ -634,10 +634,10 @@ module ActionController
         unless @request.env["PATH_INFO"]
           options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
           options.update(
-            :only_path => true,
-            :action => action,
-            :relative_url_root => nil,
-            :_recall => @request.symbolized_path_parameters)
+            only_path: true,
+            action: action,
+            relative_url_root: nil,
+            _recall: @request.symbolized_path_parameters)
 
           url, query_string = @routes.url_for(options).split("?", 2)
 

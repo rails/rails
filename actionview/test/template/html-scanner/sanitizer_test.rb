@@ -104,13 +104,13 @@ class SanitizerTest < ActionController::TestCase
   def test_should_allow_custom_tags
     text = "<u>foo</u>"
     sanitizer = HTML::WhiteListSanitizer.new
-    assert_equal(text, sanitizer.sanitize(text, :tags => %w(u)))
+    assert_equal(text, sanitizer.sanitize(text, tags: %w(u)))
   end
 
   def test_should_allow_only_custom_tags
     text = "<u>foo</u> with <i>bar</i>"
     sanitizer = HTML::WhiteListSanitizer.new
-    assert_equal("<u>foo</u> with bar", sanitizer.sanitize(text, :tags => %w(u)))
+    assert_equal("<u>foo</u> with bar", sanitizer.sanitize(text, tags: %w(u)))
   end
 
   def test_should_allow_custom_tags_with_attributes
@@ -122,13 +122,13 @@ class SanitizerTest < ActionController::TestCase
   def test_should_allow_custom_tags_with_custom_attributes
     text = %(<blockquote foo="bar">Lorem ipsum</blockquote>)
     sanitizer = HTML::WhiteListSanitizer.new
-    assert_equal(text, sanitizer.sanitize(text, :attributes => ['foo']))
+    assert_equal(text, sanitizer.sanitize(text, attributes: ['foo']))
   end
 
   def test_should_raise_argument_error_if_tags_is_not_enumerable
     sanitizer = HTML::WhiteListSanitizer.new
     e = assert_raise(ArgumentError) do
-      sanitizer.sanitize('', :tags => 'foo')
+      sanitizer.sanitize('', tags: 'foo')
     end
 
     assert_equal "You should pass :tags as an Enumerable", e.message
@@ -137,7 +137,7 @@ class SanitizerTest < ActionController::TestCase
   def test_should_raise_argument_error_if_attributes_is_not_enumerable
     sanitizer = HTML::WhiteListSanitizer.new
     e = assert_raise(ArgumentError) do
-      sanitizer.sanitize('', :attributes => 'foo')
+      sanitizer.sanitize('', attributes: 'foo')
     end
 
     assert_equal "You should pass :attributes as an Enumerable", e.message

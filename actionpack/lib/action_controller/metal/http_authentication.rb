@@ -483,7 +483,7 @@ module ActionController
       # Returns nothing.
       def authentication_request(controller, realm)
         controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.gsub(/"/, "")}")
-        controller.__send__ :render, :text => "HTTP Token: Access denied.\n", :status => :unauthorized
+        controller.__send__ :render, text: "HTTP Token: Access denied.\n", status: :unauthorized
       end
     end
   end

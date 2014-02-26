@@ -1,7 +1,7 @@
 module ContactFakeColumns
   def self.extended(base)
     base.class_eval do
-      establish_connection(:adapter => 'fake')
+      establish_connection(adapter: 'fake')
 
       connection.tables = [table_name]
       connection.primary_keys = {
@@ -18,7 +18,7 @@ module ContactFakeColumns
 
       serialize :preferences
 
-      belongs_to :alternative, :class_name => 'Contact'
+      belongs_to :alternative, class_name: 'Contact'
     end
   end
 

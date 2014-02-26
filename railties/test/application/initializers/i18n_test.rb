@@ -85,7 +85,7 @@ en:
 
       app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
-          get '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
+          get '/i18n',   to: lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
         end
       RUBY
 
@@ -109,7 +109,7 @@ en:
 
       app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
-          get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
+          get '/i18n',   to: lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY
 
@@ -160,8 +160,8 @@ en:
       assert_fallbacks de: [:de, :'en-US', :en]
     end
 
-    test "config.i18n.fallbacks.map = { :ca => :'es-ES' } initializes fallbacks with a mapping ca => es-ES" do
-      I18n::Railtie.config.i18n.fallbacks.map = { :ca => :'es-ES' }
+    test "config.i18n.fallbacks.map = { ca: :'es-ES' } initializes fallbacks with a mapping ca => es-ES" do
+      I18n::Railtie.config.i18n.fallbacks.map = { ca: :'es-ES' }
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
     end
@@ -172,14 +172,14 @@ en:
       assert_fallbacks de: [:de, :'en-US', :en]
     end
 
-    test "[shortcut] config.i18n.fallbacks = [{ :ca => :'es-ES' }] initializes fallbacks with a mapping de-AT => de-DE" do
-      I18n::Railtie.config.i18n.fallbacks.map = { :ca => :'es-ES' }
+    test "[shortcut] config.i18n.fallbacks = [{ ca: :'es-ES' }] initializes fallbacks with a mapping de-AT => de-DE" do
+      I18n::Railtie.config.i18n.fallbacks.map = { ca: :'es-ES' }
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
     end
 
-    test "[shortcut] config.i18n.fallbacks = [:'en-US', { :ca => :'es-ES' }] initializes fallbacks with the given arguments" do
-      I18n::Railtie.config.i18n.fallbacks = [:'en-US', { :ca => :'es-ES' }]
+    test "[shortcut] config.i18n.fallbacks = [:'en-US', { ca: :'es-ES' }] initializes fallbacks with the given arguments" do
+      I18n::Railtie.config.i18n.fallbacks = [:'en-US', { ca: :'es-ES' }]
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :'en-US', :en]
     end

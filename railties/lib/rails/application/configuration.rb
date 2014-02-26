@@ -105,7 +105,7 @@ module Rails
         end
 
         config
-      rescue Psych::SyntaxError => e
+      rescue Psych:SyntaxError: e
         raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
               "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
               "Error: #{e.message}"

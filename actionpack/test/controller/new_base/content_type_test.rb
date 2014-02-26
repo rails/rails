@@ -3,16 +3,16 @@ require 'abstract_unit'
 module ContentType
   class BaseController < ActionController::Base
     def index
-      render :text => "Hello world!"
+      render text: "Hello world!"
     end
 
     def set_on_response_obj
       response.content_type = Mime::RSS
-      render :text => "Hello world!"
+      render text: "Hello world!"
     end
 
     def set_on_render
-      render :text => "Hello world!", :content_type => Mime::RSS
+      render text: "Hello world!", content_type: Mime::RSS
     end
   end
 
@@ -30,12 +30,12 @@ module ContentType
   class CharsetController < ActionController::Base
     def set_on_response_obj
       response.charset = "utf-16"
-      render :text => "Hello world!"
+      render text: "Hello world!"
     end
 
     def set_as_nil_on_response_obj
       response.charset = nil
-      render :text => "Hello world!"
+      render text: "Hello world!"
     end
   end
 
@@ -43,7 +43,7 @@ module ContentType
     test "default response is HTML and UTF8" do
       with_routing do |set|
         set.draw do
-          get ':controller', :action => 'index'
+          get ':controller', action: 'index'
         end
 
         get "/content_type/base"

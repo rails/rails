@@ -63,9 +63,9 @@ module ActiveRecord
         pk = Topic.columns.find { |x| x.primary }
 
         payload = {
-          :name  => 'SQL',
-          :sql   => 'select * from topics where id = ?',
-          :binds => [[pk, 10]]
+          name: 'SQL',
+          sql: 'select * from topics where id = ?',
+          binds: [[pk, 10]]
         }
         event  = ActiveSupport::Notifications::Event.new(
           'foo',

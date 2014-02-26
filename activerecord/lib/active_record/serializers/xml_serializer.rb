@@ -188,8 +188,8 @@ module ActiveRecord #:nodoc:
                  NilClass
                end
 
-        { :text => :string,
-          :time => :datetime }[type] || type
+        { text: :string,
+          time: :datetime }[type] || type
       end
       protected :compute_type
     end

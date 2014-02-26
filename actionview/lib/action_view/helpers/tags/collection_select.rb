@@ -13,8 +13,8 @@ module ActionView
 
         def render
           option_tags_options = {
-            :selected => @options.fetch(:selected) { value(@object) },
-            :disabled => @options[:disabled]
+            selected: @options.fetch(:selected) { value(@object) },
+            disabled: @options[:disabled]
           }
 
           select_content_tag(

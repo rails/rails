@@ -133,10 +133,10 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = 'test_mysql_text_not_null_defaults'
       klass.connection.create_table klass.table_name do |t|
-        t.column :non_null_text, :text, :null => false
-        t.column :non_null_blob, :blob, :null => false
-        t.column :null_text, :text, :null => true
-        t.column :null_blob, :blob, :null => true
+        t.column :non_null_text, :text, null: false
+        t.column :non_null_blob, :blob, null: false
+        t.column :null_text, :text, null: true
+        t.column :null_blob, :blob, null: true
       end
 
       yield klass
@@ -150,8 +150,8 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = 'test_integer_not_null_default_zero'
       klass.connection.create_table klass.table_name do |t|
-        t.column :zero, :integer, :null => false, :default => 0
-        t.column :omit, :integer, :null => false
+        t.column :zero, :integer, null: false, default: 0
+        t.column :omit, :integer, null: false
       end
 
       assert_equal 0, klass.columns_hash['zero'].default
@@ -163,7 +163,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }
 
       assert_nothing_raised do
-        instance = klass.create!(:omit => 1)
+        instance = klass.create!(omit: 1)
         assert_equal 0, instance.zero
         assert_equal 1, instance.omit
       end
@@ -181,8 +181,8 @@ if current_adapter?(:PostgreSQLAdapter)
       @old_search_path = @connection.schema_search_path
       @connection.schema_search_path = "schema_1, pg_catalog"
       @connection.create_table "defaults" do |t|
-        t.text "text_col", :default => "some value"
-        t.string "string_col", :default => "some value"
+        t.text "text_col", default: "some value"
+        t.string "string_col", default: "some value"
       end
       Default.reset_column_information
     end

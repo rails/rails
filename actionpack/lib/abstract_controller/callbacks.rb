@@ -24,8 +24,8 @@ module AbstractController
     module ClassMethods
       # If :only or :except are used, convert the options into the
       # :unless and :if options of ActiveSupport::Callbacks.
-      # The basic idea is that :only => :index gets converted to
-      # :if => proc {|c| c.action_name == "index" }.
+      # The basic idea is that only: :index gets converted to
+      # if: proc {|c| c.action_name == "index" }.
       #
       # ==== Options
       # * <tt>only</tt>   - The callback should be run only for this action
@@ -193,7 +193,7 @@ module AbstractController
           # for details on the allowed parameters.
           def prepend_#{callback}_action(*names, &blk)                                            # def prepend_before_action(*names, &blk)
             _insert_callbacks(names, blk) do |name, options|                                      #   _insert_callbacks(names, blk) do |name, options|
-              set_callback(:process_action, :#{callback}, name, options.merge(:prepend => true))  #     set_callback(:process_action, :before, name, options.merge(:prepend => true))
+              set_callback(:process_action, :#{callback}, name, options.merge(prepend: true))  #     set_callback(:process_action, :before, name, options.merge(prepend: true))
             end                                                                                   #   end
           end                                                                                     # end
 

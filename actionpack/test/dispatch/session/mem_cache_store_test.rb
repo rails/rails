@@ -18,11 +18,11 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_value
-      render :text => "foo: #{session[:foo].inspect}"
+      render text: "foo: #{session[:foo].inspect}"
     end
 
     def get_session_id
-      render :text => "#{request.session_options[:id]}"
+      render text: "#{request.session_options[:id]}"
     end
 
     def call_reset_session
@@ -155,7 +155,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
 
         reset!
 
-        get '/set_session_value', :_session_id => session_id
+        get '/set_session_value', _session_id: session_id
         assert_response :success
         assert_not_equal session_id, cookies['_session_id']
       end
@@ -168,11 +168,11 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          get ':action', :to => ::MemCacheStoreTest::TestController
+          get ':action', to: ::MemCacheStoreTest::TestController
         end
 
         @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::Session::MemCacheStore, :key => '_session_id'
+          middleware.use ActionDispatch::Session::MemCacheStore, key: '_session_id'
           middleware.delete "ActionDispatch::ShowExceptions"
         end
 

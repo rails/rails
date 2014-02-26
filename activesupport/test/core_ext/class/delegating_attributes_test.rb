@@ -40,7 +40,7 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
 
   def test_simple_accessor_declaration_with_instance_reader_false
     _instance_methods = single_class.public_instance_methods
-    single_class.superclass_delegating_accessor :no_instance_reader, :instance_reader => false
+    single_class.superclass_delegating_accessor :no_instance_reader, instance_reader: false
     assert_respond_to single_class, :no_instance_reader
     assert_respond_to single_class, :no_instance_reader=
     assert !_instance_methods.include?(:no_instance_reader)

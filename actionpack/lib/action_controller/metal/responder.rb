@@ -121,9 +121,9 @@ module ActionController #:nodoc:
     attr_reader :controller, :request, :format, :resource, :resources, :options
 
     DEFAULT_ACTIONS_FOR_VERBS = {
-      :post => :new,
-      :patch => :edit,
-      :put => :edit
+      post: :new,
+      patch: :edit,
+      put: :edit
     }
 
     def initialize(controller, resources, options={})
@@ -137,8 +137,8 @@ module ActionController #:nodoc:
       @default_response = options.delete(:default_response)
     end
 
-    delegate :head, :render, :redirect_to,   :to => :controller
-    delegate :get?, :post?, :patch?, :put?, :delete?, :to => :request
+    delegate :head, :render, :redirect_to,   to: :controller
+    delegate :get?, :post?, :patch?, :put?, :delete?, to: :request
 
     # Undefine :to_json and :to_yaml since it's defined on Object
     undef_method(:to_json) if method_defined?(:to_json)
@@ -193,7 +193,7 @@ module ActionController #:nodoc:
       if get?
         raise error
       elsif has_errors? && default_action
-        render :action => default_action
+        render action: default_action
       else
         redirect_to navigation_location
       end
@@ -207,7 +207,7 @@ module ActionController #:nodoc:
       if get?
         display resource
       elsif post?
-        display resource, :status => :created, :location => api_location
+        display resource, status: :created, location: api_location
       else
         head :no_content
       end
@@ -261,7 +261,7 @@ module ActionController #:nodoc:
     end
 
     def display_errors
-      controller.render format => resource_errors, :status => :unprocessable_entity
+      controller.render format => resource_errors, status: :unprocessable_entity
     end
 
     # Check whether the resource has errors.
@@ -287,7 +287,7 @@ module ActionController #:nodoc:
     end
 
     def json_resource_errors
-      {:errors => resource.errors}
+      {errors: resource.errors}
     end
 
     def response_overridden?

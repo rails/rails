@@ -192,7 +192,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
   def test_scaffold_with_namespace_on_revoke
     run_generator [ "admin/role", "name:string", "description:string" ]
-    run_generator [ "admin/role" ], :behavior => :revoke
+    run_generator [ "admin/role" ], behavior: :revoke
 
     # Model
     assert_file "app/models/admin.rb" # ( should not be remove )
@@ -234,7 +234,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
     File.open(route_path, "wb") { |file| file.write(content) }
 
-    run_generator ["product_line"], :behavior => :revoke
+    run_generator ["product_line"], behavior: :revoke
 
     assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
   end

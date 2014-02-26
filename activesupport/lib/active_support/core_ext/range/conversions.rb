@@ -1,6 +1,6 @@
 class Range
   RANGE_FORMATS = {
-    :db => Proc.new { |start, stop| "BETWEEN '#{start.to_s(:db)}' AND '#{stop.to_s(:db)}'" }
+    db: Proc.new { |start, stop| "BETWEEN '#{start.to_s(:db)}' AND '#{stop.to_s(:db)}'" }
   }
 
   # Gives a human readable format of the range.
