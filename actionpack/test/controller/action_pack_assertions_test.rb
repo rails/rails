@@ -264,7 +264,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     begin
       process :redirect_external_protocol_relative
       assert_redirected_to "/foo"
-    rescue ActiveSupport::TestCase:Assertion: ex
+    rescue ActiveSupport::TestCase::Assertion => ex
       assert_no_match(
         /#{request.protocol}#{request.host}\/\/www.rubyonrails.org/,
         ex.message,
