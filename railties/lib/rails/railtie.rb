@@ -183,8 +183,8 @@ module Rails
       end
 
       protected
-        def generate_railtie_name(class_or_module)
-          ActiveSupport::Inflector.underscore(class_or_module).tr("/", "_")
+        def generate_railtie_name(string)
+          ActiveSupport::Inflector.underscore(string).tr("/", "_")
         end
 
         # If the class method does not have a method, then send the method call

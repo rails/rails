@@ -371,7 +371,7 @@ module Rails
       end
 
       def isolate_namespace(mod)
-        engine_name(generate_railtie_name(mod))
+        engine_name(generate_railtie_name(mod.name))
 
         self.routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
