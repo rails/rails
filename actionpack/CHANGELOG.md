@@ -1,3 +1,8 @@
+*   Fix URL generation in controller tests with request-dependent
+    `default_url_options` methods.
+
+    *Tony Wooster*
+
 *   Introduce `render :html` as an option to render HTML content with a content
     type of `text/html`. This rendering option calls `ERB::Util.html_escape`
     internally to escape unsafe HTML string, so you will have to mark your
