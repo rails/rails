@@ -163,7 +163,7 @@ module ActionController #:nodoc:
     #
     def to_html
       default_render
-    rescue ActionView:MissingTemplate: e
+    rescue ActionView::MissingTemplate => e
       navigation_behavior(e)
     end
 
@@ -182,7 +182,7 @@ module ActionController #:nodoc:
       else
         display_errors
       end
-    rescue ActionView:MissingTemplate: e
+    rescue ActionView::MissingTemplate => e
       api_behavior(e)
     end
 
