@@ -87,6 +87,14 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal "HTTP Token: Access denied.\n", @response.body, "Authentication header was not properly parsed"
   end
 
+  test "authentication request with tab in header" do
+    @request.env['HTTP_AUTHORIZATION'] = "Token\ttoken=\"lifo\""
+    get :index
+
+    assert_response :success
+    assert_equal 'Hello Secret', @response.body
+  end
+
   test "authentication request without credential" do
     get :display
 

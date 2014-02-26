@@ -385,7 +385,7 @@ module ActionController
     #
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
-      TOKEN_REGEX = /^Token /
+      TOKEN_REGEX = /^Token\s+/
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
       extend self
 
