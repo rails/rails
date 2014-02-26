@@ -568,6 +568,7 @@ module ActionController
 
         name = @request.parameters[:action]
 
+        @controller.recycle!
         @controller.process(name)
 
         if cookies = @request.env['action_dispatch.cookies']
