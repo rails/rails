@@ -5,6 +5,41 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlUUIDTest < ActiveRecord::TestCase
+  class UUIDType < ActiveRecord::Base
+    self.table_name = "uuid_data_type"
+  end
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.transaction do
+      @connection.create_table "uuid_data_type" do |t|
+        t.uuid 'guid'
+      end
+    end
+  end
+
+  def teardown
+    @connection.execute 'drop table if exists uuid_data_type'
+  end
+
+  def test_data_type_of_uuid_types
+    assert_equal :uuid, UUIDType.columns_hash["guid"].type
+  end
+
+  def test_uuid_formats
+    ["A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11",
+     "{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}",
+     "a0eebc999c0b4ef8bb6d6bb9bd380a11",
+     "a0ee-bc99-9c0b-4ef8-bb6d-6bb9-bd38-0a11",
+     "{a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11}"].each do |valid_uuid|
+      UUIDType.create(guid: valid_uuid)
+      uuid = UUIDType.last
+      assert_equal "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", uuid.guid
+    end
+  end
+end
+
+class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
   class UUID < ActiveRecord::Base
     self.table_name = 'pg_uuids'
   end
