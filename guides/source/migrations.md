@@ -838,13 +838,17 @@ Alice creates a migration for the `products` table which adds a new column and
 initializes it:
 
 ```ruby
-# db/migrate/20100513121110_add_flag_to_product.rb
+# db/migrate/20100513121110_add_sale_price_to_products.rb
 
-class AddFlagToProduct < ActiveRecord::Migration
+class AddSalePriceToProducts < ActiveRecord::Migration
   def change
-    add_column :products, :flag, :boolean
+    add_column :products, :sale_price, :decimal
     reversible do |dir|
-      dir.up { Product.update_all flag: false }
+      dir.up do
+        Product.all.each do |product|
+          product.update_attributes(sale_price: product.price * 0.8)
+        end
+      end
     end
   end
 end
@@ -856,7 +860,7 @@ She also adds a validation to the `Product` model for the new column:
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, inclusion: { in: [true, false] }
+  validates :sale_price, presence: true
 end
 ```
 
@@ -864,9 +868,9 @@ Alice adds a second migration which adds another column to the `products`
 table and initializes it:
 
 ```ruby
-# db/migrate/20100515121110_add_fuzz_to_product.rb
+# db/migrate/20100515121110_add_fuzz_to_products.rb
 
-class AddFuzzToProduct < ActiveRecord::Migration
+class AddFuzzToProducts < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
     reversible do |dir|
@@ -882,8 +886,8 @@ She also adds a validation to the `Product` model for the new column:
 # app/models/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, inclusion: { in: [true, false] }
-  validates :fuzz, presence: true
+  validates :sale_price, presence: true
+  validates :fuzz, inclusion: { in: ['fuzzy', 'furry'] }
 end
 ```
 
@@ -917,17 +921,21 @@ When using a local model, it's a good idea to call
 If Alice had done this instead, there would have been no problem:
 
 ```ruby
-# db/migrate/20100513121110_add_flag_to_product.rb
+# db/migrate/20100513121110_add_sale_price_to_products.rb
 
-class AddFlagToProduct < ActiveRecord::Migration
+class AddSalePriceToProducts < ActiveRecord::Migration
   class Product < ActiveRecord::Base
   end
 
   def change
-    add_column :products, :flag, :boolean
+    add_column :products, :sale_price, :decimal
     Product.reset_column_information
     reversible do |dir|
-      dir.up { Product.update_all flag: false }
+      dir.up do
+        Product.all.each do |product|
+          product.update_attributes(sale_price: product.price * 0.8)
+        end
+      end
     end
   end
 end
