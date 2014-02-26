@@ -6,11 +6,23 @@ module ActiveRecord
       module OID
         class Type
           def type; end
+
+          def infinity(options = {})
+            ::Float::INFINITY * (options[:negative] ? -1 : 1)
+          end
         end
 
         class Identity < Type
           def type_cast(value)
             value
+          end
+        end
+
+        class Text < Type
+          def type_cast(value)
+            return if value.nil?
+
+            value.to_s
           end
         end
 
@@ -109,23 +121,19 @@ module ActiveRecord
           def extract_bounds(value)
             from, to = value[1..-2].split(',')
             {
-              from:          (value[1] == ',' || from == '-infinity') ? infinity(:negative => true) : from,
-              to:            (value[-2] == ',' || to == 'infinity') ? infinity : to,
+              from:          (value[1] == ',' || from == '-infinity') ? @subtype.infinity(negative: true) : from,
+              to:            (value[-2] == ',' || to == 'infinity') ? @subtype.infinity : to,
               exclude_start: (value[0] == '('),
               exclude_end:   (value[-1] == ')')
             }
-          end
-
-          def infinity(options = {})
-            ::Float::INFINITY * (options[:negative] ? -1 : 1)
           end
 
           def infinity?(value)
             value.respond_to?(:infinite?) && value.infinite?
           end
 
-          def to_integer(value)
-            infinity?(value) ? value : value.to_i
+          def type_cast_single(value)
+            infinity?(value) ? value : @subtype.type_cast(value)
           end
 
           def type_cast(value)
@@ -133,27 +141,20 @@ module ActiveRecord
             return value if value.is_a?(::Range)
 
             extracted = extract_bounds(value)
+            from = type_cast_single extracted[:from]
+            to = type_cast_single extracted[:to]
 
-            case @subtype
-            when :date
-              from  = ConnectionAdapters::Column.value_to_date(extracted[:from])
-              from -= 1.day if extracted[:exclude_start]
-              to    = ConnectionAdapters::Column.value_to_date(extracted[:to])
-            when :decimal
-              from  = BigDecimal.new(extracted[:from].to_s)
-              # FIXME: add exclude start for ::Range, same for timestamp ranges
-              to    = BigDecimal.new(extracted[:to].to_s)
-            when :time
-              from = ConnectionAdapters::Column.string_to_time(extracted[:from])
-              to   = ConnectionAdapters::Column.string_to_time(extracted[:to])
-            when :integer
-              from = to_integer(extracted[:from]) rescue value ? 1 : 0
-              from -= 1 if extracted[:exclude_start]
-              to   = to_integer(extracted[:to]) rescue value ? 1 : 0
-            else
-              return value
+            if !infinity?(from) && extracted[:exclude_start]
+              if from.respond_to?(:succ)
+                from = from.succ
+                ActiveSupport::Deprecation.warn <<-MESSAGE
+Excluding the beginning of a Range is only partialy supported through `#succ`.
+This is not reliable and will be removed in the future.
+                MESSAGE
+              else
+                raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
+              end
             end
-
             ::Range.new(from, to, extracted[:exclude_end])
           end
         end
@@ -221,6 +222,10 @@ module ActiveRecord
             return if value.nil?
 
             ConnectionAdapters::Column.value_to_decimal value
+          end
+
+          def infinity(options = {})
+            BigDecimal.new("Infinity") * (options[:negative] ? -1 : 1)
           end
         end
 
@@ -331,15 +336,8 @@ module ActiveRecord
         alias_type    'int8', 'int2'
         alias_type    'oid',  'int2'
 
-        register_type 'daterange', OID::Range.new(:date)
-        register_type 'numrange', OID::Range.new(:decimal)
-        register_type 'tsrange', OID::Range.new(:time)
-        register_type 'int4range', OID::Range.new(:integer)
-        alias_type    'tstzrange', 'tsrange'
-        alias_type    'int8range', 'int4range'
-
         register_type 'numeric', OID::Decimal.new
-        register_type 'text', OID::Identity.new
+        register_type 'text', OID::Text.new
         alias_type 'varchar', 'text'
         alias_type 'char', 'text'
         alias_type 'bpchar', 'text'
@@ -365,13 +363,13 @@ module ActiveRecord
         register_type 'date', OID::Date.new
         register_type 'time', OID::Time.new
 
-        register_type 'path', OID::Identity.new
+        register_type 'path', OID::Text.new
         register_type 'point', OID::Point.new
-        register_type 'polygon', OID::Identity.new
-        register_type 'circle', OID::Identity.new
+        register_type 'polygon', OID::Text.new
+        register_type 'circle', OID::Text.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
-        register_type 'ltree', OID::Identity.new
+        register_type 'ltree', OID::Text.new
 
         register_type 'cidr', OID::Cidr.new
         alias_type 'inet', 'cidr'

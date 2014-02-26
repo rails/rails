@@ -10,12 +10,22 @@ if ActiveRecord::Base.connection.supports_ranges?
   class PostgresqlRangeTest < ActiveRecord::TestCase
     def teardown
       @connection.execute 'DROP TABLE IF EXISTS postgresql_ranges'
+      @connection.execute 'DROP TYPE IF EXISTS floatrange'
     end
 
     def setup
-      @connection = ActiveRecord::Base.connection
+      @connection = PostgresqlRange.connection
       begin
         @connection.transaction do
+          @connection.execute 'DROP TABLE IF EXISTS postgresql_ranges'
+          @connection.execute 'DROP TYPE IF EXISTS floatrange'
+          @connection.execute <<_SQL
+            CREATE TYPE floatrange AS RANGE (
+                subtype = float8,
+                subtype_diff = float8mi
+            );
+_SQL
+
           @connection.create_table('postgresql_ranges') do |t|
             t.daterange :date_range
             t.numrange :num_range
@@ -24,7 +34,11 @@ if ActiveRecord::Base.connection.supports_ranges?
             t.int4range :int4_range
             t.int8range :int8_range
           end
+
+          @connection.add_column 'postgresql_ranges', 'float_range', 'floatrange'
         end
+        @connection.send :reload_type_map
+        PostgresqlRange.reset_column_information
       rescue ActiveRecord::StatementInvalid
         skip "do not test on PG without range"
       end
@@ -35,23 +49,26 @@ if ActiveRecord::Base.connection.supports_ranges?
                    ts_range: "[''2010-01-01 14:30'', ''2011-01-01 14:30'']",
                    tstz_range: "[''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'']",
                    int4_range: "[1, 10]",
-                   int8_range: "[10, 100]")
+                   int8_range: "[10, 100]",
+                   float_range: "[0.5, 0.7]")
 
       insert_range(id: 102,
-                   date_range: "(''2012-01-02'', ''2012-01-04'')",
+                   date_range: "[''2012-01-02'', ''2012-01-04'')",
                    num_range: "[0.1, 0.2)",
                    ts_range: "[''2010-01-01 14:30'', ''2011-01-01 14:30'')",
                    tstz_range: "[''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'')",
-                   int4_range: "(1, 10)",
-                   int8_range: "(10, 100)")
+                   int4_range: "[1, 10)",
+                   int8_range: "[10, 100)",
+                   float_range: "[0.5, 0.7)")
 
       insert_range(id: 103,
-                   date_range: "(''2012-01-02'',]",
+                   date_range: "[''2012-01-02'',]",
                    num_range: "[0.1,]",
                    ts_range: "[''2010-01-01 14:30'',]",
                    tstz_range: "[''2010-01-01 14:30:00+05'',]",
-                   int4_range: "(1,]",
-                   int8_range: "(10,]")
+                   int4_range: "[1,]",
+                   int8_range: "[10,]",
+                   float_range: "[0.5,]")
 
       insert_range(id: 104,
                    date_range: "[,]",
@@ -59,15 +76,17 @@ if ActiveRecord::Base.connection.supports_ranges?
                    ts_range: "[,]",
                    tstz_range: "[,]",
                    int4_range: "[,]",
-                   int8_range: "[,]")
+                   int8_range: "[,]",
+                   float_range: "[,]")
 
       insert_range(id: 105,
-                   date_range: "(''2012-01-02'', ''2012-01-02'')",
-                   num_range: "(0.1, 0.1)",
-                   ts_range: "(''2010-01-01 14:30'', ''2010-01-01 14:30'')",
-                   tstz_range: "(''2010-01-01 14:30:00+05'', ''2010-01-01 06:30:00-03'')",
-                   int4_range: "(1, 1)",
-                   int8_range: "(10, 10)")
+                   date_range: "[''2012-01-02'', ''2012-01-02'')",
+                   num_range: "[0.1, 0.1)",
+                   ts_range: "[''2010-01-01 14:30'', ''2010-01-01 14:30'')",
+                   tstz_range: "[''2010-01-01 14:30:00+05'', ''2010-01-01 06:30:00-03'')",
+                   int4_range: "[1, 1)",
+                   int8_range: "[10, 10)",
+                   float_range: "[0.5, 0.5)")
 
       @new_range = PostgresqlRange.new
       @first_range = PostgresqlRange.find(101)
@@ -88,24 +107,24 @@ if ActiveRecord::Base.connection.supports_ranges?
 
     def test_int4range_values
       assert_equal 1...11, @first_range.int4_range
-      assert_equal 2...10, @second_range.int4_range
-      assert_equal 2...Float::INFINITY, @third_range.int4_range
+      assert_equal 1...10, @second_range.int4_range
+      assert_equal 1...Float::INFINITY, @third_range.int4_range
       assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.int4_range)
       assert_nil @empty_range.int4_range
     end
 
     def test_int8range_values
       assert_equal 10...101, @first_range.int8_range
-      assert_equal 11...100, @second_range.int8_range
-      assert_equal 11...Float::INFINITY, @third_range.int8_range
+      assert_equal 10...100, @second_range.int8_range
+      assert_equal 10...Float::INFINITY, @third_range.int8_range
       assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.int8_range)
       assert_nil @empty_range.int8_range
     end
 
     def test_daterange_values
       assert_equal Date.new(2012, 1, 2)...Date.new(2012, 1, 5), @first_range.date_range
-      assert_equal Date.new(2012, 1, 3)...Date.new(2012, 1, 4), @second_range.date_range
-      assert_equal Date.new(2012, 1, 3)...Float::INFINITY, @third_range.date_range
+      assert_equal Date.new(2012, 1, 2)...Date.new(2012, 1, 4), @second_range.date_range
+      assert_equal Date.new(2012, 1, 2)...Float::INFINITY, @third_range.date_range
       assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.date_range)
       assert_nil @empty_range.date_range
     end
@@ -131,6 +150,14 @@ if ActiveRecord::Base.connection.supports_ranges?
       assert_equal Time.parse('2010-01-01 09:30:00 UTC')...Time.parse('2011-01-01 17:30:00 UTC'), @second_range.tstz_range
       assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.tstz_range)
       assert_nil @empty_range.tstz_range
+    end
+
+    def test_custom_range_values
+      assert_equal 0.5..0.7, @first_range.float_range
+      assert_equal 0.5...0.7, @second_range.float_range
+      assert_equal 0.5...Float::INFINITY, @third_range.float_range
+      assert_equal -Float::INFINITY...Float::INFINITY, @fourth_range.float_range
+      assert_nil @empty_range.float_range
     end
 
     def test_create_tstzrange
@@ -203,6 +230,38 @@ if ActiveRecord::Base.connection.supports_ranges?
       assert_nil_round_trip(@first_range, :int8_range, 39999...39999)
     end
 
+    def test_exclude_beginning_for_subtypes_with_succ_method_is_deprecated
+      tz = ::ActiveRecord::Base.default_timezone
+
+      silence_warnings {
+        assert_deprecated {
+          range = PostgresqlRange.create!(date_range: "(''2012-01-02'', ''2012-01-04'']")
+          assert_equal Date.new(2012, 1, 3)..Date.new(2012, 1, 4), range.date_range
+        }
+        assert_deprecated {
+          range = PostgresqlRange.create!(ts_range: "(''2010-01-01 14:30'', ''2011-01-01 14:30'']")
+          assert_equal Time.send(tz, 2010, 1, 1, 14, 30, 1)..Time.send(tz, 2011, 1, 1, 14, 30, 0), range.ts_range
+        }
+        assert_deprecated {
+          range = PostgresqlRange.create!(tstz_range: "(''2010-01-01 14:30:00+05'', ''2011-01-01 14:30:00-03'']")
+          assert_equal Time.parse('2010-01-01 09:30:01 UTC')..Time.parse('2011-01-01 17:30:00 UTC'), range.tstz_range
+        }
+        assert_deprecated {
+          range = PostgresqlRange.create!(int4_range: "(1, 10]")
+          assert_equal 2..10, range.int4_range
+        }
+        assert_deprecated {
+          range = PostgresqlRange.create!(int8_range: "(10, 100]")
+          assert_equal 11..100, range.int8_range
+        }
+      }
+    end
+
+    def test_exclude_beginning_for_subtypes_without_succ_method_is_not_supported
+      assert_raises(ArgumentError) { PostgresqlRange.create!(num_range: "(0.1, 0.2]") }
+      assert_raises(ArgumentError) { PostgresqlRange.create!(float_range: "(0.5, 0.7]") }
+    end
+
     private
       def assert_equal_round_trip(range, attribute, value)
         round_trip(range, attribute, value)
@@ -229,7 +288,8 @@ if ActiveRecord::Base.connection.supports_ranges?
             ts_range,
             tstz_range,
             int4_range,
-            int8_range
+            int8_range,
+            float_range
           ) VALUES (
             #{values[:id]},
             '#{values[:date_range]}',
@@ -237,7 +297,8 @@ if ActiveRecord::Base.connection.supports_ranges?
             '#{values[:ts_range]}',
             '#{values[:tstz_range]}',
             '#{values[:int4_range]}',
-            '#{values[:int8_range]}'
+            '#{values[:int8_range]}',
+            '#{values[:float_range]}'
           )
         SQL
       end

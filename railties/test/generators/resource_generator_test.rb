@@ -63,7 +63,7 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
     content = run_generator ["accounts".freeze]
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
     assert_file "test/models/account_test.rb", /class AccountTest/
-    assert_match(/Plural version of the model detected, using singularized version. Override with --force-plural./, content)
+    assert_match(/The model name 'accounts' was recognized as a plural, using the singular 'account'\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)
   end
 
   def test_plural_names_can_be_forced

@@ -30,7 +30,6 @@ module ActiveRecord
         unless owner.new_record?
           records.flatten.each do |record|
             raise_on_type_mismatch!(record)
-            record.save! if record.new_record?
           end
         end
 
@@ -40,7 +39,7 @@ module ActiveRecord
       def concat_records(records)
         ensure_not_nested
 
-        records = super
+        records = super(records, true)
 
         if owner.new_record? && records
           records.flatten.each do |record|

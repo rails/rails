@@ -265,13 +265,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_plateform_dependent_gems
-    run_generator([destination_root])
-    if RUBY_ENGINE == 'rbx'
-      assert_gem 'rubysl'
-    end
-  end
-
   def test_jquery_is_the_default_javascript_library
     run_generator
     assert_file "app/assets/javascripts/application.js" do |contents|

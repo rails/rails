@@ -724,11 +724,11 @@ module ActionMailer
     #     format.html
     #   end
     #
-    # You can even render text directly without using a template:
+    # You can even render plain text directly without using a template:
     #
     #   mail(to: 'mikel@test.lindsaar.net') do |format|
-    #     format.text { render text: "Hello Mikel!" }
-    #     format.html { render text: "<h1>Hello Mikel!</h1>" }
+    #     format.text { render plain: "Hello Mikel!" }
+    #     format.html { render html: "<h1>Hello Mikel!</h1>".html_safe }
     #   end
     #
     # Which will render a +multipart/alternative+ email with +text/plain+ and

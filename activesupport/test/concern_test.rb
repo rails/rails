@@ -5,7 +5,7 @@ class ConcernTest < ActiveSupport::TestCase
   module Baz
     extend ActiveSupport::Concern
 
-    module ClassMethods
+    class_methods do
       def baz
         "baz"
       end
@@ -32,6 +32,12 @@ class ConcernTest < ActiveSupport::TestCase
     extend ActiveSupport::Concern
 
     include Baz
+
+    module ClassMethods
+      def baz
+        "bar's baz + " + super
+      end
+    end
 
     def bar
       "bar"
@@ -73,7 +79,7 @@ class ConcernTest < ActiveSupport::TestCase
     @klass.send(:include, Bar)
     assert_equal "bar", @klass.new.bar
     assert_equal "bar+baz", @klass.new.baz
-    assert_equal "baz", @klass.baz
+    assert_equal "bar's baz + baz", @klass.baz
     assert @klass.included_modules.include?(ConcernTest::Bar)
   end
 

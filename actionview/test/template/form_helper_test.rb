@@ -143,75 +143,68 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_locales_strings
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal('<label for="post_body">Write entire text here</label>', label("post", "body"))
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal('<label for="post_body">Write entire text here</label>', label("post", "body"))
+    end
   end
 
   def test_label_with_human_attribute_name
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal('<label for="post_cost">Total cost</label>', label(:post, :cost))
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal('<label for="post_cost">Total cost</label>', label(:post, :cost))
+    end
   end
 
   def test_label_with_locales_symbols
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal('<label for="post_body">Write entire text here</label>', label(:post, :body))
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal('<label for="post_body">Write entire text here</label>', label(:post, :body))
+    end
   end
 
   def test_label_with_locales_and_options
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal(
-      '<label for="post_body" class="post_body">Write entire text here</label>',
-      label(:post, :body, class: "post_body")
-    )
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal(
+        '<label for="post_body" class="post_body">Write entire text here</label>',
+        label(:post, :body, class: "post_body")
+      )
+    end
   end
 
   def test_label_with_locales_and_value
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal('<label for="post_color_red">Rojo</label>', label(:post, :color, value: "red"))
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal('<label for="post_color_red">Rojo</label>', label(:post, :color, value: "red"))
+    end
   end
 
   def test_label_with_locales_and_nested_attributes
-    old_locale, I18n.locale = I18n.locale, :label
-    form_for(@post, html: { id: 'create-post' }) do |f|
-      f.fields_for(:comments) do |cf|
-        concat cf.label(:body)
+    with_locale :label do
+      form_for(@post, html: { id: 'create-post' }) do |f|
+        f.fields_for(:comments) do |cf|
+          concat cf.label(:body)
+        end
       end
-    end
 
-    expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
-      '<label for="post_comments_attributes_0_body">Write body here</label>'
-    end
+      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+        '<label for="post_comments_attributes_0_body">Write body here</label>'
+      end
 
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
+      assert_dom_equal expected, output_buffer
+    end
   end
 
   def test_label_with_locales_fallback_and_nested_attributes
-    old_locale, I18n.locale = I18n.locale, :label
-    form_for(@post, html: { id: 'create-post' }) do |f|
-      f.fields_for(:tags) do |cf|
-        concat cf.label(:value)
+    with_locale :label do
+      form_for(@post, html: { id: 'create-post' }) do |f|
+        f.fields_for(:tags) do |cf|
+          concat cf.label(:value)
+        end
       end
-    end
 
-    expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
-      '<label for="post_tags_attributes_0_value">Tag</label>'
-    end
+      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+        '<label for="post_tags_attributes_0_value">Tag</label>'
+      end
 
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
+      assert_dom_equal expected, output_buffer
+    end
   end
 
   def test_label_with_for_attribute_as_symbol
@@ -1811,69 +1804,61 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_submit_with_object_as_new_record_and_locale_strings
-    old_locale, I18n.locale = I18n.locale, :submit
+    with_locale :submit do
+      @post.persisted = false
+      @post.stubs(:to_key).returns(nil)
+      form_for(@post) do |f|
+        concat f.submit
+      end
 
-    @post.persisted = false
-    @post.stubs(:to_key).returns(nil)
-    form_for(@post) do |f|
-      concat f.submit
+      expected = whole_form('/posts', 'new_post', 'new_post') do
+        "<input name='commit' type='submit' value='Create Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
     end
-
-    expected = whole_form('/posts', 'new_post', 'new_post') do
-      "<input name='commit' type='submit' value='Create Post' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
   end
 
   def test_submit_with_object_as_existing_record_and_locale_strings
-    old_locale, I18n.locale = I18n.locale, :submit
+    with_locale :submit do
+      form_for(@post) do |f|
+        concat f.submit
+      end
 
-    form_for(@post) do |f|
-      concat f.submit
+      expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', method: 'patch') do
+        "<input name='commit' type='submit' value='Confirm Post changes' />"
+      end
+
+      assert_dom_equal expected, output_buffer
     end
-
-    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', method: 'patch') do
-      "<input name='commit' type='submit' value='Confirm Post changes' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
   end
 
   def test_submit_without_object_and_locale_strings
-    old_locale, I18n.locale = I18n.locale, :submit
+    with_locale :submit do
+      form_for(:post) do |f|
+        concat f.submit class: "extra"
+      end
 
-    form_for(:post) do |f|
-      concat f.submit class: "extra"
+      expected = whole_form do
+        "<input name='commit' class='extra' type='submit' value='Save changes' />"
+      end
+
+      assert_dom_equal expected, output_buffer
     end
-
-    expected = whole_form do
-      "<input name='commit' class='extra' type='submit' value='Save changes' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
   end
 
   def test_submit_with_object_and_nested_lookup
-    old_locale, I18n.locale = I18n.locale, :submit
+    with_locale :submit do
+      form_for(@post, as: :another_post) do |f|
+        concat f.submit
+      end
 
-    form_for(@post, as: :another_post) do |f|
-      concat f.submit
+      expected = whole_form('/posts/123', 'edit_another_post', 'edit_another_post', method: 'patch') do
+        "<input name='commit' type='submit' value='Update your Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
     end
-
-    expected = whole_form('/posts/123', 'edit_another_post', 'edit_another_post', method: 'patch') do
-      "<input name='commit' type='submit' value='Update your Post' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
   end
 
   def test_nested_fields_for
@@ -2403,6 +2388,18 @@ class FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_label_translation_with_more_than_10_records
+    @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
+
+    I18n.expects(:t).with('post.comments.body', default: [:"comment.body", ''], scope: "helpers.label").times(11).returns "Write body here"
+
+    form_for(@post) do |f|
+      f.fields_for(:comments) do |cf|
+        concat cf.label(:body)
+      end
+    end
   end
 
   def test_nested_fields_for_with_existing_records_on_a_supplied_nested_attributes_collection_different_from_record_one
@@ -3051,5 +3048,12 @@ class FormHelperTest < ActionView::TestCase
 
   def protect_against_forgery?
     false
+  end
+
+  def with_locale(testing_locale = :label)
+    old_locale, I18n.locale = I18n.locale, testing_locale
+    yield
+  ensure
+    I18n.locale = old_locale
   end
 end

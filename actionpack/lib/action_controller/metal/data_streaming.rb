@@ -96,7 +96,7 @@ module ActionController #:nodoc:
       end
 
       # Sends the given binary data to the browser. This method is similar to
-      # <tt>render text: data</tt>, but also allows you to specify whether
+      # <tt>render plain: data</tt>, but also allows you to specify whether
       # the browser should display the response as a file attachment (i.e. in a
       # download dialog) or as inline data. You may also set the content type,
       # the apparent file name, and other things.

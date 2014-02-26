@@ -555,6 +555,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_converted_values_are_returned_after_assignment
+    developer = Developer.new(name: 1337, salary: "50000")
+
+    assert_equal "50000", developer.salary_before_type_cast
+    assert_equal 1337, developer.name_before_type_cast
+
+    assert_equal 50000, developer.salary
+    assert_equal "1337", developer.name
+
+    developer.save!
+
+    assert_equal "50000", developer.salary_before_type_cast
+    assert_equal 1337, developer.name_before_type_cast
+
+    assert_equal 50000, developer.salary
+    assert_equal "1337", developer.name
+  end
+
   def test_write_nil_to_time_attributes
     in_time_zone "Pacific Time (US & Canada)" do
       record = @target.new
@@ -728,19 +746,27 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert "unknown attribute: hello", error.message
   end
 
-  def test_read_attribute_overwrites_private_method_not_considered_implemented
-    # simulate a model with a db column that shares its name an inherited
-    # private method (e.g. Object#system)
-    #
-    Object.class_eval do
-      private
-      def title; "private!"; end
+  def test_global_methods_are_overwritten
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'computers'
     end
-    assert !@target.instance_method_already_implemented?(:title)
-    topic = @target.new
-    assert_nil topic.title
 
-    Object.send(:undef_method, :title) # remove test method from object
+    assert !klass.instance_method_already_implemented?(:system)
+    computer = klass.new
+    assert_nil computer.system
+  end
+
+  def test_global_methods_are_overwritte_when_subclassing
+    klass = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+
+    subklass = Class.new(klass) do
+      self.table_name = 'computers'
+    end
+
+    assert !klass.instance_method_already_implemented?(:system)
+    assert !subklass.instance_method_already_implemented?(:system)
+    computer = subklass.new
+    assert_nil computer.system
   end
 
   def test_instance_method_should_be_defined_on_the_base_class

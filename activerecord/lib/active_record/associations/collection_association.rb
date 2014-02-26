@@ -24,10 +24,6 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
-      def initialize(owner, reflection)
-        super
-        @proxy = CollectionProxy.create(klass, self)
-      end
 
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader(force_reload = false)
@@ -37,7 +33,7 @@ module ActiveRecord
           reload
         end
 
-        @proxy
+        @proxy ||= CollectionProxy.create(klass, self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -517,13 +513,13 @@ module ActiveRecord
           target
         end
 
-        def concat_records(records)
+        def concat_records(records, should_raise = false)
           result = true
 
           records.flatten.each do |record|
             raise_on_type_mismatch!(record)
             add_to_target(record) do |rec|
-              result &&= insert_record(rec) unless owner.new_record?
+              result &&= insert_record(rec, true, should_raise) unless owner.new_record?
             end
           end
 

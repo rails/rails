@@ -17,6 +17,14 @@ module ActiveRecord
         ENV["DATABASE_URL"] = @previous_database_url
       end
 
+      def test_environment_does_not_exist_in_config_url_does_exist
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        config      = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual      = klass.new(config).resolve
+        expect_prod = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expect_prod, actual["production"]
+      end
+
       def test_string_connection
         config   = { "production" => "postgres://localhost/foo" }
         actual   = klass.new(config).resolve
@@ -67,21 +75,6 @@ module ActiveRecord
         assert_equal nil,      actual[:production]
         assert_equal nil,      actual[:development]
         assert_equal nil,      actual[:test]
-      end
-
-      def test_sting_with_database_url
-        ENV['DATABASE_URL'] = "NOT-POSTGRES://localhost/NOT_FOO"
-
-        config   = { "production" => "postgres://localhost/foo" }
-        actual   = klass.new(config).resolve
-
-        expected = { "production" =>
-                     { "adapter"  => "postgresql",
-                       "database" => "foo",
-                       "host"     => "localhost"
-                      }
-                    }
-        assert_equal expected, actual
       end
 
       def test_url_sub_key_with_database_url

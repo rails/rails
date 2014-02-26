@@ -4,31 +4,77 @@ require "cases/helper"
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
+module PostgresqlUUIDHelper
+  def connection
+    @connection ||= ActiveRecord::Base.connection
+  end
+
+  def enable_uuid_ossp
+    unless connection.extension_enabled?('uuid-ossp')
+      connection.enable_extension 'uuid-ossp'
+      connection.commit_db_transaction
+    end
+
+    connection.reconnect!
+  end
+
+  def drop_table(name)
+    connection.execute "drop table if exists #{name}"
+  end
+end
+
 class PostgresqlUUIDTest < ActiveRecord::TestCase
+  include PostgresqlUUIDHelper
+
+  class UUIDType < ActiveRecord::Base
+    self.table_name = "uuid_data_type"
+  end
+
+  setup do
+    connection.create_table "uuid_data_type" do |t|
+      t.uuid 'guid'
+    end
+  end
+
+  teardown do
+    drop_table "uuid_data_type"
+  end
+
+  def test_data_type_of_uuid_types
+    assert_equal :uuid, UUIDType.columns_hash["guid"].type
+  end
+
+  def test_uuid_formats
+    ["A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11",
+     "{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}",
+     "a0eebc999c0b4ef8bb6d6bb9bd380a11",
+     "a0ee-bc99-9c0b-4ef8-bb6d-6bb9-bd38-0a11",
+     "{a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11}"].each do |valid_uuid|
+      UUIDType.create(guid: valid_uuid)
+      uuid = UUIDType.last
+      assert_equal "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", uuid.guid
+    end
+  end
+end
+
+class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
+  include PostgresqlUUIDHelper
+
   class UUID < ActiveRecord::Base
     self.table_name = 'pg_uuids'
   end
 
-  def setup
-    @connection = ActiveRecord::Base.connection
+  setup do
+    enable_uuid_ossp
 
-    unless @connection.extension_enabled?('uuid-ossp')
-      @connection.enable_extension 'uuid-ossp'
-      @connection.commit_db_transaction
-    end
-
-    @connection.reconnect!
-
-    @connection.transaction do
-      @connection.create_table('pg_uuids', id: :uuid, default: 'uuid_generate_v1()') do |t|
-        t.string 'name'
-        t.uuid 'other_uuid', default: 'uuid_generate_v4()'
-      end
+    connection.create_table('pg_uuids', id: :uuid, default: 'uuid_generate_v1()') do |t|
+      t.string 'name'
+      t.uuid 'other_uuid', default: 'uuid_generate_v4()'
     end
   end
 
-  def teardown
-    @connection.execute 'drop table if exists pg_uuids'
+  teardown do
+    drop_table "pg_uuids"
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -49,14 +95,14 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     end
 
     def test_pk_and_sequence_for_uuid_primary_key
-      pk, seq = @connection.pk_and_sequence_for('pg_uuids')
+      pk, seq = connection.pk_and_sequence_for('pg_uuids')
       assert_equal 'id', pk
       assert_equal nil, seq
     end
 
     def test_schema_dumper_for_uuid_primary_key
       schema = StringIO.new
-      ActiveRecord::SchemaDumper.dump(@connection, schema)
+      ActiveRecord::SchemaDumper.dump(connection, schema)
       assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema.string)
       assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
     end
@@ -64,34 +110,24 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
 end
 
 class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
-  class UUID < ActiveRecord::Base
-    self.table_name = 'pg_uuids'
-  end
+  include PostgresqlUUIDHelper
 
-  def setup
-    @connection = ActiveRecord::Base.connection
-    @connection.reconnect!
+  setup do
+    enable_uuid_ossp
 
-    unless @connection.extension_enabled?('uuid-ossp')
-      @connection.enable_extension 'uuid-ossp'
-      @connection.commit_db_transaction
-    end
-
-    @connection.transaction do
-      @connection.create_table('pg_uuids', id: false) do |t|
-        t.primary_key :id, :uuid, default: nil
-        t.string 'name'
-      end
+    connection.create_table('pg_uuids', id: false) do |t|
+      t.primary_key :id, :uuid, default: nil
+      t.string 'name'
     end
   end
 
-  def teardown
-    @connection.execute 'drop table if exists pg_uuids'
+  teardown do
+    drop_table "pg_uuids"
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
     def test_id_allows_default_override_via_nil
-      col_desc = @connection.execute("SELECT pg_get_expr(d.adbin, d.adrelid) as default
+      col_desc = connection.execute("SELECT pg_get_expr(d.adbin, d.adrelid) as default
                                     FROM pg_attribute a
                                     LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                                     WHERE a.attname='id' AND a.attrelid = 'pg_uuids'::regclass").first
@@ -101,6 +137,8 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
 end
 
 class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
+  include PostgresqlUUIDHelper
+
   class UuidPost < ActiveRecord::Base
     self.table_name = 'pg_uuid_posts'
     has_many :uuid_comments, inverse_of: :uuid_post
@@ -111,30 +149,24 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
     belongs_to :uuid_post
   end
 
-  def setup
-    @connection = ActiveRecord::Base.connection
-    @connection.reconnect!
+  setup do
+    enable_uuid_ossp
 
-    unless @connection.extension_enabled?('uuid-ossp')
-      @connection.enable_extension 'uuid-ossp'
-      @connection.commit_db_transaction
-    end
-
-    @connection.transaction do
-      @connection.create_table('pg_uuid_posts', id: :uuid) do |t|
+    connection.transaction do
+      connection.create_table('pg_uuid_posts', id: :uuid) do |t|
         t.string 'title'
       end
-      @connection.create_table('pg_uuid_comments', id: :uuid) do |t|
+      connection.create_table('pg_uuid_comments', id: :uuid) do |t|
         t.uuid :uuid_post_id, default: 'uuid_generate_v4()'
         t.string 'content'
       end
     end
   end
 
-  def teardown
-    @connection.transaction do
-      @connection.execute 'drop table if exists pg_uuid_comments'
-      @connection.execute 'drop table if exists pg_uuid_posts'
+  teardown do
+    connection.transaction do
+      drop_table "pg_uuid_comments"
+      drop_table "pg_uuid_posts"
     end
   end
 

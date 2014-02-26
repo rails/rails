@@ -11,11 +11,11 @@ module ActionController
     #     http_basic_authenticate_with name: "dhh", password: "secret", except: :index
     #
     #     def index
-    #       render text: "Everyone can see me!"
+    #       render plain: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render text: "I'm only accessible if you know the password"
+    #       render plain: "I'm only accessible if you know the password"
     #     end
     #  end
     #
@@ -127,11 +127,11 @@ module ActionController
     #     before_action :authenticate, except: [:index]
     #
     #     def index
-    #       render text: "Everyone can see me!"
+    #       render plain: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render text: "I'm only accessible if you know the password"
+    #       render plain: "I'm only accessible if you know the password"
     #     end
     #
     #     private
@@ -321,11 +321,11 @@ module ActionController
     #     before_action :authenticate, except: [ :index ]
     #
     #     def index
-    #       render text: "Everyone can see me!"
+    #       render plain: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render text: "I'm only accessible if you know the password"
+    #       render plain: "I'm only accessible if you know the password"
     #     end
     #
     #     private

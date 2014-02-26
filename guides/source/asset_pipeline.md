@@ -302,7 +302,7 @@ Sprockets uses files named `index` (with the relevant extensions) for a special
 purpose.
 
 For example, if you have a jQuery library with many modules, which is stored in
-`lib/assets/library_name`, the file `lib/assets/library_name/index.js` serves as
+`lib/assets/javascripts/library_name`, the file `lib/assets/javascripts/library_name/index.js` serves as
 the manifest for all files in this library. This file could include a list of
 all the required files in order, or a simple `require_tree` directive.
 
