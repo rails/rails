@@ -20,9 +20,9 @@ module ActiveModel
       # value to the password_confirmation attribute and the validation
       # will not be triggered.
       #
-      # You need to add bcrypt-ruby (~> 3.1.2) to Gemfile to use #has_secure_password:
+      # You need to add bcrypt (~> 3.1.2) to Gemfile to use #has_secure_password:
       #
-      #   gem 'bcrypt-ruby', '~> 3.1.2'
+      #   gem 'bcrypt', '~> 3.1.2'
       #
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
       #
