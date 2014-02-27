@@ -161,6 +161,7 @@ module ActiveRecord
       end
 
       def error_number(exception) # :nodoc:
+        return if exception.respond_to?(:error) && exception.error == "query: not connected"
         exception.errno if exception.respond_to?(:errno)
       end
 
