@@ -1,3 +1,11 @@
+*   Fixed error with validation with enum fields for records where the
+    value for any enum attribute is always evaluated as 0 during
+    uniqueness validation.
+
+    Fixes #14172
+
+    *Vilius Luneckas* *Ahmed AbouElhamayed*
+
 * `before_add` callbacks are fired before the record is saved on
   `has_and_belongs_to_many` assocations *and* on `has_many :through`
   associations.  Before this change, `before_add` callbacks would be fired
