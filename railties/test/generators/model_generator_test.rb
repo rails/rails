@@ -38,7 +38,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     content = run_generator ["accounts".freeze]
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
     assert_file "test/models/account_test.rb", /class AccountTest/
-    assert_match(/The model name 'accounts' was recognized as a plural, using the singular 'account'\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)
+    assert_match(/\[WARNING\] The model name 'accounts' was recognized as a plural, using the singular 'account' instead\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)
   end
 
   def test_model_with_underscored_parent_option
