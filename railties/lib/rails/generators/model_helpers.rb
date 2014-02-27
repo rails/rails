@@ -3,7 +3,7 @@ require 'rails/generators/active_model'
 module Rails
   module Generators
     module ModelHelpers # :nodoc:
-      PLURAL_MODEL_NAME_WARN_MESSAGE = "The model name '%s' was recognized as a plural, using the singular '%s'. " \
+      PLURAL_MODEL_NAME_WARN_MESSAGE = "[WARNING] The model name '%s' was recognized as a plural, using the singular '%s' instead. " \
                                        "Override with --force-plural or setup custom inflection rules for this noun before running the generator."
       mattr_accessor :skip_warn
 
