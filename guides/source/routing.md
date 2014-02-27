@@ -352,15 +352,15 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                   | Controller#Action | Named Helper        |
-| --------- | -------------------------------------- | ----------------- | ------------------- |
-| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments       |
-| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments       |
-| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment    |
-| GET       | /sekret/comments/:id/edit(.:format)    | comments#edit     | edit_comment        |
-| GET       | /sekret/comments/:id(.:format)         | comments#show     | comment             |
-| PATCH/PUT | /sekret/comments/:id(.:format)         | comments#update   | comment             |
-| DELETE    | /sekret/comments/:id(.:format)         | comments#destroy  | comment             |
+| HTTP Verb | Path                                   | Controller#Action | Named Helper          |
+| --------- | -------------------------------------- | ----------------- | --------------------- |
+| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments_path    |
+| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments_path    |
+| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment_path |
+| GET       | /sekret/comments/:id/edit(.:format)    | comments#edit     | edit_comment_path     |
+| GET       | /sekret/comments/:id(.:format)         | comments#show     | comment_path          |
+| PATCH/PUT | /sekret/comments/:id(.:format)         | comments#update   | comment_path          |
+| DELETE    | /sekret/comments/:id(.:format)         | comments#destroy  | comment_path          |
 
 The `:shallow_prefix` option adds the specified parameter to the named helpers:
 
@@ -374,15 +374,15 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                   | Controller#Action | Named Helper        |
-| --------- | -------------------------------------- | ----------------- | ------------------- |
-| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments       |
-| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments       |
-| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment    |
-| GET       | /comments/:id/edit(.:format)           | comments#edit     | edit_sekret_comment |
-| GET       | /comments/:id(.:format)                | comments#show     | sekret_comment      |
-| PATCH/PUT | /comments/:id(.:format)                | comments#update   | sekret_comment      |
-| DELETE    | /comments/:id(.:format)                | comments#destroy  | sekret_comment      |
+| HTTP Verb | Path                                   | Controller#Action | Named Helper             |
+| --------- | -------------------------------------- | ----------------- | ------------------------ |
+| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments_path       |
+| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments_path       |
+| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment_path    |
+| GET       | /comments/:id/edit(.:format)           | comments#edit     | edit_sekret_comment_path |
+| GET       | /comments/:id(.:format)                | comments#show     | sekret_comment_path      |
+| PATCH/PUT | /comments/:id(.:format)                | comments#update   | sekret_comment_path      |
+| DELETE    | /comments/:id(.:format)                | comments#destroy  | sekret_comment_path      |
 
 ### Routing concerns
 
