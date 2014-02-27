@@ -64,7 +64,7 @@ module ActiveRecord
     end
 
     # Returns true if this object hasn't been saved yet -- that is, a record
-    # for the object doesn't exist in the data store yet; otherwise, returns false.
+    # for the object doesn't exist in the database yet; otherwise, returns false.
     def new_record?
       sync_with_transaction_state
       @new_record
