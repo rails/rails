@@ -350,4 +350,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/password_digest: <%= BCrypt::Password.create\('secret'\) %>/, content)
     end
   end
+
+  def test_generator_filename_with_extensions_default
+    assert_equal Erb::Generators::Base.new.filename_with_extensions("show"), "show.html.erb"
+  end
 end
