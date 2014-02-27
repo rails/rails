@@ -106,6 +106,19 @@ module ActiveRecord
           klass.send(:detect_enum_conflict!, name, "#{name}_before_type_cast")
           define_method("#{name}_before_type_cast") { enum_values.key self[name] }
 
+          # Convert the enums in the attributes hash
+          define_method(:attributes) do
+            attributes = super()
+
+            DEFINED_ENUMS.each do |name, values|
+              if attributes.has_key? name
+                attributes[name] = values.key(attributes[name])
+              end
+            end
+
+            attributes
+          end
+
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value] = i
