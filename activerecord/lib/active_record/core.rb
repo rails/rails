@@ -148,7 +148,9 @@ module ActiveRecord
 
         hash = args.first
 
-        return super if hash.values.any? { |v| v.nil? || Array === v }
+        return super if hash.values.any? { |v|
+          v.nil? || Array === v || Hash === v
+        }
 
         key  = hash.keys
 
