@@ -61,6 +61,7 @@ module ActiveRecord
         end
 
         column = klass.columns_hash[attribute_name]
+        value = klass.enum_mapping_for(attribute_name)[value] if klass.enum_mapping_for(attribute_name)
         value  = klass.connection.type_cast(value, column)
         value  = value.to_s[0, column.limit] if value && column.limit && column.text?
 
