@@ -236,4 +236,7 @@ class String
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
   end
+  def escape_like
+    gsub(/[\\_%\|]/) { |x| "\\#{x}" }
+  end
 end
