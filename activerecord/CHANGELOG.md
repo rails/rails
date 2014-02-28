@@ -1,3 +1,10 @@
+*   `includes` is able to detect the right preloading strategy when string
+    joins are involved.
+
+    Fixes #14109.
+
+    *Aaron Patterson*, *Yves Senn*
+
 *   Fixed error with validation with enum fields for records where the
     value for any enum attribute is always evaluated as 0 during
     uniqueness validation.
