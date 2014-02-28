@@ -347,6 +347,12 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 500000000, DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)).nsec
   end
 
+  def test_eql?
+    assert_equal true, DateTime.new(2000).eql?( ActiveSupport::TimeWithZone.new(DateTime.new(2000), ActiveSupport::TimeZone['UTC']) )
+    assert_equal true, DateTime.new(2000).eql?( ActiveSupport::TimeWithZone.new(DateTime.new(2000), ActiveSupport::TimeZone["Hawaii"]) )
+    assert_equal false,DateTime.new(2000, 1, 1, 0, 0, 1).eql?( ActiveSupport::TimeWithZone.new(DateTime.new(2000), ActiveSupport::TimeZone['UTC']) )
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
