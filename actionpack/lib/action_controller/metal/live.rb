@@ -108,7 +108,7 @@ module ActionController
 
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
       def initialize(response)
-        @error_callback = nil
+        @error_callback = lambda { true }
         super(response, SizedQueue.new(10))
       end
 

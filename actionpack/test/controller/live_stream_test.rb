@@ -313,4 +313,11 @@ module ActionController
       assert_equal 304, @response.status.to_i
     end
   end
+
+  class BufferTest < ActionController::TestCase
+    def test_nil_callback
+      buf = ActionController::Live::Buffer.new nil
+      assert buf.call_on_error
+    end
+  end
 end
