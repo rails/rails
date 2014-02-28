@@ -2719,7 +2719,7 @@ The method `transform_keys` accepts a block and returns a hash that has applied 
 # => {"" => nil, "A" => :a, "1" => 1}
 ```
 
-The result in case of key collision is not guaranteed:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.transform_keys { |key| key.to_s.upcase }
@@ -2761,7 +2761,7 @@ The method `stringify_keys` returns a hash that has a stringified version of the
 # => {"" => nil, "a" => :a, "1" => 1}
 ```
 
-The result in case of key collision is not guaranteed:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.stringify_keys
@@ -2805,7 +2805,7 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 WARNING. Note in the previous example only one key was symbolized.
 
-The result in case of key collision is not guaranteed:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.symbolize_keys
