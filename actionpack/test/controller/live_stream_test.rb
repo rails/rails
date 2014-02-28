@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/concurrency/latch'
+Thread.abort_on_exception = true
 
 module ActionController
   class SSETest < ActionController::TestCase
@@ -43,9 +44,7 @@ module ActionController
     tests SSETestController
 
     def wait_for_response_stream_close
-      while !response.stream.closed?
-        sleep 0.01
-      end
+      response.stream.await_close
     end
 
     def test_basic_sse
@@ -174,16 +173,6 @@ module ActionController
     end
 
     tests TestController
-
-    class TestResponse < Live::Response
-      def recycle!
-        initialize
-      end
-    end
-
-    def build_response
-      TestResponse.new
-    end
 
     def assert_stream_closed
       assert response.stream.closed?, 'stream should be closed'
