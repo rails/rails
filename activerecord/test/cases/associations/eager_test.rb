@@ -1194,4 +1194,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
       authors(:david).essays.includes(:writer).any?
     end
   end
+
+  test "preloading associations with string joins and order references" do
+    author = assert_queries(2) {
+      Author.includes(:posts).joins("LEFT JOIN posts ON posts.author_id = authors.id").order("posts.title DESC").first
+    }
+    assert_no_queries {
+      assert_equal 5, author.posts.size
+    }
+  end
 end
