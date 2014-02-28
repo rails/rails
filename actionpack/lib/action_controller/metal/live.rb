@@ -203,6 +203,7 @@ module ActionController
       t1 = Thread.current
       locals = t1.keys.map { |key| [key, t1[key]] }
 
+      error = nil
       # This processes the action in a child thread. It lets us return the
       # response code and headers back up the rack stack, and still process
       # the body in parallel with sending data to the client
@@ -217,8 +218,9 @@ module ActionController
         begin
           super(name)
         rescue => e
-          @_response.status = 500 unless @_response.committed?
-          @_response.status = 400 if e.class == ActionController::BadRequest
+          unless @_response.committed?
+            error = e
+          end
           begin
             @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
             @_response.stream.call_on_error
@@ -234,6 +236,7 @@ module ActionController
       }
 
       @_response.await_commit
+      raise error if error
     end
 
     def log_error(exception)
