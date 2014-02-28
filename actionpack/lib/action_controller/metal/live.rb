@@ -107,8 +107,11 @@ module ActionController
     end
 
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
+      include MonitorMixin
+
       def initialize(response)
         @error_callback = lambda { true }
+        @cv = new_cond
         super(response, SizedQueue.new(10))
       end
 
@@ -128,8 +131,17 @@ module ActionController
       end
 
       def close
-        super
-        @buf.push nil
+        synchronize do
+          super
+          @buf.push nil
+          @cv.broadcast
+        end
+      end
+
+      def await_close
+        synchronize do
+          @cv.wait_until { @closed }
+        end
       end
 
       def on_error(&block)

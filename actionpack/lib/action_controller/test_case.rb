@@ -258,6 +258,17 @@ module ActionController
     end
   end
 
+  class LiveTestResponse < Live::Response
+    def recycle!
+      @body = nil
+      initialize
+    end
+
+    def body
+      @body ||= super
+    end
+  end
+
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
   class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
@@ -583,13 +594,14 @@ module ActionController
       end
 
       def setup_controller_request_and_response
-        @request          = build_request
-        @response         = build_response
-        @response.request = @request
-
         @controller = nil unless defined? @controller
 
+        response_klass = TestResponse
+
         if klass = self.class.controller_class
+          if klass < ActionController::Live
+            response_klass = LiveTestResponse
+          end
           unless @controller
             begin
               @controller = klass.new
@@ -598,6 +610,10 @@ module ActionController
             end
           end
         end
+
+        @request          = build_request
+        @response         = build_response response_klass
+        @response.request = @request
 
         if @controller
           @controller.request = @request
@@ -609,8 +625,8 @@ module ActionController
         TestRequest.new
       end
 
-      def build_response
-        TestResponse.new
+      def build_response(klass)
+        klass.new
       end
 
       included do
