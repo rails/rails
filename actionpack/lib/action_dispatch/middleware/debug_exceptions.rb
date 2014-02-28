@@ -34,31 +34,36 @@ module ActionDispatch
       log_error(env, wrapper)
 
       if env['action_dispatch.show_detailed_exceptions']
-        request = Request.new(env)
-        template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
-          request: request,
-          exception: wrapper.exception,
-          application_trace: wrapper.application_trace,
-          framework_trace: wrapper.framework_trace,
-          full_trace: wrapper.full_trace,
-          routes_inspector: routes_inspector(exception),
-          source_extract: wrapper.source_extract,
-          line_number: wrapper.line_number,
-          file: wrapper.file
-        )
-        file = "rescues/#{wrapper.rescue_template}"
-
-        if request.xhr?
-          body = template.render(template: file, layout: false, formats: [:text])
-          format = "text/plain"
-        else
-          body = template.render(template: file, layout: 'rescues/layout')
-          format = "text/html"
-        end
-        render(wrapper.status_code, body, format)
+        render_detailed_exception(env, wrapper, exception)
       else
         raise exception
       end
+    end
+
+    def render_detailed_exception(env, wrapper, exception)
+      request = Request.new(env)
+      template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
+        request: request,
+        exception: wrapper.exception,
+        application_trace: wrapper.application_trace,
+        framework_trace: wrapper.framework_trace,
+        full_trace: wrapper.full_trace,
+        routes_inspector: routes_inspector(exception),
+        source_extract: wrapper.source_extract,
+        line_number: wrapper.line_number,
+        file: wrapper.file
+      )
+      file = "rescues/#{wrapper.rescue_template}"
+
+      if request.xhr?
+        body = template.render(template: file, layout: false, formats: [:text])
+        format = "text/plain"
+      else
+        body = template.render(template: file, layout: 'rescues/layout')
+        format = "text/html"
+      end
+
+      render(wrapper.status_code, body, format)
     end
 
     def render(status, body, format)
