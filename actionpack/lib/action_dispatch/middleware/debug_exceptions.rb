@@ -40,6 +40,7 @@ module ActionDispatch
       end
     end
 
+    # renders an exception in HTML or plain text
     def render_detailed_exception(env, wrapper, exception)
       request = Request.new(env)
       template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
