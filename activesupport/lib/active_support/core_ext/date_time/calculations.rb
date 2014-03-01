@@ -158,4 +158,17 @@ class DateTime
     end
   end
 
+  # Layers additional behavior on DateTime#eql? so that ActiveSupport::TimeWithZone instances
+  # can be eql? to an equivalent DateTime
+  def eql_with_coercion(other)
+    # if other is an ActiveSupport::TimeWithZone, coerce a Time instance from it so we can do eql? comparison
+    if other.respond_to?(:comparable_time)
+      eql_without_coercion(other.comparable_time)
+    else
+      eql_without_coercion(other)
+    end
+  end
+  alias_method :eql_without_coercion, :eql?
+  alias_method :eql?, :eql_with_coercion
+
 end
