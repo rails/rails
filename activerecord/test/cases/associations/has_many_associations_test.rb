@@ -1242,6 +1242,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal orig_accounts, firm.accounts
   end
 
+  def test_replace_with_same_content
+    firm = Firm.first
+    firm.clients = []
+    firm.save
+
+    assert_queries(0, ignore_none: true) do
+      firm.clients = []
+    end
+  end
+
   def test_transactions_when_replacing_on_persisted
     good = Client.new(:name => "Good")
     bad  = Client.new(:name => "Bad", :raise_on_save => true)

@@ -359,7 +359,9 @@ module ActiveRecord
         if owner.new_record?
           replace_records(other_array, original_target)
         else
-          transaction { replace_records(other_array, original_target) }
+          if other_array != original_target
+            transaction { replace_records(other_array, original_target) }
+          end
         end
       end
 
