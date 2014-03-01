@@ -180,6 +180,7 @@ module ActionController
     tests TestController
 
     def assert_stream_closed
+      response.stream.await_close
       assert response.stream.closed?, 'stream should be closed'
     end
 
