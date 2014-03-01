@@ -355,6 +355,18 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm gemfile_path
   end
 
+  def test_generating_controller_inside_mountable_engine
+    run_generator [destination_root, "--mountable"]
+
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g controller admin/dashboard foo`
+    end
+
+    assert_file "config/routes.rb" do |contents|
+      assert_match(/namespace :admin/, contents)
+      assert_no_match(/namespace :bukkit/, contents)
+    end
+  end
 
 protected
   def action(*args, &block)

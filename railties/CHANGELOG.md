@@ -1,3 +1,13 @@
+*   Avoid namespacing routes inside engines.
+
+    Mountable engines are namespaced by default so the generated routes
+    were too while they should not.
+
+    Fixes #14079.
+
+    *Yves Senn*, *Carlos Antonio da Silva*, *Robin Dupret*
+
+
 ## Rails 4.1.2 (unreleased) ##
 
 *   Load database configuration from the first `database.yml` available in paths.
