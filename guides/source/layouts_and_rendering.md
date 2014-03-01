@@ -304,9 +304,12 @@ type, by using the `:body` option to `render`:
 render body: "raw"
 ```
 
-TIP: This option should be used only if you explicitly want the content type to
-be unset. Using `:plain` or `:html` might be more appropriate in most of the
+TIP: This option should be used only if you don't care about the content type of
+the response. Using `:plain` or `:html` might be more appropriate in most of the
 time.
+
+NOTE: Unless overriden, your response returned from this render option will be
+`text/html`, as that is the default content type of Action Dispatch response.
 
 #### Options for `render`
 
