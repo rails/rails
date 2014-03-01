@@ -120,11 +120,11 @@ module ActionDispatch
         end
 
         def transitions
-          @string_states.map { |from, hash|
+          @string_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
-          }.flatten(1) + @regexp_states.map { |from, hash|
+          } + @regexp_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
-          }.flatten(1)
+          }
         end
 
         private
