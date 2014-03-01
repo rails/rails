@@ -243,8 +243,8 @@ CACHED
   end
 
   private
-    def template_digest(name, format)
-      ActionView::Digestor.digest(name, format, @controller.lookup_context)
+    def template_digest(name, format, variant = nil)
+      ActionView::Digestor.digest(name: name, format: format, variant: variant, finder: @controller.lookup_context)
     end
 end
 
