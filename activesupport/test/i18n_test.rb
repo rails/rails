@@ -26,7 +26,7 @@ class I18nTest < ActiveSupport::TestCase
   end
 
   def test_date_localization_with_long_format
-    assert_equal @date.strftime("%B %d, %Y"), I18n.localize(@date, :format => :long)
+    assert_equal @date.strftime("%B %-e, %Y"), I18n.localize(@date, :format => :long)
   end
 
   def test_time_localization_should_use_default_format

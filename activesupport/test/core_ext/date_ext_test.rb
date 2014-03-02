@@ -28,6 +28,12 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "2005-02-21",          date.to_s(:iso8601)
   end
 
+  def test_to_s_one_digit_day
+    date = Date.new(2005, 2, 2)
+
+    assert_equal "February 2, 2005", date.to_s(:long)
+  end
+
   def test_readable_inspect
     assert_equal "Mon, 21 Feb 2005", Date.new(2005, 2, 21).readable_inspect
     assert_equal Date.new(2005, 2, 21).readable_inspect, Date.new(2005, 2, 21).inspect

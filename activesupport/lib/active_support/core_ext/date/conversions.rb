@@ -6,7 +6,7 @@ require 'active_support/core_ext/module/remove_method'
 class Date
   DATE_FORMATS = {
     :short        => '%e %b',
-    :long         => '%B %e, %Y',
+    :long         => '%B %-e, %Y',
     :db           => '%Y-%m-%d',
     :number       => '%Y%m%d',
     :long_ordinal => lambda { |date|
