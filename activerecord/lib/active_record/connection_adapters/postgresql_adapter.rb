@@ -822,7 +822,7 @@ module ActiveRecord
           # populate range types
           ranges.find_all { |row| type_map.key? row['rngsubtype'].to_i }.each do |row|
             subtype = type_map[row['rngsubtype'].to_i]
-            range = OID::Range.new type_map[row['rngsubtype'].to_i]
+            range = OID::Range.new subtype
             type_map[row['oid'].to_i] = range
           end
         end
