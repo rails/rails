@@ -3033,6 +3033,66 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/admin/posts/1/comments', admin_post_comments_path('1')
   end
 
+  def test_shallow_path_and_prefix_are_not_added_to_non_shallow_routes
+    draw do
+      scope shallow_path: 'projects', shallow_prefix: 'project' do
+        resources :projects do
+          resources :files, controller: 'project_files', shallow: true
+        end
+      end
+    end
+
+    get '/projects'
+    assert_equal 'projects#index', @response.body
+    assert_equal '/projects', projects_path
+
+    get '/projects/new'
+    assert_equal 'projects#new', @response.body
+    assert_equal '/projects/new', new_project_path
+
+    post '/projects'
+    assert_equal 'projects#create', @response.body
+
+    get '/projects/1'
+    assert_equal 'projects#show', @response.body
+    assert_equal '/projects/1', project_path('1')
+
+    get '/projects/1/edit'
+    assert_equal 'projects#edit', @response.body
+    assert_equal '/projects/1/edit', edit_project_path('1')
+
+    patch '/projects/1'
+    assert_equal 'projects#update', @response.body
+
+    delete '/projects/1'
+    assert_equal 'projects#destroy', @response.body
+
+    get '/projects/1/files'
+    assert_equal 'project_files#index', @response.body
+    assert_equal '/projects/1/files', project_files_path('1')
+
+    get '/projects/1/files/new'
+    assert_equal 'project_files#new', @response.body
+    assert_equal '/projects/1/files/new', new_project_file_path('1')
+
+    post '/projects/1/files'
+    assert_equal 'project_files#create', @response.body
+
+    get '/projects/files/2'
+    assert_equal 'project_files#show', @response.body
+    assert_equal '/projects/files/2', project_file_path('2')
+
+    get '/projects/files/2/edit'
+    assert_equal 'project_files#edit', @response.body
+    assert_equal '/projects/files/2/edit', edit_project_file_path('2')
+
+    patch '/projects/files/2'
+    assert_equal 'project_files#update', @response.body
+
+    delete '/projects/files/2'
+    assert_equal 'project_files#destroy', @response.body
+  end
+
 private
 
   def draw(&block)
