@@ -30,7 +30,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_s_one_digit_day
     date = Date.new(2005, 2, 2)
-
     assert_equal "February 2, 2005", date.to_s(:long)
   end
 
