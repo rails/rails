@@ -1,12 +1,34 @@
 require 'abstract_unit'
 
-class RequestTest < ActiveSupport::TestCase
+class BaseRequestTest < ActiveSupport::TestCase
+  def setup
+    @env = {
+      :ip_spoofing_check => true,
+      :tld_length => 1,
+      "rack.input" => "foo"
+    }
+  end
 
   def url_for(options = {})
     options = { host: 'www.example.com' }.merge!(options)
     ActionDispatch::Http::URL.url_for(options)
   end
 
+  protected
+    def stub_request(env = {})
+      ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
+      @trusted_proxies ||= nil
+      ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
+      tld_length = env.key?(:tld_length) ? env.delete(:tld_length) : 1
+      ip_app.call(env)
+      ActionDispatch::Http::URL.tld_length = tld_length
+
+      env = @env.merge(env)
+      ActionDispatch::Request.new(env)
+    end
+end
+
+class RequestUrlFor < BaseRequestTest
   test "url_for class method" do
     e = assert_raise(ArgumentError) { url_for(:host => nil) }
     assert_match(/Please provide the :host parameter/, e.message)
@@ -31,7 +53,9 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal 'http://www.example.com?params=',  url_for(:params => '')
     assert_equal 'http://www.example.com?params=1', url_for(:params => 1)
   end
+end
 
+class RequestIP < BaseRequestTest
   test "remote ip" do
     request = stub_request 'REMOTE_ADDR' => '1.2.3.4'
     assert_equal '1.2.3.4', request.remote_ip
@@ -220,10 +244,12 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "remote ip middleware not present still returns an IP" do
-    request = ActionDispatch::Request.new({'REMOTE_ADDR' => '127.0.0.1'})
+    request = stub_request('REMOTE_ADDR' => '127.0.0.1')
     assert_equal '127.0.0.1', request.remote_ip
   end
+end
 
+class RequestDomain < BaseRequestTest
   test "domains" do
     request = stub_request 'HTTP_HOST' => 'www.rubyonrails.org'
     assert_equal "rubyonrails.org", request.domain
@@ -281,7 +307,9 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal [], request.subdomains
     assert_equal "", request.subdomain
   end
+end
 
+class RequestPort < BaseRequestTest
   test "standard_port" do
     request = stub_request
     assert_equal 80, request.standard_port
@@ -323,7 +351,9 @@ class RequestTest < ActiveSupport::TestCase
     request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
     assert_equal ':8080', request.port_string
   end
+end
 
+class RequestPath < BaseRequestTest
   test "full path" do
     request = stub_request 'SCRIPT_NAME' => '', 'PATH_INFO' => '/path/of/some/uri', 'QUERY_STRING' => 'mapped=1'
     assert_equal "/path/of/some/uri?mapped=1", request.fullpath
@@ -354,6 +384,32 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "/of/some/uri",               request.path_info
   end
 
+  test "original_fullpath returns ORIGINAL_FULLPATH" do
+    request = stub_request('ORIGINAL_FULLPATH' => "/foo?bar")
+
+    path = request.original_fullpath
+    assert_equal "/foo?bar", path
+  end
+
+  test "original_url returns url built using ORIGINAL_FULLPATH" do
+    request = stub_request('ORIGINAL_FULLPATH' => "/foo?bar",
+                           'HTTP_HOST'         => "example.org",
+                           'rack.url_scheme'   => "http")
+
+    url = request.original_url
+    assert_equal "http://example.org/foo?bar", url
+  end
+
+  test "original_fullpath returns fullpath if ORIGINAL_FULLPATH is not present" do
+    request = stub_request('PATH_INFO'    => "/foo",
+                           'QUERY_STRING' => "bar")
+
+    path = request.original_fullpath
+    assert_equal "/foo?bar", path
+  end
+end
+
+class RequestHost < BaseRequestTest
   test "host with default port" do
     request = stub_request 'HTTP_HOST' => 'rubyonrails.org:80'
     assert_equal "rubyonrails.org", request.host_with_port
@@ -364,15 +420,174 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "rubyonrails.org:81", request.host_with_port
   end
 
+  test "proxy request" do
+    request = stub_request 'HTTP_HOST' => 'glu.ttono.us:80'
+    assert_equal "glu.ttono.us", request.host_with_port
+  end
+
+  test "http host" do
+    request = stub_request 'HTTP_HOST' => "rubyonrails.org:8080"
+    assert_equal "rubyonrails.org", request.host
+    assert_equal "rubyonrails.org:8080", request.host_with_port
+
+    request = stub_request 'HTTP_X_FORWARDED_HOST' => "www.firsthost.org, www.secondhost.org"
+    assert_equal "www.secondhost.org", request.host
+  end
+
+  test "http host with default port overrides server port" do
+    request = stub_request 'HTTP_HOST' => "rubyonrails.org"
+    assert_equal "rubyonrails.org", request.host_with_port
+  end
+
+  test "host with port if http standard port is specified" do
+    request = stub_request 'HTTP_X_FORWARDED_HOST' => "glu.ttono.us:80"
+    assert_equal "glu.ttono.us", request.host_with_port
+  end
+
+  test "host with port if https standard port is specified" do
+    request = stub_request(
+      'HTTP_X_FORWARDED_PROTO' => "https",
+      'HTTP_X_FORWARDED_HOST' => "glu.ttono.us:443"
+    )
+    assert_equal "glu.ttono.us", request.host_with_port
+  end
+
+  test "host if ipv6 reference" do
+    request = stub_request 'HTTP_HOST' => "[2001:1234:5678:9abc:def0::dead:beef]"
+    assert_equal "[2001:1234:5678:9abc:def0::dead:beef]", request.host
+  end
+
+  test "host if ipv6 reference with port" do
+    request = stub_request 'HTTP_HOST' => "[2001:1234:5678:9abc:def0::dead:beef]:8008"
+    assert_equal "[2001:1234:5678:9abc:def0::dead:beef]", request.host
+  end
+end
+
+class RequestCGI < BaseRequestTest
+  test "CGI environment variables" do
+    request = stub_request(
+      "AUTH_TYPE" => "Basic",
+      "GATEWAY_INTERFACE" => "CGI/1.1",
+      "HTTP_ACCEPT" => "*/*",
+      "HTTP_ACCEPT_CHARSET" => "UTF-8",
+      "HTTP_ACCEPT_ENCODING" => "gzip, deflate",
+      "HTTP_ACCEPT_LANGUAGE" => "en",
+      "HTTP_CACHE_CONTROL" => "no-cache, max-age=0",
+      "HTTP_FROM" => "googlebot",
+      "HTTP_HOST" => "glu.ttono.us:8007",
+      "HTTP_NEGOTIATE" => "trans",
+      "HTTP_PRAGMA" => "no-cache",
+      "HTTP_REFERER" => "http://www.google.com/search?q=glu.ttono.us",
+      "HTTP_USER_AGENT" => "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en)",
+      "PATH_INFO" => "/homepage/",
+      "PATH_TRANSLATED" => "/home/kevinc/sites/typo/public/homepage/",
+      "QUERY_STRING" => "",
+      "REMOTE_ADDR" => "207.7.108.53",
+      "REMOTE_HOST" => "google.com",
+      "REMOTE_IDENT" => "kevin",
+      "REMOTE_USER" => "kevin",
+      "REQUEST_METHOD" => "GET",
+      "SCRIPT_NAME" => "/dispatch.fcgi",
+      "SERVER_NAME" => "glu.ttono.us",
+      "SERVER_PORT" => "8007",
+      "SERVER_PROTOCOL" => "HTTP/1.1",
+      "SERVER_SOFTWARE" => "lighttpd/1.4.5",
+    )
+
+    assert_equal "Basic", request.auth_type
+    assert_equal 0, request.content_length
+    assert_equal nil, request.content_mime_type
+    assert_equal "CGI/1.1", request.gateway_interface
+    assert_equal "*/*", request.accept
+    assert_equal "UTF-8", request.accept_charset
+    assert_equal "gzip, deflate", request.accept_encoding
+    assert_equal "en", request.accept_language
+    assert_equal "no-cache, max-age=0", request.cache_control
+    assert_equal "googlebot", request.from
+    assert_equal "glu.ttono.us", request.host
+    assert_equal "trans", request.negotiate
+    assert_equal "no-cache", request.pragma
+    assert_equal "http://www.google.com/search?q=glu.ttono.us", request.referer
+    assert_equal "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en)", request.user_agent
+    assert_equal "/homepage/", request.path_info
+    assert_equal "/home/kevinc/sites/typo/public/homepage/", request.path_translated
+    assert_equal "", request.query_string
+    assert_equal "207.7.108.53", request.remote_addr
+    assert_equal "google.com", request.remote_host
+    assert_equal "kevin", request.remote_ident
+    assert_equal "kevin", request.remote_user
+    assert_equal "GET", request.request_method
+    assert_equal "/dispatch.fcgi", request.script_name
+    assert_equal "glu.ttono.us", request.server_name
+    assert_equal 8007, request.server_port
+    assert_equal "HTTP/1.1", request.server_protocol
+    assert_equal "lighttpd", request.server_software
+  end
+end
+
+class RequestCookie < BaseRequestTest
+  test "cookie syntax resilience" do
+    request = stub_request("HTTP_COOKIE" => "_session_id=c84ace84796670c052c6ceb2451fb0f2; is_admin=yes")
+    assert_equal "c84ace84796670c052c6ceb2451fb0f2", request.cookies["_session_id"], request.cookies.inspect
+    assert_equal "yes", request.cookies["is_admin"], request.cookies.inspect
+
+    # some Nokia phone browsers omit the space after the semicolon separator.
+    # some developers have grown accustomed to using comma in cookie values.
+    request = stub_request("HTTP_COOKIE"=>"_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes")
+    assert_equal "c84ace847", request.cookies["_session_id"], request.cookies.inspect
+    assert_equal "yes", request.cookies["is_admin"], request.cookies.inspect
+  end
+end
+
+class RequestParamsParsing < BaseRequestTest
+  test "doesnt break when content type has charset" do
+    request = stub_request(
+      'REQUEST_METHOD' => 'POST',
+      'CONTENT_LENGTH' => "flamenco=love".length,
+      'CONTENT_TYPE' => 'application/x-www-form-urlencoded; charset=utf-8',
+      'rack.input' => StringIO.new("flamenco=love")
+    )
+
+    assert_equal({"flamenco"=> "love"}, request.request_parameters)
+  end
+
+  test "doesnt interpret request uri as query string when missing" do
+    request = stub_request('REQUEST_URI' => 'foo')
+    assert_equal({}, request.query_parameters)
+  end
+end
+
+class RequestRewind < BaseRequestTest
+  test "body should be rewound" do
+    data = 'rewind'
+    env = {
+      'rack.input' => StringIO.new(data),
+      'CONTENT_LENGTH' => data.length,
+      'CONTENT_TYPE' => 'application/x-www-form-urlencoded; charset=utf-8'
+    }
+
+    # Read the request body by parsing params.
+    request = stub_request(env)
+    request.request_parameters
+
+    # Should have rewound the body.
+    assert_equal 0, request.body.pos
+  end
+
+  test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
+    request = stub_request(
+      'rack.input' => StringIO.new("raw"),
+      'CONTENT_LENGTH' => 3
+    )
+    assert_equal "raw", request.raw_post
+    assert_equal "raw", request.env['rack.input'].read
+  end
+end
+
+class RequestProtocol < BaseRequestTest
   test "server software" do
-    request = stub_request
-    assert_equal nil, request.server_software
-
-    request = stub_request 'SERVER_SOFTWARE' => 'Apache3.422'
-    assert_equal 'apache', request.server_software
-
-    request = stub_request 'SERVER_SOFTWARE' => 'lighttpd(1.1.4)'
-    assert_equal 'lighttpd', request.server_software
+    assert_equal 'lighttpd', stub_request('SERVER_SOFTWARE' => 'lighttpd/1.4.5').server_software
+    assert_equal 'apache', stub_request('SERVER_SOFTWARE' => 'Apache3.422').server_software
   end
 
   test "xml http request" do
@@ -391,19 +606,12 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "reports ssl" do
-    request = stub_request
-    assert !request.ssl?
-
-    request = stub_request 'HTTPS' => 'on'
-    assert request.ssl?
+    assert !stub_request.ssl?
+    assert stub_request('HTTPS' => 'on').ssl?
   end
 
   test "reports ssl when proxied via lighttpd" do
-    request = stub_request
-    assert !request.ssl?
-
-    request = stub_request 'HTTP_X_FORWARDED_PROTO' => 'https'
-    assert request.ssl?
+    assert stub_request('HTTP_X_FORWARDED_PROTO' => 'https').ssl?
   end
 
   test "scheme returns https when proxied" do
@@ -411,63 +619,72 @@ class RequestTest < ActiveSupport::TestCase
     assert !request.ssl?
     assert_equal 'http', request.scheme
 
-    request = stub_request 'rack.url_scheme' => 'http', 'HTTP_X_FORWARDED_PROTO' => 'https'
+    request = stub_request(
+      'rack.url_scheme' => 'http',
+      'HTTP_X_FORWARDED_PROTO' => 'https'
+    )
     assert request.ssl?
     assert_equal 'https', request.scheme
   end
+end
 
-  test "String request methods" do
-    [:get, :post, :patch, :put, :delete].each do |method|
-      request = stub_request 'REQUEST_METHOD' => method.to_s.upcase
+class RequestMethod < BaseRequestTest
+  test "request methods" do
+    [:post, :get, :patch, :put, :delete].each do |method|
+      request = stub_request('REQUEST_METHOD' => method.to_s.upcase)
+
       assert_equal method.to_s.upcase, request.method
-    end
-  end
-
-  test "Symbol forms of request methods via method_symbol" do
-    [:get, :post, :patch, :put, :delete].each do |method|
-      request = stub_request 'REQUEST_METHOD' => method.to_s.upcase
       assert_equal method, request.method_symbol
     end
   end
 
   test "invalid http method raises exception" do
     assert_raise(ActionController::UnknownHttpMethod) do
-      request = stub_request 'REQUEST_METHOD' => 'RANDOM_METHOD'
-      request.request_method
+      stub_request('REQUEST_METHOD' => 'RANDOM_METHOD').request_method
     end
   end
 
   test "allow method hacking on post" do
     %w(GET OPTIONS PATCH PUT POST DELETE).each do |method|
-      request = stub_request "REQUEST_METHOD" => method.to_s.upcase
+      request = stub_request 'REQUEST_METHOD' => method.to_s.upcase
+
       assert_equal(method == "HEAD" ? "GET" : method, request.method)
     end
   end
 
   test "invalid method hacking on post raises exception" do
     assert_raise(ActionController::UnknownHttpMethod) do
-      request = stub_request "REQUEST_METHOD" => "_RANDOM_METHOD"
-      request.request_method
+      stub_request('REQUEST_METHOD' => '_RANDOM_METHOD').request_method
     end
   end
 
   test "restrict method hacking" do
     [:get, :patch, :put, :delete].each do |method|
-      request = stub_request 'REQUEST_METHOD' => method.to_s.upcase,
-        'action_dispatch.request.request_parameters' => { :_method => 'put' }
+      request = stub_request(
+        'action_dispatch.request.request_parameters' => { :_method => 'put' },
+        'REQUEST_METHOD' => method.to_s.upcase
+      )
+
       assert_equal method.to_s.upcase, request.method
     end
   end
 
   test "post masquerading as patch" do
-    request = stub_request 'REQUEST_METHOD' => 'PATCH', "rack.methodoverride.original_method" => "POST"
+    request = stub_request(
+      'REQUEST_METHOD' => 'PATCH',
+      "rack.methodoverride.original_method" => "POST"
+    )
+
     assert_equal "POST", request.method
     assert_equal "PATCH",  request.request_method
     assert request.patch?
   end
 
   test "post masquerading as put" do
-    request = stub_request 'REQUEST_METHOD' => 'PUT', "rack.methodoverride.original_method" => "POST"
+    request = stub_request(
+      'REQUEST_METHOD' => 'PUT',
+      "rack.methodoverride.original_method" => "POST"
+    )
     assert_equal "POST", request.method
     assert_equal "PUT",  request.request_method
     assert request.put?
@@ -493,7 +710,9 @@ class RequestTest < ActiveSupport::TestCase
       end
     end
   end
+end
 
+class RequestFormat < BaseRequestTest
   test "xml format" do
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => 'xml' })
@@ -513,109 +732,55 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "XMLHttpRequest" do
-    request = stub_request 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
-                           'HTTP_ACCEPT' =>
-                             [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(",")
+    request = stub_request(
+      'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+      'HTTP_ACCEPT' => [Mime::JS, Mime::HTML, Mime::XML, "text/xml", Mime::ALL].join(",")
+    )
     request.expects(:parameters).at_least_once.returns({})
     assert request.xhr?
     assert_equal Mime::JS, request.format
   end
 
-  test "content type" do
-    request = stub_request 'CONTENT_TYPE' => 'text/html'
-    assert_equal Mime::HTML, request.content_mime_type
-  end
-
-  test "can override format with parameter" do
+  test "can override format with parameter negative" do
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :txt })
     assert !request.format.xml?
+  end
 
+  test "can override format with parameter positive" do
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :xml })
     assert request.format.xml?
   end
 
-  test "no content type" do
-    request = stub_request
-    assert_equal nil, request.content_mime_type
-  end
-
-  test "content type is XML" do
-    request = stub_request 'CONTENT_TYPE' => 'application/xml'
-    assert_equal Mime::XML, request.content_mime_type
-  end
-
-  test "content type with charset" do
-    request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8'
-    assert_equal Mime::XML, request.content_mime_type
-  end
-
-  test "user agent" do
-    request = stub_request 'HTTP_USER_AGENT' => 'TestAgent'
-    assert_equal 'TestAgent', request.user_agent
-  end
-
-  test "parameters" do
-    request = stub_request
-    request.stubs(:request_parameters).returns({ "foo" => 1 })
-    request.stubs(:query_parameters).returns({ "bar" => 2 })
-
-    assert_equal({"foo" => 1, "bar" => 2}, request.parameters)
-    assert_equal({"foo" => 1}, request.request_parameters)
-    assert_equal({"bar" => 2}, request.query_parameters)
-  end
-
-  test "parameters still accessible after rack parse error" do
-    mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
-    request = nil
-    request = stub_request(mock_rack_env)
-
-    assert_raises(ActionController::BadRequest) do
-      # rack will raise a TypeError when parsing this query string
-      request.parameters
-    end
-
-    assert_equal({}, request.parameters)
-  end
-
-  test "we have access to the original exception" do
-    mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
-    request = nil
-    request = stub_request(mock_rack_env)
-
-    e = assert_raises(ActionController::BadRequest) do
-      # rack will raise a TypeError when parsing this query string
-      request.parameters
-    end
-
-    assert e.original_exception
-    assert_equal e.original_exception.backtrace, e.backtrace
-  end
-
-  test "formats with accept header" do
+  test "formats text/html with accept header" do
     request = stub_request 'HTTP_ACCEPT' => 'text/html'
-    request.expects(:parameters).at_least_once.returns({})
     assert_equal [Mime::HTML], request.formats
+  end
 
+  test "formats blank with accept header" do
     request = stub_request 'HTTP_ACCEPT' => ''
-    request.expects(:parameters).at_least_once.returns({})
     assert_equal [Mime::HTML], request.formats
+  end
 
-    request = stub_request 'HTTP_ACCEPT' => '',
-                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-    request.expects(:parameters).at_least_once.returns({})
+  test "formats XMLHttpRequest with accept header" do
+    request = stub_request 'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     assert_equal [Mime::JS], request.formats
+  end
 
-    request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
-                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-    request.expects(:parameters).at_least_once.returns({})
+  test "formats application/xml with accept header" do
+    request = stub_request('CONTENT_TYPE' => 'application/xml; charset=UTF-8',
+                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest")
     assert_equal [Mime::XML], request.formats
+  end
 
+  test "formats format:text with accept header" do
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :txt })
     assert_equal [Mime::TEXT], request.formats
+  end
 
+  test "formats format:unknown with accept header" do
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :unknown })
     assert_instance_of Mime::NullType, request.format
@@ -669,30 +834,87 @@ class RequestTest < ActiveSupport::TestCase
       ActionDispatch::Request.ignore_accept_header = false
     end
   end
+end
+
+class RequestMimeType < BaseRequestTest
+  test "content type" do
+    assert_equal Mime::HTML, stub_request('CONTENT_TYPE' => 'text/html').content_mime_type
+  end
+
+  test "no content type" do
+    assert_equal nil, stub_request.content_mime_type
+  end
+
+  test "content type is XML" do
+    assert_equal Mime::XML, stub_request('CONTENT_TYPE' => 'application/xml').content_mime_type
+  end
+
+  test "content type with charset" do
+    assert_equal Mime::XML, stub_request('CONTENT_TYPE' => 'application/xml; charset=UTF-8').content_mime_type
+  end
+
+  test "user agent" do
+    assert_equal 'TestAgent', stub_request('HTTP_USER_AGENT' => 'TestAgent').user_agent
+  end
 
   test "negotiate_mime" do
-    request = stub_request 'HTTP_ACCEPT' => 'text/html',
-                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-
-    request.expects(:parameters).at_least_once.returns({})
+    request = stub_request(
+      'HTTP_ACCEPT' => 'text/html',
+      'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
+    )
 
     assert_equal nil, request.negotiate_mime([Mime::XML, Mime::JSON])
     assert_equal Mime::HTML, request.negotiate_mime([Mime::XML, Mime::HTML])
     assert_equal Mime::HTML, request.negotiate_mime([Mime::XML, Mime::ALL])
+  end
 
-    request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
-                           'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
-    request.expects(:parameters).at_least_once.returns({})
+  test "negotiate_mime with content_type" do
+    request = stub_request(
+      'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
+      'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
+    )
+
     assert_equal Mime::XML, request.negotiate_mime([Mime::XML, Mime::CSV])
   end
+end
 
-  test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
-    request = stub_request('rack.input' => StringIO.new("foo"),
-                           'CONTENT_LENGTH' => 3)
-    assert_equal "foo", request.raw_post
-    assert_equal "foo", request.env['rack.input'].read
+class RequestParameters < BaseRequestTest
+  test "parameters" do
+    request = stub_request
+    request.expects(:request_parameters).at_least_once.returns({ "foo" => 1 })
+    request.expects(:query_parameters).at_least_once.returns({ "bar" => 2 })
+
+    assert_equal({"foo" => 1, "bar" => 2}, request.parameters)
+    assert_equal({"foo" => 1}, request.request_parameters)
+    assert_equal({"bar" => 2}, request.query_parameters)
   end
 
+  test "parameters still accessible after rack parse error" do
+    request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
+
+    assert_raises(ActionController::BadRequest) do
+      # rack will raise a TypeError when parsing this query string
+      request.parameters
+    end
+
+    assert_equal({}, request.parameters)
+  end
+
+  test "we have access to the original exception" do
+    request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
+
+    e = assert_raises(ActionController::BadRequest) do
+      # rack will raise a TypeError when parsing this query string
+      request.parameters
+    end
+
+    assert e.original_exception
+    assert_equal e.original_exception.backtrace, e.backtrace
+  end
+end
+
+
+class RequestParameterFilter < BaseRequestTest
   test "process parameter filter" do
     test_hashes = [
     [{'foo'=>'bar'},{'foo'=>'bar'},%w'food'],
@@ -721,9 +943,14 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "filtered_parameters returns params filtered" do
-    request = stub_request('action_dispatch.request.parameters' =>
-      { 'lifo' => 'Pratik', 'amount' => '420', 'step' => '1' },
-      'action_dispatch.parameter_filter' => [:lifo, :amount])
+    request = stub_request(
+      'action_dispatch.request.parameters' => {
+        'lifo' => 'Pratik',
+        'amount' => '420',
+        'step' => '1'
+      },
+      'action_dispatch.parameter_filter' => [:lifo, :amount]
+    )
 
     params = request.filtered_parameters
     assert_equal "[FILTERED]", params["lifo"]
@@ -732,10 +959,14 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "filtered_env filters env as a whole" do
-    request = stub_request('action_dispatch.request.parameters' =>
-      { 'amount' => '420', 'step' => '1' }, "RAW_POST_DATA" => "yada yada",
-      'action_dispatch.parameter_filter' => [:lifo, :amount])
-
+    request = stub_request(
+      'action_dispatch.request.parameters' => {
+        'amount' => '420',
+        'step' => '1'
+      },
+      "RAW_POST_DATA" => "yada yada",
+      'action_dispatch.parameter_filter' => [:lifo, :amount]
+    )
     request = stub_request(request.filtered_env)
 
     assert_equal "[FILTERED]", request.raw_post
@@ -745,9 +976,11 @@ class RequestTest < ActiveSupport::TestCase
 
   test "filtered_path returns path with filtered query string" do
     %w(; &).each do |sep|
-      request = stub_request('QUERY_STRING' => %w(username=sikachu secret=bd4f21f api_key=b1bc3b3cd352f68d79d7).join(sep),
+      request = stub_request(
+        'QUERY_STRING' => %w(username=sikachu secret=bd4f21f api_key=b1bc3b3cd352f68d79d7).join(sep),
         'PATH_INFO' => '/authenticate',
-        'action_dispatch.parameter_filter' => [:secret, :api_key])
+        'action_dispatch.parameter_filter' => [:secret, :api_key]
+      )
 
       path = request.filtered_path
       assert_equal %w(/authenticate?username=sikachu secret=[FILTERED] api_key=[FILTERED]).join(sep), path
@@ -755,56 +988,40 @@ class RequestTest < ActiveSupport::TestCase
   end
 
   test "filtered_path should not unescape a genuine '[FILTERED]' value" do
-    request = stub_request('QUERY_STRING' => "secret=bd4f21f&genuine=%5BFILTERED%5D",
+    request = stub_request(
+      'QUERY_STRING' => "secret=bd4f21f&genuine=%5BFILTERED%5D",
       'PATH_INFO' => '/authenticate',
-      'action_dispatch.parameter_filter' => [:secret])
+      'action_dispatch.parameter_filter' => [:secret]
+    )
 
     path = request.filtered_path
-    assert_equal "/authenticate?secret=[FILTERED]&genuine=%5BFILTERED%5D", path
+    assert_equal request.script_name + "/authenticate?secret=[FILTERED]&genuine=%5BFILTERED%5D", path
   end
 
   test "filtered_path should preserve duplication of keys in query string" do
-    request = stub_request('QUERY_STRING' => "username=sikachu&secret=bd4f21f&username=fxn",
+    request = stub_request(
+      'QUERY_STRING' => "username=sikachu&secret=bd4f21f&username=fxn",
       'PATH_INFO' => '/authenticate',
-      'action_dispatch.parameter_filter' => [:secret])
+      'action_dispatch.parameter_filter' => [:secret]
+    )
 
     path = request.filtered_path
-    assert_equal "/authenticate?username=sikachu&secret=[FILTERED]&username=fxn", path
+    assert_equal request.script_name + "/authenticate?username=sikachu&secret=[FILTERED]&username=fxn", path
   end
 
   test "filtered_path should ignore searchparts" do
-    request = stub_request('QUERY_STRING' => "secret",
+    request = stub_request(
+      'QUERY_STRING' => "secret",
       'PATH_INFO' => '/authenticate',
-      'action_dispatch.parameter_filter' => [:secret])
+      'action_dispatch.parameter_filter' => [:secret]
+    )
 
     path = request.filtered_path
-    assert_equal "/authenticate?secret", path
+    assert_equal request.script_name + "/authenticate?secret", path
   end
+end
 
-  test "original_fullpath returns ORIGINAL_FULLPATH" do
-    request = stub_request('ORIGINAL_FULLPATH' => "/foo?bar")
-
-    path = request.original_fullpath
-    assert_equal "/foo?bar", path
-  end
-
-  test "original_url returns url built using ORIGINAL_FULLPATH" do
-    request = stub_request('ORIGINAL_FULLPATH' => "/foo?bar",
-                           'HTTP_HOST'         => "example.org",
-                           'rack.url_scheme'   => "http")
-
-    url = request.original_url
-    assert_equal "http://example.org/foo?bar", url
-  end
-
-  test "original_fullpath returns fullpath if ORIGINAL_FULLPATH is not present" do
-    request = stub_request('PATH_INFO'    => "/foo",
-                           'QUERY_STRING' => "bar")
-
-    path = request.original_fullpath
-    assert_equal "/foo?bar", path
-  end
-
+class RequestEtag < BaseRequestTest
   test "if_none_match_etags none" do
     request = stub_request
 
@@ -843,7 +1060,9 @@ class RequestTest < ActiveSupport::TestCase
       assert request.etag_matches?(etag), etag
     end
   end
+end
 
+class RequestVarient < BaseRequestTest
   test "setting variant" do
     request = stub_request
 
@@ -867,17 +1086,5 @@ class RequestTest < ActiveSupport::TestCase
     assert_raise ArgumentError do
       request.variant = "mobile"
     end
-  end
-
-protected
-
-  def stub_request(env = {})
-    ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
-    @trusted_proxies ||= nil
-    ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
-    tld_length = env.key?(:tld_length) ? env.delete(:tld_length) : 1
-    ip_app.call(env)
-    ActionDispatch::Http::URL.tld_length = tld_length
-    ActionDispatch::Request.new(env)
   end
 end
