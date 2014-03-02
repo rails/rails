@@ -1558,21 +1558,21 @@ module ActionDispatch
             end
           end
 
-          def with_scope_level(kind, resource = parent_resource)
+          def with_scope_level(kind)
             old, @scope[:scope_level] = @scope[:scope_level], kind
-            old_resource, @scope[:scope_level_resource] = @scope[:scope_level_resource], resource
             yield
           ensure
             @scope[:scope_level] = old
-            @scope[:scope_level_resource] = old_resource
           end
 
           def resource_scope(kind, resource) #:nodoc:
-            with_scope_level(kind, resource) do
-              scope(parent_resource.resource_scope) do
-                yield
-              end
+            old_resource, @scope[:scope_level_resource] = @scope[:scope_level_resource], resource
+
+            with_scope_level(kind) do
+              scope(parent_resource.resource_scope) { yield }
             end
+          ensure
+            @scope[:scope_level_resource] = old_resource
           end
 
           def nested_options #:nodoc:
