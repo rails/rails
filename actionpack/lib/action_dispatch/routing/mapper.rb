@@ -1313,8 +1313,10 @@ module ActionDispatch
           end
 
           with_scope_level(:member) do
-            scope(parent_resource.member_scope) do
-              yield
+            if shallow?
+              shallow_scope(parent_resource.member_scope) { yield }
+            else
+              scope(parent_resource.member_scope) { yield }
             end
           end
         end
@@ -1337,16 +1339,8 @@ module ActionDispatch
           end
 
           with_scope_level(:nested) do
-            if shallow?
-              with_exclusive_scope do
-                if @scope[:shallow_path].blank?
-                  scope(parent_resource.nested_scope, nested_options) { yield }
-                else
-                  scope(@scope[:shallow_path], :as => @scope[:shallow_prefix]) do
-                    scope(parent_resource.nested_scope, nested_options) { yield }
-                  end
-                end
-              end
+            if shallow? && nesting_depth > 1
+              shallow_scope(parent_resource.nested_scope, nested_options) { yield }
             else
               scope(parent_resource.nested_scope, nested_options) { yield }
             end
@@ -1556,11 +1550,13 @@ module ActionDispatch
 
           def resource_scope(kind, resource) #:nodoc:
             old_resource, @scope[:scope_level_resource] = @scope[:scope_level_resource], resource
+            @nesting.push(resource)
 
             with_scope_level(kind) do
               scope(parent_resource.resource_scope) { yield }
             end
           ensure
+            @nesting.pop
             @scope[:scope_level_resource] = old_resource
           end
 
@@ -1571,6 +1567,10 @@ module ActionDispatch
             } if param_constraint?
 
             options
+          end
+
+          def nesting_depth #:nodoc:
+            @nesting.size
           end
 
           def param_constraint? #:nodoc:
@@ -1585,18 +1585,20 @@ module ActionDispatch
             flag && resource_method_scope? && CANONICAL_ACTIONS.include?(action.to_s)
           end
 
-          def shallow_scoping? #:nodoc:
-            shallow? && @scope[:scope_level] == :member
+          def shallow_scope(path, options = {}) #:nodoc:
+            old_name_prefix, old_path = @scope[:as], @scope[:path]
+            @scope[:as], @scope[:path] = @scope[:shallow_prefix], @scope[:shallow_path]
+
+            scope(path, options) { yield }
+          ensure
+            @scope[:as], @scope[:path] = old_name_prefix, old_path
           end
 
           def path_for_action(action, path) #:nodoc:
-            prefix = shallow_scoping? ?
-              "#{@scope[:shallow_path]}/#{parent_resource.shallow_scope}" : @scope[:path]
-
             if canonical_action?(action, path.blank?)
-              prefix.to_s
+              @scope[:path].to_s
             else
-              "#{prefix}/#{action_path(action, path)}"
+              "#{@scope[:path]}/#{action_path(action, path)}"
             end
           end
 
@@ -1633,7 +1635,7 @@ module ActionDispatch
             when :new
               [prefix, :new, name_prefix, member_name]
             when :member
-              [prefix, shallow_scoping? ? @scope[:shallow_prefix] : name_prefix, member_name]
+              [prefix, name_prefix, member_name]
             when :root
               [name_prefix, collection_name, prefix]
             else
@@ -1774,6 +1776,7 @@ module ActionDispatch
         @set = set
         @scope = { :path_names => @set.resources_path_names }
         @concerns = {}
+        @nesting = []
       end
 
       include Base
