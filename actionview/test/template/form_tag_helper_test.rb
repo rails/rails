@@ -476,6 +476,11 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal('<button name="temptation" type="button"><strong>Do not press me</strong></button>', output)
   end
 
+  def test_button_tag_defaults_with_block_and_options
+    output = button_tag(:name => 'temptation', :value => 'within') { content_tag(:strong, 'Do not press me') }
+    assert_dom_equal('<button name="temptation" value="within" type="submit" ><strong>Do not press me</strong></button>', output)
+  end
+
   def test_button_tag_with_confirmation
     assert_dom_equal(
       %(<button name="button" type="submit" data-confirm="Are you sure?">Save</button>),
