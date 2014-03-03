@@ -469,10 +469,9 @@ module ActionView
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
-          options = content_or_options.is_a?(Hash) ? content_or_options : options
-          options = button_tag_options_with_defaults(options)
-          content_tag :button, content_or_options || 'Button', options, &block
-        end
+        options = content_or_options.is_a?(Hash) ? content_or_options : options
+        options = button_tag_options_with_defaults(options)
+        content_tag :button, content_or_options || 'Button', options, &block
       end
 
       # Displays an image which when clicked will submit the form.
