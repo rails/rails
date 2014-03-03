@@ -742,10 +742,12 @@ module ActionView
           name.to_s.delete(']').gsub(/[^-a-zA-Z0-9:.]/, "_")
         end
 
-        def button_tag_options_with_defaults(options = {})
-          default_options = { 'name' => 'button', 'type' => 'submit' }
+        def button_tag_options_with_defaults(options)
+          options = options || {}
           options.stringify_keys!
-          options.reverse_merge! default_options
+
+          default_options = { 'name' => 'button', 'type' => 'submit' }
+          options.reverse_merge default_options
         end
     end
   end
