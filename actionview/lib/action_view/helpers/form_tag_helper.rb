@@ -469,7 +469,12 @@ module ActionView
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
-        options = content_or_options.is_a?(Hash) ? content_or_options : options
+
+        if content_or_options.is_a?(Hash)
+          options = content_or_options
+          content_or_options = nil
+        end
+
         options = button_tag_options_with_defaults(options)
         content_tag :button, content_or_options || 'Button', options, &block
       end
