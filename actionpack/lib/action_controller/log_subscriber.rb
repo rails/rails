@@ -54,9 +54,9 @@ module ActionController
     end
 
     def deep_munge(event)
-      message = "Value for params[:#{event.payload[:keys].join('][:')}] was set"\
-                "to nil, because it was one of [], [null] or [null, null, ...]."\
-                "Go to http://guides.rubyonrails.org/security.html#unsafe-query-generation"\
+      message = "Value for params[:#{event.payload[:keys].join('][:')}] was set "\
+                "to nil, because it was one of [], [null] or [null, null, ...]. "\
+                "Go to http://guides.rubyonrails.org/security.html#unsafe-query-generation "\
                 "for more information."\
 
       debug(message)
