@@ -5,7 +5,7 @@ en:
       # When no format has been given, it uses default.
       # You can provide other formats here if you like!
       default: "%Y-%m-%d"
-      short: "%b %d"
+      short: "%b %-e"
       long: "%B %-e, %Y"
 
     day_names: [Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday]
@@ -22,8 +22,8 @@ en:
 
   time:
     formats:
-      default: "%a, %d %b %Y %H:%M:%S %z"
-      short: "%d %b %H:%M"
+      default: "%Y-%m-%d %H:%M:%S %z"
+      short: "%b %-e %H:%M"
       long: "%B %-e, %Y %H:%M"
     am: "am"
     pm: "pm"

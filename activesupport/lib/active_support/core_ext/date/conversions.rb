@@ -5,7 +5,7 @@ require 'active_support/core_ext/module/remove_method'
 
 class Date
   DATE_FORMATS = {
-    :short        => '%e %b',
+    :short        => '%b %-e',
     :long         => '%B %-e, %Y',
     :db           => '%Y-%m-%d',
     :number       => '%Y%m%d',

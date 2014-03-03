@@ -20,7 +20,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_to_s
     date = Date.new(2005, 2, 21)
     assert_equal "2005-02-21",          date.to_s
-    assert_equal "21 Feb",              date.to_s(:short)
+    assert_equal "Feb 21",              date.to_s(:short)
     assert_equal "February 21, 2005",   date.to_s(:long)
     assert_equal "February 21st, 2005", date.to_s(:long_ordinal)
     assert_equal "2005-02-21",          date.to_s(:db)
@@ -30,6 +30,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_s_one_digit_day
     date = Date.new(2005, 2, 2)
+    assert_equal "Feb 2", date.to_s(:short)
     assert_equal "February 2, 2005", date.to_s(:long)
   end
 

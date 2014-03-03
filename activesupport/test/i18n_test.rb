@@ -10,7 +10,7 @@ class I18nTest < ActiveSupport::TestCase
 
   def test_time_zone_localization_with_default_format
     now = Time.utc(2000).in_time_zone('Alaska')
-    assert_equal "Fri, 31 Dec 1999 15:00:00 -0900", I18n.localize(now)
+    assert_equal "1999-12-31 15:00:00 -0900", I18n.localize(now)
   end
 
   def test_date_localization_should_use_default_format
@@ -22,7 +22,7 @@ class I18nTest < ActiveSupport::TestCase
   end
 
   def test_date_localization_with_short_format
-    assert_equal "Jul 02", I18n.localize(@date, :format => :short)
+    assert_equal "Jul 2", I18n.localize(@date, :format => :short)
   end
 
   def test_date_localization_with_long_format
@@ -30,15 +30,15 @@ class I18nTest < ActiveSupport::TestCase
   end
 
   def test_time_localization_should_use_default_format
-    assert_equal "Wed, 02 Jul 2008 16:47:01 +0000", I18n.localize(@time)
+    assert_equal "2008-07-02 16:47:01 +0000", I18n.localize(@time)
   end
 
   def test_time_localization_with_default_format
-    assert_equal "Wed, 02 Jul 2008 16:47:01 +0000", I18n.localize(@time, :format => :default)
+    assert_equal "2008-07-02 16:47:01 +0000", I18n.localize(@time, :format => :default)
   end
 
   def test_time_localization_with_short_format
-    assert_equal "02 Jul 16:47", I18n.localize(@time, :format => :short)
+    assert_equal "Jul 2 16:47", I18n.localize(@time, :format => :short)
   end
 
   def test_time_localization_with_long_format
