@@ -1031,6 +1031,136 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'users/home#index', @response.body
   end
 
+  def test_namespaced_shallow_routes_with_module_option
+    draw do
+      namespace :foo, module: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/foo/posts'
+    assert_equal '/foo/posts', foo_posts_path
+    assert_equal 'bar/posts#index', @response.body
+
+    get '/foo/posts/1'
+    assert_equal '/foo/posts/1', foo_post_path('1')
+    assert_equal 'bar/posts#show', @response.body
+
+    get '/foo/posts/1/comments'
+    assert_equal '/foo/posts/1/comments', foo_post_comments_path('1')
+    assert_equal 'bar/comments#index', @response.body
+
+    get '/foo/comments/2'
+    assert_equal '/foo/comments/2', foo_comment_path('2')
+    assert_equal 'bar/comments#show', @response.body
+  end
+
+  def test_namespaced_shallow_routes_with_path_option
+    draw do
+      namespace :foo, path: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/bar/posts'
+    assert_equal '/bar/posts', foo_posts_path
+    assert_equal 'foo/posts#index', @response.body
+
+    get '/bar/posts/1'
+    assert_equal '/bar/posts/1', foo_post_path('1')
+    assert_equal 'foo/posts#show', @response.body
+
+    get '/bar/posts/1/comments'
+    assert_equal '/bar/posts/1/comments', foo_post_comments_path('1')
+    assert_equal 'foo/comments#index', @response.body
+
+    get '/bar/comments/2'
+    assert_equal '/bar/comments/2', foo_comment_path('2')
+    assert_equal 'foo/comments#show', @response.body
+  end
+
+  def test_namespaced_shallow_routes_with_as_option
+    draw do
+      namespace :foo, as: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/foo/posts'
+    assert_equal '/foo/posts', bar_posts_path
+    assert_equal 'foo/posts#index', @response.body
+
+    get '/foo/posts/1'
+    assert_equal '/foo/posts/1', bar_post_path('1')
+    assert_equal 'foo/posts#show', @response.body
+
+    get '/foo/posts/1/comments'
+    assert_equal '/foo/posts/1/comments', bar_post_comments_path('1')
+    assert_equal 'foo/comments#index', @response.body
+
+    get '/foo/comments/2'
+    assert_equal '/foo/comments/2', bar_comment_path('2')
+    assert_equal 'foo/comments#show', @response.body
+  end
+
+  def test_namespaced_shallow_routes_with_shallow_path_option
+    draw do
+      namespace :foo, shallow_path: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/foo/posts'
+    assert_equal '/foo/posts', foo_posts_path
+    assert_equal 'foo/posts#index', @response.body
+
+    get '/foo/posts/1'
+    assert_equal '/foo/posts/1', foo_post_path('1')
+    assert_equal 'foo/posts#show', @response.body
+
+    get '/foo/posts/1/comments'
+    assert_equal '/foo/posts/1/comments', foo_post_comments_path('1')
+    assert_equal 'foo/comments#index', @response.body
+
+    get '/bar/comments/2'
+    assert_equal '/bar/comments/2', foo_comment_path('2')
+    assert_equal 'foo/comments#show', @response.body
+  end
+
+  def test_namespaced_shallow_routes_with_shallow_prefix_option
+    draw do
+      namespace :foo, shallow_prefix: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/foo/posts'
+    assert_equal '/foo/posts', foo_posts_path
+    assert_equal 'foo/posts#index', @response.body
+
+    get '/foo/posts/1'
+    assert_equal '/foo/posts/1', foo_post_path('1')
+    assert_equal 'foo/posts#show', @response.body
+
+    get '/foo/posts/1/comments'
+    assert_equal '/foo/posts/1/comments', foo_post_comments_path('1')
+    assert_equal 'foo/comments#index', @response.body
+
+    get '/foo/comments/2'
+    assert_equal '/foo/comments/2', bar_comment_path('2')
+    assert_equal 'foo/comments#show', @response.body
+  end
+
   def test_namespace_containing_numbers
     draw do
       namespace :v2 do
