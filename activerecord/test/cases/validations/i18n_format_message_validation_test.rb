@@ -3,27 +3,37 @@ require 'models/topic'
 
 class I18nFormatMessageValidationTest < ActiveRecord::TestCase
   def setup
-    @topic = Topic.new
+    @topic = Topic.new(title:'')
     I18n.backend = I18n::Backend::Simple.new
   end
 
-  def  test_error_message_format_with_attribute
-    assert_equal :"errors.format", @topic.errors.error_message_format(:title)
+
+
+  def test_full_messages_format_priority_for_attribute
+    repair_validations Topic do
+      assert_nothing_raised { Topic.validates :title, :presence => true }
+      I18n.backend.store_translations 'en', {:errors=>{:format=>"%{attribute} %{message}"},:activerecord => {:errors => {:models => {:topic=> {:attributes => {:title => {:blank => "Can't be blank", :format=>'%{message}' } } } } } } }
+      assert !@topic.valid?
+      assert_equal ["Can't be blank"], @topic.errors.full_messages
+    end
   end
 
-  def test_i18n_priority_format_with_attribute
-    expected_keys = [:"errors.format", :"activerecord.errors.models.topic.format", :"activerecord.errors.models.topic.attributes.title.format"]
-    assert_equal expected_keys, @topic.errors.i18n_priority_format(:title)
+  def test_full_messages_format_priority_for_model
+    repair_validations Topic do
+      assert_nothing_raised { Topic.validates :title, :presence => true }
+      I18n.backend.store_translations 'en', {:errors=>{:format=>"%{attribute} %{message}"},:activerecord => {:errors => {:models => {:topic=> {:attributes => {:title => {:blank => "Can't be blank"} }, :format=>'%{message}' } } } } }
+      assert !@topic.valid?
+      assert_equal ["Can't be blank"], @topic.errors.full_messages
+    end
   end
 
-  def test_error_message_format_priority_key_for_attribute
-    I18n.backend.store_translations 'en', {:activerecord => {:errors => {:models => {:topic=> {:attributes => {:title => {:blank => "Can't be blank", :format=>'%{message}' } } } } } } }
-    assert_equal :"activerecord.errors.models.topic.attributes.title.format", @topic.errors.error_message_format(:title)
-  end
-
-  def test_error_message_format_priority_key_for_model
-    I18n.backend.store_translations 'en', {:activerecord => {:errors => {:models => {:topic=> {:attributes => {:title => {:blank => "Can't be blank" } }, :format=>'%{message}' } } } } }
-    assert_equal :"activerecord.errors.models.topic.format", @topic.errors.error_message_format(:title)
+  def test_full_messages_format_priority_default
+    repair_validations Topic do
+      assert_nothing_raised { Topic.validates :title, :presence => true }
+      I18n.backend.store_translations 'en', {:errors=>{:format=>"%{attribute} %{message}"},:activerecord => {:errors => {:models => {:topic=> {:attributes => {:title => {:blank => "can't be blank"} } } } } } }
+      assert !@topic.valid?
+      assert_equal ["Title can't be blank"], @topic.errors.full_messages
+    end
   end
 
 

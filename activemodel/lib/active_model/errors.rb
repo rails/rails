@@ -435,6 +435,20 @@ module ActiveModel
       I18n.translate(key, options)
     end
 
+
+
+  private
+    def normalize_message(attribute, message, options)
+      case message
+      when Symbol
+        generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
+      when Proc
+        message.call
+      else
+        message
+      end
+    end
+
     # Returns an I18n key of an error message taking into consideration the format of an error message.
     # If none found the default value is being returned (<tt>errors.format</tt>).
     #
@@ -445,7 +459,6 @@ module ActiveModel
       i18n_keys = i18n_priority_format(attribute)
       i18n_keys.reject { |value| !I18n.exists?(value) }.last
     end
-
     # Returns array that defined format priority key for i18n scope an error message.
     # Last array element have highest priority.
     #
@@ -459,18 +472,6 @@ module ActiveModel
       [:"errors.format",
        :"#{@base.class.i18n_scope}.errors.models.#{@base.class.model_name.i18n_key}.format",
        :"#{@base.class.i18n_scope}.errors.models.#{@base.class.model_name.i18n_key}.attributes.#{attribute}.format"]
-    end
-
-  private
-    def normalize_message(attribute, message, options)
-      case message
-      when Symbol
-        generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-      when Proc
-        message.call
-      else
-        message
-      end
     end
   end
 
