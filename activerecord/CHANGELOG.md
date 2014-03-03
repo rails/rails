@@ -1,3 +1,11 @@
+*   When creating a new record of a model that has_many of another model, 
+    the second model wasn't parsed and gave an error. This error is now
+    fixed and the second model is parsed correctly.
+
+    Fixes #14249.
+
+    *Ahmed AbouElhamayed*
+
 *   `includes` is able to detect the right preloading strategy when string
     joins are involved.
 

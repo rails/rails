@@ -207,14 +207,21 @@ module ActiveRecord
           false
         end
 
+        def handle_hashes(record)
+          klass.new(record)
+        end
+
         # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
         # the kind of the class of the associated objects. Meant to be used as
         # a sanity check when you are about to assign an associated record.
         def raise_on_type_mismatch!(record)
           unless record.is_a?(reflection.klass) || record.is_a?(reflection.class_name.constantize)
+            record = handle_hashes(record) if record.is_a?(Hash)
+            return record if reflection.klass && record.is_a?(reflection.klass)
             message = "#{reflection.class_name}(##{reflection.klass.object_id}) expected, got #{record.class}(##{record.class.object_id})"
             raise ActiveRecord::AssociationTypeMismatch, message
           end
+          record
         end
 
         # Can be redefined by subclasses, notably polymorphic belongs_to

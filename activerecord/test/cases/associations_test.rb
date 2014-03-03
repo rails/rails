@@ -335,6 +335,14 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_hash_parsing_in_associations
+    molecule = Molecule.create(:name => "molecule_1")
+    molecule.electrons.create(:name => "electron_1")
+    json_molecule = molecule.to_json(:include => :electrons)
+    molecule2 = Molecule.new(JSON.parse(json_molecule))
+    assert molecule2.electrons.count == 1
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
