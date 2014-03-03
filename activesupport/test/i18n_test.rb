@@ -42,7 +42,7 @@ class I18nTest < ActiveSupport::TestCase
   end
 
   def test_time_localization_with_long_format
-    assert_equal "July 02, 2008 16:47", I18n.localize(@time, :format => :long)
+    assert_equal "July 2, 2008 16:47", I18n.localize(@time, :format => :long)
   end
 
   def test_day_names
