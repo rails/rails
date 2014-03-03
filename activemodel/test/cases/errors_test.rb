@@ -25,6 +25,7 @@ class ErrorsTest < ActiveModel::TestCase
     def self.lookup_ancestors
       [self]
     end
+
   end
 
   def test_delete
@@ -305,4 +306,33 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.expects(:generate_message).with(:name, :blank, { message: 'custom' })
     person.errors.add_on_blank :name, message: 'custom'
   end
+
+  test "i18n_priority_format works without i18n_scope" do
+    person = Person.new
+    assert !Person.respond_to?(:i18n_scope)
+    assert_nothing_raised {
+      person.errors.i18n_priority_format(:name)
+    }
+  end
+
+  test "i18n_priority_format return default yml key without i18n_scope" do
+    person = Person.new
+    assert !Person.respond_to?(:i18n_scope)
+    assert_equal([:"errors.format"], person.errors.i18n_priority_format)
+  end
+
+
+  test 'error_message_format return key is highest priority without attribute' do
+    person = Person.new
+    assert !Person.respond_to?(:i18n_scope)
+    assert_equal(:"errors.format", person.errors.error_message_format)
+  end
+
+  test 'error_message_format return key is highest priority given attribute' do
+    person = Person.new
+    assert !Person.respond_to?(:i18n_scope)
+    assert_equal(:"errors.format", person.errors.error_message_format(:name))
+  end
+
+
 end

@@ -6,6 +6,8 @@ debug.log
 /.bundle
 /.ruby-version
 /Gemfile.lock
+/.idea
+.DS_Store
 pkg
 /dist
 /doc/rdoc

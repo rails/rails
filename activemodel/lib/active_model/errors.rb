@@ -371,7 +371,7 @@ module ActiveModel
       return message if attribute == :base
       attr_name = attribute.to_s.tr('.', '_').humanize
       attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-      I18n.t(:"errors.format", {
+      I18n.t(error_message_format(attribute), {
         default:  "%{attribute} %{message}",
         attribute: attr_name,
         message:   message
@@ -433,6 +433,32 @@ module ActiveModel
       }.merge!(options)
 
       I18n.translate(key, options)
+    end
+
+    # Return format an error message in its scope or return default format
+    # (<tt>errors.format</tt>).
+    #
+    # Formats are first looked up in <tt>activerecord.errors.models.MODEL.attributes.ATTRIBUTE.format</tt>,
+    # if it's not there, it's looked up in <tt>activerecord.errors.models.MODEL.format</tt>
+    # and if that is not there also, it returns default format  (e.g. <tt>errors.format</tt>).
+    def error_message_format(attribute=nil)
+      i18n_keys = i18n_priority_format(attribute)
+      i18n_keys.reject { |value| !I18n.exists?(value) }.last
+    end
+
+    # Returns array that defined format priority key for i18n scope an error message.
+    # Last array element have highest priority.
+    #
+    #   person.errors.i18n_priority_format # => [:"errors.format"]
+    #   person.errors.i18n_priority_format(:name)
+    #   # => [:"errors.format",
+    #         :"activemodel.errors.models.person.format",
+    #         :"activemodel.errors.models.person.attributes.name.format"]
+    def i18n_priority_format(attribute=nil)
+      return [:"errors.format"] unless attribute and @base.class.respond_to?(:i18n_scope)
+      [:"errors.format",
+       :"#{@base.class.i18n_scope}.errors.models.#{@base.class.model_name.i18n_key}.format",
+       :"#{@base.class.i18n_scope}.errors.models.#{@base.class.model_name.i18n_key}.attributes.#{attribute}.format"]
     end
 
   private
