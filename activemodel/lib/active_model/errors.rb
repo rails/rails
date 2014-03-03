@@ -435,8 +435,8 @@ module ActiveModel
       I18n.translate(key, options)
     end
 
-    # Return format an error message in its scope or return default format
-    # (<tt>errors.format</tt>).
+    # Returns an I18n key of an error message taking into consideration the format of an error message.
+    # If none found the default value is being returned (<tt>errors.format</tt>).
     #
     # Formats are first looked up in <tt>activerecord.errors.models.MODEL.attributes.ATTRIBUTE.format</tt>,
     # if it's not there, it's looked up in <tt>activerecord.errors.models.MODEL.format</tt>
