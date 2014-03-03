@@ -314,7 +314,7 @@ module InflectorTestCases
     'child'  => 'children',
     'sex'    => 'sexes',
     'move'   => 'moves',
-    'cow'    => 'kine',
+    'cow'    => 'kine', # Test inflections with different starting letters
     'zombie' => 'zombies',
     'genus'  => 'genera'
   }
