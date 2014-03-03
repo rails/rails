@@ -668,6 +668,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_setting_time_zone_aware_attribute_to_a_broken_time_ish_string_returns_nil
+    in_time_zone "Pacific Time (US & Canada)" do
+      record   = @target.new
+      record.written_on = '2009-08'
+      assert_nil record.written_on
+      assert_nil record[:written_on]
+    end
+  end
+
   def test_setting_time_zone_aware_attribute_interprets_time_zone_unaware_string_in_time_zone
     time_string = 'Tue Jan 01 00:00:00 2008'
     (-11..13).each do |timezone_offset|
