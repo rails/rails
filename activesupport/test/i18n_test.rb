@@ -9,8 +9,8 @@ class I18nTest < ActiveSupport::TestCase
   end
 
   def test_time_zone_localization_with_default_format
-    now = Time.local(2000)
-    assert_equal "Sat, 01 Jan 2000 00:00:00 -0200", I18n.localize(now)
+    now = Time.utc(2000).in_time_zone('Alaska')
+    assert_equal "Fri, 31 Dec 1999 15:00:00 -0900", I18n.localize(now)
   end
 
   def test_date_localization_should_use_default_format
