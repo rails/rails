@@ -43,6 +43,12 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal Firm.all.merge!(:includes => :account_with_select).find(1).account_with_select.attributes.size, 2
   end
 
+  def test_select_with_nil_scope
+    firm = Firm.find(1)
+    firm.firm_name = "foo"
+    assert_equal firm.account_with_select.attributes.size, 4
+  end
+
   def test_finding_using_primary_key
     firm = companies(:first_firm)
     assert_equal Account.find_by_firm_id(firm.id), firm.account

@@ -65,7 +65,9 @@ class Firm < Company
 
   has_one :account, :foreign_key => "firm_id", :dependent => :destroy, :validate => true
   has_one :unvalidated_account, :foreign_key => "firm_id", :class_name => 'Account', :validate => false
-  has_one :account_with_select, -> { select("id, firm_id") }, :foreign_key => "firm_id", :class_name=>'Account'
+  has_one :account_with_select, lambda { |record|
+    select("id, firm_id") unless record.try(:firm_name)
+  }, :foreign_key => "firm_id", :class_name=>'Account'
   has_one :readonly_account, -> { readonly }, :foreign_key => "firm_id", :class_name => "Account"
   # added order by id as in fixtures there are two accounts for Rails Core
   # Oracle tests were failing because of that as the second fixture was selected

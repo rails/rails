@@ -109,7 +109,7 @@ module ActiveRecord
           # Exclude the scope of the association itself, because that
           # was already merged in the #scope method.
           scope_chain[i].each do |scope_chain_item|
-            item  = eval_scope(klass, scope_chain_item, owner)
+            item  = eval_scope(klass, scope_chain_item, owner) || klass.unscoped
 
             if scope_chain_item == refl.scope
               scope.merge! item.except(:where, :includes, :bind)

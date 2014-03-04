@@ -1,3 +1,7 @@
+*   Association scope should work when a nil value is returned.
+
+    *arthurnn*
+
 *   Dynamically register PostgreSQL enum OIDs. This prevents "unknown OID"
     warnings on enum columns.
 
