@@ -801,6 +801,12 @@ module ActiveRecord
           leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
           arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
+          # populate the enum types
+          enums, leaves = leaves.partition { |row| row['typinput'] == 'enum_in' }
+          enums.each do |row|
+            type_map[row['oid'].to_i] = OID::Enum.new
+          end
+
           # populate the base types
           leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
             type_map[row['oid'].to_i] = OID::NAMES[row['typname']]

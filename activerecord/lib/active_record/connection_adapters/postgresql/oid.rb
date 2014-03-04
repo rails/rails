@@ -229,6 +229,12 @@ This is not reliable and will be removed in the future.
           end
         end
 
+        class Enum < Type
+          def type_cast(value)
+            value.to_s
+          end
+        end
+
         class Hstore < Type
           def type_cast_for_write(value)
             ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
