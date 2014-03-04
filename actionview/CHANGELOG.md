@@ -1,3 +1,10 @@
+*   Fixed a problem where the default options for the `button_tag` helper is not
+    applied correctly.
+
+    Fixes #14255.
+
+    *Sergey Prikhodko*
+
 *   Fix ActionView label translation for more than 10 nested elements.
 
     *Vladimir Krylov*
