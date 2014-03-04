@@ -6,7 +6,7 @@ module Erb # :nodoc:
       protected
 
       def formats
-        format
+        [format]
       end
 
       def format
