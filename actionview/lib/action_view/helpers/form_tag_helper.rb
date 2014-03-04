@@ -469,14 +469,22 @@ module ActionView
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
+        default_options = { 'name' => 'button', 'type' => 'submit' }
 
-        if content_or_options.is_a?(Hash)
+        if content_or_options.is_a? Hash
           options = content_or_options
-          content_or_options = nil
+        else
+          options ||= {}
         end
 
-        options = button_tag_options_with_defaults(options)
-        content_tag :button, content_or_options || 'Button', options, &block
+        options = options.stringify_keys
+        options = options.reverse_merge default_options
+
+        if block_given?
+          content_tag :button, options, &block
+        else
+          content_tag :button, content_or_options || 'Button', options
+        end
       end
 
       # Displays an image which when clicked will submit the form.
@@ -741,14 +749,6 @@ module ActionView
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
           name.to_s.delete(']').gsub(/[^-a-zA-Z0-9:.]/, "_")
-        end
-
-        def button_tag_options_with_defaults(options)
-          options = options || {}
-          options = options.stringify_keys
-
-          default_options = { 'name' => 'button', 'type' => 'submit' }
-          options.reverse_merge default_options
         end
     end
   end
