@@ -365,6 +365,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
+  def test_destroy_with_failing_callback!
+    topic = Topic.find(1)
+    topic.class_eval do
+      before_destroy { false }
+    end
+    assert_raise(ActiveRecord::RecordNotDestroyed) { topic.destroy! }
+  end
+
   def test_record_not_found_exception
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }
   end
