@@ -50,9 +50,7 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
 
   def test_no_oid_warning
     @connection.execute "INSERT INTO postgresql_enums VALUES (1, 'sad');"
-    stderr_output = capture(:stderr) {
-        PostgresqlEnum.first
-    }
+    stderr_output = capture(:stderr) { PostgresqlEnum.first }
 
     assert stderr_output.blank?
   end
