@@ -3197,7 +3197,7 @@ class DateHelperTest < ActionView::TestCase
 
   def test_time_tag_with_different_format
     time = Time.new(2013, 2, 20, 0, 0, 0, '+00:00')
-    expected = '<time datetime="2013-02-20T00:00:00+00:00">20 Feb 00:00</time>'
+    expected = '<time datetime="2013-02-20T00:00:00+00:00">Feb 20 00:00</time>'
     assert_equal expected, time_tag(time, :format => :short)
   end
 
