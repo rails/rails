@@ -1,11 +1,11 @@
-*   Fixing discrepancy between date and time to_s(:long) and I18n.localize(date, format: long).
-    Previously, a call to date.to_s(:long) when there was only one digit in the day would cause
-    a zero to be added, while calling I18n.localize(date, format: long) would add an unnecessary
-    space. Now, both calls return the date/time without the zero and the space.
+*   Fixing discrepancy between Date and Time to_s and I18n.localize for default, short and long formats.
+    Previously, a call to Date#to_s when there was only one digit in the day would cause
+    a zero to be added before the day digit, while calling I18n#localize would add an unnecessary
+    space. Now, both calls return the Date/Time without the zero and the space.
 
     Fixes #14245.
 
-    *Thales Oliveira*
+    *Thales Oliveira, Gabriele Cirulli*
 
 *   Change the signature of `fetch_multi` to return a hash rather than an
     array. This makes it consistent with the output of `read_multi`.
