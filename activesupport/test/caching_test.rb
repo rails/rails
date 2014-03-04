@@ -257,6 +257,10 @@ module CacheStoreBehavior
     assert_nil @cache.fetch('foo') { 'baz' }
   end
 
+  def test_fetch_with_array_and_without
+    assert_not_equal @cache.fetch('foo') { 'barz' }, @cache.fetch(['foo']) { 'barr' }
+  end
+
   def test_should_read_and_write_hash
     assert @cache.write('foo', {:a => "b"})
     assert_equal({:a => "b"}, @cache.read('foo'))
@@ -349,7 +353,7 @@ module CacheStoreBehavior
 
   def test_array_as_cache_key
     @cache.write([:fu, "foo"], "bar")
-    assert_equal "bar", @cache.read("fu/foo")
+    assert_equal "bar", @cache.read("fu/foo/")
   end
 
   def test_hash_as_cache_key
