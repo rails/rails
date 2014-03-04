@@ -469,16 +469,13 @@ module ActionView
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
-        default_options = { 'name' => 'button', 'type' => 'submit' }
-
         if content_or_options.is_a? Hash
           options = content_or_options
         else
           options ||= {}
         end
 
-        options = options.stringify_keys
-        options = options.reverse_merge default_options
+        options = { 'name' => 'button', 'type' => 'submit' }.merge!(options.stringify_keys)
 
         if block_given?
           content_tag :button, options, &block
