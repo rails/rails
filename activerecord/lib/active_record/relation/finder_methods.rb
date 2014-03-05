@@ -292,7 +292,12 @@ module ActiveRecord
       when Array, Hash
         relation = relation.where(conditions)
       else
-        relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
+        if conditions != :none
+          column = columns_hash[primary_key]
+          substitute = connection.substitute_at(column, bind_values.length)
+          relation = where(table[primary_key].eq(substitute))
+          relation.bind_values += [[column, conditions]]
+        end
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
