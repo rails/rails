@@ -1034,8 +1034,9 @@ module ActiveRecord
                         'asc', 'desc', 'ASC', 'DESC'] # :nodoc:
 
     def validate_order_args(args)
-      args.grep(Hash) do |h|
-        h.values.each do |value|
+      args.each do |arg|
+        next unless arg.is_a?(Hash)
+        arg.each do |_key, value|
           raise ArgumentError, "Direction \"#{value}\" is invalid. Valid " \
                                "directions are: #{VALID_DIRECTIONS.inspect}" unless VALID_DIRECTIONS.include?(value)
         end
