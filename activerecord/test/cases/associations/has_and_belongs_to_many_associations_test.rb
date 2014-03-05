@@ -702,6 +702,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [projects(:active_record), projects(:action_controller)].map(&:id).sort, developer.project_ids.sort
   end
 
+  def test_assign_ids_updates_changed_attributes
+    developer = Developer.new("name" => "Joe")
+    developer.project_ids = [projects(:active_record).id, nil, projects(:action_controller).id, '']
+    assert developer.changed_attributes.key?("project_ids")
+  end
+
   def test_scoped_find_on_through_association_doesnt_return_read_only_records
     tag = Post.find(1).tags.find_by_name("General")
 
