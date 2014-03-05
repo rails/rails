@@ -66,7 +66,7 @@ task :update_versions do
   version_file = File.read("version.rb")
 
   PROJECTS.each do |project|
-    Dir["#{project}/lib/*/version.rb"].each do |file|
+    Dir["#{project}/lib/*/gem_version.rb"].each do |file|
       File.open(file, "w") do |f|
         f.write version_file.gsub(/Rails/, constants[project])
       end

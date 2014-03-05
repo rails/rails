@@ -1,11 +1,8 @@
-module ActiveRecord
-  # Returns the version of the currently loaded ActiveRecord as a Gem::Version
-  def self.version
-    Gem::Version.new "4.1.0.rc1"
-  end
+require_relative 'gem_version'
 
-  module VERSION #:nodoc:
-    MAJOR, MINOR, TINY, PRE = ActiveRecord.version.segments
-    STRING = ActiveRecord.version.to_s
+module ActiveRecord
+  # Returns the version of the currently loaded ActiveRecord as a <tt>Gem::Version</tt>
+  def self.version
+    gem_version
   end
 end

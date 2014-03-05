@@ -1,5 +1,5 @@
-module Rails
-  # Returns the version of the currently loaded Rails as a <tt>Gem::Version</tt>
+module ActionView
+  # Returns the version of the currently loaded ActionView as a <tt>Gem::Version</tt>
   def self.gem_version
     Gem::Version.new VERSION::STRING
   end
