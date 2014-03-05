@@ -1,3 +1,13 @@
+*   Allow strings to specify the `#order` value.
+
+    Example:
+
+        Model.order(id: 'asc').to_sql == Model.order(id: :asc).to_sql
+
+    Fixes #10732.
+
+    *Marcelo Casiraghi*
+
 *   Dynamically register PostgreSQL enum OIDs. This prevents "unknown OID"
     warnings on enum columns.
 

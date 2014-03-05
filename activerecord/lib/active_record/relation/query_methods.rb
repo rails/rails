@@ -1030,10 +1030,13 @@ module ActiveRecord
       arel.order(*orders) unless orders.empty?
     end
 
+    VALID_DIRECTIONS = [:asc, :desc, 'asc', 'desc'] # :nodoc:
+
     def validate_order_args(args)
       args.grep(Hash) do |h|
-        unless (h.values - [:asc, :desc]).empty?
-          raise ArgumentError, 'Direction should be :asc or :desc'
+        h.values.map(&:downcase).each do |value|
+          raise ArgumentError, "Direction '#{value}' is invalid. Valid " \
+                               "directions are asc and desc." unless VALID_DIRECTIONS.include?(value)
         end
       end
     end
@@ -1055,7 +1058,7 @@ module ActiveRecord
         when Hash
           arg.map { |field, dir|
             field = klass.attribute_alias(field) if klass.attribute_alias?(field)
-            table[field].send(dir)
+            table[field].send(dir.downcase)
           }
         else
           arg
