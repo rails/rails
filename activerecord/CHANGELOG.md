@@ -1,12 +1,10 @@
-*   Allow strings to specify the `#order` value.
+*   Allow strings to specify the `#order` value. Fixes #10732.
 
     Example:
 
         Model.order(id: 'asc').to_sql == Model.order(id: :asc).to_sql
 
-    Fixes #10732.
-
-    *Marcelo Casiraghi*
+    *Marcelo Casiraghi*, *Robin Dupret*
 
 *   Dynamically register PostgreSQL enum OIDs. This prevents "unknown OID"
     warnings on enum columns.
@@ -24,17 +22,17 @@
     value for any enum attribute is always evaluated as 0 during
     uniqueness validation.
 
-    Fixes #14172
+    Fixes #14172.
 
     *Vilius Luneckas* *Ahmed AbouElhamayed*
 
-* `before_add` callbacks are fired before the record is saved on
-  `has_and_belongs_to_many` assocations *and* on `has_many :through`
-  associations.  Before this change, `before_add` callbacks would be fired
-  before the record was saved on `has_and_belongs_to_many` associations, but
-  *not* on `has_many :through` associations.
+*   `before_add` callbacks are fired before the record is saved on
+    `has_and_belongs_to_many` assocations *and* on `has_many :through`
+    associations.  Before this change, `before_add` callbacks would be fired
+    before the record was saved on `has_and_belongs_to_many` associations, but
+    *not* on `has_many :through` associations.
 
-  Fixes #14144
+    Fixes #14144.
 
 *   Fixed STI classes not defining an attribute method if there is a
     conflicting private method defined on its ancestors.
@@ -43,8 +41,7 @@
 
     *Godfrey Chan*
 
-*   Coerce strings when reading attributes.
-    Fixes #10485.
+*   Coerce strings when reading attributes. Fixes #10485.
 
     Example:
 
