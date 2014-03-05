@@ -1,4 +1,4 @@
-*   Allow strings to specify the `#order` value. Fixes #10732.
+*   Allow strings to specify the `#order` value.
 
     Example:
 
