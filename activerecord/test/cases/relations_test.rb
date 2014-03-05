@@ -205,31 +205,21 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [topics(:first), topics(:second), topics(:third), topics(:fourth), topics(:fifth)], topics.to_a
   end
 
-  def test_nothing_raises_on_upcase_desc_arg
-    Topic.order(id: "DESC")
-  end
+  def test_support_upper_and_lower_case_directions
+    assert_includes Topic.order(id: "ASC").to_sql, "ASC"
+    assert_includes Topic.order(id: "asc").to_sql, "ASC"
+    assert_includes Topic.order(id: :ASC).to_sql, "ASC"
+    assert_includes Topic.order(id: :asc).to_sql, "ASC"
 
-  def test_nothing_raises_on_downcase_desc_arg
-    Topic.order(id: "desc")
-  end
-
-  def test_nothing_raises_on_upcase_asc_arg
-    Topic.order(id: "ASC")
-  end
-
-  def test_nothing_raises_on_downcase_asc_arg
-    Topic.order(id: "asc")
-  end
-
-  def test_nothing_raises_on_case_insensitive_args
-    Topic.order(id: "DeSc")
-    Topic.order(id: :DeSc)
-    Topic.order(id: "aSc")
-    Topic.order(id: :aSc)
+    assert_includes Topic.order(id: "DESC").to_sql, "DESC"
+    assert_includes Topic.order(id: "desc").to_sql, "DESC"
+    assert_includes Topic.order(id: :DESC).to_sql, "DESC"
+    assert_includes Topic.order(id: :desc).to_sql,"DESC"
   end
 
   def test_raising_exception_on_invalid_hash_params
-    assert_raise(ArgumentError) { Topic.order(:name, "id DESC", id: :asfsdf) }
+    e = assert_raise(ArgumentError) { Topic.order(:name, "id DESC", id: :asfsdf) }
+    assert_equal 'Direction "asfsdf" is invalid. Valid directions are: [:asc, :desc, :ASC, :DESC, "asc", "desc", "ASC", "DESC"]', e.message
   end
 
   def test_finding_last_with_arel_order
