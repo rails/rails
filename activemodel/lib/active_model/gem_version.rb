@@ -1,5 +1,5 @@
-module Rails
-  # Returns the version of the currently loaded Rails as a <tt>Gem::Version</tt>
+module ActiveModel
+  # Returns the version of the currently loaded ActiveModel as a <tt>Gem::Version</tt>
   def self.gem_version
     Gem::Version.new VERSION::STRING
   end
