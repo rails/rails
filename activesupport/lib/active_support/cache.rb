@@ -511,7 +511,7 @@ module ActiveSupport
         # called. If the key is a Hash, then keys will be sorted alphabetically.
         def expanded_key(key) # :nodoc:
           return key.cache_key.to_s if key.respond_to?(:cache_key)
-          trailing_slash = false
+
           case key
           when Array
             if key.size > 1
@@ -519,12 +519,11 @@ module ActiveSupport
             else
               key = key.first
             end
-            trailing_slash = true
           when Hash
             key = key.sort_by { |k,_| k.to_s }.collect{|k,v| "#{k}=#{v}"}
           end
-          key = key.to_param
-          trailing_slash ? "#{key}/" : key
+
+          key.to_param
         end
 
         # Prefix a key with the namespace. Namespace and key will be delimited

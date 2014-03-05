@@ -1,8 +1,3 @@
-*   Cache key should add a trailing slash when the key is an array,
-    so `cache.fetch('foo')` and `cache.fetch(['foo'])` wont conflict.
-
-    *arthurnn*
-
 *   Change the signature of `fetch_multi` to return a hash rather than an
     array. This makes it consistent with the output of `read_multi`.
 
