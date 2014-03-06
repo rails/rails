@@ -45,9 +45,7 @@ module ActionController
     def _process_format(format, options = {})
       super
 
-      if options[:body]
-        self.headers.delete "Content-Type"
-      elsif options[:plain]
+      if options[:plain]
         self.content_type = Mime::TEXT
       else
         self.content_type ||= format.to_s
