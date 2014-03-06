@@ -25,7 +25,7 @@ class FixtureFinder
     details.hash
   end
 
-  def find(logical_name, keys, partial, options)
+  def find(logical_name, prefixes = [], partial = false, keys = [], options = {})
     partial_name = partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name
     format = options[:formats].first.to_s
     format += "+#{options[:variants].first}" if options[:variants].any?

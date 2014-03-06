@@ -126,7 +126,7 @@ module ActionView
       end
 
       def template
-        @template ||= finder.find(logical_name, [], partial?, formats: [ format ], variants: [ variant ])
+        @template ||= finder.find(logical_name, [], partial?, [], formats: [ format ], variants: [ variant ])
       end
 
       def source
