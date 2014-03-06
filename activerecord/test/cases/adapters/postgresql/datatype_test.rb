@@ -12,6 +12,9 @@ end
 class PostgresqlMoney < ActiveRecord::Base
 end
 
+class PostgresqlNumericDomain < ActiveRecord::Base
+end
+
 class PostgresqlNumber < ActiveRecord::Base
 end
 
@@ -175,8 +178,20 @@ _SQL
   end
 
   def teardown
-    [PostgresqlArray, PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
+    [PostgresqlArray, PostgresqlNumericDomain, PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
      PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone, PostgresqlUUID].each(&:delete_all)
+  end
+
+  def test_numeric_domain
+    # Works, not using domain
+    d = PostgresqlNumericDomain.create!(amount: '')
+    assert_equal nil, d.amount
+    assert_equal nil, d.custom_amount
+
+    # Currently fails, using domain
+    d = PostgresqlNumericDomain.create!(custom_amount: '')
+    assert_equal nil, d.amount
+    assert_equal nil, d.custom_amount
   end
 
   def test_data_type_of_array_types
@@ -567,7 +582,7 @@ _SQL
     assert_equal @first_bit_string.bit_string, new_bit_string
     assert_equal @first_bit_string.bit_string, @first_bit_string.bit_string_varying
   end
-	
+
   def test_invalid_hex_string
     new_bit_string = 'FF'
     @first_bit_string.bit_string = new_bit_string

@@ -168,6 +168,15 @@ _SQL
 _SQL
 
   execute <<_SQL
+  CREATE DOMAIN custom_money as numeric(8,2);
+  CREATE TABLE postgresql_numeric_domains (
+    id SERIAL PRIMARY KEY,
+    amount numeric(8,2),
+    custom_amount custom_money
+  );
+_SQL
+
+  execute <<_SQL
   CREATE TABLE postgresql_timestamp_with_zones (
     id SERIAL PRIMARY KEY,
     time TIMESTAMP WITH TIME ZONE
