@@ -74,7 +74,7 @@ module ActionDispatch
   #
   #     domain: nil  # Does not sets cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
-  #                       domain and subdomains.
+  #                  # domain and subdomains.
   #
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
   # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.

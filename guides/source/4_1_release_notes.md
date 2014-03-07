@@ -457,10 +457,10 @@ for detailed changes.
 
 ### Notable changes
 
-* Default scopes are no longer overriden by chained conditions.
+* Default scopes are no longer overridden by chained conditions.
 
   Before this change when you defined a `default_scope` in a model
-  it was overriden by chained conditions in the same field. Now it
+  it was overridden by chained conditions in the same field. Now it
   is merged like any other scope. [More Details](upgrading_ruby_on_rails.html#changes-on-default-scopes).
 
 * Added `ActiveRecord::Base.to_param` for convenient "pretty" URLs derived from
@@ -547,12 +547,11 @@ for detailed changes.
   ([Pull Request](https://github.com/rails/rails/pull/13350))
 
 * Make `change_column_null`
-  revertable. ([Commit](https://github.com/rails/rails/commit/724509a9d5322ff502aefa90dd282ba33a281a96))
+  revertible. ([Commit](https://github.com/rails/rails/commit/724509a9d5322ff502aefa90dd282ba33a281a96))
 
 * Added a flag to disable schema dump after migration. This is set to `false`
   by default in the production environment for new applications.
   ([Pull Request](https://github.com/rails/rails/pull/13948))
-
 
 Active Model
 ------------
