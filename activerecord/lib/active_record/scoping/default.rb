@@ -21,7 +21,7 @@ module ActiveRecord
         #
         #   Post.all                                  # Fires "SELECT * FROM posts WHERE published = true"
         #   Post.unscoped.all                         # Fires "SELECT * FROM posts"
-        #   Post.where(published: false).unscoped.app # Fires "SELECT * FROM posts"
+        #   Post.where(published: false).unscoped.all # Fires "SELECT * FROM posts"
         #
         # This method also accepts a block. All queries inside the block will
         # not use the previously set scopes.
