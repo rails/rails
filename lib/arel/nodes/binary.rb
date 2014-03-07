@@ -40,7 +40,9 @@ module Arel
       Matches
       NotEqual
       NotIn
+      NotRegexp
       Or
+      Regexp
       Union
       UnionAll
       Intersect
