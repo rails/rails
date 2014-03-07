@@ -439,12 +439,19 @@ module ActionController
       end
 
       EMPTY_ARRAY = []
+      PERMIT_ALL_KEY = :permit_all!
+
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
 
         # Slicing filters out non-declared keys.
         slice(*filter.keys).each do |key, value|
           next unless value
+
+          if filter[key] == PERMIT_ALL_KEY || filter[key] == PERMIT_ALL_KEY.to_s
+            params[key] = value
+            return
+          end
 
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.

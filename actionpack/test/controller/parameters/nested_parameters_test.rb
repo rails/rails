@@ -184,4 +184,48 @@ class NestedParametersTest < ActiveSupport::TestCase
     assert_nil            params[:properties]["1"]
     assert_equal "prop0", params[:properties]["0"]
   end
+
+  test 'permit_all! params in the root' do
+    initial_hash = {
+      :book => {
+        :title => "Romeo and Juliet",
+        :authors => [{
+          :name => "William Shakespeare",
+          :born => "1564-04-26"
+        }]
+      }
+    }
+
+    params = ActionController::Parameters.new(initial_hash)
+
+    permitted = params.permit({ :book => :permit_all!})
+    assert_equal initial_hash.with_indifferent_access, permitted
+  end
+
+  test 'permit_all! params in nested hash' do
+    initial_hash = {
+      :book => {
+        :title => "Romeo and Juliet",
+        :authors => [{
+          :name => "William Shakespeare",
+          :born => "1564-04-26"
+        }]
+      }
+    }
+
+    params = ActionController::Parameters.new(initial_hash)
+    expected_hash = {
+      "book" => {
+        "authors" => [
+          {
+            "name" =>  "William Shakespeare",
+            "born" => "1564-04-26"
+          }
+        ]
+      }
+    }
+
+    permitted = params.permit({ :book => [ authors: :permit_all!] })
+    assert_equal expected_hash, permitted
+  end
 end
