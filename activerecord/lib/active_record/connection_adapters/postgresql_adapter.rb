@@ -603,10 +603,6 @@ module ActiveRecord
         false
       end
 
-      def active_threadsafe?
-        @connection.connect_poll != PG::PGRES_POLLING_FAILED
-      end
-
       # Close then reopen the connection.
       def reconnect!
         super
