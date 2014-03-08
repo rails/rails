@@ -15,10 +15,12 @@ end
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
-  attr_reader :details
+  attr_reader   :details
+  attr_accessor :variants
 
   def initialize
-    @details = {}
+    @details  = {}
+    @variants = []
   end
 
   def details_key
@@ -28,7 +30,7 @@ class FixtureFinder
   def find(logical_name, keys, partial, options)
     partial_name = partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name
     format = options[:formats].first.to_s
-    format += "+#{options[:variants].first}" if options[:variants].any?
+    format += "+#{@variants.first}" if @variants.any?
 
     FixtureTemplate.new("digestor/#{partial_name}.#{format}.erb")
   end
