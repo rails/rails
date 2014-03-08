@@ -49,7 +49,8 @@ behavior out of the box:
         send("#{attr}=", nil)
       end
     end
-
+  
+    person = Person.new
     person.clear_name
     person.clear_age
 
@@ -78,7 +79,21 @@ behavior out of the box:
     class Person
       include ActiveModel::Dirty
 
-      attr_accessor :name
+      define_attribute_methods :name
+
+      def name
+        @name
+      end
+
+      def name=(val)
+        name_will_change! unless val == @name
+        @name = val
+      end
+
+      def save
+        # do persistence work
+        changes_applied
+      end
     end
 
     person = Person.new
@@ -88,6 +103,7 @@ behavior out of the box:
     person.changed?         # => true
     person.changed          # => ['name']
     person.changes          # => { 'name' => [nil, 'bob'] }
+    person.save
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
@@ -116,7 +132,10 @@ behavior out of the box:
         "Name"
       end
     end
-
+  
+    person = Person.new
+    person.name = nil
+    person.validate!
     person.errors.full_messages
     # => ["Name cannot be nil"]
 
@@ -180,41 +199,41 @@ behavior out of the box:
 
 * Validation support
 
-   class Person
-     include ActiveModel::Validations
+    class Person
+      include ActiveModel::Validations
 
-     attr_accessor :first_name, :last_name
+      attr_accessor :first_name, :last_name
 
-     validates_each :first_name, :last_name do |record, attr, value|
-       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
-     end
-   end
+      validates_each :first_name, :last_name do |record, attr, value|
+        record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+      end
+    end
 
-   person = Person.new
-   person.first_name = 'zoolander'
-   person.valid?  # => false
+    person = Person.new
+    person.first_name = 'zoolander'
+    person.valid?  # => false
 
   {Learn more}[link:classes/ActiveModel/Validations.html]
 
 * Custom validators
+  
+    class HasNameValidator < ActiveModel::Validator
+      def validate(record)
+        record.errors[:name] = "must exist" if record.name.blank?
+      end
+    end
 
-   class ValidatorPerson
-     include ActiveModel::Validations
-     validates_with HasNameValidator
-     attr_accessor :name
-   end
+    class ValidatorPerson
+      include ActiveModel::Validations
+      validates_with HasNameValidator
+      attr_accessor :name
+    end
 
-   class HasNameValidator < ActiveModel::Validator
-     def validate(record)
-       record.errors[:name] = "must exist" if record.name.blank?
-     end
-   end
-
-   p = ValidatorPerson.new
-   p.valid?                  # =>  false
-   p.errors.full_messages    # => ["Name must exist"]
-   p.name = "Bob"
-   p.valid?                  # =>  true
+    p = ValidatorPerson.new
+    p.valid?                  # =>  false
+    p.errors.full_messages    # => ["Name must exist"]
+    p.name = "Bob"
+    p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
 
