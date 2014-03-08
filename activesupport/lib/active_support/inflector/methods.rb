@@ -323,6 +323,54 @@ module ActiveSupport
     def ordinalize(number)
       "#{number}#{ordinal(number)}"
     end
+    
+    # Return the indefinite article for a phrase
+    #
+    #   indefinite_article("cat") # => "a"
+    def indefinite_article(phrase)
+      word = phrase.match(/\w+/).to_s
+      return if word.blank?
+      
+      lowercase_word = word.downcase
+      
+      return "an" if lowercase_word.start_with?(*%w(hono heir honest))
+      
+      return "an" if lowercase_word.start_with? "hour" && !lowercase_word.start_with? "houri"
+      
+      an_letters = %w(a e h i l m n o r s x)
+      if word.length == 1 && word.start_with?(*an_letters)
+        return "an"
+      elsif word.length == 1
+        return "a"
+      end
+      
+      return "an" if /(?!FJO|[HLMNS]Y.|RY[EO]|SQU|(F[LR]?|[HL]|MN?|N|RH?|S[CHKLMNPTVW]?|X(YL)?)[AEIOU])[FHLMNRSX][A-Z]/ =~ word
+      
+      [/^e[uw]/, /^onc?e\b/, /^uni([^nmd]|mo)/, /^u[bcfhjkqrst][aeiou]/].each do |regex|
+        return "a" if regex =~ lowercase_word
+      end
+      
+      return "a" if /^U[NK][AIEO]/ =~ word
+      
+      if word == word.upcase && lowercase_word.start_with?(*an_letters)
+        return "an"
+      elsif word == word.upcase
+        return "a"
+      end
+      
+      return "an" if lowercase_word.start_with?(*%w(a e i o u))
+     
+      return"an" if /^y(b[lor]|cl[ea]|fere|gg|p[ios]|rou|tt)/ =~ lowercase_word
+     
+      "a"
+    end
+    
+    # Return the phrase with it's indefinite article included
+    #
+    #   with_indefinite_article("cat") # => "a cat"
+    def with_indefinite_article(phrase)
+      "#{indefinite_article(phrase)} #{phrase}"
+    end
 
     private
 
