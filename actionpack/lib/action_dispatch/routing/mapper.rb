@@ -708,7 +708,8 @@ module ActionDispatch
           options[:constraints] ||= {}
 
           unless shallow?
-            options[:shallow_path] = options[:path] if args.any?
+            options[:shallow_path] ||= options[:path] if options.key?(:path)
+            options[:shallow_prefix] ||= options[:as] if options.key?(:as)
           end
 
           if options[:constraints].is_a?(Hash)

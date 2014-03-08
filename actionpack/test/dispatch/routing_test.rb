@@ -3223,6 +3223,54 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'project_files#destroy', @response.body
   end
 
+  def test_scope_path_is_copied_to_shallow_path
+    draw do
+      scope path: 'foo' do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    assert_equal '/foo/comments/1', comment_path('1')
+  end
+
+  def test_scope_as_is_copied_to_shallow_prefix
+    draw do
+      scope as: 'foo' do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    assert_equal '/comments/1', foo_comment_path('1')
+  end
+
+  def test_scope_shallow_prefix_is_not_overwritten_by_as
+    draw do
+      scope as: 'foo', shallow_prefix: 'bar' do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    assert_equal '/comments/1', bar_comment_path('1')
+  end
+
+  def test_scope_shallow_path_is_not_overwritten_by_path
+    draw do
+      scope path: 'foo', shallow_path: 'bar' do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    assert_equal '/bar/comments/1', comment_path('1')
+  end
+
 private
 
   def draw(&block)
