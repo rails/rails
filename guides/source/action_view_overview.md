@@ -1591,16 +1591,11 @@ Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
 request forgery protection parameter and token, respectively.
 
 ```html
-  <%= csrf_meta_tags %>
+<%= csrf_meta_tags %>
 ```
 
-These are used to generate the dynamic forms that implement non-remote links
-with `:method`.
-
-Note that regular forms generate hidden fields, and that Ajax calls are
-whitelisted, so they do not use these tags.
-
-More details can be found in the [Rails Security Guide](security.html).
+NOTE: Regular forms generate hidden fields so they do not use these tags. More
+details can be found in the [Rails Security Guide](security.html#cross-site-request-forgery-csrf).
 
 Localized Views
 ---------------
