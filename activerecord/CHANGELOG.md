@@ -1,3 +1,23 @@
+*   Register PostgreSQL `citext` data type as text OID to prevent "unknown OID"
+    warnings on citext columns.
+
+    Citext is a PostgreSQL data type for case-insensitive character strings.
+    To use it in a Rails application, add the `citext` extension in a migration:
+
+        class AddCitextExtension < ActiveRecord::Migration
+          def up
+            execute 'CREATE EXTENSION IF NOT EXISTS citext;'
+            add_column :users, :search_field, 'citext'
+          end
+
+          def down
+            remove_column :users, :search_field, 'citext'
+            execute 'DROP EXTENSION IF EXISTS citext CASCADE;'
+          end
+        end
+
+    *Jon Atack*
+
 *   Allow strings to specify the `#order` value.
 
     Example:

@@ -348,6 +348,7 @@ This is not reliable and will be removed in the future.
         alias_type 'char', 'text'
         alias_type 'bpchar', 'text'
         alias_type 'xml', 'text'
+        alias_type 'citext', 'text'
 
         # FIXME: why are we keeping these types as strings?
         alias_type 'tsvector', 'text'
