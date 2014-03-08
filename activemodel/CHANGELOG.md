@@ -1,3 +1,8 @@
+*   Fix has_secure_password. `password_confirmation` validations are triggered
+    even if no `password_confirmation` is set.
+
+    *Vladimir Kiselev*
+
 *   `#to_param` returns `nil` if `#to_key` returns `nil`. Fixes #11399.
 
     *Yves Senn*
