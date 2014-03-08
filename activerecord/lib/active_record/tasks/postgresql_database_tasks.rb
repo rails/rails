@@ -55,6 +55,12 @@ module ActiveRecord
         raise 'Error dumping database' unless Kernel.system(command)
 
         File.open(filename, "a") { |f| f << "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n" }
+
+        # remove trailing whitespace
+        structure_temp_file = Tempfile.new('structure')
+        File.open(filename, 'r') { |f| f.each_line{|line| structure_temp_file.puts line.rstrip } }
+        structure_temp_file.close
+        FileUtils.mv(structure_temp_file.path, filename)
       end
 
       def structure_load(filename)
