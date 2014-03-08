@@ -1,3 +1,9 @@
+*   Make the `rails:template` rake task load the application's initializers.
+
+    Fixes #12133.
+
+    *Robin Dupret*
+
 *   Introduce `Rails.gem_version` as a convenience method to return
     `Gem::Version.new(Rails.version)`, suggesting a more reliable way to perform
     version comparison.
