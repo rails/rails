@@ -135,8 +135,7 @@ module ActiveRecord
           if serialized_attribute?(attr)
             super.tap do |value|
               unless original_serialized_attributes.has_key?(attr.to_s)
-                clone_value = value.duplicable? ? value.clone : value
-                original_serialized_attributes[attr.to_s] = clone_value
+                set_original_serialized(attr, value)
               end
             end
           else
@@ -202,7 +201,7 @@ module ActiveRecord
 
         def init_changed_attribute(attr, orig_value)
           if serialized_attribute?(attr)
-            original_serialized_attributes[attr] = orig_value
+            set_original_serialized(attr, orig_value)
           else
             super
           end
@@ -210,22 +209,27 @@ module ActiveRecord
 
         def changed_serialized_attributes
           original_serialized_attributes.inject({}) do |changed_hash, (attr, value)|
-            if self.read_attribute(attr) != value
-              changed_hash[attr] = value
+            if serialized_attribute_comparer_value(read_attribute(attr)) != value
+              changed_hash[attr] = nil
             end
             changed_hash
           end
         end
 
-        #Cannot use HashWithIndifferentAccess because deep comparison
-        #of hashes in dirty check needs to tell difference between
-        #String and Symbol
+        def serialized_attribute_comparer_value(val)
+          val.hash
+        end
+
+        def set_original_serialized(attr, val)
+          original_serialized_attributes[attr] = serialized_attribute_comparer_value(val)
+        end
+
         def original_serialized_attributes
-          @original_serialized_attributes ||= {}
+          @original_serialized_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
         end
 
         def reset_original_serialized_attributes
-          @original_serialized_attributes = {}
+          @original_serialized_attributes = ActiveSupport::HashWithIndifferentAccess.new
         end
       end
     end

@@ -48,7 +48,7 @@ class StoreTest < ActiveRecord::TestCase
 
   test "updating the store populates the changed array correctly" do
     @john.color = 'red'
-    assert_equal 'black', @john.settings_change[0]['color']
+    assert_nil @john.settings_change[0], "original value of stored attributes should be nil"
     assert_equal 'red', @john.settings_change[1]['color']
   end
 

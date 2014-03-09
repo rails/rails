@@ -461,15 +461,16 @@ class DirtyTest < ActiveRecord::TestCase
       topic.content = {a: "a"}
       assert topic.changed?
       topic.content[:b] = "b"
-      assert topic.changed?
+      assert topic.content_changed?
       topic.save!
       assert_equal "b", topic.content[:b]
       assert !topic.changed?
       topic.reload
       assert_equal "b", topic.content[:b]
-      assert !topic.changed?
+      assert !topic.content_changed?
       topic.content['b'] = "c"
       assert topic.changed?
+      assert_nil topic.content_was #one downside of using .hash for comparator is no way to track original value
       topic.save
       original_content = topic.content.dup
       assert !topic.changed?
