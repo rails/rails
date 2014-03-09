@@ -335,7 +335,7 @@ module ActiveSupport
       
       return "an" if lowercase_word.start_with?(*%w(hono heir honest))
       
-      return "an" if lowercase_word.start_with? "hour" && !lowercase_word.start_with? "houri"
+      return "an" if lowercase_word.start_with?("hour") && !lowercase_word.start_with?("houri")
       
       an_letters = %w(a e h i l m n o r s x)
       if word.length == 1 && word.start_with?(*an_letters)
