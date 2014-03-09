@@ -147,7 +147,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "setting a nil password should clear an existing password" do
     @existing_user.password = nil
     assert_equal nil, @existing_user.password_digest
-  end  
+  end
 
   test "authenticate" do
     @user.password = "secret"
@@ -157,24 +157,42 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
+    original_min_cost = ActiveModel::SecurePassword.min_cost
     ActiveModel::SecurePassword.min_cost = false
 
-    @user.password = "secret"
-    assert_equal BCrypt::Engine::DEFAULT_COST, @user.password_digest.cost
+    begin
+      @user.password = "secret"
+      assert_equal BCrypt::Engine::DEFAULT_COST, @user.password_digest.cost
+    ensure
+      ActiveModel::SecurePassword.min_cost = original_min_cost
+    end
   end
 
   test "Password digest cost honors bcrypt cost attribute when min_cost is false" do
+    original_min_cost = ActiveModel::SecurePassword.min_cost
+    original_cost = BCrypt::Engine.cost
+
     ActiveModel::SecurePassword.min_cost = false
     BCrypt::Engine.cost = 5
 
-    @user.password = "secret"
-    assert_equal BCrypt::Engine.cost, @user.password_digest.cost
+    begin
+      @user.password = "secret"
+      assert_equal BCrypt::Engine.cost, @user.password_digest.cost
+    ensure
+      ActiveModel::SecurePassword.min_cost = original_min_cost
+      BCrypt::Engine.cost = original_cost
+    end
   end
 
   test "Password digest cost can be set to bcrypt min cost to speed up tests" do
+    original_min_cost = ActiveModel::SecurePassword.min_cost
     ActiveModel::SecurePassword.min_cost = true
 
-    @user.password = "secret"
-    assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
+    begin
+      @user.password = "secret"
+      assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
+    ensure
+      ActiveModel::SecurePassword.min_cost = original_min_cost
+    end
   end
 end

@@ -63,12 +63,15 @@ class ConfirmationValidationTest < ActiveModel::TestCase
 
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
-    assert t.invalid?
-    assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
-
-    I18n.load_path.replace @old_load_path
-    I18n.backend = @old_backend
+    begin
+      t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
+      assert t.invalid?
+      assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
+    ensure
+      I18n.load_path.replace @old_load_path
+      I18n.backend = @old_backend
+      I18n.backend.reload!
+    end
   end
 
   test "does not override confirmation reader if present" do
