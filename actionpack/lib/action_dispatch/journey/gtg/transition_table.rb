@@ -114,8 +114,8 @@ module ActionDispatch
         end
 
         def states
-          ss = @string_states.keys + @string_states.values.map(&:values).flatten
-          rs = @regexp_states.keys + @regexp_states.values.map(&:values).flatten
+          ss = @string_states.keys + @string_states.values.flat_map(&:values)
+          rs = @regexp_states.keys + @regexp_states.values.flat_map(&:values)
           (ss + rs).uniq
         end
 
@@ -143,11 +143,11 @@ module ActionDispatch
           def move_regexp(t, a)
             return [] if t.empty?
 
-            t.map { |s|
+            t.flat_map { |s|
               if states = @regexp_states[s]
                 states.map { |re, v| re === a ? v : nil }
               end
-            }.flatten.compact.uniq
+            }.compact.uniq
           end
 
           def move_string(t, a)
