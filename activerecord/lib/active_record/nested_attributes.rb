@@ -305,7 +305,8 @@ module ActiveRecord
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
-          if reflection = reflect_on_association(association_name)
+          reflection = reflect_on_association(association_name)
+          if reflection
             reflection.autosave = true
             add_autosave_association_callbacks(reflection)
 
