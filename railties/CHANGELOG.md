@@ -1,3 +1,7 @@
+*   Removed unnecessary `rails application` command.
+
+    *Arun Agrawal*
+
 *   Make the `rails:template` rake task load the application's initializers.
 
     Fixes #12133.
