@@ -1,4 +1,19 @@
-## unreleased ##
+## Rails 4.0.4 ##
+
+*No changes*
+
+
+## Rails 4.0.3 (February 18, 2014) ##
+
+*No changes*
+
+
+## Rails 4.0.2 (December 02, 2013) ##
+
+*No changes*
+
+
+## Rails 4.0.1 (November 01, 2013) ##
 
 *   Added the Rails maintenance policy to the guides.
 

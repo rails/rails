@@ -1,6 +1,8 @@
+## Rails 4.0.4 ##
+
 *   Fix parsing bugs in `XmlMini`
 
-    Symbols or boolean parsing would raise an error for non string values (e.g. 
+    Symbols or boolean parsing would raise an error for non string values (e.g.
     integers). Decimal parsing would fail due to a missing requirement.
 
     *Birkir A. Barkarson*
@@ -36,6 +38,16 @@
 *   Fix `slice!` deleting the default value of the hash.
 
     *Antonio Santos*
+
+
+## Rails 4.0.3 (February 18, 2014) ##
+
+*No changes*
+
+
+## Rails 4.0.2 (December 02, 2013) ##
+
+*No changes*
 
 
 ## Rails 4.0.1 (November 01, 2013) ##

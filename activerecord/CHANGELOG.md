@@ -1,3 +1,5 @@
+## Rails 4.0.4 ##
+
 *   Only save has_one associations if record has changes.
     Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
     object did not get saved to the db.
@@ -55,7 +57,7 @@
     not supported by the ActiveRecord schema dumper. For example, expressions
     indexes would not be detected.
 
-    This fixes #11018.
+    Fixes #11018.
 
     *Jonathan Baudanza*
 
@@ -265,7 +267,7 @@
 *   `ActiveRecord::ConnectionAdapters.string_to_time` respects
     string with timezone (e.g. Wed, 04 Sep 2013 20:30:00 JST).
 
-    Fixes: #12278, #12459
+    Fixes #12278, #12459.
 
     *kennyj*, *George Guimarães*
 

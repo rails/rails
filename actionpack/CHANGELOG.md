@@ -1,3 +1,5 @@
+## Rails 4.0.4 ##
+
 *   Fix label translation for more than 10 nested elements.
 
     *Vladimir Krylov*
@@ -40,7 +42,7 @@
     This means to benefit from optimized url generation the arg needs to be
     specified as many times as it appears in the path.
 
-    Fixes #12808
+    Fixes #12808.
 
     *Andrew White*
 
@@ -50,7 +52,7 @@
     in the error message. Previously it would only show the contraints that were
     required as part of the path.
 
-    Fixes #13592
+    Fixes #13592.
 
     *Andrew White*
 
@@ -70,7 +72,7 @@
     absolute. Similarly for option redirects, if the options hash returned
     contains a `:host` or `:domain` key then the path is treated as absolute.
 
-    Fixes #7977
+    Fixes #7977.
 
     *Andrew White*
 
@@ -85,7 +87,7 @@
     it has been unescaped. If it is not valid then we can return early since it will
     not match any file anyway.
 
-    Fixes #13518
+    Fixes #13518.
 
     *Andrew White*
 
@@ -95,7 +97,7 @@
 
 *   Converts hashes in arrays of unfiltered params to unpermitted params.
 
-    Fixes #13382
+    Fixes #13382.
 
     *Xavier Noria*
 

@@ -1,3 +1,5 @@
+## Rails 4.0.4 ##
+
 *   Added Thor-action for creation of migrations.
 
     Fixes #13588 and #12674.
@@ -15,6 +17,16 @@
 *   Fix default `config/application.rb` template to remove unused `config.assets.enabled` variable.
 
     *Guillermo Iguaran*
+
+
+## Rails 4.0.3 (February 18, 2014) ##
+
+*No changes*
+
+
+## Rails 4.0.2 (December 02, 2013) ##
+
+*No changes*
 
 
 ## Rails 4.0.1 (November 01, 2013) ##
