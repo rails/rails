@@ -1,3 +1,8 @@
+*   Support for Postgres `citext` data type enabling case-insensitive where
+    values without needing to wrap in UPPER/LOWER sql functions.
+
+    *Troy Kruthoff*, *Lachlan Sylvester*
+
 *   Only save has_one associations if record has changes.
     Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
     object did not get saved to the db.

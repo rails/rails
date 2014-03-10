@@ -375,6 +375,7 @@ This is not reliable and will be removed in the future.
         register_type 'circle', OID::Text.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
+        register_type 'citext', OID::Text.new
         register_type 'ltree', OID::Text.new
 
         register_type 'cidr', OID::Cidr.new
