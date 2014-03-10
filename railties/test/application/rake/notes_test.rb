@@ -20,6 +20,7 @@ module ApplicationTests
         app_file "app/views/home/index.html.erb", "<% # TODO: note in erb %>"
         app_file "app/views/home/index.html.haml", "-# TODO: note in haml"
         app_file "app/views/home/index.html.slim", "/ TODO: note in slim"
+        app_file "app/views/home/index.ruby", "# TODO: note in ruby"
         app_file "app/assets/javascripts/application.js.coffee", "# TODO: note in coffee"
         app_file "app/assets/javascripts/application.js", "// TODO: note in js"
         app_file "app/assets/stylesheets/application.css", "// TODO: note in css"
@@ -54,7 +55,7 @@ module ApplicationTests
           assert_match(/note in rake/, output)
           assert_match(/note in builder/, output)
 
-          assert_equal 12, lines.size
+          assert_equal 13, lines.size
 
           lines.each do |line|
             assert_equal 4, line[0].size
