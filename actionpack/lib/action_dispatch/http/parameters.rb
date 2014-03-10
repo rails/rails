@@ -52,10 +52,6 @@ module ActionDispatch
 
       # Convert nested Hash to HashWithIndifferentAccess
       # and UTF-8 encode both keys and values in nested Hash.
-      #
-      # TODO: Validate that the characters are UTF-8. If they aren't,
-      # you'll get a weird error down the road, but our form handling
-      # should really prevent that from happening
       def normalize_encode_params(params)
         case params
         when String
