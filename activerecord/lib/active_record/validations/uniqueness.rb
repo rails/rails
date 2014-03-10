@@ -13,7 +13,7 @@ module ActiveRecord
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
-        value = map_enum_attribute(finder_class,attribute,value)
+        value = map_enum_attribute(finder_class, attribute, value)
         value = deserialize_attribute(record, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
@@ -93,7 +93,7 @@ module ActiveRecord
         value
       end
 
-      def map_enum_attribute(klass,attribute,value)
+      def map_enum_attribute(klass, attribute, value)
         mapping = klass.enum_mapping_for(attribute.to_s)
         value = mapping[value] if value && mapping
         value
