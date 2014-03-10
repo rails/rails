@@ -520,4 +520,13 @@ class InflectorTest < ActiveSupport::TestCase
   ensure
     ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original)
   end
+  
+  
+  def test_indefinite_article
+    assert_equal "an", ActiveSupport::Inflector.indefinite_article("elephant")
+    assert_equal "an elephant", ActiveSupport::Inflector.with_indefinite_article("elephant")
+    assert_equal "a", ActiveSupport::Inflector.indefinite_article("cat")
+    assert_equal "a cat", ActiveSupport::Inflector.with_indefinite_article("cat")
+    assert_equal "an", ActiveSupport::Inflector.indefinite_article("x-ray")
+  end
 end

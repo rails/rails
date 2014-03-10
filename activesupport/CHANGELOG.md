@@ -1,3 +1,8 @@
+*   Add indefinite_article and with_indefinite_article methods to the
+    inflector
+
+    *Reuben Sutton*
+
 *   Change the signature of `fetch_multi` to return a hash rather than an
     array. This makes it consistent with the output of `read_multi`.
 

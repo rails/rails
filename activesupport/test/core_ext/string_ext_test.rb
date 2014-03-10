@@ -247,6 +247,14 @@ class StringInflectionsTest < ActiveSupport::TestCase
       string.safe_constantize
     end
   end
+  
+  def test_indefinite_article
+    assert_equal "a", "cat".indefinite_article
+  end
+  
+  def test_with_indefinite_article
+    assert_equal "a cat", "cat".with_indefinite_article
+  end
 end
 
 class StringAccessTest < ActiveSupport::TestCase

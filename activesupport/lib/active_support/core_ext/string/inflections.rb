@@ -211,4 +211,20 @@ class String
   def foreign_key(separate_class_name_and_id_with_underscore = true)
     ActiveSupport::Inflector.foreign_key(self, separate_class_name_and_id_with_underscore)
   end
+  
+  # Returns the indefinite article for a string
+  # 
+  #   "cat".indefinite_article      # => "a"
+  #   "elephant".indefinite_article # => "an"
+  def indefinite_article
+    ActiveSupport::Inflector.indefinite_article(self)
+  end
+  
+  # Returns the current string with it's indefinite article prepended
+  #
+  #   "cat".with_indefinite_article      # => "a cat"
+  #   "elephant".with_indefinite_article # => "an elephant"
+  def with_indefinite_article
+    ActiveSupport::Inflector.with_indefinite_article(self)
+  end
 end
