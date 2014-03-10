@@ -64,7 +64,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists_fails_when_parameter_has_invalid_type
     begin
       assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
-      flunk if defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter and Topic.connection.is_a? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter # PostgreSQL does raise here
+      flunk if current_adapter?(:PostgreSQLAdapter) # PostgreSQL does raise here
     rescue ActiveRecord::StatementInvalid
       # PostgreSQL complains that it can't coerce a numeric that's bigger than int into int
     rescue Exception
@@ -73,7 +73,7 @@ class FinderTest < ActiveRecord::TestCase
 
     begin
       assert_equal false, Topic.exists?("foo")
-      flunk if defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter and Topic.connection.is_a? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter # PostgreSQL does raise here
+      flunk if current_adapter?(:PostgreSQLAdapter) # PostgreSQL does raise here
     rescue ActiveRecord::StatementInvalid
       # PostgreSQL complains about string comparison with integer field
     rescue Exception
