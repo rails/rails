@@ -388,7 +388,7 @@ for detailed changes.
 * Removed deprecated `scope` use without passing a callable object.
 
 * Removed deprecated `transaction_joinable=` in favor of `begin_transaction`
-  with `d:joinable` option.
+  with a `:joinable` option.
 
 * Removed deprecated `decrement_open_transactions`.
 
