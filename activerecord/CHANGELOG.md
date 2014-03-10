@@ -1,3 +1,9 @@
+*   Only save has_one associations if record has changes.
+    Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
+    object did not get saved to the db.
+
+    *Alan Kennedy*
+
 *   Fixed STI classes not defining an attribute method if there is a
     conflicting private method defined on its ancestors.
 

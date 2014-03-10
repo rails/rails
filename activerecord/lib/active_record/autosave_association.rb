@@ -382,9 +382,10 @@ module ActiveRecord
 
         if autosave && record.marked_for_destruction?
           record.destroy
-        else
+        elsif autosave != false
           key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-          if autosave != false && (autosave || new_record? || record_changed?(reflection, record, key))
+
+          if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
             unless reflection.through_reflection
               record[reflection.foreign_key] = key
             end
