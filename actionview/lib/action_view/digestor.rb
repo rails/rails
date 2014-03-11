@@ -20,14 +20,9 @@ module ActionView
       def digest(*args)
         options = _setup_options(*args)
 
-        name = options[:name]
-        format = options[:format]
-        variant = options[:variant]
-        finder = options[:finder]
-
-        details_key = finder.details_key.hash
+        details_key = options[:finder].details_key.hash
         dependencies = Array.wrap(options[:dependencies])
-        cache_key = ([name, details_key, format, variant].compact + dependencies).join('.')
+        cache_key = ([options[:name], details_key, options[:format], options[:variant]].compact + dependencies).join('.')
 
         # this is a correctly done double-checked locking idiom
         # (ThreadSafe::Cache's lookups have volatile semantics)
