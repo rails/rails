@@ -7,13 +7,13 @@ module ActiveRecord
   #   end
   #
   #   # conversation.update! status: 0
-  #   conversation.active!
-  #   conversation.active? # => true
+  #   conversation.status_active!
+  #   conversation.status_active? # => true
   #   conversation.status  # => "active"
   #
   #   # conversation.update! status: 1
-  #   conversation.archived!
-  #   conversation.archived? # => true
+  #   conversation.status_archived!
+  #   conversation.status_archived? # => true
   #   conversation.status    # => "archived"
   #
   #   # conversation.update! status: 1
@@ -111,16 +111,16 @@ module ActiveRecord
             enum_values[value] = i
 
             # def active?() status == 0 end
-            klass.send(:detect_enum_conflict!, name, "#{value}?")
-            define_method("#{value}?") { self[name] == i }
+            klass.send(:detect_enum_conflict!, name, "#{name}_#{value}?")
+            define_method("#{name}_#{value}?") { self[name] == i }
 
             # def active!() update! status: :active end
-            klass.send(:detect_enum_conflict!, name, "#{value}!")
-            define_method("#{value}!") { update! name => value }
+            klass.send(:detect_enum_conflict!, name, "#{name}_#{value}!")
+            define_method("#{name}_#{value}!") { update! name => value }
 
             # scope :active, -> { where status: 0 }
             klass.send(:detect_enum_conflict!, name, value, true)
-            klass.scope value, -> { klass.where name => i }
+            klass.scope "#{name}_#{value}", -> { klass.where name => i }
           end
 
           DEFINED_ENUMS[name.to_s] = enum_values
