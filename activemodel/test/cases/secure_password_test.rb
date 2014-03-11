@@ -4,6 +4,7 @@ require 'models/visitor'
 
 class SecurePasswordTest < ActiveModel::TestCase
   setup do
+    # Used only to speed up tests
     @original_min_cost = ActiveModel::SecurePassword.min_cost
     ActiveModel::SecurePassword.min_cost = true
 
