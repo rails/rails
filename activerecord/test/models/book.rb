@@ -11,7 +11,7 @@ class Book < ActiveRecord::Base
   enum read_status: {unread: 0, reading: 2, read: 3}
   enum nullable_status: [:single, :married]
 
-  def published!
+  def status_published!
     super
     "do publish work..."
   end

@@ -9,11 +9,11 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "query state by predicate" do
-    assert @book.proposed?
-    assert_not @book.written?
-    assert_not @book.published?
+    assert @book.status_proposed?
+    assert_not @book.status_written?
+    assert_not @book.status_published?
 
-    assert @book.unread?
+    assert @book.read_status_unread?
   end
 
   test "query state with strings" do
@@ -22,33 +22,33 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "find via scope" do
-    assert_equal @book, Book.proposed.first
-    assert_equal @book, Book.unread.first
+    assert_equal @book, Book.status_proposed.first
+    assert_equal @book, Book.read_status_unread.first
   end
 
   test "update by declaration" do
-    @book.written!
-    assert @book.written?
+    @book.status_written!
+    assert @book.status_written?
   end
 
   test "update by setter" do
     @book.update! status: :written
-    assert @book.written?
+    assert @book.status_written?
   end
 
   test "enum methods are overwritable" do
-    assert_equal "do publish work...", @book.published!
-    assert @book.published?
+    assert_equal "do publish work...", @book.status_published!
+    assert @book.status_published?
   end
 
   test "direct assignment" do
     @book.status = :written
-    assert @book.written?
+    assert @book.status_written?
   end
 
   test "assign string value" do
     @book.status = "written"
-    assert @book.written?
+    assert @book.status_written?
   end
 
   test "enum changed attributes" do
@@ -151,13 +151,13 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "building new objects with enum scopes" do
-    assert Book.written.build.written?
-    assert Book.read.build.read?
+    assert Book.status_written.build.status_written?
+    assert Book.read_status_read.build.read_status_read?
   end
 
   test "creating new objects with enum scopes" do
-    assert Book.written.create.written?
-    assert Book.read.create.read?
+    assert Book.status_written.create.status_written?
+    assert Book.read_status_read.create.read_status_read?
   end
 
   test "_before_type_cast returns the enum label (required for form fields)" do
@@ -183,39 +183,19 @@ class EnumTest < ActiveRecord::TestCase
     end
   end
 
-  test "reserved enum values" do
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "books"
-      enum status: [:proposed, :written, :published]
-    end
-
-    conflicts = [
-      :new,      # generates a scope that conflicts with an AR class method
-      :valid,    # generates #valid?, which conflicts with an AR method
-      :save,     # generates #save!, which conflicts with an AR method
-      :proposed, # same value as an existing enum
-    ]
-
-    conflicts.each_with_index do |value, i|
-      assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
-        klass.class_eval { enum "status_#{i}" => [value] }
-      end
-    end
-  end
-
   test "overriding enum method should not raise" do
     assert_nothing_raised do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
 
-        def published!
+        def status_published!
           super
           "do publish work..."
         end
 
         enum status: [:proposed, :written, :published]
 
-        def written!
+        def status_written!
           super
           "do written work..."
         end
