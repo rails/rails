@@ -319,6 +319,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
     end
 
+    def test_schema_dump_includes_citext_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_citext"} =~ output
+        assert_match %r[t.citext "text_citext"], output
+      end
+    end
+
     def test_schema_dump_includes_ltrees_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_ltrees"} =~ output
