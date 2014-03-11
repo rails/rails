@@ -53,17 +53,17 @@ class ConfirmationValidationTest < ActiveModel::TestCase
   end
 
   def test_title_confirmation_with_i18n_attribute
-    @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
-    I18n.load_path.clear
-    I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations('en', {
-      errors: { messages: { confirmation: "doesn't match %{attribute}" } },
-      activemodel: { attributes: { topic: { title: 'Test Title'} } }
-    })
-
-    Topic.validates_confirmation_of(:title)
-
     begin
+      @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
+      I18n.load_path.clear
+      I18n.backend = I18n::Backend::Simple.new
+      I18n.backend.store_translations('en', {
+        errors: { messages: { confirmation: "doesn't match %{attribute}" } },
+        activemodel: { attributes: { topic: { title: 'Test Title'} } }
+      })
+
+      Topic.validates_confirmation_of(:title)
+
       t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
       assert t.invalid?
       assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
