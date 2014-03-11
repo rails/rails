@@ -71,7 +71,7 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME} (id integer NOT NULL DEFAULT nextval('#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}'::regclass), CONSTRAINT unmatched_pkey PRIMARY KEY (id))"
   end
 
-  def teardown
+  teardown do
     @connection.execute "DROP SCHEMA #{SCHEMA2_NAME} CASCADE"
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end

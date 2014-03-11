@@ -8,11 +8,6 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     self.table_name = "postgresql_enums"
   end
 
-  def teardown
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_enums'
-    @connection.execute 'DROP TYPE IF EXISTS mood'
-  end
-
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
@@ -25,6 +20,11 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     end
     # reload type map after creating the enum type
     @connection.send(:reload_type_map)
+  end
+
+  teardown do
+    @connection.execute 'DROP TABLE IF EXISTS postgresql_enums'
+    @connection.execute 'DROP TYPE IF EXISTS mood'
   end
 
   def test_enum_mapping

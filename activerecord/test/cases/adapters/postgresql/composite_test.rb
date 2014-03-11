@@ -8,11 +8,6 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
     self.table_name = "postgresql_composites"
   end
 
-  def teardown
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_composites'
-    @connection.execute 'DROP TYPE IF EXISTS full_address'
-  end
-
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
@@ -27,6 +22,11 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
         t.column :address, :full_address
       end
     end
+  end
+
+  teardown do
+    @connection.execute 'DROP TABLE IF EXISTS postgresql_composites'
+    @connection.execute 'DROP TYPE IF EXISTS full_address'
   end
 
   def test_composite_mapping

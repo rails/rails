@@ -26,6 +26,10 @@ module ActiveRecord
         ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
       end
 
+      teardown do
+        ActiveSupport::Notifications.unsubscribe(@subscriber)
+      end
+
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
           connection = ActiveRecord::Base.sqlite3_connection(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
@@ -67,11 +71,6 @@ module ActiveRecord
       # even if the type is not valid.
       def test_invalid_column
         assert @conn.valid_type?(:foobar)
-      end
-
-      def teardown
-        ActiveSupport::Notifications.unsubscribe(@subscriber)
-        super
       end
 
       def test_column_types

@@ -24,7 +24,7 @@ class ViewTest < ActiveRecord::TestCase
     @connection.execute "CREATE VIEW #{SCHEMA_NAME}.#{VIEW_NAME} AS SELECT id,name,email,moment FROM #{SCHEMA_NAME}.#{TABLE_NAME}"
   end
 
-  def teardown
+  teardown do
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end
 
