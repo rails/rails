@@ -1,3 +1,31 @@
+*   Change create_join_table migration helper to use table prefixes like
+    it's already done when creating HABTM association.
+
+    Example:
+
+        class Category < ActiveRecord::Base
+          self.table_name = 'catalog_categories'
+          has_and_belongs_to_many :products
+        end
+
+        class Product < ActiveRecord::Base
+          self.table_name = 'catalog_products'
+        end
+
+        ActiveRecord::Schema.define do
+          create_join_table :catalog_categories, :catalog_products
+        end
+
+    It created table `catalog_categories_catalog_products` before, but HABTM
+    association uses `catalog_categories_products` table name:
+
+        `Category.reflections[:products].join_table` #=> "catalog_categories_products"
+
+    Now `create_join_table` creates table `catalog_categories_products`,
+    and it is consistent with what HABTM association does.
+
+    *Piotr Boniecki*
+
 *   Support for Postgres `citext` data type enabling case-insensitive where
     values without needing to wrap in UPPER/LOWER sql functions.
 

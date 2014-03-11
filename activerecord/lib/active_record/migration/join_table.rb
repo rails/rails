@@ -1,3 +1,4 @@
+require 'active_record/associations/builder/has_and_belongs_to_many'
 module ActiveRecord
   class Migration
     module JoinTable #:nodoc:
@@ -8,7 +9,7 @@ module ActiveRecord
       end
 
       def join_table_name(table_1, table_2)
-        [table_1.to_s, table_2.to_s].sort.join("_").to_sym
+        ActiveRecord::Associations::Builder::HasAndBelongsToMany::JoinTableResolver::KnownClass.join_table_name(table_1.to_s, table_2.to_s).to_sym
       end
     end
   end

@@ -208,6 +208,9 @@ module ActiveRecord
 
       # Creates a new join table with the name created using the lexical order of the first two
       # arguments. These arguments can be a String or a Symbol.
+      # If your tables share a common prefix, it will only appear once at the beginning. For
+      # example, the tables "catalog_categories" and "catalog_products" generate a join table
+      # name of "catalog_categories_products".
       #
       #   # Creates a table called 'assemblies_parts' with no id.
       #   create_join_table(:assemblies, :parts)
