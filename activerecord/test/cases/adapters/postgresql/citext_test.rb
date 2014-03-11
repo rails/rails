@@ -19,10 +19,8 @@ class PostgresqlCitextTest < ActiveRecord::TestCase
 
     @connection.reconnect!
 
-    @connection.transaction do
-      @connection.create_table('citexts') do |t|
-        t.citext 'cival'
-      end
+    @connection.create_table('citexts') do |t|
+      t.citext 'cival'
     end
     @column = Citext.columns_hash['cival']
   end
@@ -44,15 +42,36 @@ class PostgresqlCitextTest < ActiveRecord::TestCase
     assert_equal 'citext', @column.sql_type
   end
 
+  def test_change_table_supports_json
+    @connection.transaction do
+      @connection.change_table('citexts') do |t|
+        t.citext 'username'
+      end
+      Citext.reset_column_information
+      column = Citext.columns.find { |c| c.name == 'username' }
+      assert_equal :citext, column.type
+
+      raise ActiveRecord::Rollback # reset the schema change
+    end
+  ensure
+    Citext.reset_column_information
+  end
+
   def test_write
     x = Citext.new(cival: 'Some CI Text')
-    assert x.save!
+    x.save!
+    citext = Citext.first
+    assert_equal "Some CI Text", citext.cival
+
+    citext.cival = "Some NEW CI Text"
+    citext.save!
+
+    assert_equal "Some NEW CI Text", citext.reload.cival
   end
 
   def test_select_case_insensitive
     @connection.execute "insert into citexts (cival) values('Cased Text')"
     x = Citext.where(cival: 'cased text').first
-    assert_equal('Cased Text', x.cival)
+    assert_equal 'Cased Text', x.cival
   end
-
 end

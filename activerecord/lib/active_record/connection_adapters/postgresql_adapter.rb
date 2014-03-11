@@ -355,6 +355,10 @@ module ActiveRecord
         def json(name, options = {})
           column(name, 'json', options)
         end
+
+        def citext(name, options = {})
+          column(name, 'citext', options)
+        end
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
