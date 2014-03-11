@@ -260,6 +260,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     end
   end
 
+  def test_nothing_content_length
+    @controller = Admin::InnerModuleController.new
+    get :index
+    assert_equal 0, response.body.length
+  end
+
   def test_assert_redirect_failure_message_with_protocol_relative_url
     begin
       process :redirect_external_protocol_relative
