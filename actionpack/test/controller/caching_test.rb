@@ -253,7 +253,7 @@ CACHED
   def test_fragment_caching_with_variant
     @request.variant = :phone
 
-    get :formatted_fragment_cached_with_variant, :format => "html", :variant => :phone
+    get :formatted_fragment_cached_with_variant, :format => "html"
     assert_response :success
     expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
 
