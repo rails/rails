@@ -12,7 +12,7 @@ module ActiveRecord
 
       def teardown
         super
-        %w(artists_musics musics_videos catalog).each do |table_name|
+        %w(artists_musics musics_videos catalog prefixed_artists prefixed_musics prefixed_artists_musics).each do |table_name|
           connection.drop_table table_name if connection.tables.include?(table_name)
         end
       end
@@ -21,6 +21,12 @@ module ActiveRecord
         connection.create_join_table :artists, :musics
 
         assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
+      end
+
+      def test_create_join_table_with_common_prefix
+        connection.create_join_table :prefixed_artists, :prefixed_musics
+
+        assert connection.tables.include?('prefixed_artists_musics')
       end
 
       def test_create_join_table_set_not_null_by_default

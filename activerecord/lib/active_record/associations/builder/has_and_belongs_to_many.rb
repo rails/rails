@@ -11,7 +11,11 @@ module ActiveRecord::Associations::Builder
         end
 
         def join_table
-          @join_table ||= [@lhs_class.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+          @join_table ||= self.class.join_table_name(@lhs_class.table_name, klass.table_name)
+        end
+
+        def self.join_table_name(table_1, table_2)
+          [table_1, table_2].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
         end
 
         private
