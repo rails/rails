@@ -18,14 +18,14 @@ module ActiveRecord
     # Example for SQLite database:
     #
     #   ActiveRecord::Base.establish_connection(
-    #     adapter:  "sqlite",
+    #     adapter:  "sqlite3",
     #     database: "path/to/dbfile"
     #   )
     #
     # Also accepts keys as strings (for parsing from YAML for example):
     #
     #   ActiveRecord::Base.establish_connection(
-    #     "adapter"  => "sqlite",
+    #     "adapter"  => "sqlite3",
     #     "database" => "path/to/dbfile"
     #   )
     #
