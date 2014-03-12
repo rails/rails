@@ -452,7 +452,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_attribute_for_updated_at_on
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_attribute(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
@@ -523,7 +523,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_modify_updated_at
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_column(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
@@ -620,7 +620,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_modify_updated_at
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_columns(updated_at: prev_month)
     assert_equal prev_month, developer.updated_at
