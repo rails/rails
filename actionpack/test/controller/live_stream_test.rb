@@ -102,6 +102,12 @@ module ActionController
         'test'
       end
 
+      def set_cookie
+        cookies[:hello] = "world"
+        response.stream.write "hello world"
+        response.close
+      end
+
       def render_text
         render :text => 'zomg'
       end
@@ -193,6 +199,13 @@ module ActionController
       ensure
         ActionController::Base.logger = old_logger
       end
+    end
+
+    def test_set_cookie
+      @controller = TestController.new
+      get :set_cookie
+      assert_equal({'hello' => 'world'}, @response.cookies)
+      assert_equal "hello world", @response.body
     end
 
     def test_set_response!
