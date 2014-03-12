@@ -183,7 +183,7 @@ module ActionController
         super
         jar = request.cookie_jar
         # The response can be committed multiple times
-        jar.write self unless jar.committed?
+        jar.write self unless committed?
         jar.commit!
         headers.freeze
       end
