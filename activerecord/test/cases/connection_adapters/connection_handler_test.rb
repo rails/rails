@@ -17,6 +17,12 @@ module ActiveRecord
         ENV["DATABASE_URL"] = @previous_database_url
       end
 
+      def test_jdbc_url
+        config   = { "production" => { "url" => "jdbc:postgres://localhost/foo" } }
+        actual   = klass.new(config).resolve
+        assert_equal config, actual
+      end
+
       def test_environment_does_not_exist_in_config_url_does_exist
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
         config      = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
