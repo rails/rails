@@ -1,3 +1,7 @@
+*   Support for Mysql 5.6 Fractional Seconds.
+
+    *arthurnn*, *Tatsuhiko Miyagawa*
+
 *   Support for Postgres `citext` data type enabling case-insensitive where
     values without needing to wrap in UPPER/LOWER sql functions.
 
