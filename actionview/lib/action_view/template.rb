@@ -97,7 +97,7 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :virtual_path
+    attr_accessor :locals, :formats, :variants, :virtual_path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
 
@@ -123,6 +123,7 @@ module ActionView
       @virtual_path      = details[:virtual_path]
       @updated_at        = details[:updated_at] || Time.now
       @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
+      @variants          = [details[:variant]]
       @compile_mutex     = Mutex.new
     end
 
