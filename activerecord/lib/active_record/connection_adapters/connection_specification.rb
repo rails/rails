@@ -32,6 +32,7 @@ module ActiveRecord
         #   }
         def initialize(url)
           raise "Database URL cannot be empty" if url.blank?
+          url      = url.gsub(/^jdbc:/, '')
           @uri     = URI.parse(url)
           @adapter = @uri.scheme
           @adapter = "postgresql" if @adapter == "postgres"
