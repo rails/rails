@@ -97,6 +97,13 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.execute "DROP TABLE `bar_baz`"
   end
 
+  if mysql_56?
+    def test_quote_time_usec
+      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0))
+      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0).to_datetime)
+    end
+  end
+
   private
 
   def run_without_connection
