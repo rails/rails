@@ -177,12 +177,16 @@ module ActionController
         end
       end
 
-      def commit!
-        headers.freeze
-        super
-      end
-
       private
+
+      def finalize_response
+        super
+        jar = request.cookie_jar
+        # The response can be committed multiple times
+        jar.write self unless jar.committed?
+        jar.commit!
+        headers.freeze
+      end
 
       def build_buffer(response, body)
         buf = Live::Buffer.new response

@@ -237,6 +237,15 @@ module ActionDispatch
         @secure = secure
         @options = options
         @cookies = {}
+        @committed = false
+      end
+
+      def committed?; @committed; end
+
+      def commit!
+        @committed = true
+        @set_cookies.freeze
+        @delete_cookies.freeze
       end
 
       def each(&block)
@@ -336,8 +345,8 @@ module ActionDispatch
       end
 
       def recycle! #:nodoc:
-        @set_cookies.clear
-        @delete_cookies.clear
+        @set_cookies = {}
+        @delete_cookies = {}
       end
 
       mattr_accessor :always_write_cookie
@@ -551,9 +560,11 @@ module ActionDispatch
       status, headers, body = @app.call(env)
 
       if cookie_jar = env['action_dispatch.cookies']
-        cookie_jar.write(headers)
-        if headers[HTTP_HEADER].respond_to?(:join)
-          headers[HTTP_HEADER] = headers[HTTP_HEADER].join("\n")
+        unless cookie_jar.committed?
+          cookie_jar.write(headers)
+          if headers[HTTP_HEADER].respond_to?(:join)
+            headers[HTTP_HEADER] = headers[HTTP_HEADER].join("\n")
+          end
         end
       end
 
