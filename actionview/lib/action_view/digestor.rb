@@ -123,7 +123,7 @@ module ActionView
       def template
         @template ||= begin
           finder.variants = [ variant ]
-          finder.find(logical_name, [], partial?, formats: [ format ])
+          finder.find(logical_name, [], partial?)
         end
       end
 
