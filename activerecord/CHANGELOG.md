@@ -1,3 +1,7 @@
+*   Only use BINARY for mysql case sensitive uniqueness check when column has a case insensitive collation.
+
+    *Ryuta Kamizono*
+
 *   Support for Mysql 5.6 Fractional Seconds.
 
     *arthurnn*, *Tatsuhiko Miyagawa*

@@ -340,6 +340,11 @@ module ActiveRecord
         node
       end
 
+      def case_sensitive_comparison(table, attribute, column, value)
+        value = case_sensitive_modifier(value) unless value.nil?
+        table[attribute].eq(value)
+      end
+
       def case_insensitive_comparison(table, attribute, column, value)
         table[attribute].lower.eq(table.lower(value))
       end
