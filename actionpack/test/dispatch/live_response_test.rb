@@ -6,6 +6,7 @@ module ActionController
     class ResponseTest < ActiveSupport::TestCase
       def setup
         @response = Live::Response.new
+        @response.request = ActionDispatch::Request.new({}) #yolo
       end
 
       def test_header_merge

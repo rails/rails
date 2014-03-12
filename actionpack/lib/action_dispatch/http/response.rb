@@ -140,6 +140,7 @@ module ActionDispatch # :nodoc:
 
     def commit!
       synchronize do
+        finalize_response
         @committed = true
         @cv.broadcast
       end
@@ -272,6 +273,9 @@ module ActionDispatch # :nodoc:
     end
 
   private
+
+    def finalize_response
+    end
 
     def merge_default_headers(original, default)
       return original unless default.respond_to?(:merge)

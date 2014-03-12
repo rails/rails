@@ -267,6 +267,18 @@ module ActionController
     def body
       @body ||= super
     end
+
+    # Was the response successful?
+    alias_method :success?, :successful?
+
+    # Was the URL not found?
+    alias_method :missing?, :not_found?
+
+    # Were we redirected?
+    alias_method :redirect?, :redirection?
+
+    # Was there a server-side error?
+    alias_method :error?, :server_error?
   end
 
   # Methods #destroy and #load! are overridden to avoid calling methods on the
@@ -583,7 +595,9 @@ module ActionController
         @controller.process(name)
 
         if cookies = @request.env['action_dispatch.cookies']
-          cookies.write(@response)
+          unless cookies.committed?
+            cookies.write(@response)
+          end
         end
         @response.prepare!
 
