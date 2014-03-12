@@ -214,6 +214,8 @@ module ActiveRecord
     #
     # This method raises an +ActiveRecord::ActiveRecordError+  if the
     # attribute is marked as readonly.
+    #
+    # See also +update_column+.
     def update_attribute(name, value)
       name = name.to_s
       verify_readonly_attribute(name)
