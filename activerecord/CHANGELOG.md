@@ -1,3 +1,9 @@
+*   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
+
+    Fixes #14361.
+
+    *arthurnn*
+
 * Passing an Active Record object to `find` is now deprecated.  Call `.id`
   on the object first.
 
