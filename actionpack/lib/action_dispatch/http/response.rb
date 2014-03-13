@@ -91,7 +91,10 @@ module ActionDispatch # :nodoc:
       end
 
       def each(&block)
-        @buf.each(&block)
+        @response.sending!
+        x = @buf.each(&block)
+        @response.sent!
+        x
       end
 
       def close
@@ -118,6 +121,8 @@ module ActionDispatch # :nodoc:
       @blank        = false
       @cv           = new_cond
       @committed    = false
+      @sending      = false
+      @sent         = false
       @content_type = nil
       @charset      = nil
 
@@ -138,17 +143,36 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    def await_sent
+      synchronize { @cv.wait_until { @sent } }
+    end
+
     def commit!
       synchronize do
-        finalize_response
+        before_committed
         @committed = true
         @cv.broadcast
       end
     end
 
-    def committed?
-      @committed
+    def sending!
+      synchronize do
+        before_sending
+        @sending = true
+        @cv.broadcast
+      end
     end
+
+    def sent!
+      synchronize do
+        @sent = true
+        @cv.broadcast
+      end
+    end
+
+    def sending?;   synchronize { @sending };   end
+    def committed?; synchronize { @committed }; end
+    def sent?;      synchronize { @sent };      end
 
     # Sets the HTTP status code.
     def status=(status)
@@ -274,7 +298,10 @@ module ActionDispatch # :nodoc:
 
   private
 
-    def finalize_response
+    def before_committed
+    end
+
+    def before_sending
     end
 
     def merge_default_headers(original, default)

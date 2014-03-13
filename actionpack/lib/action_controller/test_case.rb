@@ -595,7 +595,7 @@ module ActionController
         @controller.process(name)
 
         if cookies = @request.env['action_dispatch.cookies']
-          unless cookies.committed?
+          unless @response.committed?
             cookies.write(@response)
           end
         end
