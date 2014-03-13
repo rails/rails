@@ -44,7 +44,7 @@ module ActionController
     tests SSETestController
 
     def wait_for_response_stream_close
-      response.stream.await_close
+      response.body
     end
 
     def test_basic_sse
@@ -186,8 +186,8 @@ module ActionController
     tests TestController
 
     def assert_stream_closed
-      response.stream.await_close
       assert response.stream.closed?, 'stream should be closed'
+      assert response.sent?, 'stream should be sent'
     end
 
     def capture_log_output
@@ -229,6 +229,7 @@ module ActionController
       @controller.response = @response
 
       t = Thread.new(@response) { |resp|
+        resp.await_commit
         resp.stream.each do |part|
           assert_equal parts.shift, part
           ol = @controller.latch
@@ -268,6 +269,7 @@ module ActionController
       assert_raises(ActionView::MissingTemplate) do
         get :exception_in_view
       end
+      assert response.body
       assert_stream_closed
     end
 
