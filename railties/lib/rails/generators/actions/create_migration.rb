@@ -1,4 +1,4 @@
-require 'thor/actions/create_file'
+require 'thor/actions'
 
 module Rails
   module Generators
