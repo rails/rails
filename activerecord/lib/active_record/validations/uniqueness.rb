@@ -13,6 +13,7 @@ module ActiveRecord
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
+        value = map_enum_attribute(finder_class, attribute, value)
         value = deserialize_attribute(record, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
@@ -67,8 +68,7 @@ module ActiveRecord
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
-          value = klass.connection.case_sensitive_modifier(value) unless value.nil?
-          table[attribute].eq(value)
+          klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
       end
 
@@ -89,6 +89,12 @@ module ActiveRecord
       def deserialize_attribute(record, attribute, value)
         coder = record.class.serialized_attributes[attribute.to_s]
         value = coder.dump value if value && coder
+        value
+      end
+
+      def map_enum_attribute(klass, attribute, value)
+        mapping = klass.enum_mapping_for(attribute.to_s)
+        value = mapping[value] if value && mapping
         value
       end
     end

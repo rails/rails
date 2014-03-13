@@ -746,6 +746,19 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert "unknown attribute: hello", error.message
   end
 
+  def test_methods_override_in_multi_level_subclass
+    klass = Class.new(Developer) do
+      def name
+        "dev:#{read_attribute(:name)}"
+      end
+    end
+
+    2.times { klass = Class.new klass }
+    dev = klass.new(name: 'arthurnn')
+    dev.save!
+    assert_equal 'dev:arthurnn', dev.reload.name
+  end
+
   def test_global_methods_are_overwritten
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = 'computers'

@@ -530,8 +530,8 @@ module ActiveRecord
     #   end
     #
     #   @firm = Firm.first
-    #   @firm.clients.collect { |c| c.invoices }.flatten # select all invoices for all clients of the firm
-    #   @firm.invoices                                   # selects all invoices by going through the Client join model
+    #   @firm.clients.flat_map { |c| c.invoices } # select all invoices for all clients of the firm
+    #   @firm.invoices                            # selects all invoices by going through the Client join model
     #
     # Similarly you can go through a +has_one+ association on the join model:
     #

@@ -4,6 +4,8 @@ require 'models/visitor'
 
 class SecurePasswordTest < ActiveModel::TestCase
   setup do
+    # Used only to speed up tests
+    @original_min_cost = ActiveModel::SecurePassword.min_cost
     ActiveModel::SecurePassword.min_cost = true
 
     @user = User.new
@@ -15,7 +17,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   teardown do
-    ActiveModel::SecurePassword.min_cost = false
+    ActiveModel::SecurePassword.min_cost = @original_min_cost
   end
 
   test "create and updating without validations" do
@@ -147,7 +149,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "setting a nil password should clear an existing password" do
     @existing_user.password = nil
     assert_equal nil, @existing_user.password_digest
-  end  
+  end
 
   test "authenticate" do
     @user.password = "secret"
@@ -164,11 +166,16 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "Password digest cost honors bcrypt cost attribute when min_cost is false" do
-    ActiveModel::SecurePassword.min_cost = false
-    BCrypt::Engine.cost = 5
+    begin
+      original_bcrypt_cost = BCrypt::Engine.cost
+      ActiveModel::SecurePassword.min_cost = false
+      BCrypt::Engine.cost = 5
 
-    @user.password = "secret"
-    assert_equal BCrypt::Engine.cost, @user.password_digest.cost
+      @user.password = "secret"
+      assert_equal BCrypt::Engine.cost, @user.password_digest.cost
+    ensure
+      BCrypt::Engine.cost = original_bcrypt_cost
+    end
   end
 
   test "Password digest cost can be set to bcrypt min cost to speed up tests" do

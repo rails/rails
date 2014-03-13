@@ -139,6 +139,8 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 4, hits
     assert_equal %w(gotcha gotcha), t.errors[:title]
     assert_equal %w(gotcha gotcha), t.errors[:content]
+  ensure
+    CustomReader.clear_validators!
   end
 
   def test_validate_block

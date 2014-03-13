@@ -271,5 +271,16 @@ module ApplicationTests
         end
       end
     end
+
+    def test_template_load_initializers
+      app_file "config/initializers/dummy.rb", "puts 'Hello, World!'"
+      app_file "template.rb", ""
+
+      output = Dir.chdir(app_path) do
+        `bundle exec rake rails:template LOCATION=template.rb`
+      end
+
+      assert_match(/Hello, World!/, output)
+    end
   end
 end

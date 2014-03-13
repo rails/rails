@@ -65,6 +65,11 @@ module RenderBody
       render body: "hello world", layout: "greetings"
     end
 
+    def with_custom_content_type
+      response.headers['Content-Type'] = 'application/json'
+      render body: '["troll","face"]'
+    end
+
     def with_ivar_in_layout
       @ivar = "hello world"
       render body: "hello world", layout: "ivar"
@@ -141,6 +146,13 @@ module RenderBody
       assert_status 200
     end
 
+    test "specified content type should not be removed" do
+      get "/render_body/with_layout/with_custom_content_type"
+
+      assert_equal %w{ troll face }, JSON.parse(response.body)
+      assert_equal 'application/json', response.headers['Content-Type']
+    end
+
     test "rendering body with layout: false" do
       get "/render_body/with_layout/with_layout_false"
 
@@ -153,23 +165,6 @@ module RenderBody
 
       assert_body "hello world"
       assert_status 200
-    end
-
-    test "rendering from minimal controller returns response with no content type" do
-      get "/render_body/minimal/index"
-
-      assert_header_no_content_type
-    end
-
-    test "rendering from normal controller returns response with no content type" do
-      get "/render_body/simple/index"
-
-      assert_header_no_content_type
-    end
-
-    def assert_header_no_content_type
-      assert_not response.headers.has_key?("Content-Type"),
-        %(Expect response not to have Content-Type header, got "#{response.headers["Content-Type"]}")
     end
   end
 end

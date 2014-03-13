@@ -6,7 +6,7 @@ module Erb # :nodoc:
       protected
 
       def formats
-        format
+        [format]
       end
 
       def format
@@ -17,7 +17,7 @@ module Erb # :nodoc:
         :erb
       end
 
-      def filename_with_extensions(name, format)
+      def filename_with_extensions(name, format = self.format)
         [name, format, handler].compact.join(".")
       end
     end

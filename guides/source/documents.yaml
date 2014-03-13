@@ -167,7 +167,6 @@
     -
       name: Ruby on Rails 4.1 Release Notes
       url: 4_1_release_notes.html
-      work_in_progress: true
       description: Release notes for Rails 4.1.
     -
       name: Ruby on Rails 4.0 Release Notes

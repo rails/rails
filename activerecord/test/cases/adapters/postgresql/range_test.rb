@@ -156,7 +156,7 @@ _SQL
       assert_equal 0.5..0.7, @first_range.float_range
       assert_equal 0.5...0.7, @second_range.float_range
       assert_equal 0.5...Float::INFINITY, @third_range.float_range
-      assert_equal -Float::INFINITY...Float::INFINITY, @fourth_range.float_range
+      assert_equal (-Float::INFINITY...Float::INFINITY), @fourth_range.float_range
       assert_nil @empty_range.float_range
     end
 

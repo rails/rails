@@ -215,6 +215,8 @@ module ActiveRecord
           # Character types
           when /^(?:character varying|bpchar)(?:\(\d+\))?$/
             :string
+          when /^citext(?:\(\d+\))?$/
+            :citext
           # Binary data types
           when 'bytea'
             :binary
@@ -353,6 +355,10 @@ module ActiveRecord
         def json(name, options = {})
           column(name, 'json', options)
         end
+
+        def citext(name, options = {})
+          column(name, 'citext', options)
+        end
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
@@ -391,6 +397,10 @@ module ActiveRecord
           options[:default] = options.fetch(:default, 'uuid_generate_v4()')
           options[:primary_key] = true
           column name, type, options
+        end
+
+        def citext(name, options = {})
+          column(name, 'citext', options)
         end
 
         def column(name, type = nil, options = {})
@@ -441,7 +451,8 @@ module ActiveRecord
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
         json:        { name: "json" },
-        ltree:       { name: "ltree" }
+        ltree:       { name: "ltree" },
+        citext:      { name: "citext" }
       }
 
       include Quoting
@@ -801,6 +812,12 @@ module ActiveRecord
           leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
           arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
+          # populate the enum types
+          enums, leaves = leaves.partition { |row| row['typinput'] == 'enum_in' }
+          enums.each do |row|
+            type_map[row['oid'].to_i] = OID::Enum.new
+          end
+
           # populate the base types
           leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
             type_map[row['oid'].to_i] = OID::NAMES[row['typname']]
@@ -822,7 +839,7 @@ module ActiveRecord
           # populate range types
           ranges.find_all { |row| type_map.key? row['rngsubtype'].to_i }.each do |row|
             subtype = type_map[row['rngsubtype'].to_i]
-            range = OID::Range.new type_map[row['rngsubtype'].to_i]
+            range = OID::Range.new subtype
             type_map[row['oid'].to_i] = range
           end
         end

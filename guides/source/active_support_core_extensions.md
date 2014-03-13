@@ -157,9 +157,9 @@ Active Support provides `duplicable?` to programmatically query an object about 
 
 ```ruby
 "foo".duplicable? # => true
-"".duplicable?     # => true
+"".duplicable?    # => true
 0.0.duplicable?   # => false
-false.duplicable?  # => false
+false.duplicable? # => false
 ```
 
 By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, class, and module objects.
@@ -2719,11 +2719,14 @@ The method `transform_keys` accepts a block and returns a hash that has applied 
 # => {"" => nil, "A" => :a, "1" => 1}
 ```
 
-The result in case of collision is undefined:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.transform_keys { |key| key.to_s.upcase }
-# => {"A" => 2}, in my test, can't rely on this result though
+# The result could either be
+# => {"A"=>2}
+# or
+# => {"A"=>1}
 ```
 
 This method may be useful for example to build specialized conversions. For instance `stringify_keys` and `symbolize_keys` use `transform_keys` to perform their key conversions:
@@ -2758,11 +2761,14 @@ The method `stringify_keys` returns a hash that has a stringified version of the
 # => {"" => nil, "a" => :a, "1" => 1}
 ```
 
-The result in case of collision is undefined:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.stringify_keys
-# => {"a" => 2}, in my test, can't rely on this result though
+# The result could either be
+# => {"a"=>2}
+# or
+# => {"a"=>1}
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionView::Helpers::FormHelper` defines:
@@ -2799,11 +2805,14 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 WARNING. Note in the previous example only one key was symbolized.
 
-The result in case of collision is undefined:
+In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
 
 ```ruby
 {"a" => 1, a: 2}.symbolize_keys
-# => {:a=>2}, in my test, can't rely on this result though
+# The result could either be
+# => {:a=>2}
+# or
+# => {:a=>1}
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionController::UrlRewriter` defines

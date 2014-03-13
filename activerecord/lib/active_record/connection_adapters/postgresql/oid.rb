@@ -229,6 +229,12 @@ This is not reliable and will be removed in the future.
           end
         end
 
+        class Enum < Type
+          def type_cast(value)
+            value.to_s
+          end
+        end
+
         class Hstore < Type
           def type_cast_for_write(value)
             ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
@@ -369,6 +375,7 @@ This is not reliable and will be removed in the future.
         register_type 'circle', OID::Text.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
+        register_type 'citext', OID::Text.new
         register_type 'ltree', OID::Text.new
 
         register_type 'cidr', OID::Cidr.new

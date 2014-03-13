@@ -202,7 +202,7 @@ module ActiveRecord
     # fields are retrieved:
     #
     #   Model.select(:field)
-    #   # => [#<Model field:value>]
+    #   # => [#<Model id: nil, field: "value">]
     #
     # Although in the above example it looks as though this method returns an
     # array, it actually returns a relation object and can have other query
@@ -211,12 +211,12 @@ module ActiveRecord
     # The argument to the method can also be an array of fields.
     #
     #   Model.select(:field, :other_field, :and_one_more)
-    #   # => [#<Model field: "value", other_field: "value", and_one_more: "value">]
+    #   # => [#<Model id: nil, field: "value", other_field: "value", and_one_more: "value">]
     #
     # You can also use one or more strings, which will be used unchanged as SELECT fields.
     #
     #   Model.select('field AS field_one', 'other_field AS field_two')
-    #   # => [#<Model field: "value", other_field: "value">]
+    #   # => [#<Model id: nil, field: "value", other_field: "value">]
     #
     # If an alias was specified, it will be accessible from the resulting objects:
     #
@@ -224,7 +224,7 @@ module ActiveRecord
     #   # => "value"
     #
     # Accessing attributes of an object that do not have fields retrieved by a select
-    # will throw <tt>ActiveModel::MissingAttributeError</tt>:
+    # except +id+ will throw <tt>ActiveModel::MissingAttributeError</tt>:
     #
     #   Model.select(:field).first.other_field
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
@@ -275,15 +275,6 @@ module ActiveRecord
 
     # Allows to specify an order attribute:
     #
-    #   User.order('name')
-    #   => SELECT "users".* FROM "users" ORDER BY name
-    #
-    #   User.order('name DESC')
-    #   => SELECT "users".* FROM "users" ORDER BY name DESC
-    #
-    #   User.order('name DESC, email')
-    #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
-    #
     #   User.order(:name)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
     #
@@ -292,6 +283,15 @@ module ActiveRecord
     #
     #   User.order(:name, email: :desc)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+    #
+    #   User.order('name')
+    #   => SELECT "users".* FROM "users" ORDER BY name
+    #
+    #   User.order('name DESC')
+    #   => SELECT "users".* FROM "users" ORDER BY name DESC
+    #
+    #   User.order('name DESC, email')
+    #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
     def order(*args)
       check_if_method_has_arguments!(:order, args)
       spawn.order!(*args)
@@ -1065,10 +1065,15 @@ module ActiveRecord
       arel.order(*orders) unless orders.empty?
     end
 
+    VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
+                        'asc', 'desc', 'ASC', 'DESC'] # :nodoc:
+
     def validate_order_args(args)
-      args.grep(Hash) do |h|
-        unless (h.values - [:asc, :desc]).empty?
-          raise ArgumentError, 'Direction should be :asc or :desc'
+      args.each do |arg|
+        next unless arg.is_a?(Hash)
+        arg.each do |_key, value|
+          raise ArgumentError, "Direction \"#{value}\" is invalid. Valid " \
+                               "directions are: #{VALID_DIRECTIONS.inspect}" unless VALID_DIRECTIONS.include?(value)
         end
       end
     end
@@ -1090,7 +1095,7 @@ module ActiveRecord
         when Hash
           arg.map { |field, dir|
             field = klass.attribute_alias(field) if klass.attribute_alias?(field)
-            table[field].send(dir)
+            table[field].send(dir.downcase)
           }
         else
           arg

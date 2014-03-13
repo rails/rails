@@ -152,6 +152,13 @@ module ActionDispatch
       Http::Headers.new(@env)
     end
 
+    # Returns a +String+ with the last requested path including their params.
+    #
+    #    # get '/foo'
+    #    request.original_fullpath # => '/foo'
+    #
+    #    # get '/foo?bar'
+    #    request.original_fullpath # => '/foo?bar'
     def original_fullpath
       @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
     end

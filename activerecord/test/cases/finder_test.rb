@@ -58,15 +58,25 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(45)
     assert_equal false, Topic.exists?(Topic.new)
 
-    begin
-      assert_equal false, Topic.exists?("foo")
-    rescue ActiveRecord::StatementInvalid
-      # PostgreSQL complains about string comparison with integer field
-    rescue Exception
-      flunk
+    assert_raise(NoMethodError) { Topic.exists?([1,2]) }
+  end
+
+  def test_exists_fails_when_parameter_has_invalid_type
+    if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter)
+      assert_raises ActiveRecord::StatementInvalid do
+        Topic.exists?(("9"*53).to_i) # number that's bigger than int
+      end
+    else
+      assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
     end
 
-    assert_raise(NoMethodError) { Topic.exists?([1,2]) }
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_raises ActiveRecord::StatementInvalid do
+        Topic.exists?("foo")
+      end
+    else
+      assert_equal false, Topic.exists?("foo")
+    end
   end
 
   def test_exists_does_not_select_columns_without_alias

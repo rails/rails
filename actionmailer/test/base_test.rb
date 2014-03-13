@@ -13,6 +13,7 @@ class BaseTest < ActiveSupport::TestCase
   def teardown
     ActionMailer::Base.asset_host = nil
     ActionMailer::Base.assets_dir = nil
+    ActionMailer::Base.preview_interceptors.clear
   end
 
   test "method call to mail does not raise error" do

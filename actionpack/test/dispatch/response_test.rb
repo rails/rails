@@ -235,14 +235,6 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal @response.body, body.each.to_a.join
     end
   end
-
-  test "does not add default content-type if Content-Type is none" do
-    resp = ActionDispatch::Response.new.tap { |response|
-      response.no_content_type = true
-    }
-
-    assert_not resp.headers.has_key?('Content-Type')
-  end
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest

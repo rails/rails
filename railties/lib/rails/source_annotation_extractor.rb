@@ -115,7 +115,7 @@ class SourceAnnotationExtractor
   # Prints the mapping from filenames to annotations in +results+ ordered by filename.
   # The +options+ hash is passed to each annotation's +to_s+.
   def display(results, options={})
-    options[:indent] = results.map { |f, a| a.map(&:line) }.flatten.max.to_s.size
+    options[:indent] = results.flat_map { |f, a| a.map(&:line) }.max.to_s.size
     results.keys.sort.each do |file|
       puts "#{file}:"
       results[file].each do |note|

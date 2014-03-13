@@ -258,6 +258,29 @@ module ActionController
     end
   end
 
+  class LiveTestResponse < Live::Response
+    def recycle!
+      @body = nil
+      initialize
+    end
+
+    def body
+      @body ||= super
+    end
+
+    # Was the response successful?
+    alias_method :success?, :successful?
+
+    # Was the URL not found?
+    alias_method :missing?, :not_found?
+
+    # Were we redirected?
+    alias_method :redirect?, :redirection?
+
+    # Was there a server-side error?
+    alias_method :error?, :server_error?
+  end
+
   # Methods #destroy and #load! are overridden to avoid calling methods on the
   # @store object, which does not exist for the TestSession class.
   class TestSession < Rack::Session::Abstract::SessionHash #:nodoc:
@@ -572,7 +595,9 @@ module ActionController
         @controller.process(name)
 
         if cookies = @request.env['action_dispatch.cookies']
-          cookies.write(@response)
+          unless @response.committed?
+            cookies.write(@response)
+          end
         end
         @response.prepare!
 
@@ -583,13 +608,14 @@ module ActionController
       end
 
       def setup_controller_request_and_response
-        @request          = build_request
-        @response         = build_response
-        @response.request = @request
-
         @controller = nil unless defined? @controller
 
+        response_klass = TestResponse
+
         if klass = self.class.controller_class
+          if klass < ActionController::Live
+            response_klass = LiveTestResponse
+          end
           unless @controller
             begin
               @controller = klass.new
@@ -598,6 +624,10 @@ module ActionController
             end
           end
         end
+
+        @request          = build_request
+        @response         = build_response response_klass
+        @response.request = @request
 
         if @controller
           @controller.request = @request
@@ -609,8 +639,8 @@ module ActionController
         TestRequest.new
       end
 
-      def build_response
-        TestResponse.new
+      def build_response(klass)
+        klass.new
       end
 
       included do

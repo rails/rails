@@ -27,11 +27,11 @@ module Rails
         #   end
         # end
         def generate_routing_code(action)
-          depth = class_path.length
+          depth = regular_class_path.length
           # Create 'namespace' ladder
           # namespace :foo do
           #   namespace :bar do
-          namespace_ladder = class_path.each_with_index.map do |ns, i|
+          namespace_ladder = regular_class_path.each_with_index.map do |ns, i|
             indent("namespace :#{ns} do\n", i * 2)
           end.join
 

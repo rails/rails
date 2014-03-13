@@ -674,7 +674,11 @@ ActiveRecord::Schema.define do
     t.string   :title
     t.string   :author_name
     t.string   :author_email_address
-    t.datetime :written_on
+    if mysql_56?
+      t.datetime :written_on, limit: 6
+    else
+      t.datetime :written_on
+    end
     t.time     :bonus_time
     t.date     :last_read
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in

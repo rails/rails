@@ -41,6 +41,11 @@ def in_memory_db?
   ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
 end
 
+def mysql_56?
+  current_adapter?(:Mysql2Adapter) &&
+    ActiveRecord::Base.connection.send(:version).join(".") >= "5.6.0"
+end
+
 def supports_savepoints?
   ActiveRecord::Base.connection.supports_savepoints?
 end

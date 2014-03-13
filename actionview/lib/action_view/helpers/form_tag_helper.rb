@@ -465,17 +465,23 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
-      #   button_tag "Checkout", data: { :disable_with => "Please wait..." }
+      #   button_tag "Checkout", data: { disable_with: "Please wait..." }
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
-        options = content_or_options if block_given? && content_or_options.is_a?(Hash)
-        options ||= {}
-        options = options.stringify_keys
+        if content_or_options.is_a? Hash
+          options = content_or_options
+        else
+          options ||= {}
+        end
 
-        options.reverse_merge! 'name' => 'button', 'type' => 'submit'
+        options = { 'name' => 'button', 'type' => 'submit' }.merge!(options.stringify_keys)
 
-        content_tag :button, content_or_options || 'Button', options, &block
+        if block_given?
+          content_tag :button, options, &block
+        else
+          content_tag :button, content_or_options || 'Button', options
+        end
       end
 
       # Displays an image which when clicked will submit the form.
