@@ -128,7 +128,11 @@ module ActiveRecord
                         ids.first.kind_of?(Array)
 
         id  = ids.first
-        id  = id.id if ActiveRecord::Base === id
+        if ActiveRecord::Base === id
+          id = id.id
+          ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `find`." \
+            "Please pass the id of the object by calling `.id`"
+        end
         key = primary_key
 
         s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
