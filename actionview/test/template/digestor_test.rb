@@ -36,6 +36,10 @@ class FixtureFinder
 
     FixtureTemplate.new("digestor/#{partial_name}.#{format}.erb")
   end
+
+  def disable_cache(&block)
+    yield
+  end
 end
 
 class TemplateDigestorTest < ActionView::TestCase
