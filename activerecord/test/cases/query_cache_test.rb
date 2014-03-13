@@ -118,6 +118,14 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert ActiveRecord::Base.connection.query_cache.empty?, 'cache should be empty'
   end
 
+  def test_cache_passing_a_relation
+    post = Post.first
+    Post.cache do
+      query = post.categories.select(:post_id)
+      assert Post.connection.select_all(query).is_a?(ActiveRecord::Result)
+    end
+  end
+
   def test_find_queries
     assert_queries(2) { Task.find(1); Task.find(1) }
   end

@@ -63,6 +63,7 @@ module ActiveRecord
 
       def select_all(arel, name = nil, binds = [])
         if @query_cache_enabled && !locked?(arel)
+          arel, binds = binds_from_relation arel, binds
           sql = to_sql(arel, binds)
           cache_sql(sql, binds) { super(sql, name, binds) }
         else

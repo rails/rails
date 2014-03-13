@@ -1,3 +1,9 @@
+*   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
+
+    Fixes #14361.
+
+    *arthurnn*
+
 *   Only save has_one associations if record has changes.
     Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
     object did not get saved to the db.
