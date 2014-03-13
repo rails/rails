@@ -40,7 +40,7 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil)
-        arel, binds = binds_from_relation arel
+        arel, binds = binds_from_relation arel, []
         select_rows(to_sql(arel, binds), name, binds).map(&:first)
       end
 
@@ -380,7 +380,7 @@ module ActiveRecord
           row && row.first
         end
 
-        def binds_from_relation(relation, binds = [])
+        def binds_from_relation(relation, binds)
           if relation.is_a?(Relation) && binds.blank?
             relation, binds = relation.arel, relation.bind_values
           end
