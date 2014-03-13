@@ -421,7 +421,11 @@ module ActiveRecord
     end
 
     def find_one(id)
-      id = id.id if ActiveRecord::Base === id
+      if ActiveRecord::Base === id
+        id = id.id
+        ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `find`." \
+          "Please pass the id of the object by calling `.id`"
+      end
 
       column = columns_hash[primary_key]
       substitute = connection.substitute_at(column, bind_values.length)

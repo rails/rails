@@ -1,3 +1,6 @@
+* Passing an Active Record object to `find` is now deprecated.  Call `.id`
+  on the object first.
+
 * Passing an Active Record object to `exists?` is now deprecated.  Call `.id`
   on the object first.
 

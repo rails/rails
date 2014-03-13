@@ -637,7 +637,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_with_list_of_ar
     author = Author.first
-    authors = Author.find([author])
+    authors = Author.find([author.id])
     assert_equal author, authors.first
   end
 
