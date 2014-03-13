@@ -1,3 +1,10 @@
+*   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
+
+    Fixes #14361.
+
+    *arthurnn*
+
+
 ## Rails 4.0.4 ##
 
 *   Only save has_one associations if record has changes.
