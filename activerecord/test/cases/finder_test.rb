@@ -61,6 +61,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
 
+  def test_exists_passing_active_record_object_is_deprecated
+    assert_deprecated do
+      Topic.exists?(Topic.new)
+    end
+  end
+
   def test_exists_fails_when_parameter_has_invalid_type
     if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter)
       assert_raises ActiveRecord::StatementInvalid do
