@@ -370,7 +370,7 @@ module ActiveRecord
           if record.new_record?
             include_in_memory?(record)
           else
-            loaded? ? target.include?(record) : scope.exists?(record)
+            loaded? ? target.include?(record) : scope.exists?(record.id)
           end
         else
           false
