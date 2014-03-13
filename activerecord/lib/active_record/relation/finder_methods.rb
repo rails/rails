@@ -292,11 +292,8 @@ module ActiveRecord
       when Array, Hash
         relation = relation.where(conditions)
       else
-        if conditions != :none
-          column = columns_hash[primary_key]
-          substitute = connection.substitute_at(column, bind_values.length)
-          relation = where(table[primary_key].eq(substitute))
-          relation.bind_values += [[column, conditions]]
+        unless conditions == :none
+          relation = where(primary_key => conditions)
         end
       end
 
