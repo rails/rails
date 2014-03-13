@@ -1,3 +1,6 @@
+* Passing an Active Record object to `exists?` is now deprecated.  Call `.id`
+  on the object first.
+
 *   Only use BINARY for mysql case sensitive uniqueness check when column has a case insensitive collation.
 
     *Ryuta Kamizono*

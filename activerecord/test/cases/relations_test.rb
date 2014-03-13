@@ -769,7 +769,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! davids.exists?(authors(:mary).id)
     assert ! davids.exists?("42")
     assert ! davids.exists?(42)
-    assert ! davids.exists?(davids.new)
+    assert ! davids.exists?(davids.new.id)
 
     fake  = Author.where(:name => 'fake author')
     assert ! fake.exists?

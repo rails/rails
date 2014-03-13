@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module ActiveRecord
   module FinderMethods
     ONE_AS_ONE = '1 AS one'
@@ -280,7 +282,12 @@ module ActiveRecord
     #   Person.exists?(false)
     #   Person.exists?
     def exists?(conditions = :none)
-      conditions = conditions.id if Base === conditions
+      if Base === conditions
+        conditions = conditions.id
+        ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `exists?`." \
+          "Please pass the id of the object by calling `.id`"
+      end
+
       return false if !conditions
 
       relation = apply_join_dependency(self, construct_join_dependency)

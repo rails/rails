@@ -56,7 +56,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.exists?(id: [1, 9999])
 
     assert_equal false, Topic.exists?(45)
-    assert_equal false, Topic.exists?(Topic.new)
+    assert_equal false, Topic.exists?(Topic.new.id)
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
