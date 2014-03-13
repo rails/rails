@@ -125,9 +125,11 @@ module ActionController
       end
 
       def each
+        @response.sending!
         while str = @buf.pop
           yield str
         end
+        @response.sent!
       end
 
       def close
@@ -179,12 +181,16 @@ module ActionController
 
       private
 
-      def finalize_response
+      def before_committed
         super
         jar = request.cookie_jar
         # The response can be committed multiple times
         jar.write self unless committed?
-        jar.commit!
+      end
+
+      def before_sending
+        super
+        request.cookie_jar.commit!
         headers.freeze
       end
 
