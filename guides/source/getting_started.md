@@ -751,8 +751,8 @@ Rails has several security features that help you write secure applications,
 and you're running into one of them now. This one is called
 `strong_parameters`, which requires us to tell Rails exactly which parameters
 we want to accept in our controllers. In this case, we want to allow the
-`title` and `text` parameters, so change your `create` controller action to
-look like this:
+`title` and `text` parameters, so add the new `article_params` method, and
+change your `create` controller action to use it, like this:
 
 ```ruby
 def create
@@ -900,7 +900,7 @@ Also add a link in `app/views/articles/new.html.erb`, underneath the form, to
 go back to the `index` action:
 
 ```erb
-<%= form_for :article do |f| %>
+<%= form_for :article, url: articles_path do |f| %>
   ...
 <% end %>
 
