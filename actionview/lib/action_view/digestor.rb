@@ -18,7 +18,7 @@ module ActionView
       # * <tt>dependencies</tt>  - An array of dependent views
       # * <tt>partial</tt>  - Specifies whether the template is a partial
       def digest(*args)
-        options = _setup_options(*args)
+        options = _options_for_digest(*args)
 
         details_key = options[:finder].details_key.hash
         dependencies = Array.wrap(options[:dependencies])
@@ -33,7 +33,7 @@ module ActionView
         end
       end
 
-      def _setup_options(*args)
+      def _options_for_digest(*args)
         unless args.first.is_a?(Hash)
           ActiveSupport::Deprecation.warn("Arguments to ActionView::Digestor should be provided as a hash. The support for regular arguments will be removed in Rails 5.0 or later")
 
@@ -76,7 +76,7 @@ module ActionView
     attr_reader :name, :format, :variant, :finder, :options
 
     def initialize(*args)
-      @options = self.class._setup_options(*args)
+      @options = self.class._options_for_digest(*args)
 
       @name = @options.delete(:name)
       @format = @options.delete(:format)
