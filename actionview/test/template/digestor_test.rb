@@ -16,10 +16,12 @@ class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
   attr_reader   :details
+  attr_accessor :formats
   attr_accessor :variants
 
   def initialize
     @details  = {}
+    @formats  = []
     @variants = []
   end
 
@@ -27,9 +29,9 @@ class FixtureFinder
     details.hash
   end
 
-  def find(logical_name, keys, partial, options)
-    partial_name = partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name
-    format = options[:formats].first.to_s
+  def find(name, prefixes = [], partial = false, keys = [], options = {})
+    partial_name = partial ? name.gsub(%r|/([^/]+)$|, '/_\1') : name
+    format = @formats.first.to_s
     format += "+#{@variants.first}" if @variants.any?
 
     FixtureTemplate.new("digestor/#{partial_name}.#{format}.erb")
@@ -288,6 +290,9 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def digest(template_name, options = {})
       options = options.dup
+      finder.formats = [:html]
+      finder.variants = [options[:variant]] if options[:variant].present?
+
       ActionView::Digestor.digest({ name: template_name, format: :html, finder: finder }.merge(options))
     end
 
