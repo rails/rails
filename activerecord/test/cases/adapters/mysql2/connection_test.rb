@@ -8,9 +8,8 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
   end
 
-  def teardown
+  teardown do
     ActiveSupport::Notifications.unsubscribe(@subscriber)
-    super
   end
 
   def test_bad_connection
