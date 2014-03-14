@@ -145,9 +145,8 @@ module ActiveRecord
       # be chained. Since << flattens its argument list and inserts each record,
       # +push+ and +concat+ behave identically.
       def concat(*records)
-        load_target if owner.new_record?
-
         if owner.new_record?
+          load_target
           concat_records(records)
         else
           transaction { concat_records(records) }
