@@ -205,6 +205,19 @@ class LookupContextTest < ActiveSupport::TestCase
     @lookup_context.prefixes = ["foo"]
     assert_equal ["foo"], @lookup_context.prefixes
   end
+
+  test "with_formats_and_variants preserves original values after execution" do
+    @lookup_context.formats = [:html]
+    @lookup_context.variants = [:phone]
+
+    @lookup_context.with_formats_and_variants([:xml], [:tablet]) do
+      assert_equal [:xml], @lookup_context.formats
+      assert_equal [:tablet], @lookup_context.variants
+    end
+
+    assert_equal [:html], @lookup_context.formats
+    assert_equal [:phone], @lookup_context.variants
+  end
 end
 
 class LookupContextWithFalseCaching < ActiveSupport::TestCase

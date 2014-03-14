@@ -122,11 +122,8 @@ module ActionView
 
       def template
         @template ||= begin
-          finder.formats  = [format]
-          finder.variants = [variant]
-
-          finder.disable_cache do
-            finder.find(logical_name, [], partial?)
+          finder.with_formats_and_variants([format], [variant]) do
+            finder.disable_cache { finder.find(logical_name, [], partial?) }
           end
         end
       end

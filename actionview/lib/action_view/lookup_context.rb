@@ -246,5 +246,13 @@ module ActionView
         end
       end
     end
+
+    def with_formats_and_variants(new_formats, new_variants)
+      old_formats, old_variants = formats, variants
+      self.formats, self.variants = new_formats, new_variants
+      yield
+    ensure
+      self.formats, self.variants = old_formats, old_variants
+    end
   end
 end
