@@ -40,14 +40,6 @@ class FixtureFinder
   def disable_cache(&block)
     yield
   end
-
-  def with_formats_and_variants(new_formats, new_variants)
-    old_formats, old_variants = formats, variants
-    self.formats, self.variants = new_formats, new_variants
-    yield
-  ensure
-    self.formats, self.variants = old_formats, old_variants
-  end
 end
 
 class TemplateDigestorTest < ActionView::TestCase
