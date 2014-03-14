@@ -14,7 +14,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     I18n.backend.store_translations('en', :errors => {:messages => {:custom => nil}})
   end
 
-  def teardown
+  teardown do
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
   end

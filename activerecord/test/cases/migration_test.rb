@@ -33,7 +33,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.schema_cache.clear!
   end
 
-  def teardown
+  teardown do
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
 
@@ -585,7 +585,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       Person.reset_sequence_name
     end
 
-    def teardown
+    teardown do
       Person.connection.drop_table(:delete_me) rescue nil
     end
 

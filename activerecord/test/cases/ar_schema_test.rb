@@ -10,7 +10,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::SchemaMigration.drop_table
     end
 
-    def teardown
+    teardown do
       @connection.drop_table :fruits rescue nil
       @connection.drop_table :nep_fruits rescue nil
       @connection.drop_table :nep_schema_migrations rescue nil

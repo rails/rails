@@ -339,7 +339,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     ActiveSupport::Dependencies.log_activity = true
   end
 
-  def teardown
+  teardown do
     ActiveSupport::Dependencies.log_activity = false
     self.class.const_remove :FirmOnTheFly rescue nil
     Firm.const_remove :FirmOnTheFly rescue nil

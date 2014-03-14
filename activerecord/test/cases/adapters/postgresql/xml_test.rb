@@ -23,7 +23,7 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
     @column = XmlDataType.columns.find { |c| c.name == 'payload' }
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists xml_data_type'
   end
 

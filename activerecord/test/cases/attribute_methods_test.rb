@@ -22,7 +22,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     @target.table_name = 'topics'
   end
 
-  def teardown
+  teardown do
     ActiveRecord::Base.send(:attribute_method_matchers).clear
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end

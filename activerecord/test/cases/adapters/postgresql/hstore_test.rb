@@ -31,7 +31,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     @column = Hstore.columns.find { |c| c.name == 'tags' }
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists hstores'
   end
 

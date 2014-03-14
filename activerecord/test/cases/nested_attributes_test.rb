@@ -28,7 +28,7 @@ end
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   include AssertRaiseWithMessage
 
-  def teardown
+  teardown do
     Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 

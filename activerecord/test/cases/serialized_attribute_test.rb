@@ -10,8 +10,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   MyObject = Struct.new :attribute1, :attribute2
 
-  def teardown
-    super
+  teardown do
     Topic.serialize("content")
   end
 
