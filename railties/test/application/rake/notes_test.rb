@@ -175,6 +175,11 @@ module ApplicationTests
         end
       end
 
+      test 'register a new extension' do
+        SourceAnnotationExtractor::Annotation.register_extensions(".test1", ".test2") { |tag| /#{tag}/ }
+        assert SourceAnnotationExtractor::Annotation.extensions[/(\.test1|\.test2)/]
+      end
+
       private
       def boot_rails
         super
