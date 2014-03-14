@@ -7,7 +7,7 @@
 
     *Birkir A. Barkarson*
 
-*   Re-enable support for iterating over `DateTIme` ranges
+*   Re-enable support for iterating over `DateTime` ranges
 
     Fixes #13667.
 
