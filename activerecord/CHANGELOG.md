@@ -5,7 +5,7 @@
     *arthurnn*
 
 
-## Rails 4.0.4 ##
+## Rails 4.0.4 (March 14, 2014) ##
 
 *   Only save has_one associations if record has changes.
     Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one

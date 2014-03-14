@@ -68,7 +68,7 @@ end
 
 namespace :changelog do
   task :release_date do
-    FRAMEWORKS.each do |fw|
+    FRAMEWORKS + ['guides'].each do |fw|
       require 'date'
       replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
       fname = File.join fw, 'CHANGELOG.md'
@@ -102,7 +102,7 @@ namespace :all do
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
-    unless ENV['SKIP_TAG'] || `git tag | grep #{tag}`.strip.empty?
+    unless ENV['SKIP_TAG'] || `git tag | grep '^#{tag}$`.strip.empty?
       abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
     end
