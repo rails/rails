@@ -14,7 +14,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     def dump_params_keys(hash = params)
       hash.keys.sort.inject("") do |s, k|
         value = hash[k]
-        value = Hash === value ? "(#{dump_params_keys(value)})" : ""
+        value = value.respond_to?(:to_hash) ? "(#{dump_params_keys(value.to_hash)})" : ""
         s << ", " unless s.empty?
         s << "#{k}#{value}"
       end

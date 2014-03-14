@@ -151,8 +151,8 @@ module ActionDispatch
         case options
         when nil
           _routes.url_for(url_options.symbolize_keys)
-        when Hash
-          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
+        when Hash, ActionController::Parameters
+          _routes.url_for(options.to_hash.symbolize_keys.reverse_merge!(url_options))
         when String
           options
         when Array

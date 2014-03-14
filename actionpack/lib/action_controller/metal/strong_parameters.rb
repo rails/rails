@@ -90,20 +90,32 @@ module ActionController
   #   params.permit(:c)
   #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
-  # <tt>ActionController::Parameters</tt> is inherited from
+  # <tt>ActionController::Parameters</tt> is acting like
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
   # that you can fetch values using either <tt>:key</tt> or <tt>"key"</tt>.
   #
   #   params = ActionController::Parameters.new(key: 'value')
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
-  class Parameters < ActiveSupport::HashWithIndifferentAccess
+  class Parameters
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
     # Never raise an UnpermittedParameters exception because of these params
     # are present. They are added by Rails and it's of no concern.
     NEVER_UNPERMITTED_PARAMS = %w( controller action )
+
+    delegate :==, :===, :has_key?, :keys, :each_pair, :[]=,
+      :each, :empty?, :values_at, to: :@parameters
+
+    # Convert to a HashWithIndifferentAccess which does not contain permitted
+    # status. You should be careful when passing the resulting hash to a model
+    # as they may still contains parameters that is not permitted.
+    def to_h
+      @parameters.dup
+    end
+
+    alias_method :to_hash, :to_h
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -121,9 +133,9 @@ module ActionController
     #   params = ActionController::Parameters.new(name: 'Francesco')
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
-    def initialize(attributes = nil)
-      super(attributes)
-      @permitted = self.class.permit_all_parameters
+    def initialize(attributes = {}, permitted = self.class.permit_all_parameters)
+      @parameters = HashWithIndifferentAccess.new(attributes)
+      @permitted = permitted
     end
 
     # Attribute that keeps track of converted arrays, if any, to avoid double
@@ -279,7 +291,7 @@ module ActionController
     #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)
-      convert_hashes_to_parameters(key, super)
+      convert_hashes_to_parameters(key, @parameters[key])
     end
 
     # Returns a parameter for the given +key+. If the +key+
@@ -293,8 +305,8 @@ module ActionController
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param not found: none
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
-    def fetch(key, *args)
-      convert_hashes_to_parameters(key, super, false)
+    def fetch(key, *args, &block)
+      convert_hashes_to_parameters(key, @parameters.fetch(key, *args, &block), false)
     rescue KeyError
       raise ActionController::ParameterMissing.new(key)
     end
@@ -307,31 +319,56 @@ module ActionController
     #   params.slice(:a, :b) # => {"a"=>1, "b"=>2}
     #   params.slice(:d)     # => {}
     def slice(*keys)
-      self.class.new(super).tap do |new_instance|
-        new_instance.permitted = @permitted
-      end
+      new_with_parameters(@parameters.slice(*keys))
     end
 
-    # Returns an exact copy of the <tt>ActionController::Parameters</tt>
-    # instance. +permitted+ state is kept on the duped object.
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # deletes every key-value pair for which block evaluates to true.
     #
-    #   params = ActionController::Parameters.new(a: 1)
-    #   params.permit!
-    #   params.permitted?        # => true
-    #   copy_params = params.dup # => {"a"=>1}
-    #   copy_params.permitted?   # => true
-    def dup
-      super.tap do |duplicate|
-        duplicate.permitted = @permitted
-      end
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.delete_if { |k,v| v > 2 } # => {"a"=>1, "b"=>2}
+    def delete_if(&block)
+      new_with_parameters(@parameters.delete_if(&block))
     end
 
-    protected
-      def permitted=(new_permitted)
-        @permitted = new_permitted
-      end
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # keeps every key-value pair for which block evaluates to true.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.keep_if { |k,v| v > 2 }  # => {"c"=>3}
+    def keep_if(&block)
+      new_with_parameters(@parameters.keep_if(&block))
+    end
+
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # contains the contents of other_hash and the contents of itself.
+    #
+    # If no block is specified, the value for entries with duplicate keys will
+    # be that of other_hash. Otherwise the value for each duplicate key is\
+    # determined by calling the block with the key, its value in itself and
+    # its value in other_hash.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.merge(d: 4)  # => {"a"=>1, "b"=>2, "c"=>3, "d"=>4}
+    def merge(other_hash, &block)
+      new_with_parameters(@parameters.merge(other_hash, &block))
+    end
+
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # includes everything but the given keys. This is useful for limiting a
+    # set of parameters to everything but a few known toggles:
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.except(:c)    # => {"a"=>1, "b"=>2}
+    def except(*keys)
+      new_with_parameters(@parameters.except(*keys))
+    end
 
     private
+      def new_with_parameters(parameters)
+        self.class.new(parameters, @permitted)
+      end
+
       def convert_hashes_to_parameters(key, value, assign_if_converted=true)
         converted = convert_value_to_parameters(value)
         self[key] = converted if assign_if_converted && !converted.equal?(value)

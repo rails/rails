@@ -619,7 +619,7 @@ module ApplicationTests
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
         def create
-          render text: params[:post].inspect
+          render text: params[:post].to_hash.inspect
         end
       end
       RUBY
