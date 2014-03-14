@@ -185,22 +185,22 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     FileUtils.cd destination_root
     quietly { system 'bundle install' }
-    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
+    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
   end
 
   def test_ensure_that_tests_works_in_full_mode
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     quietly { system 'bundle install' }
-    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
+    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
   end
 
   def test_ensure_that_migration_tasks_work_with_mountable_option
     run_generator [destination_root, "--mountable"]
     FileUtils.cd destination_root
     quietly { system 'bundle install' }
-    `bundle exec rake db:migrate`
-    assert_equal 0, $?.exitstatus
+    output = `bundle exec rake db:migrate 2>&1`
+    assert $?.success?, "Command failed: #{output}"
   end
 
   def test_creating_engine_in_full_mode
