@@ -34,6 +34,11 @@ module ActiveRecord
   #     store_accessor :settings, :privileges, :servants
   #   end
   #
+  #   #Store accessor accepts an optional suffix to avoid name collisions
+  #   class UserWithAvatar < User
+  #     store_accessor :avatars, :small, :medium, :large, suffix: '_avatar'
+  #   end
+  #
   # The stored attribute names can be retrieved using +stored_attributes+.
   #
   #   User.stored_attributes[:settings] # [:color, :homepage]
@@ -73,6 +78,12 @@ module ActiveRecord
 
       def store_accessor(store_attribute, *keys)
         keys = keys.flatten
+
+        if keys.last.is_a?(Hash)
+          options = keys.pop
+          suffix = options[:suffix]
+          keys = keys.map { |key| "#{key}#{suffix}" }
+        end
 
         _store_accessors_module.module_eval do
           keys.each do |key|

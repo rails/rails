@@ -6,7 +6,7 @@ class StoreTest < ActiveRecord::TestCase
   fixtures :'admin/users'
 
   setup do
-    @john = Admin::User.create!(:name => 'John Doe', :color => 'black', :remember_login => true, :height => 'tall', :is_a_good_guy => true)
+    @john = Admin::User.create!(:name => 'John Doe', :color => 'black', :remember_login => true, :height => 'tall', :is_a_good_guy => true, :small_avatar => 'small_avatar')
   end
 
   test "reading store attributes through accessors" do
@@ -149,5 +149,22 @@ class StoreTest < ActiveRecord::TestCase
 
   test "all stored attributes are returned" do
     assert_equal [:color, :homepage, :favorite_food], Admin::User.stored_attributes[:settings]
+  end
+
+  test "suffixed store will add suffixed methods" do
+    assert @john.respond_to?(:small_avatar)
+    assert @john.respond_to?(:medium_avatar)
+    assert @john.respond_to?(:large_avatar)
+  end
+
+  test "reading store attributes suffixed through accessors" do
+    assert_equal 'small_avatar', @john.small_avatar
+    assert_nil @john.large_avatar
+  end
+
+  test "writing suffixed store attributes through accessors" do
+    @john.small_avatar = 'big_avatar'
+
+    assert_equal 'big_avatar', @john.small_avatar
   end
 end

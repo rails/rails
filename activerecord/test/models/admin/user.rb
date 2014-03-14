@@ -16,6 +16,8 @@ class Admin::User < ActiveRecord::Base
   belongs_to :account
   store :settings, :accessors => [ :color, :homepage ]
   store_accessor :settings, :favorite_food
+  store :avatars
+  store_accessor :avatars, :small, :medium, :large, :suffix => :_avatar
   store :preferences, :accessors => [ :remember_login ]
   store :json_data, :accessors => [ :height, :weight ], :coder => Coder.new
   store :json_data_empty, :accessors => [ :is_a_good_guy ], :coder => Coder.new
