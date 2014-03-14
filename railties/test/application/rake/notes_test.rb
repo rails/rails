@@ -24,6 +24,9 @@ module ApplicationTests
         app_file "app/controllers/application_controller.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in ruby"
         app_file "lib/tasks/task.rake", "# TODO: note in rake"
         app_file 'app/views/home/index.html.builder', '# TODO: note in builder'
+        app_file 'config/locales/en.yml', '# TODO: note in yml'
+        app_file 'config/locales/en.yaml', '# TODO: note in yml'
+        app_file "app/views/home/index.ruby", "# TODO: note in ruby"
 
         boot_rails
         require 'rake'
@@ -42,8 +45,10 @@ module ApplicationTests
           assert_match(/note in css/, output)
           assert_match(/note in rake/, output)
           assert_match(/note in builder/, output)
+          assert_match(/note in yml/, output)
+          assert_match(/note in yaml/, output)
 
-          assert_equal 6, lines.size
+          assert_equal 9, lines.size
 
           lines.each do |line|
             assert_equal 4, line[0].size

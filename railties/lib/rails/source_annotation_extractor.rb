@@ -28,7 +28,7 @@ class SourceAnnotationExtractor
       self.extensions[/\.(#{extensions.join("|")})$/] = block
     end
 
-    register_extensions("builder", "rb", "rake") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
+    register_extensions("builder", "rb", "rake", "yml", "yaml", "ruby") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
     register_extensions("css", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
     register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
 
