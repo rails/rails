@@ -1,3 +1,8 @@
+*   Ensure classes which `include Enumerable` get `#to_json` in addition to
+    `#as_json`.
+
+    *Sammy Larbi*
+
 *   Change the signature of `fetch_multi` to return a hash rather than an
     array. This makes it consistent with the output of `read_multi`.
 
