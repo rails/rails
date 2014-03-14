@@ -164,6 +164,13 @@ class FunctionalCachingController < CachingController
     end
   end
 
+  def formatted_fragment_cached_with_variant
+    respond_to do |format|
+      format.html.phone
+      format.html
+    end
+  end
+
   def fragment_cached_without_digest
   end
 end
@@ -240,6 +247,20 @@ CACHED
 
     assert_equal "  <p>Builder</p>\n",
       @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached", "xml")}")
+  end
+
+
+  def test_fragment_caching_with_variant
+    @request.variant = :phone
+
+    get :formatted_fragment_cached_with_variant, :format => "html"
+    assert_response :success
+    expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
+
+    assert_equal expected_body, @response.body
+
+    assert_equal "<p>PHONE</p>",
+      @store.read("views/test.host/functional_caching/formatted_fragment_cached_with_variant/#{template_digest("functional_caching/formatted_fragment_cached_with_variant", :html, :phone)}")
   end
 
   private
