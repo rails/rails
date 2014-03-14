@@ -11,6 +11,7 @@ require 'models/author'
 require 'models/tag'
 require 'models/tagging'
 require 'models/parrot'
+require 'models/person'
 require 'models/pirate'
 require 'models/treasure'
 require 'models/price_estimate'
@@ -795,4 +796,27 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_association_with_validate_false_does_not_run_associated_validation_callbacks_on_create
+    rich_person = RichPerson.new
+
+    treasure = Treasure.new
+    treasure.rich_people << rich_person
+    treasure.valid?
+
+    assert_equal 1, treasure.rich_people.size
+    assert_nil rich_person.first_name, 'should not run associated person validation on create when validate: false'
+  end
+
+  def test_association_with_validate_false_does_not_run_associated_validation_callbacks_on_update
+    rich_person = RichPerson.create!
+    person_first_name = rich_person.first_name
+    assert_not_nil person_first_name
+
+    treasure = Treasure.new
+    treasure.rich_people << rich_person
+    treasure.valid?
+
+    assert_equal 1, treasure.rich_people.size
+    assert_equal person_first_name, rich_person.first_name, 'should not run associated person validation on update when validate: false'
+  end
 end
