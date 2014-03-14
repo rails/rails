@@ -28,11 +28,9 @@ class SourceAnnotationExtractor
       self.extensions[/\.(#{extensions.join("|")})$/] = block
     end
 
-    register_extensions("builder", "rb", "coffe", "rake") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
-    register_extensions("css", "scss", "sass", "less", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+    register_extensions("builder", "rb", "rake") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
+    register_extensions("css", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
     register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
-    register_extensions("haml") { |tag| /-\s*#\s*(#{tag}):?\s*(.*)$/ }
-    register_extensions("slim") { |tag| /\/\s*\s*(#{tag}):?\s*(.*)$/ }
 
     # Returns a representation of the annotation that looks like this:
     #
