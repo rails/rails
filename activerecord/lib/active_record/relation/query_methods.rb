@@ -168,7 +168,7 @@ module ActiveRecord
 
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
     # and should therefore be JOINed in any query rather than loaded separately.
-    # This method only works in conjuction with +includes+.
+    # This method only works in conjunction with +includes+.
     # See #includes for more details.
     #
     #   User.includes(:posts).where("posts.name = 'foo'")
