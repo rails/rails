@@ -1,4 +1,4 @@
-## Rails 4.0.4 ##
+## Rails 4.0.4 (March 14, 2014) ##
 
 *   Calling `mail()` without arguments serves as getter for the current mail
     message and keeps previously set headers.

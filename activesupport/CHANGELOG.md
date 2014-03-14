@@ -1,4 +1,4 @@
-## Rails 4.0.4 ##
+## Rails 4.0.4 (March 14, 2014) ##
 
 *   Fix parsing bugs in `XmlMini`
 
