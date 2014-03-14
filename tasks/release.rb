@@ -68,7 +68,7 @@ end
 
 namespace :changelog do
   task :release_date do
-    FRAMEWORKS.each do |fw|
+    FRAMEWORKS + ['guides'].each do |fw|
       require 'date'
       replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
       fname = File.join fw, 'CHANGELOG.md'
@@ -79,7 +79,7 @@ namespace :changelog do
   end
 
   task :release_summary do
-    FRAMEWORKS.each do |fw|
+    FRAMEWORKS + ['guides'].each do |fw|
       puts "## #{fw}"
       fname    = File.join fw, 'CHANGELOG.md'
       contents = File.readlines fname
