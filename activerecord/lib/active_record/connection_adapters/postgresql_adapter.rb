@@ -590,9 +590,9 @@ module ActiveRecord
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
-      # Clears the prepared statements cache.
+      # Clears connection session state, including prepared statements cache.
       def clear_cache!
-        @statements.clear
+        @connection.query 'DISCARD ALL'
       end
 
       # Is this connection alive and ready for queries?
@@ -610,7 +610,7 @@ module ActiveRecord
       # Close then reopen the connection.
       def reconnect!
         super
-        @connection.reset
+        @connection.reset!
         configure_connection
       end
 
