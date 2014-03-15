@@ -5,7 +5,7 @@ require 'models/developer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
-require 'models/phone'
+require 'models/movie'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -16,8 +16,8 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_persisted_after_failed_save
-    phone = Phone.create
-    assert !phone.persisted?
+    movie = Movie.create
+    assert !movie.persisted?
   end
 
   def test_raise_after_destroy
