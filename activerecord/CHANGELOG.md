@@ -1,3 +1,10 @@
+*   Fixed error where .persisted? throws SystemStackError for an unsaved model with a
+    custom primary key that didn't save due to validation error.
+
+    Fixes #14393.
+
+    *Chris Finne*
+
 *   Introduce `validate` as an alias for `valid?`.
 
     This is more intuitive when you want to run validations but don't care about the return value.
