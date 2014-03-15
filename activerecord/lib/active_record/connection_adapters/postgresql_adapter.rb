@@ -215,8 +215,6 @@ module ActiveRecord
           # Character types
           when /^(?:character varying|bpchar)(?:\(\d+\))?$/
             :string
-          when /^citext(?:\(\d+\))?$/
-            :citext
           # Binary data types
           when 'bytea'
             :binary
@@ -355,10 +353,6 @@ module ActiveRecord
         def json(name, options = {})
           column(name, 'json', options)
         end
-
-        def citext(name, options = {})
-          column(name, 'citext', options)
-        end
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
@@ -397,10 +391,6 @@ module ActiveRecord
           options[:default] = options.fetch(:default, 'uuid_generate_v4()')
           options[:primary_key] = true
           column name, type, options
-        end
-
-        def citext(name, options = {})
-          column(name, 'citext', options)
         end
 
         def column(name, type = nil, options = {})
@@ -451,8 +441,7 @@ module ActiveRecord
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
         json:        { name: "json" },
-        ltree:       { name: "ltree" },
-        citext:      { name: "citext" }
+        ltree:       { name: "ltree" }
       }
 
       include Quoting
@@ -590,9 +579,9 @@ module ActiveRecord
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
-      # Clears the prepared statements cache.
+      # Clears connection session state, including prepared statements.
       def clear_cache!
-        @statements.clear
+        @connection.query 'DISCARD ALL'
       end
 
       # Is this connection alive and ready for queries?
@@ -610,7 +599,7 @@ module ActiveRecord
       # Close then reopen the connection.
       def reconnect!
         super
-        @connection.reset
+        @connection.reset!
         configure_connection
       end
 
@@ -796,34 +785,17 @@ module ActiveRecord
         end
 
         def initialize_type_map(type_map)
-          if supports_ranges?
-            result = execute(<<-SQL, 'SCHEMA')
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype
-              FROM pg_type as t
-              LEFT JOIN pg_range as r ON oid = rngtypid
-            SQL
-          else
-            result = execute(<<-SQL, 'SCHEMA')
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput
-              FROM pg_type as t
-            SQL
-          end
-          ranges, nodes = result.partition { |row| row['typinput'] == 'range_in' }
-          leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
-          arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
+          result = execute('SELECT oid, typname, typelem, typdelim, typinput FROM pg_type', 'SCHEMA')
+          leaves, nodes = result.partition { |row| row['typelem'] == '0' }
 
-          # populate the enum types
-          enums, leaves = leaves.partition { |row| row['typinput'] == 'enum_in' }
-          enums.each do |row|
-            type_map[row['oid'].to_i] = OID::Enum.new
-          end
-
-          # populate the base types
+          # populate the leaf nodes
           leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
             type_map[row['oid'].to_i] = OID::NAMES[row['typname']]
           end
 
           records_by_oid = result.group_by { |row| row['oid'] }
+
+          arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
           # populate composite types
           nodes.each do |row|
@@ -834,13 +806,6 @@ module ActiveRecord
           arrays.find_all { |row| type_map.key? row['typelem'].to_i }.each do |row|
             array = OID::Array.new  type_map[row['typelem'].to_i]
             type_map[row['oid'].to_i] = array
-          end
-
-          # populate range types
-          ranges.find_all { |row| type_map.key? row['rngsubtype'].to_i }.each do |row|
-            subtype = type_map[row['rngsubtype'].to_i]
-            range = OID::Range.new subtype
-            type_map[row['oid'].to_i] = range
           end
         end
 
