@@ -22,8 +22,7 @@ module ActiveRecord
         end
       end
 
-      def teardown
-        super
+      teardown do
         @pool.disconnect!
       end
 

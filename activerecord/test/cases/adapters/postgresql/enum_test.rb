@@ -8,7 +8,7 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     self.table_name = "postgresql_enums"
   end
 
-  def teardown
+  teardown do
     @connection.execute 'DROP TABLE IF EXISTS postgresql_enums'
     @connection.execute 'DROP TYPE IF EXISTS mood'
   end

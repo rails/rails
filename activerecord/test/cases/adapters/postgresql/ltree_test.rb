@@ -19,7 +19,7 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
     skip "do not test on PG without ltree"
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists ltrees'
   end
 

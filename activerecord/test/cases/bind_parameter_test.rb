@@ -25,7 +25,7 @@ module ActiveRecord
       ActiveSupport::Notifications.subscribe('sql.active_record', @listener)
     end
 
-    def teardown
+    teardown do
       ActiveSupport::Notifications.unsubscribe(@listener)
     end
 

@@ -11,7 +11,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
     @specification = ActiveRecord::Base.remove_connection
   end
 
-  def teardown
+  teardown do
     @underlying = nil
     ActiveRecord::Base.establish_connection(@specification)
     load_schema if in_memory_db?

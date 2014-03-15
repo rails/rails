@@ -13,7 +13,7 @@ module ActiveRecord
         @previous_database_url = ENV.delete("DATABASE_URL")
       end
 
-      def teardown
+      teardown do
         ENV["DATABASE_URL"] = @previous_database_url
       end
 

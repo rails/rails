@@ -67,7 +67,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
   end
 
-  def teardown
+  teardown do
     [PostgresqlArray, PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
      PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone].each(&:delete_all)
   end

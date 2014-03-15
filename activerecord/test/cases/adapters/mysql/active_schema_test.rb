@@ -11,7 +11,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     end
   end
 
-  def teardown
+  teardown do
     ActiveRecord::Base.remove_connection
     ActiveRecord::Base.establish_connection(@connection)
   end
