@@ -1,3 +1,7 @@
+*   Add `include_hidden` option to `collection_check_boxes` helper.
+
+    *Vasiliy Ermolovich*
+
 *   Fixed a problem where the default options for the `button_tag` helper is not
     applied correctly.
 
