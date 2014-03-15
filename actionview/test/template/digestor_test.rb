@@ -262,8 +262,8 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_arguments_deprecation
-    assert_deprecated(/should be provided as a hash/) { ActionView::Digestor.digest('messages/show', :html, finder) }
-    assert_deprecated(/should be provided as a hash/) { ActionView::Digestor.new('messages/show', :html, finder) }
+    assert_deprecated(/will be removed/) { ActionView::Digestor.digest('messages/show', :html, finder) }
+    assert_deprecated(/will be removed/) { ActionView::Digestor.new('messages/show', :html, finder) }
   end
 
   private
