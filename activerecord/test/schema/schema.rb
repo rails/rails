@@ -816,10 +816,6 @@ ActiveRecord::Schema.define do
     t.string :employable_type
     t.integer :department_id
   end
-  create_table :phones, force: true, id: false do |t|
-    t.integer :phone_id, null: false
-    t.string :number
-  end
 
 
   except 'SQLite' do
