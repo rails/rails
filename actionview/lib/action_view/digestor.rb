@@ -17,8 +17,8 @@ module ActionView
       # * <tt>finder</tt>  - An instance of ActionView::LookupContext
       # * <tt>dependencies</tt>  - An array of dependent views
       # * <tt>partial</tt>  - Specifies whether the template is a partial
-      def digest(*args)
-        options = _options_for_digest(*args)
+      def digest(options_or_deprecated_name, *deprecated_args)
+        options = _options_for_digest(options_or_deprecated_name, *deprecated_args)
 
         details_key = options[:finder].details_key.hash
         dependencies = Array.wrap(options[:dependencies])
@@ -33,20 +33,22 @@ module ActionView
         end
       end
 
-      def _options_for_digest(*args)
-        unless args.first.is_a?(Hash)
-          ActiveSupport::Deprecation.warn("Arguments to ActionView::Digestor should be provided as a hash. The support for regular arguments will be removed in Rails 5.0 or later")
+      def _options_for_digest(options_or_deprecated_name, *deprecated_args)
+        if !options_or_deprecated_name.is_a?(Hash)
+          ActiveSupport::Deprecation.warn \
+            'ActionView::Digestor.digest changed its method signature from ' \
+            '#digest(name, format, finder, options) to #digest(options), ' \
+            'with options now including :name, :format, :finder, and ' \
+            ':variant. Please update your code to pass a Hash argument. ' \
+            'Support for the old method signature will be removed in Rails 5.0.'
 
-          {
-            name:   args.first,
-            format: args.second,
-            finder: args.third,
-          }.merge(args.fourth || {})
+          _options_for_digest (deprecated_args[2] || {}).merge \
+            name:   options_or_deprecated_name,
+            format: deprecated_args[0],
+            finder: deprecated_args[1]
         else
-          options = args.first
-          options.assert_valid_keys(:name, :format, :variant, :finder, :dependencies, :partial)
-
-          options
+          options_or_deprecated_name.assert_valid_keys(:name, :format, :variant, :finder, :dependencies, :partial)
+          options_or_deprecated_name
         end
       end
 
@@ -75,13 +77,10 @@ module ActionView
 
     attr_reader :name, :format, :variant, :finder, :options
 
-    def initialize(*args)
-      @options = self.class._options_for_digest(*args)
-
-      @name = @options.delete(:name)
-      @format = @options.delete(:format)
-      @variant = @options.delete(:variant)
-      @finder = @options.delete(:finder)
+    def initialize(options_or_deprecated_name, *deprecated_args)
+      options = self.class._options_for_digest(options_or_deprecated_name, *deprecated_args)
+      @options = options.except(:name, :format, :variant, :finder)
+      @name, @format, @variant, @finder = options.values_at(:name, :format, :variant, :finder)
     end
 
     def digest
