@@ -749,32 +749,32 @@ article. Try it! You should get an error that looks like this:
 
 Rails has several security features that help you write secure applications,
 and you're running into one of them now. This one is called
-`[strong_parameters](http://guides.rubyonrails.org/action_controller_overview.html#strong-parameters)`, 
+`[strong_parameters](http://guides.rubyonrails.org/action_controller_overview.html#strong-parameters)`,
 which requires us to tell Rails exactly which parameters are allowed into
 our controller actions.
 
 Why do you have to bother? The ability to grab and automatically assign
-all controller parameters to your model in one shot makes the programmer's 
-job easier, but this convenience also allows malicious use.  What if a 
-request to the server was crafted to look like a new article form submit 
-but also included extra fields with values that violated your applications 
-integrity? They would be 'mass assigned' into your model and then into the 
+all controller parameters to your model in one shot makes the programmer's
+job easier, but this convenience also allows malicious use. What if a
+request to the server was crafted to look like a new article form submit
+but also included extra fields with values that violated your applications
+integrity? They would be 'mass assigned' into your model and then into the
 database along with the good stuff - potentially breaking your application
 or worse.
 
-We have to whitelist our controller parameters to prevent wrongful 
-mass assignment.  In this case, we want to both allow and require the 
-`title` and `text` parameters for valid use of `create`.  The syntax for
+We have to whitelist our controller parameters to prevent wrongful
+mass assignment. In this case, we want to both allow and require the
+`title` and `text` parameters for valid use of `create`. The syntax for
 this introduces `require` and `permit`. The change will involve one line:
 
 ```ruby
   @article = Article.new(params.require(:article).permit(:title, :text))
 ```
 
-This is often factored out into its own method so it can be reused by 
+This is often factored out into its own method so it can be reused by
 multiple actions in the same controller, for example `create` and `update`.
-Above and beyond mass assignment issues, the method is often made 
-`private` to make sure it can't be called outside its intended context.  
+Above and beyond mass assignment issues, the method is often made
+`private` to make sure it can't be called outside its intended context.
 Here is the result:
 
 ```ruby
@@ -791,7 +791,7 @@ private
   end
 ```
 
-TIP: For more information, refer to the reference above and 
+TIP: For more information, refer to the reference above and
 [this blog article about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 ### Showing Articles
