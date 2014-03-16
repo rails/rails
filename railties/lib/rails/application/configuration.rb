@@ -1,6 +1,7 @@
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/file_update_checker'
 require 'rails/engine/configuration'
+require 'rails/source_annotation_extractor'
 
 module Rails
   class Application
@@ -149,6 +150,9 @@ module Rails
         end
       end
 
+      def annotations
+        SourceAnnotationExtractor::Annotation
+      end
     end
   end
 end
