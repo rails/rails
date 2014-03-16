@@ -1,3 +1,13 @@
+*   Extend Fixture $LABEL replacement to allow string interpolation
+    Example:
+
+        martin:
+          email: $LABEL@email.com
+
+        users(:martin).email # => martin@email.com
+
+    *Eric Steele*
+    
 *   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
 
     Fixes #14361.

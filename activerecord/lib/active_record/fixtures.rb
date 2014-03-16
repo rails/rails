@@ -361,6 +361,7 @@ module ActiveRecord
   #   geeksomnia:
   #     name: Geeksomnia's Account
   #     subdomain: $LABEL
+  #     email: $LABEL@email.com
   #
   # Also, sometimes (like when porting older join table fixtures) you'll need
   # to be able to get a hold of the identifier for a given label. ERB
@@ -627,7 +628,7 @@ module ActiveRecord
 
           # interpolate the fixture label
           row.each do |key, value|
-            row[key] = label if "$LABEL" == value
+            row[key] = value.gsub("$LABEL", label) if value.is_a?(String)
           end
 
           # generate a primary key if necessary
