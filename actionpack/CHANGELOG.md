@@ -1,3 +1,12 @@
+*   The method `shallow?` returns false if the parent resource is a singleton so
+    we need to check if we're not inside a nested scope before copying the :path
+    and :as options to their shallow equivalents.
+
+    Fixes #14388.
+
+    *Andrew White*
+
+
 ## Rails 4.0.4 (March 14, 2014) ##
 
 *   Fix label translation for more than 10 nested elements.
