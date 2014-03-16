@@ -1,3 +1,11 @@
+*   The method `shallow?` returns false if the parent resource is a singleton so
+    we need to check if we're not inside a nested scope before copying the :path
+    and :as options to their shallow equivalents.
+
+    Fixes #14388.
+
+    *Andrew White*
+
 *   Fix URL generation in controller tests with request-dependent
     `default_url_options` methods.
 
