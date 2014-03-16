@@ -15,7 +15,7 @@ class String
   #
   # If the optional parameter +locale+ is specified,
   # the word will be pluralized as a word of that language.
-  # By default, this parameter is set to <tt>:en</tt>.
+  # By default, this parameter is set to <tt>I18n.locale</tt>.
   # You must define your own inflection rules for languages other than English.
   #
   #   'post'.pluralize             # => "posts"
@@ -28,7 +28,7 @@ class String
   #   'apple'.pluralize(2)         # => "apples"
   #   'ley'.pluralize(:es)         # => "leyes"
   #   'ley'.pluralize(1, :es)      # => "ley"
-  def pluralize(count = nil, locale = :en)
+  def pluralize(count = nil, locale = I18n.locale)
     locale = count if count.is_a?(Symbol)
     if count == 1
       self
@@ -41,7 +41,7 @@ class String
   #
   # If the optional parameter +locale+ is specified,
   # the word will be singularized as a word of that language.
-  # By default, this parameter is set to <tt>:en</tt>.
+  # By default, this parameter is set to <tt>I18n.locale</tt>.
   # You must define your own inflection rules for languages other than English.
   #
   #   'posts'.singularize            # => "post"
@@ -51,7 +51,7 @@ class String
   #   'the blue mailmen'.singularize # => "the blue mailman"
   #   'CamelOctopi'.singularize      # => "CamelOctopus"
   #   'leyes'.singularize(:es)       # => "ley"
-  def singularize(locale = :en)
+  def singularize(locale = I18n.locale)
     ActiveSupport::Inflector.singularize(self, locale)
   end
 
