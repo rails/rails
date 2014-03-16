@@ -24,8 +24,8 @@ class SourceAnnotationExtractor
 
     # Registers new Annotations File Extensions
     #   SourceAnnotationExtractor::Annotation.register_extensions("css", "scss", "sass", "less", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
-    def self.register_extensions(*extensions, &block)
-      self.extensions[/\.(#{extensions.join("|")})$/] = block
+    def self.register_extensions(*exts, &block)
+      extensions[/\.(#{exts.join("|")})$/] = block
     end
 
     register_extensions("builder", "rb", "rake", "yml", "yaml", "ruby") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }

@@ -25,7 +25,7 @@ module ApplicationTests
         app_file "lib/tasks/task.rake", "# TODO: note in rake"
         app_file 'app/views/home/index.html.builder', '# TODO: note in builder'
         app_file 'config/locales/en.yml', '# TODO: note in yml'
-        app_file 'config/locales/en.yaml', '# TODO: note in yml'
+        app_file 'config/locales/en.yaml', '# TODO: note in yaml'
         app_file "app/views/home/index.ruby", "# TODO: note in ruby"
 
         boot_rails
@@ -40,13 +40,13 @@ module ApplicationTests
           lines = output.scan(/\[([0-9\s]+)\](\s)/)
 
           assert_match(/note in erb/, output)
-          assert_match(/note in ruby/, output)
           assert_match(/note in js/, output)
           assert_match(/note in css/, output)
           assert_match(/note in rake/, output)
           assert_match(/note in builder/, output)
           assert_match(/note in yml/, output)
           assert_match(/note in yaml/, output)
+          assert_match(/note in ruby/, output)
 
           assert_equal 9, lines.size
 
@@ -170,9 +170,9 @@ module ApplicationTests
       end
 
       test 'register a new extension' do
-        SourceAnnotationExtractor::Annotation.register_extensions(".test1", ".test2") { |tag| /#{tag}/ }
-        assert SourceAnnotationExtractor::Annotation.extensions[/(\.test1|\.test2)/]
-        assert_blank SourceAnnotationExtractor::Annotation.extensions[/(\.haml)/]
+        SourceAnnotationExtractor::Annotation.register_extensions("test1", "test2"){ |tag| /#{tag}/ }
+        assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(test1|test2)$/]
+        assert_nil SourceAnnotationExtractor::Annotation.extensions[/\.(haml)$/]
       end
 
       private
