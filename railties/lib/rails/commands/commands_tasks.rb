@@ -28,7 +28,7 @@ In addition to those, there are:
 All commands can be run with -h (or --help) for more information.
 EOT
 
-    COMMAND_WHITELIST = %(plugin generate destroy console server dbconsole application runner new version help)
+    COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole application runner new version help)
 
     def initialize(argv)
       @argv = argv
