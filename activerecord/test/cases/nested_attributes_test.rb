@@ -53,7 +53,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert pirate.birds_with_reject_all_blank.empty?
   end
 
-  def test_should_not_build_a_new_record_if_reject_all_blank_returns_false
+  def test_should_not_build_a_new_record_if_reject_all_blank_returns_true
     pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     pirate.birds_with_reject_all_blank_attributes = [{:name => '', :color => ''}]
     pirate.save!
@@ -61,7 +61,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert pirate.birds_with_reject_all_blank.empty?
   end
 
-  def test_should_build_a_new_record_if_reject_all_blank_does_not_return_false
+  def test_should_build_a_new_record_if_reject_all_blank_returns_false
     pirate = Pirate.create!(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     pirate.birds_with_reject_all_blank_attributes = [{:name => 'Tweetie', :color => ''}]
     pirate.save!
@@ -73,6 +73,12 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   def test_should_raise_an_ArgumentError_for_non_existing_associations
     assert_raise_with_message ArgumentError, "No association found for name `honesty'. Has it been defined yet?" do
       Pirate.accepts_nested_attributes_for :honesty
+    end
+  end
+
+  def test_should_raise_an_ArgumentError_for_non_supported_option
+    assert_raise_with_message ArgumentError, "Unknown key: :take_all. Valid keys are: :allow_destroy, :reject_if, :limit, :update_only" do
+      Pirate.accepts_nested_attributes_for :ship, :take_all => true
     end
   end
 
@@ -187,7 +193,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal man.interests.first.topic, man.interests[0].topic
   end
 
-  def test_allows_class_to_override_setter_and_call_super
+  def test_allows_class_to_override_writter_and_call_super
     mean_pirate_class = Class.new(Pirate) do
       accepts_nested_attributes_for :parrot
       def parrot_attributes=(attrs)
@@ -220,6 +226,11 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
   end
 
+  def teardown
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :update_only_ship, :update_only => true, :allow_destroy => false
+  end
+
   def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
     assert_raise_with_message ArgumentError, "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?" do
       Treasure.new(:name => 'pearl', :looter_attributes => {:catchphrase => "Arrr"})
@@ -245,7 +256,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_nil @pirate.ship
   end
 
-  def test_should_not_build_a_new_record_if_a_reject_if_proc_returns_false
+  def test_should_not_build_a_new_record_if_a_reject_if_proc_returns_true
     @ship.destroy
     @pirate.reload.ship_attributes = {}
 
@@ -320,8 +331,6 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.update(ship_attributes: { id: @pirate.ship.id, _destroy: '1' })
 
     assert_equal @ship, @pirate.reload.ship
-
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 
   def test_should_also_work_with_a_HashWithIndifferentAccess
@@ -351,12 +360,26 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_nil @pirate.reload.ship
   end
 
+  def test_should_not_save_the_associated_model_until_the_parent_is_saved
+    @ship.delete
+    @pirate.attributes = { :ship_attributes => { :name => 'Moby Dick' } }
+
+    assert !@pirate.ship.persisted?
+
+    @pirate.save
+
+    assert @pirate.ship.persisted?
+    assert_equal 'Moby Dick', @pirate.ship.name
+  end
+
   def test_should_automatically_enable_autosave_on_the_association
     assert Pirate.reflect_on_association(:ship).options[:autosave]
   end
 
   def test_should_accept_update_only_option
     @pirate.update(update_only_ship_attributes: { id: @pirate.ship.id, name: 'Mayflower' })
+    assert_equal @ship, @pirate.reload.ship
+    assert_equal 'Mayflower', @ship.reload.name
   end
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
@@ -396,8 +419,6 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
     assert_nil @pirate.reload.ship
     assert_raise(ActiveRecord::RecordNotFound) { Ship.find(@ship.id) }
-
-    Pirate.accepts_nested_attributes_for :update_only_ship, :update_only => true, :allow_destroy => false
   end
 
 end
@@ -409,6 +430,10 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     @ship = Ship.new(:name => 'Nights Dirty Lightning')
     @pirate = @ship.build_pirate(:catchphrase => 'Aye')
     @ship.save!
+  end
+
+  def teardown
+    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 
   def test_should_define_an_attribute_writer_method_for_the_association
@@ -430,7 +455,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     assert_nil @ship.pirate
   end
 
-  def test_should_not_build_a_new_record_if_a_reject_if_proc_returns_false
+  def test_should_not_build_a_new_record_if_a_reject_if_proc_returns_true
     @pirate.destroy
     @ship.reload.pirate_attributes = {}
 
@@ -514,8 +539,6 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: '1' })
     assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
-  ensure
-    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 
   def test_should_work_with_update_as_well
@@ -533,6 +556,15 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     assert_nothing_raised(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
     @ship.save
     assert_raise(ActiveRecord::RecordNotFound) { Pirate.find(pirate.id) }
+  end
+
+  def test_should_not_save_the_associated_model_until_the_parent_is_saved
+    @ship.pirate.delete
+
+    @ship.attributes = { :pirate_attributes => { :catchphrase => 'Arr' } }
+    assert_raise(ActiveRecord::RecordNotFound) { Pirate.find(@ship.pirate.id) }
+    @ship.save
+    assert_nothing_raised(ActiveRecord::RecordNotFound) { Pirate.find(@ship.pirate.id) }
   end
 
   def test_should_automatically_enable_autosave_on_the_association
@@ -707,7 +739,7 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal 'Grace OMalley', @pirate.send(@association_name).first.name
   end
 
-  def test_should_ignore_new_associated_records_if_a_reject_if_proc_returns_false
+  def test_should_ignore_new_associated_records_if_a_reject_if_proc_returns_true
     @alternate_params[association_getter]['baz'] = {}
     assert_no_difference("@pirate.send(@association_name).count") do
       @pirate.attributes = @alternate_params
