@@ -29,11 +29,7 @@ module ApplicationTests
         app_file "app/views/home/index.ruby", "# TODO: note in ruby"
 
         boot_rails
-        require 'rake'
-        require 'rdoc/task'
-        require 'rake/testtask'
-
-        Rails.application.load_tasks
+        load_tasks
 
         Dir.chdir(app_path) do
           output = `bundle exec rake notes`
@@ -67,12 +63,7 @@ module ApplicationTests
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
 
         boot_rails
-
-        require 'rake'
-        require 'rdoc/task'
-        require 'rake/testtask'
-
-        Rails.application.load_tasks
+        load_tasks
 
         Dir.chdir(app_path) do
           output = `bundle exec rake notes`
@@ -103,12 +94,7 @@ module ApplicationTests
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
 
         boot_rails
-
-        require 'rake'
-        require 'rdoc/task'
-        require 'rake/testtask'
-
-        Rails.application.load_tasks
+        load_tasks
 
         Dir.chdir(app_path) do
           output = `SOURCE_ANNOTATION_DIRECTORIES='some_other_dir' bundle exec rake notes`
@@ -145,12 +131,7 @@ module ApplicationTests
         EOS
 
         boot_rails
-
-        require 'rake'
-        require 'rdoc/task'
-        require 'rake/testtask'
-
-        Rails.application.load_tasks
+        load_tasks
 
         Dir.chdir(app_path) do
           output = `bundle exec rake notes_custom`
@@ -175,12 +156,7 @@ module ApplicationTests
         app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
 
         boot_rails
-
-        require 'rake'
-        require 'rdoc/task'
-        require 'rake/testtask'
-
-        Rails.application.load_tasks
+        load_tasks
 
         Dir.chdir(app_path) do
           output = `bundle exec rake notes`
@@ -192,6 +168,15 @@ module ApplicationTests
       end
 
       private
+
+      def load_tasks
+        require 'rake'
+        require 'rdoc/task'
+        require 'rake/testtask'
+
+        Rails.application.load_tasks
+      end
+
       def boot_rails
         super
         require "#{app_path}/config/environment"
