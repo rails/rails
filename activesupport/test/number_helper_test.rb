@@ -79,6 +79,9 @@ module ActiveSupport
           assert_equal("123.4%", number_helper.number_to_percentage(123.400, :precision => 3, :strip_insignificant_zeros => true))
           assert_equal("1.000,000%", number_helper.number_to_percentage(1000, :delimiter => '.', :separator => ','))
           assert_equal("1000.000  %", number_helper.number_to_percentage(1000, :format => "%n  %"))
+          assert_equal("98a%", number_helper.number_to_percentage("98a"))
+          assert_equal("NaN%", number_helper.number_to_percentage(Float::NAN))
+          assert_equal("Inf%", number_helper.number_to_percentage(Float::INFINITY))
         end
       end
 

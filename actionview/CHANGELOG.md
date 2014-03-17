@@ -1,3 +1,10 @@
+*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
+    as input.
+
+    Fixes #14405.
+
+    *Yves Senn*
+
 *   Take variants into account when calculating template digests in ActionView::Digestor.
 
     The arguments to ActionView::Digestor#digest are now being passed as a hash

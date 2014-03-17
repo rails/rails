@@ -32,8 +32,7 @@ module ActiveSupport
         end
 
         formatted_string =
-          case rounded_number
-          when BigDecimal
+          if BigDecimal === rounded_number && rounded_number.finite?
             s = rounded_number.to_s('F') + '0'*precision
             a, b = s.split('.', 2)
             a + '.' + b[0, precision]
