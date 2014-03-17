@@ -22,6 +22,7 @@ module ActiveRecord::Associations::Builder
     def add_counter_cache_callbacks(reflection)
       cache_column = reflection.counter_cache_column
       foreign_key = reflection.foreign_key
+      klass = reflection.class_name.safe_constantize
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def belongs_to_counter_cache_after_create_for_#{name}
@@ -43,8 +44,8 @@ module ActiveRecord::Associations::Builder
         def belongs_to_counter_cache_after_update_for_#{name}
           if (@_after_create_counter_called ||= false)
             @_after_create_counter_called = false
-          elsif self.#{foreign_key}_changed? && !new_record? && defined?(#{name.to_s.camelize})
-            model = #{name.to_s.camelize}
+          elsif self.#{foreign_key}_changed? && !new_record? && #{constructable?}
+            model = #{klass}
             foreign_key_was = self.#{foreign_key}_was
             foreign_key = self.#{foreign_key}
 
@@ -61,8 +62,6 @@ module ActiveRecord::Associations::Builder
       model.after_create   "belongs_to_counter_cache_after_create_for_#{name}"
       model.before_destroy "belongs_to_counter_cache_before_destroy_for_#{name}"
       model.after_update   "belongs_to_counter_cache_after_update_for_#{name}"
-
-      klass = reflection.class_name.safe_constantize
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 

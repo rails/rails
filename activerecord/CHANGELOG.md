@@ -1,3 +1,9 @@
+*   Fix counter cache when association uses a class_name.
+
+    Fixes #14369.
+
+    *arthurnn*
+
 *   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
 
     Fixes #14361.
