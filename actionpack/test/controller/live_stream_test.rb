@@ -153,6 +153,11 @@ module ActionController
         render 'doesntexist'
       end
 
+      def exception_in_view_after_commit
+        response.stream.write ""
+        render 'doesntexist'
+      end
+
       def exception_with_callback
         response.headers['Content-Type'] = 'text/event-stream'
 
@@ -269,6 +274,13 @@ module ActionController
       assert_raises(ActionView::MissingTemplate) do
         get :exception_in_view
       end
+
+      capture_log_output do |output|
+        get :exception_in_view_after_commit
+        assert_match %r((window\.location = "/500\.html"</script></html>)$), response.body
+        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_stream_closed
+      end
       assert response.body
       assert_stream_closed
     end
@@ -276,6 +288,13 @@ module ActionController
     def test_exception_handling_plain_text
       assert_raises(ActionView::MissingTemplate) do
         get :exception_in_view, format: :json
+      end
+
+      capture_log_output do |output|
+        get :exception_in_view_after_commit, format: :json
+        assert_equal '', response.body
+        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_stream_closed
       end
     end
 
