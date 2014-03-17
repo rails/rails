@@ -1,3 +1,9 @@
+*   `where.not` adds `references` for `includes` like normal `where` calls do.
+
+    Fixes #14406.
+
+    *Yves Senn*
+
 *   Extend fixture `$LABEL` replacement to allow string interpolation.
 
     Example:
