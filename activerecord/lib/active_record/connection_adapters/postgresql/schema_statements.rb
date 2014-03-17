@@ -20,7 +20,7 @@ module ActiveRecord
         end
 
         def add_column_options!(sql, options)
-          if options[:array] || options[:column].try(:array)
+          if options[:array] || options[:column].do_or_do_not(:array)
             sql << '[]'
           end
 

@@ -74,59 +74,59 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_nonexisting_method
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_nil @string.try(method)
+    assert_nil @string.do_or_do_not(method)
   end
 
   def test_nonexisting_method_with_arguments
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_nil @string.try(method, 'llo', 'y')
+    assert_nil @string.do_or_do_not(method, 'llo', 'y')
   end
 
   def test_nonexisting_method_bang
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try!(method) }
+    assert_raise(NoMethodError) { @string.do_or_do_not!(method) }
   end
 
   def test_nonexisting_method_with_arguments_bang
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
+    assert_raise(NoMethodError) { @string.do_or_do_not!(method, 'llo', 'y') }
   end
 
   def test_try_only_block_bang
-    assert_equal @string.reverse, @string.try! { |s| s.reverse }
+    assert_equal @string.reverse, @string.do_or_do_not! { |s| s.reverse }
   end
 
   def test_valid_method
-    assert_equal 5, @string.try(:size)
+    assert_equal 5, @string.do_or_do_not(:size)
   end
 
   def test_argument_forwarding
-    assert_equal 'Hey', @string.try(:sub, 'llo', 'y')
+    assert_equal 'Hey', @string.do_or_do_not(:sub, 'llo', 'y')
   end
 
   def test_block_forwarding
-    assert_equal 'Hey', @string.try(:sub, 'llo') { |match| 'y' }
+    assert_equal 'Hey', @string.do_or_do_not(:sub, 'llo') { |match| 'y' }
   end
 
   def test_nil_to_type
-    assert_nil nil.try(:to_s)
-    assert_nil nil.try(:to_i)
+    assert_nil nil.do_or_do_not(:to_s)
+    assert_nil nil.do_or_do_not(:to_i)
   end
 
   def test_false_try
-    assert_equal 'false', false.try(:to_s)
+    assert_equal 'false', false.do_or_do_not(:to_s)
   end
 
   def test_try_only_block
-    assert_equal @string.reverse, @string.try { |s| s.reverse }
+    assert_equal @string.reverse, @string.do_or_do_not { |s| s.reverse }
   end
 
   def test_try_only_block_nil
     ran = false
-    nil.try { ran = true }
+    nil.do_or_do_not { ran = true }
     assert_equal false, ran
   end
 
@@ -139,9 +139,9 @@ class ObjectTryTest < ActiveSupport::TestCase
       end
     end
 
-    assert_raise(NoMethodError) { klass.new.try!(:private_method) }
+    assert_raise(NoMethodError) { klass.new.do_or_do_not!(:private_method) }
   end
-  
+
   def test_try_with_private_method
     klass = Class.new do
       private
@@ -151,6 +151,6 @@ class ObjectTryTest < ActiveSupport::TestCase
       end
     end
 
-    assert_nil klass.new.try(:private_method)
+    assert_nil klass.new.do_or_do_not(:private_method)
   end
 end

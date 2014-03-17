@@ -220,8 +220,8 @@ module ActiveSupport
       if @utc_offset
         @utc_offset
       else
-        @current_period ||= tzinfo.try(:current_period)
-        @current_period.try(:utc_offset)
+        @current_period ||= tzinfo.do_or_do_not(:current_period)
+        @current_period.do_or_do_not(:utc_offset)
       end
     end
 

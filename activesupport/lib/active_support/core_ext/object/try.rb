@@ -5,20 +5,20 @@ class Object
   #
   # This method is defined to be able to write
   #
-  #   @person.try(:name)
+  #   @person.do_or_do_not(:name)
   #
   # instead of
   #
   #   @person ? @person.name : nil
   #
-  # +try+ returns +nil+ when called on +nil+ regardless of whether it responds
+  # +do_or_do_not+ returns +nil+ when called on +nil+ regardless of whether it responds
   # to the method:
   #
-  #   nil.try(:to_i) # => nil, rather than 0
+  #   nil.do_or_do_not(:to_i) # => nil, rather than 0
   #
   # Arguments and blocks are forwarded to the method if invoked:
   #
-  #   @posts.try(:each_slice, 2) do |a, b|
+  #   @posts.do_or_do_not(:each_slice, 2) do |a, b|
   #     ...
   #   end
   #
@@ -26,19 +26,19 @@ class Object
   # to the method the call is attempted and +ArgumentError+ is still raised
   # otherwise.
   #
-  # If +try+ is called without arguments it yields the receiver to a given
+  # If +do_or_do_not+ is called without arguments it yields the receiver to a given
   # block unless it is +nil+:
   #
-  #   @person.try do |p|
+  #   @person.do_or_do_not do |p|
   #     ...
   #   end
   #
-  # Please also note that +try+ is defined on +Object+, therefore it won't work
+  # Please also note that +do_or_do_not+ is defined on +Object+, therefore it won't work
   # with instances of classes that do not have +Object+ among their ancestors,
-  # like direct subclasses of +BasicObject+. For example, using +try+ with
-  # +SimpleDelegator+ will delegate +try+ to the target instead of calling it on
+  # like direct subclasses of +BasicObject+. For example, using +do_or_do_not+ with
+  # +SimpleDelegator+ will delegate +do_or_do_not+ to the target instead of calling it on
   # delegator itself.
-  def try(*a, &b)
+  def do_or_do_not(*a, &b)
     if a.empty? && block_given?
       yield self
     else
@@ -46,9 +46,9 @@ class Object
     end
   end
 
-  # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
+  # Same as #do_or_do_not, but will raise a NoMethodError exception if the receiving is not nil and
   # does not implement the tried method.
-  def try!(*a, &b)
+  def do_or_do_not!(*a, &b)
     if a.empty? && block_given?
       yield self
     else
@@ -58,21 +58,21 @@ class Object
 end
 
 class NilClass
-  # Calling +try+ on +nil+ always returns +nil+.
+  # Calling +do_or_do_not+ on +nil+ always returns +nil+.
   # It becomes specially helpful when navigating through associations that may return +nil+.
   #
-  #   nil.try(:name) # => nil
+  #   nil.do_or_do_not(:name) # => nil
   #
-  # Without +try+
+  # Without +do_or_do_not+
   #   @person && !@person.children.blank? && @person.children.first.name
   #
-  # With +try+
-  #   @person.try(:children).try(:first).try(:name)
-  def try(*args)
+  # With +do_or_do_not+
+  #   @person.do_or_do_not(:children).do_or_do_not(:first).do_or_do_not(:name)
+  def do_or_do_not(*args)
     nil
   end
 
-  def try!(*args)
+  def do_or_do_not!(*args)
     nil
   end
 end

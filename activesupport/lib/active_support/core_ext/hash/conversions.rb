@@ -169,7 +169,7 @@ module ActiveSupport
 
         if become_array?(value)
           _, entries = Array.wrap(value.detect { |k,v| not v.is_a?(String) })
-          if entries.nil? || value['__content__'].try(:empty?)
+          if entries.nil? || value['__content__'].do_or_do_not(:empty?)
             []
           else
             case entries
