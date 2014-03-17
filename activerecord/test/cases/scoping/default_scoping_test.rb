@@ -1,4 +1,6 @@
 require 'cases/helper'
+require 'models/unit'
+require 'models/property'
 require 'models/post'
 require 'models/developer'
 
@@ -374,5 +376,17 @@ class DefaultScopingTest < ActiveRecord::TestCase
       assert_equal 1, ThreadsafeDeveloper.all.to_a.count
     end
     threads.each(&:join)
+  end
+
+  def test_with_volatile_default_scope_block
+    query_str = UnitWithBlock.with_active_properties.to_sql
+    assert /(\W|^)scope_field(\W|$)/ =~ query_str, "Found no 'scope_field'."
+    assert ! (/((\W|^)scope_field(\W|$).*){2,}/ =~ query_str), "Found more than one 'scope_field'."
+  end
+
+  def test_with_volatile_default_scope_method
+    query_str = Unit.with_active_properties.to_sql
+    assert /(\W|^)scope_field(\W|$)/ =~ query_str, "Found no 'scope_field'."
+    assert_not (/((\W|^)scope_field(\W|$).*){2,}/ =~ query_str), "Found more than one 'scope_field'."
   end
 end
