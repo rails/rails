@@ -1,3 +1,10 @@
+*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
+    as input.
+
+    Fixes #14405.
+
+    *Yves Senn*
+
 *   Add `include_hidden` option to `collection_check_boxes` helper.
 
     *Vasiliy Ermolovich*
