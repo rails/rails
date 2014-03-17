@@ -1,4 +1,5 @@
-*   Extend Fixture $LABEL replacement to allow string interpolation
+*   Extend fixture `$LABEL` replacement to allow string interpolation.
+
     Example:
 
         martin:
@@ -7,24 +8,24 @@
         users(:martin).email # => martin@email.com
 
     *Eric Steele*
-    
+
 *   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
 
     Fixes #14361.
 
     *arthurnn*
 
-* Passing an Active Record object to `find` is now deprecated.  Call `.id`
-  on the object first.
+*   Passing an Active Record object to `find` is now deprecated.  Call `.id`
+    on the object first.
 
-* Passing an Active Record object to `exists?` is now deprecated.  Call `.id`
-  on the object first.
+*   Passing an Active Record object to `find` or `exists?` is now deprecated.
+    Call `.id` on the object first.
 
-*   Only use BINARY for mysql case sensitive uniqueness check when column has a case insensitive collation.
+*   Only use BINARY for MySQL case sensitive uniqueness check when column has a case insensitive collation.
 
     *Ryuta Kamizono*
 
-*   Support for Mysql 5.6 Fractional Seconds.
+*   Support for MySQL 5.6 fractional seconds.
 
     *arthurnn*, *Tatsuhiko Miyagawa*
 
