@@ -1,3 +1,11 @@
+*   Add public API to register new extensions for `rake notes`.
+
+    Example:
+
+        config.annotations.register_extensions("scss", "sass") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+
+    *Roberto Miranda*
+
 *   Removed unnecessary `rails application` command.
 
     *Arun Agrawal*
