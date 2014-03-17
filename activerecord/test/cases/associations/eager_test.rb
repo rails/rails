@@ -1203,4 +1203,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 5, author.posts.size
     }
   end
+
+  test "including associations with where.not adds implicit references" do
+    author = assert_queries(2) {
+      Author.includes(:posts).where.not(posts: { title: 'Welcome to the weblog'} ).last
+    }
+
+    assert_no_queries {
+      assert_equal 2, author.posts.size
+    }
+  end
 end

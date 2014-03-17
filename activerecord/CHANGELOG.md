@@ -1,3 +1,9 @@
+*   `where.not` adds `references` for `includes` like normal `where` calls do.
+
+    Fixes #14406.
+
+    *Yves Senn*
+
 *   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
 
     Fixes #14361.

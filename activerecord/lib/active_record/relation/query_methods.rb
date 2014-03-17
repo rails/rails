@@ -49,6 +49,8 @@ module ActiveRecord
             Arel::Nodes::Not.new(rel)
           end
         end
+
+        @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
         @scope.where_values += where_value
         @scope
       end
