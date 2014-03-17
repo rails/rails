@@ -1,3 +1,9 @@
+*   `where.not` adds `references` for `includes` like normal `where` calls do.
+
+    Fixes #14406.
+
+    *Yves Senn*
+
 *   `includes` is able to detect the right preloading strategy when string
     joins are involved.
 
