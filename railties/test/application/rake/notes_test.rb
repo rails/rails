@@ -170,9 +170,25 @@ module ApplicationTests
       end
 
       test 'register a new extension' do
-        SourceAnnotationExtractor::Annotation.register_extensions("test1", "test2"){ |tag| /#{tag}/ }
-        assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(test1|test2)$/]
-        assert_nil SourceAnnotationExtractor::Annotation.extensions[/\.(haml)$/]
+        add_to_config %q{ config.annotations.register_extensions("scss", "sass") { |annotation| /\/\/\s*(#{annotation}):?\s*(.*)$/ } }
+        app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
+        app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
+
+        boot_rails
+
+        require 'rake'
+        require 'rdoc/task'
+        require 'rake/testtask'
+
+        Rails.application.load_tasks
+
+        Dir.chdir(app_path) do
+          output = `bundle exec rake notes`
+          lines = output.scan(/\[([0-9\s]+)\]/).flatten
+          assert_match(/note in scss/, output)
+          assert_match(/note in sass/, output)
+          assert_equal 2, lines.size
+        end
       end
 
       private
