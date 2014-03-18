@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/concurrency/latch'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -133,15 +134,15 @@ module ActiveRecord
       end
 
       def test_reap_inactive
-        ready = false
+        ready = ActiveSupport::Concurrency::Latch.new
         @pool.checkout
         child = Thread.new do
           @pool.checkout
           @pool.checkout
-          ready = true
+          ready.release
           Thread.stop
         end
-        Thread.pass until ready
+        ready.await
 
         assert_equal 3, active_connections(@pool).size
 
