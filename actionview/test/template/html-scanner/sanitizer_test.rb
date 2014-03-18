@@ -313,6 +313,10 @@ class SanitizerTest < ActionController::TestCase
     assert_sanitized %(<a href="javascript&#x003A;alert('XSS');">), "<a>"
     assert_sanitized %(<a href="http&#x3A;//legit">), %(<a href="http://legit">)
   end
+  
+  def test_empty_protocol
+    assert_sanitized "<a href=\":\">test</a>", "<a href=\":\">test</a>"
+  end
 
 protected
   def assert_sanitized(input, expected = nil)

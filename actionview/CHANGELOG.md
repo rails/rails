@@ -1,3 +1,9 @@
+*   Fix html-scanner crash when passing `<a href=":">` to `sanitize`.
+
+    Fixes #8126.
+    
+    *Lukas Fittl*
+
 *   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
     as input.
 
