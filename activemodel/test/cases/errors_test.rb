@@ -82,6 +82,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({ foo: "omg" }, errors.messages)
   end
 
+  test "error access is indifferent" do
+    errors = ActiveModel::Errors.new(self)
+    errors[:foo] = "omg"
+
+    assert_equal ["omg"], errors["foo"]
+  end
+
   test "values returns an array of messages" do
     errors = ActiveModel::Errors.new(self)
     errors.set(:foo, "omg")

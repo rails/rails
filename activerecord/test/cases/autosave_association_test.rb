@@ -64,10 +64,6 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
   private
 
-  def base
-    ActiveRecord::Base
-  end
-
   def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
     reflection = model.reflect_on_association(association_name)
     assert_no_difference "callbacks_for_model(#{model.name}).length" do
@@ -76,9 +72,9 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   def callbacks_for_model(model)
-    model.instance_variables.grep(/_callbacks$/).map do |ivar|
+    model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
       model.instance_variable_get(ivar)
-    end.flatten
+    end
   end
 end
 
@@ -622,15 +618,15 @@ end
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
-  def setup
-    super
+  setup do
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
   end
 
-  def teardown
+  teardown do
     # We are running without transactional fixtures and need to cleanup.
     Bird.delete_all
+    Parrot.delete_all
     @ship.delete
     @pirate.delete
   end
@@ -687,8 +683,21 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
+    @ship.pirate.catchphrase = "Changed Catchphrase"
+
     assert_raise(RuntimeError) { assert !@pirate.save }
     assert_not_nil @pirate.reload.ship
+  end
+
+  def test_should_save_changed_has_one_changed_object_if_child_is_saved
+    @pirate.ship.name = "NewName"
+    assert @pirate.save
+    assert_equal "NewName", @pirate.ship.reload.name
+  end
+
+  def test_should_not_save_changed_has_one_unchanged_object_if_child_is_saved
+    @pirate.ship.expects(:save).never
+    assert @pirate.save
   end
 
   # belongs_to

@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/concurrency/latch'
+Thread.abort_on_exception = true
 
 module ActionController
   class SSETest < ActionController::TestCase
@@ -43,9 +44,7 @@ module ActionController
     tests SSETestController
 
     def wait_for_response_stream_close
-      while !response.stream.closed?
-        sleep 0.01
-      end
+      response.body
     end
 
     def test_basic_sse
@@ -91,6 +90,9 @@ module ActionController
   end
 
   class LiveStreamTest < ActionController::TestCase
+    class Exception < StandardError
+    end
+
     class TestController < ActionController::Base
       include ActionController::Live
 
@@ -98,6 +100,12 @@ module ActionController
 
       def self.controller_path
         'test'
+      end
+
+      def set_cookie
+        cookies[:hello] = "world"
+        response.stream.write "hello world"
+        response.close
       end
 
       def render_text
@@ -145,6 +153,11 @@ module ActionController
         render 'doesntexist'
       end
 
+      def exception_in_view_after_commit
+        response.stream.write ""
+        render 'doesntexist'
+      end
+
       def exception_with_callback
         response.headers['Content-Type'] = 'text/event-stream'
 
@@ -153,11 +166,12 @@ module ActionController
           response.stream.close
         end
 
+        response.stream.write "" # make sure the response is committed
         raise 'An exception occurred...'
       end
 
       def exception_in_controller
-        raise 'Exception in controller'
+        raise Exception, 'Exception in controller'
       end
 
       def bad_request_error
@@ -169,24 +183,16 @@ module ActionController
         response.stream.on_error do
           raise 'We need to go deeper.'
         end
+        response.stream.write ''
         response.stream.write params[:widget][:didnt_check_for_nil]
       end
     end
 
     tests TestController
 
-    class TestResponse < Live::Response
-      def recycle!
-        initialize
-      end
-    end
-
-    def build_response
-      TestResponse.new
-    end
-
     def assert_stream_closed
       assert response.stream.closed?, 'stream should be closed'
+      assert response.sent?, 'stream should be sent'
     end
 
     def capture_log_output
@@ -198,6 +204,13 @@ module ActionController
       ensure
         ActionController::Base.logger = old_logger
       end
+    end
+
+    def test_set_cookie
+      @controller = TestController.new
+      get :set_cookie
+      assert_equal({'hello' => 'world'}, @response.cookies)
+      assert_equal "hello world", @response.body
     end
 
     def test_set_response!
@@ -221,6 +234,7 @@ module ActionController
       @controller.response = @response
 
       t = Thread.new(@response) { |resp|
+        resp.await_commit
         resp.stream.each do |part|
           assert_equal parts.shift, part
           ol = @controller.latch
@@ -257,24 +271,34 @@ module ActionController
     end
 
     def test_exception_handling_html
-      capture_log_output do |output|
+      assert_raises(ActionView::MissingTemplate) do
         get :exception_in_view
+      end
+
+      capture_log_output do |output|
+        get :exception_in_view_after_commit
         assert_match %r((window\.location = "/500\.html"</script></html>)$), response.body
         assert_match 'Missing template test/doesntexist', output.rewind && output.read
         assert_stream_closed
       end
+      assert response.body
+      assert_stream_closed
     end
 
     def test_exception_handling_plain_text
-      capture_log_output do |output|
+      assert_raises(ActionView::MissingTemplate) do
         get :exception_in_view, format: :json
+      end
+
+      capture_log_output do |output|
+        get :exception_in_view_after_commit, format: :json
         assert_equal '', response.body
         assert_match 'Missing template test/doesntexist', output.rewind && output.read
         assert_stream_closed
       end
     end
 
-    def test_exception_callback
+    def test_exception_callback_when_committed
       capture_log_output do |output|
         get :exception_with_callback, format: 'text/event-stream'
         assert_equal %(data: "500 Internal Server Error"\n\n), response.body
@@ -284,16 +308,18 @@ module ActionController
     end
 
     def test_exception_in_controller_before_streaming
-      response = get :exception_in_controller, format: 'text/event-stream'
-      assert_equal 500, response.status
+      assert_raises(ActionController::LiveStreamTest::Exception) do
+        get :exception_in_controller, format: 'text/event-stream'
+      end
     end
 
     def test_bad_request_in_controller_before_streaming
-      response = get :bad_request_error, format: 'text/event-stream'
-      assert_equal 400, response.status
+      assert_raises(ActionController::BadRequest) do
+        get :bad_request_error, format: 'text/event-stream'
+      end
     end
 
-    def test_exceptions_raised_handling_exceptions
+    def test_exceptions_raised_handling_exceptions_and_committed
       capture_log_output do |output|
         get :exception_in_exception_callback, format: 'text/event-stream'
         assert_equal '', response.body
@@ -311,6 +337,13 @@ module ActionController
       @request.if_none_match = Digest::MD5.hexdigest("123")
       get :with_stale
       assert_equal 304, @response.status.to_i
+    end
+  end
+
+  class BufferTest < ActionController::TestCase
+    def test_nil_callback
+      buf = ActionController::Live::Buffer.new nil
+      assert buf.call_on_error
     end
   end
 end

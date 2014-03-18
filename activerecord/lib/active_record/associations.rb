@@ -530,8 +530,8 @@ module ActiveRecord
     #   end
     #
     #   @firm = Firm.first
-    #   @firm.clients.collect { |c| c.invoices }.flatten # select all invoices for all clients of the firm
-    #   @firm.invoices                                   # selects all invoices by going through the Client join model
+    #   @firm.clients.flat_map { |c| c.invoices } # select all invoices for all clients of the firm
+    #   @firm.invoices                            # selects all invoices by going through the Client join model
     #
     # Similarly you can go through a +has_one+ association on the join model:
     #
@@ -1584,7 +1584,7 @@ module ActiveRecord
         hm_options[:through] = middle_reflection.name
         hm_options[:source] = join_model.right_reflection.name
 
-        [:before_add, :after_add, :before_remove, :after_remove, :autosave].each do |k|
+        [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate].each do |k|
           hm_options[k] = options[k] if options.key? k
         end
 

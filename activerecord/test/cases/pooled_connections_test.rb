@@ -10,7 +10,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.remove_connection
   end
 
-  def teardown
+  teardown do
     ActiveRecord::Base.clear_all_connections!
     ActiveRecord::Base.establish_connection(@connection)
     @per_test_teardown.each {|td| td.call }

@@ -1,4 +1,5 @@
 require "isolation/abstract_unit"
+require 'rails/source_annotation_extractor'
 
 module ApplicationTests
   module RakeTests
@@ -18,17 +19,14 @@ module ApplicationTests
 
       test 'notes finds notes for certain file_types' do
         app_file "app/views/home/index.html.erb", "<% # TODO: note in erb %>"
-        app_file "app/views/home/index.html.haml", "-# TODO: note in haml"
-        app_file "app/views/home/index.html.slim", "/ TODO: note in slim"
-        app_file "app/assets/javascripts/application.js.coffee", "# TODO: note in coffee"
         app_file "app/assets/javascripts/application.js", "// TODO: note in js"
         app_file "app/assets/stylesheets/application.css", "// TODO: note in css"
-        app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
-        app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
-        app_file "app/assets/stylesheets/application.css.less", "// TODO: note in less"
         app_file "app/controllers/application_controller.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in ruby"
         app_file "lib/tasks/task.rake", "# TODO: note in rake"
         app_file 'app/views/home/index.html.builder', '# TODO: note in builder'
+        app_file 'config/locales/en.yml', '# TODO: note in yml'
+        app_file 'config/locales/en.yaml', '# TODO: note in yaml'
+        app_file "app/views/home/index.ruby", "# TODO: note in ruby"
 
         boot_rails
         require 'rake'
@@ -42,19 +40,15 @@ module ApplicationTests
           lines = output.scan(/\[([0-9\s]+)\](\s)/)
 
           assert_match(/note in erb/, output)
-          assert_match(/note in haml/, output)
-          assert_match(/note in slim/, output)
-          assert_match(/note in ruby/, output)
-          assert_match(/note in coffee/, output)
           assert_match(/note in js/, output)
           assert_match(/note in css/, output)
-          assert_match(/note in scss/, output)
-          assert_match(/note in sass/, output)
-          assert_match(/note in less/, output)
           assert_match(/note in rake/, output)
           assert_match(/note in builder/, output)
+          assert_match(/note in yml/, output)
+          assert_match(/note in yaml/, output)
+          assert_match(/note in ruby/, output)
 
-          assert_equal 12, lines.size
+          assert_equal 9, lines.size
 
           lines.each do |line|
             assert_equal 4, line[0].size
@@ -172,6 +166,28 @@ module ApplicationTests
           lines.each do |line_number|
             assert_equal 4, line_number.size
           end
+        end
+      end
+
+      test 'register a new extension' do
+        add_to_config %q{ config.annotations.register_extensions("scss", "sass") { |annotation| /\/\/\s*(#{annotation}):?\s*(.*)$/ } }
+        app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
+        app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
+
+        boot_rails
+
+        require 'rake'
+        require 'rdoc/task'
+        require 'rake/testtask'
+
+        Rails.application.load_tasks
+
+        Dir.chdir(app_path) do
+          output = `bundle exec rake notes`
+          lines = output.scan(/\[([0-9\s]+)\]/).flatten
+          assert_match(/note in scss/, output)
+          assert_match(/note in sass/, output)
+          assert_equal 2, lines.size
         end
       end
 

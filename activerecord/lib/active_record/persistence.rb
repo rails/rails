@@ -214,6 +214,8 @@ module ActiveRecord
     #
     # This method raises an +ActiveRecord::ActiveRecordError+  if the
     # attribute is marked as readonly.
+    #
+    # See also +update_column+.
     def update_attribute(name, value)
       name = name.to_s
       verify_readonly_attribute(name)
@@ -403,8 +405,8 @@ module ActiveRecord
     end
 
     # Saves the record with the updated_at/on attributes set to the current time.
-    # Please note that no validation is performed and only the +after_touch+
-    # callback is executed.
+    # Please note that no validation is performed and only the +after_touch+,
+    # +after_commit+ and +after_rollback+ callbacks are executed.
     # If an attribute name is passed, that attribute is updated along with
     # updated_at/on attributes.
     #

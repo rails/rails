@@ -95,9 +95,16 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 
 That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_.
 
-`config.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `config.secret_key_base` initialized to a random key in `config/initializers/secret_token.rb`, e.g.:
+`secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`, e.g.:
 
-    YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
+    development:
+      secret_key_base: a75d...
+
+    test:
+      secret_key_base: 492f...
+
+    production:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 
 Older versions of Rails use CookieStore, which uses `secret_token` instead of `secret_key_base` that is used by EncryptedCookieStore. Read the upgrade documentation for more information.
 
@@ -1005,7 +1012,7 @@ Used to control which sites are allowed to bypass same origin policies and send 
 Environmental Security
 ----------------------
 
-It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/initializers/secret_token.rb`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
+It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/secrets.yml`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
 Additional Resources
 --------------------

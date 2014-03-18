@@ -289,6 +289,22 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_not_warn_if_csrf_logging_disabled
+    old_logger = ActionController::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    ActionController::Base.logger = logger
+    ActionController::Base.log_warning_on_csrf_failure = false
+
+    begin
+      assert_blocked { post :index }
+
+      assert_equal 0, logger.logged(:warn).size
+    ensure
+      ActionController::Base.logger = old_logger
+      ActionController::Base.log_warning_on_csrf_failure = true
+    end
+  end
+
   def test_should_only_allow_same_origin_js_get_with_xhr_header
     assert_cross_origin_blocked { get :same_origin_js }
     assert_cross_origin_blocked { get :same_origin_js, format: 'js' }

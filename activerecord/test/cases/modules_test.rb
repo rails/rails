@@ -18,7 +18,7 @@ class ModulesTest < ActiveRecord::TestCase
     ActiveRecord::Base.store_full_sti_class = false
   end
 
-  def teardown
+  teardown do
     # reinstate the constants that we undefined in the setup
     @undefined_consts.each do |constant, value|
       Object.send :const_set, constant, value unless value.nil?

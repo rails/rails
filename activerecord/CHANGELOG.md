@@ -1,18 +1,94 @@
+*   Reap connections that were checked out by now-dead threads, instead
+    of waiting until they disconnect by themselves. Before this change,
+    a suitably constructed series of short-lived threads could starve
+    the connection pool, without ever having more than a couple alive at
+    the same time.
+
+    *Matthew Draper*
+
+*   `where.not` adds `references` for `includes` like normal `where` calls do.
+
+    Fixes #14406.
+
+    *Yves Senn*
+
+*   Extend fixture `$LABEL` replacement to allow string interpolation.
+
+    Example:
+
+        martin:
+          email: $LABEL@email.com
+
+        users(:martin).email # => martin@email.com
+
+    *Eric Steele*
+
+*   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
+
+    Fixes #14361.
+
+    *arthurnn*
+
+*   Passing an Active Record object to `find` is now deprecated.  Call `.id`
+    on the object first.
+
+*   Passing an Active Record object to `find` or `exists?` is now deprecated.
+    Call `.id` on the object first.
+
+*   Only use BINARY for MySQL case sensitive uniqueness check when column has a case insensitive collation.
+
+    *Ryuta Kamizono*
+
+*   Support for MySQL 5.6 fractional seconds.
+
+    *arthurnn*, *Tatsuhiko Miyagawa*
+
+*   Support for Postgres `citext` data type enabling case-insensitive where
+    values without needing to wrap in UPPER/LOWER sql functions.
+
+    *Troy Kruthoff*, *Lachlan Sylvester*
+
+*   Only save has_one associations if record has changes.
+    Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
+    object did not get saved to the db.
+
+    *Alan Kennedy*
+
+*   Allow strings to specify the `#order` value.
+
+    Example:
+
+        Model.order(id: 'asc').to_sql == Model.order(id: :asc).to_sql
+
+    *Marcelo Casiraghi*, *Robin Dupret*
+
+*   Dynamically register PostgreSQL enum OIDs. This prevents "unknown OID"
+    warnings on enum columns.
+
+    *Dieter Komendera*
+
+*   `includes` is able to detect the right preloading strategy when string
+    joins are involved.
+
+    Fixes #14109.
+
+    *Aaron Patterson*, *Yves Senn*
+
 *   Fixed error with validation with enum fields for records where the
     value for any enum attribute is always evaluated as 0 during
     uniqueness validation.
 
-    Fixes #14172
+    Fixes #14172.
 
     *Vilius Luneckas* *Ahmed AbouElhamayed*
 
-* `before_add` callbacks are fired before the record is saved on
-  `has_and_belongs_to_many` assocations *and* on `has_many :through`
-  associations.  Before this change, `before_add` callbacks would be fired
-  before the record was saved on `has_and_belongs_to_many` associations, but
-  *not* on `has_many :through` associations.
+*   `before_add` callbacks are fired before the record is saved on
+    `has_and_belongs_to_many` assocations *and* on `has_many :through`
+    associations.  Before this change, `before_add` callbacks would be fired
+    before the record was saved on `has_and_belongs_to_many` associations, but
+    *not* on `has_many :through` associations.
 
-  Fixes #14144
+    Fixes #14144.
 
 *   Fixed STI classes not defining an attribute method if there is a
     conflicting private method defined on its ancestors.
@@ -21,8 +97,7 @@
 
     *Godfrey Chan*
 
-*   Coerce strings when reading attributes.
-    Fixes #10485.
+*   Coerce strings when reading attributes. Fixes #10485.
 
     Example:
 

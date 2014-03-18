@@ -122,7 +122,7 @@ module ActiveRecord
       end
     end
 
-    def teardown
+    teardown do
       %w[horses new_horses].each do |table|
         if ActiveRecord::Base.connection.table_exists?(table)
           ActiveRecord::Base.connection.drop_table(table)

@@ -101,7 +101,7 @@ module Rails
       def filter_by(&block)
         all_paths.find_all(&block).flat_map { |path|
           paths = path.existent
-          paths - path.children.map { |p| yield(p) ? [] : p.existent }.flatten
+          paths - path.children.flat_map { |p| yield(p) ? [] : p.existent }
         }.uniq
       end
     end

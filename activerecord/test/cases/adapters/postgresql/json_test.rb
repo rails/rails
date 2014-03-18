@@ -26,7 +26,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     @column = JsonDataType.columns.find { |c| c.name == 'payload' }
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists json_data_type'
   end
 

@@ -111,6 +111,26 @@ in your application, you can add an initializer file with the following content:
 This would transparently migrate your existing `Marshal`-serialized cookies into the
 new `JSON`-based format.
 
+### Flash structure changes
+
+Flash message keys are
+[normalized to strings](https://github.com/rails/rails/commit/a668beffd64106a1e1fedb71cc25eaaa11baf0c1). They
+can still be accessed using either symbols or strings. Lopping through the flash
+will always yield string keys:
+
+```ruby
+flash["string"] = "a string"
+flash[:symbol] = "a symbol"
+
+# Rails < 4.1
+flash.keys # => ["string", :symbol]
+
+# Rails >= 4.1
+flash.keys # => ["string", "symbol"]
+```
+
+Make sure you are comparing Flash message keys against strings.
+
 ### Changes in JSON handling
 
 There are a few major changes related to JSON handling in Rails 4.1.

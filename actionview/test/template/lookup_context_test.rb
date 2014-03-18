@@ -93,6 +93,20 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal "Hey verden", template.source
   end
 
+  test "find templates with given variants" do
+    @lookup_context.formats  = [:html]
+    @lookup_context.variants = [:phone]
+
+    template = @lookup_context.find("hello_world", %w(test))
+    assert_equal "Hello phone!", template.source
+
+    @lookup_context.variants = [:phone]
+    @lookup_context.formats  = [:text]
+
+    template = @lookup_context.find("hello_world", %w(test))
+    assert_equal "Hello texty phone!", template.source
+  end
+
   test "found templates respects given formats if one cannot be found from template or handler" do
     ActionView::Template::Handlers::Builder.expects(:default_format).returns(nil)
     @lookup_context.formats = [:text]

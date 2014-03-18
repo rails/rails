@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/concurrency/latch'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -22,8 +23,7 @@ module ActiveRecord
         end
       end
 
-      def teardown
-        super
+      teardown do
         @pool.disconnect!
       end
 
@@ -89,10 +89,9 @@ module ActiveRecord
       end
 
       def test_full_pool_exception
+        @pool.size.times { @pool.checkout }
         assert_raises(ConnectionTimeoutError) do
-          (@pool.size + 1).times do
-            @pool.checkout
-          end
+          @pool.checkout
         end
       end
 
@@ -125,7 +124,6 @@ module ActiveRecord
         @pool.checkout
         @pool.checkout
         @pool.checkout
-        @pool.dead_connection_timeout = 0
 
         connections = @pool.connections.dup
 
@@ -135,21 +133,25 @@ module ActiveRecord
       end
 
       def test_reap_inactive
+        ready = ActiveSupport::Concurrency::Latch.new
         @pool.checkout
-        @pool.checkout
-        @pool.checkout
-        @pool.dead_connection_timeout = 0
-
-        connections = @pool.connections.dup
-        connections.each do |conn|
-          conn.extend(Module.new { def active_threadsafe?; false; end; })
+        child = Thread.new do
+          @pool.checkout
+          @pool.checkout
+          ready.release
+          Thread.stop
         end
+        ready.await
 
+        assert_equal 3, active_connections(@pool).size
+
+        child.terminate
+        child.join
         @pool.reap
 
-        assert_equal 0, @pool.connections.length
+        assert_equal 1, active_connections(@pool).size
       ensure
-        connections.each(&:close)
+        @pool.connections.each(&:close)
       end
 
       def test_remove_connection

@@ -459,7 +459,7 @@ module ActiveRecord
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
-        sqls = operations.map do |command, args|
+        sqls = operations.flat_map do |command, args|
           table, arguments = args.shift, args
           method = :"#{command}_sql"
 
@@ -468,7 +468,7 @@ module ActiveRecord
           else
             raise "Unknown method called : #{method}(#{arguments.inspect})"
           end
-        end.flatten.join(", ")
+        end.join(", ")
 
         execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
       end
@@ -590,6 +590,14 @@ module ActiveRecord
 
       def case_sensitive_modifier(node)
         Arel::Nodes::Bin.new(node)
+      end
+
+      def case_sensitive_comparison(table, attribute, column, value)
+        if column.case_sensitive?
+          table[attribute].eq(value)
+        else
+          super
+        end
       end
 
       def case_insensitive_comparison(table, attribute, column, value)

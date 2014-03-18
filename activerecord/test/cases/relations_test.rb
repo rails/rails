@@ -171,7 +171,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:first).title, topics.first.title
   end
 
-
   def test_finding_with_arel_order
     topics = Topic.order(Topic.arel_table[:id].asc)
     assert_equal 5, topics.to_a.size
@@ -194,8 +193,33 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Topic.order(:id).to_sql, Topic.order(:id => :asc).to_sql
   end
 
+  def test_finding_with_desc_order_with_string
+    topics = Topic.order(id: "desc")
+    assert_equal 5, topics.to_a.size
+    assert_equal [topics(:fifth), topics(:fourth), topics(:third), topics(:second), topics(:first)], topics.to_a
+  end
+
+  def test_finding_with_asc_order_with_string
+    topics = Topic.order(id: 'asc')
+    assert_equal 5, topics.to_a.size
+    assert_equal [topics(:first), topics(:second), topics(:third), topics(:fourth), topics(:fifth)], topics.to_a
+  end
+
+  def test_support_upper_and_lower_case_directions
+    assert_includes Topic.order(id: "ASC").to_sql, "ASC"
+    assert_includes Topic.order(id: "asc").to_sql, "ASC"
+    assert_includes Topic.order(id: :ASC).to_sql, "ASC"
+    assert_includes Topic.order(id: :asc).to_sql, "ASC"
+
+    assert_includes Topic.order(id: "DESC").to_sql, "DESC"
+    assert_includes Topic.order(id: "desc").to_sql, "DESC"
+    assert_includes Topic.order(id: :DESC).to_sql, "DESC"
+    assert_includes Topic.order(id: :desc).to_sql,"DESC"
+  end
+
   def test_raising_exception_on_invalid_hash_params
-    assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
+    e = assert_raise(ArgumentError) { Topic.order(:name, "id DESC", id: :asfsdf) }
+    assert_equal 'Direction "asfsdf" is invalid. Valid directions are: [:asc, :desc, :ASC, :DESC, "asc", "desc", "ASC", "DESC"]', e.message
   end
 
   def test_finding_last_with_arel_order
@@ -613,7 +637,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_with_list_of_ar
     author = Author.first
-    authors = Author.find([author])
+    authors = Author.find([author.id])
     assert_equal author, authors.first
   end
 
@@ -745,7 +769,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! davids.exists?(authors(:mary).id)
     assert ! davids.exists?("42")
     assert ! davids.exists?(42)
-    assert ! davids.exists?(davids.new)
+    assert ! davids.exists?(davids.new.id)
 
     fake  = Author.where(:name => 'fake author')
     assert ! fake.exists?
@@ -1339,6 +1363,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['comments'], scope.references_values
 
     scope = Post.where('comments.body' => 'Bla')
+    assert_equal ['comments'], scope.references_values
+  end
+
+  def test_automatically_added_where_not_references
+    scope = Post.where.not(comments: { body: "Bla" })
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.where.not('comments.body' => 'Bla')
     assert_equal ['comments'], scope.references_values
   end
 

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'securerandom'
 
 # You need to start a memcached server inorder to run these tests
 class MemCacheStoreTest < ActionDispatch::IntegrationTest
@@ -172,7 +173,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         end
 
         @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::Session::MemCacheStore, :key => '_session_id'
+          middleware.use ActionDispatch::Session::MemCacheStore, :key => '_session_id', :namespace => "mem_cache_store_test:#{SecureRandom.hex(10)}"
           middleware.delete "ActionDispatch::ShowExceptions"
         end
 

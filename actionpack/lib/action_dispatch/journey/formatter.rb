@@ -121,9 +121,9 @@ module ActionDispatch
         def possibles(cache, options, depth = 0)
           cache.fetch(:___routes) { [] } + options.find_all { |pair|
             cache.key?(pair)
-          }.map { |pair|
+          }.flat_map { |pair|
             possibles(cache[pair], options, depth + 1)
-          }.flatten(1)
+          }
         end
 
         # Returns +true+ if no missing keys are present, otherwise +false+.

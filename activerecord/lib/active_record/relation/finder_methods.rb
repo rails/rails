@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module ActiveRecord
   module FinderMethods
     ONE_AS_ONE = '1 AS one'
@@ -280,7 +282,12 @@ module ActiveRecord
     #   Person.exists?(false)
     #   Person.exists?
     def exists?(conditions = :none)
-      conditions = conditions.id if Base === conditions
+      if Base === conditions
+        conditions = conditions.id
+        ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `exists?`." \
+          "Please pass the id of the object by calling `.id`"
+      end
+
       return false if !conditions
 
       relation = apply_join_dependency(self, construct_join_dependency)
@@ -292,7 +299,12 @@ module ActiveRecord
       when Array, Hash
         relation = relation.where(conditions)
       else
-        relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
+        if conditions != :none
+          column = columns_hash[primary_key]
+          substitute = connection.substitute_at(column, bind_values.length)
+          relation = where(table[primary_key].eq(substitute))
+          relation.bind_values += [[column, conditions]]
+        end
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
@@ -409,7 +421,11 @@ module ActiveRecord
     end
 
     def find_one(id)
-      id = id.id if ActiveRecord::Base === id
+      if ActiveRecord::Base === id
+        id = id.id
+        ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `find`." \
+          "Please pass the id of the object by calling `.id`"
+      end
 
       column = columns_hash[primary_key]
       substitute = connection.substitute_at(column, bind_values.length)

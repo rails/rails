@@ -145,9 +145,8 @@ module ActiveRecord
       # be chained. Since << flattens its argument list and inserts each record,
       # +push+ and +concat+ behave identically.
       def concat(*records)
-        load_target if owner.new_record?
-
         if owner.new_record?
+          load_target
           concat_records(records)
         else
           transaction { concat_records(records) }
@@ -359,7 +358,9 @@ module ActiveRecord
         if owner.new_record?
           replace_records(other_array, original_target)
         else
-          transaction { replace_records(other_array, original_target) }
+          if other_array != original_target
+            transaction { replace_records(other_array, original_target) }
+          end
         end
       end
 
@@ -368,7 +369,7 @@ module ActiveRecord
           if record.new_record?
             include_in_memory?(record)
           else
-            loaded? ? target.include?(record) : scope.exists?(record)
+            loaded? ? target.include?(record) : scope.exists?(record.id)
           end
         else
           false
