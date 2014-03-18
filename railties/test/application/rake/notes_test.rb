@@ -39,10 +39,7 @@ module ApplicationTests
           assert_match(/note in ruby/, output)
 
           assert_equal 9, lines.size
-
-          lines.each do |line|
-            assert_equal 4, line.size
-          end
+          assert_equal [4], lines.map(&:size).uniq
         end
       end
 
@@ -64,10 +61,7 @@ module ApplicationTests
           assert_no_match(/note in some_other directory/, output)
 
           assert_equal 5, lines.size
-
-          lines.each do |line_number|
-            assert_equal 4, line_number.size
-          end
+          assert_equal [4], lines.map(&:size).uniq
         end
       end
 
@@ -90,10 +84,7 @@ module ApplicationTests
           assert_match(/note in some_other directory/, output)
 
           assert_equal 6, lines.size
-
-          lines.each do |line_number|
-            assert_equal 4, line_number.size
-          end
+          assert_equal [4], lines.map(&:size).uniq
         end
       end
 
@@ -118,10 +109,7 @@ module ApplicationTests
           assert_no_match(/note in app directory/, output)
 
           assert_equal 2, lines.size
-
-          lines.each do |line_number|
-            assert_equal 4, line_number.size
-          end
+          assert_equal [4], lines.map(&:size).uniq
         end
       end
 
