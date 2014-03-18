@@ -28,9 +28,6 @@ module ApplicationTests
         app_file 'config/locales/en.yaml', '# TODO: note in yaml'
         app_file "app/views/home/index.ruby", "# TODO: note in ruby"
 
-        boot_rails
-        load_tasks
-
         run_rake_notes do |output, lines|
           assert_match(/note in erb/, output)
           assert_match(/note in js/, output)
@@ -58,9 +55,6 @@ module ApplicationTests
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
 
-        boot_rails
-        load_tasks
-
         run_rake_notes do |output, lines|
           assert_match(/note in app directory/, output)
           assert_match(/note in config directory/, output)
@@ -85,9 +79,6 @@ module ApplicationTests
         app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
 
         app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
-
-        boot_rails
-        load_tasks
 
         run_rake_notes "SOURCE_ANNOTATION_DIRECTORIES='some_other_dir' bundle exec rake notes" do |output, lines|
           assert_match(/note in app directory/, output)
@@ -120,9 +111,6 @@ module ApplicationTests
           end
         EOS
 
-        boot_rails
-        load_tasks
-
         run_rake_notes "bundle exec rake notes_custom" do |output, lines|
           assert_match(/\[FIXME\] note in lib directory/, output)
           assert_match(/\[TODO\] note in test directory/, output)
@@ -142,9 +130,6 @@ module ApplicationTests
         app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
         app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
 
-        boot_rails
-        load_tasks
-
         run_rake_notes do |output, lines|
           assert_match(/note in scss/, output)
           assert_match(/note in sass/, output)
@@ -155,6 +140,9 @@ module ApplicationTests
       private
 
       def run_rake_notes(command = 'bundle exec rake notes')
+        boot_rails
+        load_tasks
+
         Dir.chdir(app_path) do
           output = `#{command}`
           lines  = output.scan(/\[([0-9\s]+)\]\s/).flatten
