@@ -31,10 +31,7 @@ module ApplicationTests
         boot_rails
         load_tasks
 
-        Dir.chdir(app_path) do
-          output = `bundle exec rake notes`
-          lines = output.scan(/\[([0-9\s]+)\]\s/).flatten
-
+        run_rake_notes do |output, lines|
           assert_match(/note in erb/, output)
           assert_match(/note in js/, output)
           assert_match(/note in css/, output)
@@ -64,10 +61,7 @@ module ApplicationTests
         boot_rails
         load_tasks
 
-        Dir.chdir(app_path) do
-          output = `bundle exec rake notes`
-          lines = output.scan(/\[([0-9\s]+)\]/).flatten
-
+        run_rake_notes do |output, lines|
           assert_match(/note in app directory/, output)
           assert_match(/note in config directory/, output)
           assert_match(/note in db directory/, output)
@@ -95,10 +89,7 @@ module ApplicationTests
         boot_rails
         load_tasks
 
-        Dir.chdir(app_path) do
-          output = `SOURCE_ANNOTATION_DIRECTORIES='some_other_dir' bundle exec rake notes`
-          lines = output.scan(/\[([0-9\s]+)\]/).flatten
-
+        run_rake_notes "SOURCE_ANNOTATION_DIRECTORIES='some_other_dir' bundle exec rake notes" do |output, lines|
           assert_match(/note in app directory/, output)
           assert_match(/note in config directory/, output)
           assert_match(/note in db directory/, output)
@@ -132,10 +123,7 @@ module ApplicationTests
         boot_rails
         load_tasks
 
-        Dir.chdir(app_path) do
-          output = `bundle exec rake notes_custom`
-          lines = output.scan(/\[([0-9\s]+)\]/).flatten
-
+        run_rake_notes "bundle exec rake notes_custom" do |output, lines|
           assert_match(/\[FIXME\] note in lib directory/, output)
           assert_match(/\[TODO\] note in test directory/, output)
           assert_no_match(/OPTIMIZE/, output)
@@ -157,9 +145,7 @@ module ApplicationTests
         boot_rails
         load_tasks
 
-        Dir.chdir(app_path) do
-          output = `bundle exec rake notes`
-          lines = output.scan(/\[([0-9\s]+)\]/).flatten
+        run_rake_notes do |output, lines|
           assert_match(/note in scss/, output)
           assert_match(/note in sass/, output)
           assert_equal 2, lines.size
@@ -167,6 +153,15 @@ module ApplicationTests
       end
 
       private
+
+      def run_rake_notes(command = 'bundle exec rake notes')
+        Dir.chdir(app_path) do
+          output = `#{command}`
+          lines  = output.scan(/\[([0-9\s]+)\]\s/).flatten
+
+          yield output, lines
+        end
+      end
 
       def load_tasks
         require 'rake'
