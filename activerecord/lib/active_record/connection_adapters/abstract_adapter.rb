@@ -71,8 +71,8 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use, :logger
-      alias :in_use? :in_use
+      attr_reader :schema_cache, :owner, :logger
+      alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
         if config =~ SIMPLE_INT
@@ -94,9 +94,8 @@ module ActiveRecord
         super()
 
         @connection          = connection
-        @in_use              = false
+        @owner               = nil
         @instrumenter        = ActiveSupport::Notifications.instrumenter
-        @last_use            = false
         @logger              = logger
         @pool                = pool
         @schema_cache        = SchemaCache.new self
@@ -114,9 +113,8 @@ module ActiveRecord
 
       def lease
         synchronize do
-          unless in_use
-            @in_use   = true
-            @last_use = Time.now
+          unless in_use?
+            @owner = Thread.current
           end
         end
       end
@@ -127,7 +125,7 @@ module ActiveRecord
       end
 
       def expire
-        @in_use = false
+        @owner = nil
       end
 
       def unprepared_visitor
@@ -260,12 +258,6 @@ module ActiveRecord
       # checking whether the database is actually capable of responding, i.e. whether
       # the connection isn't stale.
       def active?
-      end
-
-      # Adapter should redefine this if it needs a threadsafe way to approximate
-      # if the connection is active
-      def active_threadsafe?
-        active?
       end
 
       # Disconnects from the database if already connected, and establishes a

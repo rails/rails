@@ -45,6 +45,37 @@ module ActiveRecord
       assert_equal 'off', expect
     end
 
+    def test_reset
+      @connection.query('ROLLBACK')
+      @connection.query('SET geqo TO off')
+
+      # Verify the setting has been applied.
+      expect = @connection.query('show geqo').first.first
+      assert_equal 'off', expect
+
+      @connection.reset!
+
+      # Verify the setting has been cleared.
+      expect = @connection.query('show geqo').first.first
+      assert_equal 'on', expect
+    end
+
+    def test_reset_with_transaction
+      @connection.query('ROLLBACK')
+      @connection.query('SET geqo TO off')
+
+      # Verify the setting has been applied.
+      expect = @connection.query('show geqo').first.first
+      assert_equal 'off', expect
+
+      @connection.query('BEGIN')
+      @connection.reset!
+
+      # Verify the setting has been cleared.
+      expect = @connection.query('show geqo').first.first
+      assert_equal 'on', expect
+    end
+
     def test_tables_logs_name
       @connection.tables('hello')
       assert_equal 'SCHEMA', @subscriber.logged[0][1]
