@@ -139,13 +139,6 @@ module ActionController
       @permitted = permitted
     end
 
-    # Attribute that keeps track of converted arrays, if any, to avoid double
-    # looping in the common use case permit + mass-assignment. Defined in a
-    # method to instantiate it only if needed.
-    def converted_arrays
-      @converted_arrays ||= Set.new
-    end
-
     # Returns +true+ if the parameter is permitted, +false+ otherwise.
     #
     #   params = ActionController::Parameters.new
@@ -422,6 +415,13 @@ module ActionController
         else
           self.class.new(value)
         end
+      end
+
+      # Attribute that keeps track of converted arrays, if any, to avoid double
+      # looping in the common use case permit + mass-assignment. Defined in a
+      # method to instantiate it only if needed.
+      def converted_arrays
+        @converted_arrays ||= Set.new
       end
 
       def each_element(object)
