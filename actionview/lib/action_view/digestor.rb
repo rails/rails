@@ -75,20 +75,21 @@ module ActionView
       end
     end
 
-    attr_reader :name, :format, :variant, :finder, :options
+    attr_reader :name, :format, :variant, :path, :finder, :options
 
     def initialize(options_or_deprecated_name, *deprecated_args)
       options = self.class._options_for_digest(options_or_deprecated_name, *deprecated_args)
       @options = options.except(:name, :format, :variant, :finder)
       @name, @format, @variant, @finder = options.values_at(:name, :format, :variant, :finder)
+      @path = "#{@name}.#{format}".tap { |path| path << "+#{@variant}" if @variant }
     end
 
     def digest
       Digest::MD5.hexdigest("#{source}-#{dependency_digest}").tap do |digest|
-        logger.try :info, "Cache digest for #{name}.#{format}: #{digest}"
+        logger.try :info, "Cache digest for #{path}: #{digest}"
       end
     rescue ActionView::MissingTemplate
-      logger.try :error, "Couldn't find template for digesting: #{name}.#{format}"
+      logger.try :error, "Couldn't find template for digesting: #{path}"
       ''
     end
 
