@@ -100,7 +100,7 @@ module ActionView
 
     def nested_dependencies
       dependencies.collect do |dependency|
-        dependencies = PartialDigestor.new(name: dependency, format: format, finder: finder).nested_dependencies
+        dependencies = PartialDigestor.new(name: dependency, format: format, variant: variant, finder: finder).nested_dependencies
         dependencies.any? ? { dependency => dependencies } : dependency
       end
     end
@@ -133,7 +133,7 @@ module ActionView
 
       def dependency_digest
         template_digests = dependencies.collect do |template_name|
-          Digestor.digest(name: template_name, format: format, finder: finder, partial: true)
+          Digestor.digest(name: template_name, format: format, variant: variant, finder: finder, partial: true)
         end
 
         (template_digests + injected_dependencies).join("-")
