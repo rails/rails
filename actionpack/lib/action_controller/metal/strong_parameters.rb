@@ -163,7 +163,7 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        value = convert_hashes_to_parameters(key, value)
+        value = convert_and_assign_value(key, value)
         Array.wrap(value).each do |_|
           _.permit! if _.respond_to? :permit!
         end
@@ -285,7 +285,7 @@ module ActionController
     #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)
-      convert_hashes_to_parameters(key, @parameters[key])
+      convert_and_assign_value(key, @parameters[key])
     end
 
     # Returns a parameter for the given +key+. If the +key+
@@ -300,7 +300,7 @@ module ActionController
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args, &block)
-      convert_hashes_to_parameters(key, @parameters.fetch(key, *args, &block), false)
+      convert_value_to_parameters(@parameters.fetch(key, *args, &block))
     rescue KeyError
       raise ActionController::ParameterMissing.new(key)
     end
@@ -399,9 +399,9 @@ module ActionController
         self.class.new(parameters, @permitted)
       end
 
-      def convert_hashes_to_parameters(key, value, assign_if_converted=true)
+      def convert_and_assign_value(key, value)
         converted = convert_value_to_parameters(value)
-        self[key] = converted if assign_if_converted && !converted.equal?(value)
+        self[key] = converted unless converted.equal?(value)
         converted
       end
 
