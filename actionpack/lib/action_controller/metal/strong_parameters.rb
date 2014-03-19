@@ -1,6 +1,7 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/rescuable'
+require 'active_support/deprecation'
 require 'action_dispatch/http/upload'
 require 'stringio'
 require 'set'
@@ -364,6 +365,42 @@ module ActionController
       new_with_parameters(@parameters.except(*keys))
     end
 
+    # Proxy all of the missing method call to underlying +HashWithIndifferentAccess+ object and
+    # display the deprecation warning.
+    #
+    # TODO: Remove this method once we reach 5.0.0
+    def method_missing(method_name, *args, &block)
+      ActiveSupport::Deprecation.warn <<-warning.squish
+        ActionController::Parameters is no longer inherited from `HashWithIndifferentAccess` due to
+        a security concern. Your `##{method_name}` method call has been proxied to the underlying
+        `HashWithIndifferentAccess` object and lost its permitted status. This behavior will be
+        removed in the next major version of Rails.
+      warning
+
+      to_h.public_send(method_name, *args, &block)
+    end
+
+    # Override this to make <tt>Parameters.is_a?(Hash)</tt> still works.
+    #
+    # TODO: Remove this method once we reach 5.0.0
+    def is_a?(klass)
+      super || @parameters.is_a?(klass)
+    end
+
+    # Override this to make <tt>Parameters.kind_of?(Hash)</tt> still works.
+    #
+    # TODO: Remove this method once we reach 5.0.0
+    def kind_of?(klass)
+      super || @parameters.kind_of?(klass)
+    end
+
+    # Required by +HashWithIndifferentAccess+
+    #
+    # TODO: Remove this method once we reach 5.0.0
+    def nested_under_indifferent_access # :nodoc:
+      self
+    end
+
     private
       def new_with_parameters(parameters)
         self.class.new(parameters, @permitted)
@@ -495,6 +532,23 @@ module ActionController
               end
             end
           end
+        end
+      end
+
+      # Returns true if we or the underlying +HashWithIndifferentAccess+ respond to the method name.
+      # Note that deprecation warning will be displayed if the method will be proxied.
+      #
+      # TODO: Remove this method once we reach 5.0.0
+      def respond_to_missing?(method_name, include_private = false)
+        if @parameters.respond_to? method_name, include_private
+          ActiveSupport::Deprecation.warn <<-warning.squish
+            ActionController::Parameters is no longer inherited from `HashWithIndifferentAccess` due
+            to a security concern. Your `##{method_name}` method call will be proxied to the
+            underlying `HashWithIndifferentAccess` object and lost its permitted status. This behavior
+            will be removed in the next major version of Rails.
+          warning
+
+          true
         end
       end
   end
