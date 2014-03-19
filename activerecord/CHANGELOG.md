@@ -1,3 +1,7 @@
+*   Add support for counter name to be passed as parameter on `CounterCache::ClassMethods#reset_counters`.
+
+    *jnormore*
+
 *   Restrict deletion of record when using `delete_all` with `uniq`, `group`, `having`
     or `offset`.
 
