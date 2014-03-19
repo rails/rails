@@ -322,11 +322,13 @@ end
 
 module ActionDispatch
   class DebugExceptions
-    private
-    remove_method :stderr_logger
-    # Silence logger
-    def stderr_logger
-      nil
+    class ExceptionHandler
+      private
+      remove_method :stderr_logger
+      # Silence logger
+      def stderr_logger
+        nil
+      end
     end
   end
 end
