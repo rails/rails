@@ -610,7 +610,7 @@ module ActiveRecord
       # Close then reopen the connection.
       def reconnect!
         super
-        @connection.reset
+        @connection.reset!
         configure_connection
       end
 
