@@ -1,9 +1,12 @@
 # encoding: utf-8
 require "cases/helper"
+require 'support/ddl_helper'
 
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapterTest < ActiveRecord::TestCase
+      include DdlHelper
+
       def setup
         @connection = ActiveRecord::Base.connection
       end
@@ -369,12 +372,8 @@ module ActiveRecord
         ctx.exec_insert(sql, 'SQL', binds)
       end
 
-      def with_example_table(definition = nil)
-        definition ||= 'id serial primary key, number integer, data character varying(255)'
-        @connection.exec_query("create table ex(#{definition})")
-        yield
-      ensure
-        @connection.exec_query('drop table if exists ex')
+      def with_example_table(definition = 'id serial primary key, number integer, data character varying(255)', &block)
+        super(@connection, 'ex', definition, &block)
       end
 
       def connection_without_insert_returning
