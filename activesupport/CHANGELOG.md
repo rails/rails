@@ -1,3 +1,7 @@
+*   Deprecate `Class#superclass_delegating_accessor`, use `Class#class_attribute` instead.
+
+    *Akshay Vishnoi*
+
 *   Ensure classes which `include Enumerable` get `#to_json` in addition to
     `#as_json`.
 
