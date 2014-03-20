@@ -286,6 +286,9 @@ module ActiveRecord
     #   User.order(:name, email: :desc)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     #
+    #   User.order('users.name' => :desc)
+    #   => SELECT "users".* FROM "users" ORDER BY "users"."name" DESC
+    #
     #   User.order('name')
     #   => SELECT "users".* FROM "users" ORDER BY name
     #
@@ -1049,8 +1052,10 @@ module ActiveRecord
       order_args.flatten!
       validate_order_args(order_args)
 
+      table_regex = /^([a-zA-Z]\w*)\.(\w+)/
+
       references = order_args.grep(String)
-      references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
+      references.map! { |arg| arg =~ table_regex && $1 }.compact!
       references!(references) if references.any?
 
       # if a symbol is given we prepend the quoted table name
@@ -1061,8 +1066,19 @@ module ActiveRecord
           table[arg].asc
         when Hash
           arg.map { |field, dir|
-            field = klass.attribute_alias(field) if klass.attribute_alias?(field)
-            table[field].send(dir.downcase)
+            attribute = if klass.attribute_alias?(field)
+              table[klass.attribute_alias(field)]
+            elsif field =~ table_regex && $1
+              table_class = $1.classify.safe_constantize
+              unless table_class.respond_to? :arel_table
+                raise ArgumentError, "Is \"#{field}\" supposed to contain a table name? You can try use order('#{field} #{dir}') instead."
+              end
+              table_class.arel_table[$2]
+            else
+              table[field]
+            end
+
+            attribute.send(dir.downcase)
           }
         else
           arg

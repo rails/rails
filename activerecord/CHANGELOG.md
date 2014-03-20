@@ -1,3 +1,7 @@
+*   `order` accepts `'table_name.column_name' => :asc` as an argument.
+
+    *Nikolay Shebanov*
+
 *   `touch` accepts many attributes to be touched at once.
 
     Example:
