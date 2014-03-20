@@ -1,3 +1,10 @@
+*   `rake db:structure:dump` only dumps schema information if the schema
+    migration table exists.
+
+    Fixes #14217.
+
+    *Yves Senn*
+
 *   Reap connections that were checked out by now-dead threads, instead
     of waiting until they disconnect by themselves. Before this change,
     a suitably constructed series of short-lived threads could starve
