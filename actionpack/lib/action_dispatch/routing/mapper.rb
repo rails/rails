@@ -357,6 +357,10 @@ module ActionDispatch
         #   #  params[:category] = 'rock/classic'
         #   #  params[:title] = 'stairway-to-heaven'
         #
+        # To match a wildcard parameter, it must have a name assigned to it.
+        # Without a variable name to attach the glob parameter to, the route
+        # can't be parsed.
+        #
         # When a pattern points to an internal route, the route's +:action+ and
         # +:controller+ should be set in options or hash shorthand. Examples:
         #
