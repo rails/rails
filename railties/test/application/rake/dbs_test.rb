@@ -33,12 +33,11 @@ module ApplicationTests
       def db_create_and_drop
         Dir.chdir(app_path) do
           output = `bundle exec rake db:create`
-          assert_equal output, ""
+          assert_empty output
           assert File.exist?(expected[:database])
-          assert_equal expected[:database],
-                        ActiveRecord::Base.connection_config[:database]
+          assert_equal expected[:database], ActiveRecord::Base.connection_config[:database]
           output = `bundle exec rake db:drop`
-          assert_equal output, ""
+          assert_empty output
           assert !File.exist?(expected[:database])
         end
       end
@@ -47,7 +46,7 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         expected[:database] = ActiveRecord::Base.configurations[Rails.env]['database']
         db_create_and_drop
-       end
+      end
 
       test 'db:create and db:drop with database url' do
         require "#{app_path}/config/environment"
