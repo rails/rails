@@ -1,3 +1,10 @@
+*   `rake db:structure:dump` only dumps schema information if the schema
+    migration table exists.
+
+    Fixes #14217.
+
+    *Yves Senn*
+
 *   `where.not` adds `references` for `includes` like normal `where` calls do.
 
     Fixes #14406.
