@@ -134,6 +134,18 @@ module ApplicationTests
         db_structure_dump_and_load database_url_db_name
       end
 
+      test 'db:structure:dump does not dump schema information when no migrations are used' do
+        Dir.chdir(app_path) do
+          # create table without migrations
+          `bundle exec rails runner 'ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }'`
+
+          stderr_output = capture(:stderr) { `bundle exec rake db:structure:dump` }
+          assert_empty stderr_output
+          structure_dump = File.read("db/structure.sql")
+          assert_match(/CREATE TABLE \"posts\"/, structure_dump)
+        end
+      end
+
       def db_test_load_structure
         Dir.chdir(app_path) do
           `rails generate model book title:string;
