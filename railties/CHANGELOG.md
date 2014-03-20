@@ -1,3 +1,12 @@
+## Rails 3.2.18 () ##
+
+*   Update `rack-ssl` to 1.4.0 to avert CVE-2014-2538.
+    *Weston Platter*
+
+## Rails 3.2.17 (Feb 18, 2014) ##
+
+## Rails 3.2.16 (Dec 3, 2013) ##
+
 ## Rails 3.2.15 (Oct 16, 2013) ##
 
 * No changes.
