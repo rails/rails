@@ -89,6 +89,18 @@ class TimestampTest < ActiveRecord::TestCase
     assert_in_delta Time.now, task.ending, 1
   end
 
+  def test_touching_many_attributes_updates_them
+    task = Task.first
+    previous_starting = task.starting
+    previous_ending = task.ending
+    task.touch(:starting, :ending)
+    
+    assert_not_equal previous_starting, task.starting
+    assert_not_equal previous_ending, task.ending
+    assert_in_delta Time.now, task.starting, 1
+    assert_in_delta Time.now, task.ending, 1
+  end
+
   def test_touching_a_record_without_timestamps_is_unexceptional
     assert_nothing_raised { Car.first.touch }
   end

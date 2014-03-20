@@ -1,3 +1,15 @@
+*   `ActiveRecord#touch` should accept many attributes at once. Suggested at #14423.
+
+    Example:
+
+        photo = Photo.last
+        photo.touch(:signed_at, :sealed_at)
+        photo.updated_at # was changed
+        photo.signed_at  # was changed
+        photo.sealed_at  # was changed
+
+    *James Pinto*
+
 *   `rake db:structure:dump` only dumps schema information if the schema
     migration table exists.
 
