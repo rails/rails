@@ -1,3 +1,15 @@
+*   `ActiveRecord#touch` should accept many attributes at once. Suggested at #14423.
+
+    Example:
+
+        photo = Photo.last
+        photo.touch(:signed_at, :sealed_at)
+        photo.updated_at # was changed
+        photo.signed_at  # was changed
+        photo.sealed_at  # was changed
+        
+    *James Pinto*
+
 *   Reap connections that were checked out by now-dead threads, instead
     of waiting until they disconnect by themselves. Before this change,
     a suitably constructed series of short-lived threads could starve
