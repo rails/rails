@@ -1,5 +1,7 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/module/deprecation'
+
 
 class Class
   def superclass_delegating_accessor(name, options = {})
@@ -20,6 +22,8 @@ class Class
       define_method("#{name}?") { !!send("#{name}") }
     end
   end
+
+  deprecate superclass_delegating_accessor: :class_attribute
 
   private
     # Take the object being set and store it in a method. This gives us automatic
