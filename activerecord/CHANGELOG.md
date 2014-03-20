@@ -1,3 +1,10 @@
+*   `rake db:structure:dump` only dumps schema information if the schema
+    migration table exists.
+
+    Fixes #14217.
+
+    *Yves Senn*
+
 *   Fix counter cache when association uses a class_name.
 
     Fixes #14369.
