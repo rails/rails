@@ -1,12 +1,9 @@
-*   `ActiveRecord#touch` should accept many attributes at once. Suggested at #14423.
+*   `touch` accepts many attributes to be touched at once.
 
     Example:
 
-        photo = Photo.last
-        photo.touch(:signed_at, :sealed_at)
-        photo.updated_at # was changed
-        photo.signed_at  # was changed
-        photo.sealed_at  # was changed
+        # touches :signed_at, :sealed_at, and :updated_at/on attributes.
+        Photo.last.touch(:signed_at, :sealed_at)
 
     *James Pinto*
 
