@@ -42,7 +42,7 @@ module ActionView
             ':variant. Please update your code to pass a Hash argument. ' \
             'Support for the old method signature will be removed in Rails 5.0.'
 
-          _options_for_digest (deprecated_args[2] || {}).merge \
+          _options_for_digest(deprecated_args[2] || {}).merge \
             name:   options_or_deprecated_name,
             format: deprecated_args[0],
             finder: deprecated_args[1]
