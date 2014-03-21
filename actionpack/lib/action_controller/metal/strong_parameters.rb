@@ -377,6 +377,15 @@ module ActionController
     #
     # TODO: Remove this method once we reach 5.0.0
     def is_a?(klass)
+      if klass == Hash || klass == HashWithIndifferentAccess
+        ActiveSupport::Deprecation.warn <<-warning.squish
+          ActionController::Parameters is no longer inherited from `HashWithIndifferentAccess` due to
+          a security concern. Currently, `is_a?` is overridden to return true on `Hash` for backward
+          compatibility. You shouldn't rely on this behavior, as it will be removed in the next
+          version of Rails. We recommend you to do `respond_to?(:to_hash)` instead.
+        warning
+      end
+
       super || @parameters.is_a?(klass)
     end
 
@@ -384,6 +393,15 @@ module ActionController
     #
     # TODO: Remove this method once we reach 5.0.0
     def kind_of?(klass)
+      if klass == Hash || klass == HashWithIndifferentAccess
+        ActiveSupport::Deprecation.warn <<-warning.squish
+          ActionController::Parameters is no longer inherited from `HashWithIndifferentAccess` due to
+          a security concern. Currently, `kind_of?` is overridden to return true on `Hash` for backward
+          compatibility. You shouldn't rely on this behavior, as it will be removed in the next
+          version of Rails. We recommend you to do `respond_to?(:to_hash)` instead.
+        warning
+      end
+
       super || @parameters.kind_of?(klass)
     end
 
@@ -634,7 +652,7 @@ module ActionController
     # is a Hash, this will create an ActionController::Parameters
     # object that has been instantiated with the given +value+ hash.
     def params=(value)
-      @_params = value.is_a?(Hash) ? Parameters.new(value) : value
+      @_params = value.respond_to?(:to_hash) ? Parameters.new(value.to_hash) : value
     end
   end
 end

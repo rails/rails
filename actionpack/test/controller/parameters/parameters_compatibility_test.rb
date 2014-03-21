@@ -37,11 +37,26 @@ class ParametersCompatibilityTest < ActiveSupport::TestCase
     end
   end
 
-  def test_is_a_returns_true_when_passing_hash
-    assert ActionController::Parameters.new.is_a?(Hash)
+  def test_is_a_returns_true_and_show_deprecation_warning_when_passing_hash
+    assert_deprecated do
+      assert ActionController::Parameters.new.is_a?(Hash)
+    end
   end
 
-  def test_kind_of_returns_true_when_passing_hash
-    assert ActionController::Parameters.new.kind_of?(Hash)
+  def test_is_a_not_show_deprecation_warning_when_not_passing_hash
+    assert_not_deprecated do
+      ActionController::Parameters.new.is_a?(String)
+    end
+  end
+
+  def test_kind_of_returns_true_and_show_deprecation_warning_when_passing_hash
+    assert_deprecated do
+      assert ActionController::Parameters.new.kind_of?(Hash) end
+  end
+
+  def test_kind_of_not_show_deprecation_warning_when_not_passing_hash
+    assert_not_deprecated do
+      ActionController::Parameters.new.kind_of?(String)
+    end
   end
 end
