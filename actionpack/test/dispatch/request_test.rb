@@ -605,6 +605,22 @@ class RequestProtocol < BaseRequestTest
     assert request.xhr?
   end
 
+  test "cross-origin resourse sharing request" do
+    request = stub_request
+    assert !request.cors?
+
+    request = stub_request 'HTTP_HOST' => 'test.dev', 'HTTP_PORT' => '80', 'rack.url_scheme' => 'http', 'HTTP_ORIGIN' => 'http://test.dev'
+    assert !request.cors?
+
+    request = stub_request 'HTTP_HOST' => 'test.dev', 'HTTP_PORT' => '80', 'rack.url_scheme' => 'http', 'HTTP_ORIGIN' => 'https://test.dev'
+    assert request.cors?
+    assert request.xhr?
+
+    request = stub_request 'HTTP_HOST' => 'test.dev', 'HTTP_PORT' => '80', 'rack.url_scheme' => 'http', 'HTTP_ORIGIN' => 'http://otherdomain.dev'
+    assert request.cors?
+    assert request.xhr?
+  end
+
   test "reports ssl" do
     assert !stub_request.ssl?
     assert stub_request('HTTPS' => 'on').ssl?
