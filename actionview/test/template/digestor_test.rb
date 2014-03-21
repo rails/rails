@@ -100,13 +100,13 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_logging_of_missing_template
-    assert_logged "Couldn't find template for digesting: messages/something_missing.html" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       digest("messages/show")
     end
   end
 
   def test_logging_of_missing_template_ending_with_number
-    assert_logged "Couldn't find template for digesting: messages/something_missing_1.html" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing_1" do
       digest("messages/show")
     end
   end
@@ -207,7 +207,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_variants
-    assert_digest_difference("messages/new", false, variant: :iphone) do
+    assert_digest_difference("messages/new", false, variants: [:iphone]) do
       change_template("messages/new",     :iphone)
       change_template("messages/_header", :iphone)
     end
@@ -261,10 +261,6 @@ class TemplateDigestorTest < ActionView::TestCase
     ActionView::Resolver.caching = resolver_before
   end
 
-  def test_arguments_deprecation
-    assert_deprecated(/will be removed/) { ActionView::Digestor.digest('messages/show', :html, finder) }
-    assert_deprecated(/will be removed/) { ActionView::Digestor.new('messages/show', :html, finder) }
-  end
 
   private
     def assert_logged(message)
@@ -294,10 +290,11 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def digest(template_name, options = {})
       options = options.dup
-      finder.formats = [:html]
-      finder.variants = [options[:variant]] if options[:variant].present?
 
-      ActionView::Digestor.digest({ name: template_name, format: :html, finder: finder }.merge(options))
+      finder.formats  = [:html]
+      finder.variants = options.delete(:variants) || []
+
+      ActionView::Digestor.digest({ name: template_name, finder: finder }.merge(options))
     end
 
     def finder
