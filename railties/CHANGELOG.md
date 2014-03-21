@@ -1,3 +1,7 @@
+*   Remove sqlite3 lines from `.gitignore` if the application is not using sqlite3.
+
+    *Dmitrii Golub*
+
 *   Add public API to register new extensions for `rake notes`.
 
     Example:
