@@ -12,17 +12,13 @@ module ActionView
       # Supported options:
       #
       # * <tt>name</tt>   - Template name
-      # * <tt>format</tt>  - Template format
-      # * <tt>variant</tt>  - Variant of +format+ (optional)
       # * <tt>finder</tt>  - An instance of ActionView::LookupContext
       # * <tt>dependencies</tt>  - An array of dependent views
       # * <tt>partial</tt>  - Specifies whether the template is a partial
-      def digest(options_or_deprecated_name, *deprecated_args)
-        options = _options_for_digest(options_or_deprecated_name, *deprecated_args)
+      def digest(options)
+        options.assert_valid_keys(:name, :finder, :dependencies, :partial)
 
-        details_key = options[:finder].details_key.hash
-        dependencies = Array.wrap(options[:dependencies])
-        cache_key = ([options[:name], details_key, options[:format], options[:variant]].compact + dependencies).join('.')
+        cache_key = ([ options[:name], options[:finder].details_key.hash ].compact + Array.wrap(options[:dependencies])).join('.')
 
         # this is a correctly done double-checked locking idiom
         # (ThreadSafe::Cache's lookups have volatile semantics)
@@ -33,63 +29,41 @@ module ActionView
         end
       end
 
-      def _options_for_digest(options_or_deprecated_name, *deprecated_args)
-        if !options_or_deprecated_name.is_a?(Hash)
-          ActiveSupport::Deprecation.warn \
-            'ActionView::Digestor.digest changed its method signature from ' \
-            '#digest(name, format, finder, options) to #digest(options), ' \
-            'with options now including :name, :format, :finder, and ' \
-            ':variant. Please update your code to pass a Hash argument. ' \
-            'Support for the old method signature will be removed in Rails 5.0.'
-
-          _options_for_digest(deprecated_args[2] || {}).merge \
-            name:   options_or_deprecated_name,
-            format: deprecated_args[0],
-            finder: deprecated_args[1]
-        else
-          options_or_deprecated_name.assert_valid_keys(:name, :format, :variant, :finder, :dependencies, :partial)
-          options_or_deprecated_name
-        end
-      end
-
       private
+        def compute_and_store_digest(cache_key, options) # called under @@digest_monitor lock
+          klass = if options[:partial] || options[:name].include?("/_")
+            # Prevent re-entry or else recursive templates will blow the stack.
+            # There is no need to worry about other threads seeing the +false+ value,
+            # as they will then have to wait for this thread to let go of the @@digest_monitor lock.
+            pre_stored = @@cache.put_if_absent(cache_key, false).nil? # put_if_absent returns nil on insertion
+            PartialDigestor
+          else
+            Digestor
+          end
 
-      def compute_and_store_digest(cache_key, options) # called under @@digest_monitor lock
-        klass = if options[:partial] || options[:name].include?("/_")
-          # Prevent re-entry or else recursive templates will blow the stack.
-          # There is no need to worry about other threads seeing the +false+ value,
-          # as they will then have to wait for this thread to let go of the @@digest_monitor lock.
-          pre_stored = @@cache.put_if_absent(cache_key, false).nil? # put_if_absent returns nil on insertion
-          PartialDigestor
-        else
-          Digestor
+          digest = klass.new(options).digest
+          # Store the actual digest if config.cache_template_loading is true
+          @@cache[cache_key] = stored_digest = digest if ActionView::Resolver.caching?
+          digest
+        ensure
+          # something went wrong or ActionView::Resolver.caching? is false, make sure not to corrupt the @@cache
+          @@cache.delete_pair(cache_key, false) if pre_stored && !stored_digest
         end
-
-        digest = klass.new(options).digest
-        # Store the actual digest if config.cache_template_loading is true
-        @@cache[cache_key] = stored_digest = digest if ActionView::Resolver.caching?
-        digest
-      ensure
-        # something went wrong or ActionView::Resolver.caching? is false, make sure not to corrupt the @@cache
-        @@cache.delete_pair(cache_key, false) if pre_stored && !stored_digest
-      end
     end
 
-    attr_reader :name, :format, :variant, :path, :finder, :options
+    attr_reader :name, :finder, :options
 
-    def initialize(options_or_deprecated_name, *deprecated_args)
-      options = self.class._options_for_digest(options_or_deprecated_name, *deprecated_args)
-      @options = options.except(:name, :format, :variant, :finder)
-      @name, @format, @variant, @finder = options.values_at(:name, :format, :variant, :finder)
-      @path = "#{@name}.#{format}".tap { |path| path << "+#{@variant}" if @variant }
+    def initialize(options)
+      @name, @finder = options.values_at(:name, :finder)
+      @options = options.except(:name, :finder)
     end
 
     def digest
       Digest::MD5.hexdigest("#{source}-#{dependency_digest}").tap do |digest|
-        logger.try :info, "Cache digest for #{path}: #{digest}"
+        logger.try :info, "  Cache digest for #{template.inspect}: #{digest}"
       end
     rescue ActionView::MissingTemplate
-      logger.try :error, "Couldn't find template for digesting: #{path}"
+      logger.try :error, "  Couldn't find template for digesting: #{name}"
       ''
     end
 
@@ -101,13 +75,12 @@ module ActionView
 
     def nested_dependencies
       dependencies.collect do |dependency|
-        dependencies = PartialDigestor.new(name: dependency, format: format, variant: variant, finder: finder).nested_dependencies
+        dependencies = PartialDigestor.new(name: dependency, finder: finder).nested_dependencies
         dependencies.any? ? { dependency => dependencies } : dependency
       end
     end
 
     private
-
       def logger
         ActionView::Base.logger
       end
@@ -121,11 +94,7 @@ module ActionView
       end
 
       def template
-        @template ||= begin
-          finder.disable_cache do
-            finder.find(logical_name, [], partial?, [], formats: [format], variants: [variant])
-          end
-        end
+        @template ||= finder.disable_cache { finder.find(logical_name, [], partial?) }
       end
 
       def source
@@ -134,7 +103,7 @@ module ActionView
 
       def dependency_digest
         template_digests = dependencies.collect do |template_name|
-          Digestor.digest(name: template_name, format: format, variant: variant, finder: finder, partial: true)
+          Digestor.digest(name: template_name, finder: finder, partial: true)
         end
 
         (template_digests + injected_dependencies).join("-")
