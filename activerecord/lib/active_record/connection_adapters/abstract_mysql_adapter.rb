@@ -455,7 +455,9 @@ module ActiveRecord
       end
 
       def create_table(table_name, options = {}) #:nodoc:
-        super(table_name, options.reverse_merge(:options => "ENGINE=InnoDB"))
+        table_options = "ENGINE=InnoDB"
+        table_options += " ROW_FORMAT=#{options[:row_format].upcase}" if options[:row_format]
+        super(table_name, options.reverse_merge(options: table_options))
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
