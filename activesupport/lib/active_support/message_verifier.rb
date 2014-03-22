@@ -30,6 +30,10 @@ module ActiveSupport
       @secret = secret
       @digest = options[:digest] || 'SHA1'
       @serializer = options[:serializer] || Marshal
+      if @serializer == Marshal
+        deprecator = ::ActiveSupport::Deprecation.instance
+        deprecator.warn("Marshal serializer for MessageVerifier is deprecated")
+      end
     end
 
     def verify(signed_message)

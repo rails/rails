@@ -69,6 +69,12 @@ class MessageVerifierTest < ActiveSupport::TestCase
                     "undefined class/module MessageVerifierTest::AutoloadClass"], exception.message
   end
 
+  def test_deprecated_serializer_warning
+    assert_deprecated(/Marshal serializer for MessageVerifier is deprecated/) do
+      @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!")
+    end
+  end
+
   def assert_not_verified(message)
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(message)

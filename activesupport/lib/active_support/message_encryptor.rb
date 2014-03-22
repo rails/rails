@@ -49,6 +49,10 @@ module ActiveSupport
       @cipher = options[:cipher] || 'aes-256-cbc'
       @verifier = MessageVerifier.new(@sign_secret || @secret, :serializer => NullSerializer)
       @serializer = options[:serializer] || Marshal
+      if @serializer == Marshal
+        deprecator = ::ActiveSupport::Deprecation.instance
+        deprecator.warn("Marshal serializer for MessageEncryptor is deprecated");
+      end
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid

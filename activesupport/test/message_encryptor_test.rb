@@ -77,6 +77,13 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_not_verified([iv,  message] * bad_encoding_characters)
   end
 
+  def test_deprecated_serializer_warning
+    assert_deprecated(/Marshal serializer for MessageEncryptor is deprecated/) do
+      @verifier = ActiveSupport::MessageEncryptor.new("Hey, I'm a secret!")
+    end
+  end
+
+
   private
 
   def assert_not_decrypted(value)
