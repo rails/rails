@@ -291,7 +291,7 @@ module ActionDispatch
         # so is this custom message really needed?
         message = message || %(Expected #{count_description(min, max, count)} matching "#{selector.to_s}", found #{matches.size}.)
         if count
-          assert_equal matches.size, count, message
+          assert_equal count, matches.size, message
         else
           assert_operator matches.size, :>=, min, message if min
           assert_operator matches.size, :<=, max, message if max

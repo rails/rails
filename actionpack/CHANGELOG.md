@@ -1,3 +1,10 @@
+*   Swapped the parameters of assert_equal in `assert_select` so that the
+    proper values were printed correctly
+
+    Fixes #14422.
+
+    *Vishal Lal*
+
 *   Fix URL generation in controller tests with request-dependent
     `default_url_options` methods.
 
