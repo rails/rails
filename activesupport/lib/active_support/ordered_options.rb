@@ -14,7 +14,7 @@ module ActiveSupport
   #   h.girl = 'Mary'
   #   h.boy  # => 'John'
   #   h.girl # => 'Mary'
-  class OrderedOptions < Hash
+  class OrderedOptions < ::Hash
     alias_method :_get, :[] # preserve the original #[] method
     protected :_get # make it protected
 
