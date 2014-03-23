@@ -190,8 +190,7 @@ module ActiveRecord
     # If we haven't generated any methods yet, generate them, then
     # see if we've created the method we're looking for.
     def method_missing(method, *args, &block) # :nodoc:
-      self.class.define_attribute_methods
-      if respond_to_without_attributes?(method)
+      if self.class.define_attribute_methods && respond_to_without_attributes?(method)
         # make sure to invoke the correct attribute method, as we might have gotten here via a `super`
         # call in a overwritten attribute method
         if attribute_method = self.class.find_generated_attribute_method(method)

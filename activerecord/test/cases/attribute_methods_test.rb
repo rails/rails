@@ -843,6 +843,18 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal !real_topic.title?, klass.find(real_topic.id).title?
   end
 
+  def test_calling_super_when_parent_does_not_define_method_raises_error
+    klass = new_topic_like_ar_class do
+      def some_method_that_is_not_on_super
+        super
+      end
+    end
+
+    assert_raise(NoMethodError) do
+      klass.new.some_method_that_is_not_on_super
+    end
+  end
+
   private
 
   def new_topic_like_ar_class(&block)
