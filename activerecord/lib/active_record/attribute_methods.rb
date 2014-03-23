@@ -58,7 +58,7 @@ module ActiveRecord
       def initialize_generated_modules # :nodoc:
         @generated_attribute_methods = Module.new { extend Mutex_m }
         @attribute_methods_generated = false
-        @thread_registry = {}
+        @thread_registry = ThreadSafe::Cache.new
         include @generated_attribute_methods
       end
 
