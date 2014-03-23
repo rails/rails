@@ -52,6 +52,21 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.save(:context => :special_case)
   end
 
+  def test_validate
+    r = WrongReply.new
+
+    r.validate
+    assert_empty r.errors[:author_name]
+
+    r.validate(:special_case)
+    assert_not_empty r.errors[:author_name]
+
+    r.author_name = "secret"
+
+    r.validate(:special_case)
+    assert_empty r.errors[:author_name]
+  end
+
   def test_invalid_record_exception
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.save! }
