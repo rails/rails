@@ -199,4 +199,11 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal 4, user.years
     assert_equal true, user.available
   end
+
+  test "return default value if serialized attribute is unset" do
+    user = Admin::User.new
+
+    assert_equal 0, user.years
+    assert_equal false, user.available
+  end
 end

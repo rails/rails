@@ -252,9 +252,10 @@ EOS
       end
 
       def read(record, key)
-        store = get_config(key, record)[:store]
-        accessor = get_accessor(store, record)
-        accessor.read(record, store, key)
+        config = get_config(key, record)
+        accessor = get_accessor(config[:store], record)
+        value = accessor.read(record, config[:store], key)
+        value.nil? ? config[:default] : value
       end
 
       def write(record, key, value)

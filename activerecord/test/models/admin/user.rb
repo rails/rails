@@ -17,7 +17,10 @@ class Admin::User < ActiveRecord::Base
   store :params, accessors: [ :token ], coder: YAML
   store :settings, :accessors => [ :color, :homepage ]
   store_accessor :settings, :favorite_food
-  store_accessor :settings, :company => :string, :years => :integer, :available => :boolean
+  store_accessor :settings,
+    :company => :string,
+    :years => { :type => :integer, :default => 0 },
+    :available => { :type => :boolean, :default => false }
   store :preferences, :accessors => [ :remember_login ]
   store :json_data, :accessors => [ :height, :weight ], :coder => Coder.new
   store :json_data_empty, :accessors => [ :is_a_good_guy ], :coder => Coder.new
