@@ -43,7 +43,8 @@ class Someone < Struct.new(:name, :place)
 end
 
 Invoice   = Struct.new(:client) do
-  delegate :street, :city, :name, :to => :client, :prefix => true
+  delegate :street, :city, :to => :client, :prefix => true
+  delegate :client_name, :prefixing_with => :client
   delegate :street, :city, :name, :to => :client, :prefix => :customer
 end
 

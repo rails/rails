@@ -142,6 +142,16 @@ class Module
   #
   def delegate(*methods)
     options = methods.pop
+
+    if options.is_a?(Hash) && prefix_name = options[:prefixing_with]
+      if options[:to]
+        raise ArgumentError, "It doesn't make sense to use both the :to and :prefixing_with options together. Use one or the other."
+      end
+      options[:to]      = prefix_name
+      methods.map! { |method| method.to_s.gsub("#{prefix_name}_", "").to_sym }
+      options[:prefix]  = true
+    end
+
     unless options.is_a?(Hash) && to = options[:to]
       raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
     end
