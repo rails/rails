@@ -67,7 +67,7 @@ module ActiveRecord
 
     included do
       class_attribute :stored_attributes, instance_accessor: false
-      self.stored_attributes = {}
+      self.stored_attributes = ::ActiveRecord::Store::Schema.new
     end
 
     module ClassMethods
@@ -77,25 +77,21 @@ module ActiveRecord
       end
 
       def store_accessor(store_attribute, *keys)
-        keys = keys.flatten
-
+        # assign new store attribute and create new hash to ensure that each class in the hierarchy
+        # has its own hash of stored attributes.
+        self.stored_attributes = ::ActiveRecord::Store::Schema.new if stored_attributes.blank?
+        added_keys = stored_attributes.add(store_attribute, *keys)
         _store_accessors_module.module_eval do
-          keys.each do |key|
+          added_keys.each do |key|
             define_method("#{key}=") do |value|
-              write_store_attribute(store_attribute, key, value)
+              self.class.stored_attributes.write(self, key, value)
             end
 
             define_method(key) do
-              read_store_attribute(store_attribute, key)
+              self.class.stored_attributes.read(self, key)
             end
           end
         end
-
-        # assign new store attribute and create new hash to ensure that each class in the hierarchy
-        # has its own hash of stored attributes.
-        self.stored_attributes = {} if self.stored_attributes.blank?
-        self.stored_attributes[store_attribute] ||= []
-        self.stored_attributes[store_attribute] |= keys
       end
 
       def _store_accessors_module
@@ -108,21 +104,45 @@ module ActiveRecord
     end
 
     protected
-      def read_store_attribute(store_attribute, key)
-        accessor = store_accessor_for(store_attribute)
-        accessor.read(self, store_attribute, key)
+      def read_store_attribute(*args)
+        case args.size
+        when 1
+          key = args.first
+        when 2
+          ActiveSupport::Deprecation.warn("`read_store_attribute(store_attribute, key)` is deprecated. Use `read_store_attribute(key)`")
+          store, key = args
+          unless self.class.stored_attributes[store].include?(key)
+            ActiveSupport::Deprecation.warn <<-EOS
+Please specify `store_attribute :#{ store }, :#{ key }`. Dynamic assignment of stored attributes is deprecated.
+EOS
+            self.class.stored_attributes.add(store, key)
+          end
+        else
+          raise "wrong number of arguments (#{ args.size } for 1..2)"
+        end
+        self.class.stored_attributes.read(self, key)
       end
 
-      def write_store_attribute(store_attribute, key, value)
-        accessor = store_accessor_for(store_attribute)
-        accessor.write(self, store_attribute, key, value)
+      def write_store_attribute(*args)
+        case args.size
+        when 2
+          key, value = args
+        when 3
+          ActiveSupport::Deprecation.warn("`write_store_attribute(store_attribute, key, value)` is deprecated. Use `write_store_attribute(key, value)`")
+          store, key, value = args
+          unless self.class.stored_attributes[store].include?(key)
+            ActiveSupport::Deprecation.warn <<-EOS
+Please specify `store_attribute :#{ store }, :#{ key }`. Dynamic assignment of stored attributes is deprecated.
+EOS
+            self.class.stored_attributes.add(store, key)
+          end
+        else
+          raise "wrong number of arguments (#{ args.size } for 2..3)"
+        end
+        self.class.stored_attributes.write(self, key, value)
       end
 
     private
-      def store_accessor_for(store_attribute)
-        @column_types[store_attribute.to_s].accessor
-      end
-
       class HashAccessor
         def self.read(object, attribute, key)
           prepare(object, attribute)
@@ -152,7 +172,7 @@ module ActiveRecord
         end
       end
 
-      class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor
+      class IndifferentHashAccessor < HashAccessor
         def self.prepare(object, store_attribute)
           attribute = object.send(store_attribute)
           unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
@@ -164,22 +184,7 @@ module ActiveRecord
       end
 
     class IndifferentCoder # :nodoc:
-      def initialize(coder_or_class_name)
-        @coder =
-          if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
-            coder_or_class_name
-          else
-            ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
-          end
-      end
-
-      def dump(obj)
-        @coder.dump self.class.as_indifferent_hash(obj)
-      end
-
-      def load(yaml)
-        self.class.as_indifferent_hash(@coder.load(yaml || ''))
-      end
+      delegate :as_indifferent_hash, to: :class
 
       def self.as_indifferent_hash(obj)
         case obj
@@ -190,6 +195,86 @@ module ActiveRecord
         else
           ActiveSupport::HashWithIndifferentAccess.new
         end
+      end
+
+      def initialize(coder_or_class_name)
+        @coder =
+          if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
+            coder_or_class_name
+          else
+            ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+          end
+      end
+
+      def dump(obj)
+        @coder.dump as_indifferent_hash(obj)
+      end
+
+      def load(yaml)
+        as_indifferent_hash(@coder.load(yaml || ''))
+      end
+    end
+
+    class Schema
+      class UnknownStoredAttributeError < ::ActiveRecord::UnknownAttributeError
+      end
+
+      delegate :blank?, to: :schema
+
+      def initialize
+        @schema = {}
+      end
+
+      def [](store)
+        schema.select { |_, opts| opts[:store] == store }.keys
+      end
+
+      def add(store, *keys)
+        added_keys = []
+        add_key = ->(key, opts = {}) do
+          added_keys << key
+          schema[key] = { store: store }.merge(opts)
+        end
+
+        keys.flatten.each do |item|
+          case item
+          when Symbol then add_key.call(item)
+          when String then add_key.call(item.to_sym)
+          when Hash
+            item.each do |key, opts|
+              opts = { type: opts } unless opts.is_a?(Hash)
+              add_key.call(key, opts)
+            end
+          end
+        end
+
+        added_keys
+      end
+
+      def read(record, key)
+        store = get_config(key, record)[:store]
+        accessor = get_accessor(store, record)
+        accessor.read(record, store, key)
+      end
+
+      def write(record, key, value)
+        config = get_config(key, record)
+        accessor = get_accessor(config[:store], record)
+        if type = config[:type]
+          value = ::ActiveRecord::ConnectionAdapters::Column.type_cast(value, type)
+        end
+        accessor.write(record, config[:store], key, value)
+      end
+
+    private
+      attr_reader :schema, :klass
+
+      def get_config(key, record)
+        schema.fetch(key.to_sym) { raise UnknownStoredAttributeError.new(record, key) }
+      end
+
+      def get_accessor(store, record)
+        record.class.column_types[store.to_s].accessor
       end
     end
   end
