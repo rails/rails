@@ -148,7 +148,8 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "all stored attributes are returned" do
-    assert_equal [:color, :homepage, :favorite_food], Admin::User.stored_attributes[:settings]
+    assert_equal [:color, :homepage, :favorite_food,
+      :company, :years, :available], Admin::User.stored_attributes[:settings]
   end
 
   test "stored_attributes are tracked per class" do
@@ -189,5 +190,20 @@ class StoreTest < ActiveRecord::TestCase
     second_dump = YAML.dump(loaded)
     assert_equal dumped, second_dump
     assert_equal @john, YAML.load(second_dump)
+  end
+
+  test "value is casted to specified type" do
+    user = Admin::User.new(company: :Ruby, years: '4', available: 'true')
+
+    assert_equal "Ruby", user.company
+    assert_equal 4, user.years
+    assert_equal true, user.available
+  end
+
+  test "return default value if serialized attribute is unset" do
+    user = Admin::User.new
+
+    assert_equal 0, user.years
+    assert_equal false, user.available
   end
 end
