@@ -203,8 +203,8 @@ module Arel
 
     def take limit
       if limit
-        @ast.limit = Nodes::Limit.new(limit)
-        @ctx.top   = Nodes::Top.new(limit)
+        @ast.limit = Nodes::Limit.new(Nodes.build_quoted(limit))
+        @ctx.top   = Nodes::Top.new(Nodes.build_quoted(limit))
       else
         @ast.limit = nil
         @ctx.top   = nil

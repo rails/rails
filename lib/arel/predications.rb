@@ -32,20 +32,20 @@ module Arel
         if other.begin == -Float::INFINITY && other.end == Float::INFINITY
           Nodes::NotIn.new self, []
         elsif other.end == Float::INFINITY
-          Nodes::GreaterThanOrEqual.new(self, other.begin)
+          Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.begin, self))
         elsif other.begin == -Float::INFINITY && other.exclude_end?
-          Nodes::LessThan.new(self, other.end)
+          Nodes::LessThan.new(self, Nodes.build_quoted(other.end, self))
         elsif other.begin == -Float::INFINITY
-          Nodes::LessThanOrEqual.new(self, other.end)
+          Nodes::LessThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
         elsif other.exclude_end?
-          left  = Nodes::GreaterThanOrEqual.new(self, other.begin)
-          right = Nodes::LessThan.new(self, other.end)
+          left  = Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.begin, self))
+          right = Nodes::LessThan.new(self, Nodes.build_quoted(other.end, self))
           Nodes::And.new [left, right]
         else
-          Nodes::Between.new(self, Nodes::And.new([other.begin, other.end]))
+          Nodes::Between.new(self, Nodes::And.new([Nodes.build_quoted(other.begin, self), Nodes.build_quoted(other.end, self)]))
         end
       else
-        Nodes::In.new self, other
+        Nodes::In.new self, other.map { |x| Nodes.build_quoted(x, self) }
       end
     end
 

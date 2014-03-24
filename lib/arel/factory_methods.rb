@@ -37,7 +37,7 @@ module Arel
     ###
     # Create a LOWER() function
     def lower column
-      Nodes::NamedFunction.new 'LOWER', [column]
+      Nodes::NamedFunction.new 'LOWER', [Nodes.build_quoted(column)]
     end
   end
 end
