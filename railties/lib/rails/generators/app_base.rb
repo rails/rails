@@ -172,6 +172,10 @@ module Rails
         options[value] ? '# ' : ''
       end
 
+      def sqlite3?
+        !options[:skip_active_record] && options[:database] == 'sqlite3'
+      end
+
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
           super
