@@ -1,19 +1,15 @@
 # encoding: utf-8
 
 require "cases/helper"
+require 'support/ddl_helper'
 
 module ActiveRecord
   module ConnectionAdapters
     class MysqlAdapterTest < ActiveRecord::TestCase
+      include DdlHelper
+
       def setup
         @conn = ActiveRecord::Base.connection
-        @conn.exec_query('drop table if exists ex')
-        @conn.exec_query(<<-eosql)
-          CREATE TABLE `ex` (
-            `id` int(11) auto_increment PRIMARY KEY,
-            `number` integer,
-            `data` varchar(255))
-        eosql
       end
 
       def test_bad_connection_mysql
@@ -25,8 +21,10 @@ module ActiveRecord
       end
 
       def test_valid_column
-        column = @conn.columns('ex').find { |col| col.name == 'id' }
-        assert @conn.valid_type?(column.type)
+        with_example_table do
+          column = @conn.columns('ex').find { |col| col.name == 'id' }
+          assert @conn.valid_type?(column.type)
+        end
       end
 
       def test_invalid_column
@@ -38,31 +36,35 @@ module ActiveRecord
       end
 
       def test_exec_insert_number
-        insert(@conn, 'number' => 10)
+        with_example_table do
+          insert(@conn, 'number' => 10)
 
-        result = @conn.exec_query('SELECT number FROM ex WHERE number = 10')
+          result = @conn.exec_query('SELECT number FROM ex WHERE number = 10')
 
-        assert_equal 1, result.rows.length
-        # if there are no bind parameters, it will return a string (due to
-        # the libmysql api)
-        assert_equal '10', result.rows.last.last
+          assert_equal 1, result.rows.length
+          # if there are no bind parameters, it will return a string (due to
+          # the libmysql api)
+          assert_equal '10', result.rows.last.last
+        end
       end
 
       def test_exec_insert_string
-        str = 'いただきます！'
-        insert(@conn, 'number' => 10, 'data' => str)
+        with_example_table do
+          str = 'いただきます！'
+          insert(@conn, 'number' => 10, 'data' => str)
 
-        result = @conn.exec_query('SELECT number, data FROM ex WHERE number = 10')
+          result = @conn.exec_query('SELECT number, data FROM ex WHERE number = 10')
 
-        value = result.rows.last.last
+          value = result.rows.last.last
 
-        # FIXME: this should probably be inside the mysql AR adapter?
-        value.force_encoding(@conn.client_encoding)
+          # FIXME: this should probably be inside the mysql AR adapter?
+          value.force_encoding(@conn.client_encoding)
 
-        # The strings in this file are utf-8, so transcode to utf-8
-        value.encode!(Encoding::UTF_8)
+          # The strings in this file are utf-8, so transcode to utf-8
+          value.encode!(Encoding::UTF_8)
 
-        assert_equal str, value
+          assert_equal str, value
+        end
       end
 
       def test_tables_quoting
@@ -74,46 +76,37 @@ module ActiveRecord
       end
 
       def test_pk_and_sequence_for
-        pk, seq = @conn.pk_and_sequence_for('ex')
-        assert_equal 'id', pk
-        assert_equal @conn.default_sequence_name('ex', 'id'), seq
+        with_example_table do
+          pk, seq = @conn.pk_and_sequence_for('ex')
+          assert_equal 'id', pk
+          assert_equal @conn.default_sequence_name('ex', 'id'), seq
+        end
       end
 
       def test_pk_and_sequence_for_with_non_standard_primary_key
-        @conn.exec_query('drop table if exists ex_with_non_standard_pk')
-        @conn.exec_query(<<-eosql)
-          CREATE TABLE `ex_with_non_standard_pk` (
-            `code` INT(11) auto_increment,
-             PRIMARY KEY  (`code`))
-        eosql
-        pk, seq = @conn.pk_and_sequence_for('ex_with_non_standard_pk')
-        assert_equal 'code', pk
-        assert_equal @conn.default_sequence_name('ex_with_non_standard_pk', 'code'), seq
+        with_example_table '`code` INT(11) auto_increment, PRIMARY KEY (`code`)' do
+          pk, seq = @conn.pk_and_sequence_for('ex')
+          assert_equal 'code', pk
+          assert_equal @conn.default_sequence_name('ex', 'code'), seq
+        end
       end
 
       def test_pk_and_sequence_for_with_custom_index_type_pk
-        @conn.exec_query('drop table if exists ex_with_custom_index_type_pk')
-        @conn.exec_query(<<-eosql)
-          CREATE TABLE `ex_with_custom_index_type_pk` (
-            `id` INT(11) auto_increment,
-             PRIMARY KEY  USING BTREE (`id`))
-        eosql
-        pk, seq = @conn.pk_and_sequence_for('ex_with_custom_index_type_pk')
-        assert_equal 'id', pk
-        assert_equal @conn.default_sequence_name('ex_with_custom_index_type_pk', 'id'), seq
+        with_example_table '`id` INT(11) auto_increment, PRIMARY KEY USING BTREE (`id`)' do
+          pk, seq = @conn.pk_and_sequence_for('ex')
+          assert_equal 'id', pk
+          assert_equal @conn.default_sequence_name('ex', 'id'), seq
+        end
       end
 
       def test_tinyint_integer_typecasting
-        @conn.exec_query('drop table if exists ex_with_non_boolean_tinyint_column')
-        @conn.exec_query(<<-eosql)
-          CREATE TABLE `ex_with_non_boolean_tinyint_column` (
-            `status` TINYINT(4))
-        eosql
-        insert(@conn, { 'status' => 2 }, 'ex_with_non_boolean_tinyint_column')
+        with_example_table '`status` TINYINT(4)' do
+          insert(@conn, { 'status' => 2 }, 'ex')
 
-        result = @conn.exec_query('SELECT status FROM ex_with_non_boolean_tinyint_column')
+          result = @conn.exec_query('SELECT status FROM ex')
 
-        assert_equal 2, result.column_types['status'].type_cast(result.last['status'])
+          assert_equal 2, result.column_types['status'].type_cast(result.last['status'])
+        end
       end
 
       def test_supports_extensions
@@ -139,6 +132,15 @@ module ActiveRecord
                VALUES (#{(['?'] * columns.length).join(', ')})"
 
         ctx.exec_insert(sql, 'SQL', binds)
+      end
+
+      def with_example_table(definition = nil, &block)
+        definition ||= <<-SQL
+          `id` int(11) auto_increment PRIMARY KEY,
+          `number` integer,
+          `data` varchar(255)
+        SQL
+        super(@conn, 'ex', definition, &block)
       end
     end
   end
