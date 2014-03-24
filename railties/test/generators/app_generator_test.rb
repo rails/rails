@@ -420,7 +420,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, '--skip-active-record']
 
     assert_file '.gitignore' do |content|
-      assert_no_match(/sqlite3/, content)
+      assert_no_match(/sqlite/i, content)
     end
   end
 
@@ -428,7 +428,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root, "-d", "mysql"])
 
     assert_file '.gitignore' do |content|
-      assert_no_match(/sqlite3/, content)
+      assert_no_match(/sqlite/i, content)
     end
   end
 
