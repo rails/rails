@@ -116,6 +116,14 @@ module Arel
           o.alias ? " AS #{visit o.alias, a}" : ''}"
       end
 
+      def visit_Arel_Nodes_Casted o, a
+        quoted o.val, o.attribute
+      end
+
+      def visit_Arel_Nodes_Quoted o, a
+        quoted o.expr, nil
+      end
+
       def visit_Arel_Nodes_True o, a
         "TRUE"
       end
@@ -562,20 +570,24 @@ module Arel
         quote(o, column_for(a))
       end
 
-      alias :visit_ActiveSupport_Multibyte_Chars :quoted
-      alias :visit_ActiveSupport_StringInquirer  :quoted
-      alias :visit_BigDecimal                    :quoted
-      alias :visit_Class                         :quoted
-      alias :visit_Date                          :quoted
-      alias :visit_DateTime                      :quoted
-      alias :visit_FalseClass                    :quoted
-      alias :visit_Float                         :quoted
-      alias :visit_Hash                          :quoted
-      alias :visit_NilClass                      :quoted
-      alias :visit_String                        :quoted
-      alias :visit_Symbol                        :quoted
-      alias :visit_Time                          :quoted
-      alias :visit_TrueClass                     :quoted
+      def unsupported o, a
+        raise "unsupported: #{o.class.name}"
+      end
+
+      alias :visit_ActiveSupport_Multibyte_Chars :unsupported
+      alias :visit_ActiveSupport_StringInquirer  :unsupported
+      alias :visit_BigDecimal                    :unsupported
+      alias :visit_Class                         :unsupported
+      alias :visit_Date                          :unsupported
+      alias :visit_DateTime                      :unsupported
+      alias :visit_FalseClass                    :unsupported
+      alias :visit_Float                         :unsupported
+      alias :visit_Hash                          :unsupported
+      alias :visit_NilClass                      :unsupported
+      alias :visit_String                        :unsupported
+      alias :visit_Symbol                        :unsupported
+      alias :visit_Time                          :unsupported
+      alias :visit_TrueClass                     :unsupported
 
       def visit_Arel_Nodes_InfixOperation o, a
         "#{visit o.left, a} #{o.operator} #{visit o.right, a}"

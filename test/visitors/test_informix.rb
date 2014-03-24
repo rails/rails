@@ -15,11 +15,13 @@ module Arel
       end
 
       it 'uses LIMIT n in updates with a limit' do
+        table = Table.new(:users)
         stmt = Nodes::UpdateStatement.new
-        stmt.limit = Nodes::Limit.new(1)
-        stmt.key = 'id'
+        stmt.relation = table
+        stmt.limit = Nodes::Limit.new(Nodes.build_quoted(1))
+        stmt.key = table[:id]
         sql = @visitor.accept(stmt)
-        sql.must_be_like "UPDATE NULL WHERE 'id' IN (SELECT LIMIT 1 'id')"
+        sql.must_be_like "UPDATE \"users\" WHERE \"users\".\"id\" IN (SELECT LIMIT 1 \"users\".\"id\" FROM \"users\" )"
       end
 
       it 'uses SKIP n to jump results' do

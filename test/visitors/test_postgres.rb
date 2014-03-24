@@ -26,9 +26,9 @@ module Arel
 
       it "should escape LIMIT" do
         sc = Arel::Nodes::SelectStatement.new
-        sc.limit = Nodes::Limit.new("omg")
-        sc.cores.first.projections << 'DISTINCT ON'
-        sc.orders << "xyz"
+        sc.limit = Nodes::Limit.new(Nodes.build_quoted("omg"))
+        sc.cores.first.projections << Arel.sql('DISTINCT ON')
+        sc.orders << Arel.sql("xyz")
         sql =  @visitor.accept(sc)
         assert_match(/LIMIT 'omg'/, sql)
         assert_equal 1, sql.scan(/LIMIT/).length, 'should have one limit'

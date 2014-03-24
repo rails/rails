@@ -20,9 +20,10 @@ module Arel
 
       it 'allows sql literals' do
         manager        = Arel::InsertManager.new Table.engine
+        manager.into Table.new(:users)
         manager.values = manager.create_values [Arel.sql('*')], %w{ a }
         manager.to_sql.must_be_like %{
-          INSERT INTO NULL VALUES (*)
+          INSERT INTO \"users\" VALUES (*)
         }
       end
 

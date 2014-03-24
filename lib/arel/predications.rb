@@ -13,7 +13,7 @@ module Arel
     end
 
     def eq other
-      Nodes::Equality.new self, other
+      Nodes::Equality.new self, Nodes.build_quoted(other, self)
     end
 
     def eq_any others
@@ -21,7 +21,7 @@ module Arel
     end
 
     def eq_all others
-      grouping_all :eq, others
+      grouping_all :eq, others.map { |x| Nodes.build_quoted(x, self) }
     end
 
     def in other
@@ -93,7 +93,7 @@ module Arel
     end
 
     def matches other
-      Nodes::Matches.new self, other
+      Nodes::Matches.new self, Nodes.build_quoted(other, self)
     end
 
     def matches_any others
@@ -105,7 +105,7 @@ module Arel
     end
 
     def does_not_match other
-      Nodes::DoesNotMatch.new self, other
+      Nodes::DoesNotMatch.new self, Nodes.build_quoted(other, self)
     end
 
     def does_not_match_any others

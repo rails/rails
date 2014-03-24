@@ -43,7 +43,7 @@ module Arel
             attr = Table.new(:users)[:id]
             test = attr.eq(10)
             test.to_sql engine
-            engine.connection.quote_count.must_equal 2
+            engine.connection.quote_count.must_equal 3
           end
         end
       end

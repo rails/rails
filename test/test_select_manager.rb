@@ -5,7 +5,7 @@ module Arel
   describe 'select manager' do
     def test_join_sources
       manager = Arel::SelectManager.new Table.engine
-      manager.join_sources << Arel::Nodes::StringJoin.new('foo')
+      manager.join_sources << Arel::Nodes::StringJoin.new(Nodes.build_quoted('foo'))
       assert_equal "SELECT FROM 'foo'", manager.to_sql
     end
 
@@ -602,7 +602,7 @@ module Arel
 
       it 'returns string join sql' do
         manager = Arel::SelectManager.new Table.engine
-        manager.from Nodes::StringJoin.new('hello')
+        manager.from Nodes::StringJoin.new(Nodes.build_quoted('hello'))
         manager.join_sql.must_be_like %{ 'hello' }
       end
 

@@ -329,7 +329,7 @@ module Arel
           attribute = Attribute.new nil, nil
           equality = attribute.eq 1
           equality.left.must_equal attribute
-          equality.right.must_equal 1
+          equality.right.val.must_equal 1
           equality.must_be_kind_of Nodes::Equality
         end
 

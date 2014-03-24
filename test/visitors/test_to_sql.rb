@@ -4,7 +4,8 @@ module Arel
   module Visitors
     describe 'the to_sql visitor' do
       before do
-        @visitor = ToSql.new Table.engine.connection
+        @conn = FakeRecord::Base.new
+        @visitor = ToSql.new @conn.connection
         @table = Table.new(:users)
         @attr = @table[:id]
       end
@@ -101,13 +102,16 @@ module Arel
         end
 
         it 'should handle false' do
-          sql = @visitor.accept Nodes::Equality.new(false, false)
+          table = Table.new(:users)
+          val = Nodes.build_quoted(false, table[:active])
+          sql = @visitor.accept Nodes::Equality.new(val, val)
           sql.must_be_like %{ 'f' = 'f' }
         end
 
         it 'should use the column to quote' do
           table = Table.new(:users)
-          sql = @visitor.accept Nodes::Equality.new(table[:id], '1-fooo')
+          val = Nodes.build_quoted('1-fooo', table[:id])
+          sql = @visitor.accept Nodes::Equality.new(table[:id], val)
           sql.must_be_like %{ "users"."id" = 1 }
         end
 
@@ -119,37 +123,61 @@ module Arel
 
       describe 'Nodes::NotEqual' do
         it 'should handle false' do
-          sql = @visitor.accept Nodes::NotEqual.new(@table[:active], false)
+          val = Nodes.build_quoted(false, @table[:active])
+          sql = @visitor.accept Nodes::NotEqual.new(@table[:active], val)
           sql.must_be_like %{ "users"."active" != 'f' }
         end
 
         it 'should handle nil' do
-          sql = @visitor.accept Nodes::NotEqual.new(@table[:name], nil)
+          val = Nodes.build_quoted(nil, @table[:active])
+          sql = @visitor.accept Nodes::NotEqual.new(@table[:name], val)
           sql.must_be_like %{ "users"."name" IS NOT NULL }
         end
       end
 
       it "should visit string subclass" do
-        @visitor.accept(Class.new(String).new(":'("))
-        @visitor.accept(Class.new(Class.new(String)).new(":'("))
+        [
+          Class.new(String).new(":'("),
+          Class.new(Class.new(String)).new(":'("),
+        ].each do |obj|
+          val = Nodes.build_quoted(obj, @table[:active])
+          sql = @visitor.accept Nodes::NotEqual.new(@table[:name], val)
+          sql.must_be_like %{ "users"."name" != ':\\'(' }
+        end
       end
 
       it "should visit_Class" do
-        @visitor.accept(DateTime).must_equal "'DateTime'"
+        @visitor.accept(Nodes.build_quoted(DateTime)).must_equal "'DateTime'"
       end
 
       it "should escape LIMIT" do
         sc = Arel::Nodes::SelectStatement.new
-        sc.limit = Arel::Nodes::Limit.new("omg")
+        sc.limit = Arel::Nodes::Limit.new(Nodes.build_quoted("omg"))
         assert_match(/LIMIT 'omg'/, @visitor.accept(sc))
       end
 
       it "should visit_DateTime" do
-        @visitor.accept DateTime.now
+        called_with = nil
+        @conn.connection.extend(Module.new {
+          define_method(:quote) do |thing, column|
+            called_with = column
+            super(thing, column)
+          end
+        })
+
+        dt = DateTime.now
+        table = Table.new(:users)
+        test = table[:created_at].eq dt
+        sql = @visitor.accept test
+
+        assert_equal "created_at", called_with.name
+        sql.must_be_like %{"users"."created_at" = '#{dt.strftime("%Y-%m-%d %H:%M:%S")}'}
       end
 
       it "should visit_Float" do
-        @visitor.accept 2.14
+        test = Table.new(:users)[:name].eq 2.14
+        sql = @visitor.accept test
+        sql.must_be_like %{"users"."name" = 2.14}
       end
 
       it "should visit_Not" do
@@ -174,19 +202,33 @@ module Arel
       end
 
       it "should visit_Hash" do
-        @visitor.accept({:a => 1})
+        @visitor.accept(Nodes.build_quoted({:a => 1}))
       end
 
       it "should visit_BigDecimal" do
-        @visitor.accept BigDecimal.new('2.14')
+        @visitor.accept Nodes.build_quoted(BigDecimal.new('2.14'))
       end
 
       it "should visit_Date" do
-        @visitor.accept Date.today
+        called_with = nil
+        @conn.connection.extend(Module.new {
+          define_method(:quote) do |thing, column|
+            called_with = column
+            super(thing, column)
+          end
+        })
+
+        dt = Date.today
+        table = Table.new(:users)
+        test = table[:created_at].eq dt
+        sql = @visitor.accept test
+
+        assert_equal "created_at", called_with.name
+        sql.must_be_like %{"users"."created_at" = '#{dt.strftime("%Y-%m-%d")}'}
       end
 
       it "should visit_NilClass" do
-        @visitor.accept(nil).must_be_like "NULL"
+        @visitor.accept(Nodes.build_quoted(nil)).must_be_like "NULL"
       end
 
       it "should visit_Arel_SelectManager, which is a subquery" do
@@ -335,7 +377,8 @@ module Arel
               super
             end
           end
-          in_node = Nodes::In.new @attr, %w{ a b c }
+          vals = %w{ a b c }.map { |x| Nodes.build_quoted(x, @attr) }
+          in_node = Nodes::In.new @attr, vals
           visitor = visitor.new(Table.engine.connection)
           visitor.expected = Table.engine.connection.columns(:users).find { |x|
             x.name == 'name'
@@ -438,7 +481,8 @@ module Arel
               super
             end
           end
-          in_node = Nodes::NotIn.new @attr, %w{ a b c }
+          vals = %w{ a b c }.map { |x| Nodes.build_quoted(x, @attr) }
+          in_node = Nodes::NotIn.new @attr, vals
           visitor = visitor.new(Table.engine.connection)
           visitor.expected = Table.engine.connection.columns(:users).find { |x|
             x.name == 'name'

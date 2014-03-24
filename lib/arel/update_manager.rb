@@ -7,12 +7,12 @@ module Arel
     end
 
     def take limit
-      @ast.limit = Nodes::Limit.new(limit) if limit
+      @ast.limit = Nodes::Limit.new(Nodes.build_quoted(limit)) if limit
       self
     end
 
     def key= key
-      @ast.key = key
+      @ast.key = Nodes.build_quoted(key)
     end
 
     def key

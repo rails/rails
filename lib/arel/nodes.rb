@@ -50,3 +50,35 @@ require 'arel/nodes/outer_join'
 require 'arel/nodes/string_join'
 
 require 'arel/nodes/sql_literal'
+
+module Arel
+  module Nodes
+    class Casted < Arel::Nodes::Node # :nodoc:
+      attr_reader :val, :attribute
+      def initialize val, attribute
+        @val       = val
+        @attribute = attribute
+        super()
+      end
+
+      def nil?; @val.nil?; end
+    end
+
+    class Quoted < Arel::Nodes::Unary # :nodoc:
+    end
+
+    def self.build_quoted other, attribute = nil
+      case other
+      when Arel::Nodes::Node, Arel::Attributes::Attribute
+        other
+      else
+        case attribute
+        when Arel::Attributes::Attribute
+          Casted.new other, attribute
+        else
+          Quoted.new other
+        end
+      end
+    end
+  end
+end

@@ -15,11 +15,13 @@ module Arel
       end
 
       it 'uses FETCH FIRST n ROWS in updates with a limit' do
+        table = Table.new(:users)
         stmt = Nodes::UpdateStatement.new
-        stmt.limit = Nodes::Limit.new(1)
-        stmt.key = 'id'
+        stmt.relation = table
+        stmt.limit = Nodes::Limit.new(Nodes.build_quoted(1))
+        stmt.key = table[:id]
         sql = @visitor.accept(stmt)
-        sql.must_be_like "UPDATE NULL WHERE 'id' IN (SELECT 'id' FETCH FIRST 1 ROWS ONLY)"
+        sql.must_be_like "UPDATE \"users\" WHERE \"users\".\"id\" IN (SELECT \"users\".\"id\" FROM \"users\" FETCH FIRST 1 ROWS ONLY)"
       end
 
     end

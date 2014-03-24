@@ -9,7 +9,7 @@ module Arel
       end
 
       it 'should visit string join' do
-        sql = @visitor.accept Nodes::StringJoin.new('omg')
+        sql = @visitor.accept Nodes::StringJoin.new(Nodes.build_quoted('omg'))
         sql.must_be_like "'omg'"
       end
 
