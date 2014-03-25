@@ -1,3 +1,16 @@
+*   Fix Generation of proper migration when
+    ActiveRecord::Base.pluralize_table_names = false.
+
+    Previously, generation a migration like this:
+
+        rails g migration add_column_name_to_user name
+
+    would not generating the correct table name.
+
+    Fixes #13426.
+
+    *Kuldeep Aggarwal*
+
 *   `touch` accepts many attributes to be touched at once.
 
     Example:

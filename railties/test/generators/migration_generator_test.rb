@@ -197,4 +197,54 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_properly_identifies_usage_file
     assert generator_class.send(:usage_path)
   end
+
+  def test_migration_with_singular_table_name
+    with_singular_table_name do
+      migration = "add_title_body_to_post"
+      run_generator [migration, 'title:string']
+      assert_migration "db/migrate/#{migration}.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/add_column :post, :title, :string/, change)
+        end
+      end
+    end
+  end
+
+  def test_create_join_table_migration_with_singular_table_name
+    with_singular_table_name do
+      migration = "add_media_join_table"
+      run_generator [migration, "artist_id", "music:uniq"]
+
+      assert_migration "db/migrate/#{migration}.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_join_table :artist, :music/, change)
+          assert_match(/# t.index \[:artist_id, :music_id\]/, change)
+          assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, change)
+        end
+      end
+    end
+  end
+
+  def test_create_table_migration_with_singular_table_name
+    with_singular_table_name do
+      run_generator ["create_book", "title:string", "content:text"]
+      assert_migration "db/migrate/create_book.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :book/, change)
+          assert_match(/  t\.string :title/, change)
+          assert_match(/  t\.text :content/, change)
+        end
+      end
+    end
+  end
+
+  private
+
+    def with_singular_table_name
+      old_state = ActiveRecord::Base.pluralize_table_names
+      ActiveRecord::Base.pluralize_table_names = false
+      yield
+    ensure
+      ActiveRecord::Base.pluralize_table_names = old_state
+    end
 end
