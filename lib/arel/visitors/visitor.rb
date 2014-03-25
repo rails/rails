@@ -18,7 +18,7 @@ module Arel
         DISPATCH[self.class]
       end
 
-      def visit object, attribute = nil
+      def visit object
         send dispatch[object.class], object 
       rescue NoMethodError => e
         raise e if respond_to?(dispatch[object.class], true)
