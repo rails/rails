@@ -455,6 +455,8 @@ module ActiveRecord
         changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
         self.class.unscoped.where(primary_key => self[primary_key]).update_all(changes) == 1
+      else
+        true
       end
     end
 
