@@ -1,5 +1,9 @@
+*   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
+
+    *Izumi Wong-Horiuchi*
+
 *   Swapped the parameters of assert_equal in `assert_select` so that the
-    proper values were printed correctly 
+    proper values were printed correctly
 
     Fixes #14422.
 
