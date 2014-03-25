@@ -62,6 +62,13 @@ module Arel
       end
 
       def nil?; @val.nil?; end
+
+      def eql? other
+        self.class == other.class &&
+          self.val == other.val &&
+          self.attribute == other.attribute
+      end
+      alias :== :eql?
     end
 
     class Quoted < Arel::Nodes::Unary # :nodoc:
@@ -69,7 +76,7 @@ module Arel
 
     def self.build_quoted other, attribute = nil
       case other
-      when Arel::Nodes::Node, Arel::Attributes::Attribute
+      when Arel::Nodes::Node, Arel::Attributes::Attribute, Arel::Nodes::SelectStatement, Arel::Table, Arel::Nodes::BindParam
         other
       else
         case attribute

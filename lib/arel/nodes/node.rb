@@ -51,8 +51,6 @@ module Arel
 
         ::Arel::Visitors::DepthFirst.new(block).accept self
       end
-
-      def cast_reference?; false; end # :nodoc:
     end
   end
 end

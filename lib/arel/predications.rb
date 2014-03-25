@@ -1,7 +1,7 @@
 module Arel
   module Predications
     def not_eq other
-      Nodes::NotEqual.new self, other
+      Nodes::NotEqual.new self, Nodes.build_quoted(other, self)
     end
 
     def not_eq_any others
@@ -44,8 +44,10 @@ module Arel
         else
           Nodes::Between.new(self, Nodes::And.new([Nodes.build_quoted(other.begin, self), Nodes.build_quoted(other.end, self)]))
         end
-      else
+      when Array
         Nodes::In.new self, other.map { |x| Nodes.build_quoted(x, self) }
+      else
+        Nodes::In.new self, Nodes.build_quoted(other, self)
       end
     end
 
@@ -65,22 +67,24 @@ module Arel
         if other.begin == -Float::INFINITY && other.end == Float::INFINITY
           Nodes::In.new self, []
         elsif other.end == Float::INFINITY
-          Nodes::LessThan.new(self, other.begin)
+          Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
         elsif other.begin == -Float::INFINITY && other.exclude_end?
-          Nodes::GreaterThanOrEqual.new(self, other.end)
+          Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
         elsif other.begin == -Float::INFINITY
-          Nodes::GreaterThan.new(self, other.end)
+          Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
         elsif other.exclude_end?
-          left  = Nodes::LessThan.new(self, other.begin)
-          right = Nodes::GreaterThanOrEqual.new(self, other.end)
+          left  = Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
+          right = Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
           Nodes::Or.new left, right
         else
-          left  = Nodes::LessThan.new(self, other.begin)
-          right = Nodes::GreaterThan.new(self, other.end)
+          left  = Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
+          right = Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
           Nodes::Or.new left, right
         end
+      when Array
+        Nodes::NotIn.new self, other.map { |x| Nodes.build_quoted(x, self) }
       else
-        Nodes::NotIn.new self, other
+        Nodes::NotIn.new self, Nodes.build_quoted(other, self)
       end
     end
 
@@ -117,7 +121,7 @@ module Arel
     end
 
     def gteq right
-      Nodes::GreaterThanOrEqual.new self, right
+      Nodes::GreaterThanOrEqual.new self, Nodes.build_quoted(right, self)
     end
 
     def gteq_any others
@@ -129,7 +133,7 @@ module Arel
     end
 
     def gt right
-      Nodes::GreaterThan.new self, right
+      Nodes::GreaterThan.new self, Nodes.build_quoted(right, self)
     end
 
     def gt_any others
