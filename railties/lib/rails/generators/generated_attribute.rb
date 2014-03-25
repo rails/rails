@@ -94,6 +94,10 @@ module Rails
         name.sub(/_id$/, '').pluralize
       end
 
+      def singular_name
+        name.sub(/_id$/, '').singularize
+      end
+
       def human_name
         name.humanize
       end
