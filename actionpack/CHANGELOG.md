@@ -15,7 +15,7 @@
     internally to escape unsafe HTML string, so you will have to mark your
     string as html safe if you have any HTML tag in it.
 
-    Please see #12374 for more detail.
+    See #14062, #12374.
 
     *Prem Sichanugrist*
 
@@ -23,7 +23,7 @@
     of `text/plain`. This is the preferred option if you are planning to render
     a plain text content.
 
-    Please see #12374 for more detail.
+    See #14062, #12374.
 
     *Prem Sichanugrist*
 
@@ -35,7 +35,7 @@
     of the response. More information on "Content-Type" header can be found
     on RFC 2616, section 7.2.1.
 
-    Please see #12374 for more detail.
+    See #14062, #12374.
 
     *Prem Sichanugrist*
 
@@ -129,7 +129,7 @@
 
 *   Fix stream closing when sending file with `ActionController::Live` included.
 
-    Fixes #12381
+    Fixes #12381.
 
     *Alessandro Diaferia*
 

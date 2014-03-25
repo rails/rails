@@ -125,6 +125,7 @@
     *Jon Leighton*
 
 *   Uses .railsrc while creating new plugin if it is available.
+
     Fixes #10700.
 
     *Prathamesh Sonpatki*

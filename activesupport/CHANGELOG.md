@@ -38,8 +38,10 @@
 *   Deprecate custom `BigDecimal` serialization.
 
     Deprecate the custom `BigDecimal` serialization that is included when requiring
-    `active_support/all` as a fix for #12467. Let Ruby handle YAML serialization
-    for `BigDecimal` instead.
+    `active_support/all`. Let Ruby handle YAML serialization for `BigDecimal`
+    instead.
+
+    Fixes #12467.
 
     *David Celis*
 
