@@ -1,3 +1,7 @@
+*   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
+
+    *Izumi Wong-Horiuchi*
+
 *   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
     as input.
 
