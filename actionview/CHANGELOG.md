@@ -2,6 +2,12 @@
 
     *Izumi Wong-Horiuchi*
 
+*   Fixed ActionView::Digestor template lookup to use the lookup_context exclusively, and not rely on the passed-in format.
+    This unfortunately means that the cache_key changed, so upgrading will invalidate all prior caches. Take note if you rely
+    heavily on caching in production when you push this live.
+    
+    *DHH*
+
 *   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
     as input.
 
