@@ -15,22 +15,30 @@ end
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
-  attr_reader :details
+  attr_reader   :details
+  attr_accessor :formats
+  attr_accessor :variants
 
   def initialize
-    @details = {}
+    @details  = {}
+    @formats  = []
+    @variants = []
   end
 
   def details_key
     details.hash
   end
 
-  def find(logical_name, keys, partial, options)
-    partial_name = partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name
-    format = options[:formats].first.to_s
-    format += "+#{options[:variants].first}" if options[:variants].any?
+  def find(name, prefixes = [], partial = false, keys = [], options = {})
+    partial_name = partial ? name.gsub(%r|/([^/]+)$|, '/_\1') : name
+    format = @formats.first.to_s
+    format += "+#{@variants.first}" if @variants.any?
 
     FixtureTemplate.new("digestor/#{partial_name}.#{format}.erb")
+  end
+
+  def disable_cache(&block)
+    yield
   end
 end
 
@@ -92,13 +100,13 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_logging_of_missing_template
-    assert_logged "Couldn't find template for digesting: messages/something_missing.html" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       digest("messages/show")
     end
   end
 
   def test_logging_of_missing_template_ending_with_number
-    assert_logged "Couldn't find template for digesting: messages/something_missing_1.html" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing_1" do
       digest("messages/show")
     end
   end
@@ -199,7 +207,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_variants
-    assert_digest_difference("messages/new", false, variant: :iphone) do
+    assert_digest_difference("messages/new", false, variants: [:iphone]) do
       change_template("messages/new",     :iphone)
       change_template("messages/_header", :iphone)
     end
@@ -253,10 +261,6 @@ class TemplateDigestorTest < ActionView::TestCase
     ActionView::Resolver.caching = resolver_before
   end
 
-  def test_arguments_deprecation
-    assert_deprecated(/should be provided as a hash/) { ActionView::Digestor.digest('messages/show', :html, finder) }
-    assert_deprecated(/should be provided as a hash/) { ActionView::Digestor.new('messages/show', :html, finder) }
-  end
 
   private
     def assert_logged(message)
@@ -286,7 +290,11 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def digest(template_name, options = {})
       options = options.dup
-      ActionView::Digestor.digest({ name: template_name, format: :html, finder: finder }.merge(options))
+
+      finder.formats  = [:html]
+      finder.variants = options.delete(:variants) || []
+
+      ActionView::Digestor.digest({ name: template_name, finder: finder }.merge(options))
     end
 
     def finder

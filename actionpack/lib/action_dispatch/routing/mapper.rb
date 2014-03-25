@@ -707,7 +707,7 @@ module ActionDispatch
           options[:path] = args.flatten.join('/') if args.any?
           options[:constraints] ||= {}
 
-          unless shallow?
+          unless nested_scope?
             options[:shallow_path] ||= options[:path] if options.key?(:path)
             options[:shallow_prefix] ||= options[:as] if options.key?(:as)
           end
@@ -1545,6 +1545,10 @@ module ActionDispatch
 
           def resource_method_scope? #:nodoc:
             RESOURCE_METHOD_SCOPES.include? @scope[:scope_level]
+          end
+
+          def nested_scope? #:nodoc:
+            @scope[:scope_level] == :nested
           end
 
           def with_exclusive_scope

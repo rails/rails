@@ -8,7 +8,7 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
     self.table_name = "postgresql_composites"
   end
 
-  def teardown
+  teardown do
     @connection.execute 'DROP TABLE IF EXISTS postgresql_composites'
     @connection.execute 'DROP TYPE IF EXISTS full_address'
   end

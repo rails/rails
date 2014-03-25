@@ -27,7 +27,7 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
     end
   end
 
-  def teardown
+  teardown do
     set_session_auth
     @connection.execute "RESET search_path"
     USERS.each do |u|

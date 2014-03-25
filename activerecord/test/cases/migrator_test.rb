@@ -26,8 +26,7 @@ module ActiveRecord
       ActiveRecord::SchemaMigration.delete_all rescue nil
     end
 
-    def teardown
-      super
+    teardown do
       ActiveRecord::SchemaMigration.delete_all rescue nil
       ActiveRecord::Migration.verbose = true
     end

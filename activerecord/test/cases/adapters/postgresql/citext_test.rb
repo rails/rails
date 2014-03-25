@@ -25,7 +25,7 @@ class PostgresqlCitextTest < ActiveRecord::TestCase
     @column = Citext.columns_hash['cival']
   end
 
-  def teardown
+  teardown do
     @connection.execute 'DROP TABLE IF EXISTS citexts;'
     @connection.execute 'DROP EXTENSION IF EXISTS citext CASCADE;'
   end

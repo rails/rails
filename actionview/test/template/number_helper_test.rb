@@ -32,6 +32,9 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "100%", number_to_percentage(100, precision: 0)
     assert_equal "123.4%", number_to_percentage(123.400, precision: 3, strip_insignificant_zeros: true)
     assert_equal "1.000,000%", number_to_percentage(1000, delimiter: ".", separator: ",")
+    assert_equal "98a%", number_to_percentage("98a")
+    assert_equal "NaN%", number_to_percentage(Float::NAN)
+    assert_equal "Inf%", number_to_percentage(Float::INFINITY)
   end
 
   def test_number_with_delimiter

@@ -19,7 +19,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     @column = PgArray.columns.find { |c| c.name == 'tags' }
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists pg_arrays'
   end
 

@@ -1,3 +1,18 @@
+*   Swapped the parameters of assert_equal in `assert_select` so that the
+    proper values were printed correctly 
+
+    Fixes #14422.
+
+    *Vishal Lal*
+
+*   The method `shallow?` returns false if the parent resource is a singleton so
+    we need to check if we're not inside a nested scope before copying the :path
+    and :as options to their shallow equivalents.
+
+    Fixes #14388.
+
+    *Andrew White*
+
 *   Make logging of CSRF failures optional (but on by default) with the
     `log_warning_on_csrf_failure` configuration setting in
     `ActionController::RequestForgeryProtection`.

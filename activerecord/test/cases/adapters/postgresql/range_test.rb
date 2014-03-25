@@ -8,7 +8,7 @@ if ActiveRecord::Base.connection.supports_ranges?
   end
 
   class PostgresqlRangeTest < ActiveRecord::TestCase
-    def teardown
+    teardown do
       @connection.execute 'DROP TABLE IF EXISTS postgresql_ranges'
       @connection.execute 'DROP TYPE IF EXISTS floatrange'
     end

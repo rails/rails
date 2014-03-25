@@ -603,10 +603,6 @@ module ActiveRecord
         false
       end
 
-      def active_threadsafe?
-        @connection.connect_poll != PG::PGRES_POLLING_FAILED
-      end
-
       # Close then reopen the connection.
       def reconnect!
         super
@@ -616,7 +612,12 @@ module ActiveRecord
 
       def reset!
         clear_cache!
-        super
+        reset_transaction
+        unless @connection.transaction_status == ::PG::PQTRANS_IDLE
+          @connection.query 'ROLLBACK'
+        end
+        @connection.query 'DISCARD ALL'
+        configure_connection
       end
 
       # Disconnects from the database if already connected. Otherwise, this

@@ -218,7 +218,7 @@ module ActiveRecord
       @connection = Klass.connection
     end
 
-    def teardown
+    teardown do
       Klass.remove_connection
     end
 

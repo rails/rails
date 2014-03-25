@@ -405,15 +405,18 @@ module ActiveRecord
     end
 
     # Saves the record with the updated_at/on attributes set to the current time.
-    # Please note that no validation is performed and only the +after_touch+
-    # callback is executed.
-    # If an attribute name is passed, that attribute is updated along with
-    # updated_at/on attributes.
+    # Please note that no validation is performed and only the +after_touch+,
+    # +after_commit+ and +after_rollback+ callbacks are executed.
     #
-    #   product.touch               # updates updated_at/on
-    #   product.touch(:designed_at) # updates the designed_at attribute and updated_at/on
+    # If attribute names are passed, they are updated along with updated_at/on
+    # attributes.
     #
-    # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on associated object.
+    #   product.touch                         # updates updated_at/on
+    #   product.touch(:designed_at)           # updates the designed_at attribute and updated_at/on
+    #   product.touch(:started_at, :ended_at) # updates started_at, ended_at and updated_at/on attributes
+    #
+    # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on
+    # associated object.
     #
     #   class Brake < ActiveRecord::Base
     #     belongs_to :car, touch: true
@@ -432,11 +435,11 @@ module ActiveRecord
     #   ball = Ball.new
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
-    def touch(name = nil)
+    def touch(*names)
       raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
 
       attributes = timestamp_attributes_for_update_in_model
-      attributes << name if name
+      attributes.concat(names)
 
       unless attributes.empty?
         current_time = current_time_from_proper_timezone

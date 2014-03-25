@@ -228,17 +228,18 @@ module ActionController
         begin
           super(name)
         rescue => e
-          unless @_response.committed?
+          if @_response.committed?
+            begin
+              @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+              @_response.stream.call_on_error
+            rescue => exception
+              log_error(exception)
+            ensure
+              log_error(e)
+              @_response.stream.close
+            end
+          else
             error = e
-          end
-          begin
-            @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
-            @_response.stream.call_on_error
-          rescue => exception
-            log_error(exception)
-          ensure
-            log_error(e)
-            @_response.stream.close
           end
         ensure
           @_response.commit!

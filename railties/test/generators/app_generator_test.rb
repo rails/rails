@@ -408,7 +408,31 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-protected
+  def test_gitignore_when_sqlite3
+    run_generator
+
+    assert_file '.gitignore' do |content|
+      assert_match(/sqlite3/, content)
+    end
+  end
+
+  def test_gitignore_when_no_active_record
+    run_generator [destination_root, '--skip-active-record']
+
+    assert_file '.gitignore' do |content|
+      assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  def test_gitignore_when_non_sqlite3_db
+    run_generator([destination_root, "-d", "mysql"])
+
+    assert_file '.gitignore' do |content|
+      assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  protected
 
   def action(*args, &block)
     silence(:stdout) { generator.send(*args, &block) }

@@ -824,6 +824,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, comments(:greetings).reload.children_count
   end
 
+  def test_belongs_to_with_id_assigning
+    post = posts(:welcome)
+    comment = Comment.create! body: "foo", post: post
+    parent = comments(:greetings)
+    assert_equal 0, parent.reload.children_count
+    comment.parent_id = parent.id
+
+    comment.save!
+    assert_equal 1, parent.reload.children_count
+  end
+
   def test_polymorphic_with_custom_primary_key
     toy = Toy.create!
     sponsor = Sponsor.create!(:sponsorable => toy)

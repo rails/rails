@@ -1,3 +1,18 @@
+*   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
+
+    *Izumi Wong-Horiuchi*
+
+*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
+    as input.
+
+    Fixes #14405.
+
+    *Yves Senn*
+
+*   Add `include_hidden` option to `collection_check_boxes` helper.
+
+    *Vasiliy Ermolovich*
+
 *   Fixed a problem where the default options for the `button_tag` helper is not
     applied correctly.
 

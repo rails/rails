@@ -172,6 +172,10 @@ module Rails
         options[value] ? '# ' : ''
       end
 
+      def sqlite3?
+        !options[:skip_active_record] && options[:database] == 'sqlite3'
+      end
+
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
           super
@@ -246,7 +250,7 @@ module Rails
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails',
-                                     '~> 4.0.1',
+                                     '~> 4.0.2',
                                      'Use SCSS for stylesheets')
         end
 

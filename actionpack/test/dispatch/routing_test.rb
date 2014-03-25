@@ -1958,6 +1958,42 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/comments/3/preview', preview_comment_path(:id => '3')
   end
 
+  def test_shallow_nested_resources_inside_resource
+    draw do
+      resource :membership, shallow: true do
+        resources :cards
+      end
+    end
+
+    get '/membership/cards'
+    assert_equal 'cards#index', @response.body
+    assert_equal '/membership/cards', membership_cards_path
+
+    get '/membership/cards/new'
+    assert_equal 'cards#new', @response.body
+    assert_equal '/membership/cards/new', new_membership_card_path
+
+    post '/membership/cards'
+    assert_equal 'cards#create', @response.body
+
+    get '/cards/1'
+    assert_equal 'cards#show', @response.body
+    assert_equal '/cards/1', card_path('1')
+
+    get '/cards/1/edit'
+    assert_equal 'cards#edit', @response.body
+    assert_equal '/cards/1/edit', edit_card_path('1')
+
+    put '/cards/1'
+    assert_equal 'cards#update', @response.body
+
+    patch '/cards/1'
+    assert_equal 'cards#update', @response.body
+
+    delete '/cards/1'
+    assert_equal 'cards#destroy', @response.body
+  end
+
   def test_shallow_nested_resources_within_scope
     draw do
       scope '/hello' do

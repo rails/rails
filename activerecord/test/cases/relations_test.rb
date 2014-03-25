@@ -1366,6 +1366,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['comments'], scope.references_values
   end
 
+  def test_automatically_added_where_not_references
+    scope = Post.where.not(comments: { body: "Bla" })
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.where.not('comments.body' => 'Bla')
+    assert_equal ['comments'], scope.references_values
+  end
+
   def test_automatically_added_having_references
     scope = Post.having(:comments => { :body => "Bla" })
     assert_equal ['comments'], scope.references_values

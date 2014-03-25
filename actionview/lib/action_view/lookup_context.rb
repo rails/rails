@@ -159,7 +159,14 @@ module ActionView
       def detail_args_for(options)
         return @details, details_key if options.empty? # most common path.
         user_details = @details.merge(options)
-        [user_details, DetailsKey.get(user_details)]
+
+        if @cache
+          details_key = DetailsKey.get(user_details)
+        else
+          details_key = nil
+        end
+
+        [user_details, details_key]
       end
 
       # Support legacy foo.erb names even though we now ignore .erb

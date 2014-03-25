@@ -13,8 +13,14 @@ module ActiveRecord
         @previous_database_url = ENV.delete("DATABASE_URL")
       end
 
-      def teardown
+      teardown do
         ENV["DATABASE_URL"] = @previous_database_url
+      end
+
+      def test_jdbc_url
+        config   = { "production" => { "url" => "jdbc:postgres://localhost/foo" } }
+        actual   = klass.new(config).resolve
+        assert_equal config, actual
       end
 
       def test_environment_does_not_exist_in_config_url_does_exist

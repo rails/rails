@@ -90,7 +90,7 @@ class EagerSingularizationTest < ActiveRecord::TestCase
     end
   end
 
-  def teardown
+  teardown do
     connection.drop_table :viri
     connection.drop_table :octopi
     connection.drop_table :passes
