@@ -193,6 +193,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Topic.order(:id).to_sql, Topic.order(:id => :asc).to_sql
   end
 
+  def test_order_with_table_prefixed_hash_keys
+    assert_equal Author.joins(:comments).order('comments.id' => :asc).to_sql,
+                 Author.joins(:comments).order(Comment.arel_table[:id].asc).to_sql
+    assert_raise(ArgumentError) { Author.joins(:comments).order('something_else.id' => :asc) }
+  end
+
   def test_finding_with_desc_order_with_string
     topics = Topic.order(id: "desc")
     assert_equal 5, topics.to_a.size
