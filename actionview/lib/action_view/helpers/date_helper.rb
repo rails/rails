@@ -961,7 +961,7 @@ module ActionView
             :name => input_name_from_type(type)
           }.merge!(@html_options)
           select_options[:disabled] = 'disabled' if @options[:disabled]
-          select_options[:class] = type if @options[:with_css_classes]
+          select_options[:class] = [select_options[:class], type].compact.join(' ') if @options[:with_css_classes]
 
           select_html = "\n"
           select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]
