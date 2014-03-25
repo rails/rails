@@ -17,7 +17,7 @@ module Arel
     end
 
     def limit
-      @ast.limit && @ast.limit.expr
+      @ast.limit && @ast.limit.expr.expr
     end
     alias :taken :limit
 
