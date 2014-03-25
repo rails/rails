@@ -17,9 +17,9 @@
 
     *arthurnn*
 
-*   Only save has_one associations if record has changes.
-    Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
-    object did not get saved to the db.
+*   Only save `has_one` associations if record has changes. Previously after save
+    related callbacks, such as `#after_commit`, were triggered when the
+    `has_one` object did not get saved to the db.
 
     *Alan Kennedy*
 
@@ -34,17 +34,17 @@
     value for any enum attribute is always evaluated as 0 during
     uniqueness validation.
 
-    Fixes #14172
+    Fixes #14172.
 
     *Vilius Luneckas* *Ahmed AbouElhamayed*
 
-* `before_add` callbacks are fired before the record is saved on
-  `has_and_belongs_to_many` assocations *and* on `has_many :through`
-  associations.  Before this change, `before_add` callbacks would be fired
-  before the record was saved on `has_and_belongs_to_many` associations, but
-  *not* on `has_many :through` associations.
+*   `before_add` callbacks are fired before the record is saved on
+    `has_and_belongs_to_many` assocations *and* on `has_many :through`
+    associations.  Before this change, `before_add` callbacks would be fired
+    before the record was saved on `has_and_belongs_to_many` associations, but
+    *not* on `has_many :through` associations.
 
-  Fixes #14144
+    Fixes #14144.
 
 *   Fixed STI classes not defining an attribute method if there is a
     conflicting private method defined on its ancestors.
