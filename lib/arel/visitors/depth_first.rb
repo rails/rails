@@ -7,13 +7,13 @@ module Arel
 
       private
 
-      def visit o, a = nil
+      def visit o
         super
         @block.call o
       end
 
-      def unary o, a
-        visit o.expr, a
+      def unary o
+        visit o.expr
       end
       alias :visit_Arel_Nodes_Group             :unary
       alias :visit_Arel_Nodes_Grouping          :unary
@@ -28,10 +28,10 @@ module Arel
       alias :visit_Arel_Nodes_Top               :unary
       alias :visit_Arel_Nodes_UnqualifiedColumn :unary
 
-      def function o, a
-        visit o.expressions, a
-        visit o.alias, a
-        visit o.distinct, a
+      def function o
+        visit o.expressions
+        visit o.alias
+        visit o.distinct
       end
       alias :visit_Arel_Nodes_Avg    :function
       alias :visit_Arel_Nodes_Exists :function
@@ -39,27 +39,27 @@ module Arel
       alias :visit_Arel_Nodes_Min    :function
       alias :visit_Arel_Nodes_Sum    :function
 
-      def visit_Arel_Nodes_NamedFunction o, a
-        visit o.name, a
-        visit o.expressions, a
-        visit o.distinct, a
-        visit o.alias, a
+      def visit_Arel_Nodes_NamedFunction o
+        visit o.name
+        visit o.expressions
+        visit o.distinct
+        visit o.alias
       end
 
-      def visit_Arel_Nodes_Count o, a
-        visit o.expressions, a
-        visit o.alias, a
-        visit o.distinct, a
+      def visit_Arel_Nodes_Count o
+        visit o.expressions
+        visit o.alias
+        visit o.distinct
       end
 
-      def nary o, a
-        o.children.each { |child| visit child, a }
+      def nary o
+        o.children.each { |child| visit child}
       end
       alias :visit_Arel_Nodes_And :nary
 
-      def binary o, a
-        visit o.left, a
-        visit o.right, a
+      def binary o
+        visit o.left
+        visit o.right
       end
       alias :visit_Arel_Nodes_As                 :binary
       alias :visit_Arel_Nodes_Assignment         :binary
@@ -83,13 +83,13 @@ module Arel
       alias :visit_Arel_Nodes_TableAlias         :binary
       alias :visit_Arel_Nodes_Values             :binary
 
-      def visit_Arel_Nodes_StringJoin o, a
-        visit o.left, a
+      def visit_Arel_Nodes_StringJoin o
+        visit o.left
       end
 
-      def visit_Arel_Attribute o, a
-        visit o.relation, a
-        visit o.name, a
+      def visit_Arel_Attribute o
+        visit o.relation
+        visit o.name
       end
       alias :visit_Arel_Attributes_Integer :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Float :visit_Arel_Attribute
@@ -99,11 +99,11 @@ module Arel
       alias :visit_Arel_Attributes_Attribute :visit_Arel_Attribute
       alias :visit_Arel_Attributes_Decimal :visit_Arel_Attribute
 
-      def visit_Arel_Table o, a
-        visit o.name, a
+      def visit_Arel_Table o
+        visit o.name
       end
 
-      def terminal o, a
+      def terminal o
       end
       alias :visit_ActiveSupport_Multibyte_Chars :terminal
       alias :visit_ActiveSupport_StringInquirer  :terminal
@@ -126,43 +126,43 @@ module Arel
       alias :visit_Time                          :terminal
       alias :visit_TrueClass                     :terminal
 
-      def visit_Arel_Nodes_InsertStatement o, a
-        visit o.relation, a
-        visit o.columns, a
-        visit o.values, a
+      def visit_Arel_Nodes_InsertStatement o
+        visit o.relation
+        visit o.columns
+        visit o.values
       end
 
-      def visit_Arel_Nodes_SelectCore o, a
-        visit o.projections, a
-        visit o.source, a
-        visit o.wheres, a
-        visit o.groups, a
-        visit o.windows, a
-        visit o.having, a
+      def visit_Arel_Nodes_SelectCore o
+        visit o.projections
+        visit o.source
+        visit o.wheres
+        visit o.groups
+        visit o.windows
+        visit o.having
       end
 
-      def visit_Arel_Nodes_SelectStatement o, a
-        visit o.cores, a
-        visit o.orders, a
-        visit o.limit, a
-        visit o.lock, a
-        visit o.offset, a
+      def visit_Arel_Nodes_SelectStatement o
+        visit o.cores
+        visit o.orders
+        visit o.limit
+        visit o.lock
+        visit o.offset
       end
 
-      def visit_Arel_Nodes_UpdateStatement o, a
-        visit o.relation, a
-        visit o.values, a
-        visit o.wheres, a
-        visit o.orders, a
-        visit o.limit, a
+      def visit_Arel_Nodes_UpdateStatement o
+        visit o.relation
+        visit o.values
+        visit o.wheres
+        visit o.orders
+        visit o.limit
       end
 
-      def visit_Array o, a
-        o.each { |i| visit i, a }
+      def visit_Array o
+        o.each { |i| visit i }
       end
 
-      def visit_Hash o, a
-        o.each { |k,v| visit(k, a); visit(v, a) }
+      def visit_Hash o
+        o.each { |k,v| visit(k); visit(v) }
       end
     end
   end

@@ -3,8 +3,8 @@ module Arel
     class OrderClauses < Arel::Visitors::ToSql
       private
 
-      def visit_Arel_Nodes_SelectStatement o, a
-        o.orders.map { |x| visit x, a }
+      def visit_Arel_Nodes_SelectStatement o
+        o.orders.map { |x| visit x }
       end
     end
   end

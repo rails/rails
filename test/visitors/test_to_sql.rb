@@ -19,7 +19,7 @@ module Arel
       it 'can define a dispatch method' do
         visited = false
         viz = Class.new(Arel::Visitors::Visitor) {
-          define_method(:hello) do |node, attribute|
+          define_method(:hello) do |node|
             visited = true
           end
 

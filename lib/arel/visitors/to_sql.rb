@@ -66,7 +66,7 @@ module Arel
 
       private
 
-      def visit_Arel_Nodes_DeleteStatement o, a
+      def visit_Arel_Nodes_DeleteStatement o
         [
           "DELETE FROM #{visit o.relation}",
           ("WHERE #{o.wheres.map { |x| visit x }.join AND}" unless o.wheres.empty?)
@@ -85,7 +85,7 @@ module Arel
         stmt
       end
 
-      def visit_Arel_Nodes_UpdateStatement o, a
+      def visit_Arel_Nodes_UpdateStatement o
         if o.orders.empty? && o.limit.nil?
           wheres = o.wheres
         else
@@ -93,42 +93,42 @@ module Arel
         end
 
         [
-          "UPDATE #{visit o.relation, a}",
-          ("SET #{o.values.map { |value| visit value, a }.join ', '}" unless o.values.empty?),
-          ("WHERE #{wheres.map { |x| visit x, a }.join ' AND '}" unless wheres.empty?),
+          "UPDATE #{visit o.relation}",
+          ("SET #{o.values.map { |value| visit value }.join ', '}" unless o.values.empty?),
+          ("WHERE #{wheres.map { |x| visit x }.join ' AND '}" unless wheres.empty?),
         ].compact.join ' '
       end
 
-      def visit_Arel_Nodes_InsertStatement o, a
+      def visit_Arel_Nodes_InsertStatement o
         [
-          "INSERT INTO #{visit o.relation, a}",
+          "INSERT INTO #{visit o.relation}",
 
           ("(#{o.columns.map { |x|
           quote_column_name x.name
         }.join ', '})" unless o.columns.empty?),
 
-          (visit o.values, a if o.values),
+          (visit o.values if o.values),
         ].compact.join ' '
       end
 
-      def visit_Arel_Nodes_Exists o, a
-        "EXISTS (#{visit o.expressions, a})#{
-          o.alias ? " AS #{visit o.alias, a}" : ''}"
+      def visit_Arel_Nodes_Exists o
+        "EXISTS (#{visit o.expressions})#{
+          o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_Casted o, a
+      def visit_Arel_Nodes_Casted o
         quoted o.val, o.attribute
       end
 
-      def visit_Arel_Nodes_Quoted o, a
+      def visit_Arel_Nodes_Quoted o
         quoted o.expr, nil
       end
 
-      def visit_Arel_Nodes_True o, a
+      def visit_Arel_Nodes_True o
         "TRUE"
       end
 
-      def visit_Arel_Nodes_False o, a
+      def visit_Arel_Nodes_False o
         "FALSE"
       end
 
@@ -150,66 +150,66 @@ module Arel
         @schema_cache.columns_hash(table)
       end
 
-      def visit_Arel_Nodes_Values o, a
+      def visit_Arel_Nodes_Values o
         "VALUES (#{o.expressions.zip(o.columns).map { |value, attr|
           if Nodes::SqlLiteral === value
-            visit value, a
+            visit value
           else
             quote(value, attr && column_for(attr))
           end
         }.join ', '})"
       end
 
-      def visit_Arel_Nodes_SelectStatement o, a
+      def visit_Arel_Nodes_SelectStatement o
         str = ''
 
         if o.with
-          str << visit(o.with, a)
+          str << visit(o.with)
           str << SPACE
         end
 
-        o.cores.each { |x| str << visit_Arel_Nodes_SelectCore(x, a) }
+        o.cores.each { |x| str << visit_Arel_Nodes_SelectCore(x) }
 
         unless o.orders.empty?
           str << SPACE
           str << ORDER_BY
           len = o.orders.length - 1
           o.orders.each_with_index { |x, i|
-            str << visit(x, a)
+            str << visit(x)
             str << COMMA unless len == i
           }
         end
 
-        str << " #{visit(o.limit, a)}" if o.limit
-        str << " #{visit(o.offset, a)}" if o.offset
-        str << " #{visit(o.lock, a)}" if o.lock
+        str << " #{visit(o.limit)}" if o.limit
+        str << " #{visit(o.offset)}" if o.offset
+        str << " #{visit(o.lock)}" if o.lock
 
         str.strip!
         str
       end
 
-      def visit_Arel_Nodes_SelectCore o, a
+      def visit_Arel_Nodes_SelectCore o
         str = "SELECT"
 
-        str << " #{visit(o.top, a)}"            if o.top
-        str << " #{visit(o.set_quantifier, a)}" if o.set_quantifier
+        str << " #{visit(o.top)}"            if o.top
+        str << " #{visit(o.set_quantifier)}" if o.set_quantifier
 
         unless o.projections.empty?
           str << SPACE
           len = o.projections.length - 1
           o.projections.each_with_index do |x, i|
-            str << visit(x, a)
+            str << visit(x)
             str << COMMA unless len == i
           end
         end
 
-        str << " FROM #{visit(o.source, a)}" if o.source && !o.source.empty?
+        str << " FROM #{visit(o.source)}" if o.source && !o.source.empty?
 
         unless o.wheres.empty?
           str << WHERE
           len = o.wheres.length - 1
           o.wheres.each_with_index do |x, i|
-            str << visit(x, a)
+            str << visit(x)
             str << AND unless len == i
           end
         end
@@ -218,18 +218,18 @@ module Arel
           str << GROUP_BY
           len = o.groups.length - 1
           o.groups.each_with_index do |x, i|
-            str << visit(x, a)
+            str << visit(x)
             str << COMMA unless len == i
           end
         end
 
-        str << " #{visit(o.having, a)}" if o.having
+        str << " #{visit(o.having)}" if o.having
 
         unless o.windows.empty?
           str << WINDOW
           len = o.windows.length - 1
           o.windows.each_with_index do |x, i|
-            str << visit(x, a)
+            str << visit(x)
             str << COMMA unless len == i
           end
         end
@@ -237,244 +237,237 @@ module Arel
         str
       end
 
-      def visit_Arel_Nodes_Bin o, a
-        visit o.expr, a
+      def visit_Arel_Nodes_Bin o
+        visit o.expr
       end
 
-      def visit_Arel_Nodes_Distinct o, a
+      def visit_Arel_Nodes_Distinct o
         DISTINCT
       end
 
-      def visit_Arel_Nodes_DistinctOn o, a
+      def visit_Arel_Nodes_DistinctOn o
         raise NotImplementedError, 'DISTINCT ON not implemented for this db'
       end
 
-      def visit_Arel_Nodes_With o, a
-        "WITH #{o.children.map { |x| visit x, a }.join(', ')}"
+      def visit_Arel_Nodes_With o
+        "WITH #{o.children.map { |x| visit x }.join(', ')}"
       end
 
-      def visit_Arel_Nodes_WithRecursive o, a
-        "WITH RECURSIVE #{o.children.map { |x| visit x, a }.join(', ')}"
+      def visit_Arel_Nodes_WithRecursive o
+        "WITH RECURSIVE #{o.children.map { |x| visit x }.join(', ')}"
       end
 
-      def visit_Arel_Nodes_Union o, a
-        "( #{visit o.left, a} UNION #{visit o.right, a} )"
+      def visit_Arel_Nodes_Union o
+        "( #{visit o.left} UNION #{visit o.right} )"
       end
 
-      def visit_Arel_Nodes_UnionAll o, a
-        "( #{visit o.left, a} UNION ALL #{visit o.right, a} )"
+      def visit_Arel_Nodes_UnionAll o
+        "( #{visit o.left} UNION ALL #{visit o.right} )"
       end
 
-      def visit_Arel_Nodes_Intersect o, a
-        "( #{visit o.left, a} INTERSECT #{visit o.right, a} )"
+      def visit_Arel_Nodes_Intersect o
+        "( #{visit o.left} INTERSECT #{visit o.right} )"
       end
 
-      def visit_Arel_Nodes_Except o, a
-        "( #{visit o.left, a} EXCEPT #{visit o.right, a} )"
+      def visit_Arel_Nodes_Except o
+        "( #{visit o.left} EXCEPT #{visit o.right} )"
       end
 
-      def visit_Arel_Nodes_NamedWindow o, a
-        "#{quote_column_name o.name} AS #{visit_Arel_Nodes_Window o, a}"
+      def visit_Arel_Nodes_NamedWindow o
+        "#{quote_column_name o.name} AS #{visit_Arel_Nodes_Window o}"
       end
 
-      def visit_Arel_Nodes_Window o, a
+      def visit_Arel_Nodes_Window o
         s = [
-          ("ORDER BY #{o.orders.map { |x| visit(x, a) }.join(', ')}" unless o.orders.empty?),
-          (visit o.framing, a if o.framing)
+          ("ORDER BY #{o.orders.map { |x| visit(x) }.join(', ')}" unless o.orders.empty?),
+          (visit o.framing if o.framing)
         ].compact.join ' '
         "(#{s})"
       end
 
-      def visit_Arel_Nodes_Rows o, a
+      def visit_Arel_Nodes_Rows o
         if o.expr
-          "ROWS #{visit o.expr, a}"
+          "ROWS #{visit o.expr}"
         else
           "ROWS"
         end
       end
 
-      def visit_Arel_Nodes_Range o, a
+      def visit_Arel_Nodes_Range o
         if o.expr
-          "RANGE #{visit o.expr, a}"
+          "RANGE #{visit o.expr}"
         else
           "RANGE"
         end
       end
 
-      def visit_Arel_Nodes_Preceding o, a
-        "#{o.expr ? visit(o.expr, a) : 'UNBOUNDED'} PRECEDING"
+      def visit_Arel_Nodes_Preceding o
+        "#{o.expr ? visit(o.expr) : 'UNBOUNDED'} PRECEDING"
       end
 
-      def visit_Arel_Nodes_Following o, a
-        "#{o.expr ? visit(o.expr, a) : 'UNBOUNDED'} FOLLOWING"
+      def visit_Arel_Nodes_Following o
+        "#{o.expr ? visit(o.expr) : 'UNBOUNDED'} FOLLOWING"
       end
 
-      def visit_Arel_Nodes_CurrentRow o, a
+      def visit_Arel_Nodes_CurrentRow o
         "CURRENT ROW"
       end
 
-      def visit_Arel_Nodes_Over o, a
+      def visit_Arel_Nodes_Over o
         case o.right
           when nil
-            "#{visit o.left, a} OVER ()"
+            "#{visit o.left} OVER ()"
           when Arel::Nodes::SqlLiteral
-            "#{visit o.left, a} OVER #{visit o.right, a}"
+            "#{visit o.left} OVER #{visit o.right}"
           when String, Symbol
-            "#{visit o.left, a} OVER #{quote_column_name o.right.to_s}"
+            "#{visit o.left} OVER #{quote_column_name o.right.to_s}"
           else
-            "#{visit o.left, a} OVER #{visit o.right, a}"
+            "#{visit o.left} OVER #{visit o.right}"
         end
       end
 
-      def visit_Arel_Nodes_Having o, a
-        "HAVING #{visit o.expr, a}"
+      def visit_Arel_Nodes_Having o
+        "HAVING #{visit o.expr}"
       end
 
-      def visit_Arel_Nodes_Offset o, a
-        "OFFSET #{visit o.expr, a}"
+      def visit_Arel_Nodes_Offset o
+        "OFFSET #{visit o.expr}"
       end
 
-      def visit_Arel_Nodes_Limit o, a
-        "LIMIT #{visit o.expr, a}"
+      def visit_Arel_Nodes_Limit o
+        "LIMIT #{visit o.expr}"
       end
 
       # FIXME: this does nothing on most databases, but does on MSSQL
-      def visit_Arel_Nodes_Top o, a
+      def visit_Arel_Nodes_Top o
         ""
       end
 
-      def visit_Arel_Nodes_Lock o, a
-        visit o.expr, a
+      def visit_Arel_Nodes_Lock o
+        visit o.expr
       end
 
-      def visit_Arel_Nodes_Grouping o, a
-        "(#{visit o.expr, a})"
+      def visit_Arel_Nodes_Grouping o
+        "(#{visit o.expr})"
       end
 
-      def visit_Arel_SelectManager o, a
+      def visit_Arel_SelectManager o
         "(#{o.to_sql.rstrip})"
       end
 
-      def visit_Arel_Nodes_Ascending o, a
-        "#{visit o.expr, a} ASC"
+      def visit_Arel_Nodes_Ascending o
+        "#{visit o.expr} ASC"
       end
 
-      def visit_Arel_Nodes_Descending o, a
-        "#{visit o.expr, a} DESC"
+      def visit_Arel_Nodes_Descending o
+        "#{visit o.expr} DESC"
       end
 
-      def visit_Arel_Nodes_Group o, a
-        visit o.expr, a
+      def visit_Arel_Nodes_Group o
+        visit o.expr
       end
 
-      def visit_Arel_Nodes_NamedFunction o, a
+      def visit_Arel_Nodes_NamedFunction o
         "#{o.name}(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
-          visit x, a
-        }.join(', ')})#{o.alias ? " AS #{visit o.alias, a}" : ''}"
+          visit x
+        }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_Extract o, a
-        "EXTRACT(#{o.field.to_s.upcase} FROM #{visit o.expr, a})#{o.alias ? " AS #{visit o.alias, a}" : ''}"
+      def visit_Arel_Nodes_Extract o
+        "EXTRACT(#{o.field.to_s.upcase} FROM #{visit o.expr})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_Count o, a
+      def visit_Arel_Nodes_Count o
         "COUNT(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
-          visit x, a
-        }.join(', ')})#{o.alias ? " AS #{visit o.alias, a}" : ''}"
+          visit x
+        }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_Sum o, a
+      def visit_Arel_Nodes_Sum o
         "SUM(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
-          visit x, a }.join(', ')})#{o.alias ? " AS #{visit o.alias, a}" : ''}"
+          visit x}.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_Max o, a
+      def visit_Arel_Nodes_Max o
         "MAX(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
-          visit x, a }.join(', ')})#{o.alias ? " AS #{visit o.alias, a}" : ''}"
+          visit x}.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_Min o, a
+      def visit_Arel_Nodes_Min o
         "MIN(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
-          visit x, a }.join(', ')})#{o.alias ? " AS #{visit o.alias, a}" : ''}"
+          visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_Avg o, a
+      def visit_Arel_Nodes_Avg o
         "AVG(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
-          visit x, a }.join(', ')})#{o.alias ? " AS #{visit o.alias, a}" : ''}"
+          visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_TableAlias o, a
-        "#{visit o.relation, a} #{quote_table_name o.name}"
+      def visit_Arel_Nodes_TableAlias o
+        "#{visit o.relation} #{quote_table_name o.name}"
       end
 
-      def visit_Arel_Nodes_Between o, a
-        a = o.left if Arel::Attributes::Attribute === o.left
-        "#{visit o.left, a} BETWEEN #{visit o.right, a}"
+      def visit_Arel_Nodes_Between o
+        "#{visit o.left} BETWEEN #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_GreaterThanOrEqual o, a
-        a = o.left if Arel::Attributes::Attribute === o.left
-        "#{visit o.left, a} >= #{visit o.right, a}"
+      def visit_Arel_Nodes_GreaterThanOrEqual o
+        "#{visit o.left} >= #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_GreaterThan o, a
-        a = o.left if Arel::Attributes::Attribute === o.left
-        "#{visit o.left, a} > #{visit o.right, a}"
+      def visit_Arel_Nodes_GreaterThan o
+        "#{visit o.left} > #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_LessThanOrEqual o, a
-        a = o.left if Arel::Attributes::Attribute === o.left
-        "#{visit o.left, a} <= #{visit o.right, a}"
+      def visit_Arel_Nodes_LessThanOrEqual o
+        "#{visit o.left} <= #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_LessThan o, a
-        a = o.left if Arel::Attributes::Attribute === o.left
-        "#{visit o.left, a} < #{visit o.right, a}"
+      def visit_Arel_Nodes_LessThan o
+        "#{visit o.left} < #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_Matches o, a
-        a = o.left if Arel::Attributes::Attribute === o.left
-        "#{visit o.left, a} LIKE #{visit o.right, a}"
+      def visit_Arel_Nodes_Matches o
+        "#{visit o.left} LIKE #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_DoesNotMatch o, a
-        a = o.left if Arel::Attributes::Attribute === o.left
-        "#{visit o.left, a} NOT LIKE #{visit o.right, a}"
+      def visit_Arel_Nodes_DoesNotMatch o
+        "#{visit o.left} NOT LIKE #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_JoinSource o, a
+      def visit_Arel_Nodes_JoinSource o
         [
-          (visit(o.left, a) if o.left),
-          o.right.map { |j| visit j, a }.join(' ')
+          (visit(o.left) if o.left),
+          o.right.map { |j| visit j }.join(' ')
         ].compact.join ' '
       end
 
-      def visit_Arel_Nodes_StringJoin o, a
-        visit o.left, a
+      def visit_Arel_Nodes_StringJoin o
+        visit o.left
       end
 
-      def visit_Arel_Nodes_OuterJoin o, a
-        "LEFT OUTER JOIN #{visit o.left, a} #{visit o.right, a}"
+      def visit_Arel_Nodes_OuterJoin o
+        "LEFT OUTER JOIN #{visit o.left} #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_InnerJoin o, a
-        s = "INNER JOIN #{visit o.left, a}"
+      def visit_Arel_Nodes_InnerJoin o
+        s = "INNER JOIN #{visit o.left}"
         if o.right
           s << SPACE
-          s << visit(o.right, a)
+          s << visit(o.right)
         end
         s
       end
 
-      def visit_Arel_Nodes_On o, a
-        "ON #{visit o.expr, a}"
+      def visit_Arel_Nodes_On o
+        "ON #{visit o.expr}"
       end
 
-      def visit_Arel_Nodes_Not o, a
-        "NOT (#{visit o.expr, a})"
+      def visit_Arel_Nodes_Not o
+        "NOT (#{visit o.expr})"
       end
 
-      def visit_Arel_Table o, a
+      def visit_Arel_Table o
         if o.table_alias
           "#{quote_table_name o.name} #{quote_table_name o.table_alias}"
         else
@@ -482,73 +475,69 @@ module Arel
         end
       end
 
-      def visit_Arel_Nodes_In o, a
+      def visit_Arel_Nodes_In o
         if Array === o.right && o.right.empty?
           '1=0'
         else
-          a = o.left if Arel::Attributes::Attribute === o.left
-          "#{visit o.left, a} IN (#{visit o.right, a})"
+          "#{visit o.left} IN (#{visit o.right})"
         end
       end
 
-      def visit_Arel_Nodes_NotIn o, a
+      def visit_Arel_Nodes_NotIn o
         if Array === o.right && o.right.empty?
           '1=1'
         else
-          a = o.left if Arel::Attributes::Attribute === o.left
-          "#{visit o.left, a} NOT IN (#{visit o.right, a})"
+          "#{visit o.left} NOT IN (#{visit o.right})"
         end
       end
 
-      def visit_Arel_Nodes_And o, a
-        o.children.map { |x| visit x, a }.join ' AND '
+      def visit_Arel_Nodes_And o
+        o.children.map { |x| visit x}.join ' AND '
       end
 
-      def visit_Arel_Nodes_Or o, a
-        "#{visit o.left, a} OR #{visit o.right, a}"
+      def visit_Arel_Nodes_Or o
+        "#{visit o.left} OR #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_Assignment o, a
+      def visit_Arel_Nodes_Assignment o
         case o.right
         when Arel::Nodes::UnqualifiedColumn, Arel::Attributes::Attribute
-          "#{visit o.left, a} = #{visit o.right, a}"
+          "#{visit o.left} = #{visit o.right}"
         else
           right = quote(o.right, column_for(o.left))
-          "#{visit o.left, a} = #{right}"
+          "#{visit o.left} = #{right}"
         end
       end
 
-      def visit_Arel_Nodes_Equality o, a
+      def visit_Arel_Nodes_Equality o
         right = o.right
 
-        a = o.left if Arel::Attributes::Attribute === o.left
         if right.nil?
-          "#{visit o.left, a} IS NULL"
+          "#{visit o.left} IS NULL"
         else
-          "#{visit o.left, a} = #{visit right, a}"
+          "#{visit o.left} = #{visit right}"
         end
       end
 
-      def visit_Arel_Nodes_NotEqual o, a
+      def visit_Arel_Nodes_NotEqual o
         right = o.right
 
-        a = o.left if Arel::Attributes::Attribute === o.left
         if right.nil?
-          "#{visit o.left, a} IS NOT NULL"
+          "#{visit o.left} IS NOT NULL"
         else
-          "#{visit o.left, a} != #{visit right, a}"
+          "#{visit o.left} != #{visit right}"
         end
       end
 
-      def visit_Arel_Nodes_As o, a
-        "#{visit o.left, a} AS #{visit o.right, a}"
+      def visit_Arel_Nodes_As o
+        "#{visit o.left} AS #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_UnqualifiedColumn o, a
+      def visit_Arel_Nodes_UnqualifiedColumn o
         "#{quote_column_name o.name}"
       end
 
-      def visit_Arel_Attributes_Attribute o, a
+      def visit_Arel_Attributes_Attribute o
         join_name = o.relation.table_alias || o.relation.name
         "#{quote_table_name join_name}.#{quote_column_name o.name}"
       end
@@ -559,7 +548,7 @@ module Arel
       alias :visit_Arel_Attributes_Time :visit_Arel_Attributes_Attribute
       alias :visit_Arel_Attributes_Boolean :visit_Arel_Attributes_Attribute
 
-      def literal o, a; o end
+      def literal o; o end
 
       alias :visit_Arel_Nodes_BindParam  :literal
       alias :visit_Arel_Nodes_SqlLiteral :literal
@@ -589,8 +578,8 @@ module Arel
       alias :visit_Time                          :unsupported
       alias :visit_TrueClass                     :unsupported
 
-      def visit_Arel_Nodes_InfixOperation o, a
-        "#{visit o.left, a} #{o.operator} #{visit o.right, a}"
+      def visit_Arel_Nodes_InfixOperation o
+        "#{visit o.left} #{o.operator} #{visit o.right}"
       end
 
       alias :visit_Arel_Nodes_Addition       :visit_Arel_Nodes_InfixOperation
@@ -598,8 +587,8 @@ module Arel
       alias :visit_Arel_Nodes_Multiplication :visit_Arel_Nodes_InfixOperation
       alias :visit_Arel_Nodes_Division       :visit_Arel_Nodes_InfixOperation
 
-      def visit_Array o, a
-        o.map { |x| visit x, a }.join(', ')
+      def visit_Array o
+        o.map { |x| visit x }.join(', ')
       end
 
       def quote value, column = nil
