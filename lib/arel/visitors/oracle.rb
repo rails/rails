@@ -89,7 +89,7 @@ module Arel
         # Previous version with join and split broke ORDER BY clause
         # if it contained functions with several arguments (separated by ',').
         #
-        # orders   = o.orders.map { |x| visit x, a }.join(', ').split(',')
+        # orders   = o.orders.map { |x| visit x }.join(', ').split(',')
         orders   = o.orders.map do |x|
           string = visit x
           if string.include?(',')

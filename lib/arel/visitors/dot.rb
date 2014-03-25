@@ -202,7 +202,7 @@ module Arel
 
       def visit_Hash o
         o.each_with_index do |pair, i|
-          edge("pair_#{i}")   { visit pair, a }
+          edge("pair_#{i}")   { visit pair }
         end
       end
 
@@ -216,7 +216,7 @@ module Arel
         edge(method) { visit o.send(method) }
       end
 
-      def visit o = nil
+      def visit o
         if node = @seen[o.object_id]
           @edge_stack.last.to = node
           return
