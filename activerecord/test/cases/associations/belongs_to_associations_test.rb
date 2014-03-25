@@ -341,14 +341,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_with_touch_option_on_touch_without_updated_at_attributes
-    assert !LineItem.column_names.include?("updated_at")
+    assert_not LineItem.column_names.include?("updated_at")
 
     line_item = LineItem.create!
     invoice = Invoice.create!(line_items: [line_item])
     initial = invoice.updated_at
     line_item.touch
 
-    refute_equal initial, invoice.reload.updated_at
+    assert_not_equal initial, invoice.reload.updated_at
   end
 
   def test_belongs_to_with_touch_option_on_touch_and_removed_parent
