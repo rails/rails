@@ -37,7 +37,7 @@ module Arel
         lower = @factory.lower :one
         assert_instance_of Nodes::NamedFunction, lower
         assert_equal 'LOWER', lower.name
-        assert_equal [:one], lower.expressions
+        assert_equal [:one], lower.expressions.map(&:expr)
       end
     end
   end
