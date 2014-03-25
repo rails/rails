@@ -80,7 +80,7 @@ module Rails
 
         exec(find_cmd('mysql', 'mysql5'), *args)
 
-      when "postgresql", "postgres"
+      when "postgresql", "postgres", "postgis"
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
