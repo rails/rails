@@ -1320,6 +1320,52 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome),  comments(:greetings).post
   end
 
+  def test_update_column
+    assert_queries(1) do
+      assert_equal 1, Topic.update_column(1, "content = 'no selects!'")
+    end
+    assert_equal "no selects!", Topic.find(1).content
+  end
+
+  def test_update_columns
+    # string
+    assert_queries(2) do
+      assert_equal 2, Topic.update_columns(1 => "content = 'no selects!'", 2 => "content = 'no selects!!'")
+    end
+    assert_equal "no selects!",  Topic.find(1).content
+    assert_equal "no selects!!", Topic.find(2).content
+
+    # array
+    assert_queries(2) do
+      assert_equal 2, Topic.update_columns(1 => ['content = ?', 'no selects again!'], 2 => ['content = ?', 'no selects again!!'])
+    end
+    assert_equal "no selects again!",  Topic.find(1).content
+    assert_equal "no selects again!!", Topic.find(2).content
+
+    # hash
+    assert_queries(2) do
+      assert_equal 2, Topic.update_columns('1' => {:content => 'third is the charm!'}, '2' => {:content => 'third is the charm!!'})
+    end
+    assert_equal "third is the charm!",  Topic.find(1).content
+    assert_equal "third is the charm!!", Topic.find(2).content
+
+    # multiple ids
+    assert_queries(1) do
+      assert_equal 2, Topic.update_columns([1,2] => "content = 'magic!'")
+    end
+    assert_equal "magic!", Topic.find(1).content
+    assert_equal "magic!", Topic.find(2).content
+  end
+
+  def test_update_columns_with_incorrect_arguments
+    # a single argument which is not a hash
+    assert_raises(ArgumentError) { Topic.update_columns('not_a_hash') }
+
+    # an incorrect number of arguments
+    assert_raises(ArgumentError) { Topic.update_columns() }
+    assert_raises(ArgumentError) { Topic.update_columns(1,2,3) }
+  end
+
   def test_distinct
     tag1 = Tag.create(:name => 'Foo')
     tag2 = Tag.create(:name => 'Foo')

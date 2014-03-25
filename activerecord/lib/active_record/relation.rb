@@ -353,6 +353,71 @@ module ActiveRecord
       end
     end
 
+    # Updates the attributes directly in the database issuing an UPDATE SQL statement:
+    #
+    #   User.update_columns(1, last_request_at: Time.current)
+    #
+    # This is the fastest way to update attributes because it goes straight to
+    # the database, but take into account that in consequence the regular update
+    # procedures are mostly bypassed. In particular:
+    #
+    # * Find queries are skipped, returns +zero+ instead.
+    # * Validations do not apply.
+    # * Callbacks do not apply.
+    # * +updated_at+/+updated_on+ are not updated.
+    #
+    # This method does no raise exceptions when called upon primary keys.
+    # Readonly attributes also play no effect when calling this method.
+    #
+    # ==== Parameters
+    #
+    # * Single set of values
+    # * +id+ - This should be the id or an array of ids to be updated.
+    # * +attributes+ - This should be a hash of attributes or any valid update fragment.
+    #
+    # ==== Examples
+    #
+    #   # Updates one record
+    #   Person.update_columns(15, {user_name: 'Samuel', group: 'expert'})
+    #
+    #   # Updates multiple records
+    #   Person.update_columns([1, 2], {user_name: 'Samuel', group: 'expert'})
+    #
+    #   # Updates using a string
+    #   Person.update_columns(15, "user_name = 'Samuel', group = 'expert'")
+    #
+    #   # Updates using an array
+    #   Person.update_columns(15, ["user_name = ?, group = ?", 'Samuel', 'expert'])
+    #
+    #   # Updates using a hash
+    #   Person.update_columns(15, {user_name: 'Samuel', group: 'expert'})
+    #
+    #   # Updates multiple records using a hash
+    #   Person.update_columns({15 => {user_name: 'Samuel', group: 'expert'}, 16 => {user_name: 'Martim', group: 'novice'}})
+    #
+    # ==== Returns
+    #
+    #   The number of rows actually updated in the database
+    def update_columns(*args)
+      has_multiple_records = ( args.count == 1 && args.first.is_a?(Hash) )
+      has_single_record    = ( args.count == 2 )
+
+      if has_single_record
+        id      = args.first
+        columns = args.last   # string, array or hash
+        where(:id => id).update_all(columns)
+      elsif has_multiple_records
+        args.first.map { |one_id, columns| update_columns(one_id, columns) }.sum
+      else
+        raise ArgumentError, "Please review the arguments passed to 'update_columns'"
+      end
+    end
+
+    # Equivalent to <code>update_columns(id, name => value)</code>.
+    def update_column(id, *args)
+      update_columns(id, args)
+    end
+
     # Destroys the records matching +conditions+ by instantiating each
     # record and calling its +destroy+ method. Each object's callbacks are
     # executed (including <tt>:dependent</tt> association options). Returns the

@@ -1,3 +1,20 @@
+*   `update_column` and `update_columns` can be called at Class level (Relation level)
+
+    Example:
+
+        # updates `viewed_at` and nothing else.
+        Photo.update_column(1, :viewed_at, Time.now)
+        Photo.update_column([1, 2], :viewed_at, Time.now)
+
+        Photo.update_columns(1 => {:viewed_at => Time.now})
+        Photo.update_columns(1 => {:viewed_at => Time.now},
+                             2 => {:viewed_at => Date.yesterday}
+                             )
+        Photo.update_columns([1, 2] => {:viewed_at => Time.now})
+        
+
+    *James Pinto*
+
 *   `touch` accepts many attributes to be touched at once.
 
     Example:
