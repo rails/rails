@@ -95,6 +95,24 @@ module ActiveRecord
         assert_equal 7, wealth_column.scale
       end
 
+      def test_add_column_with_uniq_option
+        assert_raise(ArgumentError) { add_column 'test_models', 'unique_field', :string, :uniq => true }
+      end
+
+      def test_change_column_with_uniq_option
+        add_column 'test_models', 'unique_field', :string
+        assert_raise(ArgumentError) { change_column 'test_models', 'unique_field', :string, :uniq => true }
+      end
+
+      def test_add_column_with_unique_option
+        assert_raise(ArgumentError) { add_column 'test_models', 'unique_field', :string, :unique => true }
+      end
+
+      def test_change_column_with_unique_option
+        add_column 'test_models', 'unique_field', :string
+        assert_raise(ArgumentError) { change_column 'test_models', 'unique_field', :string, :unique => true }
+      end
+
       if current_adapter?(:SQLite3Adapter)
         def test_change_column_preserve_other_column_precision_and_scale
           connection.add_column 'test_models', 'last_name', :string

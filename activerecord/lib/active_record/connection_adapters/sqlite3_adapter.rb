@@ -481,6 +481,7 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
+        ColumnDefinition.check_invalid_options!(options)
         alter_table(table_name) do |definition|
           include_default = options_include_default?(options)
           definition[column_name].instance_eval do

@@ -17,6 +17,12 @@ module ActiveRecord
     # for generating a number of table creation or table changing SQL statements.
     class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key) #:nodoc:
 
+      def self.check_invalid_options!(options)
+        [:uniq, :unique].each do |key|
+          raise ArgumentError, "option '#{key}' is not supported, add an index" if options[key]
+        end
+      end
+
       def primary_key?
         primary_key || type.to_sym == :primary_key
       end
@@ -264,6 +270,8 @@ module ActiveRecord
       alias :belongs_to :references
 
       def new_column_definition(name, type, options) # :nodoc:
+        ColumnDefinition.check_invalid_options!(options)
+
         column = create_column_definition name, type
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
