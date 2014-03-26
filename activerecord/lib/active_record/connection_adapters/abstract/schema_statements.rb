@@ -739,6 +739,40 @@ module ActiveRecord
         Table.new(table_name, base)
       end
 
+      def add_index_options(table_name, column_name, options = {}) #:nodoc:
+        column_names = Array(column_name)
+        index_name   = index_name(table_name, column: column_names)
+
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+
+        index_type = options[:unique] ? "UNIQUE" : ""
+        index_type = options[:type].to_s if options.key?(:type)
+        index_name = options[:name].to_s if options.key?(:name)
+        max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
+
+        if options.key?(:algorithm)
+          algorithm = index_algorithms.fetch(options[:algorithm]) {
+            raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
+          }
+        end
+
+        using = "USING #{options[:using]}" if options[:using].present?
+
+        if supports_partial_index?
+          index_options = options[:where] ? " WHERE #{options[:where]}" : ""
+        end
+
+        if index_name.length > max_index_length
+          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{max_index_length} characters"
+        end
+        if table_exists?(table_name) && index_name_exists?(table_name, index_name, false)
+          raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
+        end
+        index_columns = quoted_columns_for_index(column_names, options).join(", ")
+
+        [index_name, index_type, index_columns, index_options, algorithm, using]
+      end
+
       protected
         def add_index_sort_order(option_strings, column_names, options = {})
           if options.is_a?(Hash) && order = options[:order]
@@ -767,40 +801,6 @@ module ActiveRecord
 
         def options_include_default?(options)
           options.include?(:default) && !(options[:null] == false && options[:default].nil?)
-        end
-
-        def add_index_options(table_name, column_name, options = {})
-          column_names = Array(column_name)
-          index_name   = index_name(table_name, column: column_names)
-
-          options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
-
-          index_type = options[:unique] ? "UNIQUE" : ""
-          index_type = options[:type].to_s if options.key?(:type)
-          index_name = options[:name].to_s if options.key?(:name)
-          max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
-
-          if options.key?(:algorithm)
-            algorithm = index_algorithms.fetch(options[:algorithm]) {
-              raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
-            }
-          end
-
-          using = "USING #{options[:using]}" if options[:using].present?
-
-          if supports_partial_index?
-            index_options = options[:where] ? " WHERE #{options[:where]}" : ""
-          end
-
-          if index_name.length > max_index_length
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{max_index_length} characters"
-          end
-          if table_exists?(table_name) && index_name_exists?(table_name, index_name, false)
-            raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
-          end
-          index_columns = quoted_columns_for_index(column_names, options).join(", ")
-
-          [index_name, index_type, index_columns, index_options, algorithm, using]
         end
 
         def index_name_for_remove(table_name, options = {})
