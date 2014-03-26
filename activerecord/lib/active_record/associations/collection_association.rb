@@ -248,7 +248,7 @@ module ActiveRecord
         dependent = _options[:dependent] || options[:dependent]
 
         if records.first == :all
-          if loaded? || dependent == :destroy
+          if (loaded? || dependent == :destroy) && dependent != :delete_all
             delete_or_destroy(load_target, dependent)
           else
             delete_records(:all, dependent)
