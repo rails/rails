@@ -1,3 +1,20 @@
+*   Create indexes inline in CREATE TABLE for MySQL.
+
+    This is important, because adding an index on a temporary table after it has been created
+    would commit the transaction.
+
+    It also allows creating and dropping indexed tables with fewer queries and fewer permissions
+    required.
+
+    Example:
+
+        create_table :temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query" do |t|
+          t.index :zip
+        end
+        # => CREATE TEMPORARY TABLE temp (INDEX (zip)) AS SELECT id, name, zip FROM a_really_complicated_query
+
+    *Cody Cutrer*, *Steve Rice*, *Rafael Mendonça Franca*
+
 *   Save `has_one` association even if the record doesn't changed.
 
     Fixes #14407.
