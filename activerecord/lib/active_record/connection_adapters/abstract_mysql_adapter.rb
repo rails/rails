@@ -6,6 +6,12 @@ module ActiveRecord
       include Savepoints
 
       class SchemaCreation < AbstractAdapter::SchemaCreation
+        def visit_AddColumn(o)
+          add_column_position!(super, column_options(o))
+        end
+
+        private
+
         def visit_TableDefinition(o)
           name = o.name
           create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(name)} "
@@ -19,11 +25,6 @@ module ActiveRecord
           create_sql
         end
 
-        def visit_AddColumn(o)
-          add_column_position!(super, column_options(o))
-        end
-
-        private
         def visit_ChangeColumnDefinition(o)
           column = o.column
           options = o.options
