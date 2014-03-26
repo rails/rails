@@ -186,24 +186,23 @@ module ActiveRecord
       def create_table(table_name, options = {})
         td = create_table_definition table_name, options[:temporary], options[:options], options[:as]
 
-        if !options[:as]
-          unless options[:id] == false
-            pk = options.fetch(:primary_key) {
-              Base.get_primary_key table_name.to_s.singularize
-            }
+        unless options[:id] == false || options[:as]
+          pk = options.fetch(:primary_key) {
+            Base.get_primary_key table_name.to_s.singularize
+          }
 
-            td.primary_key pk, options.fetch(:id, :primary_key), options
-          end
-
-          yield td if block_given?
+          td.primary_key pk, options.fetch(:id, :primary_key), options
         end
+
+        yield td if block_given?
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)
         end
 
-        execute schema_creation.accept td
-        td.indexes.each_pair { |c,o| add_index table_name, c, o }
+        result = execute schema_creation.accept td
+        td.indexes.each_pair { |c,o| add_index table_name, c, o } unless supports_indexes_in_create?
+        result
       end
 
       # Creates a new join table with the name created using the lexical order of the first two
@@ -796,7 +795,7 @@ module ActiveRecord
           if index_name.length > max_index_length
             raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' is too long; the limit is #{max_index_length} characters"
           end
-          if index_name_exists?(table_name, index_name, false)
+          if table_exists?(table_name) && index_name_exists?(table_name, index_name, false)
             raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
           end
           index_columns = quoted_columns_for_index(column_names, options).join(", ")
