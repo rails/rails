@@ -45,7 +45,7 @@ module ActiveRecord
 
         def index_in_create(table_name, column_name, options)
           index_name, index_type, index_columns, index_options, index_algorithm, index_using = @conn.add_index_options(table_name, column_name, options)
-          "#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_options} #{index_algorithm}".gsub('  ', ' ').strip
+          "#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_options} #{index_algorithm}"
         end
       end
 
