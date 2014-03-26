@@ -217,6 +217,12 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating indexes in the same statement as
+      # creating the table? As of this writing, only mysql does.
+      def supports_indexes_in_create?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
