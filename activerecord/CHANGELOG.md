@@ -350,6 +350,12 @@
 
     *Yves Senn*
 
+*   Stop swallowing standard errors on `after_commit` and `after_rollback`.
+
+    Fixes #13460.
+
+    *arthurnn* *Vipul A M*
+
 *   PostgreSQL `Column#type` is now determined through the corresponding OID.
     The column types stay the same except for enum columns. They no longer have
     `nil` as type but `enum`.
