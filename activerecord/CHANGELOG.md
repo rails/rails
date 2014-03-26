@@ -1,8 +1,10 @@
-*   Create indexes inline in CREATE TABLE for MySQL
+*   Create indexes inline in CREATE TABLE for MySQL.
 
     This is important, because adding an index on a temporary table after it has been created
     would commit the transaction.
-    It also allows creating and dropping indexed tables with fewer queries and fewer permissions required.
+
+    It also allows creating and dropping indexed tables with fewer queries and fewer permissions
+    required.
 
     Example:
 
@@ -11,7 +13,7 @@
         end
         # => CREATE TEMPORARY TABLE temp (INDEX (zip)) AS SELECT id, name, zip FROM a_really_complicated_query
 
-    *Cody Cutrer*, *Steve Rice*
+    *Cody Cutrer*, *Steve Rice*, *Rafael Mendonça Franca*
 
 *   Save `has_one` association even if the record doesn't changed.
 
