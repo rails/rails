@@ -763,7 +763,23 @@ module ActiveRecord
             option_strings = add_index_sort_order(option_strings, column_names, options)
           end
 
-          column_names.map {|name| quote_column_name(name) + option_strings[name]}
+          if options[:functions]
+            functions = Array(options[:functions])
+            if functions.length != column_names.length
+              raise(ArgumentError,
+                  "The number of functions must match the number of column names")
+            end
+          end
+
+          column_names.each_with_index.map do |name, index|
+            quoted = quote_column_name(name)
+
+            if supports_index_functions? && functions
+              quoted = "#{functions[index]}(#{quoted})"
+            end
+
+            quoted + option_strings[name]
+          end
         end
 
         def options_include_default?(options)
@@ -774,7 +790,7 @@ module ActiveRecord
           column_names = Array(column_name)
           index_name   = index_name(table_name, column: column_names)
 
-          options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+          options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :functions)
 
           index_type = options[:unique] ? "UNIQUE" : ""
           index_type = options[:type].to_s if options.key?(:type)

@@ -192,6 +192,30 @@ module ActiveRecord
           connection.remove_index("testings", "last_name")
           assert !connection.index_exists?("testings", "last_name")
         end
+
+        def test_index_functions
+          connection.add_index("testings", "last_name", :functions => "lower")
+          assert connection.index_exists?("testings", "last_name")
+
+          connection.add_index("testings",
+              ["first_name", "last_name", "administrator"],
+              name: 'test_composite_index',
+              functions: ["lower", "upper", nil])
+
+          index = connection.indexes("testings").find do |i|
+            i.columns == ["first_name", "last_name", "administrator"]
+          end
+          assert_not_nil index
+          assert_equal ["lower", "upper", nil], index.functions
+
+          assert_raise ArgumentError do
+            # pass in an incorrect number of functions
+            connection.add_index :testings, :foo, unique: true, :functions => ["lower", "upper"]
+          end
+
+          connection.remove_index("testings", "last_name")
+          assert !connection.index_exists?("testings", "last_name")
+        end
       end
 
       private

@@ -141,15 +141,18 @@ module ActiveRecord
 
         # Returns an array of indexes for the given table.
         def indexes(table_name, name = nil)
-           result = query(<<-SQL, 'SCHEMA')
-             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
-             FROM pg_class t
-             INNER JOIN pg_index d ON t.oid = d.indrelid
-             INNER JOIN pg_class i ON d.indexrelid = i.oid
-             WHERE i.relkind = 'i'
-               AND d.indisprimary = 'f'
-               AND t.relname = '#{table_name}'
-               AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
+          result = query(<<-SQL, 'SCHEMA')
+            SELECT distinct i.relname, d.indisunique, d.indkey,
+              pg_get_expr(d.indexprs, t.oid), pg_get_expr(d.indpred, t.oid),
+              pg_get_indexdef(d.indexrelid), t.oid, m.amname, m.amcanorder
+            FROM pg_class t
+            INNER JOIN pg_index d ON t.oid = d.indrelid
+            INNER JOIN pg_class i ON d.indexrelid = i.oid
+            INNER JOIN pg_am m ON i.relam = m.oid
+            WHERE i.relkind = 'i'
+              AND d.indisprimary = 'f'
+              AND t.relname = '#{table_name}'
+              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
             ORDER BY i.relname
           SQL
 
@@ -157,8 +160,34 @@ module ActiveRecord
             index_name = row[0]
             unique = row[1] == 't'
             indkey = row[2].split(" ")
-            inddef = row[3]
-            oid = row[4]
+            expression = row[3]
+            where = row[4]
+            inddef = row[5]
+            oid = row[6]
+            using = row[7].to_sym
+
+            index_supported = true
+
+            function_names = []
+            function_columns = []
+
+            if expression
+              expression.split(',').each do |part|
+                part.strip!
+
+                # Matches "lower((column)::text)" or "lower(column)"
+                if part =~ /\A(\w+)\(\((\w+)\)::[\w\s]+\)\Z/ ||
+                  part =~ /\A(\w+)\((\w+)\)\Z/
+
+                  function_names << $~[1]
+                  function_columns << $~[2]
+                else
+                  # Complex expression indexes aren't supported
+                  index_supported = false
+                  break
+                end
+              end
+            end
 
             columns = Hash[query(<<-SQL, "SCHEMA")]
             SELECT a.attnum, a.attname
@@ -167,16 +196,27 @@ module ActiveRecord
             AND a.attnum IN (#{indkey.join(",")})
             SQL
 
-            column_names = columns.values_at(*indkey).compact
+            column_names = []
+            functions = []
 
-            unless column_names.empty?
+            indkey.each do |i|
+              if i == '0'
+                functions << function_names.shift
+                column_names << function_columns.shift
+              else
+                functions << nil
+                column_names << columns[i]
+              end
+            end
+
+            functions = nil if functions.compact.empty?
+
+            if index_supported && !column_names.empty?
               # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
               desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
               orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-              where = inddef.scan(/WHERE (.+)$/).flatten[0]
-              using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
 
-              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
+              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using, functions)
             end
           end.compact
         end

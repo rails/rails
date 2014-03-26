@@ -200,6 +200,11 @@ module ActiveRecord
         false
       end
 
+      # Can this adapter apply a SQL function to values before they are indexed?
+      def supports_index_functions?
+        false
+      end
+
       # Does this adapter support explain? As of this writing sqlite3,
       # mysql2, and postgresql are the only ones that do.
       def supports_explain?
