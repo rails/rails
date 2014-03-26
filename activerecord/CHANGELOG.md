@@ -1,3 +1,11 @@
+*   PostgreSQL `Column#type` is now determined through the corresponding OID.
+    The column types stay the same except for enum columns. They no longer have
+    `nil` as type but `enum`.
+
+    See #7814.
+
+    *Yves Senn*
+
 *   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
 
     Fixes #10613.

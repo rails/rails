@@ -127,13 +127,13 @@ module ActiveRecord
 
       if current_adapter?(:PostgreSQLAdapter)
         def test_bigint_column_should_map_to_integer
-          oid = PostgreSQLAdapter::OID::Identity.new
+          oid = PostgreSQLAdapter::OID::Integer.new
           bigint_column = PostgreSQLColumn.new('number', nil, oid, "bigint")
           assert_equal :integer, bigint_column.type
         end
 
         def test_smallint_column_should_map_to_integer
-          oid = PostgreSQLAdapter::OID::Identity.new
+          oid = PostgreSQLAdapter::OID::Integer.new
           smallint_column = PostgreSQLColumn.new('number', nil, oid, "smallint")
           assert_equal :integer, smallint_column.type
         end

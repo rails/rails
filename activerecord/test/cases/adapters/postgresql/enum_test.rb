@@ -29,8 +29,7 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
 
   def test_column
     column = PostgresqlEnum.columns_hash["current_mood"]
-    # TODO: enum columns should be of type enum or string, not nil.
-    assert_nil column.type
+    assert_equal :enum, column.type
     assert_equal "mood", column.sql_type
     assert_not column.number?
     assert_not column.text?

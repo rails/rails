@@ -47,9 +47,9 @@ module ActiveRecord
 
         def test_quote_cast_numeric
           fixnum = 666
-          c = PostgreSQLColumn.new(nil, nil, OID::Decimal.new, 'varchar')
+          c = PostgreSQLColumn.new(nil, nil, OID::String.new, 'varchar')
           assert_equal "'666'", @conn.quote(fixnum, c)
-          c = PostgreSQLColumn.new(nil, nil, OID::Decimal.new, 'text')
+          c = PostgreSQLColumn.new(nil, nil, OID::Text.new, 'text')
           assert_equal "'666'", @conn.quote(fixnum, c)
         end
 

@@ -151,70 +151,7 @@ module ActiveRecord
 
         # Maps PostgreSQL-specific data types to logical Rails types.
         def simplified_type(field_type)
-          case field_type
-          # Numeric and monetary types
-          when /^(?:real|double precision)$/
-            :float
-          # Monetary types
-          when 'money'
-            :decimal
-          when 'hstore'
-            :hstore
-          when 'ltree'
-            :ltree
-          # Network address types
-          when 'inet'
-            :inet
-          when 'cidr'
-            :cidr
-          when 'macaddr'
-            :macaddr
-          # Character types
-          when /^(?:character varying|bpchar)(?:\(\d+\))?$/
-            :string
-          when /^citext(?:\(\d+\))?$/
-            :citext
-          # Binary data types
-          when 'bytea'
-            :binary
-          # Date/time types
-          when /^timestamp with(?:out)? time zone$/
-            :datetime
-          when /^interval(?:|\(\d+\))$/
-            :string
-          # Geometric types
-          when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
-            :string
-          # Bit strings
-          when /^bit(?: varying)?(?:\(\d+\))?$/
-            :string
-          # XML type
-          when 'xml'
-            :xml
-          # tsvector type
-          when 'tsvector'
-            :tsvector
-          # Arrays
-          when /^\D+\[\]$/
-            :string
-          # Object identifier types
-          when 'oid'
-            :integer
-          # UUID type
-          when 'uuid'
-            :uuid
-          # JSON type
-          when 'json'
-            :json
-          # Small and big integer types
-          when /^(?:small|big)int$/
-            :integer
-          when /(num|date|tstz|ts|int4|int8)range$/
-            field_type.to_sym
-          # Pass through all types that are not specific to PostgreSQL.
-          else
-            super
-          end
+          @oid_type.simplified_type(field_type) || super
         end
     end
   end
