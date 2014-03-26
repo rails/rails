@@ -7,11 +7,12 @@ module ActiveRecord
 
       class SchemaCreation < AbstractAdapter::SchemaCreation
         def visit_TableDefinition(o)
-          create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
-          create_sql << "#{quote_table_name(o.name)} "
-          statements = []
-          statements.concat(o.columns.map { |c| accept c })
-          statements.concat(o.indexes.map { |(column_name, options)| index_in_create(o.name, column_name, options) })
+          name = o.name
+          create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(name)} "
+
+          statements = o.columns.map { |c| accept c }
+          statements.concat(o.indexes.map { |column_name, options| index_in_create(name, column_name, options) })
+
           create_sql << "(#{statements.join(', ')}) " if statements.present?
           create_sql << "#{o.options}"
           create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
