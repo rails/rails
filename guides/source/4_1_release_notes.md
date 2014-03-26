@@ -711,7 +711,7 @@ for detailed changes.
 * Default the new `I18n.enforce_available_locales` config to `true`, meaning
   `I18n` will make sure that all locales passed to it must be declared in the
   `available_locales`
-  list. ([Pull Request](https://github.com/rails/rails/commit/8e21ae37ad9fef6b7393a84f9b5f2e18a831e49a))
+  list. ([Pull Request](https://github.com/rails/rails/pull/13341))
 
 * Introduce `Module#concerning`: a natural, low-ceremony way to separate
   responsibilities within a
