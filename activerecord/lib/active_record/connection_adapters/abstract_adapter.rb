@@ -157,11 +157,6 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support using DISTINCT within COUNT?
-      def supports_count_distinct?
-        true
-      end
-
       # Does this adapter support DDL rollbacks in transactions? That is, would
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
       def supports_ddl_transactions?
