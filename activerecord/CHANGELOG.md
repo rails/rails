@@ -1,3 +1,11 @@
+*   Treat blank UUID values as `nil`.
+
+    Example:
+
+        Sample.new(uuid_field: '') #=> <Sample id: nil, uuid_field: nil>
+
+    *Dmitry Lavrov*
+
 *   Create indexes inline in CREATE TABLE for MySQL.
 
     This is important, because adding an index on a temporary table after it has been created
