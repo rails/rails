@@ -4,4 +4,8 @@
 
     *Henrik Nyh*
 
+*   Added `ActiveModel::Translation.humanize_as_default` to allow disabling `attribute.humanize` as a default translation value.
+
+    *Fabio Kreusch*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activemodel/CHANGELOG.md) for previous changes.

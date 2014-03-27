@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/attribute_accessors'
+
 module ActiveModel
 
   # == Active \Model \Translation
@@ -20,6 +22,8 @@ module ActiveModel
   # parent classes.
   module Translation
     include ActiveModel::Naming
+
+    mattr_accessor :humanize_as_default
 
     # Returns the +i18n_scope+ for the class. Overwrite if you want custom lookup.
     def i18n_scope
@@ -60,7 +64,7 @@ module ActiveModel
 
       defaults << :"attributes.#{attribute}"
       defaults << options.delete(:default) if options[:default]
-      defaults << attribute.humanize
+      defaults << attribute.humanize unless ::ActiveModel::Translation.humanize_as_default === false
 
       options[:default] = defaults
       I18n.translate(defaults.shift, options)

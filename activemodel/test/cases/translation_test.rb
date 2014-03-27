@@ -34,6 +34,13 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal 'Name', Person.human_attribute_name('name')
   end
 
+  def test_translated_model_attributes_not_falling_back_to_default_when_disabled
+    original = ActiveModel::Translation.humanize_as_default
+    ActiveModel::Translation.humanize_as_default = false
+    assert_equal 'translation missing: en.activemodel.attributes.person.name', Person.human_attribute_name('name')
+    ActiveModel::Translation.humanize_as_default = original
+  end
+
   def test_translated_model_attributes_using_default_option_as_symbol_and_falling_back_to_default
     assert_equal 'Name', Person.human_attribute_name('name', default: :default_name)
   end
