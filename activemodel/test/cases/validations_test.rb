@@ -295,6 +295,15 @@ class ValidationsTest < ActiveModel::TestCase
     assert auto.valid?
   end
 
+  def test_validate
+    auto = Automobile.new
+
+    assert_empty auto.errors
+
+    auto.validate
+    assert_not_empty auto.errors
+  end
+
   def test_strict_validation_in_validates
     Topic.validates :title, strict: true, presence: true
     assert_raises ActiveModel::StrictValidationFailed do

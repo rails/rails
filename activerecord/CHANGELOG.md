@@ -1,3 +1,9 @@
+*   Introduce `validate` as an alias for `valid?`.
+
+    This is more intuitive when you want to run validations but don't care about the return value.
+
+    *Henrik Nyh*
+
 *   Create indexes inline in CREATE TABLE for MySQL.
 
     This is important, because adding an index on a temporary table after it has been created
