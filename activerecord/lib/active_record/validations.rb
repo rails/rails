@@ -60,6 +60,8 @@ module ActiveRecord
     # Runs all the validations within the specified context. Returns +true+ if
     # no errors are found, +false+ otherwise.
     #
+    # Aliased as validate.
+    #
     # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
     # <tt>new_record?</tt> is +true+, and to <tt>:update</tt> if it is not.
     #
@@ -70,6 +72,8 @@ module ActiveRecord
       output = super(context)
       errors.empty? && output
     end
+
+    alias_method :validate, :valid?
 
   protected
 
