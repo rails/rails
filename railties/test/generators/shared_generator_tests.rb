@@ -111,7 +111,6 @@ module SharedGeneratorTests
   def test_edge_option
     assert_generates_with_bundler edge: true
     assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("4-1-stable")}["']$}
-    assert_file 'Gemfile', %r{^gem\s+["']arel["'],\s+github:\s+["']#{Regexp.escape("rails/arel")}["'],\s+branch:\s+["']#{Regexp.escape("5-0-stable")}["']$}
   end
 
   def test_skip_gemfile
