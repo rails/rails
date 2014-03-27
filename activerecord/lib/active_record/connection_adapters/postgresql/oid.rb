@@ -274,6 +274,12 @@ This is not reliable and will be removed in the future.
             ActiveRecord::Store::StringKeyedHashAccessor
           end
         end
+        
+        class Uuid < Type
+          def type_cast(value)
+            value.presence
+          end
+        end
 
         class TypeMap
           def initialize
@@ -353,8 +359,8 @@ This is not reliable and will be removed in the future.
         alias_type 'tsvector', 'text'
         alias_type 'interval', 'text'
         alias_type 'macaddr',  'text'
-        alias_type 'uuid',     'text'
-
+        
+        register_type 'uuid', OID::Uuid.new
         register_type 'money', OID::Money.new
         register_type 'bytea', OID::Bytea.new
         register_type 'bool', OID::Boolean.new
