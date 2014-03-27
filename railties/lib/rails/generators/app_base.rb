@@ -203,8 +203,7 @@ module Rails
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
            GemfileEntry.github('arel', 'rails/arel', '5-0-stable')]
         elsif options.edge?
-          [GemfileEntry.github('rails', 'rails/rails', '4-1-stable'),
-           GemfileEntry.github('arel', 'rails/arel', '5-0-stable')]
+          [GemfileEntry.github('rails', 'rails/rails', '4-1-stable')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
