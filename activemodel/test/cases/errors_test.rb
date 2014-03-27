@@ -139,6 +139,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [message], person.errors[:name]
   end
 
+  test "add an error message that includes an interpolated count" do
+    person = Person.new
+    person.errors.add(:name, :wrong_length, count: 1)
+    message = person.errors.generate_message(:name, :wrong_length, count: 1)
+    assert_equal [message], person.errors[:name]
+  end
+
   test "add an error with a proc" do
     person = Person.new
     message = Proc.new { "cannot be blank" }
@@ -187,6 +194,23 @@ class ErrorsTest < ActiveModel::TestCase
     person = Person.new
     person.errors.add(:name, "is invalid")
     assert !person.errors.added?(:name, "cannot be blank")
+  end
+
+  test "added? returns true when checking for an existing error message that includes an interpolated count" do
+    person = Person.new
+    person.errors.add(:age, :greater_than_or_equal_to, count: 1)
+    assert person.errors.added?(:age, :greater_than_or_equal_to, count: 1)
+  end
+
+  test "added? returns false when checking for a nonexisting error message that includes an interpolated count" do
+    person = Person.new
+    assert !person.errors.added?(:name, :too_short, count: 1)
+  end
+
+  test "added? returns false when checking for an existing error message and providing a non-matching interpolated count" do
+    person = Person.new
+    person.errors.add(:name, :too_long, count: 1)
+    assert !person.errors.added?(:name, :too_long, count: 2)
   end
 
   test "size calculates the number of error messages" do

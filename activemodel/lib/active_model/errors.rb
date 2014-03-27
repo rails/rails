@@ -289,6 +289,16 @@ module ActiveModel
     #   # => NameIsInvalid: name is invalid
     #
     #   person.errors.messages # => {}
+    #
+    # If the +message+ being added makes use of an interpolated value
+    # (e.g., +count+), this value must be specified as an option. Failure
+    # to do so will result in an +I18n::MissingInterpolationArgument+
+    # exception.
+    #
+    #   person.errors.add(:name, :too_short)
+    #   # => I18n::MissingInterpolationArgument
+    #   person.errors.add(:name, :too_short, count: 7)
+    #   # => ["is too short (minimum is 7 characters)"]
     def add(attribute, message = :invalid, options = {})
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]
@@ -331,6 +341,18 @@ module ActiveModel
     #
     #   person.errors.add :name, :blank
     #   person.errors.added? :name, :blank # => true
+    #
+    # When used to check for a +message+ that includes an interpolated value
+    # (e.g., +count+), it requires that we specify this value as an option.
+    # This interpolated value is used in the check for the message's presence.
+    # For instance, providing a +:count+ that does not match the +:count+
+    # provided in +add+ for an attribute-message pair will result in a +false+
+    # return value.
+    #
+    #   person.errors.add(:name, :too_long, count: 22)
+    #   person.errors.added?(:name, :too_long) # => I18n::MissingInterpolationArgument
+    #   person.errors.added?(:name, :too_long, count: 33) # => false
+    #   person.errors.added?(:name, :too_long, count: 22) # => true
     def added?(attribute, message = :invalid, options = {})
       message = normalize_message(attribute, message, options)
       self[attribute].include? message
