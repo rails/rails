@@ -1,3 +1,10 @@
+*   Fixed error where .persisted? throws SystemStackError for an unsaved model with a
+    custom primary key that didn't save due to validation error.
+
+    Fixes #14393.
+
+    *Chris Finne*
+
 *   `rake db:structure:dump` only dumps schema information if the schema
     migration table exists.
 

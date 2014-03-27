@@ -369,7 +369,7 @@ module ActiveRecord
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
           if restore_state.has_key?(:id)
-            self.id = restore_state[:id]
+            write_attribute(self.class.primary_key, restore_state[:id])
           else
             @attributes.delete(self.class.primary_key)
             @attributes_cache.delete(self.class.primary_key)
