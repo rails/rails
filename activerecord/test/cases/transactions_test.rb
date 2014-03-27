@@ -5,6 +5,7 @@ require 'models/developer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
+require 'models/movie'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -12,6 +13,11 @@ class TransactionTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
+  end
+
+  def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
+    movie = Movie.create
+    assert !movie.persisted?
   end
 
   def test_raise_after_destroy
