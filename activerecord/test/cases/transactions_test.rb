@@ -15,7 +15,7 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
   end
 
-  def test_persisted_after_failed_save
+  def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
     movie = Movie.create
     assert !movie.persisted?
   end
