@@ -573,13 +573,13 @@ class UserMailer < ActionMailer::Base
       # You have access to the mail instance,
       # @business and @user instance variables here
       if @business && @business.has_smtp_settings?
-        mail.delivery_method.settings.merge!(@business.smtp_settings)
+        message.delivery_method.settings.merge!(@business.smtp_settings)
       end
     end
 
     def prevent_delivery_to_guests
       if @user && @user.guest?
-        mail.perform_deliveries = false
+        message.perform_deliveries = false
       end
     end
 
