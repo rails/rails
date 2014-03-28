@@ -41,7 +41,13 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   end
 
   def test_data_type_of_uuid_types
-    assert_equal :uuid, UUIDType.columns_hash["guid"].type
+    column = UUIDType.columns_hash["guid"]
+    assert_equal :uuid, column.type
+    assert_equal "uuid", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
   end
 
   def test_uuid_formats

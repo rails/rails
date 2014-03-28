@@ -23,7 +23,6 @@ if ActiveRecord::Base.connection.supports_extensions?
       @connection.create_table('citexts') do |t|
         t.citext 'cival'
       end
-      @column = Citext.columns_hash['cival']
     end
 
     teardown do
@@ -35,12 +34,14 @@ if ActiveRecord::Base.connection.supports_extensions?
       assert @connection.extension_enabled?('citext')
     end
 
-    def test_column_type
-      assert_equal :citext, @column.type
-    end
-
-    def test_column_sql_type
-      assert_equal 'citext', @column.sql_type
+    def test_column
+      column = Citext.columns_hash['cival']
+      assert_equal :citext, column.type
+      assert_equal 'citext', column.sql_type
+      assert_not column.text?
+      assert_not column.number?
+      assert_not column.binary?
+      assert_not column.array
     end
 
     def test_change_table_supports_json

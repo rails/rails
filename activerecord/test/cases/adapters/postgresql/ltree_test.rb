@@ -10,6 +10,11 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
+
+    unless @connection.extension_enabled?('ltree')
+      @connection.enable_extension 'ltree'
+    end
+
     @connection.transaction do
       @connection.create_table('ltrees') do |t|
         t.ltree 'path'
@@ -26,6 +31,11 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
   def test_column
     column = Ltree.columns_hash['path']
     assert_equal :ltree, column.type
+    assert_equal "ltree", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
   end
 
   def test_write

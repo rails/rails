@@ -27,6 +27,17 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     @connection.send(:reload_type_map)
   end
 
+  def test_column
+    column = PostgresqlEnum.columns_hash["current_mood"]
+    # TODO: enum columns should be of type enum or string, not nil.
+    assert_nil column.type
+    assert_equal "mood", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
+  end
+
   def test_enum_mapping
     @connection.execute "INSERT INTO postgresql_enums VALUES (1, 'sad');"
     enum = PostgresqlEnum.first
