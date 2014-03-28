@@ -1,3 +1,7 @@
+*   Do not set the Rails environment to test by default when using test_unit Railtie.
+
+    *Konstantin Shabanov*
+
 *   Introduce `Rails.gem_version` as a convenience method to return
     `Gem::Version.new(Rails.version)`, suggesting a more reliable way to perform
     version comparison.
