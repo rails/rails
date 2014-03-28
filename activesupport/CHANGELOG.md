@@ -1,3 +1,7 @@
+*   Update JSON gem version to 1.8.1
+     
+    *Rajarshi Das*
+
 *   Deprecate `Class#superclass_delegating_accessor`, use `Class#class_attribute` instead.
 
     *Akshay Vishnoi*
