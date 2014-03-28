@@ -18,6 +18,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
         @connection.create_table('json_data_type') do |t|
           t.json 'payload', :default => {}
           t.json 'settings'
+          t.json 'jsonarr', array: true
         end
       end
     rescue ActiveRecord::StatementInvalid
@@ -147,5 +148,84 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
 
     JsonDataType.update_all payload: { }
     assert_equal({ }, json.reload.payload)
+  end
+
+  def test_update_all_json_array
+    json = JsonDataType.create! payload: { "one" => "two" }
+
+    JsonDataType.update_all jsonarr: ['{"type":"visitor", "value": 1}','{"type":"hit", "value": 2}']
+    assert_equal([{"type"=>"visitor", "value"=>1}, {"type"=>"hit", "value"=>2}], json.reload.jsonarr)
+
+    JsonDataType.update_all jsonarr: [{'test1'=>'1','test2'=>'2'}]
+    assert_equal([{"test1"=>"1", "test2"=>"2"}], json.reload.jsonarr)    
+
+    JsonDataType.update_all jsonarr: [[1,2],nil,nil]
+    assert_equal([[1,2],nil,nil], json.reload.jsonarr)    
+  end
+
+  def test_default_json_array
+    @connection.add_column 'json_data_type', 'test', :json, array:true, default: []
+    JsonDataType.reset_column_information
+    json = JsonDataType.create! payload: { "one" => "two" } 
+    assert_equal([], json.reload.test)
+  end
+
+  def test_default_json_array2
+    @connection.add_column 'json_data_type', 'test',:json,array:true, default: ['{"type":"visitor", "value": 1}','{"type":"hit", "value": 2}']
+    JsonDataType.reset_column_information
+    json = JsonDataType.create! payload: { "one" => "two" } 
+    assert_equal([{"type"=>"visitor", "value"=>1}, {"type"=>"hit", "value"=>2}], json.reload.test)
+  end
+
+  def test_default_json_array_with_null_string
+    @connection.add_column 'json_data_type', 'test',:json,array:true, default: ['{"type":"visitor", "value": 1}','["NULL"]']
+    JsonDataType.reset_column_information
+    json = JsonDataType.create! payload: { "one" => "two" } 
+    assert_equal([{"type"=>"visitor", "value"=>1}, ["NULL"]], json.reload.test)
+  end
+
+  def test_default_json_array_in_array
+    @connection.add_column 'json_data_type', 'test',:json,array:true, default: [['{"type":"visitor", "value": 1}','{"type":"hit", "value": 2}'],['{"type":"visitor", "value": 2}','{"type":"hit", "value": 3}']]
+    JsonDataType.reset_column_information
+    json = JsonDataType.create! payload: { "one" => "two" } 
+    assert_equal([['{"type":"visitor", "value": 1}','{"type":"hit", "value": 2}'],['{"type":"visitor", "value": 2}','{"type":"hit", "value": 3}']], json.reload.test)
+  end
+
+  def test_default_json_with_hash
+    @connection.add_column 'json_data_type', 'test',:json,array:true, default: [{'test1'=>'1','test2'=>'2'}]
+    JsonDataType.reset_column_information
+    json = JsonDataType.create! payload: { "one" => "two" } 
+    assert_equal([{"test1"=>"1", "test2"=>"2"}], json.reload.test)
+  end
+
+  def test_default_json_array_with_hash
+    @connection.add_column 'json_data_type', 'test',:json,array:true, default: [{'test1'=>'1','test2'=>'2'},{'test3'=>'3'}]
+    JsonDataType.reset_column_information
+    json = JsonDataType.create! payload: { "one" => "two" } 
+    assert_equal([{"test1"=>"1", "test2"=>"2"}, {"test3"=>"3"}], json.reload.test)
+  end
+
+  def test_default_json_with_rubyarray
+    @connection.add_column 'json_data_type', 'test',:json, array:true, default: [1,2]
+    JsonDataType.reset_column_information
+    @connection.execute "insert into json_data_type (payload) VALUES ('{\"k\":\"v\"}')"
+    json = JsonDataType.first
+    assert_equal([1, 2],json.test) 
+  end
+
+  def test_default_json_array_with_rubyarray
+    @connection.add_column 'json_data_type', 'test',:json,array:true, default: [[1,2],[3,4]]
+    JsonDataType.reset_column_information
+    @connection.execute "insert into json_data_type (payload) VALUES ('{\"k\":\"v\"}')"
+    json = JsonDataType.first
+    assert_equal([[1,2],[3,4]],json.test)
+  end
+
+  def test_default_json_array_with_rubyarray_with_nil
+    @connection.add_column 'json_data_type', 'test',:json,array:true, default: [[1,2],nil,nil]
+    JsonDataType.reset_column_information
+    @connection.execute "insert into json_data_type (payload) VALUES ('{\"k\":\"v\"}')"
+    json = JsonDataType.first
+    assert_equal([[1, 2], nil, nil],json.test) 
   end
 end
