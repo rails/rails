@@ -40,6 +40,17 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     assert_not column.array
   end
 
+  def test_default
+    @connection.add_column 'json_data_type', 'permissions', :json, default: '{"users": "read", "posts": ["read", "write"]}'
+    JsonDataType.reset_column_information
+    column = JsonDataType.columns_hash["permissions"]
+
+    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, column.default)
+    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.new.permissions)
+  ensure
+    JsonDataType.reset_column_information
+  end
+
   def test_change_table_supports_json
     @connection.transaction do
       @connection.change_table('json_data_type') do |t|
