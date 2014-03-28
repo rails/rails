@@ -1,3 +1,8 @@
+*   Do not set the Rails environment to test by default when using test_unit Railtie.
+
+    *Konstantin Shabanov*
+
+
 ## Rails 4.0.4 (March 14, 2014) ##
 
 *   Added Thor-action for creation of migrations.
