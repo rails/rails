@@ -1,4 +1,4 @@
-if defined?(Rake.application) && Rake.application.top_level_tasks.grep(/^(default$|test(:|$))/).any?
+if defined?(Rake.application) && Rake.application.top_level_tasks.grep(/^test(?::|$)/).any?
   ENV['RAILS_ENV'] ||= 'test'
 end
 
