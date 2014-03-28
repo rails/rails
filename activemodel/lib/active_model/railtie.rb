@@ -8,5 +8,9 @@ module ActiveModel
     initializer "active_model.secure_password" do
       ActiveModel::SecurePassword.min_cost = Rails.env.test?
     end
+
+    initializer "activemodel.configure" do |app|
+      ActiveModel::Translation.humanize_as_default = app.config.active_model.translation_humanize_as_default
+    end
   end
 end
