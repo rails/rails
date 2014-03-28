@@ -480,6 +480,45 @@ module ApplicationTests
       end
     end
 
+    test "inline attachments" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments.inline['image.png'] = 'image'
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World! <%= image_tag attachments['image.png'].url %></p>
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo.html"
+      assert_equal 200, last_response.status
+      assert_match '<option selected value="?part=text%2Fhtml">View as HTML email</option>', last_response.body
+
+      get "/rails/mailers/notifier/foo.txt"
+      assert_equal 200, last_response.status
+      assert_match '<option selected value="?part=text%2Fplain">View as plain-text email</option>', last_response.body
+    end
+
     private
       def build_app
         super
