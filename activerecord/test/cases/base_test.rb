@@ -533,6 +533,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
+    assert_equal false, Topic.new == Topic.new
   end
 
   def test_equality_of_destroyed_records
@@ -542,6 +543,12 @@ class BasicsTest < ActiveRecord::TestCase
     topic_1.destroy
     assert_equal topic_1, topic_2
     assert_equal topic_2, topic_1
+  end
+
+  def test_equality_with_blank_ids
+    one = Subscriber.new(:id => '')
+    two = Subscriber.new(:id => '')
+    assert_equal one, two
   end
 
   def test_hashing
@@ -576,12 +583,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     assert_equal nil, Topic.find_by_id(topic.id)
-  end
-
-  def test_blank_ids
-    one = Subscriber.new(:id => '')
-    two = Subscriber.new(:id => '')
-    assert_equal one, two
   end
 
   def test_comparison_with_different_objects
