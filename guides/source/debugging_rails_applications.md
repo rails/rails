@@ -123,7 +123,7 @@ config.logger = Logger.new(STDOUT)
 config.logger = Log4r::Logger.new("Application Log")
 ```
 
-TIP: By default, each log is created under `Rails.root/log/` and the log file name is `environment_name.log`.
+TIP: By default, each log is created under `Rails.root/log/` and the log file is named after the environment in which the application is running.
 
 ### Log Levels
 
