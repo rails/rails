@@ -1,3 +1,7 @@
+*   Append link to bad code to backtrace when exception is SyntaxError.
+
+    *Boris Kuznetsov*
+
 *   Make URL escaping more consistent:
 
     1. Escape '%' characters in URLs - only unescaped data should be passed to URL helpers
