@@ -4,12 +4,12 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   def setup
     super
     @subscriber = SQLSubscriber.new
-    ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+    @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     @connection = ActiveRecord::Base.connection
   end
 
   def teardown
-    ActiveSupport::Notifications.unsubscribe(@subscriber)
+    ActiveSupport::Notifications.unsubscribe(@subscription)
     super
   end
 
