@@ -23,7 +23,7 @@ module ActiveRecord
         eosql
 
         @subscriber = SQLSubscriber.new
-        ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+        @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
       end
 
       def test_bad_connection
@@ -70,7 +70,7 @@ module ActiveRecord
       end
 
       def teardown
-        ActiveSupport::Notifications.unsubscribe(@subscriber)
+        ActiveSupport::Notifications.unsubscribe(@subscription)
         super
       end
 

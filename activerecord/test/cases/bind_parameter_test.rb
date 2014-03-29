@@ -22,11 +22,11 @@ module ActiveRecord
       @connection = ActiveRecord::Base.connection
       @listener   = LogListener.new
       @pk         = Topic.columns.find { |c| c.primary }
-      ActiveSupport::Notifications.subscribe('sql.active_record', @listener)
+      @subscriber = ActiveSupport::Notifications.subscribe('sql.active_record', @listener)
     end
 
     teardown do
-      ActiveSupport::Notifications.unsubscribe(@listener)
+      ActiveSupport::Notifications.unsubscribe(@subscriber)
     end
 
     if ActiveRecord::Base.connection.supports_statement_cache?
