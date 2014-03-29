@@ -39,7 +39,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_params
-      render :text => params.inspect
+      render :text => params.to_h.inspect
     end
 
     def test_uri

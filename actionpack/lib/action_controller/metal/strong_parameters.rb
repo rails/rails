@@ -1,6 +1,7 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/rescuable'
+require 'active_support/deprecation'
 require 'action_dispatch/http/upload'
 require 'stringio'
 require 'set'
@@ -90,20 +91,32 @@ module ActionController
   #   params.permit(:c)
   #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
-  # <tt>ActionController::Parameters</tt> is inherited from
+  # <tt>ActionController::Parameters</tt> is acting like
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
   # that you can fetch values using either <tt>:key</tt> or <tt>"key"</tt>.
   #
   #   params = ActionController::Parameters.new(key: 'value')
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
-  class Parameters < ActiveSupport::HashWithIndifferentAccess
+  class Parameters
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
     # Never raise an UnpermittedParameters exception because of these params
     # are present. They are added by Rails and it's of no concern.
     NEVER_UNPERMITTED_PARAMS = %w( controller action )
+
+    delegate :==, :===, :has_key?, :keys, :each_pair, :[]=,
+      :each, :empty?, :values_at, to: :@parameters
+
+    # Convert to a HashWithIndifferentAccess which does not contain permitted
+    # status. You should be careful when passing the resulting hash to a model
+    # as they may still contains parameters that is not permitted.
+    def to_h
+      @parameters.dup
+    end
+
+    alias_method :to_hash, :to_h
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -121,16 +134,9 @@ module ActionController
     #   params = ActionController::Parameters.new(name: 'Francesco')
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
-    def initialize(attributes = nil)
-      super(attributes)
-      @permitted = self.class.permit_all_parameters
-    end
-
-    # Attribute that keeps track of converted arrays, if any, to avoid double
-    # looping in the common use case permit + mass-assignment. Defined in a
-    # method to instantiate it only if needed.
-    def converted_arrays
-      @converted_arrays ||= Set.new
+    def initialize(attributes = {}, permitted = self.class.permit_all_parameters)
+      @parameters = HashWithIndifferentAccess.new(attributes)
+      @permitted = permitted
     end
 
     # Returns +true+ if the parameter is permitted, +false+ otherwise.
@@ -157,7 +163,7 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        value = convert_hashes_to_parameters(key, value)
+        value = convert_and_assign_value(key, value)
         Array.wrap(value).each do |_|
           _.permit! if _.respond_to? :permit!
         end
@@ -279,7 +285,7 @@ module ActionController
     #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)
-      convert_hashes_to_parameters(key, super)
+      convert_and_assign_value(key, @parameters[key])
     end
 
     # Returns a parameter for the given +key+. If the +key+
@@ -293,8 +299,8 @@ module ActionController
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param not found: none
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
-    def fetch(key, *args)
-      convert_hashes_to_parameters(key, super, false)
+    def fetch(key, *args, &block)
+      convert_value_to_parameters(@parameters.fetch(key, *args, &block))
     rescue KeyError
       raise ActionController::ParameterMissing.new(key)
     end
@@ -307,34 +313,113 @@ module ActionController
     #   params.slice(:a, :b) # => {"a"=>1, "b"=>2}
     #   params.slice(:d)     # => {}
     def slice(*keys)
-      self.class.new(super).tap do |new_instance|
-        new_instance.permitted = @permitted
-      end
+      new_with_parameters(@parameters.slice(*keys))
     end
 
-    # Returns an exact copy of the <tt>ActionController::Parameters</tt>
-    # instance. +permitted+ state is kept on the duped object.
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # deletes every key-value pair for which block evaluates to true.
     #
-    #   params = ActionController::Parameters.new(a: 1)
-    #   params.permit!
-    #   params.permitted?        # => true
-    #   copy_params = params.dup # => {"a"=>1}
-    #   copy_params.permitted?   # => true
-    def dup
-      super.tap do |duplicate|
-        duplicate.permitted = @permitted
-      end
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.delete_if { |k,v| v > 2 } # => {"a"=>1, "b"=>2}
+    def delete_if(&block)
+      new_with_parameters(@parameters.delete_if(&block))
     end
 
-    protected
-      def permitted=(new_permitted)
-        @permitted = new_permitted
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # keeps every key-value pair for which block evaluates to true.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.keep_if { |k,v| v > 2 }  # => {"c"=>3}
+    def keep_if(&block)
+      new_with_parameters(@parameters.keep_if(&block))
+    end
+
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # contains the contents of other_hash and the contents of itself.
+    #
+    # If no block is specified, the value for entries with duplicate keys will
+    # be that of other_hash. Otherwise the value for each duplicate key is\
+    # determined by calling the block with the key, its value in itself and
+    # its value in other_hash.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.merge(d: 4)  # => {"a"=>1, "b"=>2, "c"=>3, "d"=>4}
+    def merge(other_hash, &block)
+      new_with_parameters(@parameters.merge(other_hash, &block))
+    end
+
+    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # includes everything but the given keys. This is useful for limiting a
+    # set of parameters to everything but a few known toggles:
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.except(:c)    # => {"a"=>1, "b"=>2}
+    def except(*keys)
+      new_with_parameters(@parameters.except(*keys))
+    end
+
+    # Proxy all of the missing method call to underlying +HashWithIndifferentAccess+ object and
+    # display the deprecation warning.
+    #
+    # TODO: Remove this method once we reach 5.0.0
+    def method_missing(method_name, *args, &block)
+      ActiveSupport::Deprecation.warn <<-warning.squish
+        ActionController::Parameters is no longer inherited from `HashWithIndifferentAccess` due to
+        a security concern. Your `##{method_name}` method call has been proxied to the underlying
+        `HashWithIndifferentAccess` object and lost its permitted status. This behavior will be
+        removed in the next major version of Rails.
+      warning
+
+      to_h.public_send(method_name, *args, &block)
+    end
+
+    # Override this to make <tt>Parameters.is_a?(Hash)</tt> still works.
+    #
+    # TODO: Remove this method once we reach 5.0.0
+    def is_a?(klass)
+      if klass == Hash || klass == HashWithIndifferentAccess
+        ActiveSupport::Deprecation.warn <<-warning.squish
+          ActionController::Parameters is no longer inherited from `HashWithIndifferentAccess` due to
+          a security concern. Currently, `is_a?` is overridden to return true on `Hash` for backward
+          compatibility. You shouldn't rely on this behavior, as it will be removed in the next
+          version of Rails. We recommend you to do `respond_to?(:to_hash)` instead.
+        warning
       end
+
+      super || @parameters.is_a?(klass)
+    end
+
+    # Override this to make <tt>Parameters.kind_of?(Hash)</tt> still works.
+    #
+    # TODO: Remove this method once we reach 5.0.0
+    def kind_of?(klass)
+      if klass == Hash || klass == HashWithIndifferentAccess
+        ActiveSupport::Deprecation.warn <<-warning.squish
+          ActionController::Parameters is no longer inherited from `HashWithIndifferentAccess` due to
+          a security concern. Currently, `kind_of?` is overridden to return true on `Hash` for backward
+          compatibility. You shouldn't rely on this behavior, as it will be removed in the next
+          version of Rails. We recommend you to do `respond_to?(:to_hash)` instead.
+        warning
+      end
+
+      super || @parameters.kind_of?(klass)
+    end
+
+    # Required by +HashWithIndifferentAccess+
+    #
+    # TODO: Remove this method once we reach 5.0.0
+    def nested_under_indifferent_access # :nodoc:
+      self
+    end
 
     private
-      def convert_hashes_to_parameters(key, value, assign_if_converted=true)
+      def new_with_parameters(parameters)
+        self.class.new(parameters, @permitted)
+      end
+
+      def convert_and_assign_value(key, value)
         converted = convert_value_to_parameters(value)
-        self[key] = converted if assign_if_converted && !converted.equal?(value)
+        self[key] = converted unless converted.equal?(value)
         converted
       end
 
@@ -348,6 +433,13 @@ module ActionController
         else
           self.class.new(value)
         end
+      end
+
+      # Attribute that keeps track of converted arrays, if any, to avoid double
+      # looping in the common use case permit + mass-assignment. Defined in a
+      # method to instantiate it only if needed.
+      def converted_arrays
+        @converted_arrays ||= Set.new
       end
 
       def each_element(object)
@@ -460,6 +552,23 @@ module ActionController
           end
         end
       end
+
+      # Returns true if we or the underlying +HashWithIndifferentAccess+ respond to the method name.
+      # Note that deprecation warning will be displayed if the method will be proxied.
+      #
+      # TODO: Remove this method once we reach 5.0.0
+      def respond_to_missing?(method_name, include_private = false)
+        if @parameters.respond_to? method_name, include_private
+          ActiveSupport::Deprecation.warn <<-warning.squish
+            ActionController::Parameters is no longer inherited from `HashWithIndifferentAccess` due
+            to a security concern. Your `##{method_name}` method call will be proxied to the
+            underlying `HashWithIndifferentAccess` object and lost its permitted status. This behavior
+            will be removed in the next major version of Rails.
+          warning
+
+          true
+        end
+      end
   end
 
   # == Strong \Parameters
@@ -543,7 +652,7 @@ module ActionController
     # is a Hash, this will create an ActionController::Parameters
     # object that has been instantiated with the given +value+ hash.
     def params=(value)
-      @_params = value.is_a?(Hash) ? Parameters.new(value) : value
+      @_params = value.respond_to?(:to_hash) ? Parameters.new(value.to_hash) : value
     end
   end
 end

@@ -1,5 +1,15 @@
+*   `ActionController::Parameters` no longer inherits from
+    `HashWithIndifferentAccess`
+
+    Inheriting from `HashWithIndifferentAccess` allowed programmers to call
+    enumerable methods over `AC::Parameters`, losing `@permitted` state, and
+    rendering Strong Parameters a barebones Hash. This changeset reduces
+    `ActionController::Parameters` interface, disallowing such operations.
+
+    *Prem Sichanugrist and Tute Costa*
+
 *   Swapped the parameters of assert_equal in `assert_select` so that the
-    proper values were printed correctly 
+    proper values were printed correctly.
 
     Fixes #14422.
 

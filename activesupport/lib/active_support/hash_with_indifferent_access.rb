@@ -251,7 +251,7 @@ module ActiveSupport
       end
 
       def convert_value(value, options = {})
-        if value.is_a? Hash
+        if value.respond_to?(:to_hash)
           if options[:for] == :to_hash
             value.to_hash
           else
