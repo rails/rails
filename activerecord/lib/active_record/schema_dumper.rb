@@ -105,7 +105,7 @@ HEADER
       end
 
       def table(table, stream)
-        columns = @connection.columns(table)
+        columns = @connection.columns(table, false)
         begin
           tbl = StringIO.new
 
