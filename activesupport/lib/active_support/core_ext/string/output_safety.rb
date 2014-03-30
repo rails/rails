@@ -124,7 +124,7 @@ module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
-      slice squeeze strip sub succ swapcase tr tr_s upcase prepend
+      slice squeeze strip sub succ swapcase tr tr_s upcase
     )
 
     alias_method :original_concat, :concat
@@ -169,11 +169,13 @@ module ActiveSupport #:nodoc:
       self[0, 0]
     end
 
-    def concat(value)
-      if !html_safe? || value.html_safe?
-        super(value)
-      else
-        super(ERB::Util.h(value))
+    %w[concat prepend].each do |method_name|
+      define_method method_name do |value|
+        if !html_safe? || value.html_safe?
+          super(value)
+        else
+          super(ERB::Util.h(value))
+        end
       end
     end
     alias << concat
