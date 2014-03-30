@@ -31,6 +31,12 @@ class EnumTest < ActiveRecord::TestCase
     assert @book.written?
   end
 
+  test "update by declaration with additional attributes" do
+    @book.written! name: "Agile Web Development with Rails II"
+    assert @book.written?
+    assert_equal @book.name, "Agile Web Development with Rails II"
+  end
+
   test "update by setter" do
     @book.update! status: :written
     assert @book.written?
