@@ -94,6 +94,7 @@ module Rails
         yaml = Pathname.new(paths["config/database"].first || "")
 
         config = if yaml.exist?
+          require "yaml"
           require "erb"
           YAML.load(ERB.new(yaml.read).result) || {}
         elsif ENV['DATABASE_URL']
