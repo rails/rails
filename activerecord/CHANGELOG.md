@@ -1,3 +1,9 @@
+*   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
+
+    Fixes #10613.
+
+    *Luke Steensen*
+
 *   Make possible to change `record_timestamps` inside Callbacks.
 
     *Tieg Zaharia*

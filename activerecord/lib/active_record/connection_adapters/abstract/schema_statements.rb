@@ -869,6 +869,12 @@ module ActiveRecord
           end
         end
 
+        def quote_value(value, column)
+          column.sql_type ||= type_to_sql(column.type, column.limit, column.precision, column.scale)
+
+          quote(value, column)
+        end
+
       private
       def create_table_definition(name, temporary, options)
         TableDefinition.new native_database_types, name, temporary, options
