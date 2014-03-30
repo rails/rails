@@ -13,7 +13,7 @@ module ActiveRecord
         end
 
         def visit_AddColumn(o)
-          sql_type = type_to_sql(o.type.to_sym, o.limit, o.precision, o.scale)
+          sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
           sql = "ADD #{quote_column_name(o.name)} #{sql_type}"
           add_column_options!(sql, column_options(o))
         end
@@ -26,7 +26,7 @@ module ActiveRecord
           end
 
           def visit_ColumnDefinition(o)
-            sql_type = type_to_sql(o.type.to_sym, o.limit, o.precision, o.scale)
+            sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
             column_sql = "#{quote_column_name(o.name)} #{sql_type}"
             add_column_options!(column_sql, column_options(o)) unless o.primary_key?
             column_sql
