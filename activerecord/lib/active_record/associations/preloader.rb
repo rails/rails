@@ -140,27 +140,13 @@ module ActiveRecord
       end
 
       def grouped_records(association, records)
-        reflection_records = records_by_reflection(association, records)
-
-        reflection_records.each_with_object({}) do |(reflection, r_records),h|
-          h[reflection] = r_records.group_by { |record|
-            record.association(association).klass
-          }
+        h = {}
+        records.each do |record|
+          assoc = record.association(association)
+          klasses = h[assoc.reflection] ||= {}
+          (klasses[assoc.klass] ||= []) << record
         end
-      end
-
-      def records_by_reflection(association, records)
-        records.group_by do |record|
-          reflection = record.class.reflect_on_association(association)
-
-          reflection || raise_config_error(record, association)
-        end
-      end
-
-      def raise_config_error(record, association)
-        raise ActiveRecord::ConfigurationError,
-              "Association named '#{association}' was not found on #{record.class.name}; " \
-              "perhaps you misspelled it?"
+        h
       end
 
       class AlreadyLoaded
