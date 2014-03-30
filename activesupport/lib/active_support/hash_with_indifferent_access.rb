@@ -72,6 +72,7 @@ module ActiveSupport
     end
 
     def self.new_from_hash_copying_default(hash)
+      hash = hash.to_hash
       new(hash).tap do |new_hash|
         new_hash.default = hash.default
       end
@@ -125,7 +126,7 @@ module ActiveSupport
       if other_hash.is_a? HashWithIndifferentAccess
         super(other_hash)
       else
-        other_hash.each_pair do |key, value|
+        other_hash.to_hash.each_pair do |key, value|
           if block_given? && key?(key)
             value = yield(convert_key(key), self[key], value)
           end

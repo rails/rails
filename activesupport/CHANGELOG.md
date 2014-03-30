@@ -1,3 +1,15 @@
+*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
+    given. In particular `#update`, `#merge`, `#replace` all accept objects
+    which respond to `#to_hash`, even if those objects are not Hashes directly.
+
+    Currently, if `HashWithIndifferentAccess.new` is given a non-Hash (even if
+    it responds to `#to_hash`) that object is treated as the default value,
+    rather than the initial keys and value. Changing that could break existing
+    code, so it will be updated in 4.2.
+
+    *Peter Jaros*
+
+
 ## Rails 4.0.4 (March 14, 2014) ##
 
 *   Fix parsing bugs in `XmlMini`
