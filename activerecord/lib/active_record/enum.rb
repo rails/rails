@@ -114,9 +114,9 @@ module ActiveRecord
             klass.send(:detect_enum_conflict!, name, "#{value}?")
             define_method("#{value}?") { self[name] == i }
 
-            # def active!() update! status: :active end
+            # def active!(other_attrs={}) update! other_attrs.merge status: :active end
             klass.send(:detect_enum_conflict!, name, "#{value}!")
-            define_method("#{value}!") { update! name => value }
+            define_method("#{value}!") { |other_attrs={}| update! other_attrs.merge name => value }
 
             # scope :active, -> { where status: 0 }
             klass.send(:detect_enum_conflict!, name, value, true)
