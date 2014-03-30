@@ -144,7 +144,7 @@ module ActiveRecord
 
         reflection_records.each_with_object({}) do |(reflection, r_records),h|
           h[reflection] = r_records.group_by { |record|
-            association_klass(reflection, record)
+            record.association(association).klass
           }
         end
       end
@@ -161,15 +161,6 @@ module ActiveRecord
         raise ActiveRecord::ConfigurationError,
               "Association named '#{association}' was not found on #{record.class.name}; " \
               "perhaps you misspelled it?"
-      end
-
-      def association_klass(reflection, record)
-        if reflection.macro == :belongs_to && reflection.options[:polymorphic]
-          klass = record.read_attribute(reflection.foreign_type.to_s)
-          klass && klass.constantize
-        else
-          reflection.klass
-        end
       end
 
       class AlreadyLoaded
