@@ -75,6 +75,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, Mime::Type.parse(accept)
   end
 
+  test "totally broken header defaults to HTML" do
+    accept = "; a=dsf"
+    expect = [Mime::HTML]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
   test "parse arbitrary media type parameters" do
     accept = 'multipart/form-data; boundary="simple boundary"'
     expect = [Mime::MULTIPART_FORM]

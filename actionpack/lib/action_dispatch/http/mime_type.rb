@@ -145,7 +145,7 @@ module Mime
           accept_header.split(/,\s*/)
         end
 
-        accepts.map! { |accept|
+        accepts = accepts.map { |accept|
           # Set default quality
           params = {'q' => 1.0}
 
@@ -177,7 +177,7 @@ module Mime
           end
           [type, params]
         }.reject { |type, subtype, parameters|
-          type.nil?
+          type.blank? || subtype.blank?
         }.each_with_index.map { |(name, parameters), index|
           AcceptItem.new(*name.split("/"), parameters, index)
         }.sort.map { |item|
@@ -187,6 +187,7 @@ module Mime
             Mime::Type.lookup(item.name)
           end
         }.flatten.uniq
+        accepts.empty? ? [Mime::HTML] : accepts
       end
 
 
