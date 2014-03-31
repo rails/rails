@@ -31,7 +31,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star at the beginning" do
     accept = "text/*, text/html, application/json, multipart/form-data"
-    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML, Mime::JSON, Mime::MULTIPART_FORM]
+    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
@@ -84,7 +84,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   # Accept header send with user HTTP_USER_AGENT: Sunrise/0.42j (Windows XP)
   test "parse broken acceptlines" do
     accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5"
-    expect = [Mime::HTML, Mime::XML, "image/*", Mime::TEXT, Mime::ALL]
+    expect = [Mime::HTML, Mime::XML, Mime::TEXT, Mime::SET.select { |m| m.to_s.include?('image') }, Mime::ALL].flatten
     assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
   end
 

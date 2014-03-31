@@ -121,11 +121,12 @@ module ActionDispatch
       # matches the order array.
       #
       def negotiate_mime(order)
-        formats.each do |priority|
-          if priority == Mime::ALL
+        formats.each do |accepted_format|
+          # If any format is accepted, return the first defined in the controller
+          if accepted_format == Mime::ALL
             return order.first
-          elsif order.include?(priority)
-            return priority
+          elsif order.include?(accepted_format)
+            return accepted_format
           end
         end
 
@@ -134,11 +135,8 @@ module ActionDispatch
 
       protected
 
-      BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
-
       def valid_accept_header
-        (xhr? && (accept.present? || content_mime_type)) ||
-          (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
+        accept.present? || (xhr? && content_mime_type)
       end
 
       def use_accept_header
