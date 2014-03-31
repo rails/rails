@@ -235,6 +235,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_finding_with_includes_on_empty_polymorphic_type_column
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    sponsor.update!(sponsorable_type: '', sponsorable_id: nil) # sponsorable_type column might be declared NOT NULL
+    sponsor = assert_queries(1) do
+      assert_nothing_raised { Sponsor.all.merge!(:includes => :sponsorable).find(sponsor.id) }
+    end
+    assert_no_queries do
+      assert_equal nil, sponsor.sponsorable
+    end
+  end
+
   def test_loading_from_an_association
     posts = authors(:david).posts.merge(:includes => :comments, :order => "posts.id").to_a
     assert_equal 2, posts.first.comments.size
@@ -709,16 +720,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_invalid_association_reference
-    assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
       Post.all.merge!(:includes=> :monkeys ).find(6)
     }
-    assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
       Post.all.merge!(:includes=>[ :monkeys ]).find(6)
     }
-    assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
       Post.all.merge!(:includes=>[ 'monkeys' ]).find(6)
     }
-    assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
+    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
       Post.all.merge!(:includes=>[ :monkeys, :elephants ]).find(6)
     }
   end
