@@ -19,6 +19,12 @@ module ActiveRecord
       end
     end
 
+    def capture_sql
+      SQLCounter.clear_log
+      yield
+      SQLCounter.log_all.dup
+    end
+
     def assert_sql(*patterns_to_match)
       SQLCounter.clear_log
       yield
