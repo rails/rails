@@ -122,6 +122,26 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_array_options_for_select_with_custom_defined_selected
+    assert_dom_equal(
+      "<option selected=\"selected\" type=\"Coach\" value=\"1\">Richard Bandler</option>\n<option type=\"Coachee\" value=\"1\">Richard Bandler</option>",
+      options_for_select([
+        ['Richard Bandler', 1, { type: 'Coach', selected: 'selected' }],
+        ['Richard Bandler', 1, { type: 'Coachee' }]
+      ])
+    )
+  end
+
+  def test_array_options_for_select_with_custom_defined_disabled
+    assert_dom_equal(
+      "<option disabled=\"disabled\" type=\"Coach\" value=\"1\">Richard Bandler</option>\n<option type=\"Coachee\" value=\"1\">Richard Bandler</option>",
+      options_for_select([
+        ['Richard Bandler', 1, { type: 'Coach', disabled: 'disabled' }],
+        ['Richard Bandler', 1, { type: 'Coachee' }]
+      ])
+    )
+  end
+
   def test_array_options_for_select_with_selection
     assert_dom_equal(
       "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" selected=\"selected\">&lt;USA&gt;</option>\n<option value=\"Sweden\">Sweden</option>",
