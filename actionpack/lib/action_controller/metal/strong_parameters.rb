@@ -502,7 +502,7 @@ module ActionController
   #       end
   #   end
   #
-  # In order to use <tt>accepts_nested_attribute_for</tt> with Strong \Parameters, you
+  # In order to use <tt>accepts_nested_attributes_for</tt> with Strong \Parameters, you
   # will need to specify which nested attributes should be whitelisted.
   #
   #   class Person
