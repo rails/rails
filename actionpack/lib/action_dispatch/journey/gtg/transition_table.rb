@@ -41,7 +41,7 @@ module ActionDispatch
 
         def move(t, a)
           return [] if t.empty?
-          move_string(t, a).concat(move_regexp(t, a))
+          move_string(t, a)
         end
 
         def as_json(options = nil)
@@ -141,20 +141,17 @@ module ActionDispatch
             end
           end
 
-          def move_regexp(t, a)
-            t.flat_map { |s|
-              if states = @regexp_states[s]
-                states.map { |re, v| re === a ? v : nil }
-              end
-            }.compact.uniq
-          end
-
           def move_string(t, a)
-            t.map do |s|
+            regexps = []
+            t.map { |s|
+              if states = @regexp_states[s]
+                regexps.concat states.map { |re, v| re === a ? v : nil }
+              end
+
               if states = @string_states[s]
                 states[a]
               end
-            end.compact
+            }.compact.concat regexps
           end
       end
     end
