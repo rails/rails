@@ -588,7 +588,7 @@ module ActiveRecord
             SQL
           else
             result = execute(<<-SQL, 'SCHEMA')
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput
+              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
               FROM pg_type as t
             SQL
           end
@@ -630,10 +630,11 @@ module ActiveRecord
 
           # populate domain types
           domains.each do |row|
-            if base_type = type_map[row["typbasetype"].to_i]
+            base_type_oid = row["typbasetype"].to_i
+            if base_type = type_map[base_type_oid]
               type_map[row['oid'].to_i] = base_type
             else
-              warn "unknown base type (OID: #{row["typbasetype"].to_i}) for domain #{row["typname"]}."
+              warn "unknown base type (OID: #{base_type_oid}) for domain #{row["typname"]}."
             end
           end
         end
