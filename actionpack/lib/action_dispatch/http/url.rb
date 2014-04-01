@@ -48,7 +48,7 @@ module ActionDispatch
             result << path
           end
           result << "?#{params.to_query}" unless params.empty?
-          result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
+          result << "##{Routing::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
           result
         end
 

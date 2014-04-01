@@ -248,10 +248,16 @@ module ActionDispatch
   module Routing
     extend ActiveSupport::Autoload
 
+    autoload :Formatter
     autoload :Mapper
+    autoload :Route
+    autoload :Router
+    autoload :Routes
     autoload :RouteSet
     autoload :RoutesProxy
     autoload :UrlFor
+    autoload :Path
+    autoload :PathScanner
     autoload :PolymorphicRoutes
 
     SEPARATORS = %w( / . ? ) #:nodoc:

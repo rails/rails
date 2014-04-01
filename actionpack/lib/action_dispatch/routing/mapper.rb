@@ -277,15 +277,7 @@ module ActionDispatch
           end
 
           def segment_keys
-            @segment_keys ||= path_pattern.names.map{ |s| s.to_sym }
-          end
-
-          def path_pattern
-            Journey::Path::Pattern.new(strexp)
-          end
-
-          def strexp
-            Journey::Router::Strexp.compile(path, requirements, SEPARATORS)
+            @segment_keys ||= path.scan(/(?<=[\*:])\w+/).map(&:to_sym)
           end
 
           def endpoint
@@ -309,11 +301,11 @@ module ActionDispatch
           end
       end
 
-      # Invokes Journey::Router::Utils.normalize_path and ensure that
+      # Invokes Router::Utils.normalize_path and ensure that
       # (:locale) becomes (/:locale) instead of /(:locale). Except
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
-        path = Journey::Router::Utils.normalize_path(path)
+        path = Router::Utils.normalize_path(path)
         path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^)]+\)$}
         path
       end
@@ -1464,8 +1456,7 @@ module ActionDispatch
           end
 
           mapping = Mapping.new(@set, @scope, URI.parser.escape(path), options)
-          app, conditions, requirements, defaults, as, anchor = mapping.to_route
-          @set.add_route(app, conditions, requirements, defaults, as, anchor)
+          @set.add_route(*mapping.to_route)
         end
 
         def root(path, options={})

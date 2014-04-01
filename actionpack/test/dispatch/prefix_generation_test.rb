@@ -344,14 +344,14 @@ module TestGenerationPrefix
       path = engine_object.polymorphic_url(Post.new, :host => "www.example.com")
       assert_equal "http://www.example.com/awesome/blog/posts/1", path
     end
-    
+
     private
       def verify_redirect(url, status = 301)
         assert_equal status, last_response.status
         assert_equal url, last_response.headers["Location"]
         assert_equal expected_redirect_body(url), last_response.body
       end
-      
+
       def expected_redirect_body(url)
         %(<html><body>You are being <a href="#{url}">redirected</a>.</body></html>)
       end
@@ -490,14 +490,14 @@ module TestGenerationPrefix
       get "/absolute_custom_redirect"
       verify_redirect "http://example.org/foo"
     end
-    
+
     private
       def verify_redirect(url, status = 301)
         assert_equal status, last_response.status
         assert_equal url, last_response.headers["Location"]
         assert_equal expected_redirect_body(url), last_response.body
       end
-      
+
       def expected_redirect_body(url)
         %(<html><body>You are being <a href="#{url}">redirected</a>.</body></html>)
       end
