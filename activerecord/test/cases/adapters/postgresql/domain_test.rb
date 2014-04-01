@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 require "cases/helper"
+require 'support/postgresql_helper'
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlDomainTest < ActiveRecord::TestCase
+  include PostgresqlHelper
+
   class PostgresqlDomain < ActiveRecord::Base
     self.table_name = "postgresql_domains"
   end
 
   def setup
-    # reset connection to bust all cached statement plans
-    connection_spec = ActiveRecord::Base.remove_connection
-    ActiveRecord::Base.establish_connection(connection_spec)
-
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
       @connection.execute "CREATE DOMAIN custom_money as numeric(8,2)"
@@ -28,6 +27,7 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
   teardown do
     @connection.execute 'DROP TABLE IF EXISTS postgresql_domains'
     @connection.execute 'DROP DOMAIN IF EXISTS custom_money'
+    reset_pg_session
   end
 
   def test_column
