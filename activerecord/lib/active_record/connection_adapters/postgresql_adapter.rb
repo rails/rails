@@ -592,13 +592,13 @@ module ActiveRecord
               FROM pg_type as t
             SQL
           end
-          ranges, nodes = result.partition { |row| row['typinput'] == 'range_in' }
+          ranges, nodes = result.partition { |row| row['typtype'] == 'r' }
+          enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
           domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
-          leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
           arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
+          leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
 
           # populate the enum types
-          enums, leaves = leaves.partition { |row| row['typinput'] == 'enum_in' }
           enums.each do |row|
             type_map[row['oid'].to_i] = OID::Enum.new
           end
