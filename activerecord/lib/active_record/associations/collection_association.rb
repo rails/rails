@@ -55,9 +55,14 @@ module ActiveRecord
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
-        pk_column = reflection.primary_key_column
-        ids = Array(ids).reject { |id| id.blank? }
-        ids.map! { |i| pk_column.type_cast(i) }
+        ids = normalize_ids(ids)
+        old_ids = normalize_ids(load_target.map { |t| t.public_send(reflection.primary_key_column.name) })
+
+        if ids.sort.uniq != old_ids.sort
+          name = reflection.name.to_s.singularize
+          owner.changed_attributes["#{name}_ids"] = old_ids
+        end
+
         replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
       end
 
@@ -412,6 +417,13 @@ module ActiveRecord
       end
 
       private
+
+        def normalize_ids(ids)
+          pk_column = reflection.primary_key_column
+          ids = Array(ids).reject { |id| id.blank? }
+          ids.map! { |i| pk_column.type_cast(i) }
+          ids
+        end
 
         def find_target
           records = scope.to_a

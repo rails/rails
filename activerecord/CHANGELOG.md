@@ -1,3 +1,7 @@
+*   Update changed_attributes when using `<asssociation>_ids=(ids)`.
+
+    *Frank Showalter*
+
 *   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
 
     Fixes #10613.
