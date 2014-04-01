@@ -45,8 +45,10 @@ require 'arel/nodes/named_function'
 require 'arel/nodes/window'
 
 # joins
+require 'arel/nodes/full_outer_join'
 require 'arel/nodes/inner_join'
 require 'arel/nodes/outer_join'
+require 'arel/nodes/right_outer_join'
 require 'arel/nodes/string_join'
 
 require 'arel/nodes/sql_literal'

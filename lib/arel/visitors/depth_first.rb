@@ -67,6 +67,7 @@ module Arel
       alias :visit_Arel_Nodes_DeleteStatement    :binary
       alias :visit_Arel_Nodes_DoesNotMatch       :binary
       alias :visit_Arel_Nodes_Equality           :binary
+      alias :visit_Arel_Nodes_FullOuterJoin      :binary
       alias :visit_Arel_Nodes_GreaterThan        :binary
       alias :visit_Arel_Nodes_GreaterThanOrEqual :binary
       alias :visit_Arel_Nodes_In                 :binary
@@ -80,6 +81,7 @@ module Arel
       alias :visit_Arel_Nodes_NotIn              :binary
       alias :visit_Arel_Nodes_Or                 :binary
       alias :visit_Arel_Nodes_OuterJoin          :binary
+      alias :visit_Arel_Nodes_RightOuterJoin     :binary
       alias :visit_Arel_Nodes_TableAlias         :binary
       alias :visit_Arel_Nodes_Values             :binary
 
