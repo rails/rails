@@ -28,7 +28,7 @@ module ActionDispatch
       end
 
       def path
-        super.spec.to_s
+        super.string
       end
 
       def name

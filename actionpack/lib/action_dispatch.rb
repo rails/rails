@@ -61,7 +61,6 @@ module ActionDispatch
     autoload :Static
   end
 
-  autoload :Journey
   autoload :MiddlewareStack, 'action_dispatch/middleware/stack'
   autoload :Routing
 

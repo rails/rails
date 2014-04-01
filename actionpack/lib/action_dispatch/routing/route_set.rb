@@ -1,4 +1,3 @@
-require 'action_dispatch/journey'
 require 'forwardable'
 require 'thread_safe'
 require 'active_support/core_ext/object/to_query'
@@ -163,7 +162,7 @@ module ActionDispatch
 
             def initialize(route, options)
               super
-              @klass          = Journey::Router::Utils
+              @klass          = Router::Utils
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
               @optimized_path = @route.optimized_path
@@ -301,11 +300,9 @@ module ActionDispatch
         @disable_clear_and_finalize = false
         @finalized                  = false
 
-        @set    = Journey::Routes.new
-        @router = Journey::Router.new(@set, {
-          :parameters_key => PARAMETERS_KEY,
-          :request_class  => request_class})
-        @formatter = Journey::Formatter.new @set
+        @set    = Routes.new
+        @router = Router.new(@set, { parameters_key: PARAMETERS_KEY, request_class: request_class })
+        @formatter = Formatter.new @set
       end
 
       def draw(&block)
@@ -441,32 +438,13 @@ module ActionDispatch
       end
 
       def build_path(path, requirements, separators, anchor)
-        strexp = Journey::Router::Strexp.new(
+        strexp = Router::Strexp.new(
             path,
             requirements,
             SEPARATORS,
             anchor)
 
-        pattern = Journey::Path::Pattern.new(strexp)
-
-        builder = Journey::GTG::Builder.new pattern.spec
-
-        # Get all the symbol nodes followed by literals that are not the
-        # dummy node.
-        symbols = pattern.spec.grep(Journey::Nodes::Symbol).find_all { |n|
-          builder.followpos(n).first.literal?
-        }
-
-        # Get all the symbol nodes preceded by literals.
-        symbols.concat pattern.spec.find_all(&:literal?).map { |n|
-          builder.followpos(n).first
-        }.find_all(&:symbol?)
-
-        symbols.each { |x|
-          x.regexp = /(?:#{Regexp.union(x.regexp, '-')})+/
-        }
-
-        pattern
+        Path.new(strexp)
       end
       private :build_path
 
@@ -678,7 +656,7 @@ module ActionDispatch
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
-        path = Journey::Router::Utils.normalize_path(path) unless path =~ %r{://}
+        path = Router::Utils.normalize_path(path) unless path =~ %r{://}
         extras = environment[:extras] || {}
 
         begin
