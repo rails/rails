@@ -354,6 +354,7 @@ This is not reliable and will be removed in the future.
         alias_type 'interval', 'text'
         alias_type 'macaddr',  'text'
         alias_type 'uuid',     'text'
+        alias_type 'regclass', 'text'
 
         register_type 'money', OID::Money.new
         register_type 'bytea', OID::Bytea.new
