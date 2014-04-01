@@ -26,9 +26,7 @@ module ActiveRecord
     end
 
     def assert_sql(*patterns_to_match)
-      SQLCounter.clear_log
-      yield
-      SQLCounter.log_all
+      capture_sql { yield }
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|
