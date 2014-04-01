@@ -582,7 +582,7 @@ module ActiveRecord
         def initialize_type_map(type_map)
           if supports_ranges?
             result = execute(<<-SQL, 'SCHEMA')
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype
+              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
               FROM pg_type as t
               LEFT JOIN pg_range as r ON oid = rngtypid
             SQL
@@ -593,6 +593,7 @@ module ActiveRecord
             SQL
           end
           ranges, nodes = result.partition { |row| row['typinput'] == 'range_in' }
+          domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
           leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
           arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
@@ -625,6 +626,15 @@ module ActiveRecord
             subtype = type_map[row['rngsubtype'].to_i]
             range = OID::Range.new subtype
             type_map[row['oid'].to_i] = range
+          end
+
+          # populate domain types
+          domains.each do |row|
+            if base_type = type_map[row["typbasetype"].to_i]
+              type_map[row['oid'].to_i] = base_type
+            else
+              warn "unknown base type (OID: #{row["typbasetype"].to_i}) for domain #{row["typname"]}."
+            end
           end
         end
 
