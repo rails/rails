@@ -25,7 +25,12 @@ module AbstractController
       # If :only or :except are used, convert the options into the
       # :unless and :if options of ActiveSupport::Callbacks.
       # The basic idea is that :only => :index gets converted to
-      # :if => proc {|c| c.action_name == "index" }.
+      # :if => proc { |c| c.action_name == "index" }.
+      # Note that :only have priority over :if, in case they are used together.
+      #
+      # Example:
+      #   only: :index, if: -> { true }
+      #   The option :if will be ignored.
       #
       # ==== Options
       # * <tt>only</tt>   - The callback should be run only for this action
