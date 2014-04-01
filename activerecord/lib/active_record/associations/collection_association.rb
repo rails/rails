@@ -226,7 +226,7 @@ module ActiveRecord
             ActiveRecord::Base.logger ? ActiveRecord::Base.logger.warn(message) : $stderr.puts(message)
           end
 
-          if loaded? || dependent == :destroy
+          if (loaded? || dependent == :destroy) && dependent != :delete_all
             delete_or_destroy(load_target, dependent)
           else
             delete_records(:all, dependent)

@@ -1,3 +1,17 @@
+*   Calling `delete_all` on an unloaded `CollectionProxy` no longer
+    generates a SQL statement containing each id of the collection:
+
+    Before:
+
+        DELETE FROM `model` WHERE `model`.`parent_id` = 1
+        AND `model`.`id` IN (1, 2, 3...)
+
+    After:
+
+        DELETE FROM `model` WHERE `model`.`parent_id` = 1
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Fix `stored_attributes` to correctly merge the details of stored
     attributes defined in parent classes.
 
