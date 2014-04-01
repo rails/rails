@@ -41,7 +41,18 @@ module ActionDispatch
 
         def move(t, a)
           return [] if t.empty?
-          move_string(t, a)
+
+          regexps = []
+
+          t.map { |s|
+            if states = @regexp_states[s]
+              regexps.concat states.map { |re, v| re === a ? v : nil }
+            end
+
+            if states = @string_states[s]
+              states[a]
+            end
+          }.compact.concat regexps
         end
 
         def as_json(options = nil)
@@ -139,19 +150,6 @@ module ActionDispatch
             else
               raise ArgumentError, 'unknown symbol: %s' % sym.class
             end
-          end
-
-          def move_string(t, a)
-            regexps = []
-            t.map { |s|
-              if states = @regexp_states[s]
-                regexps.concat states.map { |re, v| re === a ? v : nil }
-              end
-
-              if states = @string_states[s]
-                states[a]
-              end
-            }.compact.concat regexps
           end
       end
     end
