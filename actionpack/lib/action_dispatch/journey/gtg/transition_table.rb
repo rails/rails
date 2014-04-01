@@ -40,6 +40,7 @@ module ActionDispatch
         end
 
         def move(t, a)
+          return [] if t.empty?
           move_string(t, a).concat(move_regexp(t, a))
         end
 
@@ -141,8 +142,6 @@ module ActionDispatch
           end
 
           def move_regexp(t, a)
-            return [] if t.empty?
-
             t.flat_map { |s|
               if states = @regexp_states[s]
                 states.map { |re, v| re === a ? v : nil }
@@ -151,8 +150,6 @@ module ActionDispatch
           end
 
           def move_string(t, a)
-            return [] if t.empty?
-
             t.map do |s|
               if states = @string_states[s]
                 states[a]
