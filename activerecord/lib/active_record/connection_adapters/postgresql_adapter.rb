@@ -718,9 +718,9 @@ module ActiveRecord
           configure_connection
         rescue ::PG::Error => error
           if error.message.include?("does not exist")
-            raise ActiveRecord::NoDatabaseError.new(error.message)
+            raise ActiveRecord::NoDatabaseError.new(error.message, error)
           else
-            raise error
+            raise
           end
         end
 
