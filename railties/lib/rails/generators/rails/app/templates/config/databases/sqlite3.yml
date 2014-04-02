@@ -23,8 +23,10 @@ test:
 # Do not keep production credentials in the repository,
 # instead read the configuration from the environment.
 #
-# Example:
-#   sqlite3://myuser:mypass@localhost/full/path/to/somedatabase
+# Examples:
+#   sqlite3::memory:
+#   sqlite3:db/production.sqlite3
+#   sqlite3:/full/path/to/database.sqlite3
 #
 production:
   url: <%%= ENV["DATABASE_URL"] %>

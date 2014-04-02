@@ -31,7 +31,7 @@ module ActiveRecord
         def test_connect_with_url
           original_connection = ActiveRecord::Base.remove_connection
           tf = Tempfile.open 'whatever'
-          url = "sqlite3://#{tf.path}"
+          url = "sqlite3:#{tf.path}"
           ActiveRecord::Base.establish_connection(url)
           assert ActiveRecord::Base.connection
         ensure
@@ -42,7 +42,7 @@ module ActiveRecord
 
         def test_connect_memory_with_url
           original_connection = ActiveRecord::Base.remove_connection
-          url = "sqlite3:///:memory:"
+          url = "sqlite3::memory:"
           ActiveRecord::Base.establish_connection(url)
           assert ActiveRecord::Base.connection
         ensure
