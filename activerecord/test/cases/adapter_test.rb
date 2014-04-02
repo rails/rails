@@ -144,9 +144,9 @@ module ActiveRecord
         @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       end
     end
-
-    def test_foreign_key_violations_are_translated_to_specific_exception
-      unless current_adapter?(:SQLite3Adapter)
+    
+    unless current_adapter?(:SQLite3Adapter)
+      def test_foreign_key_violations_are_translated_to_specific_exception
         assert_raises(ActiveRecord::InvalidForeignKey) do
           # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
           if @connection.prefetch_primary_key?
@@ -157,10 +157,8 @@ module ActiveRecord
           end
         end
       end
-    end
-
-    def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
-      unless current_adapter?(:SQLite3Adapter)
+ 
+      def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
         klass_has_fk = Class.new(ActiveRecord::Base) do
           self.table_name = 'fk_test_has_fk'
         end
