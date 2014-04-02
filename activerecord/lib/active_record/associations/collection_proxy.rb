@@ -860,6 +860,10 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
+      def arel
+        scope.arel
+      end
+
       def proxy_association
         @association
       end
