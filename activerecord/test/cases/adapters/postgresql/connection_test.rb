@@ -1,7 +1,10 @@
 require "cases/helper"
+require 'support/connection_helper'
 
 module ActiveRecord
   class PostgresqlConnectionTest < ActiveRecord::TestCase
+    include ConnectionHelper
+
     class NonExistentTable < ActiveRecord::Base
     end
 
@@ -198,17 +201,5 @@ module ActiveRecord
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:debug_print_plan => :default}}))
       end
     end
-
-    private
-
-    def run_without_connection
-      original_connection = ActiveRecord::Base.remove_connection
-      begin
-        yield original_connection
-      ensure
-        ActiveRecord::Base.establish_connection(original_connection)
-      end
-    end
-
   end
 end

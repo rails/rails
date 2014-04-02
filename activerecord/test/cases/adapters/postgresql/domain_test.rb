@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 require "cases/helper"
-require 'support/postgresql_helper'
+require 'support/connection_helper'
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlDomainTest < ActiveRecord::TestCase
-  include PostgresqlHelper
+  include ConnectionHelper
 
   class PostgresqlDomain < ActiveRecord::Base
     self.table_name = "postgresql_domains"
@@ -27,7 +27,7 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
   teardown do
     @connection.execute 'DROP TABLE IF EXISTS postgresql_domains'
     @connection.execute 'DROP DOMAIN IF EXISTS custom_money'
-    reset_pg_session
+    reset_connection
   end
 
   def test_column
