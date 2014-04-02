@@ -227,7 +227,7 @@ module ActiveRecord
           if config = configurations[spec.to_s]
             resolve_connection(config)
           else
-            raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available configuration: #{configurations.inspect}")
+            raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available: #{configurations.keys.inspect}")
           end
         end
 
