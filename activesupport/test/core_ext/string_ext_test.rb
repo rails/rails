@@ -4,6 +4,7 @@ require 'abstract_unit'
 require 'inflector_test_cases'
 require 'constantize_test_cases'
 
+require 'active_support/deprecation/reporting'
 require 'active_support/inflector'
 require 'active_support/core_ext/string'
 require 'active_support/time'
@@ -606,6 +607,27 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert @combination.html_safe?
     assert !@other_combination.html_safe?
+  end
+
+  test "Prepending safe onto unsafe yields unsafe" do
+    @string.prepend "other".html_safe
+    assert !@string.html_safe?
+    assert_equal @string, "otherhello"
+  end
+
+  test "Prepending unsafe onto safe yields escaped safe" do
+    other = "other".html_safe
+    other.prepend "<foo>"
+    assert other.html_safe?
+    assert_equal other, "&lt;foo&gt;other"
+  end
+
+  test "Deprecated #prepend! method is still present" do
+    ActiveSupport::Deprecation.silence do
+      other = "other".html_safe
+      other.prepend! "<foo>"
+      assert_equal other, "&lt;foo&gt;other"
+    end
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
