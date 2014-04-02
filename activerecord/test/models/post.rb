@@ -149,6 +149,10 @@ class Post < ActiveRecord::Base
     ranked_by_comments.limit_by(limit)
   end
 
+  def self.written_by(author)
+    where(id: author.posts.select(:id).to_a)
+  end
+
   def self.reset_log
     @log = []
   end

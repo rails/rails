@@ -1,3 +1,10 @@
+*   Fixed CollectionProxy incorrectly always using the inherited `arel` object. It now
+    uses the `arel` object of the corresponding association's scope. 
+
+    Fixes #14003.
+
+    *Jefferson Lai*
+
 *   The PostgreSQL adapter supports custom domains. Fixes #14305.
 
     *Yves Senn*
