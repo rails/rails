@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/postgresql_helper'
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
@@ -8,17 +9,19 @@ if ActiveRecord::Base.connection.supports_ranges?
   end
 
   class PostgresqlRangeTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+    include PostgresqlHelper
+
     teardown do
       @connection.execute 'DROP TABLE IF EXISTS postgresql_ranges'
       @connection.execute 'DROP TYPE IF EXISTS floatrange'
+      reset_pg_session
     end
 
     def setup
       @connection = PostgresqlRange.connection
       begin
         @connection.transaction do
-          @connection.execute 'DROP TABLE IF EXISTS postgresql_ranges'
-          @connection.execute 'DROP TYPE IF EXISTS floatrange'
           @connection.execute <<_SQL
             CREATE TYPE floatrange AS RANGE (
                 subtype = float8,
