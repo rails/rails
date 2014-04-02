@@ -82,13 +82,18 @@ module ActiveRecord
           assert_equal password, spec["password"]
         end
 
-        def test_url_host_db_for_sqlite3
-          spec = resolve 'sqlite3://foo:bar@dburl:9000/foo_test'
+        def test_url_absolute_db_for_sqlite3
+          spec = resolve 'sqlite3:////foo_test'
           assert_equal('/foo_test', spec["database"])
         end
 
-        def test_url_host_memory_db_for_sqlite3
-          spec = resolve 'sqlite3://foo:bar@dburl:9000/:memory:'
+        def test_url_relative_db_for_sqlite3
+          spec = resolve 'sqlite3:///foo_test'
+          assert_equal('foo_test', spec["database"])
+        end
+
+        def test_url_memory_db_for_sqlite3
+          spec = resolve 'sqlite3:///:memory:'
           assert_equal(':memory:', spec["database"])
         end
       end

@@ -1,3 +1,11 @@
+*   Treat the path component of SQLite3 database URLs as relative again.
+
+    Use an extra (fourth!) slash for an absolute path:
+
+        sqlite3:////some/full/path
+
+    *Matthew Draper*
+
 *   Enable support for materialized views on PostgreSQL >= 9.3.
 
     *Dave Lee*
