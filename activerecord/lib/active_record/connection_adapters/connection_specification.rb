@@ -74,22 +74,8 @@ module ActiveRecord
             "username" => uri.user,
             "password" => uri.password,
             "port"     => uri.port,
-            "database" => database,
+            "database" => uri.path.sub(%r{^/},""),
             "host"     => uri.host })
-        end
-
-        # Returns name of the database.
-        # Sqlite3 expects this to be a full path or `:memory:`.
-        def database
-          if @adapter == 'sqlite3'
-            if '/:memory:' == uri.path
-              ':memory:'
-            else
-              uri.path
-            end
-          else
-            uri.path.sub(%r{^/},"")
-          end
         end
       end
 
