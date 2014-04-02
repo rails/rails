@@ -1105,4 +1105,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_with_includes_in_through_association_scope
     assert_not_empty posts(:welcome).author_address_extra_with_address
   end
+  
+  def test_has_many_through_unscope_default_scope
+    post = Post.create!(:title => 'Beaches', :body => "I like beaches!")
+    Reader.create! :person => people(:david), :post => post
+    LazyReader.create! :person => people(:susan), :post => post
+    
+    assert_equal 2, post.people.to_a.size
+    assert_equal 1, post.lazy_people.to_a.size
+    
+    assert_equal 2, post.lazy_readers_unscope_skimmers.to_a.size
+    assert_equal 2, post.lazy_people_unscope_skimmers.to_a.size
+  end
 end
