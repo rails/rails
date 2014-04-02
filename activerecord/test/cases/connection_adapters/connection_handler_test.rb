@@ -17,6 +17,54 @@ module ActiveRecord
         ENV["DATABASE_URL"] = @previous_database_url
       end
 
+      def resolve(spec, config)
+        ConnectionSpecification::Resolver.new(klass.new(config).resolve).resolve(spec)
+      end
+
+      def spec(spec, config)
+        ConnectionSpecification::Resolver.new(klass.new(config).resolve).spec(spec)
+      end
+
+      def test_resolver_with_database_uri_and_known_key
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        config   = { "production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual   = resolve(:production, config)
+        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
+      def test_resolver_with_database_uri_and_known_string_key
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        config   = { "production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual   = assert_deprecated { resolve("production", config) }
+        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
+      def test_resolver_with_database_uri_and_unknown_symbol_key
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual   = resolve(:production, config)
+        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
+      def test_resolver_with_database_uri_and_unknown_string_key
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
+        assert_raises AdapterNotSpecified do
+          spec("production", config)
+        end
+      end
+
+      def test_resolver_with_database_uri_and_supplied_url
+        ENV['DATABASE_URL'] = "not-postgres://not-localhost/not_foo"
+        config   = { "production" => {  "adapter" => "also_not_postgres", "database" => "also_not_foo" } }
+        actual   = resolve("postgres://localhost/foo", config)
+        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
       def test_jdbc_url
         config   = { "production" => { "url" => "jdbc:postgres://localhost/foo" } }
         actual   = klass.new(config).resolve
