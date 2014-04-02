@@ -158,7 +158,7 @@ commits should be added to the release branch besides regression fixing commits.
 == Day of release
 
 Many of these steps are the same as for the release candidate, so if you need
-more explanation on a particular step, so the RC steps.
+more explanation on a particular step, see the RC steps.
 
 Today, do this stuff in this order:
 
