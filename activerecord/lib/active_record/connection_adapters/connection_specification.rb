@@ -41,7 +41,6 @@ module ActiveRecord
           else
             @query = @uri.query
           end
-          @authority = url =~ %r{\A[^:]*://}
         end
 
         # Converts the given URL to a full connection hash.
@@ -91,21 +90,8 @@ module ActiveRecord
         end
 
         # Returns name of the database.
-        # Sqlite3's handling of a leading slash is in transition as of
-        # Rails 4.1.
         def database_from_path
-          if @authority && @adapter == 'sqlite3'
-            # 'sqlite3:///foo' is relative, for backwards compatibility.
-
-            database_name = uri.path.sub(%r{^/}, "")
-
-            msg = "Paths in SQLite3 database URLs of the form `sqlite3:///path` will be treated as absolute in Rails 4.2. " \
-              "Please switch to `sqlite3:#{database_name}`."
-            ActiveSupport::Deprecation.warn(msg)
-
-            database_name
-
-          elsif @adapter == 'sqlite3'
+          if @adapter == 'sqlite3'
             # 'sqlite3:/foo' is absolute, because that makes sense. The
             # corresponding relative version, 'sqlite3:foo', is handled
             # elsewhere, as an "opaque".

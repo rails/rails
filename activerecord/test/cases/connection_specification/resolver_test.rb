@@ -83,8 +83,8 @@ module ActiveRecord
         end
 
         def test_url_with_authority_for_sqlite3
-          spec = assert_deprecated { resolve 'sqlite3:///foo_test' }
-          assert_equal('foo_test', spec["database"])
+          spec = resolve 'sqlite3:///foo_test'
+          assert_equal('/foo_test', spec["database"])
         end
 
         def test_url_absolute_path_for_sqlite3

@@ -1,3 +1,11 @@
+*   As promised, switch `sqlite3:///` URLs (which were temporarily
+    deprecated in 4.1) from relative to absolute.
+
+    If you still want the previous interpretation, you should replace
+    `sqlite3:///my/path` with `sqlite3:my/path`.
+
+    *Matthew Draper*
+
 *   (Temporarily) deprecate SQLite database URLs containing an
     authority.
 
