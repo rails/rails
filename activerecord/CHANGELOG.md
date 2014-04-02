@@ -1,3 +1,20 @@
+*   Deprecate SQLite database URLs containing an
+    authority.
+
+    The current "correct" spellings for in-memory, relative, and
+    absolute URLs, respectively, are:
+
+        sqlite3::memory:
+        sqlite3:relative/path
+        sqlite3:/full/path
+
+    The previous spelling (`sqlite3:///relative/path`) continues to work
+    as it did in Rails 4.0, but with a deprecation warning: in the next
+    release, that spelling will instead be interpreted as an absolute
+    path.
+
+    *Matthew Draper*
+
 *   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
 
     Fixes #10613.

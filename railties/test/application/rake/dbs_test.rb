@@ -17,11 +17,11 @@ module ApplicationTests
       end
 
       def database_url_db_name
-        File.join(app_path, "db/database_url_db.sqlite3")
+        "db/database_url_db.sqlite3"
       end
 
       def set_database_url
-        ENV['DATABASE_URL'] = File.join("sqlite3://:@localhost", database_url_db_name)
+        ENV['DATABASE_URL'] = "sqlite3:#{database_url_db_name}"
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
