@@ -1,3 +1,12 @@
+*   `to_sql` on an association now matches the query that is actually executed, where it
+    could previously have incorrectly accrued additional conditions (e.g. as a result of
+    a previous query). CollectionProxy now always defers to the association scope's
+    `arel` method so the (incorrect) inherited one should be entirely concealed.
+
+    Fixes #14003.
+
+    *Jefferson Lai*
+
 *   The PostgreSQL adapter supports custom domains. Fixes #14305.
 
     *Yves Senn*
