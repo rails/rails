@@ -105,7 +105,7 @@ the signed and encrypted cookie jars. If you want to use the new `JSON`-based fo
 in your application, you can add an initializer file with the following content:
 
   ```ruby
-  Rails.application.config.cookies_serializer :hybrid
+  Rails.application.config.cookies_serializer = :hybrid
   ```
 
 This would transparently migrate your existing `Marshal`-serialized cookies into the
