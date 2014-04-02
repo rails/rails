@@ -254,7 +254,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_fixtures_are_set_up_with_database_env_variable
     db_url_tmp = ENV['DATABASE_URL']
-    ENV['DATABASE_URL'] = "sqlite3:///:memory:"
+    ENV['DATABASE_URL'] = "sqlite3::memory:"
     ActiveRecord::Base.stubs(:configurations).returns({})
     test_case = Class.new(ActiveRecord::TestCase) do
       fixtures :accounts
