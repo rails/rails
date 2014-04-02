@@ -623,11 +623,13 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Deprecated #prepend! method is still present" do
-    ActiveSupport::Deprecation.silence do
-      other = "other".html_safe
+    other = "other".html_safe
+
+    assert_deprecated do
       other.prepend! "<foo>"
-      assert_equal other, "&lt;foo&gt;other"
     end
+
+    assert_equal other, "&lt;foo&gt;other"
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
