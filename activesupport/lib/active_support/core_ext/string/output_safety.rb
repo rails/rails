@@ -171,11 +171,7 @@ module ActiveSupport #:nodoc:
 
     %w[concat prepend].each do |method_name|
       define_method method_name do |value|
-        if !html_safe? || value.html_safe?
-          super(value)
-        else
-          super(ERB::Util.h(value))
-        end
+        super(html_escape_interpolated_argument(value))
       end
     end
     alias << concat
