@@ -22,6 +22,8 @@ require 'models/engine'
 require 'models/categorization'
 require 'models/minivan'
 require 'models/speedometer'
+require 'models/college'
+require 'models/student'
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
@@ -116,6 +118,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def setup
     Client.destroyed_client_ids.clear
+  end
+
+  def test_has_many_build_with_options
+    college = College.create(name: 'UFMT')
+    student = Student.create(active: true, college_id: college.id, name: 'Sarah')
+
+    assert_equal college.students, Student.where(active: true, college_id: college.id)
   end
 
   def test_create_from_association_should_respect_default_scope
