@@ -1,3 +1,11 @@
+*   Block a few default Class methods as scope name.
+
+    For instance, this will raise:
+
+        scope :public, -> { where(status: 1) }
+
+    *arthurnn*
+
 *   Fixed error when using `with_options` with lambda.
 
     Fixes #9805.

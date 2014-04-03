@@ -29,6 +29,8 @@ module ActiveRecord
       end
     }
 
+    BLACKLISTED_CLASS_METHODS = %w(private public protected)
+
     class AttributeMethodCache
       def initialize
         @module = Module.new
@@ -132,7 +134,7 @@ module ActiveRecord
       # A class method is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'new' is.)
       def dangerous_class_method?(method_name)
-        class_method_defined_within?(method_name, Base)
+        BLACKLISTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
       end
 
       def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc
