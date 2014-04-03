@@ -372,6 +372,47 @@ class MethodAliasingTest < ActiveSupport::TestCase
     assert_equal 'bar', @instance.bar_without_baz
   end
 
+  def test_alias_method_chain_with_overwritten_public_protected_private
+    FooClassWithBarMethod.class_eval do
+      def self.public; end
+      def self.private; end
+      def self.protected; end
+
+      public
+      def bar_public; 'bar_public'; end
+
+      protected
+      def bar_protected; 'bar_protected'; end
+
+      private
+      def bar_private; 'bar_private'; end
+    end
+
+    FooClassWithBarMethod.class_eval do
+      public
+      def bar_public_with_baz
+        bar_public_without_baz << '_with_baz'
+      end
+      alias_method_chain :bar_public, :baz
+
+      protected
+      def bar_protected_with_baz
+        bar_protected_without_baz << '_with_baz'
+      end
+      alias_method_chain :bar_protected, :baz
+
+      private
+      def bar_private_with_baz
+        bar_private_without_baz << '_with_baz'
+      end
+      alias_method_chain :bar_private, :baz
+    end
+
+    assert_equal 'bar_public_with_baz', @instance.public_send(:bar_public)
+    assert_equal 'bar_protected_with_baz', @instance.send(:bar_protected)
+    assert_equal 'bar_private_with_baz', @instance.send(:bar_private)
+  end
+
   def test_alias_method_chain_with_punctuation_method
     FooClassWithBarMethod.class_eval do
       def quux!; 'quux' end

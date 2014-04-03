@@ -34,11 +34,11 @@ class Module
 
     case
     when public_method_defined?(without_method)
-      public target
+      Class.instance_method(:public).bind(self).call(target)
     when protected_method_defined?(without_method)
-      protected target
+      Class.instance_method(:protected).bind(self).call(target)
     when private_method_defined?(without_method)
-      private target
+      Class.instance_method(:private).bind(self).call(target)
     end
   end
 
