@@ -174,6 +174,7 @@ class EnumTest < ActiveRecord::TestCase
       :column,     # generates class method .columns, which conflicts with an AR method
       :logger,     # generates #logger, which conflicts with an AR method
       :attributes, # generates #attributes=, which conflicts with an AR method
+      :all,        # generates class method .all, which conflicts with AR
     ]
 
     conflicts.each_with_index do |name, i|
