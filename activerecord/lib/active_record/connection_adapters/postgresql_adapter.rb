@@ -586,7 +586,7 @@ module ActiveRecord
         def initialize_type_map(type_map)
           if supports_ranges?
             result = execute(<<-SQL, 'SCHEMA')
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
+              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typbasetype
               FROM pg_type as t
               LEFT JOIN pg_range as r ON oid = rngtypid
             SQL
@@ -596,13 +596,13 @@ module ActiveRecord
               FROM pg_type as t
             SQL
           end
-          ranges, nodes = result.partition { |row| row['typtype'] == 'r' }
-          enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
-          domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
-          arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
+          ranges, nodes = result.partition { |row| row['typinput'] == 'range_in' }
+          domains, nodes = nodes.partition { |row| row['typinput'] == 'domain_in' }
           leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
+          arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
           # populate the enum types
+          enums, leaves = leaves.partition { |row| row['typinput'] == 'enum_in' }
           enums.each do |row|
             type_map[row['oid'].to_i] = OID::Enum.new
           end
