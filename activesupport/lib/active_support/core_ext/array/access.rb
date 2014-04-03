@@ -53,4 +53,39 @@ class Array
   def forty_two
     self[41]
   end
+
+  # Equal to <tt>self.reverse[1]</tt>.
+  #
+  #   %w( a b c d e ).second_last # => "d"
+  def second_last
+    self.reverse[1]
+  end
+
+  # Equal to <tt>self.reverse[2]</tt>.
+  #
+  #   %w( a b c d e ).third_last # => "c"
+  def third_last
+    self.reverse[2]
+  end  
+
+  # Equal to <tt>self.reverse[3]</tt>.
+  #
+  #   %w( a b c d e ).fourth_last # => "b"
+  def fourth_last
+    self.reverse[3]
+  end  
+
+  # Equal to <tt>self.reverse[4]</tt>.
+  #
+  #   %w( a b c d e ).fifth_last # => "a"
+  def fifth_last
+    self.reverse[4]
+  end
+
+  # Equal to <tt>self.reverse[41]</tt>.
+  #
+  #   (1..42).to_a.forty_two_last # => 1
+  def forty_two_last
+    self.reverse[41]
+  end  
 end
