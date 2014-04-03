@@ -145,7 +145,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     #
     # There's a series of callbacks associated with <tt>destroy</tt>. If
-    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # the <tt>before_destroy</tt> callback returns +false+ the action is cancelled
     # and <tt>destroy</tt> returns +false+. See
     # ActiveRecord::Callbacks for further details.
     def destroy
@@ -160,7 +160,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     #
     # There's a series of callbacks associated with <tt>destroy!</tt>. If
-    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # the <tt>before_destroy</tt> callback returns +false+ the action is cancelled
     # and <tt>destroy!</tt> raises ActiveRecord::RecordNotDestroyed. See
     # ActiveRecord::Callbacks for further details.
     def destroy!
