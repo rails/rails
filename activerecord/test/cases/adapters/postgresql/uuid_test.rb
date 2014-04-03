@@ -50,6 +50,11 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     assert_not column.array
   end
 
+  def test_treat_blank_uuid_as_nil
+    UUIDType.create! guid: ''
+    assert_equal(nil, UUIDType.last.guid)
+  end
+
   def test_uuid_formats
     ["A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11",
      "{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}",

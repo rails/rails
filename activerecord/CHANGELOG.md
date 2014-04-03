@@ -1,3 +1,11 @@
+*   Treat blank UUID values as `nil`.
+
+    Example:
+
+        Sample.new(uuid_field: '') #=> <Sample id: nil, uuid_field: nil>
+
+    *Dmitry Lavrov*
+
 *   Enable support for materialized views on PostgreSQL >= 9.3.
 
     *Dave Lee*

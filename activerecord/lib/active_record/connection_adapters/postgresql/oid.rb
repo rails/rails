@@ -330,6 +330,13 @@ This is not reliable and will be removed in the future.
           end
         end
 
+        class Uuid < Type
+          def type; :uuid end
+          def type_cast(value)
+            value.presence
+          end
+        end
+
         class TypeMap
           def initialize
             @mapping = {}
@@ -418,10 +425,10 @@ This is not reliable and will be removed in the future.
         register_type 'json', OID::Json.new
         register_type 'cidr', OID::Cidr.new
         register_type 'inet', OID::Inet.new
+        register_type 'uuid', OID::Uuid.new
         register_type 'xml', SpecializedString.new(:xml)
         register_type 'tsvector', SpecializedString.new(:tsvector)
         register_type 'macaddr', SpecializedString.new(:macaddr)
-        register_type 'uuid', SpecializedString.new(:uuid)
         register_type 'citext', SpecializedString.new(:citext)
         register_type 'ltree', SpecializedString.new(:ltree)
 
