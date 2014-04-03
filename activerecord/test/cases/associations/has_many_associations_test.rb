@@ -24,6 +24,8 @@ require 'models/minivan'
 require 'models/speedometer'
 require 'models/reference'
 require 'models/job'
+require 'models/college'
+require 'models/student'
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
@@ -63,6 +65,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_operator dev.developer_projects.count, :>, 0
     assert_equal named.projects.map(&:id).sort,
                  dev.developer_projects.map(&:project_id).sort
+  end
+
+  def test_has_many_build_with_options
+    college = College.create(name: 'UFMT')
+    student = Student.create(active: true, college_id: college.id, name: 'Sarah')
+
+    assert_equal college.students, Student.where(active: true, college_id: college.id)
   end
 
   def test_create_from_association_should_respect_default_scope

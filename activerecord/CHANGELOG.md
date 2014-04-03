@@ -1,3 +1,9 @@
+*   Fixed error when using `with_options` with lambda.
+
+    Fixes #9805.
+
+    *Lauro Caetano*
+
 *   Treat blank UUID values as `nil`.
 
     Example:
