@@ -79,6 +79,7 @@ module ActiveRecord
         name        = name.to_sym
 
         # def self.statuses statuses end
+        detect_enum_conflict!(name, name, true)
         detect_enum_conflict!(name, name.to_s.pluralize, true)
         klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
 
