@@ -638,6 +638,8 @@ ActiveRecord::Schema.define do
 
   create_table :students, force: true do |t|
     t.string :name
+    t.boolean :active
+    t.integer :college_id
   end
 
   create_table :subscribers, force: true, id: false do |t|

@@ -1,3 +1,9 @@
+*   Fixed error when using `with_options` with lambda.
+
+    Fixes #9805.
+
+    *Lauro Caetano*
+
 *   Deprecate SQLite database URLs containing an
     authority.
 
