@@ -291,6 +291,9 @@ class NamedScopingTest < ActiveRecord::TestCase
       :relation,      # private class method on AR::Base
       :new,           # redefined class method on AR::Base
       :all,           # a default scope
+      :public,
+      :protected,
+      :private
     ]
 
     non_conflicts = [
