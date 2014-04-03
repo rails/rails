@@ -79,6 +79,10 @@ class MimeTypeTest < ActiveSupport::TestCase
     accept = "; a=dsf"
     expect = [Mime::HTML]
     assert_equal expect, Mime::Type.parse(accept)
+
+    accept = "text/html; charset=utf-8,*.*, q=0.1"
+    expect = [Mime::HTML, Mime::ALL]
+    assert_equal expect, Mime::Type.parse(accept)
   end
 
   test "parse arbitrary media type parameters" do

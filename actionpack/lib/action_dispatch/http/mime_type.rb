@@ -150,10 +150,12 @@ module Mime
           params = {'q' => 1.0}
 
           # Split into type and following parameters
-          type, accept_params = accept.split(';', 2)
+          name, accept_params = accept.split(';', 2)
+
+          next if name.blank?
 
           # Correct a standard wildcard truncation
-          type = '*/*' if type == '*'
+          name = '*/*' if name == '*' or name == '*.*'
 
           if accept_params
             # Only use a complex regexp if the parameters contain quoted tokens
@@ -164,6 +166,7 @@ module Mime
             end
 
             accept_params.each { |(key, val)|
+              next if val.nil?
               key.strip!
               val = if key == 'q'
                 val.to_f
@@ -175,11 +178,12 @@ module Mime
               params[key] = val
             }
           end
-          [type, params]
+          type, subtype = name.split('/')
+          [type, subtype, params]
         }.reject { |type, subtype, parameters|
           type.blank? || subtype.blank?
-        }.each_with_index.map { |(name, parameters), index|
-          AcceptItem.new(*name.split("/"), parameters, index)
+        }.each_with_index.map { |(type, subtype, parameters), index|
+          AcceptItem.new(type, subtype, parameters, index)
         }.sort.map { |item|
           if item.type_wildcard != 1 && item.subtype_wildcard == 1
             Mime::SET.select { |m| m =~ item.type }
