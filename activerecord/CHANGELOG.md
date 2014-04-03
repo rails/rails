@@ -1,3 +1,12 @@
+*   Fixed unexpected behavior for `has_many :through` associations going through a scoped `has_many`.
+
+    If a `has_many` association is adjusted using a scope, and another `has_many :through`
+    uses this association, then the scope adjustment is unexpectedly neglected.
+
+    Fixes #14537.
+
+    *Jan Habermann*
+
 *   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
 
     Fixes #10613.
