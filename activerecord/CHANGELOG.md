@@ -1,3 +1,9 @@
+*   Fixed error when using `with_options` with lambda.
+
+    Fixes #9805.
+
+    *Lauro Caetano*
+
 *   Switch `sqlite3:///` URLs (which were temporarily
     deprecated in 4.1) from relative to absolute.
 
