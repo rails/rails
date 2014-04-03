@@ -124,7 +124,7 @@ module ActiveRecord
           if config
             resolve_connection config
           elsif env = ActiveRecord::ConnectionHandling::RAILS_ENV.call
-            resolve_env_connection env.to_sym
+            resolve_symbol_connection env.to_sym
           else
             raise AdapterNotSpecified
           end
@@ -193,10 +193,26 @@ module ActiveRecord
         #
         def resolve_connection(spec)
           case spec
-          when Symbol, String
-            resolve_env_connection spec
+          when Symbol
+            resolve_symbol_connection spec
+          when String
+            resolve_string_connection spec
           when Hash
             resolve_hash_connection spec
+          end
+        end
+
+        def resolve_string_connection(spec)
+          # Rails has historically accepted a string to mean either
+          # an environment key or a URL spec, so we have deprecated
+          # this ambiguous behaviour and in the future this function
+          # can be removed in favor of resolve_url_connection.
+          if configurations.key?(spec)
+            ActiveSupport::Deprecation.warn "Passing a string to ActiveRecord::Base.establish_connection " \
+              "for a configuration lookup is deprecated, please pass a symbol (#{spec.to_sym.inspect}) instead"
+            resolve_connection(configurations[spec])
+          else
+            resolve_url_connection(spec)
           end
         end
 
@@ -204,31 +220,14 @@ module ActiveRecord
         # This requires that the @configurations was initialized with a key that
         # matches.
         #
-        #
-        #   Resolver.new("production" => {}).resolve_env_connection(:production)
+        #   Resolver.new("production" => {}).resolve_symbol_connection(:production)
         #   # => {}
         #
-        # Takes a connection URL.
-        #
-        #   Resolver.new({}).resolve_env_connection("postgresql://localhost/foo")
-        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
-        #
-        def resolve_env_connection(spec)
-          # Rails has historically accepted a string to mean either
-          # an environment key or a URL spec, so we have deprecated
-          # this ambiguous behaviour and in the future this function
-          # can be removed in favor of resolve_string_connection and
-          # resolve_symbol_connection.
+        def resolve_symbol_connection(spec)
           if config = configurations[spec.to_s]
-            if spec.is_a?(String)
-              ActiveSupport::Deprecation.warn "Passing a string to ActiveRecord::Base.establish_connection " \
-                "for a configuration lookup is deprecated, please pass a symbol (#{spec.to_sym.inspect}) instead"
-            end
             resolve_connection(config)
-          elsif spec.is_a?(String)
-            resolve_string_connection(spec)
           else
-            raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available configuration: #{configurations.inspect}")
+            raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available: #{configurations.keys.inspect}")
           end
         end
 
@@ -244,7 +243,12 @@ module ActiveRecord
           spec
         end
 
-        def resolve_string_connection(url)
+        # Takes a connection URL.
+        #
+        #   Resolver.new({}).resolve_url_connection("postgresql://localhost/foo")
+        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+        #
+        def resolve_url_connection(url)
           ConnectionUrlResolver.new(url).to_hash
         end
       end
