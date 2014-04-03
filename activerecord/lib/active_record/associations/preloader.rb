@@ -132,25 +132,13 @@ module ActiveRecord
       end
 
       def grouped_records(association)
-        Hash[
-          records_by_reflection(association).map do |reflection, records|
-            [reflection, records.group_by { |record| record.association(association).klass }]
-          end
-        ]
-      end
-
-      def records_by_reflection(association)
-        records.group_by do |record|
-          record_class = record.class
-          reflection = record_class.reflections[association]
-
-          unless reflection
-            raise ActiveRecord::ConfigurationError, "Association named '#{association}' was not found on #{record_class.name}; " \
-                                                    "perhaps you misspelled it?"
-          end
-
-          reflection
+        h = {}
+        records.each do |record|
+          assoc = record.association(association)
+          klasses = h[assoc.reflection] ||= {}
+          (klasses[assoc.klass] ||= []) << record
         end
+        h
       end
 
       def preloader_for(reflection)
