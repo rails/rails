@@ -1,6 +1,9 @@
 require "cases/helper"
+require 'support/connection_helper'
 
 class MysqlConnectionTest < ActiveRecord::TestCase
+  include ConnectionHelper
+
   def setup
     super
     @subscriber = SQLSubscriber.new
@@ -101,17 +104,6 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     def test_quote_time_usec
       assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0))
       assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0).to_datetime)
-    end
-  end
-
-  private
-
-  def run_without_connection
-    original_connection = ActiveRecord::Base.remove_connection
-    begin
-      yield original_connection
-    ensure
-      ActiveRecord::Base.establish_connection(original_connection)
     end
   end
 end

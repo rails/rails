@@ -1,10 +1,10 @@
 require "cases/helper"
+require 'support/connection_helper'
 
 class ActiveSchemaTest < ActiveRecord::TestCase
-  def setup
-    @connection = ActiveRecord::Base.remove_connection
-    ActiveRecord::Base.establish_connection(@connection)
+  include ConnectionHelper
 
+  def setup
     ActiveRecord::Base.connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
       def execute(sql, name = nil) return sql end
@@ -12,8 +12,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
   end
 
   teardown do
-    ActiveRecord::Base.remove_connection
-    ActiveRecord::Base.establish_connection(@connection)
+    reset_connection
   end
 
   def test_add_index
