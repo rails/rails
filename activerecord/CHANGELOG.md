@@ -1,3 +1,9 @@
+*   PostgreSQL and SQLite string columns no longer have a default limit of 255.
+
+    Fixes #13435, #9153.
+
+    *Vladimir Sazhin*, *Toms Mikoss*, *Yves Senn*
+
 *   Block a few default Class methods as scope name.
 
     For instance, this will raise:
