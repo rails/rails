@@ -28,6 +28,16 @@ class ArrayExtAccessTests < ActiveSupport::TestCase
     assert_equal array[4], array.fifth
     assert_equal array[41], array.forty_two
   end
+
+  def test_second_last_through_tenth_last
+    array = (1..42).to_a
+
+    assert_equal array[40], array.second_last
+    assert_equal array[39], array.third_last
+    assert_equal array[38], array.fourth_last
+    assert_equal array[37], array.fifth_last
+    assert_equal array[0], array.forty_two_last
+  end
 end
 
 class ArrayExtToParamTests < ActiveSupport::TestCase
