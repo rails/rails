@@ -1,3 +1,9 @@
+*   Fixed error when using `with_options` with lambda.
+
+    Fixes #9805.
+
+    *Lauro Caetano*
+
 *   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
 
     Fixes #10613.
