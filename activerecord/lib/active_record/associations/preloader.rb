@@ -134,7 +134,7 @@ module ActiveRecord
       def grouped_records(association)
         Hash[
           records_by_reflection(association).map do |reflection, records|
-            [reflection, records.group_by { |record| association_klass(reflection, record) }]
+            [reflection, records.group_by { |record| record.association(association).klass }]
           end
         ]
       end
@@ -150,15 +150,6 @@ module ActiveRecord
           end
 
           reflection
-        end
-      end
-
-      def association_klass(reflection, record)
-        if reflection.macro == :belongs_to && reflection.options[:polymorphic]
-          klass = record.send(reflection.foreign_type)
-          klass && klass.constantize
-        else
-          reflection.klass
         end
       end
 
