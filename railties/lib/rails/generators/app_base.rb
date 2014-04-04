@@ -250,7 +250,7 @@ module Rails
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails',
-                                     '~> 4.0.2',
+                                     '~> 4.0.3',
                                      'Use SCSS for stylesheets')
         end
 
