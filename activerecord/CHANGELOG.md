@@ -1,3 +1,9 @@
+*   Make possible to have an association called `records`.
+
+    Fixes #11645.
+
+    *prathamesh-sonpatki*
+
 *   `to_sql` on an association now matches the query that is actually executed, where it
     could previously have incorrectly accrued additional conditions (e.g. as a result of
     a previous query). CollectionProxy now always defers to the association scope's
