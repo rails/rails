@@ -209,15 +209,20 @@ module ActionController
       end
     end
 
+    class ClientDisconnect < StandardError; end
+
     def process(name)
       t1 = Thread.current
       locals = t1.keys.map { |key| [key, t1[key]] }
+
+      env["rack.hijack"].call
+      socket = env["rack.hijack_io"]
 
       error = nil
       # This processes the action in a child thread. It lets us return the
       # response code and headers back up the rack stack, and still process
       # the body in parallel with sending data to the client
-      Thread.new {
+      server_thread = Thread.new {
         t2 = Thread.current
         t2.abort_on_exception = true
 
@@ -238,7 +243,7 @@ module ActionController
               log_error(e)
               @_response.stream.close
             end
-          else
+          elsif !e.is_a?(ClientDisconnect)
             error = e
           end
         ensure
@@ -246,8 +251,26 @@ module ActionController
         end
       }
 
+      Thread.new {
+        select_thread = Thread.current
+        select_thread.abort_on_exception = true
+        listen_for_client_close(socket, server_thread)
+      }
       @_response.await_commit
       raise error if error
+    end
+
+    def listen_for_client_close(socket, server_thread)
+      begin
+        # We should never read in any data from an Event Source
+        # but if we do we will discard it
+        while(true)
+          IO.select([socket])
+          socket.read_nonblock(1)
+        end
+      rescue IOError, SystemCallError
+        server_thread.raise(ClientDisconnect)
+      end
     end
 
     def log_error(exception)

@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/concurrency/latch'
+require 'socket'
 Thread.abort_on_exception = true
 
 module ActionController
@@ -115,6 +116,17 @@ module ActionController
       def default_header
         response.stream.write "<html><body>hi</body></html>"
         response.stream.close
+      end
+
+      def quiet_stream
+        response.headers['Content-Type'] = 'text/event-stream'
+        response.stream.write "hi"
+        sleep(10)
+      end
+
+      def inactive_stream
+        response.headers['Content-Type'] = 'text/event-stream'
+        sleep(10)
       end
 
       def basic_stream
@@ -244,6 +256,53 @@ module ActionController
       }
 
       @controller.process :blocking_stream
+
+      assert t.join(3), 'timeout expired before the thread terminated'
+    end
+
+    def test_client_closing_connection_before_writing
+      socket = Socket.new(:INET, :DGRAM)
+      @controller.env["rack.hijack"] = Proc.new {
+        @controller.env["rack.hijack_io"] = socket
+      }
+
+      @controller.latch = ActiveSupport::Concurrency::Latch.new
+      parts             = ['hello', 'world']
+
+      @controller.request  = @request
+      @controller.response = @response
+
+      t = Thread.new(@response) { |resp|
+        socket.close
+        resp.await_commit
+      }
+
+      @controller.process :inactive_stream
+
+      assert t.join(3), 'timeout expired before the thread terminated'
+    end
+
+    def test_client_closing_connection_after_writing
+      socket = Socket.new(:INET, :DGRAM)
+      @controller.env["rack.hijack"] = Proc.new {
+        @controller.env["rack.hijack_io"] = socket
+      }
+
+      @controller.latch = ActiveSupport::Concurrency::Latch.new
+      parts             = ['hi', "\"><script>window.location = \"/500.html\"</script></html>"]
+
+      @controller.request  = @request
+      @controller.response = @response
+
+      t = Thread.new(@response) { |resp|
+        resp.await_commit
+        resp.stream.each do |part|
+          assert_equal parts.shift, part
+          socket.close unless socket.closed?
+        end
+      }
+
+      @controller.process :quiet_stream
 
       assert t.join(3), 'timeout expired before the thread terminated'
     end
