@@ -885,4 +885,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test 'belongs_to works with model name Record' do
+    Record = Class.new(ActiveRecord::Base) do
+      connection.create_table :records
+    end
+
+    Foo = Class.new(ActiveRecord::Base) do
+      connection.create_table :foos do |t|
+        t.belongs_to :record
+      end
+
+      belongs_to :record
+    end
+
+    record = Record.create!
+    Foo.create! record: record
+    assert_equal 1, Foo.count
+  end
 end
