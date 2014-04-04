@@ -90,10 +90,17 @@ class RequestIP < BaseRequestTest
     assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
-    assert_equal nil, request.remote_ip
+    assert_equal '192.168.0.1', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 172.31.4.4, 10.0.0.1'
     assert_equal '3.4.5.6', request.remote_ip
+
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '172.31.4.4, 10.0.0.1'
+    assert_equal '172.31.4.4', request.remote_ip
+
+    request = stub_request 'REMOTE_ADDR' => '127.0.0.1',
+                           'HTTP_X_FORWARDED_FOR' => '172.31.4.4, 10.0.0.1'
+    assert_equal '172.31.4.4', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'not_ip_address'
     assert_equal nil, request.remote_ip
@@ -150,7 +157,7 @@ class RequestIP < BaseRequestTest
     assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,::1'
-    assert_equal nil, request.remote_ip
+    assert_equal '::1', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, fc00::'
     assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
@@ -193,7 +200,7 @@ class RequestIP < BaseRequestTest
     assert_equal '3.4.5.6', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '67.205.106.73,unknown'
-    assert_equal nil, request.remote_ip
+    assert_equal '67.205.106.73', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73'
     assert_equal '3.4.5.6', request.remote_ip
@@ -212,10 +219,10 @@ class RequestIP < BaseRequestTest
 
     request = stub_request 'REMOTE_ADDR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329,::1',
                            'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
-    assert_equal '::1', request.remote_ip
+    assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'unknown,fe80:0000:0000:0000:0202:b3ff:fe1e:8329'
-    assert_equal nil, request.remote_ip
+    assert_equal 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329', request.remote_ip
 
     request = stub_request 'HTTP_X_FORWARDED_FOR' => 'fe80:0000:0000:0000:0202:b3ff:fe1e:8329,2001:0db8:85a3:0000:0000:8a2e:0370:7334'
     assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
