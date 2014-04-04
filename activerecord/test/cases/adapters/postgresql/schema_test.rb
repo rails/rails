@@ -271,13 +271,13 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_with_uppercase_index_name
-    ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
 
-    ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
-    ActiveRecord::Base.connection.schema_search_path = "public"
+    with_schema_search_path SCHEMA_NAME do
+      assert_nothing_raised { @connection.remove_index! "things", "things_Index"}
+    end
   end
 
   def test_primary_key_with_schema_specified
@@ -328,18 +328,17 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_prepared_statements_with_multiple_schemas
+    [SCHEMA_NAME, SCHEMA2_NAME].each do |schema_name|
+      with_schema_search_path schema_name do
+        Thing5.create(:id => 1, :name => "thing inside #{SCHEMA_NAME}", :email => "thing1@localhost", :moment => Time.now)
+      end
+    end
 
-    @connection.schema_search_path = SCHEMA_NAME
-    Thing5.create(:id => 1, :name => "thing inside #{SCHEMA_NAME}", :email => "thing1@localhost", :moment => Time.now)
-
-    @connection.schema_search_path = SCHEMA2_NAME
-    Thing5.create(:id => 1, :name => "thing inside #{SCHEMA2_NAME}", :email => "thing1@localhost", :moment => Time.now)
-
-    @connection.schema_search_path = SCHEMA_NAME
-    assert_equal 1, Thing5.count
-
-    @connection.schema_search_path = SCHEMA2_NAME
-    assert_equal 1, Thing5.count
+    [SCHEMA_NAME, SCHEMA2_NAME].each do |schema_name|
+      with_schema_search_path schema_name do
+        assert_equal 1, Thing5.count
+      end
+    end
   end
 
   def test_schema_exists?
