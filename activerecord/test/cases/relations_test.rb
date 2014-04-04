@@ -503,6 +503,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
+  def test_to_sql_on_scoped_proxy
+    auth = Author.first
+    Post.where("1=1").written_by(auth)
+    assert_not auth.posts.to_sql.include?("1=1")
+  end
+
   def test_loading_with_one_association_with_non_preload
     posts = Post.eager_load(:last_comment).order('comments.id DESC')
     post = posts.find { |p| p.id == 1 }

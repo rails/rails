@@ -1,3 +1,12 @@
+*   `to_sql` on an association now matches the query that is actually executed, where it
+    could previously have incorrectly accrued additional conditions (e.g. as a result of
+    a previous query). CollectionProxy now always defers to the association scope's
+    `arel` method so the (incorrect) inherited one should be entirely concealed.
+
+    Fixes #14003.
+
+    *Jefferson Lai*
+
 *   Fixed error when using `with_options` with lambda.
 
     Fixes #9805.
