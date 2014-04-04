@@ -126,11 +126,13 @@ module ActionDispatch
         end.collect do |route|
           collect_engine_routes(route)
 
-          { name:   route.name,
-            verb:   route.verb,
-            path:   route.path,
-            reqs:   route.reqs,
-            regexp: route.json_regexp }
+          { name:     route.name,
+            verb:     route.verb,
+            path:     route.path,
+            options:  route.defaults,
+            linkable: route.required_parts.empty? && route.verb == "GET",
+            reqs:     route.reqs,
+            regexp:   route.json_regexp }
         end
       end
 
