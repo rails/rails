@@ -254,7 +254,7 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+      cloned_attributes = other.clone_attributes
       self.class.initialize_attributes(cloned_attributes, :serialized => false)
 
       @attributes = cloned_attributes
