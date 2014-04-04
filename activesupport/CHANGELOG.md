@@ -1,3 +1,7 @@
+*   Add `Object#tie`.
+
+    *Alexandr Avoyants*
+
 *   `ActiveSupport::SafeBuffer#prepend` acts like `String#prepend` and modifies
     instance in-place, returning self. `ActiveSupport::SafeBuffer#prepend!` is
     deprecated.
