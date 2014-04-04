@@ -69,7 +69,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_build_with_options
     college = College.create(name: 'UFMT')
-    student = Student.create(active: true, college_id: college.id, name: 'Sarah')
+    Student.create(active: true, college_id: college.id, name: 'Sarah')
 
     assert_equal college.students, Student.where(active: true, college_id: college.id)
   end
