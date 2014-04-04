@@ -277,7 +277,9 @@ module ActionController
         resp.await_commit
       }
 
-      @controller.process :inactive_stream
+      assert_raise IOError do
+        @controller.process :inactive_stream
+      end
 
       assert t.join(3), 'timeout expired before the thread terminated'
     end

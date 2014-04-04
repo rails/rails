@@ -209,8 +209,6 @@ module ActionController
       end
     end
 
-    class ClientDisconnect < StandardError; end
-
     def process(name)
       t1 = Thread.current
       locals = t1.keys.map { |key| [key, t1[key]] }
@@ -243,7 +241,7 @@ module ActionController
               log_error(e)
               @_response.stream.close
             end
-          elsif !e.is_a?(ClientDisconnect)
+          else
             error = e
           end
         ensure
@@ -269,7 +267,7 @@ module ActionController
           socket.read_nonblock(1)
         end
       rescue IOError, SystemCallError
-        server_thread.raise(ClientDisconnect)
+        server_thread.raise(IOError)
       end
     end
 
