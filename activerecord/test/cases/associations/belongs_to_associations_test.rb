@@ -16,6 +16,8 @@ require 'models/essay'
 require 'models/toy'
 require 'models/invoice'
 require 'models/line_item'
+require 'models/column'
+require 'models/record'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -886,21 +888,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  test 'belongs_to works with model name Record' do
-    Record = Class.new(ActiveRecord::Base) do
-      connection.create_table :records
-    end
-
-    Foo = Class.new(ActiveRecord::Base) do
-      connection.create_table :foos do |t|
-        t.belongs_to :record
-      end
-
-      belongs_to :record
-    end
-
+  test 'belongs_to works with model called Record' do
     record = Record.create!
-    Foo.create! record: record
-    assert_equal 1, Foo.count
+    Column.create! record: record
+    assert_equal 1, Column.count
   end
 end
