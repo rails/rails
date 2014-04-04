@@ -677,7 +677,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :topics, force: true do |t|
-    t.string   :title
+    t.string   :title, limit: 250
     t.string   :author_name
     t.string   :author_email_address
     if mysql_56?

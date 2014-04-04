@@ -63,7 +63,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_column_string_type_and_limit
     assert_equal :string, @first.column_for_attribute("title").type
-    assert_equal 255, @first.column_for_attribute("title").limit
+    assert_equal 250, @first.column_for_attribute("title").limit
   end
 
   def test_column_null_not_null

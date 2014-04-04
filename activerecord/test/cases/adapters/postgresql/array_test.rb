@@ -25,7 +25,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_column
     assert_equal :string, @column.type
-    assert_equal "character varying(255)", @column.sql_type
+    assert_equal "character varying", @column.sql_type
     assert @column.array
     assert_not @column.text?
     assert_not @column.number?

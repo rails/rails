@@ -1,3 +1,9 @@
+*   PostgreSQL and SQLite string columns no longer have a default limit of 255.
+
+    Fixes #13435, #9153.
+
+    *Vladimir Sazhin*, *Toms Mikoss*, *Yves Senn*
+
 *   Make possible to have an association called `records`.
 
     Fixes #11645.
