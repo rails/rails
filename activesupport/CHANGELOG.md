@@ -1,3 +1,8 @@
+*   Add `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5` to support stable
+    UUID fixtures on PostgreSQL.
+
+    *Roderick van Domburg*
+
 *   `ActiveSupport::SafeBuffer#prepend` acts like `String#prepend` and modifies
     instance in-place, returning self. `ActiveSupport::SafeBuffer#prepend!` is
     deprecated.

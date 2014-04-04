@@ -17,6 +17,15 @@ ActiveRecord::Schema.define do
       ActiveRecord::Base.connection.create_table(*args, &block)
       ActiveRecord::Base.connection.execute "SET GENERATOR #{args.first}_seq TO 10000"
     end
+  when "PostgreSQL"
+    enable_uuid_ossp!(ActiveRecord::Base.connection)
+    create_table :uuid_parents, id: :uuid, force: true do |t|
+      t.string :name
+    end
+    create_table :uuid_children, id: :uuid, force: true do |t|
+      t.string :name
+      t.uuid :uuid_parent_id
+    end
   end
 
 

@@ -1,3 +1,9 @@
+*   Auto-generate stable fixture UUIDs on PostgreSQL.
+
+    Fixes: #11524
+
+    *Roderick van Domburg*
+
 *   Block a few default Class methods as scope name.
 
     For instance, this will raise:
