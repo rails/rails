@@ -283,6 +283,7 @@ module Rails
     # group is :default
     def initialize!(group=:default) #:nodoc:
       raise "Application has been already initialized." if @initialized
+      config.before_eager_load { |app| app.reload_routes! }
       run_initializers(group, self)
       @initialized = true
       self
