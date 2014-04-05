@@ -645,6 +645,8 @@ class RespondWithControllerTest < ActionController::TestCase
     get :index, format: 'csv'
     assert_equal Mime::CSV, @response.content_type
     assert_equal "c,s,v", @response.body
+  ensure
+    ActionController::Renderers::RENDERERS.delete(:csv)
   end
 
   def test_raises_missing_renderer_if_an_api_behavior_with_no_renderer
