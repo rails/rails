@@ -17,7 +17,7 @@ module ActionDispatch
           rescue EOFError
             query_parameters.dup
           end
-          params.merge!(path_parameters)
+          params.reverse_merge!(path_parameters)
           params.with_indifferent_access
         end
       end
