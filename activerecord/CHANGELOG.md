@@ -1,3 +1,8 @@
+*   Fixed serialized fields returning serialized data after being updated with 
+    `update_column`.
+
+    *Simon Hørup Eskildsen*
+
 *   PostgreSQL and SQLite string columns no longer have a default limit of 255.
 
     Fixes #13435, #9153.

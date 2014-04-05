@@ -244,4 +244,20 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     type = Topic.column_types["content"]
     assert !type.instance_variable_get("@column").is_a?(ActiveRecord::AttributeMethods::Serialization::Type)
   end
+
+  def test_serialized_column_should_unserialize_after_update_column
+    t = Topic.create(content: "first")
+    assert_equal("first", t.content)
+
+    t.update_column(:content, Topic.serialized_attributes["content"].dump("second"))
+    assert_equal("second", t.content)
+  end
+
+  def test_serialized_column_should_unserialize_after_update_attribute
+    t = Topic.create(content: "first")
+    assert_equal("first", t.content)
+
+    t.update_attribute(:content, "second")
+    assert_equal("second", t.content)
+  end
 end
