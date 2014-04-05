@@ -1,7 +1,7 @@
 module ActionDispatch
   module Journey # :nodoc:
     class Route # :nodoc:
-      attr_reader :app, :path, :defaults, :name
+      attr_reader :app, :path, :options, :name, :defaults
 
       attr_reader :constraints
       alias :conditions :constraints
@@ -11,7 +11,7 @@ module ActionDispatch
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, defaults = {})
+      def initialize(name, app, path, constraints, options = {}, defaults = {})
         @name        = name
         @app         = app
         @path        = path
@@ -25,6 +25,7 @@ module ActionDispatch
         @dispatcher  = app.is_a?(Routing::RouteSet::Dispatcher)
 
         @constraints = constraints
+        @options     = options
         @defaults    = defaults
         @required_defaults = nil
         @required_parts    = nil
@@ -43,7 +44,7 @@ module ActionDispatch
 
       def requirements # :nodoc:
         # needed for rails `rake routes`
-        path.requirements.merge(@defaults).delete_if { |_,v|
+        path.requirements.merge(@options).merge(@defaults).delete_if { |_,v|
           /.+?/ == v
         }
       end
@@ -73,7 +74,7 @@ module ActionDispatch
 
       def format(path_options)
         path_options.delete_if do |key, value|
-          value.to_s == defaults[key].to_s && !required_parts.include?(key)
+          value.to_s == options[key].to_s && !required_parts.include?(key)
         end
 
         Visitors::Formatter.new(path_options).accept(path.spec)
@@ -96,7 +97,7 @@ module ActionDispatch
       end
 
       def required_defaults
-        @required_defaults ||= @defaults.dup.delete_if do |k,_|
+        @required_defaults ||= @options.dup.delete_if do |k,_|
           parts.include?(k) || !required_default?(k)
         end
       end

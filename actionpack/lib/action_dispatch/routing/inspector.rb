@@ -112,7 +112,7 @@ module ActionDispatch
 
       def filter_routes(filter)
         if filter
-          @routes.select { |route| route.defaults[:controller] == filter }
+          @routes.select { |route| route.options[:controller] == filter }
         else
           @routes
         end

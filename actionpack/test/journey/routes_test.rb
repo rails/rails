@@ -43,8 +43,8 @@ module ActionDispatch
         one   = Path::Pattern.new '/hello'
         two   = Path::Pattern.new '/aaron'
 
-        routes.add_route nil, one, {}, {}, 'aaron'
-        routes.add_route nil, two, {}, {}, 'aaron'
+        routes.add_route nil, one, {}, {}, {}, 'aaron'
+        routes.add_route nil, two, {}, {}, {}, 'aaron'
 
         assert_equal '/hello', routes.named_routes['aaron'].path.spec.to_s
       end

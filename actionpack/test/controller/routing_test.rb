@@ -1682,7 +1682,7 @@ class RouteSetTest < ActiveSupport::TestCase
       get ':controller/:action/:id'
     end
 
-    assert_equal '/ibocorp', url_for(set, { :controller => 'ibocorp', :action => "show", :page => 1 })
+    assert_equal '/ibocorp/1', url_for(set, { :controller => 'ibocorp', :action => "show", :page => 1 })
   end
 
   def test_generate_with_optional_params_recalls_last_request

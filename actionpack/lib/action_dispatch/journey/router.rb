@@ -140,7 +140,7 @@ module ActionDispatch
             match_values = match_data.captures.map { |v| v && Utils.unescape_uri(v) }
             info = Hash[match_names.zip(match_values).find_all { |_, y| y }]
 
-            [match_data, r.defaults.merge(info), r]
+            [match_data, r.defaults.merge(r.options).merge(info), r]
           }
         end
 
@@ -153,6 +153,7 @@ module ActionDispatch
                       r.app,
                       r.path,
                       r.conditions.merge(request_method: "HEAD"),
+                      r.options,
                       r.defaults).tap do |route|
                         route.precedence = r.precedence + precedence
                       end

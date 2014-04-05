@@ -27,7 +27,7 @@ module ActionDispatch
           missing_keys = missing_keys(route, parameterized_parts)
           next unless missing_keys.empty?
           params = options.dup.delete_if do |key, _|
-            parameterized_parts.key?(key) || route.defaults.key?(key)
+            parameterized_parts.key?(key) || route.options.key?(key)
           end
 
           return [route.format(parameterized_parts), params]

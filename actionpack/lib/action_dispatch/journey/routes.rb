@@ -54,8 +54,8 @@ module ActionDispatch
       end
 
       # Add a route to the routing table.
-      def add_route(app, path, conditions, defaults, name = nil)
-        route = Route.new(name, app, path, conditions, defaults)
+      def add_route(app, path, conditions, options, defaults, name = nil)
+        route = Route.new(name, app, path, conditions, options, defaults)
 
         route.precedence = routes.length
         routes << route

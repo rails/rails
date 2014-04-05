@@ -6,19 +6,19 @@ module ActionDispatch
       def test_initialize
         app      = Object.new
         path     = Path::Pattern.new '/:controller(/:action(/:id(.:format)))'
-        defaults = {}
-        route    = Route.new("name", app, path, {}, defaults)
+        options  = {}
+        route    = Route.new("name", app, path, {}, options)
 
         assert_equal app, route.app
         assert_equal path, route.path
-        assert_same  defaults, route.defaults
+        assert_same  options, route.options
       end
 
       def test_route_adds_itself_as_memo
         app      = Object.new
         path     = Path::Pattern.new '/:controller(/:action(/:id(.:format)))'
-        defaults = {}
-        route    = Route.new("name", app, path, {}, defaults)
+        options  = {}
+        route    = Route.new("name", app, path, {}, options)
 
         route.ast.grep(Nodes::Terminal).each do |node|
           assert_equal route, node.memo
@@ -83,13 +83,14 @@ module ActionDispatch
 
       def test_score
         constraints = {:required_defaults => [:controller, :action]}
-        defaults = {:controller=>"pages", :action=>"show"}
+        options = { :controller => "pages", :action => "show" }
+        defaults = {}
 
         path = Path::Pattern.new "/page/:id(/:action)(.:format)"
-        specific = Route.new "name", nil, path, constraints, defaults
+        specific = Route.new "name", nil, path, constraints, options, defaults
 
         path = Path::Pattern.new "/:controller(/:action(/:id))(.:format)"
-        generic = Route.new "name", nil, path, constraints
+        generic = Route.new "name", nil, path, constraints, options, defaults
 
         knowledge = {:id=>20, :controller=>"pages", :action=>"show"}
 
