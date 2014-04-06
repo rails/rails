@@ -4,21 +4,39 @@
     border-collapse: collapse;
   }
 
-  #route_table td {
-    padding: 0 30px;
+  #route_table thead tr {
+    border-bottom: 2px solid #ddd;
   }
 
-  #route_table tr.bottom th {
-    padding-bottom: 10px;
+  #route_table thead tr.bottom {
+    border-bottom: none;
+  }
+
+  #route_table thead tr.bottom th {
+    padding: 10px 0;
     line-height: 15px;
   }
 
-  #route_table .matched_paths {
-    background-color: LightGoldenRodYellow;
+  #route_table tbody tr {
+    border-bottom: 1px solid #ddd;
   }
 
-  #route_table .matched_paths {
-    border-bottom: solid 3px SlateGrey;
+  #route_table tbody tr:nth-child(odd) {
+    background: #f2f2f2;
+  }
+
+  #route_table tbody.matched_paths {
+    background-color: LightGoldenRodYellow;
+    border-bottom: solid 2px SlateGrey;
+  }
+
+  #route_table tbody.matched_paths tr {
+    background: none;
+    border-bottom: none;
+  }
+
+  #route_table td {
+    padding: 4px 30px;
   }
 
   #path_search {
