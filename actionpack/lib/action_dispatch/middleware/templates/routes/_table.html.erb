@@ -88,13 +88,15 @@
     });
   }
 
-  // takes an array of elements with a data-regexp attribute and
+  // Takes an array of elements with a data-regexp attribute and
   // passes their parent <tr> into the callback function
-  // if the regexp matches a given path
-  function eachElemsForPath(elems, path, func) {
+  // if the user input fuzzy matches a route or if the regexp matches a given path
+  function eachElemsForPath(elems, value, func) {
+    var path = sanitizePath(value);
     each(elems, function(e){
-      var reg = e.getAttribute("data-regexp");
-      if (path.match(RegExp(reg))) {
+      var route  = e.getAttribute("data-route-path"),
+          regexp = e.getAttribute("data-regexp");
+      if (route.match(RegExp(value)) || path.match(RegExp(regexp))) {
         func(e.parentNode.cloneNode(true));
       }
     })
@@ -121,14 +123,14 @@
 
     // On key press perform a search for matching paths
     pathElem.onkeyup = function(e){
-      var path        = sanitizePath(pathElem.value),
-          defaultText = '<tr><th colspan="4">Paths Matching (' + path + '):</th></tr>';
+      var userInput   = pathElem.value,
+          defaultText = '<tr><th colspan="4">Paths Matching (' + userInput +'):</th></tr>';
 
       // Clear out results section
       selectedSection.innerHTML= defaultText;
 
       // Display matches if they exist
-      eachElemsForPath(regexpElems, path, function(e){
+      eachElemsForPath(regexpElems, userInput, function(e){
         selectedSection.appendChild(e);
       });
 
