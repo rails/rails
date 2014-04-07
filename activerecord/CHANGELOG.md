@@ -1,3 +1,10 @@
+*   Fixed a problem where an enum would overwrite values of another enum
+    with the same name in an unrelated class.
+
+    Fixes #14607.
+
+    *Evan Whalen*
+
 *   Block a few default Class methods as scope name.
 
     For instance, this will raise:
