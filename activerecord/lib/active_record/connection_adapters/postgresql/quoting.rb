@@ -4,14 +4,14 @@ module ActiveRecord
       module Quoting
         # Escapes binary strings for bytea input to the database.
         def escape_bytea(value)
-          PGconn.escape_bytea(value) if value
+          @connection.escape_bytea(value) if value
         end
 
         # Unescapes bytea output from a database to the binary string it represents.
         # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
         # on escaped binary output from database drive.
         def unescape_bytea(value)
-          PGconn.unescape_bytea(value) if value
+          @connection.unescape_bytea(value) if value
         end
 
         # Quotes PostgreSQL-specific data types for SQL input.
