@@ -131,6 +131,14 @@ module ActiveRecord
           end
         end
 
+        def raw_type_cast_attribute_for_write(column, value)
+          if column && coder = self.class.serialized_attributes[column.name]
+            Attribute.new(coder, value, :serialized)
+          else
+            super
+          end
+        end
+
         def _field_changed?(attr, old, value)
           if self.class.serialized_attributes.include?(attr)
             old != value
