@@ -84,7 +84,7 @@ module ActiveRecord
 
             if env_url
               entry ||= {}
-              entry.merge!("url" => env_url) { |h, v1, v2| v1 || v2 } if entry.is_a?(Hash)
+              entry.merge!("url" => env_url) { |h, v1, v2| v1 || v2 }
             end
 
             hash[key] = entry if entry
