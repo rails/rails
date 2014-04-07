@@ -11,10 +11,14 @@ module ActiveRecord
 
       def setup
         @previous_database_url = ENV.delete("DATABASE_URL")
+        @previous_database_url_default_env = ENV.delete("DATABASE_URL_DEFAULT_ENV")
+        @previous_database_url_production = ENV.delete("DATABASE_URL_PRODUCTION")
       end
 
       teardown do
         ENV["DATABASE_URL"] = @previous_database_url
+        ENV["DATABASE_URL_DEFAULT_ENV"] = @previous_database_url_default_env
+        ENV["DATABASE_URL_PRODUCTION"] = @previous_database_url_production
       end
 
       def resolve(spec, config)
@@ -25,15 +29,23 @@ module ActiveRecord
         ConnectionSpecification::Resolver.new(klass.new(config).resolve).spec(spec)
       end
 
-      def test_resolver_with_database_uri_and_known_key
+      def test_resolver_with_database_uri_and_current_env_symbol_key
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual   = resolve(:default_env, config)
+        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
+      def test_resolver_with_environment_database_uri_and_current_env_symbol_key
+        ENV['DATABASE_URL_DEFAULT_ENV'] = "postgres://localhost/foo"
         config   = { "default_env" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = resolve(:default_env, config)
         expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
         assert_equal expected, actual
       end
 
-      def test_resolver_with_database_uri_and_known_string_key
+      def test_resolver_with_database_uri_and_and_current_env_string_key
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
         config   = { "default_env" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = assert_deprecated { resolve("default_env", config) }
@@ -41,10 +53,18 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
-      def test_resolver_with_database_uri_and_current_env_symbol_key
+      def test_resolver_with_database_uri_and_known_key
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
-        config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
-        actual   = resolve(:default_env, config)
+        config   = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
+        actual   = resolve(:production, config)
+        expected = { "adapter"=>"not_postgres", "database"=>"not_foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
+      def test_resolver_with_custom_database_uri_and_custom_key
+        ENV['DATABASE_URL_PRODUCTION'] = "postgres://localhost/foo"
+        config   = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
+        actual   = resolve(:production, config)
         expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
         assert_equal expected, actual
       end
@@ -88,9 +108,9 @@ module ActiveRecord
       end
 
       def test_string_connection
-        config   = { "production" => "postgres://localhost/foo" }
+        config   = { "default_env" => "postgres://localhost/foo" }
         actual   = klass.new(config).resolve
-        expected = { "production" =>
+        expected = { "default_env" =>
                      { "adapter"  => "postgresql",
                        "database" => "foo",
                        "host"     => "localhost"
@@ -100,9 +120,9 @@ module ActiveRecord
       end
 
       def test_url_sub_key
-        config   = { "production" => { "url" => "postgres://localhost/foo" } }
+        config   = { "default_env" => { "url" => "postgres://localhost/foo" } }
         actual   = klass.new(config).resolve
-        expected = { "production" =>
+        expected = { "default_env" =>
                      { "adapter"  => "postgresql",
                        "database" => "foo",
                        "host"     => "localhost"
