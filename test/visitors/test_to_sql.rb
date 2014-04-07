@@ -237,9 +237,9 @@ module Arel
       end
 
       it "should visit_Arel_Nodes_And" do
-        node = Nodes::And.new [@attr.eq(10), [@attr.eq(11), @attr.eq(12)]]
+        node = Nodes::And.new [@attr.eq(10), @attr.eq(11)]
         @visitor.accept(node).must_be_like %{
-          "users"."id" = 10 AND "users"."id" = 11 AND "users"."id" = 12
+          "users"."id" = 10 AND "users"."id" = 11
         }
       end
 
