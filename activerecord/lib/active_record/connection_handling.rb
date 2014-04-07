@@ -70,10 +70,13 @@ module ActiveRecord
 
       private
         def config
+          env = DEFAULT_ENV.call.to_s
+
           cfg = Hash.new do |hash, key|
             entry = @raw_config[key]
             env_url = nil
-            if key.to_s == DEFAULT_ENV.call.to_s
+
+            if key.to_s == env
               env_url = ENV["DATABASE_URL"]
             end
             env_url ||= ENV["DATABASE_URL_#{key.upcase}"]
@@ -83,7 +86,7 @@ module ActiveRecord
           end
 
           @raw_config.keys.each {|k| cfg[k] }
-          cfg[DEFAULT_ENV.call.to_s]
+          cfg[env]
 
           cfg
         end
