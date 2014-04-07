@@ -72,6 +72,14 @@ module RailtiesTest
       assert $to_prepare
     end
 
+    test "railtie have access to application in before_configuration callbacks" do
+      $after_initialize = false
+      class Foo < Rails::Railtie ; config.before_configuration { $before_configuration = Rails.root.to_path } ; end
+      assert_not $before_configuration
+      require "#{app_path}/config/environment"
+      assert_equal app_path, $before_configuration
+    end
+
     test "railtie can add after_initialize callbacks" do
       $after_initialize = false
       class Foo < Rails::Railtie ; config.after_initialize { $after_initialize = true } ; end
