@@ -45,6 +45,15 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_resolver_with_environment_database_uri_and_global_database_uri_and_current_env_symbol_key
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        ENV['DATABASE_URL_DEFAULT_ENV'] = "mysql://host/foo_bar"
+        config   = { "default_env" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual   = resolve(:default_env, config)
+        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
       def test_resolver_with_database_uri_and_and_current_env_string_key
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
         config   = { "default_env" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
