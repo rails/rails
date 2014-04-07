@@ -539,7 +539,13 @@ module ActiveRecord
 
       Hash[equalities.map { |where|
         name = where.left.name
-        [name, binds.fetch(name.to_s) { where.right }]
+        [name, binds.fetch(name.to_s) {
+          case where.right
+          when Array then where.right.map(&:val)
+          else
+            where.right.val
+          end
+        }]
       }]
     end
 
