@@ -229,8 +229,8 @@ class FlashTest < ActionController::TestCase
     assert subclass_controller_with_no_flash_type._flash_types.include?(:foo)
   end
 
-  def test_do_not_add_flash_type_to_parent_class
-    subclass_controller_with_flash_type_bar = Class.new(TestController) do
+  def test_does_not_add_flash_type_to_parent_class
+    Class.new(TestController) do
       add_flash_types :bar
     end
     assert_not TestController._flash_types.include?(:bar)
