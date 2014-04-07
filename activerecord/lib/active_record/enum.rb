@@ -65,10 +65,13 @@ module ActiveRecord
   #
   # Where conditions on an enum attribute must use the ordinal value of an enum.
   module Enum
-    DEFINED_ENUMS = {} # :nodoc:
+    def self.extended(base)
+      base.class_attribute(:defined_enums)
+      base.defined_enums = {}
+    end
 
     def enum_mapping_for(attr_name) # :nodoc:
-      DEFINED_ENUMS[attr_name.to_s]
+      defined_enums[attr_name.to_s]
     end
 
     def enum(definitions)
@@ -122,9 +125,8 @@ module ActiveRecord
             klass.send(:detect_enum_conflict!, name, value, true)
             klass.scope value, -> { klass.where name => i }
           end
-
-          DEFINED_ENUMS[name.to_s] = enum_values
         end
+        defined_enums[name.to_s] = enum_values
       end
     end
 

@@ -250,4 +250,19 @@ class EnumTest < ActiveRecord::TestCase
     valid_book = klass.new(status: "written")
     assert valid_book.valid?
   end
+
+  test "enums are distinct per class" do
+    Plane = Class.new(ActiveRecord::Base) do
+      enum status: [:grounded, :operational]
+    end
+    assert_equal({ "proposed" => 0, "written" => 1, "published" => 2 }, Book.statuses)
+    assert_equal({ "grounded" => 0, "operational" => 1 }, Plane.statuses)
+  end
+
+  test "enums are inheritable" do
+    Encyclopedia = Class.new(Book) do
+      enum status: [:published, :reprinted]
+    end
+    assert_equal({ "published" => 0, "reprinted" => 1 }, Encyclopedia.statuses)
+  end
 end

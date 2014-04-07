@@ -1,3 +1,10 @@
+*   Fixed a problem where an enum would overwrite values of another enum
+    with the same name in an unrelated class.
+
+    Fixes #14607.
+
+    *Evan Whalen*
+
 *   Make possible to have an association called `records`.
 
     Fixes #11645.
