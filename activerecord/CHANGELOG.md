@@ -1,3 +1,10 @@
+*   Fixed a problem where an enum would overwrite values of another enum
+    with the same name in an unrelated class.
+
+    Fixes #14607.
+
+    *Evan Whalen*
+
 *   PostgreSQL and SQLite string columns no longer have a default limit of 255.
 
     Fixes #13435, #9153.
