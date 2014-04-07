@@ -79,9 +79,14 @@ module ActiveRecord
             if key.to_s == env
               env_url = ENV["DATABASE_URL"]
             end
+
             env_url ||= ENV["DATABASE_URL_#{key.upcase}"]
-            entry ||= {} if env_url
-            entry.merge!("url" => env_url) { |h, v1, v2| v1 || v2 } if entry.is_a?(Hash) && env_url
+
+            if env_url
+              entry ||= {}
+              entry.merge!("url" => env_url) { |h, v1, v2| v1 || v2 } if entry.is_a?(Hash)
+            end
+
             hash[key] = entry if entry
           end
 
