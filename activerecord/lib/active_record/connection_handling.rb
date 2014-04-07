@@ -58,9 +58,8 @@ module ActiveRecord
     end
 
     class MergeAndResolveDefaultUrlConfig # :nodoc:
-      def initialize(raw_configurations, url = ENV['DATABASE_URL'])
+      def initialize(raw_configurations)
         @raw_config = raw_configurations.dup
-        @url        = url
       end
 
       # Returns fully resolved connection hashes.
@@ -71,35 +70,22 @@ module ActiveRecord
 
       private
         def config
-          if @url
-            raw_merged_into_default
-          else
-            @raw_config
-          end
-        end
-
-        def raw_merged_into_default
-          default = default_url_hash
-
-          @raw_config.each do |env, values|
-            default[env] = values || {}
-            default[env].merge!("url" => @url) { |h, v1, v2| v1 || v2 } if default[env].is_a?(Hash)
-          end
-          default
-        end
-
-        # When the raw configuration is not present and ENV['DATABASE_URL']
-        # is available we return a hash with the connection information in
-        # the connection URL. This hash responds to any string key with
-        # resolved connection information.
-        def default_url_hash
-          Hash.new do |hash, key|
-            hash[key] = if key.is_a? String
-               ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionUrlResolver.new(@url).to_hash
-            else
-              nil
+          cfg = Hash.new do |hash, key|
+            entry = @raw_config[key]
+            env_url = nil
+            if key.to_s == DEFAULT_ENV.call.to_s
+              env_url = ENV["DATABASE_URL"]
             end
+            env_url ||= ENV["DATABASE_URL_#{key.upcase}"]
+            entry ||= {} if env_url
+            entry.merge!("url" => env_url) { |h, v1, v2| v1 || v2 } if entry.is_a?(Hash)
+            hash[key] = entry if entry
           end
+
+          @raw_config.keys.each {|k| cfg[k] }
+          cfg[DEFAULT_ENV.call.to_s]
+
+          cfg
         end
     end
 
