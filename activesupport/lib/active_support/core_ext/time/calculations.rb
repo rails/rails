@@ -96,30 +96,19 @@ class Time
   # takes a hash with any of these keys: <tt>:years</tt>, <tt>:months</tt>,
   # <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>, <tt>:minutes</tt>,
   # <tt>:seconds</tt>.
-  def advance(options)
-    unless options[:weeks].nil?
-      options[:weeks], partial_weeks = options[:weeks].divmod(1)
-      options[:days] = options.fetch(:days, 0) + 7 * partial_weeks
-    end
+  def advance(date_hash)
+    return self if date_hash.empty?
 
-    unless options[:days].nil?
-      options[:days], partial_days = options[:days].divmod(1)
-      options[:hours] = options.fetch(:hours, 0) + 24 * partial_days
-    end
+    time_in_seconds = 0
+    time_in_seconds += date_hash.fetch(:years, 0) * 1.year
+    time_in_seconds += date_hash.fetch(:months, 0) * 1.month
+    time_in_seconds += date_hash.fetch(:weeks, 0) * 1.week
+    time_in_seconds += date_hash.fetch(:days, 0) * 1.day
+    time_in_seconds += date_hash.fetch(:hours, 0) * 1.hour
+    time_in_seconds += date_hash.fetch(:minutes, 0) * 1.minute
+    time_in_seconds += date_hash.fetch(:seconds, 0)
 
-    d = to_date.advance(options)
-    d = d.gregorian if d.julian?
-    time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
-    seconds_to_advance = \
-      options.fetch(:seconds, 0) +
-      options.fetch(:minutes, 0) * 60 +
-      options.fetch(:hours, 0) * 3600
-
-    if seconds_to_advance.zero?
-      time_advanced_by_date
-    else
-      time_advanced_by_date.since(seconds_to_advance)
-    end
+    since time_in_seconds
   end
 
   # Returns a new Time representing the time a number of seconds ago, this is basically a wrapper around the Numeric extension
