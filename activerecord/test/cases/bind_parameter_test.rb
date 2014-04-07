@@ -20,13 +20,13 @@ module ActiveRecord
     def setup
       super
       @connection = ActiveRecord::Base.connection
-      @listener   = LogListener.new
+      @subscriber   = LogListener.new
       @pk         = Topic.columns.find { |c| c.primary }
-      ActiveSupport::Notifications.subscribe('sql.active_record', @listener)
+      @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     end
 
     teardown do
-      ActiveSupport::Notifications.unsubscribe(@listener)
+      ActiveSupport::Notifications.unsubscribe(@subscription)
     end
 
     if ActiveRecord::Base.connection.supports_statement_cache?
@@ -37,7 +37,7 @@ module ActiveRecord
 
         @connection.exec_query(sql, 'SQL', binds)
 
-        message = @listener.calls.find { |args| args[4][:sql] == sql }
+        message = @subscriber.calls.find { |args| args[4][:sql] == sql }
         assert_equal binds, message[4][:binds]
       end
 
@@ -48,14 +48,14 @@ module ActiveRecord
 
         @connection.exec_query(sql, 'SQL', binds)
 
-        message = @listener.calls.find { |args| args[4][:sql] == sql }
+        message = @subscriber.calls.find { |args| args[4][:sql] == sql }
         assert_equal [[@pk, 3]], message[4][:binds]
       end
 
       def test_find_one_uses_binds
         Topic.find(1)
         binds = [[@pk, 1]]
-        message = @listener.calls.find { |args| args[4][:binds] == binds }
+        message = @subscriber.calls.find { |args| args[4][:binds] == binds }
         assert message, 'expected a message with binds'
       end
 

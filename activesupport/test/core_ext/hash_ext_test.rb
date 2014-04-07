@@ -23,6 +23,16 @@ class HashExtTest < ActiveSupport::TestCase
     end
   end
 
+  class HashByConversion
+    def initialize(hash)
+      @hash = hash
+    end
+
+    def to_hash
+      @hash
+    end
+  end
+
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @nested_strings = { 'a' => { 'b' => { 'c' => 3 } } }
@@ -411,6 +421,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
   end
 
+  def test_update_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new
+    hash.update HashByConversion.new({ :a => 1 })
+    assert_equal hash['a'], 1
+  end
+
   def test_indifferent_merging
     hash = HashWithIndifferentAccess.new
     hash[:a] = 'failure'
@@ -430,11 +446,29 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 2, hash['b']
   end
 
+  def test_merge_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new
+    merged = hash.merge HashByConversion.new({ :a => 1 })
+    assert_equal merged['a'], 1
+  end
+
   def test_indifferent_replace
     hash = HashWithIndifferentAccess.new
     hash[:a] = 42
 
     replaced = hash.replace(b: 12)
+
+    assert hash.key?('b')
+    assert !hash.key?(:a)
+    assert_equal 12, hash[:b]
+    assert_same hash, replaced
+  end
+
+  def test_replace_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 42
+
+    replaced = hash.replace(HashByConversion.new(b: 12))
 
     assert hash.key?('b')
     assert !hash.key?(:a)
@@ -892,6 +926,12 @@ class HashExtTest < ActiveSupport::TestCase
     h = hash_with_only_nil_values.dup
     assert_equal({}, h.compact!)
     assert_equal({}, h)
+  end
+
+  def test_new_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new(HashByConversion.new(a: 1))
+    assert hash.key?('a')
+    assert_equal 1, hash[:a]
   end
 end
 

@@ -118,10 +118,10 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should include yielded additions" do
-    xml = @contact.to_xml do |xml|
+    xml_output = @contact.to_xml do |xml|
       xml.creator "David"
     end
-    assert_match %r{<creator>David</creator>}, xml
+    assert_match %r{<creator>David</creator>}, xml_output
   end
 
   test "should serialize string" do

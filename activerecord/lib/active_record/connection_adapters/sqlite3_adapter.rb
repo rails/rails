@@ -33,9 +33,9 @@ module ActiveRecord
       ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
     rescue Errno::ENOENT => error
       if error.message.include?("No such file or directory")
-        raise ActiveRecord::NoDatabaseError.new(error.message)
+        raise ActiveRecord::NoDatabaseError.new(error.message, error)
       else
-        raise error
+        raise
       end
     end
   end
@@ -63,7 +63,7 @@ module ActiveRecord
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
-        string:       { name: "varchar", limit: 255 },
+        string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
         float:        { name: "float" },

@@ -32,6 +32,8 @@ module ActionDispatch
     def initialize(env, exception)
       @env = env
       @exception = original_exception(exception)
+
+      expand_backtrace if exception.is_a?(SyntaxError) || exception.try(:original_exception).try(:is_a?, SyntaxError)
     end
 
     def rescue_template
@@ -103,6 +105,12 @@ module ActionDispatch
           Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
         end
       end
+    end
+
+    def expand_backtrace
+      @exception.backtrace.unshift(
+        @exception.to_s.split("\n")
+      ).flatten! 
     end
   end
 end

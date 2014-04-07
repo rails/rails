@@ -20,9 +20,9 @@ module ActiveRecord
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
     rescue Mysql2::Error => error
       if error.message.include?("Unknown database")
-        raise ActiveRecord::NoDatabaseError.new(error.message)
+        raise ActiveRecord::NoDatabaseError.new(error.message, error)
       else
-        raise error
+        raise
       end
     end
   end

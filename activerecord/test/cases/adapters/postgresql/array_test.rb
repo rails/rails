@@ -25,13 +25,38 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_column
     assert_equal :string, @column.type
+    assert_equal "character varying", @column.sql_type
     assert @column.array
     assert_not @column.text?
+    assert_not @column.number?
+    assert_not @column.binary?
 
     ratings_column = PgArray.columns_hash['ratings']
     assert_equal :integer, ratings_column.type
     assert ratings_column.array
     assert_not ratings_column.number?
+  end
+
+  def test_default
+    @connection.add_column 'pg_arrays', 'score', :integer, array: true, default: [4, 4, 2]
+    PgArray.reset_column_information
+    column = PgArray.columns_hash["score"]
+
+    assert_equal([4, 4, 2], column.default)
+    assert_equal([4, 4, 2], PgArray.new.score)
+  ensure
+    PgArray.reset_column_information
+  end
+
+  def test_default_strings
+    @connection.add_column 'pg_arrays', 'names', :string, array: true, default: ["foo", "bar"]
+    PgArray.reset_column_information
+    column = PgArray.columns_hash["names"]
+
+    assert_equal(["foo", "bar"], column.default)
+    assert_equal(["foo", "bar"], PgArray.new.names)
+  ensure
+    PgArray.reset_column_information
   end
 
   def test_change_column_with_array

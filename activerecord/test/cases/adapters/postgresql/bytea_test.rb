@@ -70,6 +70,23 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
     assert_equal(data, record.payload)
   end
 
+  def test_via_to_sql
+    data = "'\u001F\\"
+    record = ByteaDataType.create(payload: data)
+    sql = ByteaDataType.where(payload: data).select(:payload).to_sql
+    result = @connection.query(sql)
+    assert_equal([[data]], result)
+  end
+
+  def test_via_to_sql_with_complicating_connection
+    Thread.new do
+      other_conn = ActiveRecord::Base.connection
+      other_conn.execute('SET standard_conforming_strings = off')
+    end.join
+
+    test_via_to_sql
+  end
+
   def test_write_binary
     data = File.read(File.join(File.dirname(__FILE__), '..', '..', '..', 'assets', 'example.log'))
     assert(data.size > 1)

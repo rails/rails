@@ -170,7 +170,7 @@ module ActiveRecord
 
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
     # and should therefore be JOINed in any query rather than loaded separately.
-    # This method only works in conjuction with +includes+.
+    # This method only works in conjunction with +includes+.
     # See #includes for more details.
     #
     #   User.includes(:posts).where("posts.name = 'foo'")
@@ -263,6 +263,10 @@ module ActiveRecord
     #
     #   User.group('name AS grouped_name, age')
     #   => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
+    #
+    # Passing in an array of attributes to group by is also supported.
+    #   User.select([:id, :first_name]).group(:id, :first_name).first(3)
+    #   => [#<User id: 1, first_name: "Bill">, #<User id: 2, first_name: "Earl">, #<User id: 3, first_name: "Beto">]
     def group(*args)
       check_if_method_has_arguments!(:group, args)
       spawn.group!(*args)
@@ -821,7 +825,9 @@ module ActiveRecord
     end
 
     def reverse_order! # :nodoc:
-      self.reverse_order_value = !reverse_order_value
+      orders = order_values.uniq
+      orders.reject!(&:blank?)
+      self.order_values = reverse_sql_order(orders)
       self
     end
 
@@ -876,7 +882,6 @@ module ActiveRecord
 
       case scope
       when :order
-        self.reverse_order_value = false
         result = []
       when :where
         self.bind_values = []
@@ -1062,7 +1067,6 @@ module ActiveRecord
     def build_order(arel)
       orders = order_values.uniq
       orders.reject!(&:blank?)
-      orders = reverse_sql_order(orders) if reverse_order_value
 
       arel.order(*orders) unless orders.empty?
     end

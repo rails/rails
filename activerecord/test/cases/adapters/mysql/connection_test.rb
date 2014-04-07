@@ -1,7 +1,9 @@
 require "cases/helper"
+require 'support/connection_helper'
 require 'support/ddl_helper'
 
 class MysqlConnectionTest < ActiveRecord::TestCase
+  include ConnectionHelper
   include DdlHelper
 
   class Klass < ActiveRecord::Base
@@ -159,15 +161,6 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   private
-
-  def run_without_connection
-    original_connection = ActiveRecord::Base.remove_connection
-    begin
-      yield original_connection
-    ensure
-      ActiveRecord::Base.establish_connection(original_connection)
-    end
-  end
 
   def with_example_table(&block)
     definition ||= <<-SQL

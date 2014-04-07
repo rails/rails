@@ -54,6 +54,22 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
     def test_column
       assert_equal :hstore, @column.type
+      assert_equal "hstore", @column.sql_type
+      assert_not @column.number?
+      assert_not @column.text?
+      assert_not @column.binary?
+      assert_not @column.array
+    end
+
+    def test_default
+      @connection.add_column 'hstores', 'permissions', :hstore, default: '"users"=>"read", "articles"=>"write"'
+      Hstore.reset_column_information
+      column = Hstore.columns_hash["permissions"]
+
+      assert_equal({"users"=>"read", "articles"=>"write"}, column.default)
+      assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.new.permissions)
+    ensure
+      Hstore.reset_column_information
     end
 
     def test_change_table_supports_hstore

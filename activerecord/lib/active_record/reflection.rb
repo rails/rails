@@ -151,7 +151,7 @@ module ActiveRecord
         super ||
           other_aggregation.kind_of?(self.class) &&
           name == other_aggregation.name &&
-          other_aggregation.options &&
+          !other_aggregation.options.nil? &&
           active_record == other_aggregation.active_record
       end
 

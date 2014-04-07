@@ -29,6 +29,17 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
     end
   end
 
+  def test_column
+    column = PostgresqlComposite.columns_hash["address"]
+    # TODO: Composite columns should have a type
+    assert_nil column.type
+    assert_equal "full_address", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
+  end
+
   def test_composite_mapping
     @connection.execute "INSERT INTO postgresql_composites VALUES (1, ROW('Paris', 'Champs-Élysées'));"
     composite = PostgresqlComposite.first

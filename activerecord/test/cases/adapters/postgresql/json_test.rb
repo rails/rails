@@ -31,7 +31,24 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
   end
 
   def test_column
-    assert_equal :json, @column.type
+    column = JsonDataType.columns_hash["payload"]
+    assert_equal :json, column.type
+    assert_equal "json", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
+  end
+
+  def test_default
+    @connection.add_column 'json_data_type', 'permissions', :json, default: '{"users": "read", "posts": ["read", "write"]}'
+    JsonDataType.reset_column_information
+    column = JsonDataType.columns_hash["permissions"]
+
+    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, column.default)
+    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.new.permissions)
+  ensure
+    JsonDataType.reset_column_information
   end
 
   def test_change_table_supports_json
@@ -57,16 +74,16 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
   end
 
   def test_type_cast_json
-    assert @column
+    column = JsonDataType.columns_hash["payload"]
 
     data = "{\"a_key\":\"a_value\"}"
-    hash = @column.class.string_to_json data
+    hash = column.class.string_to_json data
     assert_equal({'a_key' => 'a_value'}, hash)
-    assert_equal({'a_key' => 'a_value'}, @column.type_cast(data))
+    assert_equal({'a_key' => 'a_value'}, column.type_cast(data))
 
-    assert_equal({}, @column.type_cast("{}"))
-    assert_equal({'key'=>nil}, @column.type_cast('{"key": null}'))
-    assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast(%q({"c":"}", "\"a\"":"b \"a b"})))
+    assert_equal({}, column.type_cast("{}"))
+    assert_equal({'key'=>nil}, column.type_cast('{"key": null}'))
+    assert_equal({'c'=>'}','"a"'=>'b "a b'}, column.type_cast(%q({"c":"}", "\"a\"":"b \"a b"})))
   end
 
   def test_rewrite

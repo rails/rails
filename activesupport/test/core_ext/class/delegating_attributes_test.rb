@@ -33,7 +33,7 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
   end
 
   def test_simple_accessor_declaration
-    ActiveSupport::Deprecation.silence do
+    assert_deprecated do
       single_class.superclass_delegating_accessor :both
     end
 
@@ -48,7 +48,7 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
   def test_simple_accessor_declaration_with_instance_reader_false
     _instance_methods = single_class.public_instance_methods
 
-    ActiveSupport::Deprecation.silence do
+    assert_deprecated do
       single_class.superclass_delegating_accessor :no_instance_reader, :instance_reader => false
     end
 
@@ -60,7 +60,7 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
   end
 
   def test_working_with_simple_attributes
-    ActiveSupport::Deprecation.silence do
+    assert_deprecated do
       single_class.superclass_delegating_accessor :both
     end
 
@@ -79,7 +79,7 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
   def test_child_class_delegates_to_parent_but_can_be_overridden
     parent = Class.new
 
-    ActiveSupport::Deprecation.silence do
+    assert_deprecated do
       parent.superclass_delegating_accessor :both
     end
 

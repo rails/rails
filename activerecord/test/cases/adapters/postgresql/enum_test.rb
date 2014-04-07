@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 require "cases/helper"
+require 'support/connection_helper'
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlEnumTest < ActiveRecord::TestCase
+  include ConnectionHelper
+
   class PostgresqlEnum < ActiveRecord::Base
     self.table_name = "postgresql_enums"
-  end
-
-  teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_enums'
-    @connection.execute 'DROP TYPE IF EXISTS mood'
   end
 
   def setup
@@ -25,6 +23,22 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     end
     # reload type map after creating the enum type
     @connection.send(:reload_type_map)
+  end
+
+  teardown do
+    @connection.execute 'DROP TABLE IF EXISTS postgresql_enums'
+    @connection.execute 'DROP TYPE IF EXISTS mood'
+    reset_connection
+  end
+
+  def test_column
+    column = PostgresqlEnum.columns_hash["current_mood"]
+    assert_equal :enum, column.type
+    assert_equal "mood", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
   end
 
   def test_enum_mapping

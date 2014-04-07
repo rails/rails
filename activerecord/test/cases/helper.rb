@@ -168,7 +168,7 @@ class SQLSubscriber
 
   def start(name, id, payload)
     @payloads << payload
-    @logged << [payload[:sql], payload[:name], payload[:binds]]
+    @logged << [payload[:sql].squish, payload[:name], payload[:binds]]
   end
 
   def finish(name, id, payload); end

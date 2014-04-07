@@ -1,3 +1,123 @@
+*   Fixed a problem where an enum would overwrite values of another enum
+    with the same name in an unrelated class.
+
+    Fixes #14607.
+
+    *Evan Whalen*
+
+*   PostgreSQL and SQLite string columns no longer have a default limit of 255.
+
+    Fixes #13435, #9153.
+
+    *Vladimir Sazhin*, *Toms Mikoss*, *Yves Senn*
+
+*   Make possible to have an association called `records`.
+
+    Fixes #11645.
+
+    *prathamesh-sonpatki*
+
+*   `to_sql` on an association now matches the query that is actually executed, where it
+    could previously have incorrectly accrued additional conditions (e.g. as a result of
+    a previous query). CollectionProxy now always defers to the association scope's
+    `arel` method so the (incorrect) inherited one should be entirely concealed.
+
+    Fixes #14003.
+
+    *Jefferson Lai*
+
+*   Block a few default Class methods as scope name.
+
+    For instance, this will raise:
+
+        scope :public, -> { where(status: 1) }
+
+    *arthurnn*
+
+*   Fixed error when using `with_options` with lambda.
+
+    Fixes #9805.
+
+    *Lauro Caetano*
+
+*   Switch `sqlite3:///` URLs (which were temporarily
+    deprecated in 4.1) from relative to absolute.
+
+    If you still want the previous interpretation, you should replace
+    `sqlite3:///my/path` with `sqlite3:my/path`.
+
+    *Matthew Draper*
+
+*   Treat blank UUID values as `nil`.
+
+    Example:
+
+        Sample.new(uuid_field: '') #=> <Sample id: nil, uuid_field: nil>
+
+    *Dmitry Lavrov*
+
+*   Enable support for materialized views on PostgreSQL >= 9.3.
+
+    *Dave Lee*
+
+*   The PostgreSQL adapter supports custom domains. Fixes #14305.
+
+    *Yves Senn*
+
+*   PostgreSQL `Column#type` is now determined through the corresponding OID.
+    The column types stay the same except for enum columns. They no longer have
+    `nil` as type but `enum`.
+
+    See #7814.
+
+    *Yves Senn*
+
+*   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
+
+    Fixes #10613.
+
+    *Luke Steensen*
+
+*   Make possible to change `record_timestamps` inside Callbacks.
+
+    *Tieg Zaharia*
+
+*   Fixed error where .persisted? throws SystemStackError for an unsaved model with a
+    custom primary key that didn't save due to validation error.
+
+    Fixes #14393.
+
+    *Chris Finne*
+
+*   Introduce `validate` as an alias for `valid?`.
+
+    This is more intuitive when you want to run validations but don't care about the return value.
+
+    *Henrik Nyh*
+
+*   Create indexes inline in CREATE TABLE for MySQL.
+
+    This is important, because adding an index on a temporary table after it has been created
+    would commit the transaction.
+
+    It also allows creating and dropping indexed tables with fewer queries and fewer permissions
+    required.
+
+    Example:
+
+        create_table :temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query" do |t|
+          t.index :zip
+        end
+        # => CREATE TEMPORARY TABLE temp (INDEX (zip)) AS SELECT id, name, zip FROM a_really_complicated_query
+
+    *Cody Cutrer*, *Steve Rice*, *Rafael Mendonça Franca*
+
+*   Save `has_one` association even if the record doesn't changed.
+
+    Fixes #14407.
+
+    *Rafael Mendonça França*
+
 *   Use singular table name in generated migrations when
     `ActiveRecord::Base.pluralize_table_names` is `false`.
 
@@ -75,12 +195,6 @@
     values without needing to wrap in UPPER/LOWER sql functions.
 
     *Troy Kruthoff*, *Lachlan Sylvester*
-
-*   Only save has_one associations if record has changes.
-    Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
-    object did not get saved to the db.
-
-    *Alan Kennedy*
 
 *   Allow strings to specify the `#order` value.
 

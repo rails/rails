@@ -1,5 +1,6 @@
 require 'erb'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/deprecation'
 
 class ERB
   module Util
@@ -124,7 +125,7 @@ module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
-      slice squeeze strip sub succ swapcase tr tr_s upcase prepend
+      slice squeeze strip sub succ swapcase tr tr_s upcase
     )
 
     alias_method :original_concat, :concat
@@ -169,14 +170,17 @@ module ActiveSupport #:nodoc:
       self[0, 0]
     end
 
-    def concat(value)
-      if !html_safe? || value.html_safe?
-        super(value)
-      else
-        super(ERB::Util.h(value))
+    %w[concat prepend].each do |method_name|
+      define_method method_name do |value|
+        super(html_escape_interpolated_argument(value))
       end
     end
     alias << concat
+
+    def prepend!(value)
+      ActiveSupport::Deprecation.deprecation_warning "ActiveSupport::SafeBuffer#prepend!", :prepend
+      prepend value
+    end
 
     def +(other)
       dup.concat(other)

@@ -87,7 +87,7 @@ module Rails
     class << self
       def inherited(base)
         super
-        Rails.application ||= base.instance
+        base.instance
       end
 
       # Makes the +new+ method public.
@@ -116,6 +116,8 @@ module Rails
       @ordered_railties  = nil
       @railties          = nil
       @message_verifiers = {}
+
+      Rails.application ||= self
 
       add_lib_to_load_path!
       ActiveSupport.run_load_hooks(:before_configuration, self)
@@ -151,14 +153,13 @@ module Rails
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @caching_key_generator ||= begin
+      @caching_key_generator ||=
         if secrets.secret_key_base
           key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
           ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
         end
-      end
     end
 
     # Returns a message verifier object.
@@ -330,6 +331,25 @@ module Rails
 
     def helpers_paths #:nodoc:
       config.helpers_paths
+    end
+
+    console do
+      require "pp"
+    end
+
+    console do
+      unless ::Kernel.private_method_defined?(:y)
+        if RUBY_VERSION >= '2.0'
+          require "psych/y"
+        else
+          module ::Kernel
+            def y(*objects)
+              puts ::Psych.dump_stream(*objects)
+            end
+            private :y
+          end
+        end
+      end
     end
 
   protected

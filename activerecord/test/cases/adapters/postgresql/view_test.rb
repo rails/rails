@@ -1,11 +1,15 @@
 require "cases/helper"
 
-class ViewTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+module ViewTestConcern
+  extend ActiveSupport::Concern
+
+  included do
+    self.use_transactional_fixtures = false
+    mattr_accessor :view_type
+  end
 
   SCHEMA_NAME = 'test_schema'
   TABLE_NAME = 'things'
-  VIEW_NAME = 'view_things'
   COLUMNS = [
     'id integer',
     'name character varying(50)',
@@ -14,17 +18,19 @@ class ViewTest < ActiveRecord::TestCase
   ]
 
   class ThingView < ActiveRecord::Base
-    self.table_name = 'test_schema.view_things'
   end
 
   def setup
+    super
+    ThingView.table_name = "#{SCHEMA_NAME}.#{view_type}_things"
+
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
-    @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{TABLE_NAME}.table\" (#{COLUMNS.join(',')})"
-    @connection.execute "CREATE VIEW #{SCHEMA_NAME}.#{VIEW_NAME} AS SELECT id,name,email,moment FROM #{SCHEMA_NAME}.#{TABLE_NAME}"
+    @connection.execute "CREATE #{view_type.humanize} #{ThingView.table_name} AS SELECT * FROM #{SCHEMA_NAME}.#{TABLE_NAME}"
   end
 
-  teardown do
+  def teardown
+    super
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end
 
@@ -35,7 +41,7 @@ class ViewTest < ActiveRecord::TestCase
 
   def test_column_definitions
     assert_nothing_raised do
-      assert_equal COLUMNS, columns("#{SCHEMA_NAME}.#{VIEW_NAME}")
+      assert_equal COLUMNS, columns(ThingView.table_name)
     end
   end
 
@@ -46,4 +52,16 @@ class ViewTest < ActiveRecord::TestCase
       end
     end
 
+end
+
+class ViewTest < ActiveRecord::TestCase
+  include ViewTestConcern
+  self.view_type = 'view'
+end
+
+if ActiveRecord::Base.connection.supports_materialized_views?
+  class MaterializedViewTest < ActiveRecord::TestCase
+    include ViewTestConcern
+    self.view_type = 'materialized_view'
+  end
 end

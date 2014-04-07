@@ -1,3 +1,16 @@
+*   `ActiveSupport::SafeBuffer#prepend` acts like `String#prepend` and modifies
+    instance in-place, returning self. `ActiveSupport::SafeBuffer#prepend!` is
+    deprecated.
+
+    *Pavel Pravosud*
+
+*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
+    given. In particular, `.new`, `#update`, `#merge`, `#replace` all accept
+    objects which respond to `#to_hash`, even if those objects are not Hashes
+    directly.
+
+    *Peter Jaros*
+
 *   Deprecate `Class#superclass_delegating_accessor`, use `Class#class_attribute` instead.
 
     *Akshay Vishnoi*

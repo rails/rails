@@ -608,6 +608,29 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert !@other_combination.html_safe?
   end
 
+  test "Prepending safe onto unsafe yields unsafe" do
+    @string.prepend "other".html_safe
+    assert !@string.html_safe?
+    assert_equal @string, "otherhello"
+  end
+
+  test "Prepending unsafe onto safe yields escaped safe" do
+    other = "other".html_safe
+    other.prepend "<foo>"
+    assert other.html_safe?
+    assert_equal other, "&lt;foo&gt;other"
+  end
+
+  test "Deprecated #prepend! method is still present" do
+    other = "other".html_safe
+
+    assert_deprecated do
+      other.prepend! "<foo>"
+    end
+
+    assert_equal other, "&lt;foo&gt;other"
+  end
+
   test "Concatting safe onto unsafe yields unsafe" do
     @other_string = "other"
 

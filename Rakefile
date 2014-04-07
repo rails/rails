@@ -45,34 +45,8 @@ else
   Rails::API::StableTask.new('rdoc')
 end
 
-desc 'Bump all versions to match version.rb'
-task :update_versions do
-  require File.dirname(__FILE__) + "/version"
-
-  File.open("RAILS_VERSION", "w") do |f|
-    f.puts Rails::VERSION::STRING
-  end
-
-  constants = {
-    "activesupport"   => "ActiveSupport",
-    "activemodel"     => "ActiveModel",
-    "actionpack"      => "ActionPack",
-    "actionview"      => "ActionView",
-    "actionmailer"    => "ActionMailer",
-    "activerecord"    => "ActiveRecord",
-    "railties"        => "Rails"
-  }
-
-  version_file = File.read("version.rb")
-
-  PROJECTS.each do |project|
-    Dir["#{project}/lib/*/gem_version.rb"].each do |file|
-      File.open(file, "w") do |f|
-        f.write version_file.gsub(/Rails/, constants[project])
-      end
-    end
-  end
-end
+desc 'Bump all versions to match RAILS_VERSION'
+task :update_versions => "all:update_versions"
 
 # We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
