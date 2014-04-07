@@ -151,14 +151,13 @@ module Rails
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @caching_key_generator ||= begin
+      @caching_key_generator ||=
         if secrets.secret_key_base
           key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
           ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
         end
-      end
     end
 
     # Returns a message verifier object.
