@@ -1424,6 +1424,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [], scope.references_values
   end
 
+  def test_order_with_reorder_nil_removes_the_order
+    relation = Post.order(:title).reorder(nil)
+
+    assert_nil relation.order_values.first
+  end
+
+  def test_reverse_order_with_reorder_nil_removes_the_order
+    relation = Post.order(:title).reverse_order.reorder(nil)
+
+    assert_nil relation.order_values.first
+  end
+
   def test_presence
     topics = Topic.all
 

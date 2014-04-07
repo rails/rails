@@ -825,7 +825,9 @@ module ActiveRecord
     end
 
     def reverse_order! # :nodoc:
-      self.reverse_order_value = !reverse_order_value
+      orders = order_values.uniq
+      orders.reject!(&:blank?)
+      self.order_values = reverse_sql_order(orders)
       self
     end
 
@@ -871,7 +873,6 @@ module ActiveRecord
 
       case scope
       when :order
-        self.reverse_order_value = false
         result = []
       else
         result = [] unless single_val_method
@@ -1031,7 +1032,6 @@ module ActiveRecord
     def build_order(arel)
       orders = order_values.uniq
       orders.reject!(&:blank?)
-      orders = reverse_sql_order(orders) if reverse_order_value
 
       arel.order(*orders) unless orders.empty?
     end
