@@ -1,5 +1,3 @@
-require 'uri'
-
 module ActionDispatch
   module Journey # :nodoc:
     class Router # :nodoc:
@@ -25,31 +23,67 @@ module ActionDispatch
 
         # URI path and fragment escaping
         # http://tools.ietf.org/html/rfc3986
-        module UriEscape # :nodoc:
-          # Symbol captures can generate multiple path segments, so include /.
-          reserved_segment  = '/'
-          reserved_fragment = '/?'
-          reserved_pchar    = ':@&=+$,;%'
+        class UriEncoder # :nodoc:
+          ENCODE   = "%%%02X".freeze
+          ENCODING = Encoding::US_ASCII
+          EMPTY    = "".force_encoding(ENCODING).freeze
+          DEC2HEX  = (0..255).to_a.map{ |i| ENCODE % i }.map{ |s| s.force_encoding(ENCODING) }
 
-          safe_pchar    = "#{URI::REGEXP::PATTERN::UNRESERVED}#{reserved_pchar}"
-          safe_segment  = "#{safe_pchar}#{reserved_segment}"
-          safe_fragment = "#{safe_pchar}#{reserved_fragment}"
-          UNSAFE_SEGMENT  = Regexp.new("[^#{safe_segment}]", false).freeze
-          UNSAFE_FRAGMENT = Regexp.new("[^#{safe_fragment}]", false).freeze
+          ALPHA = "a-zA-Z".freeze
+          DIGIT = "0-9".freeze
+          UNRESERVED = "#{ALPHA}#{DIGIT}\\-\\._~".freeze
+          SUB_DELIMS = "!\\$&'\\(\\)\\*\\+,;=".freeze
+
+          ESCAPED  = /%[a-zA-Z0-9]{2}/.freeze
+
+          FRAGMENT = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/\?]/.freeze
+          SEGMENT  = /[^#{UNRESERVED}#{SUB_DELIMS}:@]/.freeze
+          PATH     = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/]/.freeze
+
+          def escape_fragment(fragment)
+            escape(fragment, FRAGMENT)
+          end
+
+          def escape_path(path)
+            escape(path, PATH)
+          end
+
+          def escape_segment(segment)
+            escape(segment, SEGMENT)
+          end
+
+          def unescape_uri(uri)
+            uri.gsub(ESCAPED) { [$&[1, 2].hex].pack('C') }.force_encoding(uri.encoding)
+          end
+
+          protected
+            def escape(component, pattern)
+              component.gsub(pattern){ |unsafe| percent_encode(unsafe) }.force_encoding(ENCODING)
+            end
+
+            def percent_encode(unsafe)
+              safe = EMPTY.dup
+              unsafe.each_byte { |b| safe << DEC2HEX[b] }
+              safe
+            end
         end
 
-        Parser = URI::Parser.new
+        ENCODER = UriEncoder.new
 
         def self.escape_path(path)
-          Parser.escape(path.to_s, UriEscape::UNSAFE_SEGMENT)
+          ENCODER.escape_path(path.to_s)
+        end
+
+        def self.escape_segment(segment)
+          ENCODER.escape_segment(segment.to_s)
         end
 
         def self.escape_fragment(fragment)
-          Parser.escape(fragment.to_s, UriEscape::UNSAFE_FRAGMENT)
+          ENCODER.escape_fragment(fragment.to_s)
         end
 
         def self.unescape_uri(uri)
-          Parser.unescape(uri)
+          ENCODER.unescape_uri(uri)
         end
       end
     end

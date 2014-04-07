@@ -101,6 +101,10 @@ module ActionDispatch
         end
       end
 
+      def glob?
+        !path.spec.grep(Nodes::Star).empty?
+      end
+
       def dispatcher?
         @dispatcher
       end
