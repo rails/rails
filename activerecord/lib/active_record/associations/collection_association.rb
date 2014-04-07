@@ -182,11 +182,11 @@ module ActiveRecord
       #
       # See delete for more info.
       def delete_all(dependent = nil)
-        if dependent.present? && ![:nullify, :delete_all].include?(dependent)
+        if dependent && ![:nullify, :delete_all].include?(dependent)
           raise ArgumentError, "Valid values are :nullify or :delete_all"
         end
 
-        dependent = if dependent.present?
+        dependent = if dependent
                       dependent
                     elsif options[:dependent] == :destroy
                       :delete_all
