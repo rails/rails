@@ -70,6 +70,14 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
+      def test_resolver_with_custom_database_uri_and_no_matching_config
+        ENV['DATABASE_URL_PRODUCTION'] = "postgres://localhost/foo"
+        config   = {}
+        actual   = resolve(:production, config)
+        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
       def test_resolver_with_custom_database_uri_and_custom_key
         ENV['DATABASE_URL_PRODUCTION'] = "postgres://localhost/foo"
         config   = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
@@ -116,6 +124,19 @@ module ActiveRecord
         actual      = klass.new(config).resolve
         expect_prod = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
         assert_equal expect_prod, actual["default_env"]
+      end
+
+      def test_environment_key_available_immediately
+        ENV['DATABASE_URL_PRODUCTION'] = "postgres://localhost/foo"
+        config   = {}
+        actual   = klass.new(config).resolve
+        expected = { "production" =>
+                     { "adapter"  => "postgresql",
+                       "database" => "foo",
+                       "host"     => "localhost"
+                     }
+                   }
+        assert_equal expected, actual
       end
 
       def test_string_connection
