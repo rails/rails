@@ -1,3 +1,5 @@
+## Rails 4.1.0 (April 8, 2014) ##
+
 *   Support the use of underscored symbols when registering interceptors and
     observers like we do elsewhere within Rails.
 

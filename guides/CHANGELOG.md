@@ -1,3 +1,5 @@
+## Rails 4.1.0 (April 8, 2014) ##
+
 *   Fixed missing line and shadow on service pages(404, 422, 500).
 
     *Dmitry Korotkov*

@@ -1,3 +1,5 @@
+## Rails 4.1.0 (April 8, 2014) ##
+
 *   `#to_param` returns `nil` if `#to_key` returns `nil`. Fixes #11399.
 
     *Yves Senn*

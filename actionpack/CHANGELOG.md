@@ -13,6 +13,9 @@
 
     *Andrew White*
 
+
+## Rails 4.1.0 (April 8, 2014) ##
+
 *   Fix URL generation in controller tests with request-dependent
     `default_url_options` methods.
 

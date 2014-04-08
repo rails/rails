@@ -2,6 +2,9 @@
 
     *Konstantin Shabanov*
 
+
+## Rails 4.1.0 (April 8, 2014) ##
+
 *   Introduce `Rails.gem_version` as a convenience method to return
     `Gem::Version.new(Rails.version)`, suggesting a more reliable way to perform
     version comparison.

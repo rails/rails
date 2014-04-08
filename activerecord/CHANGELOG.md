@@ -1,10 +1,3 @@
-*   Fixed a problem where an enum would overwrite values of another enum
-    with the same name in an unrelated class.
-
-    Fixes #14607.
-
-    *Evan Whalen*
-
 *   Make possible to have an association called `records`.
 
     Fixes #11645.
@@ -20,36 +13,11 @@
 
     *Jefferson Lai*
 
-*   Block a few default Class methods as scope name.
-
-    For instance, this will raise:
-
-        scope :public, -> { where(status: 1) }
-
-    *arthurnn*
-
 *   Fixed error when using `with_options` with lambda.
 
     Fixes #9805.
 
     *Lauro Caetano*
-
-*   Deprecate SQLite database URLs containing an
-    authority.
-
-    The current "correct" spellings for in-memory, relative, and
-    absolute URLs, respectively, are:
-
-        sqlite3::memory:
-        sqlite3:relative/path
-        sqlite3:/full/path
-
-    The previous spelling (`sqlite3:///relative/path`) continues to work
-    as it did in Rails 4.0, but with a deprecation warning: in the next
-    release, that spelling will instead be interpreted as an absolute
-    path.
-
-    *Matthew Draper*
 
 *   Fixed error when specifying a non-empty default value on a PostgreSQL array column.
 
@@ -75,12 +43,6 @@
 
     *Yves Senn*
 
-*   `where.not` adds `references` for `includes` like normal `where` calls do.
-
-    Fixes #14406.
-
-    *Yves Senn*
-
 *   Add support for `Relation` be passed as parameter on `QueryCache#select_all`.
 
     Fixes #14361.
@@ -92,6 +54,48 @@
     `has_one` object did not get saved to the db.
 
     *Alan Kennedy*
+
+
+## Rails 4.1.0 (April 8, 2014) ##
+
+*   Fixed a problem where an enum would overwrite values of another enum
+    with the same name in an unrelated class.
+
+    Fixes #14607.
+
+    *Evan Whalen*
+
+
+*   Block a few default Class methods as scope name.
+
+    For instance, this will raise:
+
+        scope :public, -> { where(status: 1) }
+
+    *arthurnn*
+
+*   Deprecate SQLite database URLs containing an
+    authority.
+
+    The current "correct" spellings for in-memory, relative, and
+    absolute URLs, respectively, are:
+
+        sqlite3::memory:
+        sqlite3:relative/path
+        sqlite3:/full/path
+
+    The previous spelling (`sqlite3:///relative/path`) continues to work
+    as it did in Rails 4.0, but with a deprecation warning: in the next
+    release, that spelling will instead be interpreted as an absolute
+    path.
+
+    *Matthew Draper*
+
+*   `where.not` adds `references` for `includes` like normal `where` calls do.
+
+    Fixes #14406.
+
+    *Yves Senn*
 
 *   `includes` is able to detect the right preloading strategy when string
     joins are involved.

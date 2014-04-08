@@ -9,6 +9,9 @@
 
     *Peter Jaros*
 
+
+## Rails 4.1.0 (April 8, 2014) ##
+
 *   Added `Object#presence_in` to simplify value whitelisting.
 
     Before:
