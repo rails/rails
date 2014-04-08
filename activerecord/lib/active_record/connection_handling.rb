@@ -72,24 +72,24 @@ module ActiveRecord
       private
         def config
           @raw_config.dup.tap do |cfg|
-            urls_in_environment.each do |key, url|
-              cfg[key] ||= {}
-              cfg[key]["url"] ||= url
-            end
-          end
-        end
-
-        def urls_in_environment
-          {}.tap do |mapping|
-            ENV.each do |k, v|
-              if k =~ /\ADATABASE_URL_(.*)/
-                mapping[$1.downcase] = v
+            if url = ENV['DATABASE_URL']
+              if cfg[@env]
+                if cfg[@env]["url"]
+                  # Nothing to do
+                else
+                  ActiveSupport::Deprecation.warn "Overriding database configuration with DATABASE_URL without using an ERB tag in database.yml is deprecated. Please update the entry for #{@env.inspect}:\n\n" \
+                    "  #{@env}:\n    url: <%= ENV['DATABASE_URL'] %>\n\n"\
+                    "This will be required in Rails 4.2"
+                  cfg[@env]["url"] = url
+                end
+              else
+                cfg[@env] = {}
+                ActiveSupport::Deprecation.warn "Supplying DATABASE_URL without a matching entry in database.yml is deprecated. Please add an entry for #{@env.inspect}:\n\n" \
+                  "  #{@env}:\n    url: <%= ENV['DATABASE_URL'] %>\n\n"\
+                  "This will be required in Rails 4.2"
+                cfg[@env]["url"] ||= url
               end
             end
-
-            # Check for this last, because it is prioritised over the
-            # longer "DATABASE_URL_#{@env}" spelling
-            mapping[@env] = ENV['DATABASE_URL'] if ENV['DATABASE_URL']
           end
         end
     end
