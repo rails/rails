@@ -60,6 +60,7 @@ module ActiveRecord
     class MergeAndResolveDefaultUrlConfig # :nodoc:
       def initialize(raw_configurations)
         @raw_config = raw_configurations.dup
+        @env = DEFAULT_ENV.call.to_s
       end
 
       # Returns fully resolved connection hashes.
@@ -70,30 +71,26 @@ module ActiveRecord
 
       private
         def config
-          env = DEFAULT_ENV.call.to_s
-
-          cfg = Hash.new do |hash, key|
-            entry = @raw_config[key]
-            env_url = nil
-
-            if key.to_s == env
-              env_url = ENV["DATABASE_URL"]
+          @raw_config.dup.tap do |cfg|
+            urls_in_environment.each do |key, url|
+              cfg[key] ||= {}
+              cfg[key]["url"] ||= url
             end
-
-            env_url ||= ENV["DATABASE_URL_#{key.upcase}"]
-
-            if env_url
-              entry ||= {}
-              entry.merge!("url" => env_url) { |h, v1, v2| v1 || v2 }
-            end
-
-            hash[key] = entry if entry
           end
+        end
 
-          @raw_config.keys.each {|k| cfg[k] }
-          cfg[env]
+        def urls_in_environment
+          {}.tap do |mapping|
+            ENV.each do |k, v|
+              if k =~ /\ADATABASE_URL_(.*)/
+                mapping[$1.downcase] = v
+              end
+            end
 
-          cfg
+            # Check for this last, because it is prioritised over the
+            # longer "DATABASE_URL_#{@env}" spelling
+            mapping[@env] = ENV['DATABASE_URL'] if ENV['DATABASE_URL']
+          end
         end
     end
 
