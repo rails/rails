@@ -280,12 +280,14 @@ module Arel
         "WITH #{o.children.map { |x| visit x }.join(', ')}"
       end
 
-      def visit_Arel_Nodes_WithRecursive o
-        "WITH RECURSIVE #{o.children.map { |x| visit x }.join(', ')}"
+      def visit_Arel_Nodes_WithRecursive o, collector
+        collector << "WITH RECURSIVE "
+        inject_join o.children, collector, ', '
       end
 
-      def visit_Arel_Nodes_Union o
-        "( #{visit o.left} UNION #{visit o.right} )"
+      def visit_Arel_Nodes_Union o, collector
+        collector << "( "
+        infix_value(o, collector, " UNION ") << " )"
       end
 
       def visit_Arel_Nodes_UnionAll o
@@ -296,7 +298,7 @@ module Arel
         "( #{visit o.left} INTERSECT #{visit o.right} )"
       end
 
-      def visit_Arel_Nodes_Except o
+      def visit_Arel_Nodes_Except o, collector
         "( #{visit o.left} EXCEPT #{visit o.right} )"
       end
 
@@ -393,8 +395,8 @@ module Arel
         collector
       end
 
-      def visit_Arel_Nodes_Lock o
-        visit o.expr
+      def visit_Arel_Nodes_Lock o, collector
+        visit o.expr, collector
       end
 
       def visit_Arel_Nodes_Grouping o, collector
@@ -522,16 +524,19 @@ module Arel
         raise NotImplementedError, '!~ not implemented for this db'
       end
 
-      def visit_Arel_Nodes_StringJoin o
-        visit o.left
+      def visit_Arel_Nodes_StringJoin o, collector
+        visit o.left, collector
       end
 
       def visit_Arel_Nodes_FullOuterJoin o
         "FULL OUTER JOIN #{visit o.left} #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_OuterJoin o
-        "LEFT OUTER JOIN #{visit o.left} #{visit o.right}"
+      def visit_Arel_Nodes_OuterJoin o, collector
+        collector << "LEFT OUTER JOIN "
+        collector = visit o.left, collector
+        collector << " "
+        visit o.right, collector
       end
 
       def visit_Arel_Nodes_RightOuterJoin o
@@ -733,6 +738,12 @@ module Arel
             visit(x, c) << join_str
           end
         }
+      end
+
+      def infix_value o, collector, value
+        collector = visit o.left, collector
+        collector << " UNION "
+        visit o.right, collector
       end
 
       def aggregate name, o, collector
