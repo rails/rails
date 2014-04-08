@@ -252,17 +252,38 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "enums are distinct per class" do
-    Plane = Class.new(ActiveRecord::Base) do
-      enum status: [:grounded, :operational]
+    klass1 = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written]
     end
-    assert_equal({ "proposed" => 0, "written" => 1, "published" => 2 }, Book.statuses)
-    assert_equal({ "grounded" => 0, "operational" => 1 }, Plane.statuses)
+
+    klass2 = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:drafted, :uploaded]
+    end
+
+    book1 = klass1.proposed.create!
+    book1.status = :written
+    assert_equal ['proposed', 'written'], book1.status_change
+
+    book2 = klass2.drafted.create!
+    book2.status = :uploaded
+    assert_equal ['drafted', 'uploaded'], book2.status_change
   end
 
   test "enums are inheritable" do
-    Encyclopedia = Class.new(Book) do
-      enum status: [:published, :reprinted]
+    subklass1 = Class.new(Book)
+
+    subklass2 = Class.new(Book) do
+      enum status: [:drafted, :uploaded]
     end
-    assert_equal({ "published" => 0, "reprinted" => 1 }, Encyclopedia.statuses)
+
+    book1 = subklass1.proposed.create!
+    book1.status = :written
+    assert_equal ['proposed', 'written'], book1.status_change
+
+    book2 = subklass2.drafted.create!
+    book2.status = :uploaded
+    assert_equal ['drafted', 'uploaded'], book2.status_change
   end
 end
