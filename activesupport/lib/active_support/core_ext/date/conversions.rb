@@ -3,6 +3,13 @@ require 'active_support/inflector/methods'
 require 'active_support/core_ext/date/zones'
 require 'active_support/core_ext/module/remove_method'
 
+class NilClass
+  # Returns +""+.
+  def to_s(*args)
+    ""  
+  end
+end
+
 class Date
   DATE_FORMATS = {
     :short        => '%e %b',
