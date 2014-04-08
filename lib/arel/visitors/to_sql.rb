@@ -435,6 +435,14 @@ module Arel
         "#{visit o.left} NOT LIKE #{visit o.right}"
       end
 
+      def visit_Arel_Nodes_Regexp o
+        raise NotImplementedError, '~ not implemented for this db'
+      end
+
+      def visit_Arel_Nodes_NotRegexp o
+        raise NotImplementedError, '!~ not implemented for this db'
+      end
+
       def visit_Arel_Nodes_JoinSource o
         [
           (visit(o.left) if o.left),
