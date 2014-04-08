@@ -22,11 +22,11 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   def test_debugger_option
     console = Rails::Console.new(app, parse_arguments(["--debugger"]))
     assert console.debugger?
-  end
+  end if RUBY_VERSION < '2.0.0'
 
   def test_no_options
     console = Rails::Console.new(app, parse_arguments([]))
-    assert !console.debugger?
+    assert !console.debugger? if RUBY_VERSION < '2.0.0'
     assert !console.sandbox?
   end
 
@@ -41,7 +41,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     rails_console.expects(:require_debugger).returns(nil)
 
     silence_stream(STDOUT) { rails_console.start }
-  end
+  end if RUBY_VERSION < '2.0.0'
 
   def test_start_with_sandbox
     app.expects(:sandbox=).with(true)

@@ -18,7 +18,14 @@ module Rails
           opts.on("-c", "--config=file", String,
                   "Use custom rackup configuration file") { |v| options[:config] = v }
           opts.on("-d", "--daemon", "Make server run as a Daemon.") { options[:daemonize] = true }
-          opts.on("-u", "--debugger", "Enable the debugger") { options[:debugger] = true }
+          opts.on("-u", "--debugger", "Enable the debugger") do
+            if RUBY_VERSION < '2.0.0'
+              options[:debugger] = true
+            else
+              puts "=> Notice: debugger option is ignored since ruby 2.0 and " \
+                   "it will be removed in future versions"
+            end
+          end
           opts.on("-e", "--environment=name", String,
                   "Specifies the environment to run this server under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v }
@@ -75,7 +82,9 @@ module Rails
 
     def middleware
       middlewares = []
-      middlewares << [Rails::Rack::Debugger] if options[:debugger]
+      if RUBY_VERSION < '2.0.0'
+        middlewares << [Rails::Rack::Debugger] if options[:debugger]
+      end
       middlewares << [::Rack::ContentLength]
 
       # FIXME: add Rack::Lock in the case people are using webrick.

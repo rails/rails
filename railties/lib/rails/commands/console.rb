@@ -18,7 +18,14 @@ module Rails
           opt.on("-e", "--environment=name", String,
                   "Specifies the environment to run this console under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v.strip }
-          opt.on("--debugger", 'Enable the debugger.') { |v| options[:debugger] = v }
+          opt.on("--debugger", 'Enable the debugger.') do |v|
+            if RUBY_VERSION < '2.0.0'
+              options[:debugger] = v
+            else
+              puts "=> Notice: debugger option is ignored since ruby 2.0 and " \
+                   "it will be removed in future versions"
+            end
+          end
           opt.parse!(arguments)
         end
 
@@ -71,10 +78,13 @@ module Rails
 
     def debugger?
       options[:debugger]
-    end
+    end if RUBY_VERSION < '2.0.0'
 
     def start
-      require_debugger if debugger?
+      if RUBY_VERSION < '2.0.0'
+        require_debugger if debugger?
+      end
+
       set_environment! if environment?
 
       if sandbox?
@@ -96,6 +106,6 @@ module Rails
     rescue LoadError
       puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle it and try again."
       exit(1)
-    end
+    end if RUBY_VERSION < '2.0.0'
   end
 end
