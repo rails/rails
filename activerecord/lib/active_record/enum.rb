@@ -139,7 +139,7 @@ module ActiveRecord
           mod = Module.new do
             private
               def save_changed_attribute(attr_name, value)
-                if (mapping = self.class.defined_enums[attr_name])
+                if (mapping = self.class.defined_enums[attr_name.to_s])
                   if attribute_changed?(attr_name)
                     old = changed_attributes[attr_name]
 
