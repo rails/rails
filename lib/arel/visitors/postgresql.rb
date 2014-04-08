@@ -11,6 +11,14 @@ module Arel
         "#{visit o.left} NOT ILIKE #{visit o.right}"
       end
 
+      def visit_Arel_Nodes_Regexp o
+        "#{visit o.left} ~ #{visit o.right}"
+      end
+
+      def visit_Arel_Nodes_NotRegexp o
+        "#{visit o.left} !~ #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_DistinctOn o
         "DISTINCT ON ( #{visit o.expr} )"
       end

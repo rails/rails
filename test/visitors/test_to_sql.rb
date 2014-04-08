@@ -531,6 +531,26 @@ module Arel
           end
         end
       end
+
+      describe 'Nodes::Regexp' do
+        it 'raises not implemented error' do
+          node = Arel::Nodes::Regexp.new(@table[:name], Nodes.build_quoted('foo%'))
+
+          assert_raises(NotImplementedError) do
+            compile(node)
+          end
+        end
+      end
+
+      describe 'Nodes::NotRegexp' do
+        it 'raises not implemented error' do
+          node = Arel::Nodes::NotRegexp.new(@table[:name], Nodes.build_quoted('foo%'))
+
+          assert_raises(NotImplementedError) do
+            compile(node)
+          end
+        end
+      end
     end
   end
 end

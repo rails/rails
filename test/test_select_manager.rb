@@ -519,8 +519,24 @@ module Arel
 
     it 'should create join nodes with a klass' do
       relation = Arel::SelectManager.new Table.engine
+      join = relation.create_join 'foo', 'bar', Arel::Nodes::FullOuterJoin
+      assert_kind_of Arel::Nodes::FullOuterJoin, join
+      assert_equal 'foo', join.left
+      assert_equal 'bar', join.right
+    end
+
+    it 'should create join nodes with a klass' do
+      relation = Arel::SelectManager.new Table.engine
       join = relation.create_join 'foo', 'bar', Arel::Nodes::OuterJoin
       assert_kind_of Arel::Nodes::OuterJoin, join
+      assert_equal 'foo', join.left
+      assert_equal 'bar', join.right
+    end
+
+    it 'should create join nodes with a klass' do
+      relation = Arel::SelectManager.new Table.engine
+      join = relation.create_join 'foo', 'bar', Arel::Nodes::RightOuterJoin
+      assert_kind_of Arel::Nodes::RightOuterJoin, join
       assert_equal 'foo', join.left
       assert_equal 'bar', join.right
     end
@@ -609,16 +625,6 @@ module Arel
       it 'returns nil join sql' do
         manager = Arel::SelectManager.new Table.engine
         manager.join_sql.must_be_nil
-      end
-    end
-
-    describe 'order_clauses' do
-      it 'returns order clauses as a list' do
-        table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
-        manager.from table
-        manager.order table[:id]
-        manager.order_clauses.first.must_be_like %{ "users"."id" }
       end
     end
 

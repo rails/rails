@@ -81,8 +81,20 @@ module Arel
         assert_equal [:a, :b, join], @collector.calls
       end
 
+      def test_full_outer_join
+        join = Nodes::FullOuterJoin.new :a, :b
+        @visitor.accept join
+        assert_equal [:a, :b, join], @collector.calls
+      end
+
       def test_outer_join
         join = Nodes::OuterJoin.new :a, :b
+        @visitor.accept join
+        assert_equal [:a, :b, join], @collector.calls
+      end
+
+      def test_right_outer_join
+        join = Nodes::RightOuterJoin.new :a, :b
         @visitor.accept join
         assert_equal [:a, :b, join], @collector.calls
       end

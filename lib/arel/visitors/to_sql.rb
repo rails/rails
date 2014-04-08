@@ -470,17 +470,33 @@ module Arel
           collector << " "
         end
         if o.right.any?
-          o.right.map { |j| visit j }.join(' ')
+          collector = inject_join o.right, collector, ' '
         end
         collector
+      end
+
+      def visit_Arel_Nodes_Regexp o, collector
+        raise NotImplementedError, '~ not implemented for this db'
+      end
+
+      def visit_Arel_Nodes_NotRegexp o, collector
+        raise NotImplementedError, '!~ not implemented for this db'
       end
 
       def visit_Arel_Nodes_StringJoin o
         visit o.left
       end
 
+      def visit_Arel_Nodes_FullOuterJoin o
+        "FULL OUTER JOIN #{visit o.left} #{visit o.right}"
+      end
+
       def visit_Arel_Nodes_OuterJoin o
         "LEFT OUTER JOIN #{visit o.left} #{visit o.right}"
+      end
+
+      def visit_Arel_Nodes_RightOuterJoin o
+        "RIGHT OUTER JOIN #{visit o.left} #{visit o.right}"
       end
 
       def visit_Arel_Nodes_InnerJoin o
@@ -612,7 +628,7 @@ module Arel
         quote(o, column_for(a))
       end
 
-      def unsupported o, a
+      def unsupported o
         raise "unsupported: #{o.class.name}"
       end
 

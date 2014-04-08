@@ -25,6 +25,19 @@ module Arel
         end
       end
 
+      describe 'FULL outer join' do
+        it 'should visit left if left is a join' do
+          t    = Table.new :users
+          sm   = t.select_manager
+          sm.join(t, Nodes::FullOuterJoin).on(t[:id]).join(
+            t, Nodes::FullOuterJoin).on(t[:id])
+          sm.join_sql.must_be_like %{
+            FULL OUTER JOIN "users" ON "users"."id"
+            FULL OUTER JOIN "users" ON "users"."id"
+          }
+        end
+      end
+
       describe 'outer join' do
         it 'should visit left if left is a join' do
           t    = Table.new :users
@@ -34,6 +47,19 @@ module Arel
           sm.join_sql.must_be_like %{
             LEFT OUTER JOIN "users" ON "users"."id"
             LEFT OUTER JOIN "users" ON "users"."id"
+          }
+        end
+      end
+
+      describe 'right outer join' do
+        it 'should visit left if left is a join' do
+          t    = Table.new :users
+          sm   = t.select_manager
+          sm.join(t, Nodes::RightOuterJoin).on(t[:id]).join(
+            t, Nodes::RightOuterJoin).on(t[:id])
+          sm.join_sql.must_be_like %{
+            RIGHT OUTER JOIN "users" ON "users"."id"
+            RIGHT OUTER JOIN "users" ON "users"."id"
           }
         end
       end
