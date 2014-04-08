@@ -6,20 +6,25 @@ module Arel
       before do
         @conn = FakeRecord::Base.new
         @visitor = ToSql.new @conn.connection
+        @collector = Collectors::SQLString.new
         @table = Table.new(:users)
         @attr = @table[:id]
       end
 
+      def compile node
+        @visitor.accept(node, @collector).value
+      end
+
       it 'works with BindParams' do
         node = Nodes::BindParam.new 'omg'
-        sql = @visitor.accept node
+        sql = compile node
         sql.must_be_like 'omg'
       end
 
       it 'can define a dispatch method' do
         visited = false
         viz = Class.new(Arel::Visitors::Visitor) {
-          define_method(:hello) do |node|
+          define_method(:hello) do |node, c|
             visited = true
           end
 
@@ -28,13 +33,13 @@ module Arel
           end
         }.new
 
-        viz.accept(@table)
+        viz.accept(@table, @collector)
         assert visited, 'hello method was called'
       end
 
       it 'should not quote sql literals' do
         node = @table[Arel.star]
-        sql = @visitor.accept node
+        sql = compile node
         sql.must_be_like '"users".*'
       end
 
@@ -336,7 +341,7 @@ module Arel
 
         it 'can handle three dot ranges' do
           node = @attr.in 1...3
-          @visitor.accept(node).must_be_like %{
+          compile(node).must_be_like %{
             "users"."id" >= 1 AND "users"."id" < 3
           }
         end
@@ -421,14 +426,14 @@ module Arel
       describe "Nodes::NotIn" do
         it "should know how to visit" do
           node = @attr.not_in [1, 2, 3]
-          @visitor.accept(node).must_be_like %{
+          compile(node).must_be_like %{
             "users"."id" NOT IN (1, 2, 3)
           }
         end
 
         it "should return 1=1 when empty right which is always true" do
           node = @attr.not_in []
-          @visitor.accept(node).must_equal '1=1'
+          compile(node).must_equal '1=1'
         end
 
         it 'can handle two dot ranges' do
@@ -440,14 +445,14 @@ module Arel
 
         it 'can handle three dot ranges' do
           node = @attr.not_in 1...3
-          @visitor.accept(node).must_be_like %{
+          compile(node).must_be_like %{
             "users"."id" < 1 OR "users"."id" >= 3
           }
         end
 
         it 'can handle ranges bounded by infinity' do
           node = @attr.not_in 1..Float::INFINITY
-          @visitor.accept(node).must_be_like %{
+          compile(node).must_be_like %{
             "users"."id" < 1
           }
           node = @attr.not_in(-Float::INFINITY..3)
@@ -466,7 +471,7 @@ module Arel
           table = Table.new(:users)
           subquery = table.project(:id).where(table[:name].eq('Aaron'))
           node = @attr.not_in subquery
-          @visitor.accept(node).must_be_like %{
+          compile(node).must_be_like %{
             "users"."id" NOT IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
           }
         end
@@ -494,14 +499,14 @@ module Arel
       describe 'Constants' do
         it "should handle true" do
           test = Table.new(:users).create_true
-          @visitor.accept(test).must_be_like %{
+          compile(test).must_be_like %{
             TRUE
           }
         end
 
         it "should handle false" do
           test = Table.new(:users).create_false
-          @visitor.accept(test).must_be_like %{
+          compile(test).must_be_like %{
             FALSE
           }
         end
@@ -510,7 +515,7 @@ module Arel
       describe 'TableAlias' do
         it "should use the underlying table for checking columns" do
           test = Table.new(:users).alias('zomgusers')[:id].eq '3'
-          @visitor.accept(test).must_be_like %{
+          compile(test).must_be_like %{
             "zomgusers"."id" = 3
           }
         end
@@ -522,7 +527,7 @@ module Arel
           core.set_quantifier = Arel::Nodes::DistinctOn.new(Arel.sql('aaron'))
 
           assert_raises(NotImplementedError) do
-            @visitor.accept(core)
+            compile(core)
           end
         end
       end

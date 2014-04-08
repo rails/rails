@@ -116,20 +116,20 @@ module Arel
           o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
-      def visit_Arel_Nodes_Casted o
-        quoted o.val, o.attribute
+      def visit_Arel_Nodes_Casted o, collector
+        collector << quoted(o.val, o.attribute).to_s
       end
 
       def visit_Arel_Nodes_Quoted o
         quoted o.expr, nil
       end
 
-      def visit_Arel_Nodes_True o
-        "TRUE"
+      def visit_Arel_Nodes_True o, collector
+        collector << "TRUE"
       end
 
-      def visit_Arel_Nodes_False o
-        "FALSE"
+      def visit_Arel_Nodes_False o, collector
+        collector << "FALSE"
       end
 
       def table_exists? name
@@ -160,81 +160,93 @@ module Arel
         }.join ', '})"
       end
 
-      def visit_Arel_Nodes_SelectStatement o
-        str = ''
-
+      def visit_Arel_Nodes_SelectStatement o, collector
         if o.with
-          str << visit(o.with)
-          str << SPACE
+          collector = visit o.with, collector
+          collector << SPACE
         end
 
-        o.cores.each { |x| str << visit_Arel_Nodes_SelectCore(x) }
+        collector = o.cores.inject(collector) { |c,x|
+          visit_Arel_Nodes_SelectCore(x, c)
+        }
 
         unless o.orders.empty?
-          str << SPACE
-          str << ORDER_BY
+          collector << SPACE
+          collector << ORDER_BY
           len = o.orders.length - 1
           o.orders.each_with_index { |x, i|
-            str << visit(x)
-            str << COMMA unless len == i
+            collector = visit(x, collector)
+            collector << COMMA unless len == i
           }
         end
 
-        str << " #{visit(o.limit)}" if o.limit
-        str << " #{visit(o.offset)}" if o.offset
-        str << " #{visit(o.lock)}" if o.lock
+        collector = maybe_visit o.limit, collector
+        collector = maybe_visit o.offset, collector
+        collector = maybe_visit o.lock, collector
 
-        str.strip!
-        str
+        collector
       end
 
-      def visit_Arel_Nodes_SelectCore o
-        str = "SELECT"
+      def visit_Arel_Nodes_SelectCore o, collector
+        collector << "SELECT"
 
-        str << " #{visit(o.top)}"            if o.top
-        str << " #{visit(o.set_quantifier)}" if o.set_quantifier
+        if o.top
+          collector << " "
+          collector = visit o.top, collector
+        end
+
+        if o.set_quantifier
+          collector << " "
+          collector = visit o.set_quantifier, collector
+        end
 
         unless o.projections.empty?
-          str << SPACE
+          collector << SPACE
           len = o.projections.length - 1
           o.projections.each_with_index do |x, i|
-            str << visit(x)
-            str << COMMA unless len == i
+            collector = visit(x, collector)
+            collector << COMMA unless len == i
           end
         end
 
-        str << " FROM #{visit(o.source)}" if o.source && !o.source.empty?
+        if o.source && !o.source.empty?
+          collector << " FROM "
+          collector = visit o.source, collector
+        end
 
         unless o.wheres.empty?
-          str << WHERE
+          collector << WHERE
           len = o.wheres.length - 1
           o.wheres.each_with_index do |x, i|
-            str << visit(x)
-            str << AND unless len == i
+            collector = visit(x, collector)
+            collector << AND unless len == i
           end
         end
 
         unless o.groups.empty?
-          str << GROUP_BY
+          collector << GROUP_BY
           len = o.groups.length - 1
           o.groups.each_with_index do |x, i|
-            str << visit(x)
-            str << COMMA unless len == i
+            collector = visit(x, collector)
+            collector << COMMA unless len == i
           end
         end
 
-        str << " #{visit(o.having)}" if o.having
+        if o.having
+          collector << " "
+          collector = visit(o.having, collector)
+        end
 
         unless o.windows.empty?
-          str << WINDOW
+          collector << WINDOW
           len = o.windows.length - 1
           o.windows.each_with_index do |x, i|
-            str << visit(x)
-            str << COMMA unless len == i
+            collector = visit(x, collector)
+            collector << COMMA unless len == i
           end
         end
 
-        str
+        collector
       end
 
       def visit_Arel_Nodes_Bin o
@@ -245,7 +257,7 @@ module Arel
         DISTINCT
       end
 
-      def visit_Arel_Nodes_DistinctOn o
+      def visit_Arel_Nodes_DistinctOn o, collector
         raise NotImplementedError, 'DISTINCT ON not implemented for this db'
       end
 
@@ -411,8 +423,10 @@ module Arel
         "#{visit o.left} BETWEEN #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_GreaterThanOrEqual o
-        "#{visit o.left} >= #{visit o.right}"
+      def visit_Arel_Nodes_GreaterThanOrEqual o, collector
+        collector = visit o.left, collector
+        collector << " >= "
+        visit o.right, collector
       end
 
       def visit_Arel_Nodes_GreaterThan o
@@ -423,8 +437,10 @@ module Arel
         "#{visit o.left} <= #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_LessThan o
-        "#{visit o.left} < #{visit o.right}"
+      def visit_Arel_Nodes_LessThan o, collector
+        collector = visit o.left, collector
+        collector << " < "
+        visit o.right, collector
       end
 
       def visit_Arel_Nodes_Matches o
@@ -435,11 +451,15 @@ module Arel
         "#{visit o.left} NOT LIKE #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_JoinSource o
-        [
-          (visit(o.left) if o.left),
+      def visit_Arel_Nodes_JoinSource o, collector
+        if o.left
+          collector = visit o.left, collector
+          collector << " "
+        end
+        if o.right.any?
           o.right.map { |j| visit j }.join(' ')
-        ].compact.join ' '
+        end
+        collector
       end
 
       def visit_Arel_Nodes_StringJoin o
@@ -467,11 +487,11 @@ module Arel
         "NOT (#{visit o.expr})"
       end
 
-      def visit_Arel_Table o
+      def visit_Arel_Table o, collector
         if o.table_alias
-          "#{quote_table_name o.name} #{quote_table_name o.table_alias}"
+          collector << "#{quote_table_name o.name} #{quote_table_name o.table_alias}"
         else
-          quote_table_name o.name
+          collector << quote_table_name(o.name)
         end
       end
 
@@ -483,20 +503,25 @@ module Arel
         end
       end
 
-      def visit_Arel_Nodes_NotIn o
+      def visit_Arel_Nodes_NotIn o, collector
         if Array === o.right && o.right.empty?
-          '1=1'
+          collector << '1=1'
         else
-          "#{visit o.left} NOT IN (#{visit o.right})"
+          collector = visit o.left, collector
+          collector << " NOT IN ("
+          collector = visit o.right, collector
+          collector << ")"
         end
       end
 
-      def visit_Arel_Nodes_And o
-        o.children.map { |x| visit x}.join ' AND '
+      def visit_Arel_Nodes_And o, collector
+        inject_join o.children, collector, " AND "
       end
 
-      def visit_Arel_Nodes_Or o
-        "#{visit o.left} OR #{visit o.right}"
+      def visit_Arel_Nodes_Or o, collector
+        collector = visit o.left, collector
+        collector << " OR "
+        visit o.right, collector
       end
 
       def visit_Arel_Nodes_Assignment o
@@ -509,13 +534,16 @@ module Arel
         end
       end
 
-      def visit_Arel_Nodes_Equality o
+      def visit_Arel_Nodes_Equality o, collector
         right = o.right
 
+        collector = visit o.left, collector
+
         if right.nil?
-          "#{visit o.left} IS NULL"
+          collector << " IS NULL"
         else
-          "#{visit o.left} = #{visit right}"
+          collector << " = "
+          visit right, collector
         end
       end
 
@@ -538,9 +566,9 @@ module Arel
         collector
       end
 
-      def visit_Arel_Attributes_Attribute o
+      def visit_Arel_Attributes_Attribute o, collector
         join_name = o.relation.table_alias || o.relation.name
-        "#{quote_table_name join_name}.#{quote_column_name o.name}"
+        collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"
       end
       alias :visit_Arel_Attributes_Integer :visit_Arel_Attributes_Attribute
       alias :visit_Arel_Attributes_Float :visit_Arel_Attributes_Attribute
@@ -549,7 +577,7 @@ module Arel
       alias :visit_Arel_Attributes_Time :visit_Arel_Attributes_Attribute
       alias :visit_Arel_Attributes_Boolean :visit_Arel_Attributes_Attribute
 
-      def literal o; o end
+      def literal o, collector; collector << o; end
 
       alias :visit_Arel_Nodes_BindParam  :literal
       alias :visit_Arel_Nodes_SqlLiteral :literal
@@ -588,8 +616,8 @@ module Arel
       alias :visit_Arel_Nodes_Multiplication :visit_Arel_Nodes_InfixOperation
       alias :visit_Arel_Nodes_Division       :visit_Arel_Nodes_InfixOperation
 
-      def visit_Array o
-        o.map { |x| visit x }.join(', ')
+      def visit_Array o, collector
+        inject_join o, collector, ", "
       end
 
       def quote value, column = nil
@@ -604,6 +632,23 @@ module Arel
 
       def quote_column_name name
         @quoted_columns[name] ||= Arel::Nodes::SqlLiteral === name ? name : @connection.quote_column_name(name)
+      end
+
+      def maybe_visit thing, collector
+        return collector unless thing
+        collector << " "
+        visit thing, collector
+      end
+
+      def inject_join list, collector, join_str
+        len = list.length - 1
+        list.each_with_index.inject(collector) { |c, (x,i)|
+          if i == len
+            visit x, c
+          else
+            visit(x, c) << join_str
+          end
+        }
       end
     end
   end
