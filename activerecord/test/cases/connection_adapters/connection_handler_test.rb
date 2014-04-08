@@ -89,6 +89,14 @@ module ActiveRecord
         assert_equal expect_prod, actual["default_env"]
       end
 
+      def test_url_with_hyphenated_scheme
+        ENV['DATABASE_URL'] = "ibm-db://localhost/foo"
+        config   = { "default_env" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
+        actual   = resolve(:default_env, config)
+        expected = { "adapter"=>"ibm_db", "database"=>"foo", "host"=>"localhost" }
+        assert_equal expected, actual
+      end
+
       def test_string_connection
         config   = { "default_env" => "postgres://localhost/foo" }
         actual   = klass.new(config).resolve
