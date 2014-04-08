@@ -126,9 +126,15 @@ module Arel
         ].compact.join ' '
       end
 
-      def visit_Arel_Nodes_Exists o
-        "EXISTS (#{visit o.expressions})#{
-          o.alias ? " AS #{visit o.alias}" : ''}"
+      def visit_Arel_Nodes_Exists o, collector
+        collector << "EXISTS ("
+        collector = visit(o.expressions, collector) << ")"
+        if o.alias
+          collector << " AS "
+          visit o.alias, collector
+        else
+          collector
+        end
       end
 
       def visit_Arel_Nodes_Casted o, collector
@@ -290,16 +296,19 @@ module Arel
         infix_value(o, collector, " UNION ") << " )"
       end
 
-      def visit_Arel_Nodes_UnionAll o
-        "( #{visit o.left} UNION ALL #{visit o.right} )"
+      def visit_Arel_Nodes_UnionAll o, collector
+        collector << "( "
+        infix_value(o, collector, " UNION ALL ") << " )"
       end
 
-      def visit_Arel_Nodes_Intersect o
-        "( #{visit o.left} INTERSECT #{visit o.right} )"
+      def visit_Arel_Nodes_Intersect o, collector
+        collector << "( "
+        infix_value(o, collector, " INTERSECT ") << " )"
       end
 
       def visit_Arel_Nodes_Except o, collector
-        "( #{visit o.left} EXCEPT #{visit o.right} )"
+        collector << "( "
+        infix_value(o, collector, " EXCEPT ") << " )"
       end
 
       def visit_Arel_Nodes_NamedWindow o, collector
@@ -377,12 +386,14 @@ module Arel
         end
       end
 
-      def visit_Arel_Nodes_Having o
-        "HAVING #{visit o.expr}"
+      def visit_Arel_Nodes_Having o, collector
+        collector << "HAVING "
+        visit o.expr, collector
       end
 
-      def visit_Arel_Nodes_Offset o
-        "OFFSET #{visit o.expr}"
+      def visit_Arel_Nodes_Offset o, collector
+        collector << "OFFSET "
+        visit o.expr, collector
       end
 
       def visit_Arel_Nodes_Limit o, collector
@@ -508,9 +519,9 @@ module Arel
       def visit_Arel_Nodes_JoinSource o, collector
         if o.left
           collector = visit o.left, collector
-          collector << " "
         end
         if o.right.any?
+          collector << " " if o.left
           collector = inject_join o.right, collector, ' '
         end
         collector
@@ -742,7 +753,7 @@ module Arel
 
       def infix_value o, collector, value
         collector = visit o.left, collector
-        collector << " UNION "
+        collector << value
         visit o.right, collector
       end
 
