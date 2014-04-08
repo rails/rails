@@ -11,6 +11,10 @@ module ActiveRecord
 
       def initialize_relation_delegate_cache # :nodoc:
         @relation_delegate_cache = cache = {}
+        
+        internals = Module.new
+        const_set :CachedActiveRecordInternals, internals
+        
         [
           ActiveRecord::Relation,
           ActiveRecord::Associations::CollectionProxy,
@@ -19,7 +23,7 @@ module ActiveRecord
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
-          const_set klass.name.gsub('::', '_'), delegate
+          internals.send :const_set, klass.name.gsub('::', '_'), delegate
           cache[klass] = delegate
         end
       end
