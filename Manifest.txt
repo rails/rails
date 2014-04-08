@@ -29,6 +29,7 @@ lib/arel/nodes/descending.rb
 lib/arel/nodes/equality.rb
 lib/arel/nodes/extract.rb
 lib/arel/nodes/false.rb
+lib/arel/nodes/full_outer_join.rb
 lib/arel/nodes/function.rb
 lib/arel/nodes/grouping.rb
 lib/arel/nodes/in.rb
@@ -40,6 +41,7 @@ lib/arel/nodes/named_function.rb
 lib/arel/nodes/node.rb
 lib/arel/nodes/outer_join.rb
 lib/arel/nodes/over.rb
+lib/arel/nodes/right_outer_join.rb
 lib/arel/nodes/select_core.rb
 lib/arel/nodes/select_statement.rb
 lib/arel/nodes/sql_literal.rb
@@ -65,11 +67,9 @@ lib/arel/visitors/depth_first.rb
 lib/arel/visitors/dot.rb
 lib/arel/visitors/ibm_db.rb
 lib/arel/visitors/informix.rb
-lib/arel/visitors/join_sql.rb
 lib/arel/visitors/mssql.rb
 lib/arel/visitors/mysql.rb
 lib/arel/visitors/oracle.rb
-lib/arel/visitors/order_clauses.rb
 lib/arel/visitors/postgresql.rb
 lib/arel/visitors/sqlite.rb
 lib/arel/visitors/to_sql.rb
@@ -120,7 +120,6 @@ test/visitors/test_dispatch_contamination.rb
 test/visitors/test_dot.rb
 test/visitors/test_ibm_db.rb
 test/visitors/test_informix.rb
-test/visitors/test_join_sql.rb
 test/visitors/test_mssql.rb
 test/visitors/test_mysql.rb
 test/visitors/test_oracle.rb

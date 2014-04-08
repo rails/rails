@@ -584,9 +584,8 @@ module Arel
         aliaz   = table.alias
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::InnerJoin.new(aliaz, table[:id].eq(aliaz[:id]))
-        manager.join_sql.must_be_like %{
-          INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"
-        }
+        assert_match 'INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"',
+                     manager.to_sql
       end
 
       it 'returns outer join sql' do
@@ -594,9 +593,8 @@ module Arel
         aliaz   = table.alias
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::OuterJoin.new(aliaz, table[:id].eq(aliaz[:id]))
-        manager.join_sql.must_be_like %{
-          LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"
-        }
+        assert_match 'LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"',
+                     manager.to_sql
       end
 
       it 'can have a non-table alias as relation name' do
@@ -619,12 +617,7 @@ module Arel
       it 'returns string join sql' do
         manager = Arel::SelectManager.new Table.engine
         manager.from Nodes::StringJoin.new(Nodes.build_quoted('hello'))
-        manager.join_sql.must_be_like %{ 'hello' }
-      end
-
-      it 'returns nil join sql' do
-        manager = Arel::SelectManager.new Table.engine
-        manager.join_sql.must_be_nil
+        assert_match "'hello'", manager.to_sql
       end
     end
 

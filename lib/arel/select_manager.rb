@@ -215,13 +215,6 @@ module Arel
     end
     alias limit= take
 
-    def join_sql
-      return nil if @ctx.source.right.empty?
-
-      sql = visitor.dup.extend(Visitors::JoinSql).accept @ctx
-      Nodes::SqlLiteral.new sql
-    end
-
     def join_sources
       @ctx.source.right
     end
