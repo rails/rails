@@ -23,8 +23,12 @@ source 'https://rubygems.org'
 # gem 'capistrano-rails', group: :development
 
 <% unless defined?(JRUBY_VERSION) -%>
-# Use debugger
+# To use a debugger
+  <% if RUBY_VERSION < '2.0.0' -%>
 # gem 'debugger', group: [:development, :test]
+  <% else -%>
+# gem 'byebug', group: [:development, :test]
+  <% end -%>
 <% end -%>
 
 <% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince/) -%>
