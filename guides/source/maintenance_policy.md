@@ -20,7 +20,7 @@ Only the latest release series will receive bug fixes. When enough bugs are
 fixed and its deemed worthy to release a new gem, this is the branch it happens
 from.
 
-**Currently included series:** 4.0.z
+**Currently included series:** 4.1.z, 4.0.z
 
 Security Issues
 ---------------
@@ -35,7 +35,7 @@ be built from 1.2.2, and then added to the end of 1-2-stable. This means that
 security releases are easy to upgrade to if you're running the latest version
 of Rails.
 
-**Currently included series:** 4.0.z, 3.2.z
+**Currently included series:** 4.1.z, 4.0.z
 
 Severe Security Issues
 ----------------------
@@ -44,7 +44,7 @@ For severe security issues we will provide new versions as above, and also the
 last major release series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
-**Currently included series:** 4.0.z, 3.2.z
+**Currently included series:** 4.1.z, 4.0.z, 3.2.z
 
 Unsupported Release Series
 --------------------------
