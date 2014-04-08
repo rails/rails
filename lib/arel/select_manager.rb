@@ -1,3 +1,5 @@
+require 'arel/collectors/sql_string'
+
 module Arel
   class SelectManager < Arel::TreeManager
     include Arel::Crud
@@ -167,7 +169,7 @@ module Arel
       return if @ctx.wheres.empty?
 
       viz = Visitors::WhereSql.new @engine.connection
-      Nodes::SqlLiteral.new viz.accept @ctx
+      Nodes::SqlLiteral.new viz.accept(@ctx, Collectors::SQLString.new).value
     end
 
     def union operation, other = nil

@@ -66,11 +66,15 @@ module Arel
 
       private
 
-      def visit_Arel_Nodes_DeleteStatement o
-        [
-          "DELETE FROM #{visit o.relation}",
-          ("WHERE #{o.wheres.map { |x| visit x }.join AND}" unless o.wheres.empty?)
-        ].compact.join ' '
+      def visit_Arel_Nodes_DeleteStatement o, collector
+        collector << "DELETE FROM "
+        collector = visit o.relation, collector
+        if o.wheres.any?
+          collector << " WHERE "
+          inject_join o.wheres, collector, AND
+        else
+          collector
+        end
       end
 
       # FIXME: we should probably have a 2-pass visitor for this
@@ -85,18 +89,29 @@ module Arel
         stmt
       end
 
-      def visit_Arel_Nodes_UpdateStatement o
+      def visit_Arel_Nodes_UpdateStatement o, collector
         if o.orders.empty? && o.limit.nil?
           wheres = o.wheres
         else
           wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
         end
 
-        [
-          "UPDATE #{visit o.relation}",
-          ("SET #{o.values.map { |value| visit value }.join ', '}" unless o.values.empty?),
-          ("WHERE #{wheres.map { |x| visit x }.join ' AND '}" unless wheres.empty?),
-        ].compact.join ' '
+        collector << "UPDATE "
+        collector = visit o.relation, collector
+        values = false
+        unless o.values.empty?
+          values = true
+          collector << " SET "
+          collector = inject_join o.values, collector, ", "
+        end
+
+        unless wheres.empty?
+          collector << " " if values
+          collector << "WHERE "
+          collector = inject_join wheres, collector, " AND "
+        end
+
+        collector
       end
 
       def visit_Arel_Nodes_InsertStatement o
@@ -285,44 +300,66 @@ module Arel
         "( #{visit o.left} EXCEPT #{visit o.right} )"
       end
 
-      def visit_Arel_Nodes_NamedWindow o
-        "#{quote_column_name o.name} AS #{visit_Arel_Nodes_Window o}"
+      def visit_Arel_Nodes_NamedWindow o, collector
+        collector << quote_column_name(o.name)
+        collector << " AS "
+        visit_Arel_Nodes_Window o, collector
       end
 
-      def visit_Arel_Nodes_Window o
-        s = [
-          ("ORDER BY #{o.orders.map { |x| visit(x) }.join(', ')}" unless o.orders.empty?),
-          (visit o.framing if o.framing)
-        ].compact.join ' '
-        "(#{s})"
+      def visit_Arel_Nodes_Window o, collector
+        collector << "("
+        if o.orders.any?
+          collector << "ORDER BY "
+          collector = inject_join o.orders, collector, ", "
+        end
+
+        if o.framing
+          collector = visit o.framing, collector
+        end
+
+        collector << ")"
       end
 
-      def visit_Arel_Nodes_Rows o
+      def visit_Arel_Nodes_Rows o, collector
         if o.expr
-          "ROWS #{visit o.expr}"
+          collector << "ROWS "
+          visit o.expr, collector
         else
-          "ROWS"
+          collector << "ROWS"
         end
       end
 
-      def visit_Arel_Nodes_Range o
+      def visit_Arel_Nodes_Range o, collector
         if o.expr
-          "RANGE #{visit o.expr}"
+          collector << "RANGE "
+          visit o.expr, collector
         else
-          "RANGE"
+          collector << "RANGE"
         end
       end
 
-      def visit_Arel_Nodes_Preceding o
-        "#{o.expr ? visit(o.expr) : 'UNBOUNDED'} PRECEDING"
+      def visit_Arel_Nodes_Preceding o, collector
+        collector = if o.expr
+                      visit o.expr, collector
+                    else
+                      collector << "UNBOUNDED"
+                    end
+
+        collector << " PRECEDING"
       end
 
-      def visit_Arel_Nodes_Following o
-        "#{o.expr ? visit(o.expr) : 'UNBOUNDED'} FOLLOWING"
+      def visit_Arel_Nodes_Following o, collector
+        collector = if o.expr
+                      visit o.expr, collector
+                    else
+                      collector << "UNBOUNDED"
+                    end
+
+        collector << " FOLLOWING"
       end
 
-      def visit_Arel_Nodes_CurrentRow o
-        "CURRENT ROW"
+      def visit_Arel_Nodes_CurrentRow o, collector
+        collector << "CURRENT ROW"
       end
 
       def visit_Arel_Nodes_Over o
@@ -352,8 +389,8 @@ module Arel
       end
 
       # FIXME: this does nothing on most databases, but does on MSSQL
-      def visit_Arel_Nodes_Top o
-        ""
+      def visit_Arel_Nodes_Top o, collector
+        collector
       end
 
       def visit_Arel_Nodes_Lock o
@@ -369,16 +406,16 @@ module Arel
         collector << "(#{o.to_sql.rstrip})"
       end
 
-      def visit_Arel_Nodes_Ascending o
-        "#{visit o.expr} ASC"
+      def visit_Arel_Nodes_Ascending o, collector
+        visit(o.expr, collector) << " ASC"
       end
 
       def visit_Arel_Nodes_Descending o, collector
         visit(o.expr, collector) << " DESC"
       end
 
-      def visit_Arel_Nodes_Group o
-        visit o.expr
+      def visit_Arel_Nodes_Group o, collector
+        visit o.expr, collector
       end
 
       def visit_Arel_Nodes_NamedFunction o, collector
@@ -418,8 +455,10 @@ module Arel
         aggregate "AVG", o, collector
       end
 
-      def visit_Arel_Nodes_TableAlias o
-        "#{visit o.relation} #{quote_table_name o.name}"
+      def visit_Arel_Nodes_TableAlias o, collector
+        collector = visit o.relation, collector
+        collector << " "
+        collector << quote_table_name(o.name)
       end
 
       def visit_Arel_Nodes_Between o, collector
@@ -499,17 +538,20 @@ module Arel
         "RIGHT OUTER JOIN #{visit o.left} #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_InnerJoin o
-        s = "INNER JOIN #{visit o.left}"
+      def visit_Arel_Nodes_InnerJoin o, collector
+        collector << "INNER JOIN "
+        collector = visit o.left, collector
         if o.right
-          s << SPACE
-          s << visit(o.right)
+          collector << SPACE
+          visit(o.right, collector)
+        else
+          collector
         end
-        s
       end
 
-      def visit_Arel_Nodes_On o
-        "ON #{visit o.expr}"
+      def visit_Arel_Nodes_On o, collector
+        collector << "ON "
+        visit o.expr, collector
       end
 
       def visit_Arel_Nodes_Not o, collector
