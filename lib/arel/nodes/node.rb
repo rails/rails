@@ -1,3 +1,5 @@
+require 'arel/collectors/sql_string'
+
 module Arel
   module Nodes
     ###
@@ -42,7 +44,9 @@ module Arel
       #
       # Maybe we should just use `Table.engine`?  :'(
       def to_sql engine = Table.engine
-        engine.connection.visitor.accept self
+        collector = Arel::Collectors::SQLString.new
+        collector = engine.connection.visitor.accept self, collector
+        collector.value
       end
 
       # Iterate through AST, nodes will be yielded depth-first

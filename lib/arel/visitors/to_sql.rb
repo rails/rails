@@ -533,8 +533,9 @@ module Arel
         "#{visit o.left} AS #{visit o.right}"
       end
 
-      def visit_Arel_Nodes_UnqualifiedColumn o
-        "#{quote_column_name o.name}"
+      def visit_Arel_Nodes_UnqualifiedColumn o, collector
+        collector << "#{quote_column_name o.name}"
+        collector
       end
 
       def visit_Arel_Attributes_Attribute o

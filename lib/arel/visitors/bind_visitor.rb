@@ -6,24 +6,26 @@ module Arel
         super
       end
 
-      def accept node, &block
+      def accept node, collector, &block
         @block = block if block_given?
         super
       end
 
       private
 
-      def visit_Arel_Nodes_Assignment o
+      def visit_Arel_Nodes_Assignment o, collector
         if o.right.is_a? Arel::Nodes::BindParam
-          "#{visit o.left} = #{visit o.right}"
+          collector = visit o.left, collector
+          collector << " = "
+          visit o.right, collector
         else
           super
         end
       end
 
-      def visit_Arel_Nodes_BindParam o
+      def visit_Arel_Nodes_BindParam o, collector
         if @block
-          @block.call
+          @block.call(collector)
         else
           super
         end

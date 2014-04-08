@@ -1,3 +1,5 @@
+require 'arel/collectors/sql_string'
+
 module Arel
   class TreeManager
     include Arel::FactoryMethods
@@ -21,7 +23,9 @@ module Arel
     end
 
     def to_sql
-      visitor.accept @ast
+      collector = Arel::Collectors::SQLString.new
+      collector = visitor.accept @ast, collector
+      collector.value
     end
 
     def initialize_copy other

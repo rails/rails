@@ -4,8 +4,14 @@ require 'support/fake_record'
 
 module Arel
   module Visitors
-    class TestBindVisitor < Minitest::Test
-      
+    class TestBindVisitor < Arel::Test
+      attr_reader :collector
+
+      def setup
+        @collector = Collectors::SQLString.new
+        super
+      end
+
       ##
       # Tests visit_Arel_Nodes_Assignment correctly
       # substitutes binds with values from block
@@ -19,8 +25,12 @@ module Arel
         }.new Table.engine.connection
 
         assignment = um.ast.values[0]
-        actual = visitor.accept(assignment) { "replace" } 
-        actual.must_be_like "\"name\" = replace"
+        actual = visitor.accept(assignment, collector) { |collector|
+          collector << "replace"
+        }
+        assert actual
+        value = actual.value
+        assert_like "\"name\" = replace", value
       end
 
       def test_visitor_yields_on_binds
@@ -33,7 +43,7 @@ module Arel
 
         bp = Nodes::BindParam.new 'omg'
         called = false
-        visitor.accept(bp) { called = true }
+        visitor.accept(bp, collector) { |collector| called = true }
         assert called
       end
 
@@ -49,7 +59,7 @@ module Arel
         called = false
 
         assert_raises(TypeError) {
-          visitor.accept(bp) { called = true }
+          visitor.accept(bp, collector) { called = true }
         }
         refute called
       end

@@ -11,3 +11,12 @@ class Object
     gsub(/\s+/, ' ').strip.must_equal other.gsub(/\s+/, ' ').strip
   end
 end
+
+module Arel
+  class Test < MiniTest::Test
+    def assert_like expected, actual
+      assert_equal expected.gsub(/\s+/, ' ').strip,
+                   actual.gsub(/\s+/, ' ').strip
+    end
+  end
+end
