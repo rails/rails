@@ -220,13 +220,6 @@ module Arel
       Nodes::SqlLiteral.new sql
     end
 
-    def order_clauses
-      visitor = Visitors::OrderClauses.new(@engine.connection)
-      visitor.accept(@ast).map { |x|
-        Nodes::SqlLiteral.new x
-      }
-    end
-
     def join_sources
       @ctx.source.right
     end

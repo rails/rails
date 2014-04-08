@@ -628,16 +628,6 @@ module Arel
       end
     end
 
-    describe 'order_clauses' do
-      it 'returns order clauses as a list' do
-        table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
-        manager.from table
-        manager.order table[:id]
-        manager.order_clauses.first.must_be_like %{ "users"."id" }
-      end
-    end
-
     describe 'group' do
       it 'takes an attribute' do
         table   = Table.new :users
