@@ -89,8 +89,10 @@ module ActiveRecord
       def test_resolver_with_database_uri_and_unknown_string_key
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
         config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
-        assert_raises AdapterNotSpecified do
-          spec("production", config)
+        assert_deprecated do
+          assert_raises AdapterNotSpecified do
+            spec("production", config)
+          end
         end
       end
 
