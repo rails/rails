@@ -610,7 +610,8 @@ module ActiveRecord
         pk_and_sequence && pk_and_sequence.first
       end
 
-      def case_sensitive_modifier(node)
+      def case_sensitive_modifier(node, table_attribute)
+        node = Arel::Nodes.build_quoted node, table_attribute
         Arel::Nodes::Bin.new(node)
       end
 
