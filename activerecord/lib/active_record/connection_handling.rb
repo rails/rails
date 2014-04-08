@@ -73,22 +73,8 @@ module ActiveRecord
         def config
           @raw_config.dup.tap do |cfg|
             if url = ENV['DATABASE_URL']
-              if cfg[@env]
-                if cfg[@env]["url"]
-                  # Nothing to do
-                else
-                  ActiveSupport::Deprecation.warn "Overriding database configuration with DATABASE_URL without using an ERB tag in database.yml is deprecated. Please update the entry for #{@env.inspect}:\n\n" \
-                    "  #{@env}:\n    url: <%= ENV['DATABASE_URL'] %>\n\n"\
-                    "This will be required in Rails 4.2"
-                  cfg[@env]["url"] = url
-                end
-              else
-                cfg[@env] = {}
-                ActiveSupport::Deprecation.warn "Supplying DATABASE_URL without a matching entry in database.yml is deprecated. Please add an entry for #{@env.inspect}:\n\n" \
-                  "  #{@env}:\n    url: <%= ENV['DATABASE_URL'] %>\n\n"\
-                  "This will be required in Rails 4.2"
-                cfg[@env]["url"] ||= url
-              end
+              cfg[@env] ||= {}
+              cfg[@env]["url"] ||= url
             end
           end
         end
