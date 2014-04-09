@@ -3,7 +3,7 @@ module Arel
     class Oracle < Arel::Visitors::ToSql
       private
 
-      def visit_Arel_Nodes_SelectStatement o
+      def visit_Arel_Nodes_SelectStatement o, collector
         o = order_hacks(o)
 
         # if need to select first records without ORDER BY and GROUP BY and without DISTINCT
@@ -20,49 +20,58 @@ module Arel
           limit    = o.limit.expr.to_i
           offset   = o.offset
           o.offset = nil
-          sql = super(o)
-          return <<-eosql
+          collector << "
               SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
-                FROM (#{sql}) raw_sql_
+                FROM ("
+
+          collector = super(o, collector)
+          collector << ") raw_sql_
                 WHERE rownum <= #{offset.expr.to_i + limit}
               )
-              WHERE #{visit offset}
-          eosql
+              WHERE "
+          return visit(offset, collector)
         end
 
         if o.limit
           o       = o.dup
           limit   = o.limit.expr
-          return "SELECT * FROM (#{super(o)}) WHERE ROWNUM <= #{visit limit}"
+          collector << "SELECT * FROM ("
+          collector = super(o, collector)
+          collector << ") WHERE ROWNUM <= "
+          return visit limit, collector
         end
 
         if o.offset
           o        = o.dup
           offset   = o.offset
           o.offset = nil
-          sql = super(o)
-          return <<-eosql
-              SELECT * FROM (
+          collector << "SELECT * FROM (
                 SELECT raw_sql_.*, rownum raw_rnum_
-                FROM (#{sql}) raw_sql_
+                FROM ("
+          collector = super(o, collector)
+          collector << ") raw_sql_
               )
-              WHERE #{visit offset}
-          eosql
+              WHERE "
+          return visit offset, collector
         end
 
         super
       end
 
-      def visit_Arel_Nodes_Limit o
+      def visit_Arel_Nodes_Limit o, collector
+        collector
       end
 
-      def visit_Arel_Nodes_Offset o
-        "raw_rnum_ > #{visit o.expr}"
+      def visit_Arel_Nodes_Offset o, collector
+        collector << "raw_rnum_ > "
+        visit o.expr, collector
       end
 
-      def visit_Arel_Nodes_Except o
-        "( #{visit o.left } MINUS #{visit o.right} )"
+      def visit_Arel_Nodes_Except o, collector
+        collector << "( "
+        collector = infix_value o, collector, " MINUS "
+        collector << " )"
       end
 
       def visit_Arel_Nodes_UpdateStatement o
@@ -91,7 +100,7 @@ module Arel
         #
         # orders   = o.orders.map { |x| visit x }.join(', ').split(',')
         orders   = o.orders.map do |x|
-          string = visit x
+          string = visit(x, Arel::Collectors::SQLString.new).value
           if string.include?(',')
             split_order_string(string)
           else
