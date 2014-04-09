@@ -1,13 +1,7 @@
 module Arel
   module Visitors
     class MSSQL < Arel::Visitors::ToSql
-      class RowNumber
-        attr_reader :children
-
-        def initialize node
-          @children = node
-        end
-      end
+      RowNumber = Struct.new :children
 
       private
 
@@ -18,13 +12,14 @@ module Arel
         ""
       end
 
-      def visit_Arel_Visitors_MSSQL_RowNumber o
-        "ROW_NUMBER() OVER (ORDER BY #{o.children.map { |x| visit x }.join ', '}) as _row_num"
+      def visit_Arel_Visitors_MSSQL_RowNumber o, collector
+        collector << "ROW_NUMBER() OVER (ORDER BY "
+        inject_join(o.children, collector, ', ') << ") as _row_num"
       end
 
-      def visit_Arel_Nodes_SelectStatement o
+      def visit_Arel_Nodes_SelectStatement o, collector
         if !o.limit && !o.offset
-          return super o
+          return super
         end
 
         is_select_count = false
@@ -38,12 +33,22 @@ module Arel
           end
         }
 
-        sql = o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join
+        if is_select_count
+          # fixme count distinct wouldn't work with limit or offset
+          collector << "SELECT COUNT(1) as count_id FROM ("
+        end
 
-        sql = "SELECT _t.* FROM (#{sql}) as _t WHERE #{get_offset_limit_clause(o)}"
-        # fixme count distinct wouldn't work with limit or offset
-        sql = "SELECT COUNT(1) as count_id FROM (#{sql}) AS subquery" if is_select_count
-        sql
+        collector << "SELECT _t.* FROM ("
+        collector = o.cores.inject(collector) { |c,x|
+          visit_Arel_Nodes_SelectCore x, c
+        }
+        collector << ") as _t WHERE #{get_offset_limit_clause(o)}"
+
+        if is_select_count
+          collector << ") AS subquery"
+        else
+          collector
+        end
       end
 
       def get_offset_limit_clause o
