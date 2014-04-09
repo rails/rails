@@ -33,7 +33,7 @@ module ActiveRecord
         def initialize(url)
           raise "Database URL cannot be empty" if url.blank?
           @uri     = URI.parse(url)
-          @adapter = @uri.scheme
+          @adapter = @uri.scheme.gsub('-', '_')
           @adapter = "postgresql" if @adapter == "postgres"
 
           if @uri.opaque
@@ -220,10 +220,10 @@ module ActiveRecord
           # an environment key or a URL spec, so we have deprecated
           # this ambiguous behaviour and in the future this function
           # can be removed in favor of resolve_url_connection.
-          if configurations.key?(spec)
+          if configurations.key?(spec) || spec !~ /:/
             ActiveSupport::Deprecation.warn "Passing a string to ActiveRecord::Base.establish_connection " \
               "for a configuration lookup is deprecated, please pass a symbol (#{spec.to_sym.inspect}) instead"
-            resolve_connection(configurations[spec])
+            resolve_symbol_connection(spec)
           else
             resolve_url_connection(spec)
           end

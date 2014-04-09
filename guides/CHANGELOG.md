@@ -1,3 +1,7 @@
+*   Updates the maintenance policy to match the latest versions of Rails
+
+    *Matias Korhonen*
+
 *   Switched the order of `Applying a default scope` and `Merging of scopes` subsections so default scopes are introduced first.
 
     *Alex Riabov*

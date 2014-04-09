@@ -42,7 +42,7 @@ module ApplicationTests
 
     test "assets routes have higher priority" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
-      app_file "app/assets/javascripts/demo.js.erb", "//= depend_on_asset 'rails.png'\na = <%= image_path('rails.png').inspect %>;"
+      app_file "app/assets/javascripts/demo.js.erb", "a = <%= image_path('rails.png').inspect %>;"
 
       app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
@@ -200,7 +200,7 @@ module ApplicationTests
 
     test "precompile creates a manifest file with all the assets listed" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
-      app_file "app/assets/stylesheets/application.css.erb", "//= depend_on_asset 'rails.png'\n <%= asset_path('rails.png') %>"
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
       # digest is default in false, we must enable it for test environment
       add_to_config "config.assets.digest = true"
@@ -261,7 +261,7 @@ module ApplicationTests
     test "precompile shouldn't use the digests present in manifest.json" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
 
-      app_file "app/assets/stylesheets/application.css.erb", "//= depend_on rails.png\np { url: <%= asset_path('rails.png') %> }"
+      app_file "app/assets/stylesheets/application.css.erb", "p { url: <%= asset_path('rails.png') %> }"
 
       ENV["RAILS_ENV"] = "production"
       precompile!
@@ -280,7 +280,7 @@ module ApplicationTests
 
     test "precompile appends the md5 hash to files referenced with asset_path and run in production with digest true" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
-      app_file "app/assets/stylesheets/application.css.erb", "//= depend_on_asset 'rails.png'\n<%= asset_path('rails.png') %>"
+      app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       add_to_config "config.assets.compile = true"
       add_to_config "config.assets.digest = true"
 
@@ -449,7 +449,7 @@ module ApplicationTests
 
     test "asset urls should be protocol-relative if no request is in scope" do
       app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/image_loader.js.erb", "//= depend_on_asset 'rails.png'\n\nvar src='<%= image_path('rails.png') %>';"
+      app_file "app/assets/javascripts/image_loader.js.erb", "var src='<%= image_path('rails.png') %>';"
       add_to_config "config.assets.precompile = %w{image_loader.js}"
       add_to_config "config.asset_host = 'example.com'"
       precompile!
@@ -461,7 +461,7 @@ module ApplicationTests
       ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
       app_file "app/assets/images/rails.png", "notreallyapng"
 
-      app_file "app/assets/javascripts/app.js.erb", "//= depend_on_asset 'rails.png'\n\nvar src='<%= image_path('rails.png') %>';"
+      app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
       add_to_config "config.assets.precompile = %w{app.js}"
       precompile!
 
