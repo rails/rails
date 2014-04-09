@@ -377,16 +377,16 @@ module Arel
         collector << "CURRENT ROW"
       end
 
-      def visit_Arel_Nodes_Over o
+      def visit_Arel_Nodes_Over o, collector
         case o.right
-          when nil
-            "#{visit o.left} OVER ()"
-          when Arel::Nodes::SqlLiteral
-            "#{visit o.left} OVER #{visit o.right}"
-          when String, Symbol
-            "#{visit o.left} OVER #{quote_column_name o.right.to_s}"
-          else
-            "#{visit o.left} OVER #{visit o.right}"
+        when nil
+          visit(o.left, collector) << " OVER ()"
+        when Arel::Nodes::SqlLiteral
+          infix_value o, collector, " OVER "
+        when String, Symbol
+          visit(o.left, collector) << " OVER #{quote_column_name o.right.to_s}"
+        else
+          infix_value o, collector, " OVER "
         end
       end
 
