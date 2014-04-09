@@ -183,10 +183,6 @@ module ActiveRecord
       INDEX_TYPES  = [:fulltext, :spatial]
       INDEX_USINGS = [:btree, :hash]
 
-      class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
-        include Arel::Visitors::BindVisitor
-      end
-
       # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
@@ -203,21 +199,17 @@ module ActiveRecord
       end
 
       class BindCollector < Arel::Collectors::Bind
-        def initialize(conn)
-          @conn = conn
-          super()
-        end
-
-        def compile(bvs)
-          super(bvs.map { |bv| @conn.quote(*bv.reverse) })
+        def compile(bvs, conn)
+          super(bvs.map { |bv| conn.quote(*bv.reverse) })
         end
       end
 
       def collector
         if @prepared_statements
+          raise
           Arel::Collectors::SQLString.new
         else
-          BindCollector.new self
+          BindCollector.new
         end
       end
 

@@ -40,12 +40,12 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super
-        @visitor = BindSubstitution.new self
+        @prepared_statements = false
         configure_connection
       end
 
       def cacheable_query(arel)
-        ActiveRecord::StatementCache.partial_query visitor, arel.ast
+        ActiveRecord::StatementCache.partial_query visitor, arel.ast, collector
       end
 
       MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191

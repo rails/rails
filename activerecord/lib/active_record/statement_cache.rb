@@ -28,7 +28,7 @@ module ActiveRecord
 
     class PartialQuery < Query
       def sql_for(binds, connection)
-        @sql.gsub(/\?/) { connection.quote(*binds.shift.reverse) }
+        @sql.compile binds, connection
       end
     end
 
@@ -36,9 +36,9 @@ module ActiveRecord
       Query.new visitor.accept(ast, Arel::Collectors::SQLString.new).value
     end
 
-    def self.partial_query(visitor, ast)
-      sql = visitor.accept(ast) { "?" }
-      PartialQuery.new sql
+    def self.partial_query(visitor, ast, collector)
+      collected = visitor.accept(ast, collector)
+      PartialQuery.new collected
     end
 
     class Params

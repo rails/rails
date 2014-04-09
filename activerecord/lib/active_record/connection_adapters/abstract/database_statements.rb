@@ -9,7 +9,8 @@ module ActiveRecord
       # Converts an arel AST to SQL
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
-          visitor.accept(arel.ast, collector).compile binds.dup
+          collected = visitor.accept(arel.ast, collector)
+          collected.compile(binds.dup, self)
         else
           arel
         end
