@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'arel/collectors/bind'
 
 module ActiveRecord
   # = Active Record Relation
@@ -512,17 +513,17 @@ module ActiveRecord
       @to_sql ||= begin
                     relation   = self
                     connection = klass.connection
-                    visitor    = connection.bind_substitution_visitor
+                    visitor    = connection.visitor
 
                     if eager_loading?
                       find_with_associations { |rel| relation = rel }
                     end
 
                     arel  = relation.arel
-                    binds = arel.bind_values + relation.bind_values
-                    visitor.compile(arel.ast) do
-                      connection.quote(*binds.shift.reverse)
-                    end
+                    binds = (arel.bind_values + relation.bind_values).dup
+                    binds.map! { |bv| connection.quote(*bv.reverse) }
+                    collect = visitor.accept(arel.ast, Arel::Collectors::Bind.new)
+                    collect.substitute_binds(binds).join
                   end
     end
 

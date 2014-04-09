@@ -105,10 +105,6 @@ module ActiveRecord
         @prepared_statements = false
       end
 
-      def bind_substitution_visitor
-        @bind_sub_visitor ||= visitor.dup.extend(Arel::Visitors::BindVisitor)
-      end
-
       def valid_type?(type)
         true
       end

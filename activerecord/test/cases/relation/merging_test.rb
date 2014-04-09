@@ -17,9 +17,7 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_to_sql
-    sql = Post.connection.unprepared_statement do
-      Post.first.comments.to_sql
-    end
+    sql = Post.first.comments.to_sql
     assert_no_match(/\?/, sql)
   end
 
