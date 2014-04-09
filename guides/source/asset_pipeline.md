@@ -581,23 +581,8 @@ runtime. To disable this behavior you can set:
 config.assets.raise_runtime_errors = false
 ```
 
-When `raise_runtime_errors` is set to `false` sprockets will not check that dependencies of assets are declared properly. Here is a scenario where you must tell the asset pipeline about a dependency:
-
-If you have `application.css.erb` that references `logo.png` like this:
-
-```css
-#logo { background: url(<%= asset_data_uri 'logo.png' %>) }
-```
-
-Then you must declare that `logo.png` is a dependency of `application.css.erb`, so when the image gets re-compiled, the css file does as well. You can do this using the `//= depend_on_asset` declaration:
-
-```css
-//= depend_on_asset "logo.png"
-#logo { background: url(<%= asset_data_uri 'logo.png' %>) }
-```
-
-Without this declaration you may experience strange behavior when pushing to production that is difficult to debug. When you have `raise_runtime_errors` set to `true`, dependencies will be checked at runtime so you can ensure that all dependencies are met.
-
+When this option is true asset pipeline will check if all the assets loaded in your application
+are included in the `config.assets.precompile` list.
 
 ### Turning Debugging Off
 
@@ -943,7 +928,7 @@ gem.
 ```ruby
 config.assets.css_compressor = :yui
 ```
-The other option for compressing CSS if you have the sass-rails gem installed is 
+The other option for compressing CSS if you have the sass-rails gem installed is
 
 ```ruby
 config.assets.css_compressor = :sass
@@ -1018,7 +1003,7 @@ The X-Sendfile header is a directive to the web server to ignore the response
 from the application, and instead serve a specified file from disk. This option
 is off by default, but can be enabled if your server supports it. When enabled,
 this passes responsibility for serving the file to the web server, which is
-faster. Have a look at [send_file](http://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file) 
+faster. Have a look at [send_file](http://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file)
 on how to use this feature.
 
 Apache and nginx support this option, which can be enabled in
