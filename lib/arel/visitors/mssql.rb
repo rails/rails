@@ -1,6 +1,14 @@
 module Arel
   module Visitors
     class MSSQL < Arel::Visitors::ToSql
+      class RowNumber
+        attr_reader :children
+
+        def initialize node
+          @children = node
+        end
+      end
+
       private
 
       # `top` wouldn't really work here. I.e. User.select("distinct first_name").limit(10) would generate
@@ -10,21 +18,23 @@ module Arel
         ""
       end
 
+      def visit_Arel_Visitors_MSSQL_RowNumber o
+        "ROW_NUMBER() OVER (ORDER BY #{o.children.map { |x| visit x }.join ', '}) as _row_num"
+      end
+
       def visit_Arel_Nodes_SelectStatement o
         if !o.limit && !o.offset
           return super o
         end
 
-        select_order_by = "ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?
-
         is_select_count = false
         sql = o.cores.map { |x|
-          core_order_by = select_order_by || determine_order_by(x)
+          core_order_by = row_num_literal determine_order_by(o.orders, x)
           if select_count? x
-            x.projections = [row_num_literal(core_order_by)]
+            x.projections = [core_order_by]
             is_select_count = true
           else
-            x.projections << row_num_literal(core_order_by)
+            x.projections << core_order_by
           end
 
           visit_Arel_Nodes_SelectCore x
@@ -46,16 +56,18 @@ module Arel
         end
       end
 
-      def determine_order_by x
-        unless x.groups.empty?
-          "ORDER BY #{x.groups.map { |g| visit g }.join ', ' }"
+      def determine_order_by orders, x
+        if orders.any?
+          orders
+        elsif x.groups.any?
+          x.groups
         else
-          "ORDER BY #{find_left_table_pk(x.froms)}"
+          [Arel.sql(find_left_table_pk(x.froms).to_s)]
         end
       end
 
       def row_num_literal order_by
-        Nodes::SqlLiteral.new("ROW_NUMBER() OVER (#{order_by}) as _row_num")
+        RowNumber.new order_by
       end
 
       def select_count? x
