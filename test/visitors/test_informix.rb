@@ -7,10 +7,14 @@ module Arel
         @visitor = Informix.new Table.engine.connection
       end
 
+      def compile node
+        @visitor.accept(node, Collectors::SQLString.new).value
+      end
+
       it 'uses LIMIT n to limit results' do
         stmt = Nodes::SelectStatement.new
         stmt.limit = Nodes::Limit.new(1)
-        sql = @visitor.accept(stmt)
+        sql = compile(stmt)
         sql.must_be_like "SELECT LIMIT 1"
       end
 
@@ -20,14 +24,14 @@ module Arel
         stmt.relation = table
         stmt.limit = Nodes::Limit.new(Nodes.build_quoted(1))
         stmt.key = table[:id]
-        sql = @visitor.accept(stmt)
-        sql.must_be_like "UPDATE \"users\" WHERE \"users\".\"id\" IN (SELECT LIMIT 1 \"users\".\"id\" FROM \"users\" )"
+        sql = compile(stmt)
+        sql.must_be_like "UPDATE \"users\" WHERE \"users\".\"id\" IN (SELECT LIMIT 1 \"users\".\"id\" FROM \"users\")"
       end
 
       it 'uses SKIP n to jump results' do
         stmt = Nodes::SelectStatement.new
         stmt.offset = Nodes::Offset.new(10)
-        sql = @visitor.accept(stmt)
+        sql = compile(stmt)
         sql.must_be_like "SELECT SKIP 10"
       end
 
@@ -35,7 +39,7 @@ module Arel
         stmt = Nodes::SelectStatement.new
         stmt.limit = Nodes::Limit.new(1)
         stmt.offset = Nodes::Offset.new(1)
-        sql = @visitor.accept(stmt)
+        sql = compile(stmt)
         sql.must_be_like "SELECT SKIP 1 LIMIT 1"
       end
 
@@ -45,7 +49,7 @@ module Arel
         core.source = Nodes::JoinSource.new(table, [table.create_join(Table.new(:comments))])
 
         stmt = Nodes::SelectStatement.new([core])
-        sql = @visitor.accept(stmt)
+        sql = compile(stmt)
         sql.must_be_like 'SELECT FROM "posts" INNER JOIN "comments"'
       end
 

@@ -107,8 +107,7 @@ module Arel
         end
 
         unless wheres.empty?
-          collector << " " if values
-          collector << "WHERE "
+          collector << " WHERE "
           collector = inject_join wheres, collector, " AND "
         end
 
