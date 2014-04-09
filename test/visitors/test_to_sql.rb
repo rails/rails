@@ -6,7 +6,6 @@ module Arel
       before do
         @conn = FakeRecord::Base.new
         @visitor = ToSql.new @conn.connection
-        @collector = Collectors::SQLString.new
         @table = Table.new(:users)
         @attr = @table[:id]
       end
@@ -33,7 +32,7 @@ module Arel
           end
         }.new
 
-        viz.accept(@table, @collector)
+        viz.accept(@table, Collectors::SQLString.new)
         assert visited, 'hello method was called'
       end
 

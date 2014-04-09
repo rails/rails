@@ -275,8 +275,8 @@ module Arel
         visit o.expr
       end
 
-      def visit_Arel_Nodes_Distinct o
-        DISTINCT
+      def visit_Arel_Nodes_Distinct o, collector
+        collector << DISTINCT
       end
 
       def visit_Arel_Nodes_DistinctOn o, collector
