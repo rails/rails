@@ -193,11 +193,31 @@ module ActiveRecord
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
 
+        @visitor = Arel::Visitors::MySQL.new self
+
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
-          @visitor = Arel::Visitors::MySQL.new self
         else
-          @visitor = unprepared_visitor
+          @prepared_statements = false
+        end
+      end
+
+      class BindCollector < Arel::Collectors::Bind
+        def initialize(conn)
+          @conn = conn
+          super()
+        end
+
+        def compile(bvs)
+          super(bvs.map { |bv| @conn.quote(*bv.reverse) })
+        end
+      end
+
+      def collector
+        if @prepared_statements
+          Arel::Collectors::SQLString.new
+        else
+          BindCollector.new self
         end
       end
 
