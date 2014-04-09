@@ -3,8 +3,10 @@ module Arel
     class IBM_DB < Arel::Visitors::ToSql
       private
 
-      def visit_Arel_Nodes_Limit o
-        "FETCH FIRST #{visit o.expr } ROWS ONLY"
+      def visit_Arel_Nodes_Limit o, collector
+        collector << "FETCH FIRST "
+        collector = visit o.expr, collector
+        collector << " ROWS ONLY"
       end
 
     end

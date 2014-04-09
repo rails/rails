@@ -7,10 +7,14 @@ module Arel
         @visitor = IBM_DB.new Table.engine.connection
       end
 
+      def compile node
+        @visitor.accept(node, Collectors::SQLString.new).value
+      end
+
       it 'uses FETCH FIRST n ROWS to limit results' do
         stmt = Nodes::SelectStatement.new
         stmt.limit = Nodes::Limit.new(1)
-        sql = @visitor.accept(stmt)
+        sql = compile(stmt)
         sql.must_be_like "SELECT FETCH FIRST 1 ROWS ONLY"
       end
 
@@ -20,7 +24,7 @@ module Arel
         stmt.relation = table
         stmt.limit = Nodes::Limit.new(Nodes.build_quoted(1))
         stmt.key = table[:id]
-        sql = @visitor.accept(stmt)
+        sql = compile(stmt)
         sql.must_be_like "UPDATE \"users\" WHERE \"users\".\"id\" IN (SELECT \"users\".\"id\" FROM \"users\" FETCH FIRST 1 ROWS ONLY)"
       end
 
