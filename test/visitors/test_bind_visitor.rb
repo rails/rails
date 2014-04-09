@@ -34,7 +34,7 @@ module Arel
       end
 
       def test_visitor_yields_on_binds
-        visitor = Class.new(Arel::Visitors::Visitor) {
+        visitor = Class.new(Arel::Visitors::ToSql) {
           def initialize omg
           end
 
@@ -48,7 +48,7 @@ module Arel
       end
 
       def test_visitor_only_yields_on_binds
-        visitor = Class.new(Arel::Visitors::Visitor) {
+        visitor = Class.new(Arel::Visitors::ToSql) {
           def initialize omg
           end
 
@@ -58,9 +58,7 @@ module Arel
         bp = Arel.sql 'omg'
         called = false
 
-        assert_raises(TypeError) {
-          visitor.accept(bp, collector) { called = true }
-        }
+        visitor.accept(bp, collector) { called = true }
         refute called
       end
     end
