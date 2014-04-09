@@ -65,6 +65,10 @@ module Arel
         @quoted_columns = {}
       end
 
+      def compile node, &block
+        accept(node, Arel::Collectors::SQLString.new, &block).value
+      end
+
       private
 
       def visit_Arel_Nodes_DeleteStatement o, collector
