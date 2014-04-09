@@ -56,6 +56,36 @@ module ApplicationTests
       assert_match '<li><a href="/rails/mailers/notifier/foo">foo</a></li>', last_response.body
     end
 
+    test "mailer previews are loaded using request.script_name" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers", {}, 'SCRIPT_NAME' => '/my_app'
+      assert_match '<h3><a href="/my_app/rails/mailers/notifier">Notifier</a></h3>', last_response.body
+      assert_match '<li><a href="/my_app/rails/mailers/notifier/foo">foo</a></li>', last_response.body
+    end
+
     test "mailer previews are loaded from a custom preview_path" do
       add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
 
