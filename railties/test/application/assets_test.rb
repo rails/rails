@@ -176,6 +176,7 @@ module ApplicationTests
     end
 
     test "precompile creates a manifest file with all the assets listed" do
+      app_file "app/assets/images/rails.png", "notactuallyapng"
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
       # digest is default in false, we must enable it for test environment
