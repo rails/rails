@@ -114,16 +114,16 @@ module Arel
         collector
       end
 
-      def visit_Arel_Nodes_InsertStatement o
-        [
-          "INSERT INTO #{visit o.relation}",
+      def visit_Arel_Nodes_InsertStatement o, collector
+        collector << "INSERT INTO "
+        collector = visit o.relation, collector
+        if o.columns.any?
+          collector << "(#{o.columns.map { |x|
+            quote_column_name x.name
+          }.join ', '})"
+        end
 
-          ("(#{o.columns.map { |x|
-          quote_column_name x.name
-        }.join ', '})" unless o.columns.empty?),
-
-          (visit o.values if o.values),
-        ].compact.join ' '
+        maybe_visit o.values, collector
       end
 
       def visit_Arel_Nodes_Exists o, collector
