@@ -245,7 +245,7 @@ When a file is referenced from a manifest or a helper, Sprockets searches the
 three default asset locations for it.
 
 The default locations are: the `images`, `javascripts` and `stylesheets`
-directories under the `apps/assets` folder, but these subdirectories
+directories under the `app/assets` folder, but these subdirectories
 are not special - any path under `assets/*` will be searched.
 
 For example, these files:
