@@ -23,11 +23,12 @@ module Arel
       end
 
       def accept object
-        super
+        visit object
         to_dot
       end
 
       private
+
       def visit_Arel_Nodes_Ordering o
         visit_edge o, "expr"
       end

@@ -1,25 +1,16 @@
+require 'arel/visitors/visitor'
+
 module Arel
   module Visitors
-    class Visitor
-      def accept object
-        visit object
+    class Reduce < Arel::Visitors::Visitor
+      def accept object, collector
+        visit object, collector
       end
 
       private
 
-      DISPATCH = Hash.new do |hash, visitor_class|
-        hash[visitor_class] =
-          Hash.new do |method_hash, node_class|
-            method_hash[node_class] = "visit_#{(node_class.name || '').gsub('::', '_')}"
-          end
-      end
-
-      def dispatch
-        DISPATCH[self.class]
-      end
-
-      def visit object
-        send dispatch[object.class], object
+      def visit object, collector
+        send dispatch[object.class], object, collector
       rescue NoMethodError => e
         raise e if respond_to?(dispatch[object.class], true)
         superklass = object.class.ancestors.find { |klass|

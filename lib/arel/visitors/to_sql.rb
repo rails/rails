@@ -1,9 +1,10 @@
 require 'bigdecimal'
 require 'date'
+require 'arel/visitors/reduce'
 
 module Arel
   module Visitors
-    class ToSql < Arel::Visitors::Visitor
+    class ToSql < Arel::Visitors::Reduce
       ##
       # This is some roflscale crazy stuff.  I'm roflscaling this because
       # building SQL queries is a hotspot.  I will explain the roflscale so that
