@@ -25,8 +25,6 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 
-NOTE: This section is a work in progress.
-
 ### CSRF protection from remote `<script>` tags
 
 Or, "whaaat my tests are failing!!!?"
