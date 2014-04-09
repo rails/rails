@@ -118,7 +118,7 @@ module Arel
         collector << "INSERT INTO "
         collector = visit o.relation, collector
         if o.columns.any?
-          collector << "(#{o.columns.map { |x|
+          collector << " (#{o.columns.map { |x|
             quote_column_name x.name
           }.join ', '})"
         end
@@ -171,14 +171,18 @@ module Arel
         @schema_cache.columns_hash(table)
       end
 
-      def visit_Arel_Nodes_Values o
-        "VALUES (#{o.expressions.zip(o.columns).map { |value, attr|
+      def visit_Arel_Nodes_Values o, collector
+        collector << "VALUES ("
+
+        collector << o.expressions.zip(o.columns).map { |value, attr|
           if Nodes::SqlLiteral === value
-            visit value
+            value
           else
             quote(value, attr && column_for(attr))
           end
-        }.join ', '})"
+        }.join(', ')
+
+        collector << ")"
       end
 
       def visit_Arel_Nodes_SelectStatement o, collector
