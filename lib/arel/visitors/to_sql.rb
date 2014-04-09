@@ -693,7 +693,10 @@ module Arel
 
       def literal o, collector; collector << o.to_s; end
 
-      alias :visit_Arel_Nodes_BindParam  :literal
+      def visit_Arel_Nodes_BindParam o, collector
+        collector.add_bind o
+      end
+
       alias :visit_Arel_Nodes_SqlLiteral :literal
       alias :visit_Bignum                :literal
       alias :visit_Fixnum                :literal

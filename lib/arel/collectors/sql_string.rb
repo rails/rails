@@ -16,11 +16,8 @@ module Arel
         self
       end
 
-      def start;  self; end
-      def finish; self; end
-
       def add_bind bind
-        self << bind
+        self << bind.to_s
         self
       end
     end
