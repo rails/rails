@@ -60,8 +60,8 @@ module Rails
         @assets.compile                  = true
         @assets.digest                   = false
         @assets.cache_store              = [ :file_store, "#{root}/tmp/cache/assets/#{Rails.env}/" ]
-        @assets.js_compressor            = nil
-        @assets.css_compressor           = nil
+        @assets.js_compressor            = :uglifier
+        @assets.css_compressor           = :sass
         @assets.logger                   = nil
       end
 
