@@ -92,7 +92,7 @@ module ActiveRecord
 
         table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
         PredicateBuilder.build_from_hash(self, attrs, table).map { |b|
-          connection.visitor.accept b
+          connection.visitor.compile b
         }.join(' AND ')
       end
       alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions

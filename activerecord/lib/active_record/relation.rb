@@ -520,9 +520,10 @@ module ActiveRecord
 
                     arel  = relation.arel
                     binds = arel.bind_values + relation.bind_values
-                    visitor.accept(arel.ast) do
+                    c = visitor.accept(arel.ast, Arel::Collectors::SQLString.new) do
                       connection.quote(*binds.shift.reverse)
                     end
+                    c.value
                   end
     end
 

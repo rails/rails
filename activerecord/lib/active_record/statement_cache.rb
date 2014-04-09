@@ -33,7 +33,7 @@ module ActiveRecord
     end
 
     def self.query(visitor, ast)
-      Query.new visitor.accept(ast)
+      Query.new visitor.accept(ast, Arel::Collectors::SQLString.new).value
     end
 
     def self.partial_query(visitor, ast)
