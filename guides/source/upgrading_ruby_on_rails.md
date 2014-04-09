@@ -77,12 +77,15 @@ secrets, you need to:
       secret_key_base:
 
     production:
-      secret_key_base:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
     ```
 
-2. Copy the existing `secret_key_base` from the `secret_token.rb` initializer to
-   `secrets.yml` under the `production` section.
-
+2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
+   set the SECRET_KEY_BASE environment variable for whichever users run the Rails
+   app in production mode. Alternately, you can simply copy the existing 
+   `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml` 
+   under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
+   
 3. Remove the `secret_token.rb` initializer.
 
 4. Use `rake secret` to generate new keys for the `development` and `test` sections.
