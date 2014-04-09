@@ -1,5 +1,10 @@
+*   `String#to_date` and `String#to_datetime` now default to current century
+    when converting 2 digit years.
+
+    *Kyle Macey*
+
 *   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
-    *Adam Panzer / Michael Grosser* 
+    *Adam Panzer / Michael Grosser*
 
 *   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
     when working with objects with a nanosecond component.
@@ -24,12 +29,12 @@
 *   Fixed precision error in NumberHelper when using Rationals.
 
     Before:
-        
+
         ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
         #=> "330.00"
-    
+
     After:
-    
+
         ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
         #=> "333.33"
 
