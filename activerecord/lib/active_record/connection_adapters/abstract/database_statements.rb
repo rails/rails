@@ -10,10 +10,9 @@ module ActiveRecord
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
           binds = binds.dup
-          c = visitor.accept(arel.ast, Arel::Collectors::SQLString.new) do
+          visitor.compile(arel.ast) do
             quote(*binds.shift.reverse)
           end
-          c.value
         else
           arel
         end
