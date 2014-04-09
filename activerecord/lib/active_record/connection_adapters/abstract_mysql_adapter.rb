@@ -204,9 +204,15 @@ module ActiveRecord
         end
       end
 
+      class SQLString < Arel::Collectors::SQLString
+        def compile(bvs, conn)
+          super(bvs)
+        end
+      end
+
       def collector
         if @prepared_statements
-          Arel::Collectors::SQLString.new
+          SQLString.new
         else
           BindCollector.new
         end
