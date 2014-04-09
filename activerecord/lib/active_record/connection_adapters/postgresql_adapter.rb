@@ -338,19 +338,15 @@ module ActiveRecord
           end
       end
 
-      class BindSubstitution < Arel::Visitors::PostgreSQL # :nodoc:
-        include Arel::Visitors::BindVisitor
-      end
-
       # Initializes and connects a PostgreSQL adapter.
       def initialize(connection, logger, connection_parameters, config)
         super(connection, logger)
 
+        @visitor = Arel::Visitors::PostgreSQL.new self
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
-          @visitor = Arel::Visitors::PostgreSQL.new self
         else
-          @visitor = unprepared_visitor
+          @prepared_statements = false
         end
 
         @connection_parameters, @config = connection_parameters, config
