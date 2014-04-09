@@ -151,6 +151,8 @@ module ActiveRecord
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
+      alias_method :t, :arel_table
+
       # Returns the Arel engine.
       def arel_engine # :nodoc:
         @arel_engine ||=
