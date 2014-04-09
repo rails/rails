@@ -274,8 +274,8 @@ module Arel
         collector
       end
 
-      def visit_Arel_Nodes_Bin o
-        visit o.expr
+      def visit_Arel_Nodes_Bin o, collector
+        visit o.expr, collector
       end
 
       def visit_Arel_Nodes_Distinct o, collector

@@ -30,8 +30,9 @@ module Arel
         end
       end
 
-      def visit_Arel_Nodes_Bin o
-        "BINARY #{visit o.expr}"
+      def visit_Arel_Nodes_Bin o, collector
+        collector << "BINARY "
+        visit o.expr, collector
       end
 
       ###
