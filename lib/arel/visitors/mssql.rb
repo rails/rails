@@ -27,11 +27,9 @@ module Arel
           return super o
         end
 
-        select_order_by = "ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?
-
         is_select_count = false
         sql = o.cores.map { |x|
-          core_order_by = select_order_by || determine_order_by(x)
+          core_order_by = determine_order_by(o.orders, x)
           if select_count? x
             x.projections = [row_num_literal(core_order_by)]
             is_select_count = true
@@ -58,11 +56,15 @@ module Arel
         end
       end
 
-      def determine_order_by x
-        if x.groups.any?
-          "ORDER BY #{x.groups.map { |g| visit g }.join ', ' }"
+      def determine_order_by orders, x
+        if orders.any?
+          "ORDER BY #{orders.map { |x| visit x }.join(', ')}"
         else
-          "ORDER BY #{find_left_table_pk(x.froms)}"
+          if x.groups.any?
+            "ORDER BY #{x.groups.map { |g| visit g }.join ', ' }"
+          else
+            "ORDER BY #{find_left_table_pk(x.froms)}"
+          end
         end
       end
 
