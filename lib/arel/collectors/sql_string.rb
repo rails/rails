@@ -20,6 +20,10 @@ module Arel
         self << bind.to_s
         self
       end
+
+      def compile bvs
+        value
+      end
     end
   end
 end

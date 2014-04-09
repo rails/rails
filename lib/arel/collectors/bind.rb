@@ -27,6 +27,10 @@ module Arel
           end
         end
       end
+
+      def compile bvs
+        substitute_binds(bvs).join
+      end
     end
   end
 end

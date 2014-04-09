@@ -57,6 +57,14 @@ module Arel
 
         assert_equal 'SELECT FROM "users" WHERE "users"."age" = hello AND "users"."name" = world', list.join
       end
+
+      def test_compile
+        bv = Nodes::BindParam.new('?')
+        collector = collect ast_with_binds bv
+
+        sql = collector.compile ["hello", "world"]
+        assert_equal 'SELECT FROM "users" WHERE "users"."age" = hello AND "users"."name" = world', sql
+      end
     end
   end
 end
