@@ -141,21 +141,22 @@ module ActiveRecord
       end
 
       class BindCollector < Arel::Collectors::Bind
-        def initialize(conn)
-          @conn = conn
-          super()
+        def compile(bvs, conn)
+          super(bvs.map { |bv| conn.quote(*bv.reverse) })
         end
+      end
 
-        def compile(bvs)
-          super(bvs.map { |bv| @conn.quote(*bv.reverse) })
+      class SQLString < Arel::Collectors::SQLString
+        def compile(bvs, conn)
+          super(bvs)
         end
       end
 
       def collector
         if @prepared_statements
-          Arel::Collectors::SQLString.new
+          SQLString.new
         else
-          BindCollector.new self
+          BindCollector.new
         end
       end
 
