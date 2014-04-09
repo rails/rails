@@ -11,20 +11,20 @@ module Arel
 
         dolly = core.clone
 
-        dolly.froms.must_equal core.froms
-        dolly.projections.must_equal core.projections
-        dolly.wheres.must_equal core.wheres
+        assert_equal core.froms, dolly.froms
+        assert_equal core.projections, dolly.projections
+        assert_equal core.wheres, dolly.wheres
 
-        dolly.froms.wont_be_same_as core.froms
-        dolly.projections.wont_be_same_as core.projections
-        dolly.wheres.wont_be_same_as core.wheres
+        refute_same core.froms, dolly.froms
+        refute_same core.projections, dolly.projections
+        refute_same core.wheres, dolly.wheres
       end
 
       def test_set_quantifier
         core = Arel::Nodes::SelectCore.new
         core.set_quantifier = Arel::Nodes::Distinct.new
         viz = Arel::Visitors::ToSql.new Table.engine.connection_pool
-        assert_match 'DISTINCT', viz.accept(core)
+        assert_match 'DISTINCT', viz.accept(core, Collectors::SQLString.new).value
       end
 
       def test_equality_with_same_ivars
