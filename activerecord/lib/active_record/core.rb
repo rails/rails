@@ -124,7 +124,6 @@ module ActiveRecord
                         primary_key.nil? ||
                         default_scopes.any? ||
                         columns_hash.include?(inheritance_column) ||
-                        !connection.prepared_statements ||
                         ids.first.kind_of?(Array)
 
         id  = ids.first
