@@ -62,7 +62,8 @@ module Arel
         elsif x.groups.any?
           x.groups
         else
-          [Arel.sql(find_left_table_pk(x.froms).to_s)]
+          pk = find_left_table_pk(x.froms)
+          pk ? [pk] : []
         end
       end
 
@@ -77,7 +78,7 @@ module Arel
       # FIXME raise exception of there is no pk?
       # FIXME!! Table.primary_key will be deprecated. What is the replacement??
       def find_left_table_pk o
-        return visit o.primary_key if o.instance_of? Arel::Table
+        return o.primary_key if o.instance_of? Arel::Table
         find_left_table_pk o.left if o.kind_of? Arel::Nodes::Join
       end
     end
