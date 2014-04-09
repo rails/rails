@@ -55,18 +55,18 @@ module Arel
         collector = visit o.relation, collector
 
         unless o.values.empty?
-          collector << "SET "
+          collector << " SET "
           collector = inject_join o.values, collector, ', '
         end
 
         unless o.wheres.empty?
-          collector << "SET "
+          collector << " WHERE "
           collector = inject_join o.wheres, collector, ' AND '
         end
 
         unless o.orders.empty?
-          collector << "ORDER BY "
-          collector = inject_join o.wheres, collector, ', '
+          collector << " ORDER BY "
+          collector = inject_join o.orders, collector, ', '
         end
 
         if o.limit

@@ -178,13 +178,17 @@ module Arel
       def visit_Arel_Nodes_Values o, collector
         collector << "VALUES ("
 
-        collector << o.expressions.zip(o.columns).map { |value, attr|
+        len = o.expressions.length - 1
+        o.expressions.zip(o.columns).each_with_index { |(value, attr), i|
           if Nodes::SqlLiteral === value
-            value
+            collector = visit value, collector
           else
-            quote(value, attr && column_for(attr))
+            collector << quote(value, attr && column_for(attr)).to_s
           end
-        }.join(', ')
+          unless i == len
+            collector << ', '
+          end
+        }
 
         collector << ")"
       end
