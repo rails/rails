@@ -54,18 +54,24 @@ module Arel
         collector << "UPDATE "
         collector = visit o.relation, collector
 
+        add_space = false
+
         unless o.values.empty?
-          collector << " SET "
+          add_space = true
+          collector << "SET "
           collector = inject_join o.values, collector, ', '
         end
 
         unless o.wheres.empty?
-          collector << " WHERE "
+          collector << ' ' if add_space
+          add_space = true
+          collector << "WHERE "
           collector = inject_join o.wheres, collector, ' AND '
         end
 
         unless o.orders.empty?
-          collector << " ORDER BY "
+          collector << ' ' if add_space
+          collector << "ORDER BY "
           collector = inject_join o.orders, collector, ', '
         end
 
