@@ -28,7 +28,7 @@ module Arel
         end
 
         is_select_count = false
-        sql = o.cores.map { |x|
+        o.cores.each { |x|
           core_order_by = row_num_literal determine_order_by(o.orders, x)
           if select_count? x
             x.projections = [core_order_by]
@@ -36,9 +36,9 @@ module Arel
           else
             x.projections << core_order_by
           end
+        }
 
-          visit_Arel_Nodes_SelectCore x
-        }.join
+        sql = o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join
 
         sql = "SELECT _t.* FROM (#{sql}) as _t WHERE #{get_offset_limit_clause(o)}"
         # fixme count distinct wouldn't work with limit or offset
