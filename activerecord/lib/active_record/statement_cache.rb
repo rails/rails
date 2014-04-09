@@ -27,8 +27,18 @@ module ActiveRecord
     end
 
     class PartialQuery < Query
+      def initialize values
+        @values = values
+        @indexes = values.each_with_index.find_all { |thing,i|
+          Arel::Nodes::BindParam === thing
+        }.map(&:last)
+      end
+
       def sql_for(binds, connection)
-        @sql.compile binds, connection
+        val = @values.dup
+        binds = binds.dup
+        @indexes.each { |i| val[i] = connection.quote(*binds.shift.reverse) }
+        val.join
       end
     end
 
@@ -37,7 +47,7 @@ module ActiveRecord
     end
 
     def self.partial_query(visitor, ast, collector)
-      collected = visitor.accept(ast, collector)
+      collected = visitor.accept(ast, collector).value
       PartialQuery.new collected
     end
 
