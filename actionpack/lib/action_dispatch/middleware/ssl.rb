@@ -32,11 +32,14 @@ module ActionDispatch
 
     private
       def redirect_to_https(request)
-        url        = URI(request.url)
-        url.scheme = "https"
-        url.host   = @host if @host
-        url.port   = @port if @port
-        headers    = { 'Content-Type' => 'text/html', 'Location' => url.to_s }
+        host = @host || request.host
+        port = @port || request.port
+
+        location = "https://#{host}"
+        location << ":#{port}" if port != 80
+        location << request.fullpath
+
+        headers = { 'Content-Type' => 'text/html', 'Location' => location }
 
         [301, headers, []]
       end
