@@ -206,7 +206,6 @@ module ActiveRecord
 
       def collector
         if @prepared_statements
-          raise
           Arel::Collectors::SQLString.new
         else
           BindCollector.new
