@@ -59,7 +59,7 @@ module Arel
       end
 
       def determine_order_by x
-        unless x.groups.empty?
+        if x.groups.any?
           "ORDER BY #{x.groups.map { |g| visit g }.join ', ' }"
         else
           "ORDER BY #{find_left_table_pk(x.froms)}"
