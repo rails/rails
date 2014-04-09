@@ -130,16 +130,11 @@ module ActiveRecord
         @owner = nil
       end
 
-      def unprepared_visitor
-        self.class::BindSubstitution.new self
-      end
-
       def unprepared_statement
         old_prepared_statements, @prepared_statements = @prepared_statements, false
-        old_visitor, @visitor = @visitor, unprepared_visitor
         yield
       ensure
-        @visitor, @prepared_statements = old_visitor, old_prepared_statements
+        @prepared_statements = old_prepared_statements
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one

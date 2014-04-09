@@ -123,10 +123,6 @@ module ActiveRecord
         end
       end
 
-      class BindSubstitution < Arel::Visitors::SQLite # :nodoc:
-        include Arel::Visitors::BindVisitor
-      end
-
       def initialize(connection, logger, config)
         super(connection, logger)
 
@@ -135,11 +131,31 @@ module ActiveRecord
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @config = config
 
+        @visitor = Arel::Visitors::SQLite.new self
+
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
-          @visitor = Arel::Visitors::SQLite.new self
         else
-          @visitor = unprepared_visitor
+          @prepared_statements = false
+        end
+      end
+
+      class BindCollector < Arel::Collectors::Bind
+        def initialize(conn)
+          @conn = conn
+          super()
+        end
+
+        def compile(bvs)
+          super(bvs.map { |bv| @conn.quote(*bv.reverse) })
+        end
+      end
+
+      def collector
+        if @prepared_statements
+          Arel::Collectors::SQLString.new
+        else
+          BindCollector.new self
         end
       end
 
