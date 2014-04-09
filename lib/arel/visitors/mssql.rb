@@ -19,7 +19,7 @@ module Arel
       end
 
       def visit_Arel_Visitors_MSSQL_RowNumber o
-        "ROW_NUMBER() OVER (#{o.expr}) as _row_num"
+        "ROW_NUMBER() OVER (ORDER BY #{o.expr}) as _row_num"
       end
 
       def visit_Arel_Nodes_SelectStatement o
@@ -58,12 +58,12 @@ module Arel
 
       def determine_order_by orders, x
         if orders.any?
-          "ORDER BY #{orders.map { |x| visit x }.join(', ')}"
+          "#{orders.map { |x| visit x }.join(', ')}"
         else
           if x.groups.any?
-            "ORDER BY #{x.groups.map { |g| visit g }.join ', ' }"
+            "#{x.groups.map { |g| visit g }.join ', ' }"
           else
-            "ORDER BY #{find_left_table_pk(x.froms)}"
+            "#{find_left_table_pk(x.froms)}"
           end
         end
       end
