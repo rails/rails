@@ -198,26 +198,6 @@ module ActiveRecord
         end
       end
 
-      class BindCollector < Arel::Collectors::Bind
-        def compile(bvs, conn)
-          super(bvs.map { |bv| conn.quote(*bv.reverse) })
-        end
-      end
-
-      class SQLString < Arel::Collectors::SQLString
-        def compile(bvs, conn)
-          super(bvs)
-        end
-      end
-
-      def collector
-        if @prepared_statements
-          SQLString.new
-        else
-          BindCollector.new
-        end
-      end
-
       def adapter_name #:nodoc:
         self.class::ADAPTER_NAME
       end

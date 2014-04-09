@@ -6,6 +6,8 @@ require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/abstract/schema_dumper'
 require 'active_record/connection_adapters/abstract/schema_creation'
 require 'monitor'
+require 'arel/collectors/bind'
+require 'arel/collectors/sql_string'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -103,6 +105,26 @@ module ActiveRecord
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
         @prepared_statements = false
+      end
+
+      class BindCollector < Arel::Collectors::Bind
+        def compile(bvs, conn)
+          super(bvs.map { |bv| conn.quote(*bv.reverse) })
+        end
+      end
+
+      class SQLString < Arel::Collectors::SQLString
+        def compile(bvs, conn)
+          super(bvs)
+        end
+      end
+
+      def collector
+        if @prepared_statements
+          SQLString.new
+        else
+          BindCollector.new
+        end
       end
 
       def valid_type?(type)
