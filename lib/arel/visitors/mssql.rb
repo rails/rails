@@ -1,6 +1,14 @@
 module Arel
   module Visitors
     class MSSQL < Arel::Visitors::ToSql
+      class RowNumber
+        attr_reader :expr
+
+        def initialize node
+          @expr = node
+        end
+      end
+
       private
 
       # `top` wouldn't really work here. I.e. User.select("distinct first_name").limit(10) would generate
@@ -8,6 +16,10 @@ module Arel
       # "select distinct top 10 first_name from users"
       def visit_Arel_Nodes_Top o
         ""
+      end
+
+      def visit_Arel_Visitors_MSSQL_RowNumber o
+        "ROW_NUMBER() OVER (#{o.expr}) as _row_num"
       end
 
       def visit_Arel_Nodes_SelectStatement o
@@ -55,7 +67,7 @@ module Arel
       end
 
       def row_num_literal order_by
-        Nodes::SqlLiteral.new("ROW_NUMBER() OVER (#{order_by}) as _row_num")
+        RowNumber.new order_by
       end
 
       def select_count? x
