@@ -25,8 +25,8 @@ module Arel
         }.new Table.engine.connection
 
         assignment = um.ast.values[0]
-        actual = visitor.accept(assignment, collector) { |collector|
-          collector << "replace"
+        actual = visitor.accept(assignment, collector) {
+          "replace"
         }
         assert actual
         value = actual.value
@@ -43,7 +43,7 @@ module Arel
 
         bp = Nodes::BindParam.new 'omg'
         called = false
-        visitor.accept(bp, collector) { |collector| called = true }
+        visitor.accept(bp, collector) { called = true }
         assert called
       end
 

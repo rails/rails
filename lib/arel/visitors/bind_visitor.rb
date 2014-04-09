@@ -25,7 +25,10 @@ module Arel
 
       def visit_Arel_Nodes_BindParam o, collector
         if @block
-          @block.call(collector)
+          val = @block.call
+          if String === val
+            collector << val
+          end
         else
           super
         end
