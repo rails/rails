@@ -1,3 +1,9 @@
+*   Auto-generate stable fixture UUIDs on PostgreSQL.
+
+    Fixes: #11524
+
+    *Roderick van Domburg*
+
 *   Fixed a problem where an enum would overwrite values of another enum
     with the same name in an unrelated class.
 
