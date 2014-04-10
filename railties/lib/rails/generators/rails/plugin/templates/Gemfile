@@ -39,9 +39,9 @@ end
 <% end -%>
 <% unless defined?(JRUBY_VERSION) -%>
 # To use a debugger
-  <% if RUBY_VERSION < '2.0.0' -%>
+  <%- if RUBY_VERSION < '2.0.0' -%>
 # gem 'debugger', group: [:development, :test]
-  <% else -%>
+  <%- else -%>
 # gem 'byebug', group: [:development, :test]
-  <% end -%>
+  <%- end -%>
 <% end -%>
