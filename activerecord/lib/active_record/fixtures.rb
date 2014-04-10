@@ -661,7 +661,7 @@ module ActiveRecord
                   row[association.foreign_type] = $1
                 end
 
-                fk_type = association.send(:active_record).columns_hash[association.foreign_key].type
+                fk_type = association.active_record.columns_hash[association.foreign_key].type
                 row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
               end
             when :has_many
