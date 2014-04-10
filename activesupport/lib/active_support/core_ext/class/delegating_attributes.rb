@@ -1,7 +1,6 @@
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/module/deprecation'
-
+require 'active_support/core_ext/module/remove_possible_method'
 
 class Class
   def superclass_delegating_accessor(name, options = {})
