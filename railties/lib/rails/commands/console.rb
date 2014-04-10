@@ -76,9 +76,19 @@ module Rails
       Rails.env = environment
     end
 
-    def debugger?
-      options[:debugger]
-    end if RUBY_VERSION < '2.0.0'
+    if RUBY_VERSION < '2.0.0'
+      def debugger?
+        options[:debugger]
+      end
+
+      def require_debugger
+        require 'debugger'
+        puts "=> Debugger enabled"
+      rescue LoadError
+        puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle it and try again."
+        exit(1)
+      end
+    end
 
     def start
       if RUBY_VERSION < '2.0.0'
@@ -99,13 +109,5 @@ module Rails
       end
       console.start
     end
-
-    def require_debugger
-      require 'debugger'
-      puts "=> Debugger enabled"
-    rescue LoadError
-      puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle it and try again."
-      exit(1)
-    end if RUBY_VERSION < '2.0.0'
   end
 end
