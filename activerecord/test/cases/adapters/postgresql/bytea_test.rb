@@ -72,7 +72,7 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
 
   def test_via_to_sql
     data = "'\u001F\\"
-    record = ByteaDataType.create(payload: data)
+    ByteaDataType.create(payload: data)
     sql = ByteaDataType.where(payload: data).select(:payload).to_sql
     result = @connection.query(sql)
     assert_equal([[data]], result)
