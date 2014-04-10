@@ -22,7 +22,7 @@ module ActiveRecord
     end
 
     def self.add_reflection(ar, name, reflection)
-      ar.reflections = ar.reflections.merge(name => reflection)
+      ar.reflections = ar.reflections.merge(name.to_s => reflection)
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)
@@ -72,7 +72,7 @@ module ActiveRecord
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
-        reflections[association]
+        reflections[association.to_s]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
