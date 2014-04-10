@@ -76,15 +76,13 @@ module ActiveRecord
 
     def initialize(block = Proc.new)
       @mutex    = Mutex.new
-      @relation = nil
       @binds    = nil
-      @block    = block
       @query_builder = nil
-      @params   = Params.new
+      @relation = block.call Params.new
     end
 
     def execute(params)
-      rel = relation @params
+      rel = @relation
 
       arel        = rel.arel
       klass       = rel.klass
@@ -107,10 +105,6 @@ module ActiveRecord
       @query_builder || @mutex.synchronize {
         @query_builder ||= connection.cacheable_query(arel)
       }
-    end
-
-    def relation(values)
-      @relation || @mutex.synchronize { @relation ||= @block.call(values) }
     end
   end
 end
