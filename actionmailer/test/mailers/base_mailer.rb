@@ -50,6 +50,13 @@ class BaseMailer < ActionMailer::Base
     mail
   end
 
+  def rendered_attachment
+    content = render handlers: [:erb], formats: [:json], template: 'base_mailer/rendered_attachment_attachment', layout: false
+    attachments['invoice.json'] = { mime_type: "application/pdf",
+                                   content: content }
+    mail
+  end
+
   def implicit_multipart(hash = {})
     attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
     mail(hash)

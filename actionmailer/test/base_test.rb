@@ -130,6 +130,13 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("multipart/mixed", email.mime_type)
   end
 
+  test "renders attachment in a different format" do
+    email = BaseMailer.rendered_attachment
+    assert_equal(1, email.attachments.length)
+    assert_equal("multipart/mixed", email.mime_type)
+    assert_equal("With rendered attachment\r\n", email.parts[0].body.encoded)
+  end
+
   test "adds the rendered template as part" do
     email = BaseMailer.attachment_with_content
     assert_equal(2, email.parts.length)
