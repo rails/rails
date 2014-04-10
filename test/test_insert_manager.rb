@@ -139,5 +139,28 @@ module Arel
         }
       end
     end
+
+    describe "select" do
+
+      it "accepts a select query in place of a VALUES clause" do
+        table   = Table.new :users
+
+        manager = Arel::InsertManager.new Table.engine
+        manager.into table
+
+        select = Arel::SelectManager.new Table.engine
+        select.project Arel.sql('1')
+        select.project Arel.sql('"aaron"')
+
+        manager.select select
+        manager.columns << table[:id]
+        manager.columns << table[:name]
+        manager.to_sql.must_be_like %{
+          INSERT INTO "users" ("id", "name") SELECT 1, "aaron"
+        }
+      end
+
+    end
+
   end
 end
