@@ -63,7 +63,7 @@ module ActiveRecord
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
-        string:       { name: "varchar", limit: 255 },
+        string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
         float:        { name: "float" },

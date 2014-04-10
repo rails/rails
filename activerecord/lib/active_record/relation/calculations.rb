@@ -231,7 +231,7 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       # Postgresql doesn't like ORDER BY when there are no GROUP BY
-      relation = reorder(nil)
+      relation = unscope(:order)
 
       column_alias = column_name
 

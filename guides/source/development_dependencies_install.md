@@ -117,7 +117,7 @@ This command will install all dependencies except the MySQL and PostgreSQL Ruby 
 
 NOTE: If you would like to run the tests that use memcached, you need to ensure that you have it installed and running.
 
-You can use homebrew to install memcached on OSX:
+You can use [Homebrew](http://brew.sh/) to install memcached on OSX:
 
 ```bash
 $ brew install memcached
@@ -210,6 +210,14 @@ FreeBSD users will have to run the following:
 # pkg_add -r postgresql92-client postgresql92-server
 ```
 
+You can use [Homebrew](http://brew.sh/) to install MySQL and PostgreSQL on OSX:
+
+```bash
+$ brew install mysql
+$ brew install postgresql
+```
+Follow instructions given by [Homebrew](http://brew.sh/) to start these.
+
 Or install them through ports (they are located under the `databases` folder).
 If you run into troubles during the installation of MySQL, please see
 [the MySQL documentation](http://dev.mysql.com/doc/refman/5.1/en/freebsd-installation.html).
@@ -245,9 +253,14 @@ $ bundle exec rake mysql:build_databases
 ```
 
 PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
+This is not needed when installed via [Homebrew](http://brew.sh).
 
 ```bash
 $ sudo -u postgres createuser --superuser $USER
+```
+And for OS X (when installed via [Homebrew](http://brew.sh))
+```bash
+$ createuser --superuser $USER
 ```
 
 and then create the test databases with

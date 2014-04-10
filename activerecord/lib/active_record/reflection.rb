@@ -22,11 +22,11 @@ module ActiveRecord
     end
 
     def self.add_reflection(ar, name, reflection)
-      ar.reflections = ar.reflections.merge(name => reflection)
+      ar.reflections = ar.reflections.merge(name.to_s => reflection)
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)
-      ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
+      ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
     # \Reflection enables to interrogate Active Record classes and objects
@@ -48,7 +48,7 @@ module ActiveRecord
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
-        aggregate_reflections[aggregation]
+        aggregate_reflections[aggregation.to_s]
       end
 
       # Returns an array of AssociationReflection objects for all the
@@ -72,7 +72,7 @@ module ActiveRecord
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
-        reflections[association]
+        reflections[association.to_s]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
@@ -617,7 +617,7 @@ module ActiveRecord
       #   # => [:tag, :tags]
       #
       def source_reflection_names
-        (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }.uniq
+        options[:source] ? [options[:source]] : [name.to_s.singularize, name].uniq
       end
 
       def source_reflection_name # :nodoc:

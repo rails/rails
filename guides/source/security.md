@@ -1003,7 +1003,7 @@ _'1; mode=block' in Rails by default_ - use XSS Auditor and block page if XSS at
 * X-Content-Type-Options
 _'nosniff' in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * X-Content-Security-Policy
-[A powerful mechanism for controlling which sites certain content types can be loaded from](http://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html)
+[A powerful mechanism for controlling which sites certain content types can be loaded from](http://w3c.github.io/webappsec/specs/content-security-policy/csp-specification.dev.html)
 * Access-Control-Allow-Origin
 Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
 * Strict-Transport-Security

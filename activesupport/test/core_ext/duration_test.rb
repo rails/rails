@@ -31,6 +31,13 @@ class DurationTest < ActiveSupport::TestCase
     assert !(1.day == 'foo')
   end
 
+  def test_eql
+    assert 1.minute.eql?(1.minute)
+    assert 2.days.eql?(48.hours)
+    assert !1.second.eql?(1)
+    assert !1.eql?(1.second)
+  end
+
   def test_inspect
     assert_equal '0 seconds',                       0.seconds.inspect
     assert_equal '1 month',                         1.month.inspect

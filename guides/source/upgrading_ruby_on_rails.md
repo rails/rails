@@ -25,8 +25,6 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 
-NOTE: This section is a work in progress.
-
 ### CSRF protection from remote `<script>` tags
 
 Or, "whaaat my tests are failing!!!?"
@@ -79,12 +77,15 @@ secrets, you need to:
       secret_key_base:
 
     production:
-      secret_key_base:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
     ```
 
-2. Copy the existing `secret_key_base` from the `secret_token.rb` initializer to
-   `secrets.yml` under the `production` section.
-
+2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
+   set the SECRET_KEY_BASE environment variable for whichever users run the Rails
+   app in production mode. Alternately, you can simply copy the existing 
+   `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml` 
+   under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
+   
 3. Remove the `secret_token.rb` initializer.
 
 4. Use `rake secret` to generate new keys for the `development` and `test` sections.
@@ -463,7 +464,7 @@ being used, you can update your form to use the `PUT` method instead:
 <%= form_for [ :update_name, @user ], method: :put do |f| %>
 ```
 
-For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/25/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
 on the Rails blog.
 
 #### A note about media types

@@ -387,6 +387,20 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Account.count(1, 2, 3) }
   end
 
+  def test_count_with_order
+    assert_equal 6, Account.order(:credit_limit).count
+  end
+
+  def test_count_with_reverse_order
+    assert_equal 6, Account.order(:credit_limit).reverse_order.count
+  end
+
+  def test_count_with_where_and_order
+    assert_equal 1, Account.where(firm_name: '37signals').count
+    assert_equal 1, Account.where(firm_name: '37signals').order(:firm_name).count
+    assert_equal 1, Account.where(firm_name: '37signals').order(:firm_name).reverse_order.count
+  end
+
   def test_should_sum_expression
     # Oracle adapter returns floating point value 636.0 after SUM
     if current_adapter?(:OracleAdapter)

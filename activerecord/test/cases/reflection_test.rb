@@ -63,7 +63,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_column_string_type_and_limit
     assert_equal :string, @first.column_for_attribute("title").type
-    assert_equal 255, @first.column_for_attribute("title").limit
+    assert_equal 250, @first.column_for_attribute("title").limit
   end
 
   def test_column_null_not_null
@@ -192,7 +192,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_should_not_raise_error_when_compared_to_other_object
-    assert_nothing_raised { Firm.reflections[:clients] == Object.new }
+    assert_nothing_raised { Firm.reflections['clients'] == Object.new }
   end
 
   def test_has_many_through_reflection

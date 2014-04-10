@@ -93,7 +93,7 @@ module ActiveRecord
       end
 
       def map_enum_attribute(klass, attribute, value)
-        mapping = klass.enum_mapping_for(attribute.to_s)
+        mapping = klass.defined_enums[attribute.to_s]
         value = mapping[value] if value && mapping
         value
       end

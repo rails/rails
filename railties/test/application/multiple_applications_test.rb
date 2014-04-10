@@ -21,6 +21,12 @@ module ApplicationTests
       assert_equal Rails.application.config.secret_key_base, clone.config.secret_key_base, "The base secret key on the config should be the same"
     end
 
+    def test_inheriting_multiple_times_from_application
+      new_application_class = Class.new(Rails::Application)
+
+      assert_not_equal Rails.application.object_id, new_application_class.instance.object_id
+    end
+
     def test_initialization_of_multiple_copies_of_same_application
       application1 = AppTemplate::Application.new
       application2 = AppTemplate::Application.new
