@@ -92,6 +92,7 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `around_create`
 * `after_create`
 * `after_save`
+* `after_commit/after_rollback`
 
 ### Updating an Object
 
@@ -103,12 +104,14 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `around_update`
 * `after_update`
 * `after_save`
+* `after_commit/after_rollback`
 
 ### Destroying an Object
 
 * `before_destroy`
 * `around_destroy`
 * `after_destroy`
+* `after_commit/after_rollback`
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
