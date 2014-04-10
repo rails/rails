@@ -16,6 +16,10 @@ module ActiveRecord
       def self.connection
         Post.connection
       end
+
+      def self.table_name
+        'fake_table'
+      end
     end
 
     def test_construction

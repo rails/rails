@@ -1,3 +1,9 @@
+*   Fix insertion of records via `has_many :through` association with scope.
+
+    Fixes #3548.
+
+    *Ivan Antropov*
+
 *   Auto-generate stable fixture UUIDs on PostgreSQL.
 
     Fixes: #11524
