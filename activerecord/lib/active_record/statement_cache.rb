@@ -77,7 +77,6 @@ module ActiveRecord
     def initialize(block = Proc.new)
       @mutex    = Mutex.new
       @relation = nil
-      @sql      = nil
       @binds    = nil
       @block    = block
       @query_builder = nil
@@ -107,12 +106,6 @@ module ActiveRecord
     def query_builder(connection, arel)
       @query_builder || @mutex.synchronize {
         @query_builder ||= connection.cacheable_query(arel)
-      }
-    end
-
-    def sql(klass, arel, bv)
-      @sql || @mutex.synchronize {
-        @sql ||= klass.connection.to_sql arel, bv
       }
     end
 
