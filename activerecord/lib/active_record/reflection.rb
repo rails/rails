@@ -26,7 +26,7 @@ module ActiveRecord
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)
-      ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
+      ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
     # \Reflection enables to interrogate Active Record classes and objects
@@ -48,7 +48,7 @@ module ActiveRecord
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
-        aggregate_reflections[aggregation]
+        aggregate_reflections[aggregation.to_s]
       end
 
       # Returns an array of AssociationReflection objects for all the
