@@ -1,3 +1,9 @@
+*   Fix insertion of records via `has_many :through` association with scope.
+
+    Fixes #3548.
+
+    *Ivan Antropov*
+
 *   Make possible to have an association called `records`.
 
     Fixes #11645.
