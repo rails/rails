@@ -617,7 +617,7 @@ module ActiveRecord
       #   # => [:tag, :tags]
       #
       def source_reflection_names
-        (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).uniq
+        options[:source] ? [options[:source]] : [name.to_s.singularize, name].uniq
       end
 
       def source_reflection_name # :nodoc:
