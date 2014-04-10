@@ -127,7 +127,13 @@ module Arel
           }.join ', '})"
         end
 
-        maybe_visit o.values, collector
+        if o.values
+          maybe_visit o.values, collector
+        elsif o.select
+          maybe_visit o.select, collector
+        else
+          collector
+        end
       end
 
       def visit_Arel_Nodes_Exists o, collector

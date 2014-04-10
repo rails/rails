@@ -13,6 +13,10 @@ module Arel
     def columns; @ast.columns end
     def values= val; @ast.values = val; end
 
+    def select select
+      @ast.select = select
+    end
+
     def insert fields
       return if fields.empty?
 
