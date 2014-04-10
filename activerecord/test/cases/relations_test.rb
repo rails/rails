@@ -824,6 +824,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ActiveRecordError) { Author.limit(10).delete_all }
   end
 
+  def test_select_with_aggregates
+    posts = Post.select(:title, :body)
+    
+    assert_equal 11, posts.count(:all)
+    assert_equal 11, posts.size
+    assert posts.any?
+    assert posts.many?
+    assert ! posts.empty?    
+  end
+  
   def test_select_takes_a_variable_list_of_args
     david = developers(:david)
 
