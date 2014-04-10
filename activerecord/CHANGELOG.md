@@ -1,3 +1,9 @@
+*   PostgreSQL adapter only warns once for every missing OID per connection.
+
+    Fixes #14275.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   PostgreSQL adapter automatically reloads it's type map when encountering
     unknown OIDs.
 

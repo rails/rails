@@ -385,6 +385,17 @@ module ActiveRecord
         reset_connection
       end
 
+      def test_only_warn_on_first_encounter_of_unknown_oid
+        warning = capture(:stderr) {
+          @connection.select_all "SELECT NULL::anyelement"
+          @connection.select_all "SELECT NULL::anyelement"
+          @connection.select_all "SELECT NULL::anyelement"
+        }
+        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'. It will be treated as String.\n\z/, warning)
+      ensure
+        reset_connection
+      end
+
       private
       def insert(ctx, data)
         binds   = data.map { |name, value|
