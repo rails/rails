@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/module/remove_possible_method'
 require 'rails/generators'
 require 'rails/generators/test_case'
 

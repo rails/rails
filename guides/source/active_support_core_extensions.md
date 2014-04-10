@@ -979,7 +979,7 @@ redefine_method("#{reflection.name}=") do |new_value|
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/module/remove_method.rb`
+NOTE: Defined in `active_support/core_ext/module/redefine_method.rb`
 
 Extensions to `Class`
 ---------------------
