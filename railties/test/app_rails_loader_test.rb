@@ -25,13 +25,13 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
       File.stubs(:file?).with('bin/rails').returns(false)
       File.stubs(:file?).with('script/rails').returns(false)
 
-      assert !Rails::AppRailsLoader.exec_app_rails
+      assert_not Rails::AppRailsLoader.exec_app_rails
     end
 
     test "is not in a Rails application if #{exe} exists but is a folder" do
       FileUtils.mkdir_p(exe)
 
-      assert !Rails::AppRailsLoader.exec_app_rails
+      assert_not Rails::AppRailsLoader.exec_app_rails
     end
 
     ['APP_PATH', 'ENGINE_PATH'].each do |keyword|
@@ -45,7 +45,7 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
       test "is not in a Rails application if #{exe} exists but doesn't contain #{keyword}" do
         write exe
 
-        assert !Rails::AppRailsLoader.exec_app_rails
+        assert_not Rails::AppRailsLoader.exec_app_rails
       end
 
       test "is in a Rails application if parent directory has #{exe} containing #{keyword} and chdirs to the root directory" do
