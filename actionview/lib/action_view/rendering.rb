@@ -102,7 +102,7 @@ module ActionView
       # Assign the rendered format to lookup context.
       def _process_format(format, options = {}) #:nodoc:
         super
-        lookup_context.formats = [format.to_sym]
+        lookup_context.formats.unshift format.to_sym
         lookup_context.rendered_format = lookup_context.formats.first
       end
 
