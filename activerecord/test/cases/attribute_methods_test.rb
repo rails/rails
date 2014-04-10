@@ -843,6 +843,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal !real_topic.title?, klass.find(real_topic.id).title?
   end
 
+  def test_attributes_with_array_given
+    topic = Topic.new do |t|
+      t.title       = "The Story"
+      t.author_name = "Nikolas"
+    end
+
+    assert_equal({"title" => "The Story", "author_name" => "Nikolas"}, topic.attributes([:title, :author_name]))
+  end
+
   private
 
   def new_topic_like_ar_class(&block)
