@@ -1,3 +1,10 @@
+*   PostgreSQL adapter automatically reloads it's type map when encountering
+    unknown OIDs.
+
+    Fixes #14678.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   Fix insertion of records via `has_many :through` association with scope.
 
     Fixes #3548.

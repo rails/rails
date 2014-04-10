@@ -21,8 +21,6 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
         t.column :current_mood, :mood
       end
     end
-    # reload type map after creating the enum type
-    @connection.send(:reload_type_map)
   end
 
   teardown do
