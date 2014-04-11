@@ -1198,6 +1198,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal authors(:bob), author
   end
 
+  test "preloading with a polymorphic association and using the existential predicate but also using a select" do
+    assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
+
+    assert_nothing_raised do
+      authors(:david).essays.includes(:writer).select(:name).any?
+    end
+  end
+
   test "preloading with a polymorphic association and using the existential predicate" do
     assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
 

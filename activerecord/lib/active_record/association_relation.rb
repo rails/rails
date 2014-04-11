@@ -9,6 +9,14 @@ module ActiveRecord
       @association
     end
 
+    def size
+      @association.size
+    end
+
+    def empty?
+      @association.empty?
+    end
+
     private
 
     def exec_queries
