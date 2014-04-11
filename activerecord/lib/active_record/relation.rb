@@ -569,7 +569,7 @@ module ActiveRecord
     # Compares two relations for equality.
     def ==(other)
       case other
-      when Associations::CollectionProxy
+      when Associations::CollectionProxy, AssociationRelation
         self == other.to_a
       when Relation
         other.to_sql == to_sql
