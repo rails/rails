@@ -19,9 +19,9 @@ module ActiveRecord
         Book.where(:name => params[:name])
       end
 
-      b = cache.execute name: "my book"
+      b = cache.execute({ name: "my book" }, Book, Book.connection)
       assert_equal "my book", b[0].name
-      b = cache.execute name: "my other book"
+      b = cache.execute({ name: "my other book" }, Book, Book.connection)
       assert_equal "my other book", b[0].name
     end
 
@@ -34,9 +34,9 @@ module ActiveRecord
         Book.where(id: params[:id])
       end
 
-      b = cache.execute id: b1.id
+      b = cache.execute({ id: b1.id }, Book, Book.connection)
       assert_equal b1.name, b[0].name
-      b = cache.execute id: b2.id
+      b = cache.execute({ id: b2.id }, Book, Book.connection)
       assert_equal b2.name, b[0].name
     end
 
@@ -59,7 +59,7 @@ module ActiveRecord
 
       Book.create(name: "my book", author_id: 4)
 
-      books = cache.execute({})
+      books = cache.execute({}, Book, Book.connection)
       assert_equal "my book", books[0].name
     end
 
@@ -72,7 +72,7 @@ module ActiveRecord
       molecule = salty.molecules.create(name: 'dioxane')
       molecule.electrons.create(name: 'lepton')
 
-      liquids = cache.execute({})
+      liquids = cache.execute({}, Book, Book.connection)
       assert_equal "salty", liquids[0].name
     end
 
@@ -85,13 +85,13 @@ module ActiveRecord
         Book.create(name: "my book")
       end
 
-      first_books = cache.execute({})
+      first_books = cache.execute({}, Book, Book.connection)
 
       3.times do
         Book.create(name: "my book")
       end
 
-      additional_books = cache.execute({})
+      additional_books = cache.execute({}, Book, Book.connection)
       assert first_books != additional_books
     end
   end

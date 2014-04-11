@@ -139,7 +139,7 @@ module ActiveRecord
             where(key => params[key]).limit(1)
           }
         }
-        record = s.execute(key => id).first
+        record = s.execute({key => id}, self, connection).first
         unless record
           raise RecordNotFound, "Couldn't find #{name} with '#{primary_key}'=#{id}"
         end
@@ -167,7 +167,7 @@ module ActiveRecord
           }
         }
         begin
-          s.execute(hash).first
+          s.execute(hash, self, connection).first
         rescue TypeError => e
           raise ActiveRecord::StatementInvalid.new(e.message, e)
         end
