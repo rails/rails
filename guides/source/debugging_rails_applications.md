@@ -283,20 +283,21 @@ As soon as your application calls the `byebug` method, the debugger will be
 started in a debugger shell inside the terminal window where you launched your
 application server, and you will be placed at the debugger's prompt `(byebug)`.
 Before the prompt, the code around the line that is about to be run will be
-shown and the current line is marked by '=>'. Like this:
+displayed and the current line will be marked by '=>'. Like this:
 
 ```
 [1, 10] in /PathTo/project/app/controllers/posts_controller.rb
-   1  class PostsController < ApplicationController
-   2    # GET /posts
-   3    # GET /posts.json
-   4    def index
-   5      byebug
-=> 6      @posts = Post.all
-   7
-   8      respond_to do |format|
-   9        format.html # index.html.erb
-   10        format.json { render json: @posts }
+    3:
+    4:   # GET /posts
+    5:   # GET /posts.json
+    6:   def index
+    7:     byebug
+=>  8:     @posts = Post.find_recent
+    9:
+   10:     respond_to do |format|
+   11:       format.html # index.html.erb
+   12:       format.json { render json: @posts }
+
 (byebug)
 ```
 
@@ -307,8 +308,33 @@ processing the entire request.
 For example:
 
 ```bash
-@posts = Post.all
-(byebug:7)
+=> Booting WEBrick
+=> Rails 4.1.0 application starting in development on http://0.0.0.0:3000
+=> Run `rails server -h` for more startup options
+=> Notice: server is listening on all interfaces (0.0.0.0). Consider using 127.0.0.1 (--binding option)
+=> Ctrl-C to shutdown server
+[2014-04-11 13:11:47] INFO  WEBrick 1.3.1
+[2014-04-11 13:11:47] INFO  ruby 2.1.1 (2014-02-24) [i686-linux]
+[2014-04-11 13:11:47] INFO  WEBrick::HTTPServer#start: pid=6370 port=3000
+
+
+Started GET "/" for 127.0.0.1 at 2014-04-11 13:11:48 +0200
+  ActiveRecord::SchemaMigration Load (0.2ms)  SELECT "schema_migrations".* FROM "schema_migrations"
+Processing by PostsController#index as HTML
+
+[3, 12] in /PathTo/project/app/controllers/posts_controller.rb
+    3:
+    4:   # GET /posts
+    5:   # GET /posts.json
+    6:   def index
+    7:     byebug
+=>  8:     @posts = Post.find_recent
+    9:
+   10:     respond_to do |format|
+   11:       format.html # index.html.erb
+   12:       format.json { render json: @posts }
+
+(byebug)
 ```
 
 Now it's time to explore and dig into your application. A good place to start is
@@ -316,7 +342,8 @@ by asking the debugger for help. Type: `help`
 
 ```
 (byebug) help
-byebug 2.6.0
+
+byebug 2.7.0
 
 Type 'help <command-name>' for help on a specific command
 
@@ -337,36 +364,41 @@ To see the previous ten lines you should type `list-` (or `l-`)
 
 ```
 (byebug) l-
+
 [1, 10] in /PathTo/project/app/controllers/posts_controller.rb
    1  class PostsController < ApplicationController
-   2    # GET /posts
-   3    # GET /posts.json
-   4    def index
-   5      byebug
-   6      @posts = Post.all
-   7
-   8      respond_to do |format|
-   9        format.html # index.html.erb
-   10        format.json { render json: @posts }
+   2    before_action :set_post, only: [:show, :edit, :update, :destroy]
+   3
+   4    # GET /posts
+   5    # GET /posts.json
+   6    def index
+   7      byebug
+   8      @posts = Post.find_recent
+   9
+   10      respond_to do |format|
+
 ```
 
 This way you can move inside the file, being able to see the code above and over
-the line you added the `byebug` call.  Finally, to see where you are in the code
-again you can type `list=`
+the line where you added the `byebug` call.  Finally, to see where you are in
+the code again you can type `list=`
 
 ```
 (byebug) list=
-[1, 10] in /PathTo/project/app/controllers/posts_controller.rb
-   1  class PostsController < ApplicationController
-   2    # GET /posts
-   3    # GET /posts.json
-   4    def index
-   5      byebug
-=> 6      @posts = Post.all
-   7
-   8      respond_to do |format|
-   9        format.html # index.html.erb
-   10        format.json { render json: @posts }
+
+[3, 12] in /PathTo/project/app/controllers/posts_controller.rb
+    3:
+    4:   # GET /posts
+    5:   # GET /posts.json
+    6:   def index
+    7:     byebug
+=>  8:     @posts = Post.find_recent
+    9:
+   10:     respond_to do |format|
+   11:       format.html # index.html.erb
+   12:       format.json { render json: @posts }
+
+(byebug)
 ```
 
 ### The Context
@@ -387,33 +419,47 @@ then `backtrace` will supply the answer.
 
 ```
 (byebug) where
-    #0 PostsController.index
-       at line /PathTo/project/app/controllers/posts_controller.rb:6
-    #1 Kernel.send
-       at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/base.rb:1175
-    #2 ActionController::Base.perform_action_without_filters
-       at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/base.rb:1175
-    #3 ActionController::Filters::InstanceMethods.call_filters(chain#ActionController::Fil...,...)
-       at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/filters.rb:617
+--> #0  PostsController.index
+      at /PathTo/project/test_app/app/controllers/posts_controller.rb:8
+    #1  ActionController::ImplicitRender.send_action(method#String, *args#Array)
+      at /PathToGems/actionpack-4.1.0/lib/action_controller/metal/implicit_render.rb:4
+    #2  AbstractController::Base.process_action(action#NilClass, *args#Array)
+      at /PathToGems/actionpack-4.1.0/lib/abstract_controller/base.rb:189
+    #3  ActionController::Rendering.process_action(action#NilClass, *args#NilClass)
+      at /PathToGems/actionpack-4.1.0/lib/action_controller/metal/rendering.rb:10
 ...
 ```
 
-You move anywhere you want in this trace (thus changing the context) by using
-the `frame _n_` command, where _n_ is the specified frame number.
+The current frame is marked with `-->`. You can move anywhere you want in this
+trace (thus changing the context) by using the `frame _n_` command, where _n_ is
+the specified frame number. If you do that, `byebug` will display your new
+context.
 
 ```
 (byebug) frame 2
-#2 ActionController::Base.perform_action_without_filters
-       at line /PathTo/project/vendor/rails/actionpack/lib/action_controller/base.rb:1175
+
+[184, 193] in /PathToGems/actionpack-4.1.0/lib/abstract_controller/base.rb
+   184:       # is the intended way to override action dispatching.
+   185:       #
+   186:       # Notice that the first argument is the method to be dispatched
+   187:       # which is *not* necessarily the same as the action name.
+   188:       def process_action(method_name, *args)
+=> 189:         send_action(method_name, *args)
+   190:       end
+   191:
+   192:       # Actually call the method associated with the action. Override
+   193:       # this method if you wish to change how action methods are called,
+
+(byebug)
 ```
 
 The available variables are the same as if you were running the code line by
 line. After all, that's what debugging is.
 
-Moving up and down the stack frame: You can use `up [n]` (`u` for abbreviated)
-and `down [n]` commands in order to change the context _n_ frames up or down the
-stack respectively. _n_ defaults to one. Up in this case is towards
-higher-numbered stack frames, and down is towards lower-numbered stack frames.
+You can also use `up [n]` (`u` for abbreviated) and `down [n]` commands in order
+to change the context _n_ frames up or down the stack respectively. _n_ defaults
+to one. Up in this case is towards higher-numbered stack frames, and down is
+towards lower-numbered stack frames.
 
 ### Threads
 
@@ -441,12 +487,22 @@ This example shows how you can print the instance_variables defined within the
 current context:
 
 ```
-@posts = Post.all
+[3, 12] in /PathTo/project/app/controllers/posts_controller.rb
+    3:
+    4:   # GET /posts
+    5:   # GET /posts.json
+    6:   def index
+    7:     byebug
+=>  8:     @posts = Post.find_recent
+    9:
+   10:     respond_to do |format|
+   11:       format.html # index.html.erb
+   12:       format.json { render json: @posts }
+
 (byebug) instance_variables
-["@_response", "@action_name", "@url", "@_session", "@_cookies",
- "@performed_render", "@_flash", "@template", "@_params",
- "@before_filter_chain_aborted", "@request_origin", "@_headers",
- "@performed_redirect", "@_request"]
+[:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
+ :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response_body, :@marked_for_same_origin_verification, :@_config]
 ```
 
 As you may have figured out, all of the variables that you can access from a
@@ -456,11 +512,19 @@ command later in this guide).
 
 ```
 (byebug) next
-Processing PostsController#index (for 127.0.0.1 at 2008-09-04 19:51:34) [GET]
-  Session ID: BAh7BiIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsABjoKQHVzZWR7AA==--b16e91b992453a8cc201694d660147bba8b0fd0e
-  Parameters: {"action"=>"index", "controller"=>"posts"}
-/PathToProject/posts_controller.rb:8
-respond_to do |format|
+[5, 14] in /PathTo/project/app/controllers/posts_controller.rb
+   5     # GET /posts.json
+   6     def index
+   7       byebug
+   8       @posts = Post.find_recent
+   9
+=> 10       respond_to do |format|
+   11         format.html # index.html.erb
+   12        format.json { render json: @posts }
+   13      end
+   14    end
+   15
+(byebug)
 ```
 
 And then ask again for the instance_variables:
@@ -477,31 +541,37 @@ TIP: You can also step into **irb** mode with the command `irb` (of course!).
 This way an irb session will be started within the context you invoked it. But
 be warned: this is an experimental feature.
 
-The `var` method is the most convenient way to show variables and their values:
+The `var` method is the most convenient way to show variables and their values.
+Let's let `byebug` to help us with it.
 
 ```
-var
-(byebug) v[ar] const <object>            show constants of object
-(byebug) v[ar] g[lobal]                  show global variables
-(byebug) v[ar] i[nstance] <object>       show instance variables of object
-(byebug) v[ar] l[ocal]                   show local variables
+(byebug) help var
+v[ar] cl[ass]                   show class variables of self
+v[ar] const <object>            show constants of object
+v[ar] g[lobal]                  show global variables
+v[ar] i[nstance] <object>       show instance variables of object
+v[ar] l[ocal]                   show local variables
 ```
 
 This is a great way to inspect the values of the current context variables. For
-example:
+example, to check that we have no local variables currently defined.
 
 ```
 (byebug) var local
-  __dbg_verbose_save => false
+(byebug)
 ```
 
 You can also inspect for an object method this way:
 
 ```
 (byebug) var instance Post.new
-@attributes = {"updated_at"=>nil, "body"=>nil, "title"=>nil, "published"=>nil, "created_at"...
+@_start_transaction_state = {}
+@aggregation_cache = {}
+@association_cache = {}
+@attributes = {"id"=>nil, "created_at"=>nil, "updated_at"=>nil}
 @attributes_cache = {}
-@new_record = true
+@changed_attributes = nil
+...
 ```
 
 TIP: The commands `p` (print) and `pp` (pretty print) can be used to evaluate
@@ -511,8 +581,8 @@ You can use also `display` to start watching variables. This is a good way of
 tracking the values of a variable while the execution goes on.
 
 ```
-(byebug) display @recent_comments
-1: @recent_comments =
+(byebug) display @posts
+1: @posts = nil
 ```
 
 The variables inside the displaying list will be printed with their values after
@@ -528,80 +598,80 @@ execution.
 Use `step` (abbreviated `s`) to continue running your program until the next
 logical stopping point and return control to the debugger.
 
-TIP: You can also use `step+ n` and `step- n` to move forward or backward `n`
-steps respectively.
-
 You may also use `next` which is similar to step, but function or method calls
-that appear within the line of code are executed without stopping. As with
-`step`, you may use plus sign to move _n_ steps.
+that appear within the line of code are executed without stopping.
+
+TIP: You can also use `step n` or `next n` to move forwards `n` steps at once.
 
 The difference between `next` and `step` is that `step` stops at the next line
 of code executed, doing just a single step, while `next` moves to the next line
 without descending inside methods.
 
-For example, consider this block of code with an included `byebug` statement:
+For example, consider the following situation:
 
 ```ruby
-class Author < ActiveRecord::Base
-  has_one :editorial
-  has_many :comments
+Started GET "/" for 127.0.0.1 at 2014-04-11 13:39:23 +0200
+Processing by PostsController#index as HTML
 
-  def find_recent_comments(limit = 10)
-    byebug
-    @recent_comments ||= comments.where("created_at > ?", 1.week.ago).limit(limit)
-  end
-end
-```
+[1, 8] in /home/davidr/Proyectos/test_app/app/models/post.rb
+   1: class Post < ActiveRecord::Base
+   2:
+   3:   def self.find_recent(limit = 10)
+   4:     byebug
+=> 5:     where('created_at > ?', 1.week.ago).limit(limit)
+   6:   end
+   7:
+   8: end
 
-```
-$ rails console
-Loading development environment (Rails 4.0.0)
->> author = Author.first
-=> #<Author id: 1, first_name: "Bob", last_name: "Smith", created_at: "2008-07-31 12:46:10", updated_at: "2008-07-31 12:46:10">
->> author.find_recent_comments
-/PathTo/project/app/models/author.rb:11
-)
-[2, 9] in /PathTo/project/app/models/author.rb
-   2    has_one :editorial
-   3    has_many :comments
-   4
-   5    def find_recent_comments(limit = 10)
-   6      byebug
-=> 7      @recent_comments ||= comments.where("created_at > ?", 1.week.ago).limit(limit)
-   8    end
-   9  end
 (byebug)
 ```
 
-You are at the end of the line, but... was this line executed? You can inspect
-the instance variables.
-
-```
-(byebug) var instance
-@attributes = {"updated_at"=>"2008-07-31 12:46:10", "id"=>"1", "first_name"=>"Bob", "las...
-@attributes_cache = {}
-```
-
-`@recent_comments` hasn't been defined yet, so it's clear that this line hasn't
-been executed yet. Use the `next` command to move on in the code:
+If we use  `next`, we want go deep inside method calls. Instead, byebug will go
+to the next line within the same context. In this case, this is the last line of
+the method, so `byebug` will jump to next next line of the previous frame.
 
 ```
 (byebug) next
-/PathTo/project/app/models/author.rb:12
-@recent_comments
-(byebug:1) var instance
-@attributes = {"updated_at"=>"2008-07-31 12:46:10", "id"=>"1", "first_name"=>"Bob", "las...
-@attributes_cache = {}
-@comments = []
-@recent_comments = []
+Next went up a frame because previous frame finished
+
+[4, 13] in /PathTo/project/test_app/app/controllers/posts_controller.rb
+    4:   # GET /posts
+    5:   # GET /posts.json
+    6:   def index
+    7:     @posts = Post.find_recent
+    8:
+=>  9:     respond_to do |format|
+   10:       format.html # index.html.erb
+   11:       format.json { render json: @posts }
+   12:     end
+   13:   end
+
+(byebug)
 ```
 
-Now you can see that the `@comments` relationship was loaded and
-`@recent_comments` defined because the line was executed.
+If we use `step` in the same situation, we will literally go the next ruby
+instruction to be executed. In this case, the activesupport's `week` method.
 
-If you want to go deeper into the stack trace you can move single steps
-through your calling methods and into Rails code. This is one of the best ways
-to find bugs in your code, or perhaps in Ruby or Rails.
+```
+(byebug) step
+
+[50, 59] in /PathToGems/activesupport-4.1.0/lib/active_support/core_ext/numeric/time.rb
+   50:     ActiveSupport::Duration.new(self * 24.hours, [[:days, self]])
+   51:   end
+   52:   alias :day :days
+   53:
+   54:   def weeks
+=> 55:     ActiveSupport::Duration.new(self * 7.days, [[:days, self * 7]])
+   56:   end
+   57:   alias :week :weeks
+   58:
+   59:   def fortnights
+
+(byebug)
+```
+
+This is one of the best ways to find bugs in your code, or perhaps in Ruby on
+Rails.
 
 ### Breakpoints
 
@@ -620,18 +690,33 @@ the debugger.
 _expression_ works the same way as with file:line.
 
 
+For example, in the previous situation
+
 ```
-(byebug:5) break 10
-Breakpoint 1 file /PathTo/project/vendor/rails/actionpack/lib/action_controller/filters.rb, line 10
+[4, 13] in /PathTo/project/app/controllers/posts_controller.rb
+    4:   # GET /posts
+    5:   # GET /posts.json
+    6:   def index
+    7:     @posts = Post.find_recent
+    8:
+=>  9:     respond_to do |format|
+   10:       format.html # index.html.erb
+   11:       format.json { render json: @posts }
+   12:     end
+   13:   end
+
+(byebug) break 11
+Created breakpoint 1 at /PathTo/project/app/controllers/posts_controller.rb:11
+
 ```
 
 Use `info breakpoints _n_` or `info break _n_` to list breakpoints. If you
 supply a number, it lists that breakpoint. Otherwise it lists all breakpoints.
 
 ```
-(byebug:5) info breakpoints
+(byebug) info breakpoints
 Num Enb What
-  1 y   at filters.rb:10
+1   y   at /PathTo/project/app/controllers/posts_controller.rb:11
 ```
 
 To delete breakpoints: use the command `delete _n_` to remove the breakpoint
@@ -639,8 +724,8 @@ number _n_. If no number is specified, it deletes all breakpoints that are
 currently active.
 
 ```
-(byebug:5) delete 1
-(byebug:5) info breakpoints
+(byebug) delete 1
+(byebug) info breakpoints
 No breakpoints.
 ```
 
