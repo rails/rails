@@ -172,15 +172,12 @@ module ActiveSupport
     #
     #   'ActiveRecord::CoreExtensions::String::Inflections'.demodulize # => "Inflections"
     #   'Inflections'.demodulize                                       # => "Inflections"
+    #   ''.demodulize                                                  # => ""
     #
     # See also +deconstantize+.
     def demodulize(path)
       path = path.to_s
-      if i = path.rindex('::')
-        path[(i+2)..-1]
-      else
-        path
-      end
+      path.split('::').last || path
     end
 
     # Removes the rightmost segment from the constant expression in the string.
