@@ -75,10 +75,11 @@ module ActiveRecord
     end
 
     def initialize(block = Proc.new)
-      @mutex    = Mutex.new
-      @binds    = nil
+      @mutex         = Mutex.new
+      @binds         = nil
       @query_builder = nil
-      @relation = block.call Params.new
+      @relation      = block.call Params.new
+      @binds         = BindMap.new @relation.bind_values
     end
 
     def execute(params)
@@ -86,7 +87,7 @@ module ActiveRecord
 
       arel        = rel.arel
       klass       = rel.klass
-      bind_map    = binds rel
+      bind_map    = @binds
       bind_values = bind_map.bind params
 
       builder = query_builder klass.connection, arel
@@ -97,10 +98,6 @@ module ActiveRecord
     alias :call :execute
 
     private
-    def binds(rel)
-      @binds || @mutex.synchronize { @binds ||= BindMap.new rel.bind_values }
-    end
-
     def query_builder(connection, arel)
       @query_builder || @mutex.synchronize {
         @query_builder ||= connection.cacheable_query(arel)
