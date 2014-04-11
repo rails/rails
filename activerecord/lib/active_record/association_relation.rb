@@ -8,7 +8,7 @@ module ActiveRecord
     def proxy_association
       @association
     end
-    
+
     def size
       @association.size
     end
@@ -16,7 +16,7 @@ module ActiveRecord
     def empty?
       @association.empty?
     end
-        
+
     private
 
     def exec_queries
