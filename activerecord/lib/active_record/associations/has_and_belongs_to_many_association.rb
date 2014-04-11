@@ -21,12 +21,21 @@ module ActiveRecord
         if options[:insert_sql]
           owner.connection.insert(interpolate(options[:insert_sql], record))
         else
-          stmt = join_table.compile_insert(
-            join_table[reflection.foreign_key]             => owner.id,
-            join_table[reflection.association_foreign_key] => record.id
-          )
+          const = join_table.name.singularize.camelize
+          model = Object.const_get(const) rescue nil
+          if model
+            object = model.create
+            object.send(:"#{reflection.foreign_key}=", owner.id)
+            object.send(:"#{reflection.association_foreign_key}=", record.id)
+            object.save!
+          else
+            stmt = join_table.compile_insert(
+              join_table[reflection.foreign_key]             => owner.id,
+              join_table[reflection.association_foreign_key] => record.id
+            )
 
-          owner.connection.insert stmt
+            owner.connection.insert stmt
+          end
         end
 
         record
