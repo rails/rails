@@ -1631,6 +1631,9 @@ Given a string with a qualified constant name, `demodulize` returns the very con
 "Product".demodulize                        # => "Product"
 "Backoffice::UsersController".demodulize    # => "UsersController"
 "Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
+"::Inflections".demodulize                  # => "Inflections"
+"".demodulize                               # => ""
+
 ```
 
 Active Record for example uses this method to compute the name of a counter cache column:

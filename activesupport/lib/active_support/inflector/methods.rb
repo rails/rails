@@ -172,6 +172,8 @@ module ActiveSupport
     #
     #   'ActiveRecord::CoreExtensions::String::Inflections'.demodulize # => "Inflections"
     #   'Inflections'.demodulize                                       # => "Inflections"
+    #   '::Inflections'.demodulize                                     # => "Inflections"
+    #   ''.demodulize                                                  # => ''
     #
     # See also +deconstantize+.
     def demodulize(path)

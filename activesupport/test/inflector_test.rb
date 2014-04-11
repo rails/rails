@@ -200,6 +200,7 @@ class InflectorTest < ActiveSupport::TestCase
   def test_demodulize
     assert_equal "Account", ActiveSupport::Inflector.demodulize("MyApplication::Billing::Account")
     assert_equal "Account", ActiveSupport::Inflector.demodulize("Account")
+    assert_equal "Account", ActiveSupport::Inflector.demodulize("::Account")
     assert_equal "", ActiveSupport::Inflector.demodulize("")
   end
 
