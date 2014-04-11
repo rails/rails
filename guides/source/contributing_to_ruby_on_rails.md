@@ -158,7 +158,7 @@ In case you can't use the Rails development box, see section above, check [this 
 
 ### Clone the Rails Repository ###
 
-To do to be able to contribute code, you need to clone the rails repository:
+To do to be able to contribute code, you need to clone the Rails repository:
 
 ```bash
 $ git clone git://github.com/rails/rails.git
@@ -175,8 +175,7 @@ It doesn't matter much what name you use, because this branch will only exist on
 
 ### Running an Application Against Your Local Branch ###
 
-Incase, you need a dummy rails app to test change, The `--dev` flag of `rails new` generates an application that uses your local
-branch:
+In case you need a dummy Rails app to test changes, the `--dev` flag of `rails new` generates an application that uses your local branch:
 
 ```bash
 $ cd rails
@@ -228,13 +227,13 @@ tests are passing, that's enough to propose your contribution. We have
 [Travis CI](https://travis-ci.org/rails/rails) as a safety net for catching
 unexpected breakages elsewhere.
 
-#### Entire rails:
+#### Entire Rails:
 To run all the tests, do:
 ```bash
 $ cd rails
 $ bundle exec rake test
 ```
-#### Particular component of rails
+#### Particular component of Rails
 To run tests only for particular component(ActionPack, ActiveRecord etc). For example, to run `ActionMailer` test do
 ```bash
 $ cd actionmailer
