@@ -1,5 +1,11 @@
 ## Rails 4.0.6 (unreleased) ##
 
+*   Only make deeply nested routes shallow when parent is shallow.
+
+    Fixes #14684.
+
+    *Andrew White*, *James Coglan*
+
 *   Fix `'Stack level too deep'` when rendering `head :ok` in an action method
     called 'status' in a controller.
 
