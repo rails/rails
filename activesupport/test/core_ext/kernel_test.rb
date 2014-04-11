@@ -137,4 +137,4 @@ class KernelDebuggerTest < ActiveSupport::TestCase
   ensure
     Object.send(:remove_const, :Rails)
   end
-end
+end if RUBY_VERSION < '2.0.0'

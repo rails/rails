@@ -64,14 +64,17 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
   end
 
-  def test_inclusion_of_debugger
+  def test_inclusion_of_a_debugger
     run_generator [destination_root, '--full']
     if defined?(JRUBY_VERSION)
       assert_file "Gemfile" do |content|
+        assert_no_match(/byebug/, content)
         assert_no_match(/debugger/, content)
       end
-    else
+    elsif RUBY_VERSION < '2.0.0'
       assert_file "Gemfile", /# gem 'debugger'/
+    else
+      assert_file "Gemfile", /# gem 'byebug'/
     end
   end
 
