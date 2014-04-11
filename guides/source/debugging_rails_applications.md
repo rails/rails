@@ -308,7 +308,7 @@ For example:
 
 ```bash
 @posts = Post.all
-(rdb:7)
+(byebug:7)
 ```
 
 Now it's time to explore and dig into your application. A good place to start is
@@ -589,7 +589,7 @@ been executed yet. Use the `next` command to move on in the code:
 (byebug) next
 /PathTo/project/app/models/author.rb:12
 @recent_comments
-(rdb:1) var instance
+(byebug:1) var instance
 @attributes = {"updated_at"=>"2008-07-31 12:46:10", "id"=>"1", "first_name"=>"Bob", "las...
 @attributes_cache = {}
 @comments = []
