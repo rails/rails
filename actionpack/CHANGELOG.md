@@ -1,3 +1,9 @@
+*   Only make deeply nested routes shallow when parent is shallow.
+
+    Fixes #14684.
+
+    *Andrew White*, *James Coglan*
+
 *   Swapped the parameters of assert_equal in `assert_select` so that the
     proper values were printed correctly
 
