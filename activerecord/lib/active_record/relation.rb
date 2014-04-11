@@ -238,7 +238,7 @@ module ActiveRecord
 
     # Returns size of the records.
     def size
-      loaded? ? @records.length : count
+      loaded? ? @records.length : count(:all)
     end
 
     # Returns true if there are no records.
@@ -248,8 +248,7 @@ module ActiveRecord
       if limit_value == 0
         true
       else
-        # FIXME: This count is not compatible with #select('authors.*') or other select narrows
-        c = count
+        c = count(:all)
         c.respond_to?(:zero?) ? c.zero? : c.empty?
       end
     end
