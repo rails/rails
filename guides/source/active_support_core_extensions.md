@@ -1644,6 +1644,7 @@ Given a string with a qualified constant name, `demodulize` returns the very con
 "Product".demodulize                        # => "Product"
 "Backoffice::UsersController".demodulize    # => "UsersController"
 "Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
+"".demodulize                               # => ""
 ```
 
 Active Record for example uses this method to compute the name of a counter cache column:
@@ -2920,7 +2921,7 @@ NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
 
 ### Compacting
 
-The methods `compact` and `compact!` return a Hash without items with `nil` value. 
+The methods `compact` and `compact!` return a Hash without items with `nil` value.
 
 ```ruby
 {a: 1, b: 2, c: nil}.compact # => {a: 1, b: 2}
