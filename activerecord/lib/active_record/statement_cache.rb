@@ -74,27 +74,26 @@ module ActiveRecord
       end
     end
 
+    attr_reader :bind_map, :query_builder, :klass
+
     def initialize(block = Proc.new)
       relation       = block.call Params.new
-      @binds         = BindMap.new relation.bind_values
+      @bind_map      = BindMap.new relation.bind_values
       @klass         = relation.klass
-      @query_builder = query_builder @klass.connection, relation.arel
+      @query_builder = make_query_builder @klass.connection, relation.arel
     end
 
     def execute(params)
-      klass       = @klass
-      bind_map    = @binds
       bind_values = bind_map.bind params
 
-      builder = @query_builder
-      sql = builder.sql_for bind_values, klass.connection
+      sql = query_builder.sql_for bind_values, klass.connection
 
       klass.find_by_sql sql, bind_values
     end
     alias :call :execute
 
     private
-    def query_builder(connection, arel)
+    def make_query_builder(connection, arel)
       connection.cacheable_query(arel)
     end
   end
