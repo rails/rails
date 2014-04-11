@@ -1,3 +1,8 @@
+*   Don't reduce lookup context formats upon render so renders of a different format can be
+    made within one request.
+
+    *Noel Peden*
+
 *   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
 
     *Izumi Wong-Horiuchi*
