@@ -1,3 +1,9 @@
+*   Only make deeply nested routes shallow when parent is shallow.
+
+    Fixes #14684.
+
+    *Andrew White*, *James Coglan*
+
 *   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
 
     *Izumi Wong-Horiuchi*
