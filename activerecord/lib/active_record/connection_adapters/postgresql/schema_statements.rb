@@ -182,9 +182,7 @@ module ActiveRecord
         def columns(table_name)
           # Limit, precision, and scale are all handled by the superclass.
           column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
-            oid = type_map.fetch(oid.to_i, fmod.to_i) {
-              OID::Identity.new
-            }
+            oid = get_oid_type(oid.to_i, fmod.to_i, column_name)
             PostgreSQLColumn.new(column_name, default, oid, type, notnull == 'f')
           end
         end

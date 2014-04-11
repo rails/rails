@@ -34,7 +34,6 @@ _SQL
 
           @connection.add_column 'postgresql_ranges', 'float_range', 'floatrange'
         end
-        @connection.send :reload_type_map
         PostgresqlRange.reset_column_information
       rescue ActiveRecord::StatementInvalid
         skip "do not test on PG without range"

@@ -1,11 +1,13 @@
 # encoding: utf-8
 require "cases/helper"
 require 'support/ddl_helper'
+require 'support/connection_helper'
 
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapterTest < ActiveRecord::TestCase
       include DdlHelper
+      include ConnectionHelper
 
       def setup
         @connection = ActiveRecord::Base.connection
@@ -355,6 +357,43 @@ module ActiveRecord
         assert_raise TypeError do
           @connection.send(:log, nil) { @connection.execute(nil) }
         end
+      end
+
+      def test_reload_type_map_for_newly_defined_types
+        @connection.execute "CREATE TYPE feeling AS ENUM ('good', 'bad')"
+        result = @connection.select_all "SELECT 'good'::feeling"
+        assert_instance_of(PostgreSQLAdapter::OID::Enum,
+                           result.column_types["feeling"])
+      ensure
+        @connection.execute "DROP TYPE IF EXISTS feeling"
+        reset_connection
+      end
+
+      def test_only_reload_type_map_once_for_every_unknown_type
+        silence_warnings do
+          assert_queries 2, ignore_none: true do
+            @connection.select_all "SELECT NULL::anyelement"
+          end
+          assert_queries 1, ignore_none: true do
+            @connection.select_all "SELECT NULL::anyelement"
+          end
+          assert_queries 2, ignore_none: true do
+            @connection.select_all "SELECT NULL::anyarray"
+          end
+        end
+      ensure
+        reset_connection
+      end
+
+      def test_only_warn_on_first_encounter_of_unknown_oid
+        warning = capture(:stderr) {
+          @connection.select_all "SELECT NULL::anyelement"
+          @connection.select_all "SELECT NULL::anyelement"
+          @connection.select_all "SELECT NULL::anyelement"
+        }
+        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'. It will be treated as String.\n\z/, warning)
+      ensure
+        reset_connection
       end
 
       private

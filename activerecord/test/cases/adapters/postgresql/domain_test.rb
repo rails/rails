@@ -19,9 +19,6 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
         t.column :price, :custom_money
       end
     end
-
-    # reload type map after creating the enum type
-    @connection.send(:reload_type_map)
   end
 
   teardown do
