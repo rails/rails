@@ -1,3 +1,10 @@
+*   Fixed error for aggregate methods (`empty?`, `any?`, `count`) with `select`
+    which created invalid SQL.
+
+    Fixes #13648.
+
+    *Simon Woker*
+
 *   PostgreSQL adapter only warns once for every missing OID per connection.
 
     Fixes #14275.
@@ -289,11 +296,4 @@
 
     *Yves Senn*
 
-*	Fixed error for aggregate methods (empty?, any?, count) with select() 
-	which created invalid SQL
-	
-	Fixes #13648
-	
-	*Simon Woker*
-	
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activerecord/CHANGELOG.md) for previous changes.
