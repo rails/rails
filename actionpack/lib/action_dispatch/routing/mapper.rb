@@ -995,6 +995,7 @@ module ActionDispatch
             @as         = options[:as]
             @param      = (options[:param] || :id).to_sym
             @options    = options
+            @shallow    = false
           end
 
           def default_actions
@@ -1055,6 +1056,13 @@ module ActionDispatch
             "#{path}/:#{nested_param}"
           end
 
+          def shallow=(value)
+            @shallow = value
+          end
+
+          def shallow?
+            @shallow
+          end
         end
 
         class SingletonResource < Resource #:nodoc:
@@ -1361,7 +1369,7 @@ module ActionDispatch
           end
 
           with_scope_level(:nested) do
-            if shallow? && nesting_depth > 1
+            if shallow? && shallow_nesting_depth > 1
               shallow_scope(parent_resource.nested_scope, nested_options) { yield }
             else
               scope(parent_resource.nested_scope, nested_options) { yield }
@@ -1576,6 +1584,7 @@ module ActionDispatch
           end
 
           def resource_scope(kind, resource) #:nodoc:
+            resource.shallow = @scope[:shallow]
             old_resource, @scope[:scope_level_resource] = @scope[:scope_level_resource], resource
             @nesting.push(resource)
 
@@ -1598,6 +1607,10 @@ module ActionDispatch
 
           def nesting_depth #:nodoc:
             @nesting.size
+          end
+
+          def shallow_nesting_depth #:nodoc:
+            @nesting.select(&:shallow?).size
           end
 
           def param_constraint? #:nodoc:
