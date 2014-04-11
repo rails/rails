@@ -231,6 +231,12 @@ module Rails
         end
       end
 
+      def delete_assets_initializer_skipping_sprockets
+        if options[:skip_sprockets]
+          remove_file 'config/initializers/assets.rb'
+        end
+      end
+
       def finish_template
         build(:leftovers)
       end
