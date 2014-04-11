@@ -2920,7 +2920,7 @@ NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
 
 ### Compacting
 
-The methods `compact` and `compact!` return a Hash without items with `nil` value. 
+The methods `compact` and `compact!` return a Hash without items with `nil` value.
 
 ```ruby
 {a: 1, b: 2, c: nil}.compact # => {a: 1, b: 2}
@@ -3847,7 +3847,7 @@ rescue NameError => e
 end
 ```
 
-NOTE: Defined in `actionpack/lib/abstract_controller/helpers.rb`.
+NOTE: Defined in `active_support/core_ext/name_error.rb`.
 
 Extensions to `LoadError`
 -------------------------
@@ -3870,4 +3870,4 @@ rescue NameError => e
 end
 ```
 
-NOTE: Defined in `actionpack/lib/abstract_controller/helpers.rb`.
+NOTE: Defined in `active_support/core_ext/load_error.rb`.
