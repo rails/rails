@@ -1,9 +1,15 @@
+*   Only make deeply nested routes shallow when parent is shallow.
+
+    Fixes #14684.
+
+    *Andrew White*, *James Coglan*
+
 *   Append link to bad code to backtrace when exception is SyntaxError.
 
     *Boris Kuznetsov*
-    
+
 *   Swapped the parameters of assert_equal in `assert_select` so that the
-    proper values were printed correctly 
+    proper values were printed correctly
 
     Fixes #14422.
 
