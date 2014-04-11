@@ -40,6 +40,8 @@ class Post < ActiveRecord::Base
   scope :with_comments, -> { preload(:comments) }
   scope :with_tags, -> { preload(:taggings) }
 
+  scope :tagged_with, ->(id) { joins(:taggings).where(taggings: { tag_id: id }) }
+
   has_many   :comments do
     def find_most_recent
       order("id DESC").first

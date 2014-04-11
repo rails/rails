@@ -326,7 +326,8 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, 'SQL', bind_values
+      bvs = bind_values + arel.bind_values
+      @klass.connection.update stmt, 'SQL', bvs
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.

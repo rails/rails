@@ -864,6 +864,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 11, posts.distinct(false).select(:comments_count).count
   end
 
+  def test_update_all_with_scope
+    tag = Tag.first
+    Post.tagged_with(tag.id).update_all title: "rofl"
+    list = Post.tagged_with(tag.id).all.to_a
+    assert_operator list.length, :>, 0
+    list.each { |post| assert_equal 'rofl', post.title }
+  end
+
   def test_count_explicit_columns
     Post.update_all(:comments_count => nil)
     posts = Post.all
