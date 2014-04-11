@@ -15,7 +15,7 @@ module ActiveRecord
       Book.create(name: "my book")
       Book.create(name: "my other book")
 
-      cache = StatementCache.new do |params|
+      cache = StatementCache.create do |params|
         Book.where(:name => params[:name])
       end
 
@@ -30,7 +30,7 @@ module ActiveRecord
       b1 = Book.create(name: "my book")
       b2 = Book.create(name: "my other book")
 
-      cache = StatementCache.new do |params|
+      cache = StatementCache.create do |params|
         Book.where(id: params[:id])
       end
 
@@ -53,7 +53,7 @@ module ActiveRecord
     #End
 
     def test_statement_cache_with_simple_statement
-      cache = ActiveRecord::StatementCache.new do |params|
+      cache = ActiveRecord::StatementCache.create do |params|
         Book.where(name: "my book").where("author_id > 3")
       end
 
@@ -64,7 +64,7 @@ module ActiveRecord
     end
 
     def test_statement_cache_with_complex_statement
-      cache = ActiveRecord::StatementCache.new do |params|
+      cache = ActiveRecord::StatementCache.create do |params|
         Liquid.joins(:molecules => :electrons).where('molecules.name' => 'dioxane', 'electrons.name' => 'lepton')
       end
 
@@ -77,7 +77,7 @@ module ActiveRecord
     end
 
     def test_statement_cache_values_differ
-      cache = ActiveRecord::StatementCache.new do |params|
+      cache = ActiveRecord::StatementCache.create do |params|
         Book.where(name: "my book")
       end
 

@@ -135,7 +135,7 @@ module ActiveRecord
         key = primary_key
 
         s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
-          find_by_statement_cache[key] ||= StatementCache.new { |params|
+          find_by_statement_cache[key] ||= StatementCache.create { |params|
             where(key => params[key]).limit(1)
           }
         }
@@ -159,7 +159,7 @@ module ActiveRecord
 
         klass = self
         s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
-          find_by_statement_cache[key] ||= StatementCache.new { |params|
+          find_by_statement_cache[key] ||= StatementCache.create { |params|
             wheres = key.each_with_object({}) { |param,o|
               o[param] = params[param]
             }
