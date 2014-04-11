@@ -275,9 +275,12 @@ module ActiveRecord
     #   person = Person.create(name: 'Francesco', age: 22)
     #   person.attributes
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
-    def attributes
-      attribute_names.each_with_object({}) { |name, attrs|
-        attrs[name] = read_attribute(name)
+    #
+    #   person.attributes("id", "name", "age")
+    #   # => {"id"=>3, "name"=>"Francesco", "age"=>22}
+    def attributes(attr_names = attribute_names)
+      attr_names.each_with_object({}) { |name, attrs|
+        attrs[name.to_s] = read_attribute(name)
       }
     end
 
