@@ -1,3 +1,12 @@
+*   New `read_attributes` method added to ActiveRecord.
+
+    Example:
+
+        User.last.read_attributes(:first_name, :last_name, :phone_number)
+        # => {"first_name"=>"Jim", "last_name"=>"Hogward", "phone_number"=>"1234567"}
+
+    *Nikolai Sharangovich*
+
 *   Fix insertion of records via `has_many :through` association with scope.
 
     Fixes #3548.

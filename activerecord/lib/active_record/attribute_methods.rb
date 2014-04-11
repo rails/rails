@@ -390,6 +390,20 @@ module ActiveRecord
       write_attribute(attr_name, value)
     end
 
+    # Returns a hash of the attributes with their names as keys and the values of the attributes as values by given keys array.
+    #
+    #   class Person < ActiveRecord::Base
+    #   end
+    #
+    #   person = Person.create(name: 'Juan', age: 42)
+    #   person.read_attributes(:id, :name)
+    #   # => {"id"=>3, "name"=>"Juan"}
+    def read_attributes(*args)
+      args.each_with_object({}) { |name, attrs|
+        attrs[name.to_s] = read_attribute(name)
+      }
+    end
+
     protected
 
     def clone_attributes(reader_method = :read_attribute, attributes = {}) # :nodoc:
