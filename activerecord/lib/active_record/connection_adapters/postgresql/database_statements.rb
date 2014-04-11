@@ -143,7 +143,7 @@ module ActiveRecord
             ftype = result.ftype i
             fmod  = result.fmod i
             types[fname] = type_map.fetch(ftype, fmod) { |oid, mod|
-              warn "unknown OID: #{fname}(#{oid}) (#{sql})"
+              ActiveRecord::Base.logger.debug "unknown OID: #{fname}(#{oid}) (#{sql})"
               OID::Identity.new
             }
           end
