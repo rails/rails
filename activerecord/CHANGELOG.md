@@ -1,3 +1,10 @@
+*   Fixed error for aggregate methods (`empty?`, `any?`, `count`) with `select`
+    which created invalid SQL.
+
+    Fixes #13648.
+
+    *Simon Woker*
+
 *   Fix insertion of records via `has_many :through` association with scope.
 
     Fixes #3548.
