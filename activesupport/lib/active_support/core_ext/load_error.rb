@@ -18,7 +18,7 @@ class LoadError
     end
   end
 
-  # Returns <tt>true</tt> if the given path name (except perhaps for the ".rb"
+  # Returns true if the given path name (except perhaps for the ".rb"
   # extension) is the missing file which caused the exception to be raised.
   def is_missing?(location)
     location.sub(/\.rb$/, '') == path.sub(/\.rb$/, '')
