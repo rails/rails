@@ -12,6 +12,8 @@ lib/arel.rb
 lib/arel/alias_predication.rb
 lib/arel/attributes.rb
 lib/arel/attributes/attribute.rb
+lib/arel/collectors/bind.rb
+lib/arel/collectors/sql_string.rb
 lib/arel/compatibility/wheres.rb
 lib/arel/crud.rb
 lib/arel/delete_manager.rb
@@ -62,6 +64,7 @@ lib/arel/table.rb
 lib/arel/tree_manager.rb
 lib/arel/update_manager.rb
 lib/arel/visitors.rb
+lib/arel/visitors/bind_substitute.rb
 lib/arel/visitors/bind_visitor.rb
 lib/arel/visitors/depth_first.rb
 lib/arel/visitors/dot.rb
@@ -71,12 +74,15 @@ lib/arel/visitors/mssql.rb
 lib/arel/visitors/mysql.rb
 lib/arel/visitors/oracle.rb
 lib/arel/visitors/postgresql.rb
+lib/arel/visitors/reduce.rb
 lib/arel/visitors/sqlite.rb
 lib/arel/visitors/to_sql.rb
 lib/arel/visitors/visitor.rb
 lib/arel/visitors/where_sql.rb
 lib/arel/window_predications.rb
 test/attributes/test_attribute.rb
+test/collectors/test_bind_collector.rb
+test/collectors/test_sql_string.rb
 test/helper.rb
 test/nodes/test_and.rb
 test/nodes/test_as.rb
