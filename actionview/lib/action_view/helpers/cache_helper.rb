@@ -11,7 +11,7 @@ module ActionView
       # The best way to use this is by doing key-based cache expiration
       # on top of a cache store like Memcached that'll automatically
       # kick out old entries. For more on key-based expiration, see:
-      # http://37signals.com/svn/posts/3113-how-key-based-cache-expiration-works
+      # http://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works
       #
       # When using this method, you list the cache dependency as the name of the cache, like so:
       #
