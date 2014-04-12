@@ -1,4 +1,6 @@
-script: "rake test"
+script: 
+  - "rake test"
+  - "gem build arel.gemspec"
 rvm:
   - rbx
   - jruby
