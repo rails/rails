@@ -408,7 +408,14 @@ module ActiveRecord
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default)
           clear_cache!
-          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
+          columns = columns table_name
+          column  = columns.find { |c| c.name.to_sym == column_name }
+
+          if column && column.type == :uuid && default =~ /\(\)/
+            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{default}"
+          else
+            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
+          end
         end
 
         def change_column_null(table_name, column_name, null, default = nil)
