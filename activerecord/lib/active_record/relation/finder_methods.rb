@@ -129,7 +129,7 @@ module ActiveRecord
     #
     def first(limit = nil)
       if limit
-        find_nth_with_limit(offset_value, limit)
+        find_nth_with_limit(offset_index, limit)
       else
         find_nth(0, offset_index)
       end
@@ -482,11 +482,14 @@ module ActiveRecord
     end
 
     def find_nth_with_limit(offset, limit)
-      if order_values.empty? && primary_key
-        order(arel_table[primary_key].asc).limit(limit).offset(offset).to_a
-      else
-        limit(limit).offset(offset).to_a
-      end
+      relation = if order_values.empty? && primary_key
+                   order(arel_table[primary_key].asc)
+                 else
+                   self
+                 end
+
+      relation = relation.offset(offset) unless offset.zero?
+      relation.limit(limit).to_a
     end
 
     def find_last
