@@ -296,6 +296,11 @@ module ActiveRecord
             @logger.warn "#{table} has primary key #{pk} with no default sequence"
           end
 
+          # If we're looking for a pk_sequence for table which is inside a schema, then pk should be prefixed with schema name
+          if table.to_s.include? "."
+            sequence = "#{table.to_s.split(".")[0]}.#{sequence}"
+          end
+
           if pk && sequence
             quoted_sequence = quote_table_name(sequence)
 
