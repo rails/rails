@@ -3,6 +3,7 @@
 require "cases/helper"
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
+
 class PostgresqlUUIDTest < ActiveRecord::TestCase
   class UUID < ActiveRecord::Base
     self.table_name = 'pg_uuids'
