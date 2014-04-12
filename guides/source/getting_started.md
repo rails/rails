@@ -344,7 +344,7 @@ resource. Here's what `config/routes.rb` should look like after the
 _article resource_ is declared.
 
 ```ruby
-Blog::Application.routes.draw do
+Rails.application.routes.draw do
 
   resources :articles
 

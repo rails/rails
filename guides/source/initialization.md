@@ -526,7 +526,7 @@ The rest of `config/application.rb` defines the configuration for the
 initialized. When `config/application.rb` has finished loading Rails and defined
 the application namespace, we go back to `config/environment.rb`,
 where the application is initialized. For example, if the application was called
-`Blog`, here we would find `Blog::Application.initialize!`, which is
+`Blog`, here we would find `Rails.application.initialize!`, which is
 defined in `rails/application.rb`
 
 ### `railties/lib/rails/application.rb`

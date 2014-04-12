@@ -364,21 +364,21 @@ If you need a different session storage mechanism, you can change it in the `con
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
 # (create the session table with "rails g active_record:session_migration")
-# YourApp::Application.config.session_store :active_record_store
+# Rails.application.config.session_store :active_record_store
 ```
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in `config/initializers/session_store.rb`:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
+Rails.application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
 Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`

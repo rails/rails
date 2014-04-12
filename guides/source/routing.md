@@ -709,7 +709,7 @@ class BlacklistConstraint
   end
 end
 
-TwitterClone::Application.routes.draw do
+Rails.application.routes.draw do
   get '*path', to: 'blacklist#index',
     constraints: BlacklistConstraint.new
 end
@@ -718,7 +718,7 @@ end
 You can also specify constraints as a lambda:
 
 ```ruby
-TwitterClone::Application.routes.draw do
+Rails.application.routes.draw do
   get '*path', to: 'blacklist#index',
     constraints: lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
 end
