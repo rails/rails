@@ -46,20 +46,6 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     assert_equal nil, column.default
   end
 
-  def test_change_column
-    @connection.add_column :pg_uuids, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
-    @connection.change_column :pg_uuids, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
-
-    puts "HERE I AM!"
-    
-    UUID.reset_column_information
-    column = UUID.columns.find { |c| c.name == 'thingy' }
-
-    assert_equal :uuid, column.type
-    assert_equal nil, column.default
-  end
-
->>>>>>> a46e9e86093b080d75bc21924232dc7195088aa3
   def test_id_is_uuid
     assert_equal :uuid, UUID.columns_hash['id'].type
     assert UUID.primary_key
