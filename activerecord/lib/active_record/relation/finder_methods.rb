@@ -131,7 +131,7 @@ module ActiveRecord
       if limit
         find_nth_with_limit(offset_value, limit)
       else
-        find_nth(:first, offset_index)
+        find_nth(0, offset_index)
       end
     end
 
@@ -181,7 +181,7 @@ module ActiveRecord
     #   Person.offset(3).second # returns the second object from OFFSET 3 (which is OFFSET 4)
     #   Person.where(["user_name = :u", { u: user_name }]).second
     def second
-      find_nth(:second, offset_index + 1)
+      find_nth(1, offset_index)
     end
 
     # Same as +second+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -197,7 +197,7 @@ module ActiveRecord
     #   Person.offset(3).third # returns the third object from OFFSET 3 (which is OFFSET 5)
     #   Person.where(["user_name = :u", { u: user_name }]).third
     def third
-      find_nth(:third, offset_index + 2)
+      find_nth(2, offset_index)
     end
 
     # Same as +third+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -213,7 +213,7 @@ module ActiveRecord
     #   Person.offset(3).fourth # returns the fourth object from OFFSET 3 (which is OFFSET 6)
     #   Person.where(["user_name = :u", { u: user_name }]).fourth
     def fourth
-      find_nth(:fourth, offset_index + 3)
+      find_nth(3, offset_index)
     end
 
     # Same as +fourth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -229,7 +229,7 @@ module ActiveRecord
     #   Person.offset(3).fifth # returns the fifth object from OFFSET 3 (which is OFFSET 7)
     #   Person.where(["user_name = :u", { u: user_name }]).fifth
     def fifth
-      find_nth(:fifth, offset_index + 4)
+      find_nth(4, offset_index)
     end
 
     # Same as +fifth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -245,7 +245,7 @@ module ActiveRecord
     #   Person.offset(3).forty_two # returns the fifth object from OFFSET 3 (which is OFFSET 44)
     #   Person.where(["user_name = :u", { u: user_name }]).forty_two
     def forty_two
-      find_nth(:forty_two, offset_index + 41)
+      find_nth(41, offset_index)
     end
 
     # Same as +forty_two+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -472,10 +472,11 @@ module ActiveRecord
       end
     end
 
-    def find_nth(ordinal, offset)
+    def find_nth(index, offset)
       if loaded?
-        @records.send(ordinal)
+        @records[index]
       else
+        offset += index
         @offsets[offset] ||= find_nth_with_limit(offset, 1).first
       end
     end
