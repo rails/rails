@@ -35,15 +35,16 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     @connection.execute 'drop table if exists pg_uuids'
   end
 
-  def test_change_column
-    @connection.add_column :pg_uuids, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
-    @connection.change_column :pg_uuids, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
+  def test_change_column_default
+    UUID.reset_column_information
+    column = UUID.columns.find { |c| c.name == 'id' }
+    assert_equal "uuid_generate_v1()", column.default_function
+    
+    @connection.change_column :pg_uuids, :id, :uuid, null: false, default: "uuid_generate_v4()"
     
     UUID.reset_column_information
-    column = UUID.columns.find { |c| c.name == 'thingy' }
-
-    assert_equal :uuid, column.type
-    assert_equal nil, column.default
+    column = UUID.columns.find { |c| c.name == 'id' }
+    assert_equal "uuid_generate_v4()", column.default_function
   end
 
   def test_id_is_uuid
