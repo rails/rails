@@ -408,13 +408,26 @@ module ActiveRecord
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default)
           clear_cache!
-          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
+          columns = columns table_name
+          column  = columns.find { |c| c.name.to_sym == column_name }
+
+          if column && column.type == :uuid && default =~ /\(\)/
+            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{default}"
+          else
+            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
+          end
         end
 
         def change_column_null(table_name, column_name, null, default = nil)
           clear_cache!
           unless null || default.nil?
-            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+            columns = columns table_name
+            column  = columns.find { |c| c.name.to_sym == column_name }
+            if column && column.type == :uuid && default =~ /\(\)/
+              execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{default} WHERE #{quote_column_name(column_name)} IS NULL")
+            else
+              execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+            end
           end
           execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
         end
