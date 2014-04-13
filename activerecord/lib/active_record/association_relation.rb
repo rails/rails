@@ -9,6 +9,10 @@ module ActiveRecord
       @association
     end
 
+    def ==(other)
+      other == to_a
+    end
+
     private
 
     def exec_queries
