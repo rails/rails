@@ -760,6 +760,13 @@ module ActiveRecord
           @type_map
         end
 
+        def get_oid_type(oid, fmod, column_name)
+          type_map.fetch(oid, fmod) {
+            warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
+            type_map[oid] = OID::Identity.new
+          }
+        end
+
         def reload_type_map
           type_map.clear
           initialize_type_map(type_map)
