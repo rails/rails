@@ -1,3 +1,9 @@
+*   `collection_check_boxes` respects `:index` option for the hidden filed name.
+
+    Fixes #14147.
+
+    *Vasiliy Ermolovich*
+
 *   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
 
     *Izumi Wong-Horiuchi*
