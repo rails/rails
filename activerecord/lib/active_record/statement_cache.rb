@@ -14,7 +14,7 @@ module ActiveRecord
   # The relation returned by the block is cached, and for each +execute+ call the cached relation gets duped.
   # Database is queried when +to_a+ is called on the relation.
   class StatementCache
-    Substitute = Struct.new :name
+    class Substitute; end
 
     class Query
       def initialize(sql)
@@ -52,24 +52,24 @@ module ActiveRecord
     end
 
     class Params
-      def [](name); Substitute.new name; end
+      def bind; Substitute.new; end
     end
 
     class BindMap
       def initialize(bind_values)
-        @value_map   = {}
+        @indexes   = []
         @bind_values = bind_values
 
         bind_values.each_with_index do |(_, value), i|
           if Substitute === value
-            @value_map[value.name] = i
+            @indexes << i
           end
         end
       end
 
       def bind(values)
         bvs = @bind_values.map { |pair| pair.dup }
-        values.each { |k,v| bvs[@value_map[k]][1] = v }
+        @indexes.each_with_index { |offset,i| bvs[offset][1] = values[i] }
         bvs
       end
     end

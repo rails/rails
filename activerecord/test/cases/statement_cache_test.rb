@@ -16,12 +16,12 @@ module ActiveRecord
       Book.create(name: "my other book")
 
       cache = StatementCache.create(Book.connection) do |params|
-        Book.where(:name => params[:name])
+        Book.where(:name => params.bind)
       end
 
-      b = cache.execute({ name: "my book" }, Book, Book.connection)
+      b = cache.execute([ "my book" ], Book, Book.connection)
       assert_equal "my book", b[0].name
-      b = cache.execute({ name: "my other book" }, Book, Book.connection)
+      b = cache.execute([ "my other book" ], Book, Book.connection)
       assert_equal "my other book", b[0].name
     end
 
@@ -31,12 +31,12 @@ module ActiveRecord
       b2 = Book.create(name: "my other book")
 
       cache = StatementCache.create(Book.connection) do |params|
-        Book.where(id: params[:id])
+        Book.where(id: params.bind)
       end
 
-      b = cache.execute({ id: b1.id }, Book, Book.connection)
+      b = cache.execute([ b1.id ], Book, Book.connection)
       assert_equal b1.name, b[0].name
-      b = cache.execute({ id: b2.id }, Book, Book.connection)
+      b = cache.execute([ b2.id ], Book, Book.connection)
       assert_equal b2.name, b[0].name
     end
 
@@ -59,7 +59,7 @@ module ActiveRecord
 
       Book.create(name: "my book", author_id: 4)
 
-      books = cache.execute({}, Book, Book.connection)
+      books = cache.execute([], Book, Book.connection)
       assert_equal "my book", books[0].name
     end
 
@@ -72,7 +72,7 @@ module ActiveRecord
       molecule = salty.molecules.create(name: 'dioxane')
       molecule.electrons.create(name: 'lepton')
 
-      liquids = cache.execute({}, Book, Book.connection)
+      liquids = cache.execute([], Book, Book.connection)
       assert_equal "salty", liquids[0].name
     end
 
@@ -85,13 +85,13 @@ module ActiveRecord
         Book.create(name: "my book")
       end
 
-      first_books = cache.execute({}, Book, Book.connection)
+      first_books = cache.execute([], Book, Book.connection)
 
       3.times do
         Book.create(name: "my book")
       end
 
-      additional_books = cache.execute({}, Book, Book.connection)
+      additional_books = cache.execute([], Book, Book.connection)
       assert first_books != additional_books
     end
   end
