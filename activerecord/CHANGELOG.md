@@ -1,3 +1,16 @@
+*   The comparison between `Relation` and `CollectionProxy` should be consistent.
+
+    Example:
+
+        author.posts == Post.where(author_id: author.id)
+        # => true
+        Post.where(author_id: author.id) == author.posts
+        # => true
+
+    Fixes #13506.
+
+    *Lauro Caetano*
+
 *   PostgreSQL adapter only warns once for every missing OID per connection.
 
     Fixes #14275.
