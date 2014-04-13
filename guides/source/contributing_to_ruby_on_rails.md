@@ -50,7 +50,7 @@ Please don't put "feature request" items into GitHub Issues. If there's a new
 feature that you want to see added to Ruby on Rails, you'll need to write the
 code yourself - or convince someone else to partner with you to write the code.
 Later in this guide you'll find detailed instructions for proposing a patch to
-Ruby on Rails. If you enter a wishlist item in GitHub Issues with no code, you
+Ruby on Rails. If you enter a wish list item in GitHub Issues with no code, you
 can expect it to be marked "invalid" as soon as it's reviewed.
 
 Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
@@ -158,7 +158,7 @@ In case you can't use the Rails development box, see section above, check [this 
 
 ### Clone the Rails Repository ###
 
-To do to be able to contribute code, you need to clone the Rails repository:
+To be able to contribute code, you need to clone the Rails repository:
 
 ```bash
 $ git clone git://github.com/rails/rails.git
@@ -234,7 +234,9 @@ $ cd rails
 $ bundle exec rake test
 ```
 #### Particular component of Rails
-To run tests only for particular component(ActionPack, ActiveRecord etc). For example, to run `ActionMailer` test do
+To run tests only for particular component(ActionPack, ActiveRecord, etc.). For
+example, to run `ActionMailer` tests you can:
+
 ```bash
 $ cd actionmailer
 $ bundle exec rake test
@@ -273,8 +275,9 @@ $ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.
 
 You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests, or the file `ci/travis.rb` for the test suite run by the continuous integration server.
 
-#### Single Test seprately
-to run just one test. for example, to run `LayoutMailerTest` you can do:
+#### Single Test separately
+to run just one test. For example, to run `LayoutMailerTest` you can:
+
 ```bash
 $ cd actionmailer
 $ ruby -w -Ilib:test test/mail_layout_test.rb
@@ -319,9 +322,9 @@ Your name can be added directly after the last word if you don't provide any cod
 You should not be the only person who looks at the code before you submit it.
 If you know someone else who uses Rails, try asking them if they'll check out
 your work. If you don't know anyone else using Rails, try hopping into the IRC
-room or posting about your idea to the rails-core mailing list.  Doing this in
-private before you push a patch out publicly is the “smoke test” for a patch:
-if you can’t convince one other developer of the beauty of your code, you’re
+room or posting about your idea to the rails-core mailing list. Doing this in
+private before you push a patch out publicly is the "smoke test" for a patch:
+if you can't convince one other developer of the beauty of your code, you’re
 unlikely to convince the core team either.
 
 ### Commit Your Changes ###
