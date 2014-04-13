@@ -1,3 +1,11 @@
+*   Remove wrapping div with inline styles for hidden form fields.
+
+    We are dropping HTML 4.01 and XHTML strict compliance since input tags directly
+    inside a form are valid HTML5, and the absense of inline styles help in validating
+    for Content Security Policy.
+
+    *Joost Baaij*
+
 *   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
 
     *Izumi Wong-Horiuchi*

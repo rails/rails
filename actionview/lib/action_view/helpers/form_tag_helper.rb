@@ -726,9 +726,11 @@ module ActionView
               method_tag(method) + token_tag(authenticity_token)
           end
 
-          enforce_utf8 = html_options.delete("enforce_utf8") { true }
-          tags = (enforce_utf8 ? utf8_enforcer_tag : ''.html_safe) << method_tag
-          content_tag(:div, tags, :style => 'display:none')
+          if html_options.delete("enforce_utf8") { true }
+            utf8_enforcer_tag + method_tag
+          else
+            method_tag
+          end
         end
 
         def form_tag_html(html_options)
