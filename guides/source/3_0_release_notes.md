@@ -294,7 +294,7 @@ NOTE. The old style `map` commands still work as before with a backwards compati
 Deprecations
 
 * The catch all route for non-REST applications (`/:controller/:action/:id`) is now commented out.
-* Routes :path\_prefix no longer exists and :name\_prefix now automatically adds "\_" at the end of the given value.
+* Routes `:path_prefix` no longer exists and `:name_prefix` now automatically adds "_" at the end of the given value.
 
 More Information:
 * [The Rails 3 Router: Rack it Up](http://yehudakatz.com/2009/12/26/the-rails-3-router-rack-it-up/)
