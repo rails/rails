@@ -68,6 +68,23 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select 'input[type=radio][value=false][disabled=disabled]'
   end
 
+  test 'collection radio accepts multiple readonly items' do
+    collection = [[1, true], [0, false], [2, 'other']]
+    with_collection_radio_buttons :user, :active, collection, :last, :first, :readonly => [true, false]
+
+    assert_select 'input[type=radio][value=true][readonly=readonly]'
+    assert_select 'input[type=radio][value=false][readonly=readonly]'
+    assert_no_select 'input[type=radio][value=other][readonly=readonly]'
+  end
+
+  test 'collection radio accepts single readonly item' do
+    collection = [[1, true], [0, false]]
+    with_collection_radio_buttons :user, :active, collection, :last, :first, :readonly => true
+
+    assert_select 'input[type=radio][value=true][readonly=readonly]'
+    assert_no_select 'input[type=radio][value=false][readonly=readonly]'
+  end
+
   test 'collection radio accepts html options as input' do
     collection = [[1, true], [0, false]]
     with_collection_radio_buttons :user, :active, collection, :last, :first, {}, :class => 'special-radio'
@@ -323,6 +340,33 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'input[type=checkbox][value=1][disabled=disabled]'
     assert_no_select 'input[type=checkbox][value=3][disabled=disabled]'
     assert_no_select 'input[type=checkbox][value=2][disabled=disabled]'
+  end
+
+  test 'collection check boxes accepts multiple readonly items' do
+    collection = (1..3).map{|i| [i, "Category #{i}"] }
+    with_collection_check_boxes :user, :category_ids, collection, :first, :last, :readonly => [1, 3]
+
+    assert_select 'input[type=checkbox][value=1][readonly=readonly]'
+    assert_select 'input[type=checkbox][value=3][readonly=readonly]'
+    assert_no_select 'input[type=checkbox][value=2][readonly=readonly]'
+  end
+
+  test 'collection check boxes accepts single readonly item' do
+    collection = (1..3).map{|i| [i, "Category #{i}"] }
+    with_collection_check_boxes :user, :category_ids, collection, :first, :last, :readonly => 1
+
+    assert_select 'input[type=checkbox][value=1][readonly=readonly]'
+    assert_no_select 'input[type=checkbox][value=3][readonly=readonly]'
+    assert_no_select 'input[type=checkbox][value=2][readonly=readonly]'
+  end
+
+  test 'collection check boxes accepts a proc to readonly items' do
+    collection = (1..3).map{|i| [i, "Category #{i}"] }
+    with_collection_check_boxes :user, :category_ids, collection, :first, :last, :readonly => proc { |i| i.first == 1 }
+
+    assert_select 'input[type=checkbox][value=1][readonly=readonly]'
+    assert_no_select 'input[type=checkbox][value=3][readonly=readonly]'
+    assert_no_select 'input[type=checkbox][value=2][readonly=readonly]'
   end
 
   test 'collection check boxes accepts html options' do
