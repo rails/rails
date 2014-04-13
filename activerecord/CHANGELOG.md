@@ -1,3 +1,9 @@
+*   PostgreSQL adapter only warns once for every missing OID per connection.
+
+    Fixes #14275.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   Fix insertion of records via `has_many :through` association with scope.
 
     Fixes #3548.
