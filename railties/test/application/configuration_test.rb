@@ -793,5 +793,91 @@ module ApplicationTests
 
       assert ActiveRecord::Base.dump_schema_after_migration
     end
+
+    test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
+      make_basic_app do |app|
+        app.config.annotations.register_extensions("coffee") do |tag|
+          /#\s*(#{tag}):?\s*(.*)$/
+        end
+      end
+
+      assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
+    end
+
+    test "rake_tasks block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          rake_tasks do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      require 'rake'
+      require 'rake/testtask'
+      require 'rdoc/task'
+
+      Rails.application.load_tasks
+      assert $ran_block
+    end
+
+    test "generators block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          generators do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_generators
+      assert $ran_block
+    end
+
+    test "console block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          console do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_console
+      assert $ran_block
+    end
+
+    test "runner block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          runner do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_runner
+      assert $ran_block
+    end
   end
 end
