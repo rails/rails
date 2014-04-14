@@ -129,7 +129,7 @@ module ActionDispatch
           end
         end
 
-        order.include?(Mime::ALL) ? formats.first : nil
+        order.include?(Mime::ALL) ? format : nil
       end
 
       protected

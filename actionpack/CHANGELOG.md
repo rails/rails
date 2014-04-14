@@ -1,3 +1,10 @@
+*   Returns null type format when format is not know and controller is using `any`
+    format block.
+
+    Fixes #14462.
+
+    *Rafael Mendonça França*
+
 *   Improve routing error page with fuzzy matching search.
 
     *Winston*
