@@ -131,12 +131,28 @@ module ActiveRecord
 
     private
 
+      def _create_record(*)
+        id = super
+
+        each_counter_cached_associations do |association|
+          association.increment_counters
+        end
+
+        id
+      end
+
       def destroy_row
         affected_rows = super
 
         @_actually_destroyed = affected_rows > 0
 
         affected_rows
+      end
+
+      def each_counter_cached_associations
+        reflections.each do |name, reflection|
+          yield association(name) if reflection.belongs_to? && reflection.counter_cache_column
+        end
       end
 
   end
