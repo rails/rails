@@ -426,10 +426,6 @@ module ActiveRecord
           execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
         end
 
-        def quote_column_name(column)
-          puts "HEY"
-        end
-
         # Renames a column in a table.
         def rename_column(table_name, column_name, new_column_name)
           clear_cache!
