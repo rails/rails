@@ -118,5 +118,26 @@ module ActiveRecord
         update_counters(id, counter_name => -1)
       end
     end
+
+    protected
+
+      def actually_destroyed?
+        @_actually_destroyed
+      end
+
+      def clear_destroy_state
+        @_actually_destroyed = nil
+      end
+
+    private
+
+      def destroy_row
+        affected_rows = super
+
+        @_actually_destroyed = affected_rows > 0
+
+        affected_rows
+      end
+
   end
 end

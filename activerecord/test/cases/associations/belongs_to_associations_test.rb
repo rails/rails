@@ -502,6 +502,27 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 4, topic.replies.size
   end
 
+  def test_concurrent_counter_cache_double_destroy
+    topic = Topic.create :title => "Zoom-zoom-zoom"
+
+    5.times do
+      topic.replies.create(:title => "re: zoom", :content => "speedy quick!")
+    end
+
+    assert_equal 5, topic.reload[:replies_count]
+    assert_equal 5, topic.replies.size
+
+    reply = topic.replies.first
+    reply_clone = Reply.find(reply.id)
+
+    reply.destroy
+    assert_equal 4, topic.reload[:replies_count]
+
+    reply_clone.destroy
+    assert_equal 4, topic.reload[:replies_count]
+    assert_equal 4, topic.replies.size
+  end
+
   def test_custom_counter_cache
     reply = Reply.create(:title => "re: zoom", :content => "speedy quick!")
     assert_equal 0, reply[:replies_count]
