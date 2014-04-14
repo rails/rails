@@ -288,10 +288,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_read_attribute
     topic = Topic.new
     topic.title = "Don't change the topic"
-    assert_equal "Don't change the topic", topic.send(:read_attribute, "title")
+    assert_equal "Don't change the topic", topic.read_attribute("title")
     assert_equal "Don't change the topic", topic["title"]
 
-    assert_equal "Don't change the topic", topic.send(:read_attribute, :title)
+    assert_equal "Don't change the topic", topic.read_attribute(:title)
     assert_equal "Don't change the topic", topic[:title]
   end
 
@@ -358,10 +358,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       super(attr_name).upcase
     end
 
-    assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, "title")
+    assert_equal "STOP CHANGING THE TOPIC", topic.read_attribute("title")
     assert_equal "STOP CHANGING THE TOPIC", topic["title"]
 
-    assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, :title)
+    assert_equal "STOP CHANGING THE TOPIC", topic.read_attribute(:title)
     assert_equal "STOP CHANGING THE TOPIC", topic[:title]
   end
 

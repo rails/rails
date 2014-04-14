@@ -233,13 +233,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_counter
     debate = Topic.create("title" => "debate")
-    assert_equal 0, debate.send(:read_attribute, "replies_count"), "No replies yet"
+    assert_equal 0, debate.read_attribute("replies_count"), "No replies yet"
 
     trash = debate.replies.create("title" => "blah!", "content" => "world around!")
-    assert_equal 1, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply created"
+    assert_equal 1, Topic.find(debate.id).read_attribute("replies_count"), "First reply created"
 
     trash.destroy
-    assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
+    assert_equal 0, Topic.find(debate.id).read_attribute("replies_count"), "First reply deleted"
   end
 
   def test_belongs_to_counter_with_assigning_nil
