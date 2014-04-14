@@ -167,6 +167,15 @@ module ActiveRecord
           end
           result
         end
+
+        # Quotes the default value of the column
+        def quote_default_value(type, default_value)
+          if type == :uuid && default_value =~ /\(\)/
+            default_value
+          else 
+            quote(default_value)
+          end
+        end
       end
     end
   end
