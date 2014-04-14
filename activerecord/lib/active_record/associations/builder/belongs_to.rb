@@ -30,18 +30,6 @@ module ActiveRecord::Associations::Builder
 
       mixin.class_eval do
 
-        def belongs_to_counter_cache_after_destroy(reflection)
-          foreign_key = reflection.foreign_key.to_sym
-          unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
-            record = send reflection.name
-            if record && self.actually_destroyed?
-              cache_column = reflection.counter_cache_column
-              record.class.decrement_counter(cache_column, record.id)
-              self.clear_destroy_state
-            end
-          end
-        end
-
         def belongs_to_counter_cache_after_update(reflection)
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
@@ -66,10 +54,6 @@ module ActiveRecord::Associations::Builder
 
     def self.add_counter_cache_callbacks(model, reflection)
       cache_column = reflection.counter_cache_column
-
-      model.after_destroy lambda { |record|
-        record.belongs_to_counter_cache_after_destroy(reflection)
-      }
 
       model.after_update lambda { |record|
         record.belongs_to_counter_cache_after_update(reflection)

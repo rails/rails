@@ -134,9 +134,7 @@ module ActiveRecord
       def _create_record(*)
         id = super
 
-        each_counter_cached_associations do |association|
-          association.increment_counters
-        end
+        each_counter_cached_associations(&:increment_counters)
 
         id
       end
@@ -144,7 +142,9 @@ module ActiveRecord
       def destroy_row
         affected_rows = super
 
-        @_actually_destroyed = affected_rows > 0
+        if affected_rows > 0
+          each_counter_cached_associations(&:decrement_counters)
+        end
 
         affected_rows
       end
