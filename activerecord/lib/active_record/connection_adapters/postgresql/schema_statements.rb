@@ -3,6 +3,7 @@ module ActiveRecord
     class PostgreSQLAdapter < AbstractAdapter
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
+        
         def visit_AddColumn(o)
           sql_type = type_to_sql(o.type.to_sym, o.limit, o.precision, o.scale)
           sql = "ADD COLUMN #{quote_column_name(o.name)} #{sql_type}"
