@@ -1,3 +1,5 @@
+require 'thread'
+
 module ActiveRecord
   # = Active Record Reflection
   module Reflection # :nodoc:
@@ -199,6 +201,13 @@ module ActiveRecord
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
         @constructable = calculate_constructable(macro, options)
+        @association_scope_cache = {}
+        @scope_lock = Mutex.new
+      end
+
+      def association_scope_cache(conn)
+        key = conn.prepared_statements
+        @association_scope_cache[key] ||= @scope_lock.synchronize { yield }
       end
 
       # Returns a new, unsaved instance of the associated class. +attributes+ will
