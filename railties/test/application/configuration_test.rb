@@ -803,5 +803,81 @@ module ApplicationTests
 
       assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
     end
+
+    test "rake_tasks block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          rake_tasks do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      require 'rake'
+      require 'rake/testtask'
+      require 'rdoc/task'
+
+      Rails.application.load_tasks
+      assert $ran_block
+    end
+
+    test "generators block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          generators do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_generators
+      assert $ran_block
+    end
+
+    test "console block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          console do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_console
+      assert $ran_block
+    end
+
+    test "runner block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          runner do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_runner
+      assert $ran_block
+    end
   end
 end
