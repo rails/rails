@@ -192,6 +192,11 @@ module ActiveRecord
           end
         end
 
+        # Returns the column for a given table.
+        def column_for(table_name, column_name)
+          columns(table_name).detect {|c| c.name == column_name.to_s} 
+        end
+
         # Returns the current database name.
         def current_database
           query('select current_database()', 'SCHEMA')[0][0]
@@ -408,26 +413,15 @@ module ActiveRecord
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default)
           clear_cache!
-          columns = columns table_name
-          column  = columns.find { |c| c.name.to_sym == column_name }
-
-          if column && column.type == :uuid && default =~ /\(\)/
-            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{default}"
-          else
-            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
-          end
+          column = column_for(table_name, column_name)
+          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote_default_value(column.type, default)}" if column
         end
 
         def change_column_null(table_name, column_name, null, default = nil)
           clear_cache!
           unless null || default.nil?
-            columns = columns table_name
-            column  = columns.find { |c| c.name.to_sym == column_name }
-            if column && column.type == :uuid && default =~ /\(\)/
-              execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{default} WHERE #{quote_column_name(column_name)} IS NULL")
-            else
-              execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
-            end
+            column = column_for(table_name, column_name)
+            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_value(column.type, default)} WHERE #{quote_column_name(column_name)} IS NULL") if column
           end
           execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
         end
