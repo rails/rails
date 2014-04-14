@@ -8,6 +8,13 @@ module ActiveRecord
         # serialization as keys and their class restriction as values.
         class_attribute :serialized_attributes, instance_accessor: false
         self.serialized_attributes = {}
+
+        # Contains the options for each serialized attribute. Currently
+        # only contains the value of the dirty property
+        # TODO it would be cleaner if this included the coder...
+        class_attribute :serialized_attribute_options,
+          instance_accessor: false
+        self.serialized_attribute_options = {}
       end
 
       module ClassMethods
@@ -38,8 +45,13 @@ module ActiveRecord
         #   class User < ActiveRecord::Base
         #     serialize :preferences
         #   end
-        def serialize(attr_name, class_name = Object)
+        def serialize(attr_name, class_name = Object, options = {})
           include Behavior
+
+          # The class_name parameter is optional. You can define a
+          # serialized attribute like this
+          # `serialize :some_attribute, dirty: :never
+          class_name, options = Object, class_name if class_name.is_a?(Hash)
 
           coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
                     class_name
@@ -50,6 +62,18 @@ module ActiveRecord
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
           # has its own hash of own serialized attributes
           self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
+
+          # TODO: clone doesn't work if for whatever reason primitives like
+          # fixnum are stored in a serialized column
+          # TODO: if we want we can easily allow people to provider their own
+          # procs to compare serialized fields
+          options = {dirty: :always}.merge(options)
+          case options[:dirty]
+          when :clone then options[:compare_with] = Proc.new(&:clone)
+          when :hash then options[:compare_with] = Proc.new(&:hash)
+          end
+          self.serialized_attribute_options = serialized_attribute_options.
+            merge(attr_name.to_s => options)
         end
       end
 
@@ -110,17 +134,71 @@ module ActiveRecord
                 attributes[key] = Attribute.new(coder, attributes[key], serialized)
               end
             end
-
             attributes
+          end
+
+          # Returns an array of serialized attributes that are always
+          # considered dirty, even if they didn't change
+          def always_dirty_serialized_keys
+            serialized_attributes.keys.select do |k|
+              serialized_attribute_options[k][:dirty] == :always
+            end
           end
         end
 
+        def init_serialized_comparable
+          @serialized_comparable = {}
+          self.class.serialized_attribute_options.each do |attr, options|
+            if @attributes.key?(attr) && options[:compare_with].present?
+              @serialized_comparable[attr] = options[:compare_with].
+                call(@attributes[attr].unserialized_value)
+            end
+          end
+        end
+
+        def attribute_changed?(attr)
+          super || changed_serialized?(attr)
+        end
+
+        def changed?
+          super || changed_serialized_keys.present?
+        end
+
+        # TODO this breaks when a a serialized attribute is set that was not
+        # part of the original select statement. (`m = MyModel.select("some_col").first; m.some_serialized_col = {a:1}`)
+        # I assume some other stuff breaks in that case, as well
+        def changed_serialized?(attr)
+          options = self.class.serialized_attribute_options[attr]
+          return false if options.nil?
+          comp = options[:compare_with]
+          comp.nil? ? false : @serialized_comparable[attr] !=
+            comp.call(@attributes[attr].unserialized_value)
+        end
+
+        def changed_serialized_keys
+          @serialized_comparable.keys.select { |k| changed_serialized?(k) }
+        end
+
         def should_record_timestamps?
-          super || (self.record_timestamps && (attributes.keys & self.class.serialized_attributes.keys).present?)
+          super || (self.record_timestamps && (attributes.keys &
+            self.class.always_dirty_serialized_keys).present?)
         end
 
         def keys_for_partial_write
-          super | (attributes.keys & self.class.serialized_attributes.keys)
+          super | changed_serialized_keys |
+            (attributes.keys & self.class.always_dirty_serialized_keys)
+        end
+
+        def init_internals
+          super.tap { init_serialized_comparable }
+        end
+
+        def changes_applied
+          super.tap { init_serialized_comparable }
+        end
+
+        def reset_changes
+          super.tap { init_serialized_comparable }
         end
 
         def type_cast_attribute_for_write(column, value)
