@@ -1,3 +1,10 @@
+*   Returns null type format when format is not know and controller is using `any`
+    format block.
+
+    Fixes #14462.
+
+    *Rafael Mendonça França*
+
 *   `collection_check_boxes` respects `:index` option for the hidden filed name.
 
     Fixes #14147.
