@@ -1,3 +1,9 @@
+*   `collection_check_boxes` respects `:index` option for the hidden filed name.
+
+    Fixes #14147.
+
+    *Vasiliy Ermolovich*
+
 *   Only make deeply nested routes shallow when parent is shallow.
 
     Fixes #14684.
