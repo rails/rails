@@ -1,3 +1,13 @@
+*   Remove wrapping div with inline styles for hidden form fields.
+
+    The div was added for XHTML 1.0 Strict compliance and the inline styles were added to
+    work around Firefox 12 not submitting invisible inputs. With HTML5 as the default doctype
+    and Firefox 12 market share at 0.21% the time has come for these to go.
+
+    Fixes #11407.
+
+    *Joost Baaij*
+
 *   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
 
     *Izumi Wong-Horiuchi*
