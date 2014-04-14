@@ -240,7 +240,7 @@ module ActiveRecord
 
     # Returns size of the records.
     def size
-      loaded? ? @records.length : count
+      loaded? ? @records.length : count(:all)
     end
 
     # Returns true if there are no records.
@@ -250,8 +250,7 @@ module ActiveRecord
       if limit_value == 0
         true
       else
-        # FIXME: This count is not compatible with #select('authors.*') or other select narrows
-        c = count
+        c = count(:all)
         c.respond_to?(:zero?) ? c.zero? : c.empty?
       end
     end
@@ -532,9 +531,9 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
-    def where_values_hash
+    def where_values_hash(relation_table_name = table_name)
       equalities = where_values.grep(Arel::Nodes::Equality).find_all { |node|
-        node.left.relation.name == table_name
+        node.left.relation.name == relation_table_name
       }
 
       binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
@@ -579,6 +578,8 @@ module ActiveRecord
     # Compares two relations for equality.
     def ==(other)
       case other
+      when Associations::CollectionProxy, AssociationRelation
+        self == other.to_a
       when Relation
         other.to_sql == to_sql
       when Array

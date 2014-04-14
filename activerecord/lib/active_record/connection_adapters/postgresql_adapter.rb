@@ -555,6 +555,17 @@ module ActiveRecord
           @type_map
         end
 
+        def get_oid_type(oid, fmod, column_name)
+          if !type_map.key?(oid)
+            initialize_type_map(type_map, [oid])
+          end
+
+          type_map.fetch(oid, fmod) {
+            warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
+            type_map[oid] = OID::Identity.new
+          }
+        end
+
         def reload_type_map
           type_map.clear
           initialize_type_map(type_map)
@@ -579,19 +590,25 @@ module ActiveRecord
           type_map
         end
 
-        def initialize_type_map(type_map)
+        def initialize_type_map(type_map, oids = nil)
           if supports_ranges?
-            result = execute(<<-SQL, 'SCHEMA')
+            query = <<-SQL
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
               FROM pg_type as t
               LEFT JOIN pg_range as r ON oid = rngtypid
             SQL
           else
-            result = execute(<<-SQL, 'SCHEMA')
+            query = <<-SQL
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
               FROM pg_type as t
             SQL
           end
+
+          if oids
+            query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
+          end
+
+          result = execute(query, 'SCHEMA')
           ranges, nodes = result.partition { |row| row['typtype'] == 'r' }
           enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
           domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }

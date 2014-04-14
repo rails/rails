@@ -111,6 +111,15 @@ def verify_default_timezone_config
   end
 end
 
+def enable_uuid_ossp!(connection)
+  return false unless connection.supports_extensions?
+  return true if connection.extension_enabled?('uuid-ossp')
+
+  connection.enable_extension 'uuid-ossp'
+  connection.commit_db_transaction
+  connection.reconnect!
+end
+
 unless ENV['FIXTURE_DEBUG']
   module ActiveRecord::TestFixtures::ClassMethods
     def try_to_load_dependency_with_silence(*args)

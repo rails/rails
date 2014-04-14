@@ -1,3 +1,62 @@
+*   The comparison between `Relation` and `CollectionProxy` should be consistent.
+
+    Example:
+
+        author.posts == Post.where(author_id: author.id)
+        # => true
+        Post.where(author_id: author.id) == author.posts
+        # => true
+
+    Fixes #13506.
+
+    *Lauro Caetano*
+
+*   Calling `delete_all` on an unloaded `CollectionProxy` no longer
+    generates a SQL statement containing each id of the collection:
+
+    Before:
+
+        DELETE FROM `model` WHERE `model`.`parent_id` = 1
+        AND `model`.`id` IN (1, 2, 3...)
+
+    After:
+
+        DELETE FROM `model` WHERE `model`.`parent_id` = 1
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Fixed error for aggregate methods (`empty?`, `any?`, `count`) with `select`
+    which created invalid SQL.
+
+    Fixes #13648.
+
+    *Simon Woker*
+
+*   PostgreSQL adapter only warns once for every missing OID per connection.
+
+    Fixes #14275.
+
+    *Matthew Draper*, *Yves Senn*
+
+*   PostgreSQL adapter automatically reloads it's type map when encountering
+    unknown OIDs.
+
+    Fixes #14678.
+
+    *Matthew Draper*, *Yves Senn*
+
+*   Fix insertion of records via `has_many :through` association with scope.
+
+    Fixes #3548.
+
+    *Ivan Antropov*
+
+*   Auto-generate stable fixture UUIDs on PostgreSQL.
+
+    Fixes: #11524
+
+    *Roderick van Domburg*
+
 *   Fixed a problem where an enum would overwrite values of another enum
     with the same name in an unrelated class.
 

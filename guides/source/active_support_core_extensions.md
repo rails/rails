@@ -964,20 +964,7 @@ NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
 There are cases where you need to define a method with `define_method`, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.
 
-The method `redefine_method` prevents such a potential warning, removing the existing method before if needed. Rails uses it in a few places, for instance when it generates an association's API:
-
-```ruby
-redefine_method("#{reflection.name}=") do |new_value|
-  association = association_instance_get(reflection.name)
-
-  if association.nil? || association.target != new_value
-    association = association_proxy_class.new(self, reflection)
-  end
-
-  association.replace(new_value)
-  association_instance_set(reflection.name, new_value.nil? ? nil : association)
-end
-```
+The method `redefine_method` prevents such a potential warning, removing the existing method before if needed.
 
 NOTE: Defined in `active_support/core_ext/module/remove_method.rb`
 
@@ -1644,6 +1631,9 @@ Given a string with a qualified constant name, `demodulize` returns the very con
 "Product".demodulize                        # => "Product"
 "Backoffice::UsersController".demodulize    # => "UsersController"
 "Admin::Hotel::ReservationUtils".demodulize # => "ReservationUtils"
+"::Inflections".demodulize                  # => "Inflections"
+"".demodulize                               # => ""
+
 ```
 
 Active Record for example uses this method to compute the name of a counter cache column:

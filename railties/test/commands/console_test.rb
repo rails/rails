@@ -19,14 +19,8 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert console.sandbox?
   end
 
-  def test_debugger_option
-    console = Rails::Console.new(app, parse_arguments(["--debugger"]))
-    assert console.debugger?
-  end
-
   def test_no_options
     console = Rails::Console.new(app, parse_arguments([]))
-    assert !console.debugger?
     assert !console.sandbox?
   end
 
@@ -36,13 +30,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match(/Loading \w+ environment \(Rails/, output)
   end
 
-  def test_start_with_debugger
-    rails_console = Rails::Console.new(app, parse_arguments(["--debugger"]))
-    rails_console.expects(:require_debugger).returns(nil)
-
-    silence_stream(STDOUT) { rails_console.start }
-  end
-
   def test_start_with_sandbox
     app.expects(:sandbox=).with(true)
     FakeConsole.expects(:start)
@@ -50,6 +37,25 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     start ["--sandbox"]
 
     assert_match(/Loading \w+ environment in sandbox \(Rails/, output)
+  end
+
+  if RUBY_VERSION < '2.0.0'
+    def test_debugger_option
+      console = Rails::Console.new(app, parse_arguments(["--debugger"]))
+      assert console.debugger?
+    end
+
+    def test_no_options_does_not_set_debugger_flag
+      console = Rails::Console.new(app, parse_arguments([]))
+      assert !console.debugger?
+    end
+
+    def test_start_with_debugger
+      rails_console = Rails::Console.new(app, parse_arguments(["--debugger"]))
+      rails_console.expects(:require_debugger).returns(nil)
+
+      silence_stream(STDOUT) { rails_console.start }
+    end
   end
 
   def test_console_with_environment

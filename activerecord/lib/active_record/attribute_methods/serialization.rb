@@ -30,7 +30,8 @@ module ActiveRecord
         # ==== Parameters
         #
         # * +attr_name+ - The field name that should be serialized.
-        # * +class_name+ - Optional, class name that the object type should be equal to.
+        # * +class_name_or_coder+ - Optional, a coder object, which responds to `.load` / `.dump`
+        #   or a class name that the object type should be equal to.
         #
         # ==== Example
         #
@@ -38,13 +39,23 @@ module ActiveRecord
         #   class User < ActiveRecord::Base
         #     serialize :preferences
         #   end
-        def serialize(attr_name, class_name = Object)
+        #
+        #   # Serialize preferences using JSON as coder.
+        #   class User < ActiveRecord::Base
+        #     serialize :preferences, JSON
+        #   end
+        #
+        #   # Serialize preferences as Hash using YAML coder.
+        #   class User < ActiveRecord::Base
+        #     serialize :preferences, Hash
+        #   end
+        def serialize(attr_name, class_name_or_coder = Object)
           include Behavior
 
-          coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
-                    class_name
+          coder = if [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
+                    class_name_or_coder
                   else
-                    Coders::YAMLColumn.new(class_name)
+                    Coders::YAMLColumn.new(class_name_or_coder)
                   end
 
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy

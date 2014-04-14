@@ -1,3 +1,8 @@
+*   Add `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5` to support stable
+    UUID fixtures on PostgreSQL.
+
+    *Roderick van Domburg*
+
 *   Fixed `ActiveSupport::Duration#eql?` so that `1.second.eql?(1.second)` is
     true.
 

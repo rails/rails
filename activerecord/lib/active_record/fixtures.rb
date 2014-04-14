@@ -2,6 +2,7 @@ require 'erb'
 require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
+require 'active_support/core_ext/securerandom'
 require 'active_record/fixture_set/file'
 require 'active_record/errors'
 
@@ -550,9 +551,13 @@ module ActiveRecord
     end
 
     # Returns a consistent, platform-independent identifier for +label+.
-    # Identifiers are positive integers less than 2^30.
-    def self.identify(label)
-      Zlib.crc32(label.to_s) % MAX_ID
+    # Integer identifiers are values less than 2^30. UUIDs are RFC 4122 version 5 SHA-1 hashes.
+    def self.identify(label, column_type = :integer)
+      if column_type == :uuid
+        SecureRandom.uuid_v5(SecureRandom::UUID_OID_NAMESPACE, label.to_s)
+      else
+        Zlib.crc32(label.to_s) % MAX_ID
+      end
     end
 
     # Superclass for the evaluation contexts used by ERB fixtures.
@@ -633,7 +638,7 @@ module ActiveRecord
 
           # generate a primary key if necessary
           if has_primary_key_column? && !row.include?(primary_key_name)
-            row[primary_key_name] = ActiveRecord::FixtureSet.identify(label)
+            row[primary_key_name] = ActiveRecord::FixtureSet.identify(label, primary_key_type)
           end
 
           # If STI is used, find the correct subclass for association reflection
@@ -656,7 +661,8 @@ module ActiveRecord
                   row[association.foreign_type] = $1
                 end
 
-                row[fk_name] = ActiveRecord::FixtureSet.identify(value)
+                fk_type = association.active_record.columns_hash[association.foreign_key].type
+                row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
               end
             when :has_many
               if association.options[:through]
@@ -683,6 +689,10 @@ module ActiveRecord
       def name
         @association.name
       end
+
+      def primary_key_type
+        @association.klass.column_types[@association.klass.primary_key].type
+      end
     end
 
     class HasManyThroughProxy < ReflectionProxy # :nodoc:
@@ -700,17 +710,22 @@ module ActiveRecord
         @primary_key_name ||= model_class && model_class.primary_key
       end
 
+      def primary_key_type
+        @primary_key_type ||= model_class && model_class.column_types[model_class.primary_key].type
+      end
+
       def add_join_records(rows, row, association)
         # This is the case when the join table has no fixtures file
         if (targets = row.delete(association.name.to_s))
-          table_name = association.join_table
-          lhs_key    = association.lhs_key
-          rhs_key    = association.rhs_key
+          table_name  = association.join_table
+          column_type = association.primary_key_type
+          lhs_key     = association.lhs_key
+          rhs_key     = association.rhs_key
 
           targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
           rows[table_name].concat targets.map { |target|
             { lhs_key => row[primary_key_name],
-              rhs_key => ActiveRecord::FixtureSet.identify(target) }
+              rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
           }
         end
       end

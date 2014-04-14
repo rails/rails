@@ -37,13 +37,14 @@ module ActiveRecord::Associations::Builder
           end
         end
 
-        def belongs_to_counter_cache_before_destroy(reflection)
+        def belongs_to_counter_cache_after_destroy(reflection)
           foreign_key = reflection.foreign_key.to_sym
           unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
             record = send reflection.name
-            if record && !self.destroyed?
+            if record && self.actually_destroyed?
               cache_column = reflection.counter_cache_column
               record.class.decrement_counter(cache_column, record.id)
+              self.clear_destroy_state
             end
           end
         end
@@ -77,8 +78,8 @@ module ActiveRecord::Associations::Builder
         record.belongs_to_counter_cache_after_create(reflection)
       }
 
-      model.before_destroy lambda { |record|
-        record.belongs_to_counter_cache_before_destroy(reflection)
+      model.after_destroy lambda { |record|
+        record.belongs_to_counter_cache_after_destroy(reflection)
       }
 
       model.after_update lambda { |record|

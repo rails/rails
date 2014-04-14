@@ -1994,6 +1994,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'cards#destroy', @response.body
   end
 
+  def test_shallow_deeply_nested_resources
+    draw do
+      resources :blogs do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    get '/comments/1'
+    assert_equal 'comments#show', @response.body
+
+    assert_equal '/comments/1', comment_path('1')
+    assert_equal '/blogs/new', new_blog_path
+    assert_equal '/blogs/1/posts/new', new_blog_post_path(:blog_id => 1)
+    assert_equal '/blogs/1/posts/2/comments/new', new_blog_post_comment_path(:blog_id => 1, :post_id => 2)
+  end
+
   def test_shallow_nested_resources_within_scope
     draw do
       scope '/hello' do

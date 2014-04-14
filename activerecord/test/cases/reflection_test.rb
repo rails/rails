@@ -192,7 +192,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_should_not_raise_error_when_compared_to_other_object
-    assert_nothing_raised { Firm.reflections[:clients] == Object.new }
+    assert_nothing_raised { Firm.reflections['clients'] == Object.new }
   end
 
   def test_has_many_through_reflection

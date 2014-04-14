@@ -4,21 +4,41 @@
     border-collapse: collapse;
   }
 
-  #route_table td {
-    padding: 0 30px;
+  #route_table thead tr {
+    border-bottom: 2px solid #ddd;
   }
 
-  #route_table tr.bottom th {
-    padding-bottom: 10px;
+  #route_table thead tr.bottom {
+    border-bottom: none;
+  }
+
+  #route_table thead tr.bottom th {
+    padding: 10px 0;
     line-height: 15px;
   }
 
-  #route_table .matched_paths {
-    background-color: LightGoldenRodYellow;
+  #route_table tbody tr {
+    border-bottom: 1px solid #ddd;
   }
 
-  #route_table .matched_paths {
-    border-bottom: solid 3px SlateGrey;
+  #route_table tbody tr:nth-child(odd) {
+    background: #f2f2f2;
+  }
+
+  #route_table tbody.exact_matches,
+  #route_table tbody.fuzzy_matches {
+    background-color: LightGoldenRodYellow;
+    border-bottom: solid 2px SlateGrey;
+  }
+
+  #route_table tbody.exact_matches tr,
+  #route_table tbody.fuzzy_matches tr {
+    background: none;
+    border-bottom: none;
+  }
+
+  #route_table td {
+    padding: 4px 30px;
   }
 
   #path_search {
@@ -45,13 +65,15 @@
       <th><%# HTTP Verb %>
       </th>
       <th><%# Path %>
-        <%= search_field(:path, nil, id: 'path_search', placeholder: "Path Match") %>
+        <%= search_field(:path, nil, id: 'search', placeholder: "Path Match") %>
       </th>
       <th><%# Controller#action %>
       </th>
     </tr>
   </thead>
-  <tbody class='matched_paths' id='matched_paths'>
+  <tbody class='exact_matches' id='exact_matches'>
+  </tbody>
+  <tbody class='fuzzy_matches' id='fuzzy_matches'>
   </tbody>
   <tbody>
     <%= yield %>
@@ -59,6 +81,7 @@
 </table>
 
 <script type='text/javascript'>
+  // Iterates each element through a function
   function each(elems, func) {
     if (!elems instanceof Array) { elems = [elems]; }
     for (var i = 0, len = elems.length; i < len; i++) {
@@ -66,77 +89,110 @@
     }
   }
 
-  function setValOn(elems, val) {
-    each(elems, function(elem) {
-      elem.innerHTML = val;
-    });
-  }
-
-  function onClick(elems, func) {
-    each(elems, function(elem) {
-      elem.onclick = func;
-    });
-  }
-
-  // Enables functionality to toggle between `_path` and `_url` helper suffixes
-  function setupRouteToggleHelperLinks() {
-    var toggleLinks = document.querySelectorAll('#route_table [data-route-helper]');
-    onClick(toggleLinks, function(){
-      var helperTxt   = this.getAttribute("data-route-helper"),
-          helperElems = document.querySelectorAll('[data-route-name] span.helper');
-      setValOn(helperElems, helperTxt);
-    });
-  }
-
-  // takes an array of elements with a data-regexp attribute and
-  // passes their parent <tr> into the callback function
-  // if the regexp matches a given path
-  function eachElemsForPath(elems, path, func) {
-    each(elems, function(e){
-      var reg = e.getAttribute("data-regexp");
-      if (path.match(RegExp(reg))) {
-        func(e.parentNode.cloneNode(true));
-      }
-    })
-  }
-
-  // Ensure path always starts with a slash "/" and remove params or fragments
-  function sanitizePath(path) {
-    var path = path.charAt(0) == '/' ? path : "/" + path;
-    return path.replace(/\#.*|\?.*/, '');
+  // Sets innerHTML for an element
+  function setContent(elem, text) {
+    elem.innerHTML = text;
   }
 
   // Enables path search functionality
   function setupMatchPaths() {
+    // Check if the user input (sanitized as a path) matches the regexp data attribute
+    function checkExactMatch(section, elem, value) {
+      var string = sanitizePath(value),
+          regexp = elem.getAttribute("data-regexp");
+
+      showMatch(string, regexp, section, elem);
+    }
+
+    // Check if the route path data attribute contains the user input
+    function checkFuzzyMatch(section, elem, value) {
+      var string = elem.getAttribute("data-route-path"),
+          regexp = value;
+
+      showMatch(string, regexp, section, elem);
+    }
+
+    // Display the parent <tr> element in the appropriate section when there's a match
+    function showMatch(string, regexp, section, elem) {
+      if(string.match(RegExp(regexp))) {
+        section.appendChild(elem.parentNode.cloneNode(true));
+      }
+    }
+
+    // Check if there are any matched results in a section
+    function checkNoMatch(section, defaultText, noMatchText) {
+      if (section.innerHTML === defaultText) {
+        setContent(section, defaultText + noMatchText);
+      }
+    }
+
+    // Ensure path always starts with a slash "/" and remove params or fragments
+    function sanitizePath(path) {
+      var path = path.charAt(0) == '/' ? path : "/" + path;
+      return path.replace(/\#.*|\?.*/, '');
+    }
+
     var regexpElems     = document.querySelectorAll('#route_table [data-regexp]'),
-        pathElem        = document.querySelector('#path_search'),
-        selectedSection = document.querySelector('#matched_paths'),
-        noMatchText     = '<tr><th colspan="4">None</th></tr>';
+        searchElem      = document.querySelector('#search'),
+        exactMatches    = document.querySelector('#exact_matches'),
+        fuzzyMatches    = document.querySelector('#fuzzy_matches');
 
-
-    // Remove matches if no path is present
-    pathElem.onblur = function(e) {
-      if (pathElem.value === "") selectedSection.innerHTML = "";
+    // Remove matches when no search value is present
+    searchElem.onblur = function(e) {
+      if (searchElem.value === "") {
+        setContent(exactMatches, "");
+        setContent(fuzzyMatches, "");
+      }
     }
 
     // On key press perform a search for matching paths
-    pathElem.onkeyup = function(e){
-      var path        = sanitizePath(pathElem.value),
-          defaultText = '<tr><th colspan="4">Paths Matching (' + path + '):</th></tr>';
+    searchElem.onkeyup = function(e){
+      var userInput         = searchElem.value,
+          defaultExactMatch = '<tr><th colspan="4">Paths Matching (' + sanitizePath(userInput) +'):</th></tr>',
+          defaultFuzzyMatch = '<tr><th colspan="4">Paths Containing (' + userInput +'):</th></tr>',
+          noExactMatch      = '<tr><th colspan="4">No Exact Matches Found</th></tr>',
+          noFuzzyMatch      = '<tr><th colspan="4">No Fuzzy Matches Found</th></tr>';
 
       // Clear out results section
-      selectedSection.innerHTML= defaultText;
+      setContent(exactMatches, defaultExactMatch);
+      setContent(fuzzyMatches, defaultFuzzyMatch);
 
-      // Display matches if they exist
-      eachElemsForPath(regexpElems, path, function(e){
-        selectedSection.appendChild(e);
-      });
+      // Display exact matches and fuzzy matches
+      each(regexpElems, function(elem) {
+        checkExactMatch(exactMatches, elem, userInput);
+        checkFuzzyMatch(fuzzyMatches, elem, userInput);
+      })
 
-      // If no match present, tell the user
-      if (selectedSection.innerHTML === defaultText) {
-        selectedSection.innerHTML = selectedSection.innerHTML + noMatchText;
-      }
+      // Display 'No Matches' message when no matches are found
+      checkNoMatch(exactMatches, defaultExactMatch, noExactMatch);
+      checkNoMatch(fuzzyMatches, defaultFuzzyMatch, noFuzzyMatch);
     }
+  }
+
+  // Enables functionality to toggle between `_path` and `_url` helper suffixes
+  function setupRouteToggleHelperLinks() {
+
+    // Sets content for each element
+    function setValOn(elems, val) {
+      each(elems, function(elem) {
+        setContent(elem, val);
+      });
+    }
+
+    // Sets onClick event for each element
+    function onClick(elems, func) {
+      each(elems, function(elem) {
+        elem.onclick = func;
+      });
+    }
+
+    var toggleLinks = document.querySelectorAll('#route_table [data-route-helper]');
+    onClick(toggleLinks, function(){
+      var helperTxt   = this.getAttribute("data-route-helper"),
+          helperElems = document.querySelectorAll('[data-route-name] span.helper');
+
+      setValOn(helperElems, helperTxt);
+    });
   }
 
   setupMatchPaths();
