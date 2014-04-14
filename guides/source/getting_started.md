@@ -99,7 +99,7 @@ ruby 2.0.0p353
 ```
 
 If you don't have Ruby installed have a look at
-[ruby-lang.org](https://www.ruby-lang.org/en/downloads/) for possible ways to
+[ruby-lang.org](https://www.ruby-lang.org/en/installation/) for possible ways to
 install Ruby on your platform.
 
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3. Windows
