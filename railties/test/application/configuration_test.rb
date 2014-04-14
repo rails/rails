@@ -489,7 +489,7 @@ module ApplicationTests
     test "valid timezone is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.time_zone = "Wellington"
+        config.time_zone = "Wellington"
       RUBY
 
       require "#{app_path}/config/environment"
@@ -500,7 +500,7 @@ module ApplicationTests
     test "raises when an invalid timezone is defined in the config" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.time_zone = "That big hill over yonder hill"
+        config.time_zone = "That big hill over yonder hill"
       RUBY
 
       assert_raise(ArgumentError) do
@@ -511,7 +511,7 @@ module ApplicationTests
     test "valid beginning of week is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.beginning_of_week = :wednesday
+        config.beginning_of_week = :wednesday
       RUBY
 
       require "#{app_path}/config/environment"
@@ -522,7 +522,7 @@ module ApplicationTests
     test "raises when an invalid beginning of week is defined in the config" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.beginning_of_week = :invalid
+        config.beginning_of_week = :invalid
       RUBY
 
       assert_raise(ArgumentError) do
