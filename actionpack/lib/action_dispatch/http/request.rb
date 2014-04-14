@@ -23,7 +23,7 @@ module ActionDispatch
     autoload :Session, 'action_dispatch/request/session'
     autoload :Utils,   'action_dispatch/request/utils'
 
-    LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
+    LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
