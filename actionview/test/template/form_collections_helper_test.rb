@@ -221,6 +221,13 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "input[type=hidden][name='user[other_category_ids][]'][value=]", :count => 1
   end
 
+  test 'collection check boxes generates a hidden field with index if it was provided' do
+    collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
+    with_collection_check_boxes :user, :category_ids, collection, :id, :name, { index: 322 }
+
+    assert_select "input[type=hidden][name='user[322][category_ids][]'][value=]", count: 1
+  end
+
   test 'collection check boxes does not generate a hidden field if include_hidden option is false' do
     collection = [Category.new(1, 'Category 1'), Category.new(2, 'Category 2')]
     with_collection_check_boxes :user, :category_ids, collection, :id, :name, include_hidden: false
