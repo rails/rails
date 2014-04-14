@@ -10,7 +10,7 @@ Hoe.plugin :bundler # `gem install hoe-bundler`
 
 Hoe.spec 'arel' do
   developer('Aaron Patterson', 'aaron@tenderlovemaking.com')
-  developer('Bryan Halmkamp', 'bryan@brynary.com')
+  developer('Bryan Helmkamp', 'bryan@brynary.com')
   developer('Emilio Tagua', 'miloops@gmail.com')
   developer('Nick Kallen', 'nick@example.org') # FIXME: need Nick's email
 
