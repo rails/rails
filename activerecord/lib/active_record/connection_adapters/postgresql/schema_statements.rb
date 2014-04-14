@@ -24,9 +24,8 @@ module ActiveRecord
           end
 
           column = options.fetch(:column) { return super }
-          default_quote = quote_default_value(column) 
-          if column.default == default_quote
-            sql << " DEFAULT #{default_quote}"
+          if column.type == :uuid && options[:default] =~ /\(\)/
+            sql << " DEFAULT #{options[:default]}"
           else
             super
           end
@@ -413,15 +412,15 @@ module ActiveRecord
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default)
           clear_cache!
-          column = column_for table_name, column_name
-          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote_default_value(column)}" if column
+          column = column_for(table_name, column_name)
+          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote_default_value(column.type, default)}" if column
         end
 
         def change_column_null(table_name, column_name, null, default = nil)
           clear_cache!
           unless null || default.nil?
-            column = column_for table_name, column_name
-            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_value(column)} WHERE #{quote_column_name(column_name)} IS NULL") if column
+            column = column_for(table_name, column_name)
+            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_value(column.type, default)} WHERE #{quote_column_name(column_name)} IS NULL") if column
           end
           execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
         end
