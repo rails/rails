@@ -612,7 +612,7 @@ def create
 end
 ```
 
-The `render` method here is taking a very simple hash with a key of `text` and
+The `render` method here is taking a very simple hash with a key of `plain` and
 value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
 method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
@@ -1136,7 +1136,7 @@ The `method: :patch` option tells Rails that we want this form to be submitted
 via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
-The first parameter of the `form_tag` can be an object, say, `@article` which would
+The first parameter of `form_for` can be an object, say, `@article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
 symbol (`:article`) with the same name as the instance variable (`@article`) also
 automagically leads to the same behavior. This is what is happening here. More details
