@@ -864,6 +864,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 9, posts.where(:comments_count => 0).count
   end
 
+  def test_count_on_association_relation
+    author = Author.last
+    another_author = Author.first
+    posts = Post.where(author_id: author.id)
+
+    assert_equal author.posts.where(author_id: author.id).size, posts.count
+
+    assert_equal 0, author.posts.where(author_id: another_author.id).size
+    assert author.posts.where(author_id: another_author.id).empty?
+  end
+
   def test_count_with_distinct
     posts = Post.all
 
