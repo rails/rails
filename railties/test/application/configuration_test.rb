@@ -794,16 +794,6 @@ module ApplicationTests
       assert ActiveRecord::Base.dump_schema_after_migration
     end
 
-    test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
-      make_basic_app do |app|
-        app.config.annotations.register_extensions("coffee") do |tag|
-          /#\s*(#{tag}):?\s*(.*)$/
-        end
-      end
-
-      assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
-    end
-
     test "rake_tasks block works at instance level" do
       $ran_block = false
 
