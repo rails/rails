@@ -135,7 +135,7 @@ module ActiveRecord
         id = super
 
         each_counter_cached_associations do |association|
-          if record = send(association.reflection.name)
+          if send(association.reflection.name)
             association.increment_counters
             @_after_create_counter_called = true
           end
@@ -148,7 +148,14 @@ module ActiveRecord
         affected_rows = super
 
         if affected_rows > 0
-          each_counter_cached_associations(&:decrement_counters)
+          each_counter_cached_associations do |association|
+            foreign_key = association.reflection.foreign_key.to_sym
+            unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
+              if send(association.reflection.name)
+                association.decrement_counters
+              end
+            end
+          end
         end
 
         affected_rows
