@@ -134,7 +134,12 @@ module ActiveRecord
       def _create_record(*)
         id = super
 
-        each_counter_cached_associations(&:increment_counters)
+        each_counter_cached_associations do |association|
+          if record = send(association.reflection.name)
+            association.increment_counters
+            @_after_create_counter_called = true
+          end
+        end
 
         id
       end
