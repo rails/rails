@@ -207,7 +207,9 @@ module ActiveRecord
 
       def association_scope_cache(conn)
         key = conn.prepared_statements
-        @association_scope_cache[key] ||= @scope_lock.synchronize { yield }
+        @association_scope_cache[key] ||= @scope_lock.synchronize {
+          @association_scope_cache[key] ||= yield
+        }
       end
 
       # Returns a new, unsaved instance of the associated class. +attributes+ will
