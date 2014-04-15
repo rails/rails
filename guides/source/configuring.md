@@ -644,8 +644,6 @@ development:
   encoding: unicode
   database: blog_development
   pool: 5
-  username: blog
-  password:
 ```
 
 Prepared Statements can be disabled thus:
