@@ -244,6 +244,8 @@ module ActiveRecord
         end
 
         def build_record(attributes)
+          attributes = create_scope.merge(attributes || {})
+
           reflection.build_association(attributes) do |record|
             initialize_attributes(record)
           end
