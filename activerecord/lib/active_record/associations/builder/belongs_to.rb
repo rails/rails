@@ -29,7 +29,6 @@ module ActiveRecord::Associations::Builder
       return if mixin.method_defined? :belongs_to_counter_cache_after_update
 
       mixin.class_eval do
-
         def belongs_to_counter_cache_after_update(reflection)
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column

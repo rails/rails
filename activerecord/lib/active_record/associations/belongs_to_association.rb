@@ -31,11 +31,11 @@ module ActiveRecord
         @updated
       end
 
-      def decrement_counters
+      def decrement_counters # :nodoc:
         with_cache_name { |name| decrement_counter name }
       end
 
-      def increment_counters
+      def increment_counters # :nodoc:
         with_cache_name { |name| increment_counter name }
       end
 
