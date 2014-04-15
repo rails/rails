@@ -1,3 +1,9 @@
+*   Do not quote uuid default value on `change_column`.
+
+    Fixes #14604.
+
+    *Eric Chahin*
+
 *   The comparison between `Relation` and `CollectionProxy` should be consistent.
 
     Example:

@@ -31,6 +31,14 @@ module ActiveRecord
         @updated
       end
 
+      def decrement_counters # :nodoc:
+        with_cache_name { |name| decrement_counter name }
+      end
+
+      def increment_counters # :nodoc:
+        with_cache_name { |name| increment_counter name }
+      end
+
       private
 
         def find_target?
@@ -51,13 +59,15 @@ module ActiveRecord
           end
         end
 
-        def decrement_counters
-          with_cache_name { |name| decrement_counter name }
-        end
-
-        def decrement_counter counter_cache_name
+        def decrement_counter(counter_cache_name)
           if foreign_key_present?
             klass.decrement_counter(counter_cache_name, target_id)
+          end
+        end
+
+        def increment_counter(counter_cache_name)
+          if foreign_key_present?
+            klass.increment_counter(counter_cache_name, target_id)
           end
         end
 

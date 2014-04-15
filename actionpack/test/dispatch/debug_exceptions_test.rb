@@ -147,9 +147,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/", {}, xhr_request_env
     assert_response 500
+    assert_no_match(/<header>/, body)
     assert_no_match(/<body>/, body)
     assert_equal response.content_type, "text/plain"
-    assert_match(/puke/, body)
+    assert_match(/RuntimeError\npuke/, body)
 
     get "/not_found", {}, xhr_request_env
     assert_response 404

@@ -187,6 +187,10 @@ module ActiveRecord
           end
         end
 
+        def column_for(table_name, column_name) #:nodoc:
+          columns(table_name).detect { |c| c.name == column_name.to_s } 
+        end
+
         # Returns the current database name.
         def current_database
           query('select current_database()', 'SCHEMA')[0][0]
@@ -404,13 +408,15 @@ module ActiveRecord
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default)
           clear_cache!
-          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote(default)}"
+          column = column_for(table_name, column_name)
+          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote_default_value(default, column)}" if column
         end
 
         def change_column_null(table_name, column_name, null, default = nil)
           clear_cache!
           unless null || default.nil?
-            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+            column = column_for(table_name, column_name)
+            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_value(default, column)} WHERE #{quote_column_name(column_name)} IS NULL") if column
           end
           execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
         end
