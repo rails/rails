@@ -5,34 +5,27 @@ require 'active_support/core_ext/numeric/time'
 
 class DuplicableTest < ActiveSupport::TestCase
   RAISE_DUP  = [nil, false, true, :symbol, 1, 2.3, 5.seconds]
-  YES = ['1', Object.new, /foo/, [], {}, Time.now, Class.new, Module.new]
-  NO = []
+  ALLOW_DUP = ['1', Object.new, /foo/, [], {}, Time.now, Class.new, Module.new]
 
+  # Needed to support Ruby 1.9.x, as it doesn't allow dup on BigDecimal, instead
+  # raises TypeError exception. Checking here on the runtime whether BigDecimal
+  # will allow dup or not.
   begin
     bd = BigDecimal.new('4.56')
-    YES << bd.dup
+    ALLOW_DUP << bd.dup
   rescue TypeError
     RAISE_DUP << bd
   end
 
-
   def test_duplicable
-    (RAISE_DUP + NO).each do |v|
-      assert !v.duplicable?
-    end
-
-    YES.each do |v|
-      assert v.duplicable?, "#{v.class} should be duplicable"
-    end
-
-    (YES + NO).each do |v|
-      assert_nothing_raised { v.dup }
-    end
-
     RAISE_DUP.each do |v|
-      assert_raises(TypeError, v.class.name) do
-        v.dup
-      end
+      assert !v.duplicable?
+      assert_raises(TypeError, v.class.name) { v.dup }
+    end
+
+    ALLOW_DUP.each do |v|
+      assert v.duplicable?, "#{ v.class } should be duplicable"
+      assert_nothing_raised { v.dup }
     end
   end
 end

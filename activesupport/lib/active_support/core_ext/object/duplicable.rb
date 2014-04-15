@@ -78,6 +78,9 @@ end
 
 require 'bigdecimal'
 class BigDecimal
+  # Needed to support Ruby 1.9.x, as it doesn't allow dup on BigDecimal, instead
+  # raises TypeError exception. Checking here on the runtime whether BigDecimal
+  # will allow dup or not.
   begin
     BigDecimal.new('4.56').dup
 
