@@ -182,6 +182,15 @@ module ActiveRecord
           end
           result
         end
+
+        # Does not quote function default values for UUID columns
+        def quote_default_value(value, column) #:nodoc:
+          if column.type == :uuid && value =~ /\(\)/
+            value
+          else
+            quote(value)
+          end
+        end
       end
     end
   end
