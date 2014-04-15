@@ -109,8 +109,8 @@ module ActiveRecord
 
       # Sanitizes a string so that it is safe to use within a sql
       # like statement.
-      def sanitize_sql_like
-        gsub(/[\\_%\|]/) { |x| "\\#{x}" }
+      def sanitize_sql_like(statement)
+        statement.gsub(/[\\_%\|]/) { |x| "\\#{x}" }
       end
 
       # Accepts an array of conditions. The array has each value
