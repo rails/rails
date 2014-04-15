@@ -495,6 +495,7 @@ class ExampleMigration < ActiveRecord::Migration
     add_column :users, :home_page_url, :string
     rename_column :users, :email, :email_address
   end
+end
 ```
 
 Using `reversible` will ensure that the instructions are executed in the
