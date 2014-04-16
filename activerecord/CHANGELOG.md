@@ -1,3 +1,9 @@
+*   Fixed a problem where count used with a grouping was not returning a Hash.
+
+    Fixes #14721.
+
+    *Eric Chahin*
+
 *   Do not quote uuid default value on `change_column`.
 
     Fixes #14604.
