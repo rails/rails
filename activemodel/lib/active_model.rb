@@ -49,6 +49,7 @@ module ActiveModel
 
   eager_autoload do
     autoload :Errors
+    autoload :StrictValidationFailed, 'active_model/errors'
   end
 
   module Serializers
