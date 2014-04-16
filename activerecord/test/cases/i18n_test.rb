@@ -2,6 +2,10 @@ require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 
+class NumericData < ActiveRecord::Base
+  self.table_name = 'numeric_data'
+end
+
 class ActiveRecordI18nTests < ActiveRecord::TestCase
 
   def setup
@@ -41,5 +45,32 @@ class ActiveRecordI18nTests < ActiveRecord::TestCase
   def test_translated_model_names_with_sti_fallback
     I18n.backend.store_translations 'en', :activerecord => {:models => {:topic => 'topic model'} }
     assert_equal 'topic model', Reply.model_name.human
+  end
+  
+  def test_default_number_input
+    numeric_data = NumericData.new
+    numeric_data.attributes = { "bank_balance" => "1.234" }
+    numeric_data.save
+    assert_equal(1.234, numeric_data.bank_balance)
+  end
+
+  def test_localized_number_input
+    I18n.backend.store_translations 'de', :number => {:format => {:separator => ',', :delimiter => ''} }
+    numeric_data = NumericData.new
+    I18n.with_locale(:de) do
+      numeric_data.attributes = { "bank_balance" => "1,234" }
+      numeric_data.save
+    end
+    assert_equal(1.234, numeric_data.bank_balance)
+  end
+
+  def test_localized_number_input_with_delimiter
+    I18n.backend.store_translations 'de', :number => {:format => {:separator => ',', :delimiter => '.'} }
+    numeric_data = NumericData.new
+    I18n.with_locale(:de) do
+      numeric_data.attributes = { "bank_balance" => "1.234,5" }
+      numeric_data.save
+    end
+    assert_equal(1234.5, numeric_data.bank_balance)
   end
 end
