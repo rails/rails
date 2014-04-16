@@ -313,7 +313,6 @@ module ActiveRecord #:nodoc:
     include Timestamp
     include Callbacks
     include Associations
-    include ActiveModel::SecurePassword
     include AutosaveAssociation
     include NestedAttributes
     include Aggregations
