@@ -550,6 +550,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   color_field_tag 'name'
+      #   # => <input id="name" name="name" type="color" />
+      #
+      #   color_field_tag 'color', '#DEF726'
+      #   # => <input id="color" name="color" type="color" value="#DEF726" />
+      #
+      #   color_field_tag 'color', nil, class: 'special_input'
+      #   # => <input class="special_input" id="color" name="color" type="color" />
+      #
+      #   color_field_tag 'color', '#DEF726', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="color" name="color" type="color" value="#DEF726" />
       def color_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "color"))
       end
