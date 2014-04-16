@@ -1,3 +1,9 @@
+*   Fixed a problem where count used with a grouping was not returning a Hash.
+
+    Fixes #14721.
+
+    *Eric Chahin*
+
 *   `sanitize_sql_like` helper method to escape a string for safe use in a SQL
     LIKE statement.
 
