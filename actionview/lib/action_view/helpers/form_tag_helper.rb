@@ -571,6 +571,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   search_field_tag 'name'
+      #   # => <input id="name" name="name" type="search" />
+      #
+      #   search_field_tag 'search', 'Enter your search query here'
+      #   # => <input id="search" name="search" type="search" value="Enter your search query here" />
+      #
+      #   search_field_tag 'search', nil, class: 'special_input'
+      #   # => <input class="special_input" id="search" name="search" type="search" />
+      #
+      #   search_field_tag 'search', 'Enter your search query here', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="search" name="search" type="search" value="Enter your search query here" />
       def search_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "search"))
       end
