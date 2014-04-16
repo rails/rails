@@ -190,11 +190,19 @@ module ActiveRecord
           # in the else clause
           if value.class == BigDecimal
             value
+          elsif value.is_a?(String)
+            parse_localized_decimal(value)
           elsif value.respond_to?(:to_d)
             value.to_d
           else
-            value.to_s.to_d
+            parse_localized_decimal(value.to_s)
           end
+        end
+
+        def parse_localized_decimal(value)
+          separator = I18n.t(:'number.format.separator')
+          delimiter = I18n.t(:'number.format.delimiter')
+          BigDecimal(value.gsub(delimiter, '').gsub(separator, '.'))
         end
 
         protected
