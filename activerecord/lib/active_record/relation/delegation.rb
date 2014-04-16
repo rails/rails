@@ -40,7 +40,7 @@ module ActiveRecord
     BLACKLISTED_ARRAY_METHODS = [
       :compact!, :flatten!, :reject!, :reverse!, :rotate!, :map!,
       :shuffle!, :slice!, :sort!, :sort_by!, :delete_if,
-      :keep_if, :pop, :shift, :delete_at, :compact
+      :keep_if, :pop, :shift, :delete_at, :compact, :select!
     ].to_set # :nodoc:
 
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, to: :to_a
