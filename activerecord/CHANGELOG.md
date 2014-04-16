@@ -1,3 +1,9 @@
+*   Prevent Rails console log twice when `config.logger` is set.
+
+    Fixes #11415.
+
+    *Andriel Nuernberg*
+
 *   Do not quote uuid default value on `change_column`.
 
     Fixes #14604.
