@@ -592,6 +592,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   telephone_field_tag 'name'
+      #   # => <input id="name" name="name" type="tel" />
+      #
+      #   telephone_field_tag 'tel', '0123456789'
+      #   # => <input id="tel" name="tel" type="tel" value="0123456789" />
+      #
+      #   telephone_field_tag 'tel', nil, class: 'special_input'
+      #   # => <input class="special_input" id="tel" name="tel" type="tel" />
+      #
+      #   telephone_field_tag 'tel', '0123456789', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="tel" name="tel" type="tel" value="0123456789" />
       def telephone_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "tel"))
       end
@@ -664,6 +677,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   url_field_tag 'name'
+      #   # => <input id="name" name="name" type="url" />
+      #
+      #   url_field_tag 'url', 'http://rubyonrails.org'
+      #   # => <input id="url" name="url" type="url" value="http://rubyonrails.org" />
+      #
+      #   url_field_tag 'url', nil, class: 'special_input'
+      #   # => <input class="special_input" id="url" name="url" type="url" />
+      #
+      #   url_field_tag 'url', 'http://rubyonrails.org', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="url" name="url" type="url" value="http://rubyonrails.org" />
       def url_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "url"))
       end
