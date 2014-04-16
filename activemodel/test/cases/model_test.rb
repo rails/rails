@@ -35,17 +35,17 @@ class ModelTest < ActiveModel::TestCase
     @model = BasicModel.new
   end
 
-  def test_initialize_with_params
+  test "initialize with params" do
     object = BasicModel.new(attr: "value")
     assert_equal "value", object.attr
   end
 
-  def test_initialize_with_params_and_mixins_reversed
+  test "initialize with params and mixins reversed" do
     object = BasicModelWithReversedMixins.new(attr: "value")
     assert_equal "value", object.attr
   end
 
-  def test_initialize_with_nil_or_empty_hash_params_does_not_explode
+  test "initialize with nil or empty hash params does not explode" do
     assert_nothing_raised do
       BasicModel.new()
       BasicModel.new(nil)
@@ -54,22 +54,22 @@ class ModelTest < ActiveModel::TestCase
     end
   end
 
-  def test_persisted_is_always_false
+  test "persisted is always false" do
     object = BasicModel.new(attr: "value")
     assert object.persisted? == false
   end
 
-  def test_mixin_inclusion_chain
+  test "mixin inclusion chain" do
     object = BasicModel.new
     assert_equal 'default value', object.attr
   end
 
-  def test_mixin_initializer_when_args_exist
+  test "mixin initializer when args exist" do
     object = BasicModel.new(hello: 'world')
     assert_equal 'world', object.hello
   end
 
-  def test_mixin_initializer_when_args_dont_exist
+  test "mixin initializer when args dont exist" do
     assert_raises(NoMethodError) { SimpleModel.new(hello: 'world') }
   end
 end
