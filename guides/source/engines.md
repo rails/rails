@@ -1052,6 +1052,16 @@ This tells the application that you still want to perform a `GET` request to the
 `index` action of this controller, but you want to use the engine's route to get
 there, rather than the application's one.
 
+Another way to do this is to assign the `@routes` instance variable to `Engine.routes` in your test setup:
+
+```ruby
+setup do
+  @routes = Engine.routes
+end
+```
+
+This will also ensure url helpers for the engine will work as expected in your tests.
+
 Improving engine functionality
 ------------------------------
 
