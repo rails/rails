@@ -43,7 +43,7 @@ module ActiveRecord
     end
 
     def count(*)
-      0
+      calculate :count, nil
     end
 
     def sum(*)
@@ -54,7 +54,7 @@ module ActiveRecord
       # TODO: Remove _options argument as soon we remove support to
       # activerecord-deprecated_finders.
       if operation == :count
-        0
+        group_values.any? ? Hash.new : 0
       else
         nil
       end
