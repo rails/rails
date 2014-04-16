@@ -59,8 +59,11 @@ module ActiveRecord
     console do |app|
       require "active_record/railties/console_sandbox" if app.sandbox?
       require "active_record/base"
-      console = ActiveSupport::Logger.new(STDERR)
-      Rails.logger.extend ActiveSupport::Logger.broadcast console
+
+      unless Rails.configuration.logger
+        console = ActiveSupport::Logger.new(STDERR)
+        Rails.logger.extend ActiveSupport::Logger.broadcast console
+      end
     end
 
     runner do
