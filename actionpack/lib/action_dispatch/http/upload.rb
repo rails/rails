@@ -18,6 +18,7 @@ module ActionDispatch
       # A +Tempfile+ object with the actual uploaded file. Note that some of
       # its interface is available directly.
       attr_accessor :tempfile
+      alias :to_io :tempfile
 
       # A string with the headers of the multipart request.
       attr_accessor :headers
@@ -29,11 +30,6 @@ module ActionDispatch
         @original_filename = encode_filename(hash[:filename])
         @content_type      = hash[:type]
         @headers           = hash[:head]
-      end
-
-      # Shortcut for working directly with +tempfile+
-      def to_io
-        @tempfile
       end
 
       # Shortcut for +tempfile.read+.
