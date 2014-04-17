@@ -31,6 +31,11 @@ module ActionDispatch
         @headers           = hash[:head]
       end
 
+      # Shortcut for working directly with +tempfile+
+      def to_io
+        @tempfile
+      end
+
       # Shortcut for +tempfile.read+.
       def read(length=nil, buffer=nil)
         @tempfile.read(length, buffer)
