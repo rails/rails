@@ -1,3 +1,10 @@
+*   Floats with limit >= 25 that get turned into doubles in MySQL no longer have
+    their limit dropped from the schema.
+    
+    Fixes #14135.
+
+    *Aaron Nelson*
+
 *   Fixed a problem where count used with a grouping was not returning a Hash.
 
     Fixes #14721.
