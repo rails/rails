@@ -187,7 +187,6 @@ module ActiveRecord
         include Arel::Visitors::BindVisitor
       end
 
-      # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
         @connection_options, @config = connection_options, config
