@@ -33,7 +33,7 @@ module ActionDispatch
       assert_equal 'foo', uf.tempfile
     end
 
-    def test_delegates_to_io_to_tempfile
+    def test_to_io_returns_the_tempfile
       tf = Object.new
       uf = Http::UploadedFile.new(:tempfile => tf)
       assert_equal tf, uf.to_io
