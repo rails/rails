@@ -1,3 +1,8 @@
+*   Add alias `ActionDispatch::Http::UploadedFile#to_io` to
+    `ActionDispatch::Http::UploadedFile#tempfile`.
+
+    *Tim Linquist*
+
 *   Returns null type format when format is not know and controller is using `any`
     format block.
 
