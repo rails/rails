@@ -250,9 +250,8 @@ This will automatically include a security token in all forms and Ajax requests 
 It is common to use persistent cookies to store user information, with `cookies.permanent` for example. In this case, the cookies will not be cleared and the out of the box CSRF protection will not be effective. If you are using a different cookie store than the session for this information, you must handle what to do with it yourself:
 
 ```ruby
-def handle_unverified_request
-  super
-  sign_out_user # Example method that will destroy the user cookies.
+rescue_from ActionController::InvalidAuthenticityToken do |exception|
+  sign_out_user # Example method that will destroy the user cookies
 end
 ```
 
