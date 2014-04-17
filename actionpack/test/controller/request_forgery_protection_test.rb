@@ -145,7 +145,7 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :show_button
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_form_without_token_tag_if_remote
