@@ -1,3 +1,9 @@
+*   Fixed has_many association to make it support irregular inflections.
+
+    Fixes #8928.
+
+    *arthurnn*, *Javier Goizueta*
+
 *   Fixed a problem where count used with a grouping was not returning a Hash.
 
     Fixes #14721.
