@@ -65,6 +65,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_default_scope_with_conditions_hash_as_class_method
+    assert_equal Developer.where(name: 'David').map(&:id).sort, ClassMethodDeveloperCalledDavid.all.map(&:id).sort
+    assert_equal 'David', ClassMethodDeveloperCalledDavid.create!.name
+  end
+
   def test_default_scope_with_inheritance
     wheres = InheritedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres['name']

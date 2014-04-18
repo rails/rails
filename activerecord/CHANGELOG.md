@@ -1,3 +1,18 @@
+*   `scope_attributes?` is now based on ``scope_attributes.any?`` and therefore
+     does not ignore attributes defined in class method.
+
+    Example:
+
+        class Developer < ActiveRecord::Base
+          def self.default_scope
+            where(:name => 'Adrien')
+          end
+        end
+        Developer.new.name => 'Adrien' # Used to be nil
+
+
+    *Adrien Siami*
+
 *   Fixed a problem where count used with a grouping was not returning a Hash.
 
     Fixes #14721.
