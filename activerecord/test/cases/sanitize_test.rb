@@ -57,6 +57,7 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal 'snake\_cased\_string', Binary.send(:sanitize_sql_like, 'snake_cased_string')
     assert_equal 'C:\\\\Programs\\\\MsPaint', Binary.send(:sanitize_sql_like, 'C:\\Programs\\MsPaint')
     assert_equal 'normal string 42', Binary.send(:sanitize_sql_like, 'normal string 42')
+    assert_equal ':-\) and :-\(', Binary.send(:sanitize_sql_like, ':-) and :-(')
   end
 
   def test_sanitize_sql_like_with_custom_escape_character
@@ -65,6 +66,7 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal 'great!!', Binary.send(:sanitize_sql_like, 'great!', '!')
     assert_equal 'C:\\Programs\\MsPaint', Binary.send(:sanitize_sql_like, 'C:\\Programs\\MsPaint', '!')
     assert_equal 'normal string 42', Binary.send(:sanitize_sql_like, 'normal string 42', '!')
+    assert_equal ':-!) and :-!(', Binary.send(:sanitize_sql_like, ':-) and :-(', '!')
   end
 
   def test_sanitize_sql_like_example_use_case

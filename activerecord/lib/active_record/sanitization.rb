@@ -108,9 +108,9 @@ module ActiveRecord
       end
 
       # Sanitizes a +string+ so that it is safe to use within a sql
-      # LIKE statement. This method uses +escape_character+ to escape all occurrences of "\", "_" and "%"
+      # LIKE statement. This method uses +escape_character+ to escape all occurrences of "\", "_", ")", "(" and "%"
       def sanitize_sql_like(string, escape_character = "\\")
-        pattern = Regexp.union(escape_character, "%", "_")
+        pattern = Regexp.union(escape_character, "%", "_", ")", "(")
         string.gsub(pattern) { |x| [escape_character, x].join }
       end
 

@@ -1,3 +1,19 @@
+*   Fixed `sanitize_sql_like` helper method to escape parentheses in a SQL
+    LIKE statement.
+
+    Example:
+
+        class Article
+          def self.search(term)
+            where("title LIKE ?", sanitize_sql_like(term))
+          end
+        end
+
+        Article.search("(20% _reduction_")
+        # => Query looks like "... title LIKE '\(20\% \_reduction\_' ..."
+
+    *Maxim Petrunin*
+
 *   Fixed has_many association to make it support irregular inflections.
 
     Fixes #8928.
