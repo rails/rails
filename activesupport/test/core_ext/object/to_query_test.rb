@@ -20,6 +20,14 @@ class ToQueryTest < ActiveSupport::TestCase
     assert_query_equal 'a=%5B10%5D', 'a' => '[10]'.html_safe
   end
 
+  def test_ordered_hash
+    hash = ActiveSupport::OrderedHash.new
+    hash['b'] = 1
+    hash['a'] = 2
+
+    assert_equal hash.to_query, 'b=1&a=2'
+  end
+
   def test_nil_parameter_value
     empty = Object.new
     def empty.to_param; nil end
