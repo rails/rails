@@ -54,9 +54,15 @@ class Hash
     if empty?
       namespace ? nil.to_query(namespace) : ''
     else
-      collect do |key, value|
+      params = collect do |key, value|
         value.to_query(namespace ? "#{namespace}[#{key}]" : key)
-      end.sort! * '&'
+      end
+
+      if !defined?(ActiveSupport::OrderedHash) || !is_a?(ActiveSupport::OrderedHash)
+        params.sort!
+      end
+
+      params * '&'
     end
   end
 end
