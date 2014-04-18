@@ -1,3 +1,9 @@
+*   Fixed has_many association to make it support irregular inflections.
+
+    Fixes #8928.
+
+    *arthurnn*, *Javier Goizueta*
+
 *   Calling `delete_all` on an unloaded `CollectionProxy` no longer
     generates a SQL statement containing each id of the collection:
 

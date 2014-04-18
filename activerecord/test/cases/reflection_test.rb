@@ -87,6 +87,14 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_irregular_reflection_class_name
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.irregular 'plural_irregular', 'plurales_irregulares'
+    end
+    reflection = AssociationReflection.new(:has_many, 'plurales_irregulares', nil, {}, ActiveRecord::Base)
+    assert_equal 'PluralIrregular', reflection.class_name
+  end
+
   def test_aggregation_reflection
     reflection_for_address = AggregateReflection.new(
       :composed_of, :address, nil, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
