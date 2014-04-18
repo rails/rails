@@ -398,6 +398,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_url_options_precedence_over_route_defaults
+    with_test_route_set do
+      get '/get_with_params?bar=foobar'
+      assert_equal 'foobar', request.parameters['bar']
+
+      assert_equal 200, status
+    end
+  end
+
   def test_get_with_query_string
     with_test_route_set do
       get '/get_with_params?foo=bar'
@@ -511,7 +520,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
-          match ':action', :to => controller, :via => [:get, :post], :as => :action
+          match ':action', :to => controller, :via => [:get, :post], :as => :action, :defaults => { :bar => 'foo' }
           get 'get/:action', :to => controller, :as => :get_action
         end
 

@@ -274,9 +274,9 @@ module ActionDispatch
 
         def define_named_route_methods(name, route)
           define_url_helper route, :"#{name}_path",
-            route.defaults.merge(:use_route => name, :only_path => true)
+            route.options.merge(:use_route => name, :only_path => true)
           define_url_helper route, :"#{name}_url",
-            route.defaults.merge(:use_route => name, :only_path => false)
+            route.options.merge(:use_route => name, :only_path => false)
         end
       end
 
@@ -421,7 +421,7 @@ module ActionDispatch
         routes.empty?
       end
 
-      def add_route(app, conditions = {}, requirements = {}, defaults = {}, name = nil, anchor = true)
+      def add_route(app, conditions = {}, requirements = {}, options = {}, defaults = {}, name = nil, anchor = true)
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
 
         if name && named_routes[name]
@@ -435,7 +435,7 @@ module ActionDispatch
         path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
         conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
 
-        route = @set.add_route(app, path, conditions, defaults, name)
+        route = @set.add_route(app, path, conditions, options, defaults, name)
         named_routes[name] = route if name
         route
       end

@@ -56,21 +56,22 @@ module ActionDispatch
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
-        attr_reader :scope, :path, :options, :requirements, :conditions, :defaults
+        attr_reader :scope, :path, :options, :requirements, :conditions, :defaults, :url_options
 
         def initialize(set, scope, path, options)
           @set, @scope, @path, @options = set, scope, path, options
-          @requirements, @conditions, @defaults = {}, {}, {}
+          @requirements, @conditions, @url_options, @defaults = {}, {}, {}, {}
 
           normalize_options!
           normalize_path!
           normalize_requirements!
           normalize_conditions!
           normalize_defaults!
+          normalize_url_options!
         end
 
         def to_route
-          [ app, conditions, requirements, defaults, options[:as], options[:anchor] ]
+          [app, conditions, requirements, url_options, defaults, options[:as], options[:anchor]]
         end
 
         private
@@ -144,27 +145,30 @@ module ActionDispatch
           end
 
           def normalize_defaults!
-            @defaults.merge!(scope[:defaults]) if scope[:defaults]
             @defaults.merge!(options[:defaults]) if options[:defaults]
+          end
+
+          def normalize_url_options!
+            @url_options.merge!(scope[:defaults]) if scope[:defaults]
 
             options.each do |key, default|
               unless Regexp === default || IGNORE_OPTIONS.include?(key)
-                @defaults[key] = default
+                @url_options[key] = default
               end
             end
 
             if options[:constraints].is_a?(Hash)
               options[:constraints].each do |key, default|
                 if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
-                  @defaults[key] ||= default
+                  @url_options[key] ||= default
                 end
               end
             end
 
             if Regexp === options[:format]
-              @defaults[:format] = nil
+              @url_options[:format] = nil
             elsif String === options[:format]
-              @defaults[:format] = options[:format]
+              @url_options[:format] = options[:format]
             end
           end
 
@@ -293,7 +297,7 @@ module ActionDispatch
           end
 
           def dispatcher
-            Routing::RouteSet::Dispatcher.new(:defaults => defaults)
+            Routing::RouteSet::Dispatcher.new(:defaults => @url_options)
           end
 
           def to
@@ -1472,8 +1476,8 @@ module ActionDispatch
           end
 
           mapping = Mapping.new(@set, @scope, URI.parser.escape(path), options)
-          app, conditions, requirements, defaults, as, anchor = mapping.to_route
-          @set.add_route(app, conditions, requirements, defaults, as, anchor)
+          app, conditions, requirements, url_options, defaults, as, anchor = mapping.to_route
+          @set.add_route(app, conditions, requirements, url_options, defaults, as, anchor)
         end
 
         def root(path, options={})

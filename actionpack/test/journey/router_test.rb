@@ -196,7 +196,7 @@ module ActionDispatch
         route_name = "gorby_thunderhorse"
         pattern = Router::Strexp.new("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
         path = Path::Pattern.new pattern
-        @router.routes.add_route nil, path, {}, {}, route_name
+        @router.routes.add_route nil, path, {}, {}, {}, route_name
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(:path_info, route_name, { }, { })
@@ -482,7 +482,7 @@ module ActionDispatch
       def test_recognize_literal
         path   = Path::Pattern.new "/books(/:action(.:format))"
         app    = Object.new
-        route  = @router.routes.add_route(app, path, {}, {:controller => 'books'})
+        route  = @router.routes.add_route(app, path, {}, {:controller => 'books'}, {})
 
         env    = rails_env 'PATH_INFO' => '/books/list.rss'
         expected = { :controller => 'books', :action => 'list', :format => 'rss' }
@@ -502,7 +502,7 @@ module ActionDispatch
         conditions = {
           :request_method => 'GET'
         }
-        @router.routes.add_route(app, path, conditions, {})
+        @router.routes.add_route(app, path, conditions, {}, {})
 
         env = rails_env 'PATH_INFO' => '/books/list.rss',
                         "REQUEST_METHOD"    => "HEAD"
@@ -521,12 +521,12 @@ module ActionDispatch
         conditions = {
           :request_method => 'GET'
         }
-        @router.routes.add_route(app, path, conditions, {})
+        @router.routes.add_route(app, path, conditions, {}, {})
 
         conditions = conditions.dup
         conditions[:request_method] = 'POST'
 
-        post = @router.routes.add_route(app, path, conditions, {})
+        post = @router.routes.add_route(app, path, conditions, {}, {})
 
         env = rails_env 'PATH_INFO' => '/books/list.rss',
                         "REQUEST_METHOD"    => "POST"
