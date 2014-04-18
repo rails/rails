@@ -644,17 +644,25 @@ development:
   encoding: unicode
   database: blog_development
   pool: 5
-  username: blog
-  password:
 ```
 
-Prepared Statements can be disabled thus:
+Prepared Statements are enabled by default on PostgreSQL. You can be disable prepared statements by setting `prepared_statements` to `false`:
 
 ```yaml
 production:
   adapter: postgresql
   prepared_statements: false
 ```
+
+If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:
+
+```
+production:
+  adapter: postgresql
+  statement_limit: 200
+```
+
+The more prepared statements in use: the more memory your database will require. If your PostgreSQL database is hitting memory limits, try lowering `statement_limit` or disabling prepared statements.
 
 #### Configuring an SQLite3 Database for JRuby Platform
 

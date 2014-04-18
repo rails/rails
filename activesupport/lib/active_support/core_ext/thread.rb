@@ -62,6 +62,13 @@ class Thread
     _locals.has_key?(key.to_sym)
   end
 
+  # Freezes the thread so that thread local variables cannot be set via
+  # Thread#thread_variable_set, nor can fiber local variables be set.
+  #
+  #   me = Thread.current
+  #   me.freeze
+  #   me.thread_variable_set(:oliver, "a")  #=> RuntimeError: can't modify frozen thread locals
+  #   me[:oliver] = "a"                     #=> RuntimeError: can't modify frozen thread locals
   def freeze
     _locals.freeze
     super
