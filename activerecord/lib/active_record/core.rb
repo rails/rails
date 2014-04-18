@@ -257,6 +257,7 @@ module ActiveRecord
       @attributes_cache  = {}
 
       @new_record  = true
+      @destroyed   = false
 
       ensure_proper_type
       super
