@@ -117,4 +117,13 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
     assert_equal [author], Author.where(id: author).joins(:special_categorizations)
   end
+
+  test "the default scope of the target is correctly aliased when joining associations" do
+    author = Author.create! name: "Jon"
+    author.categories.create! name: 'Not Special'
+    author.special_categories.create! name: 'Special'
+
+    categories = author.categories.includes(:special_categorizations).references(:special_categorizations).to_a
+    assert_equal 2, categories.size
+  end
 end

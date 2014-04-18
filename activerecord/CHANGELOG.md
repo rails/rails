@@ -1,3 +1,10 @@
+*   When joining tables with a default scope, ensure the generated table name
+    in the ON conditions from the default scope is correctly aliased .
+
+    Backports #14154.
+
+    *Matt Jones*
+
 *   Fix name collision with `Array#select!` with `Relation#select!`.
 
     Fixes #14752.
