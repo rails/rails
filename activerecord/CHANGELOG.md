@@ -1,3 +1,7 @@
+*   When a destroyed record is duped, the dup is not `destroyed?`.
+
+    *Kuldeep Aggarwal*
+
 *   Fixed has_many association to make it support irregular inflections.
 
     Fixes #8928.
