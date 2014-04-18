@@ -1,3 +1,10 @@
+*   When joining tables with a default scope, ensure the generated table name
+    in the ON conditions from the default scope is correctly aliased .
+
+    Backports #14154.
+
+    *Matt Jones*
+
 *   Fixed has_many association to make it support irregular inflections.
 
     Fixes #8928.
