@@ -60,7 +60,7 @@ in `production.rb` - `config.assets.css_compressor` for your CSS and
 
 ```ruby
 config.assets.css_compressor = :yui
-config.assets.js_compressor = :uglify
+config.assets.js_compressor = :uglifier
 ```
 
 NOTE: The `sass-rails` gem is automatically used for CSS compression if included
