@@ -1,3 +1,7 @@
+*   `@destroyed` should always be set to `false` when an object is duped.
+
+    *Kuldeep Aggarwal*
+
 *   Fixed has_many association to make it support irregular inflections.
 
     Fixes #8928.
