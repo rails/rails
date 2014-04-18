@@ -1,3 +1,7 @@
+*   Fix excluding lower bounds of PostgreSQL date and int ranges.
+
+    *River MacLeod*, *Yves Senn*
+
 *   When using a custom `join_table` name on a `habtm`, rails was not saving it
     on Reflections. This causes a problem when rails loads fixtures, because it
     uses the reflections to set database with fixtures.
