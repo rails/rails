@@ -1,3 +1,9 @@
+*   Saving destroyed or deleted record now return false or raise
+    `ActiveRecord::RecordNotSaved` instead of silently pass and return `true`
+    without saving record back to the database.
+
+    *Prem Sichanugrist*
+
 *   `@destroyed` should always be set to `false` when an object is duped.
 
     *Kuldeep Aggarwal*

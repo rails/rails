@@ -836,4 +836,23 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_save_deleted_record
+    client = Client.find(3)
+    client.delete
+    clients_count = Client.count
+
+    assert_equal false, client.save
+    assert_raise(ActiveRecord::RecordNotSaved) { client.save! }
+    assert_equal clients_count, Client.count
+  end
+
+  def test_save_destroyed_record
+    client = Client.find(3)
+    client.destroy
+    clients_count = Client.count
+
+    assert_equal false, client.save
+    assert_raise(ActiveRecord::RecordNotSaved) { client.save! }
+    assert_equal clients_count, Client.count
+  end
 end
