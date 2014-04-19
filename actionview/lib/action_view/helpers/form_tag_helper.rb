@@ -698,6 +698,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   email_field_tag 'name'
+      #   # => <input id="name" name="name" type="email" />
+      #
+      #   email_field_tag 'email', 'email@example.com'
+      #   # => <input id="email" name="email" type="email" value="email@example.com" />
+      #
+      #   email_field_tag 'email', nil, class: 'special_input'
+      #   # => <input class="special_input" id="email" name="email" type="email" />
+      #
+      #   email_field_tag 'email', 'email@example.com', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="email" name="email" type="email" value="email@example.com" />
       def email_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "email"))
       end
