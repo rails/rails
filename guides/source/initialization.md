@@ -587,7 +587,7 @@ def run_initializers(group=:default, *args)
 end
 ```
 
-The run_initializers code itself is tricky. What Rails is doing here is
+The `run_initializers` code itself is tricky. What Rails is doing here is
 traversing all the class ancestors looking for those that respond to an
 `initializers` method. It then sorts the ancestors by name, and runs them.
 For example, the `Engine` class will make all the engines available by
@@ -642,7 +642,7 @@ def build_app(app)
 end
 ```
 
-Remember, `build_app` was called (by wrapped_app) in the last line of `Server#start`.
+Remember, `build_app` was called (by `wrapped_app`) in the last line of `Server#start`.
 Here's how it looked like when we left:
 
 ```ruby
