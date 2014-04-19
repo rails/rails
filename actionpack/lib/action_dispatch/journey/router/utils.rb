@@ -29,7 +29,7 @@ module ActionDispatch
           # Symbol captures can generate multiple path segments, so include /.
           reserved_segment  = '/'
           reserved_fragment = '/?'
-          reserved_pchar    = ':@&=+$,;%'
+          reserved_pchar    = ':@&=+$,;'
 
           safe_pchar    = "#{URI::REGEXP::PATTERN::UNRESERVED}#{reserved_pchar}"
           safe_segment  = "#{safe_pchar}#{reserved_segment}"
