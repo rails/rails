@@ -154,7 +154,7 @@ The easiest and recommended way to get a development environment ready to hack i
 
 #### The Hard Way
 
-In case you can't use the Rails development box, see section above, check [this other guide](development_dependencies_install.html).
+In case you can't use the Rails development box, see [this other guide](development_dependencies_install.html).
 
 ### Clone the Rails Repository ###
 
