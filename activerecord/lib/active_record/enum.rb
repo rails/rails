@@ -66,7 +66,96 @@ module ActiveRecord
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
   # Where conditions on an enum attribute must use the ordinal value of an enum.
+  #
+  # === Options
+  #
+  # You can pass options to enum as a block:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: { active: 0, archived: 1 } do |config|
+  #       config.skip   = [:writer, :reader, :accessor, :question_marks,
+  #                        :updates, :scopes]
+  #       config.prefix = true
+  #     end
+  #   end
+  #
+  # +skip+ will avoid creating methods you don't want, if you pass:
+  #
+  # * <tt>writer</tt>, this will avoid overriding +conversation.status=+
+  # * <tt>reader</tt>, this will avoid overriding +conversation.status+
+  # * <tt>accessor</tt>, this will avoid overriding +conversation.status=+ and +conversation.status+
+  # * <tt>question_marks</tt>, this will avoid defining +conversation.active?+ and +conversation.archived?+
+  # * <tt>updates</tt>, this will avoid defining +conversation.active!+ and +conversation.archived!+
+  # * <tt>scopes</tt>, this will avoid defining +Conversation.active+ and +Conversation.archived+
+  #
+  # +prefix+ will add the name of the field as a prefix to the new defined methods:
+  #
+  #   conversation.status_active!
+  #   conversation.status_active?
+  #   Conversation.status_active
   module Enum
+    class EnumOptions < Struct.new(:skip, :prefix)
+      VALID_SKIP_ATTRIBUTES = [:writer, :reader, :accessor, :question_marks,
+        :updates, :scopes]
+      VALID_PREFIX_ATTRIBUTES = [true, false, nil]
+
+      def valid_options
+        members
+      end
+
+      def valid_option_attributes?(option, attributes)
+        case option
+        when :skip
+          valid_skip_attributes?
+        when :prefix
+          valid_prefix_attribute?
+        end
+      end
+
+      def valid_options?
+        valid_options.each do |option|
+          attributes = self.send(option)
+          valid_option_attributes?(option, attributes)
+        end
+      end
+
+      def skip_method_definitions?(method_type)
+        skip_attributes = to_array(skip)
+        skip_attributes && skip_attributes.include?(method_type)
+      end
+
+      def get_method_name(name, field)
+        prefix ? "#{field}_#{name}" : name
+      end
+
+      private
+
+        def valid_skip_attributes? # :nodoc:
+          attributes = to_array(skip)
+
+          attributes.each do |attribute|
+            valid_attribute = VALID_SKIP_ATTRIBUTES.include?(attribute)
+
+            unless valid_attribute
+              raise ArgumentError, "':#{attribute}' is not a valid value for skip of enum."
+            end
+          end
+        end
+
+        def valid_prefix_attribute? # :nodoc:
+          valid_attribute = VALID_PREFIX_ATTRIBUTES.include?(prefix)
+
+          unless valid_attribute
+            raise ArgumentError, "'#{prefix}' is not a valid value for prefix of enum."
+          end
+        end
+
+        def to_array(attribute) # :nodoc:
+          return attribute if attribute.is_a?(Array)
+          [attribute].flatten.compact
+        end
+    end
+
     def self.extended(base)
       base.class_attribute(:defined_enums)
       base.defined_enums = {}
@@ -79,6 +168,11 @@ module ActiveRecord
 
     def enum(definitions)
       klass = self
+      options = EnumOptions.new
+
+      yield(options) if block_given?
+      options.valid_options?
+
       definitions.each do |name, values|
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
@@ -89,44 +183,62 @@ module ActiveRecord
         klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
 
         _enum_methods_module.module_eval do
-          # def status=(value) self[:status] = statuses[value] end
-          klass.send(:detect_enum_conflict!, name, "#{name}=")
-          define_method("#{name}=") { |value|
-            if enum_values.has_key?(value) || value.blank?
-              self[name] = enum_values[value]
-            elsif enum_values.has_value?(value)
-              # Assigning a value directly is not a end-user feature, hence it's not documented.
-              # This is used internally to make building objects from the generated scopes work
-              # as expected, i.e. +Conversation.archived.build.archived?+ should be true.
-              self[name] = value
-            else
-              raise ArgumentError, "'#{value}' is not a valid #{name}"
-            end
-          }
+          unless options.skip_method_definitions?(:writer) ||
+            options.skip_method_definitions?(:accessor)
+            # def status=(value) self[:status] = statuses[value] end
+            method_name = "#{name}="
+            klass.send(:detect_enum_conflict!, name, method_name)
+            define_method(method_name) { |value|
+              if enum_values.has_key?(value) || value.blank?
+                self[name] = enum_values[value]
+              elsif enum_values.has_value?(value)
+                # Assigning a value directly is not a end-user feature, hence it's not documented.
+                # This is used internally to make building objects from the generated scopes work
+                # as expected, i.e. +Conversation.archived.build.archived?+ should be true.
+                self[name] = value
+              else
+                raise ArgumentError, "'#{value}' is not a valid #{name}"
+              end
+            }
+          end
 
-          # def status() statuses.key self[:status] end
-          klass.send(:detect_enum_conflict!, name, name)
-          define_method(name) { enum_values.key self[name] }
+          unless options.skip_method_definitions?(:reader) ||
+            options.skip_method_definitions?(:accessor)
+            # def status() statuses.key self[:status] end
+            klass.send(:detect_enum_conflict!, name, name)
+            define_method(name) { enum_values.key self[name] }
 
-          # def status_before_type_cast() statuses.key self[:status] end
-          klass.send(:detect_enum_conflict!, name, "#{name}_before_type_cast")
-          define_method("#{name}_before_type_cast") { enum_values.key self[name] }
+            # def status_before_type_cast() statuses.key self[:status] end
+            method_name = "#{name}_before_type_cast"
+            klass.send(:detect_enum_conflict!, name, method_name)
+            define_method(method_name) { enum_values.key self[name] }
+          end
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
-            enum_values[value] = i
+            method_name = options.get_method_name("#{value}", name)
+            enum_values[method_name] = i
 
-            # def active?() status == 0 end
-            klass.send(:detect_enum_conflict!, name, "#{value}?")
-            define_method("#{value}?") { self[name] == i }
+            unless options.skip_method_definitions?(:question_marks)
+              # def active?() status == 0 end
+              method_name = options.get_method_name("#{value}?", name)
+              klass.send(:detect_enum_conflict!, name, method_name)
+              define_method(method_name) { self[name] == i }
+            end
 
-            # def active!() update! status: :active end
-            klass.send(:detect_enum_conflict!, name, "#{value}!")
-            define_method("#{value}!") { update! name => value }
+            unless options.skip_method_definitions?(:updates)
+              # def active!() update! status: :active end
+              method_name = options.get_method_name("#{value}!", name)
+              klass.send(:detect_enum_conflict!, name, method_name)
+              define_method(method_name) { update! name => value }
+            end
 
-            # scope :active, -> { where status: 0 }
-            klass.send(:detect_enum_conflict!, name, value, true)
-            klass.scope value, -> { klass.where name => i }
+            unless options.skip_method_definitions?(:scopes)
+              # scope :active, -> { where status: 0 }
+              method_name = options.get_method_name(value, name)
+              klass.send(:detect_enum_conflict!, name, method_name, true)
+              klass.scope method_name, -> { klass.where name => i }
+            end
           end
         end
         defined_enums[name.to_s] = enum_values

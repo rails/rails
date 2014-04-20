@@ -286,4 +286,83 @@ class EnumTest < ActiveRecord::TestCase
     book2.status = :uploaded
     assert_equal ['drafted', 'uploaded'], book2.status_change
   end
+
+  test "skip writer method definitions" do
+    @book.skip_status = 1
+    assert_not_equal 'live', @book.skip_status
+  end
+
+  test "skip reader method definitions" do
+    assert_not_equal 'draft', @book.skip_status
+  end
+
+  test "skip accessor method definitions" do
+    subklass = Class.new(Book) do
+      enum status: [:drafted, :uploaded] do |config|
+        config.skip = :accessor
+      end
+    end
+    book = subklass.new
+
+    @book.skip_status = 1
+    assert_not_equal 'live', @book.skip_status
+  end
+
+  test "skip update method definitions" do
+    assert_not @book.respond_to?(:draft!)
+    assert_not @book.respond_to?(:live!)
+  end
+
+  test "skip question mark method definitions" do
+    assert_not @book.respond_to?(:draft?)
+    assert_not @book.respond_to?(:live?)
+  end
+
+  test "skip scope method definitions" do
+    assert_not Book.respond_to?(:draft)
+    assert_not Book.respond_to?(:live)
+  end
+
+  test "passing invalid options to skip raises an error" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+    end
+
+    assert_raises(ArgumentError, "':scope' is not a valid value for skip of enum.") do
+      klass.class_eval do
+        enum skip_status: [:draft, :live] do |config|
+          config.skip = :scope
+        end
+      end
+    end
+  end
+
+  test "prefix update method's name" do
+    assert @book.respond_to?(:prefix_status_draft!)
+    assert @book.respond_to?(:prefix_status_live!)
+  end
+
+  test "prefix question mark method's name" do
+    assert @book.respond_to?(:prefix_status_draft?)
+    assert @book.respond_to?(:prefix_status_live?)
+  end
+
+  test "prefix scope method's name" do
+    assert Book.respond_to?(:prefix_status_draft)
+    assert Book.respond_to?(:prefix_status_live)
+  end
+
+  test "passing invalid options to prefix raises an error" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+    end
+
+    assert_raises(ArgumentError, "'fake_opt' is not a valid value for prefix of enum.") do
+      klass.class_eval do
+        enum prefix_status: [:draft, :live] do |config|
+          config.prefix = 'fake_opt'
+        end
+      end
+    end
+  end
 end
