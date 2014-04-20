@@ -63,7 +63,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean)\s+"/)
+        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|uuid)\s+"/)
           match[0].length
         end
       end
@@ -177,7 +177,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
-    if current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter) || current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
       assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index", using: :btree', index_definition
     else
       assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index"', index_definition
@@ -188,7 +188,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     index_definition = standard_dump.split(/\n/).grep(/add_index.*company_partial_index/).first.strip
     if current_adapter?(:PostgreSQLAdapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
-    elsif current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+    elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
     elsif current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "rating > 10"', index_definition
@@ -316,6 +316,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = standard_dump
       if %r{create_table "postgresql_hstores"} =~ output
         assert_match %r[t.hstore "hash_store", default: {}], output
+      end
+    end
+
+    def test_schema_dump_includes_citext_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_citext"} =~ output
+        assert_match %r[t.citext "text_citext"], output
       end
     end
 

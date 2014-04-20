@@ -64,7 +64,7 @@ module ActiveRecord
     end
 
     # Returns true if this object hasn't been saved yet -- that is, a record
-    # for the object doesn't exist in the data store yet; otherwise, returns false.
+    # for the object doesn't exist in the database yet; otherwise, returns false.
     def new_record?
       sync_with_transaction_state
       @new_record
@@ -214,6 +214,8 @@ module ActiveRecord
     #
     # This method raises an +ActiveRecord::ActiveRecordError+  if the
     # attribute is marked as readonly.
+    #
+    # See also +update_column+.
     def update_attribute(name, value)
       name = name.to_s
       verify_readonly_attribute(name)
@@ -403,15 +405,18 @@ module ActiveRecord
     end
 
     # Saves the record with the updated_at/on attributes set to the current time.
-    # Please note that no validation is performed and only the +after_touch+
-    # callback is executed.
-    # If an attribute name is passed, that attribute is updated along with
-    # updated_at/on attributes.
+    # Please note that no validation is performed and only the +after_touch+,
+    # +after_commit+ and +after_rollback+ callbacks are executed.
     #
-    #   product.touch               # updates updated_at/on
-    #   product.touch(:designed_at) # updates the designed_at attribute and updated_at/on
+    # If attribute names are passed, they are updated along with updated_at/on
+    # attributes.
     #
-    # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on associated object.
+    #   product.touch                         # updates updated_at/on
+    #   product.touch(:designed_at)           # updates the designed_at attribute and updated_at/on
+    #   product.touch(:started_at, :ended_at) # updates started_at, ended_at and updated_at/on attributes
+    #
+    # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on
+    # associated object.
     #
     #   class Brake < ActiveRecord::Base
     #     belongs_to :car, touch: true
@@ -430,11 +435,11 @@ module ActiveRecord
     #   ball = Ball.new
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
-    def touch(name = nil)
+    def touch(*names)
       raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
 
       attributes = timestamp_attributes_for_update_in_model
-      attributes << name if name
+      attributes.concat(names)
 
       unless attributes.empty?
         current_time = current_time_from_proper_timezone
@@ -450,6 +455,8 @@ module ActiveRecord
         changed_attributes.except!(*changes.keys)
         primary_key = self.class.primary_key
         self.class.unscoped.where(primary_key => self[primary_key]).update_all(changes) == 1
+      else
+        true
       end
     end
 
@@ -477,24 +484,24 @@ module ActiveRecord
 
     def create_or_update
       raise ReadOnlyRecord if readonly?
-      result = new_record? ? create_record : update_record
+      result = new_record? ? _create_record : _update_record
       result != false
     end
 
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def update_record(attribute_names = @attributes.keys)
+    def _update_record(attribute_names = @attributes.keys)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
         0
       else
-        self.class.unscoped.update_record attributes_values, id, id_was
+        self.class.unscoped._update_record attributes_values, id, id_was
       end
     end
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create_record(attribute_names = @attributes.keys)
+    def _create_record(attribute_names = @attributes.keys)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values

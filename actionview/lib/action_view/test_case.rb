@@ -235,7 +235,8 @@ module ActionView
         :@options,
         :@test_passed,
         :@view,
-        :@view_context_class
+        :@view_context_class,
+        :@_subscribers
       ]
 
       def _user_defined_ivars

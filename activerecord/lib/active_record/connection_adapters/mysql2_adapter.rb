@@ -20,9 +20,9 @@ module ActiveRecord
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
     rescue Mysql2::Error => error
       if error.message.include?("Unknown database")
-        raise ActiveRecord::NoDatabaseError.new(error.message)
+        raise ActiveRecord::NoDatabaseError.new(error.message, error)
       else
-        raise error
+        raise
       end
     end
   end
@@ -81,6 +81,14 @@ module ActiveRecord
 
       def quote_string(string)
         @connection.escape(string)
+      end
+
+      def quoted_date(value)
+        if value.acts_like?(:time) && value.respond_to?(:usec)
+          "#{super}.#{sprintf("%06d", value.usec)}"
+        else
+          super
+        end
       end
 
       # CONNECTION MANAGEMENT ====================================

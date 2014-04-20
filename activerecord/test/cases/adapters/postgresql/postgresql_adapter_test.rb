@@ -1,9 +1,14 @@
 # encoding: utf-8
 require "cases/helper"
+require 'support/ddl_helper'
+require 'support/connection_helper'
 
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapterTest < ActiveRecord::TestCase
+      include DdlHelper
+      include ConnectionHelper
+
       def setup
         @connection = ActiveRecord::Base.connection
       end
@@ -176,6 +181,51 @@ module ActiveRecord
         assert_nil @connection.pk_and_sequence_for('unobtainium')
       end
 
+      def test_pk_and_sequence_for_with_collision_pg_class_oid
+        @connection.exec_query('create table ex(id serial primary key)')
+        @connection.exec_query('create table ex2(id serial primary key)')
+
+        correct_depend_record = [
+          "'pg_class'::regclass",
+          "'ex_id_seq'::regclass",
+          '0',
+          "'pg_class'::regclass",
+          "'ex'::regclass",
+          '1',
+          "'a'"
+        ]
+
+        collision_depend_record = [
+          "'pg_attrdef'::regclass",
+          "'ex2_id_seq'::regclass",
+          '0',
+          "'pg_class'::regclass",
+          "'ex'::regclass",
+          '1',
+          "'a'"
+        ]
+
+        @connection.exec_query(
+          "DELETE FROM pg_depend WHERE objid = 'ex_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"
+        )
+        @connection.exec_query(
+          "INSERT INTO pg_depend VALUES(#{collision_depend_record.join(',')})"
+        )
+        @connection.exec_query(
+          "INSERT INTO pg_depend VALUES(#{correct_depend_record.join(',')})"
+        )
+
+        seq = @connection.pk_and_sequence_for('ex').last
+        assert_equal 'ex_id_seq', seq
+
+        @connection.exec_query(
+          "DELETE FROM pg_depend WHERE objid = 'ex2_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"
+        )
+      ensure
+        @connection.exec_query('DROP TABLE IF EXISTS ex')
+        @connection.exec_query('DROP TABLE IF EXISTS ex2')
+      end
+
       def test_exec_insert_number
         with_example_table do
           insert(@connection, 'number' => 10)
@@ -309,6 +359,43 @@ module ActiveRecord
         end
       end
 
+      def test_reload_type_map_for_newly_defined_types
+        @connection.execute "CREATE TYPE feeling AS ENUM ('good', 'bad')"
+        result = @connection.select_all "SELECT 'good'::feeling"
+        assert_instance_of(PostgreSQLAdapter::OID::Enum,
+                           result.column_types["feeling"])
+      ensure
+        @connection.execute "DROP TYPE IF EXISTS feeling"
+        reset_connection
+      end
+
+      def test_only_reload_type_map_once_for_every_unknown_type
+        silence_warnings do
+          assert_queries 2, ignore_none: true do
+            @connection.select_all "SELECT NULL::anyelement"
+          end
+          assert_queries 1, ignore_none: true do
+            @connection.select_all "SELECT NULL::anyelement"
+          end
+          assert_queries 2, ignore_none: true do
+            @connection.select_all "SELECT NULL::anyarray"
+          end
+        end
+      ensure
+        reset_connection
+      end
+
+      def test_only_warn_on_first_encounter_of_unknown_oid
+        warning = capture(:stderr) {
+          @connection.select_all "SELECT NULL::anyelement"
+          @connection.select_all "SELECT NULL::anyelement"
+          @connection.select_all "SELECT NULL::anyelement"
+        }
+        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'. It will be treated as String.\n\z/, warning)
+      ensure
+        reset_connection
+      end
+
       private
       def insert(ctx, data)
         binds   = data.map { |name, value|
@@ -324,12 +411,8 @@ module ActiveRecord
         ctx.exec_insert(sql, 'SQL', binds)
       end
 
-      def with_example_table(definition = nil)
-        definition ||= 'id serial primary key, number integer, data character varying(255)'
-        @connection.exec_query("create table ex(#{definition})")
-        yield
-      ensure
-        @connection.exec_query('drop table if exists ex')
+      def with_example_table(definition = 'id serial primary key, number integer, data character varying(255)', &block)
+        super(@connection, 'ex', definition, &block)
       end
 
       def connection_without_insert_returning

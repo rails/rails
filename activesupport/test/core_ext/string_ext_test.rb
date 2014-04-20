@@ -296,6 +296,12 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_equal 'x', 'x'.first(4)
   end
 
+  test "#first with Fixnum >= string length still returns a new string" do
+    string = "hello"
+    different_string = string.first(5)
+    assert_not_same different_string, string
+  end
+
   test "#last returns the last character" do
     assert_equal "o", "hello".last
     assert_equal 'x', 'x'.last
@@ -306,6 +312,12 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_equal "hello", "hello".last(10)
     assert_equal "", "hello".last(0)
     assert_equal 'x', 'x'.last(4)
+  end
+
+  test "#last with Fixnum >= string length still returns a new string" do
+    string = "hello"
+    different_string = string.last(5)
+    assert_not_same different_string, string
   end
 
   test "access returns a real string" do
@@ -606,6 +618,29 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert @combination.html_safe?
     assert !@other_combination.html_safe?
+  end
+
+  test "Prepending safe onto unsafe yields unsafe" do
+    @string.prepend "other".html_safe
+    assert !@string.html_safe?
+    assert_equal @string, "otherhello"
+  end
+
+  test "Prepending unsafe onto safe yields escaped safe" do
+    other = "other".html_safe
+    other.prepend "<foo>"
+    assert other.html_safe?
+    assert_equal other, "&lt;foo&gt;other"
+  end
+
+  test "Deprecated #prepend! method is still present" do
+    other = "other".html_safe
+
+    assert_deprecated do
+      other.prepend! "<foo>"
+    end
+
+    assert_equal other, "&lt;foo&gt;other"
   end
 
   test "Concatting safe onto unsafe yields unsafe" do

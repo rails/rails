@@ -101,6 +101,27 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
                   "after_adding#{david.id}"], ar.developers_log
   end
 
+  def test_has_and_belongs_to_many_before_add_called_before_save
+    dev     = nil
+    new_dev = nil
+    klass = Class.new(Project) do
+      def self.name; Project.name; end
+      has_and_belongs_to_many :developers_with_callbacks,
+                                :class_name => "Developer",
+                                :before_add => lambda { |o,r|
+        dev     = r
+        new_dev = r.new_record?
+      }
+    end
+    rec = klass.create!
+    alice = Developer.new(:name => 'alice')
+    rec.developers_with_callbacks << alice
+    assert_equal alice, dev
+    assert_not_nil new_dev
+    assert new_dev, "record should not have been saved"
+    assert_not alice.new_record?
+  end
+
   def test_has_and_belongs_to_many_after_add_called_after_save
     ar = projects(:active_record)
     assert ar.developers_log.empty?
@@ -138,7 +159,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       activerecord.reload
       assert activerecord.developers_with_callbacks.size == 2
     end
-    log_array = activerecord.developers_with_callbacks.collect {|d| ["before_removing#{d.id}","after_removing#{d.id}"]}.flatten.sort
+    log_array = activerecord.developers_with_callbacks.flat_map {|d| ["before_removing#{d.id}","after_removing#{d.id}"]}.sort
     assert activerecord.developers_with_callbacks.clear
     assert_equal log_array, activerecord.developers_log.sort
   end

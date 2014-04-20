@@ -121,8 +121,7 @@ module ActionDispatch
 
         def filter_routes(path)
           return [] unless ast
-          data = simulator.match(path)
-          data ? data.memos : []
+          simulator.memos(path) { [] }
         end
 
         def find_routes env

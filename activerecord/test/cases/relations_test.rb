@@ -14,6 +14,7 @@ require 'models/car'
 require 'models/engine'
 require 'models/tyre'
 require 'models/minivan'
+require 'models/aircraft'
 
 
 class RelationTest < ActiveRecord::TestCase
@@ -171,7 +172,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:first).title, topics.first.title
   end
 
-
   def test_finding_with_arel_order
     topics = Topic.order(Topic.arel_table[:id].asc)
     assert_equal 5, topics.to_a.size
@@ -194,8 +194,33 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Topic.order(:id).to_sql, Topic.order(:id => :asc).to_sql
   end
 
+  def test_finding_with_desc_order_with_string
+    topics = Topic.order(id: "desc")
+    assert_equal 5, topics.to_a.size
+    assert_equal [topics(:fifth), topics(:fourth), topics(:third), topics(:second), topics(:first)], topics.to_a
+  end
+
+  def test_finding_with_asc_order_with_string
+    topics = Topic.order(id: 'asc')
+    assert_equal 5, topics.to_a.size
+    assert_equal [topics(:first), topics(:second), topics(:third), topics(:fourth), topics(:fifth)], topics.to_a
+  end
+
+  def test_support_upper_and_lower_case_directions
+    assert_includes Topic.order(id: "ASC").to_sql, "ASC"
+    assert_includes Topic.order(id: "asc").to_sql, "ASC"
+    assert_includes Topic.order(id: :ASC).to_sql, "ASC"
+    assert_includes Topic.order(id: :asc).to_sql, "ASC"
+
+    assert_includes Topic.order(id: "DESC").to_sql, "DESC"
+    assert_includes Topic.order(id: "desc").to_sql, "DESC"
+    assert_includes Topic.order(id: :DESC).to_sql, "DESC"
+    assert_includes Topic.order(id: :desc).to_sql,"DESC"
+  end
+
   def test_raising_exception_on_invalid_hash_params
-    assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
+    e = assert_raise(ArgumentError) { Topic.order(:name, "id DESC", id: :asfsdf) }
+    assert_equal 'Direction "asfsdf" is invalid. Valid directions are: [:asc, :desc, :ASC, :DESC, "asc", "desc", "ASC", "DESC"]', e.message
   end
 
   def test_finding_last_with_arel_order
@@ -339,6 +364,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_null_relation_where_values_hash
     assert_equal({ 'salary' => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
+  end
+
+
+  def test_null_relation_count
+    ac = Aircraft.new
+    assert_equal Hash.new, ac.engines.group(:id).count
+    assert_equal        0, ac.engines.count
+    ac.save
+    assert_equal Hash.new, ac.engines.group(:id).count
+    assert_equal        0, ac.engines.count
   end
 
   def test_joins_with_nil_argument
@@ -549,6 +584,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  def test_to_sql_on_scoped_proxy
+    auth = Author.first
+    Post.where("1=1").written_by(auth)
+    assert_not auth.posts.to_sql.include?("1=1")
+  end
+
   def test_loading_with_one_association_with_non_preload
     posts = Post.eager_load(:last_comment).order('comments.id DESC')
     post = posts.find { |p| p.id == 1 }
@@ -613,7 +654,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_with_list_of_ar
     author = Author.first
-    authors = Author.find([author])
+    authors = Author.find([author.id])
     assert_equal author, authors.first
   end
 
@@ -745,7 +786,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! davids.exists?(authors(:mary).id)
     assert ! davids.exists?("42")
     assert ! davids.exists?(42)
-    assert ! davids.exists?(davids.new)
+    assert ! davids.exists?(davids.new.id)
 
     fake  = Author.where(:name => 'fake author')
     assert ! fake.exists?
@@ -794,6 +835,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ActiveRecordError) { Author.limit(10).delete_all }
   end
 
+  def test_select_with_aggregates
+    posts = Post.select(:title, :body)
+
+    assert_equal 11, posts.count(:all)
+    assert_equal 11, posts.size
+    assert posts.any?
+    assert posts.many?
+    assert_not posts.empty?
+  end
+
   def test_select_takes_a_variable_list_of_args
     david = developers(:david)
 
@@ -822,6 +873,17 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal 1, posts.where('comments_count > 1').count
     assert_equal 9, posts.where(:comments_count => 0).count
+  end
+
+  def test_count_on_association_relation
+    author = Author.last
+    another_author = Author.first
+    posts = Post.where(author_id: author.id)
+
+    assert_equal author.posts.where(author_id: author.id).size, posts.count
+
+    assert_equal 0, author.posts.where(author_id: another_author.id).size
+    assert author.posts.where(author_id: another_author.id).empty?
   end
 
   def test_count_with_distinct
@@ -1342,6 +1404,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['comments'], scope.references_values
   end
 
+  def test_automatically_added_where_not_references
+    scope = Post.where.not(comments: { body: "Bla" })
+    assert_equal ['comments'], scope.references_values
+
+    scope = Post.where.not('comments.body' => 'Bla')
+    assert_equal ['comments'], scope.references_values
+  end
+
   def test_automatically_added_having_references
     scope = Post.having(:comments => { :body => "Bla" })
     assert_equal ['comments'], scope.references_values
@@ -1384,6 +1454,18 @@ class RelationTest < ActiveRecord::TestCase
 
     scope = Post.reorder('foo(comments.body)')
     assert_equal [], scope.references_values
+  end
+
+  def test_order_with_reorder_nil_removes_the_order
+    relation = Post.order(:title).reorder(nil)
+
+    assert_nil relation.order_values.first
+  end
+
+  def test_reverse_order_with_reorder_nil_removes_the_order
+    relation = Post.order(:title).reverse_order.reorder(nil)
+
+    assert_nil relation.order_values.first
   end
 
   def test_presence

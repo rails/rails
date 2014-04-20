@@ -1,4 +1,5 @@
 workstation:
   id: 1
+  system: 'Linux'
   developer: 1
   extendedWarranty: 1

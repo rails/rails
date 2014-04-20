@@ -57,9 +57,9 @@ learned elsewhere, you may have a less happy experience.
 
 The Rails philosophy includes two major guiding principles:
 
-* **Don't Repeat Yourself:** DRY is a principle of software development which 
+* **Don't Repeat Yourself:** DRY is a principle of software development which
   states that "Every piece of knowledge must have a single, unambiguous, authoritative
-  representation within a system." By not writing the same information over and over 
+  representation within a system." By not writing the same information over and over
   again, our code is more maintainable, more extensible, and less buggy.
 * **Convention Over Configuration:** Rails has opinions about the best way to do many
   things in a web application, and defaults to this set of conventions, rather than
@@ -99,7 +99,7 @@ ruby 2.0.0p353
 ```
 
 If you don't have Ruby installed have a look at
-[ruby-lang.org](https://www.ruby-lang.org/en/downloads/) for possible ways to
+[ruby-lang.org](https://www.ruby-lang.org/en/installation/) for possible ways to
 install Ruby on your platform.
 
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3. Windows
@@ -206,7 +206,7 @@ This will fire up WEBrick, a web server distributed with Ruby by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
-![Welcome aboard screenshot](images/getting_started/rails_welcome.jpg)
+![Welcome aboard screenshot](images/getting_started/rails_welcome.png)
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
@@ -344,7 +344,7 @@ resource. Here's what `config/routes.rb` should look like after the
 _article resource_ is declared.
 
 ```ruby
-Blog::Application.routes.draw do
+Rails.application.routes.draw do
 
   resources :articles
 
@@ -612,7 +612,7 @@ def create
 end
 ```
 
-The `render` method here is taking a very simple hash with a key of `text` and
+The `render` method here is taking a very simple hash with a key of `plain` and
 value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
 method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
@@ -749,10 +749,33 @@ article. Try it! You should get an error that looks like this:
 
 Rails has several security features that help you write secure applications,
 and you're running into one of them now. This one is called
-`strong_parameters`, which requires us to tell Rails exactly which parameters
-we want to accept in our controllers. In this case, we want to allow the
-`title` and `text` parameters, so change your `create` controller action to
-look like this:
+`[strong_parameters](http://guides.rubyonrails.org/action_controller_overview.html#strong-parameters)`,
+which requires us to tell Rails exactly which parameters are allowed into
+our controller actions.
+
+Why do you have to bother? The ability to grab and automatically assign
+all controller parameters to your model in one shot makes the programmer's
+job easier, but this convenience also allows malicious use. What if a
+request to the server was crafted to look like a new article form submit
+but also included extra fields with values that violated your applications
+integrity? They would be 'mass assigned' into your model and then into the
+database along with the good stuff - potentially breaking your application
+or worse.
+
+We have to whitelist our controller parameters to prevent wrongful
+mass assignment. In this case, we want to both allow and require the
+`title` and `text` parameters for valid use of `create`. The syntax for
+this introduces `require` and `permit`. The change will involve one line:
+
+```ruby
+  @article = Article.new(params.require(:article).permit(:title, :text))
+```
+
+This is often factored out into its own method so it can be reused by
+multiple actions in the same controller, for example `create` and `update`.
+Above and beyond mass assignment issues, the method is often made
+`private` to make sure it can't be called outside its intended context.
+Here is the result:
 
 ```ruby
 def create
@@ -768,13 +791,7 @@ private
   end
 ```
 
-See the `permit`? It allows us to accept both `title` and `text` in this
-action.
-
-TIP: Note that `def article_params` is private. This new approach prevents an
-attacker from setting the model's attributes by manipulating the hash passed to
-the model.
-For more information, refer to
+TIP: For more information, refer to the reference above and
 [this blog article about Strong Parameters](http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 ### Showing Articles
@@ -900,7 +917,7 @@ Also add a link in `app/views/articles/new.html.erb`, underneath the form, to
 go back to the `index` action:
 
 ```erb
-<%= form_for :article do |f| %>
+<%= form_for :article, url: articles_path do |f| %>
   ...
 <% end %>
 
@@ -1119,10 +1136,10 @@ The `method: :patch` option tells Rails that we want this form to be submitted
 via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
-The first parameter of the `form_tag` can be an object, say, `@article` which would
+The first parameter of `form_for` can be an object, say, `@article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
-symbol (`:article`) with the same name as the instance variable (`@article`) also 
-automagically leads to the same behavior. This is what is happening here. More details 
+symbol (`:article`) with the same name as the instance variable (`@article`) also
+automagically leads to the same behavior. This is what is happening here. More details
 can be found in [form_for documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
 
 Next we need to create the `update` action in
@@ -1396,7 +1413,7 @@ class CreateComments < ActiveRecord::Migration
       t.text :body
 
       # this line adds an integer column called `article_id`.
-      t.references :article, index: true 
+      t.references :article, index: true
 
       t.timestamps
     end

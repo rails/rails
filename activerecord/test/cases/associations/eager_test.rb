@@ -235,6 +235,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_finding_with_includes_on_empty_polymorphic_type_column
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    sponsor.update!(sponsorable_type: '', sponsorable_id: nil) # sponsorable_type column might be declared NOT NULL
+    sponsor = assert_queries(1) do
+      assert_nothing_raised { Sponsor.all.merge!(:includes => :sponsorable).find(sponsor.id) }
+    end
+    assert_no_queries do
+      assert_equal nil, sponsor.sponsorable
+    end
+  end
+
   def test_loading_from_an_association
     posts = authors(:david).posts.merge(:includes => :comments, :order => "posts.id").to_a
     assert_equal 2, posts.first.comments.size
@@ -407,19 +418,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_one_quotes_table_and_column_names
-    michael = Person.all.merge!(:includes => :favourite_reference).find(people(:michael))
+    michael = Person.all.merge!(:includes => :favourite_reference).find(people(:michael).id)
     references(:michael_unicyclist)
     assert_no_queries{ assert_equal references(:michael_unicyclist), michael.favourite_reference}
   end
 
   def test_eager_load_has_many_quotes_table_and_column_names
-    michael = Person.all.merge!(:includes => :references).find(people(:michael))
+    michael = Person.all.merge!(:includes => :references).find(people(:michael).id)
     references(:michael_magician,:michael_unicyclist)
     assert_no_queries{ assert_equal references(:michael_magician,:michael_unicyclist), michael.references.sort_by(&:id) }
   end
 
   def test_eager_load_has_many_through_quotes_table_and_column_names
-    michael = Person.all.merge!(:includes => :jobs).find(people(:michael))
+    michael = Person.all.merge!(:includes => :jobs).find(people(:michael).id)
     jobs(:magician, :unicyclist)
     assert_no_queries{ assert_equal jobs(:unicyclist, :magician), michael.jobs.sort_by(&:id) }
   end
@@ -709,16 +720,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_invalid_association_reference
-    assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
       Post.all.merge!(:includes=> :monkeys ).find(6)
     }
-    assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
       Post.all.merge!(:includes=>[ :monkeys ]).find(6)
     }
-    assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
       Post.all.merge!(:includes=>[ 'monkeys' ]).find(6)
     }
-    assert_raise(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
+    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
       Post.all.merge!(:includes=>[ :monkeys, :elephants ]).find(6)
     }
   end
@@ -1187,11 +1198,38 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal authors(:bob), author
   end
 
+  test "preloading with a polymorphic association and using the existential predicate but also using a select" do
+    assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
+
+    assert_nothing_raised do
+      authors(:david).essays.includes(:writer).select(:name).any?
+    end
+  end
+
   test "preloading with a polymorphic association and using the existential predicate" do
     assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
 
     assert_nothing_raised do
       authors(:david).essays.includes(:writer).any?
     end
+  end
+
+  test "preloading associations with string joins and order references" do
+    author = assert_queries(2) {
+      Author.includes(:posts).joins("LEFT JOIN posts ON posts.author_id = authors.id").order("posts.title DESC").first
+    }
+    assert_no_queries {
+      assert_equal 5, author.posts.size
+    }
+  end
+
+  test "including associations with where.not adds implicit references" do
+    author = assert_queries(2) {
+      Author.includes(:posts).where.not(posts: { title: 'Welcome to the weblog'} ).last
+    }
+
+    assert_no_queries {
+      assert_equal 2, author.posts.size
+    }
   end
 end

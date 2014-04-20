@@ -50,7 +50,7 @@ module Rails
     end
 
     def gitignore
-      copy_file "gitignore", ".gitignore"
+      template "gitignore", ".gitignore"
     end
 
     def app
@@ -228,6 +228,12 @@ module Rails
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
           remove_dir 'app/assets/javascripts'
+        end
+      end
+
+      def delete_assets_initializer_skipping_sprockets
+        if options[:skip_sprockets]
+          remove_file 'config/initializers/assets.rb'
         end
       end
 

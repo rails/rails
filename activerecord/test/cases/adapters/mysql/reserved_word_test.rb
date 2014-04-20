@@ -37,7 +37,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
       'distinct_select'=>'distinct_id int, select_id int'
   end
 
-  def teardown
+  teardown do
     drop_tables_directly ['group', 'select', 'values', 'distinct', 'distinct_select', 'order']
   end
 

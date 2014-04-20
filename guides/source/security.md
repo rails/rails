@@ -60,7 +60,7 @@ Many web applications have an authentication system: a user provides a user name
 
 Hence, the cookie serves as temporary authentication for the web application. Anyone who seizes a cookie from someone else, may use the web application as this user - with possibly severe consequences. Here are some ways to hijack a session, and their countermeasures:
 
-* Sniff the cookie in an insecure network. A wireless LAN can be an example of such a network. In an unencrypted wireless LAN it is especially easy to listen to the traffic of all connected clients. This is one more reason not to work from a coffee shop. For the web application builder this means to _provide a secure connection over SSL_. In Rails 3.1 and later, this could be accomplished by always forcing SSL connection in your application config file:
+* Sniff the cookie in an insecure network. A wireless LAN can be an example of such a network. In an unencrypted wireless LAN it is especially easy to listen to the traffic of all connected clients. For the web application builder this means to _provide a secure connection over SSL_. In Rails 3.1 and later, this could be accomplished by always forcing SSL connection in your application config file:
 
     ```ruby
     config.force_ssl = true
@@ -95,9 +95,16 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 
 That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_.
 
-`config.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `config.secret_key_base` initialized to a random key in `config/initializers/secret_token.rb`, e.g.:
+`secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`, e.g.:
 
-    YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
+    development:
+      secret_key_base: a75d...
+
+    test:
+      secret_key_base: 492f...
+
+    production:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 
 Older versions of Rails use CookieStore, which uses `secret_token` instead of `secret_key_base` that is used by EncryptedCookieStore. Read the upgrade documentation for more information.
 
@@ -144,7 +151,7 @@ The most effective countermeasure is to _issue a new session identifier_ and dec
 reset_session
 ```
 
-If you use the popular RestfulAuthentication plugin for user management, add reset\_session to the SessionsController#create action. Note that this removes any value from the session, _you have to transfer them to the new session_.
+If you use the popular RestfulAuthentication plugin for user management, add reset_session to the SessionsController#create action. Note that this removes any value from the session, _you have to transfer them to the new session_.
 
 Another countermeasure is to _save user-specific properties in the session_, verify them every time a request comes in, and deny access, if the information does not match. Such properties could be the remote IP address or the user agent (the web browser name), though the latter is less user-specific. When saving the IP address, you have to bear in mind that there are Internet service providers or large organizations that put their users behind proxies. _These might change over the course of a session_, so these users will not be able to use your application, or only in a limited way.
 
@@ -232,24 +239,23 @@ Or the attacker places the code into the onmouseover event handler of an image:
 
 There are many other possibilities, like using a `<script>` tag to make a cross-site request to a URL with a JSONP or JavaScript response. The response is executable code that the attacker can find a way to run, possibly extracting sensitive data. To protect against this data leakage, we disallow cross-site `<script>` tags. Only Ajax requests may have JavaScript responses since XmlHttpRequest is subject to the browser Same-Origin policy - meaning only your site can initiate the request.
 
-To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is a one-liner in your application controller:
+To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is a one-liner in your application controller, and is the default for newly created rails applications:
 
 ```ruby
-protect_from_forgery
+protect_from_forgery with: :exception
 ```
 
-This will automatically include a security token in all forms and Ajax requests generated by Rails. If the security token doesn't match what was expected, the session will be reset.
+This will automatically include a security token in all forms and Ajax requests generated by Rails. If the security token doesn't match what was expected, an exception will be thrown.
 
 It is common to use persistent cookies to store user information, with `cookies.permanent` for example. In this case, the cookies will not be cleared and the out of the box CSRF protection will not be effective. If you are using a different cookie store than the session for this information, you must handle what to do with it yourself:
 
 ```ruby
-def handle_unverified_request
-  super
-  sign_out_user # Example method that will destroy the user cookies.
+rescue_from ActionController::InvalidAuthenticityToken do |exception|
+  sign_out_user # Example method that will destroy the user cookies
 end
 ```
 
-The above method can be placed in the `ApplicationController` and will be called when a CSRF token is not present on a non-GET request.
+The above method can be placed in the `ApplicationController` and will be called when a CSRF token is not present or is incorrect on a non-GET request.
 
 Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so they can read the CSRF security token from a form or directly submit the form. Read <a href="#cross-site-scripting-xss">more about XSS</a> later.
 
@@ -307,7 +313,7 @@ def sanitize_filename(filename)
 end
 ```
 
-A significant disadvantage of synchronous processing of file uploads (as the attachment\_fu plugin may do with images), is its _vulnerability to denial-of-service attacks_. An attacker can synchronously start image file uploads from many computers which increases the server load and may eventually crash or stall the server.
+A significant disadvantage of synchronous processing of file uploads (as the attachment_fu plugin may do with images), is its _vulnerability to denial-of-service attacks_. An attacker can synchronously start image file uploads from many computers which increases the server load and may eventually crash or stall the server.
 
 The solution to this is best to _process media files asynchronously_: Save the media file and schedule a processing request in the database. A second process will handle the processing of the file in the background.
 
@@ -996,7 +1002,7 @@ _'1; mode=block' in Rails by default_ - use XSS Auditor and block page if XSS at
 * X-Content-Type-Options
 _'nosniff' in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * X-Content-Security-Policy
-[A powerful mechanism for controlling which sites certain content types can be loaded from](http://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html)
+[A powerful mechanism for controlling which sites certain content types can be loaded from](http://w3c.github.io/webappsec/specs/content-security-policy/csp-specification.dev.html)
 * Access-Control-Allow-Origin
 Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
 * Strict-Transport-Security
@@ -1005,7 +1011,7 @@ Used to control which sites are allowed to bypass same origin policies and send 
 Environmental Security
 ----------------------
 
-It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/initializers/secret_token.rb`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
+It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/secrets.yml`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
 Additional Resources
 --------------------

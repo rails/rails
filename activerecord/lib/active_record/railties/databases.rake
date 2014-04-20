@@ -186,7 +186,7 @@ db_namespace = namespace :db do
 
       fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
 
-      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
+      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(',') : Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
         ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_file)
       end
     end
@@ -268,7 +268,8 @@ db_namespace = namespace :db do
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
 
-      if ActiveRecord::Base.connection.supports_migrations?
+      if ActiveRecord::Base.connection.supports_migrations? &&
+          ActiveRecord::SchemaMigration.table_exists?
         File.open(filename, "a") do |f|
           f.puts ActiveRecord::Base.connection.dump_schema_information
           f.print "\n"

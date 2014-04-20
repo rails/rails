@@ -1,13 +1,9 @@
-*   Fixed missing line and shadow on service pages(404, 422, 500).
-
-    *Dmitry Korotkov*
-
-*   Removed repetitive th tags. Instead of them added one th tag with a colspan attribute.
-
-    *Sıtkı Bağdat*
-
-*   Added the Rails maintenance policy to the guides.
+*   Updates the maintenance policy to match the latest versions of Rails
 
     *Matias Korhonen*
 
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/guides/CHANGELOG.md) for previous changes.
+*   Switched the order of `Applying a default scope` and `Merging of scopes` subsections so default scopes are introduced first.
+
+    *Alex Riabov*
+
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/guides/CHANGELOG.md) for previous changes.

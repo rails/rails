@@ -21,6 +21,31 @@ require 'models/electron'
 require 'models/molecule'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
+  def test_autosave_validation
+    person = Class.new(ActiveRecord::Base) {
+      self.table_name = 'people'
+      validate :should_be_cool, :on => :create
+      def self.name; 'Person'; end
+
+      private
+
+      def should_be_cool
+        unless self.first_name == 'cool'
+          errors.add :first_name, "not cool"
+        end
+      end
+    }
+    reference = Class.new(ActiveRecord::Base) {
+      self.table_name = "references"
+      def self.name; 'Reference'; end
+      belongs_to :person, autosave: true, class: person
+    }
+
+    u = person.create!(first_name: 'cool')
+    u.update_attributes!(first_name: 'nah') # still valid because validation only applies on 'create'
+    assert reference.create!(person: u).persisted?
+  end
+
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
   end
@@ -39,10 +64,6 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
   private
 
-  def base
-    ActiveRecord::Base
-  end
-
   def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
     reflection = model.reflect_on_association(association_name)
     assert_no_difference "callbacks_for_model(#{model.name}).length" do
@@ -51,9 +72,9 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   def callbacks_for_model(model)
-    model.instance_variables.grep(/_callbacks$/).map do |ivar|
+    model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
       model.instance_variable_get(ivar)
-    end.flatten
+    end
   end
 end
 
@@ -597,15 +618,15 @@ end
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
-  def setup
-    super
+  setup do
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
   end
 
-  def teardown
+  teardown do
     # We are running without transactional fixtures and need to cleanup.
     Bird.delete_all
+    Parrot.delete_all
     @ship.delete
     @pirate.delete
   end

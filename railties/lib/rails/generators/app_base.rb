@@ -111,7 +111,6 @@ module Rails
           javascript_gemfile_entry,
           jbuilder_gemfile_entry,
           sdoc_gemfile_entry,
-          platform_dependent_gemfile_entry,
           spring_gemfile_entry,
           @extra_entries].flatten.find_all(&@gem_filter)
       end
@@ -173,6 +172,10 @@ module Rails
         options[value] ? '# ' : ''
       end
 
+      def sqlite3?
+        !options[:skip_active_record] && options[:database] == 'sqlite3'
+      end
+
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
           super
@@ -200,8 +203,7 @@ module Rails
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
            GemfileEntry.github('arel', 'rails/arel')]
         elsif options.edge?
-          [GemfileEntry.github('rails', 'rails/rails'),
-           GemfileEntry.github('arel', 'rails/arel')]
+          [GemfileEntry.github('rails', 'rails/rails')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
@@ -247,7 +249,7 @@ module Rails
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails',
-                                     '~> 4.0.1',
+                                     '~> 4.0.3',
                                      'Use SCSS for stylesheets')
         end
 
@@ -255,14 +257,6 @@ module Rails
                                    '>= 1.3.0',
                                    'Use Uglifier as compressor for JavaScript assets')
 
-        gems
-      end
-
-      def platform_dependent_gemfile_entry
-        gems = []
-        if RUBY_ENGINE == 'rbx'
-          gems << GemfileEntry.version('rubysl', nil)
-        end
         gems
       end
 

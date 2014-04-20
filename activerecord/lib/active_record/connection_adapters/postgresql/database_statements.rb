@@ -44,10 +44,32 @@ module ActiveRecord
           end
         end
 
+        def select_value(arel, name = nil, binds = [])
+          arel, binds = binds_from_relation arel, binds
+          sql = to_sql(arel, binds)
+          execute_and_clear(sql, name, binds) do |result|
+            result.getvalue(0, 0) if result.ntuples > 0 && result.nfields > 0
+          end
+        end
+
+        def select_values(arel, name = nil)
+          arel, binds = binds_from_relation arel, []
+          sql = to_sql(arel, binds)
+          execute_and_clear(sql, name, binds) do |result|
+            if result.nfields > 0
+              result.column_values(0)
+            else
+              []
+            end
+          end
+        end
+
         # Executes a SELECT query and returns an array of rows. Each row is an
         # array of field values.
         def select_rows(sql, name = nil, binds = [])
-          exec_query(sql, name, binds).rows
+          execute_and_clear(sql, name, binds) do |result|
+            result.values
+          end
         end
 
         # Executes an INSERT query and returns the new record's ID
@@ -134,31 +156,20 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = 'SQL', binds = [])
-          result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
-                                                        exec_cache(sql, name, binds)
-
-          types = {}
-          fields = result.fields
-          fields.each_with_index do |fname, i|
-            ftype = result.ftype i
-            fmod  = result.fmod i
-            types[fname] = type_map.fetch(ftype, fmod) { |oid, mod|
-              warn "unknown OID: #{fname}(#{oid}) (#{sql})"
-              OID::Identity.new
-            }
+          execute_and_clear(sql, name, binds) do |result|
+            types = {}
+            fields = result.fields
+            fields.each_with_index do |fname, i|
+              ftype = result.ftype i
+              fmod  = result.fmod i
+              types[fname] = get_oid_type(ftype, fmod, fname)
+            end
+            ActiveRecord::Result.new(fields, result.values, types)
           end
-
-          ret = ActiveRecord::Result.new(fields, result.values, types)
-          result.clear
-          return ret
         end
 
         def exec_delete(sql, name = 'SQL', binds = [])
-          result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
-                                                        exec_cache(sql, name, binds)
-          affected = result.cmd_tuples
-          result.clear
-          affected
+          execute_and_clear(sql, name, binds) {|result| result.cmd_tuples }
         end
         alias :exec_update :exec_delete
 

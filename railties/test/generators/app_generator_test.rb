@@ -237,6 +237,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
+    assert_no_file "config/initializers/assets.rb"
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
     end
@@ -252,7 +253,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.digest = true/, content)
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
-      assert_no_match(/config\.assets\.version = '1\.0'/, content)
     end
   end
 
@@ -262,13 +262,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_gem "therubyrhino"
     else
       assert_file "Gemfile", /# gem\s+["']therubyracer["']+, \s+platforms: :ruby$/
-    end
-  end
-
-  def test_inclusion_of_plateform_dependent_gems
-    run_generator([destination_root])
-    if RUBY_ENGINE == 'rbx'
-      assert_gem 'rubysl'
     end
   end
 
@@ -312,14 +305,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /gem 'jbuilder'/
   end
 
-  def test_inclusion_of_debugger
+  def test_inclusion_of_a_debugger
     run_generator
     if defined?(JRUBY_VERSION)
       assert_file "Gemfile" do |content|
+        assert_no_match(/byebug/, content)
         assert_no_match(/debugger/, content)
       end
-    else
+    elsif RUBY_VERSION < '2.0.0'
       assert_file "Gemfile", /# gem 'debugger'/
+    else
+      assert_file "Gemfile", /# gem 'byebug'/
     end
   end
 
@@ -415,7 +411,31 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-protected
+  def test_gitignore_when_sqlite3
+    run_generator
+
+    assert_file '.gitignore' do |content|
+      assert_match(/sqlite3/, content)
+    end
+  end
+
+  def test_gitignore_when_no_active_record
+    run_generator [destination_root, '--skip-active-record']
+
+    assert_file '.gitignore' do |content|
+      assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  def test_gitignore_when_non_sqlite3_db
+    run_generator([destination_root, "-d", "mysql"])
+
+    assert_file '.gitignore' do |content|
+      assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  protected
 
   def action(*args, &block)
     silence(:stdout) { generator.send(*args, &block) }

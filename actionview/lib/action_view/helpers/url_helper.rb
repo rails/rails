@@ -82,7 +82,7 @@ module ActionView
       #   to using GET. If <tt>href: '#'</tt> is used and the user has JavaScript
       #   disabled clicking the link will have no effect. If you are relying on the
       #   POST behavior, you should check for it in your controller's action by using
-      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>:patch</tt>, or <tt>put?</tt>.
+      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>patch?</tt>, or <tt>put?</tt>.
       # * <tt>remote: true</tt> - This will allow the unobtrusive JavaScript
       #   driver to make an Ajax request to the URL in question instead of following
       #   the link. The drivers each provide mechanisms for listening for the
@@ -323,7 +323,7 @@ module ActionView
             inner_tags.safe_concat tag(:input, type: "hidden", name: param_name, value: value.to_param)
           end
         end
-        content_tag('form', content_tag('div', inner_tags), form_options)
+        content_tag('form', inner_tags, form_options)
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -389,15 +389,7 @@ module ActionView
       #   # If not...
       #   # => <a href="/accounts/signup">Reply</a>
       def link_to_unless(condition, name, options = {}, html_options = {}, &block)
-        if condition
-          if block_given?
-            block.arity <= 1 ? capture(name, &block) : capture(name, options, html_options, &block)
-          else
-            ERB::Util.html_escape(name)
-          end
-        else
-          link_to(name, options, html_options)
-        end
+        link_to_if !condition, name, options, html_options, &block
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -421,7 +413,15 @@ module ActionView
       #   # If they are logged in...
       #   # => <a href="/accounts/show/3">my_username</a>
       def link_to_if(condition, name, options = {}, html_options = {}, &block)
-        link_to_unless !condition, name, options, html_options, &block
+        if condition
+          link_to(name, options, html_options)
+        else
+          if block_given?
+            block.arity <= 1 ? capture(name, &block) : capture(name, options, html_options, &block)
+          else
+            ERB::Util.html_escape(name)
+          end
+        end
       end
 
       # Creates a mailto link tag to the specified +email_address+, which is

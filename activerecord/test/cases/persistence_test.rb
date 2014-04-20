@@ -233,6 +233,22 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_nothing_raised { Minimalistic.create!(:id => 2) }
   end
 
+  def test_save_with_duping_of_destroyed_object
+    developer = Developer.create(name: "Kuldeep")
+    developer.destroy
+    new_developer = developer.dup
+    new_developer.save
+    assert new_developer.persisted?
+  end
+
+  def test_dup_of_destroyed_object_is_not_destroyed
+    developer = Developer.create(name: "Kuldeep")
+    developer.destroy
+    new_developer = developer.dup
+    new_developer.save
+    assert_equal new_developer.destroyed?, false
+  end
+
   def test_create_many
     topics = Topic.create([ { "title" => "first" }, { "title" => "second" }])
     assert_equal 2, topics.size
@@ -452,7 +468,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_attribute_for_updated_at_on
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_attribute(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
@@ -523,7 +539,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_modify_updated_at
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_column(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
@@ -620,7 +636,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_modify_updated_at
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_columns(updated_at: prev_month)
     assert_equal prev_month, developer.updated_at

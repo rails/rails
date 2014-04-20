@@ -107,8 +107,11 @@ module ActionController
     end
 
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
+      include MonitorMixin
+
       def initialize(response)
-        @error_callback = nil
+        @error_callback = lambda { true }
+        @cv = new_cond
         super(response, SizedQueue.new(10))
       end
 
@@ -122,14 +125,25 @@ module ActionController
       end
 
       def each
+        @response.sending!
         while str = @buf.pop
           yield str
         end
+        @response.sent!
       end
 
       def close
-        super
-        @buf.push nil
+        synchronize do
+          super
+          @buf.push nil
+          @cv.broadcast
+        end
+      end
+
+      def await_close
+        synchronize do
+          @cv.wait_until { @closed }
+        end
       end
 
       def on_error(&block)
@@ -165,12 +179,20 @@ module ActionController
         end
       end
 
-      def commit!
-        headers.freeze
+      private
+
+      def before_committed
         super
+        jar = request.cookie_jar
+        # The response can be committed multiple times
+        jar.write self unless committed?
       end
 
-      private
+      def before_sending
+        super
+        request.cookie_jar.commit!
+        headers.freeze
+      end
 
       def build_buffer(response, body)
         buf = Live::Buffer.new response
@@ -191,6 +213,7 @@ module ActionController
       t1 = Thread.current
       locals = t1.keys.map { |key| [key, t1[key]] }
 
+      error = nil
       # This processes the action in a child thread. It lets us return the
       # response code and headers back up the rack stack, and still process
       # the body in parallel with sending data to the client
@@ -205,16 +228,18 @@ module ActionController
         begin
           super(name)
         rescue => e
-          @_response.status = 500 unless @_response.committed?
-          @_response.status = 400 if e.class == ActionController::BadRequest
-          begin
-            @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
-            @_response.stream.call_on_error
-          rescue => exception
-            log_error(exception)
-          ensure
-            log_error(e)
-            @_response.stream.close
+          if @_response.committed?
+            begin
+              @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+              @_response.stream.call_on_error
+            rescue => exception
+              log_error(exception)
+            ensure
+              log_error(e)
+              @_response.stream.close
+            end
+          else
+            error = e
           end
         ensure
           @_response.commit!
@@ -222,6 +247,7 @@ module ActionController
       }
 
       @_response.await_commit
+      raise error if error
     end
 
     def log_error(exception)

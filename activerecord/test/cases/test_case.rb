@@ -19,10 +19,14 @@ module ActiveRecord
       end
     end
 
-    def assert_sql(*patterns_to_match)
+    def capture_sql
       SQLCounter.clear_log
       yield
-      SQLCounter.log_all
+      SQLCounter.log_all.dup
+    end
+
+    def assert_sql(*patterns_to_match)
+      capture_sql { yield }
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|

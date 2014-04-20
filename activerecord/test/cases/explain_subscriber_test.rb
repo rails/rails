@@ -48,7 +48,7 @@ if ActiveRecord::Base.connection.supports_explain?
       assert queries.empty?
     end
 
-    def teardown
+    teardown do
       ActiveRecord::ExplainRegistry.reset
     end
 

@@ -1,4 +1,5 @@
 require "cases/helper"
+require "rexml/document"
 require 'models/contact'
 require 'models/post'
 require 'models/author'

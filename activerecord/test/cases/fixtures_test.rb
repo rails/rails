@@ -254,7 +254,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_fixtures_are_set_up_with_database_env_variable
     db_url_tmp = ENV['DATABASE_URL']
-    ENV['DATABASE_URL'] = "sqlite3:///:memory:"
+    ENV['DATABASE_URL'] = "sqlite3::memory:"
     ActiveRecord::Base.stubs(:configurations).returns({})
     test_case = Class.new(ActiveRecord::TestCase) do
       fixtures :accounts
@@ -677,6 +677,12 @@ end
 class FoxyFixturesTest < ActiveRecord::TestCase
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers, :developers, :"admin/accounts", :"admin/users"
 
+  if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+    require 'models/uuid_parent'
+    require 'models/uuid_child'
+    fixtures :uuid_parents, :uuid_children 
+  end
+
   def test_identifies_strings
     assert_equal(ActiveRecord::FixtureSet.identify("foo"), ActiveRecord::FixtureSet.identify("foo"))
     assert_not_equal(ActiveRecord::FixtureSet.identify("foo"), ActiveRecord::FixtureSet.identify("FOO"))
@@ -689,6 +695,9 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_identifies_consistently
     assert_equal 207281424, ActiveRecord::FixtureSet.identify(:ruby)
     assert_equal 1066363776, ActiveRecord::FixtureSet.identify(:sapphire_2)
+
+    assert_equal 'f92b6bda-0d0d-5fe1-9124-502b18badded', ActiveRecord::FixtureSet.identify(:daddy, :uuid)
+    assert_equal 'b4b10018-ad47-595d-b42f-d8bdaa6d01bf', ActiveRecord::FixtureSet.identify(:sonny, :uuid)
   end
 
   TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)
@@ -780,6 +789,10 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_supports_label_interpolation
     assert_equal("frederick", parrots(:frederick).name)
+  end
+
+  def test_supports_label_string_interpolation
+    assert_equal("X marks the spot!", pirates(:mark).catchphrase)
   end
 
   def test_supports_polymorphic_belongs_to

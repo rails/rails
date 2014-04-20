@@ -1550,7 +1550,7 @@ end
 
 Sanitizes a block of CSS code.
 
-#### strip_links(html) 
+#### strip_links(html)
 Strips all link tags from text leaving just the link text.
 
 ```ruby
@@ -1568,9 +1568,9 @@ strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
 # => Blog: Visit.
 ```
 
-#### strip_tags(html) 
+#### strip_tags(html)
 
-Strips all HTML tags from the html, including comments. 
+Strips all HTML tags from the html, including comments.
 This uses the html-scanner tokenizer and so its HTML parsing ability is limited by that of html-scanner.
 
 ```ruby
@@ -1585,6 +1585,17 @@ strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
 
 NB: The output may still contain unescaped '<', '>', '&' characters and confuse browsers.
 
+### CsrfHelper
+
+Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
+request forgery protection parameter and token, respectively.
+
+```html
+<%= csrf_meta_tags %>
+```
+
+NOTE: Regular forms generate hidden fields so they do not use these tags. More
+details can be found in the [Rails Security Guide](security.html#cross-site-request-forgery-csrf).
 
 Localized Views
 ---------------

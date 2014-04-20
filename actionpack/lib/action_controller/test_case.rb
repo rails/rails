@@ -17,8 +17,9 @@ module ActionController
       @_templates = Hash.new(0)
       @_layouts = Hash.new(0)
       @_files = Hash.new(0)
+      @_subscribers = []
 
-      ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
+      @_subscribers << ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
         path = payload[:layout]
         if path
           @_layouts[path] += 1
@@ -28,7 +29,7 @@ module ActionController
         end
       end
 
-      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
+      @_subscribers << ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
         path = payload[:virtual_path]
         next unless path
         partial = path =~ /^.*\/_[^\/]*$/
@@ -41,7 +42,7 @@ module ActionController
         @_templates[path] += 1
       end
 
-      ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
+      @_subscribers << ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
         next if payload[:virtual_path] # files don't have virtual path
 
         path = payload[:identifier]
@@ -53,8 +54,9 @@ module ActionController
     end
 
     def teardown_subscriptions
-      ActiveSupport::Notifications.unsubscribe("render_template.action_view")
-      ActiveSupport::Notifications.unsubscribe("!render_template.action_view")
+      @_subscribers.each do |subscriber|
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
     end
 
     def process(*args)
@@ -256,6 +258,29 @@ module ActionController
     def recycle!
       initialize
     end
+  end
+
+  class LiveTestResponse < Live::Response
+    def recycle!
+      @body = nil
+      initialize
+    end
+
+    def body
+      @body ||= super
+    end
+
+    # Was the response successful?
+    alias_method :success?, :successful?
+
+    # Was the URL not found?
+    alias_method :missing?, :not_found?
+
+    # Were we redirected?
+    alias_method :redirect?, :redirection?
+
+    # Was there a server-side error?
+    alias_method :error?, :server_error?
   end
 
   # Methods #destroy and #load! are overridden to avoid calling methods on the
@@ -463,8 +488,8 @@ module ActionController
       # - +session+: A hash of parameters to store in the session. This may be +nil+.
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       #
-      # You can also simulate POST, PATCH, PUT, DELETE, HEAD, and OPTIONS requests with
-      # +post+, +patch+, +put+, +delete+, +head+, and +options+.
+      # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
+      # +post+, +patch+, +put+, +delete+, and +head+.
       #
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
@@ -568,10 +593,13 @@ module ActionController
 
         name = @request.parameters[:action]
 
+        @controller.recycle!
         @controller.process(name)
 
         if cookies = @request.env['action_dispatch.cookies']
-          cookies.write(@response)
+          unless @response.committed?
+            cookies.write(@response)
+          end
         end
         @response.prepare!
 
@@ -582,13 +610,14 @@ module ActionController
       end
 
       def setup_controller_request_and_response
-        @request          = build_request
-        @response         = build_response
-        @response.request = @request
-
         @controller = nil unless defined? @controller
 
+        response_klass = TestResponse
+
         if klass = self.class.controller_class
+          if klass < ActionController::Live
+            response_klass = LiveTestResponse
+          end
           unless @controller
             begin
               @controller = klass.new
@@ -597,6 +626,10 @@ module ActionController
             end
           end
         end
+
+        @request          = build_request
+        @response         = build_response response_klass
+        @response.request = @request
 
         if @controller
           @controller.request = @request
@@ -608,8 +641,8 @@ module ActionController
         TestRequest.new
       end
 
-      def build_response
-        TestResponse.new
+      def build_response(klass)
+        klass.new
       end
 
       included do

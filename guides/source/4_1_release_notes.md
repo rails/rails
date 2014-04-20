@@ -291,6 +291,10 @@ for detailed changes.
   with `config.active_record.maintain_test_schema = false`. ([Pull
   Request](https://github.com/rails/rails/pull/13528))
 
+* Introduce `Rails.gem_version` as a convenience method to return
+  `Gem::Version.new(Rails.version)`, suggesting a more reliable way to perform
+  version comparison. ([Pull Request](https://github.com/rails/rails/pull/14103))
+
 
 Action Pack
 -----------
@@ -346,10 +350,14 @@ for detailed changes.
   params "deep munging" that was used to address security vulnerability
   CVE-2013-0155. ([Pull Request](https://github.com/rails/rails/pull/13188))
 
-* New config option `config.action_dispatch.cookies_serializer` for specifying
-  a serializer for the signed and encrypted cookie jars. (Pull Requests [1](https://github.com/rails/rails/pull/13692), [2](https://github.com/rails/rails/pull/13945) / [More Details](upgrading_ruby_on_rails.html#cookies-serializer))
+* New config option `config.action_dispatch.cookies_serializer` for specifying a
+  serializer for the signed and encrypted cookie jars. (Pull Requests
+  [1](https://github.com/rails/rails/pull/13692),
+  [2](https://github.com/rails/rails/pull/13945) /
+  [More Details](upgrading_ruby_on_rails.html#cookies-serializer))
 
-* Added `render :plain`, `render :html` and `render :body`. ([Pull Request](https://github.com/rails/rails/pull/14062) /
+* Added `render :plain`, `render :html` and `render
+  :body`. ([Pull Request](https://github.com/rails/rails/pull/14062) /
   [More Details](upgrading_ruby_on_rails.html#rendering-content-from-string))
 
 
@@ -388,7 +396,7 @@ for detailed changes.
 * Removed deprecated `scope` use without passing a callable object.
 
 * Removed deprecated `transaction_joinable=` in favor of `begin_transaction`
-  with `d:joinable` option.
+  with a `:joinable` option.
 
 * Removed deprecated `decrement_open_transactions`.
 
@@ -457,10 +465,10 @@ for detailed changes.
 
 ### Notable changes
 
-* Default scopes are no longer overriden by chained conditions.
+* Default scopes are no longer overridden by chained conditions.
 
   Before this change when you defined a `default_scope` in a model
-  it was overriden by chained conditions in the same field. Now it
+  it was overridden by chained conditions in the same field. Now it
   is merged like any other scope. [More Details](upgrading_ruby_on_rails.html#changes-on-default-scopes).
 
 * Added `ActiveRecord::Base.to_param` for convenient "pretty" URLs derived from
@@ -543,15 +551,15 @@ for detailed changes.
 * Make `touch` fire the `after_commit` and `after_rollback`
   callbacks. ([Pull Request](https://github.com/rails/rails/pull/12031))
 
-* Enable partial indexes for `sqlite >=
-  3.8.0`. ([Pull Request](https://github.com/rails/rails/pull/13350))
+* Enable partial indexes for `sqlite >= 3.8.0`.
+  ([Pull Request](https://github.com/rails/rails/pull/13350))
 
 * Make `change_column_null`
-  revertable. ([Commit](https://github.com/rails/rails/commit/724509a9d5322ff502aefa90dd282ba33a281a96))
+  revertible. ([Commit](https://github.com/rails/rails/commit/724509a9d5322ff502aefa90dd282ba33a281a96))
 
 * Added a flag to disable schema dump after migration. This is set to `false`
-  by defualt in the production environment for new applications. ([Pull Request](https://github.com/rails/rails/pull/13948))
-
+  by default in the production environment for new applications.
+  ([Pull Request](https://github.com/rails/rails/pull/13948))
 
 Active Model
 ------------
@@ -703,13 +711,14 @@ for detailed changes.
 * Default the new `I18n.enforce_available_locales` config to `true`, meaning
   `I18n` will make sure that all locales passed to it must be declared in the
   `available_locales`
-  list. ([Pull Request](https://github.com/rails/rails/commit/8e21ae37ad9fef6b7393a84f9b5f2e18a831e49a))
+  list. ([Pull Request](https://github.com/rails/rails/pull/13341))
 
-* Introduce Module#concerning: a natural, low-ceremony way to separate
+* Introduce `Module#concerning`: a natural, low-ceremony way to separate
   responsibilities within a
   class. ([Commit](https://github.com/rails/rails/commit/1eee0ca6de975b42524105a59e0521d18b38ab81))
 
-* Added `Object#present_in` to simplify value whitelisting. ([Commit](https://github.com/rails/rails/commit/4edca106daacc5a159289eae255207d160f22396))
+* Added `Object#presence_in` to simplify value whitelisting.
+  ([Commit](https://github.com/rails/rails/commit/4edca106daacc5a159289eae255207d160f22396))
 
 
 Credits

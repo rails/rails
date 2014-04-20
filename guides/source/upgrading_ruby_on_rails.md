@@ -25,8 +25,6 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 
-NOTE: This section is a work in progress.
-
 ### CSRF protection from remote `<script>` tags
 
 Or, "whaaat my tests are failing!!!?"
@@ -79,12 +77,15 @@ secrets, you need to:
       secret_key_base:
 
     production:
-      secret_key_base:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
     ```
 
-2. Copy the existing `secret_key_base` from the `secret_token.rb` initializer to
-   `secrets.yml` under the `production` section.
-
+2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
+   set the SECRET_KEY_BASE environment variable for whichever users run the Rails
+   app in production mode. Alternately, you can simply copy the existing 
+   `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml` 
+   under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
+   
 3. Remove the `secret_token.rb` initializer.
 
 4. Use `rake secret` to generate new keys for the `development` and `test` sections.
@@ -104,12 +105,56 @@ Applications created before Rails 4.1 uses `Marshal` to serialize cookie values 
 the signed and encrypted cookie jars. If you want to use the new `JSON`-based format
 in your application, you can add an initializer file with the following content:
 
-  ```ruby
-  Rails.application.config.cookies_serializer :hybrid
-  ```
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = :hybrid
+```
 
 This would transparently migrate your existing `Marshal`-serialized cookies into the
 new `JSON`-based format.
+
+When using the `:json` or `:hybrid` serializer, you should beware that not all
+Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
+will be serialized as strings, and `Hash`es will have their keys stringified.
+
+```ruby
+class CookiesController < ApplicationController
+  def set_cookie
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
+    redirect_to action: 'read_cookie'
+  end
+
+  def read_cookie
+    cookies.encrypted[:expiration_date] # => "2014-03-20"
+  end
+end
+```
+
+It's advisable that you only store simple data (strings and numbers) in cookies.
+If you have to store complex objects, you would need to handle the conversion
+manually when reading the values on subsequent requests.
+
+If you use the cookie session store, this would apply to the `session` and
+`flash` hash as well.
+
+### Flash structure changes
+
+Flash message keys are
+[normalized to strings](https://github.com/rails/rails/commit/a668beffd64106a1e1fedb71cc25eaaa11baf0c1). They
+can still be accessed using either symbols or strings. Lopping through the flash
+will always yield string keys:
+
+```ruby
+flash["string"] = "a string"
+flash[:symbol] = "a symbol"
+
+# Rails < 4.1
+flash.keys # => ["string", :symbol]
+
+# Rails >= 4.1
+flash.keys # => ["string", "symbol"]
+```
+
+Make sure you are comparing Flash message keys against strings.
 
 ### Changes in JSON handling
 
@@ -419,7 +464,7 @@ being used, you can update your form to use the `PUT` method instead:
 <%= form_for [ :update_name, @user ], method: :put do |f| %>
 ```
 
-For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/25/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
 on the Rails blog.
 
 #### A note about media types
@@ -669,7 +714,7 @@ Upgrading from Rails 3.1 to Rails 3.2
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.
 
-The following changes are meant for upgrading your application to Rails 3.2.16,
+The following changes are meant for upgrading your application to Rails 3.2.17,
 the last 3.2.x version of Rails.
 
 ### Gemfile
@@ -677,7 +722,7 @@ the last 3.2.x version of Rails.
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '3.2.16'
+gem 'rails', '3.2.17'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.6'

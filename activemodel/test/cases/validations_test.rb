@@ -139,6 +139,8 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 4, hits
     assert_equal %w(gotcha gotcha), t.errors[:title]
     assert_equal %w(gotcha gotcha), t.errors[:content]
+  ensure
+    CustomReader.clear_validators!
   end
 
   def test_validate_block
@@ -284,12 +286,22 @@ class ValidationsTest < ActiveModel::TestCase
     auto = Automobile.new
 
     assert          auto.invalid?
-    assert_equal 2, auto.errors.size
+    assert_equal 3, auto.errors.size
 
     auto.make  = 'Toyota'
     auto.model = 'Corolla'
+    auto.approved = '1'
 
     assert auto.valid?
+  end
+
+  def test_validate
+    auto = Automobile.new
+
+    assert_empty auto.errors
+
+    auto.validate
+    assert_not_empty auto.errors
   end
 
   def test_strict_validation_in_validates

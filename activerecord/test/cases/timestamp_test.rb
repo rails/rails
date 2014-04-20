@@ -71,6 +71,24 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal @previously_updated_at, @developer.updated_at
   end
 
+  def test_saving_when_callback_sets_record_timestamps_to_false_doesnt_update_its_timestamp
+    klass = Class.new(Developer) do
+      before_update :cancel_record_timestamps
+      def cancel_record_timestamps
+        self.record_timestamps = false
+        return true
+      end
+    end
+
+    developer = klass.first
+    previously_updated_at = developer.updated_at
+
+    developer.name = "New Name"
+    developer.save!
+
+    assert_equal previously_updated_at, developer.updated_at
+  end
+
   def test_touching_an_attribute_updates_timestamp
     previously_created_at = @developer.created_at
     @developer.touch(:created_at)
@@ -86,6 +104,18 @@ class TimestampTest < ActiveRecord::TestCase
     previous_value = task.ending
     task.touch(:ending)
     assert_not_equal previous_value, task.ending
+    assert_in_delta Time.now, task.ending, 1
+  end
+
+  def test_touching_many_attributes_updates_them
+    task = Task.first
+    previous_starting = task.starting
+    previous_ending = task.ending
+    task.touch(:starting, :ending)
+    
+    assert_not_equal previous_starting, task.starting
+    assert_not_equal previous_ending, task.ending
+    assert_in_delta Time.now, task.starting, 1
     assert_in_delta Time.now, task.ending, 1
   end
 

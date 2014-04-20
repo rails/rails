@@ -961,7 +961,7 @@ SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id =
 
 WARNING: This method only works with `INNER JOIN`.
 
-Active Record lets you use the names of the [associations](association_basics.html) defined on the model as a shortcut for specifying `JOIN` clause for those associations when using the `joins` method.
+Active Record lets you use the names of the [associations](association_basics.html) defined on the model as a shortcut for specifying `JOIN` clauses for those associations when using the `joins` method.
 
 For example, consider the following `Category`, `Post`, `Comment`, `Guest` and `Tag` models:
 
@@ -1231,6 +1231,35 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 category.posts.created_before(time)
 ```
 
+### Applying a default scope
+
+If we wish for a scope to be applied across all queries to the model we can use the
+`default_scope` method within the model itself.
+
+```ruby
+class Client < ActiveRecord::Base
+  default_scope { where("removed_at IS NULL") }
+end
+```
+
+When queries are executed on this model, the SQL query will now look something like
+this:
+
+```sql
+SELECT * FROM clients WHERE removed_at IS NULL
+```
+
+If you need to do more complex things with a default scope, you can alternatively
+define it as a class method:
+
+```ruby
+class Client < ActiveRecord::Base
+  def self.default_scope
+    # Should return an ActiveRecord::Relation.
+  end
+end
+```
+
 ### Merging of scopes
 
 Just like `where` clauses scopes are merged using `AND` conditions.
@@ -1283,36 +1312,6 @@ User.where(state: 'inactive')
 
 As you can see above the `default_scope` is being merged in both
 `scope` and `where` conditions.
-
-
-### Applying a default scope
-
-If we wish for a scope to be applied across all queries to the model we can use the
-`default_scope` method within the model itself.
-
-```ruby
-class Client < ActiveRecord::Base
-  default_scope { where("removed_at IS NULL") }
-end
-```
-
-When queries are executed on this model, the SQL query will now look something like
-this:
-
-```sql
-SELECT * FROM clients WHERE removed_at IS NULL
-```
-
-If you need to do more complex things with a default scope, you can alternatively
-define it as a class method:
-
-```ruby
-class Client < ActiveRecord::Base
-  def self.default_scope
-    # Should return an ActiveRecord::Relation.
-  end
-end
-```
 
 ### Removing All Scoping
 

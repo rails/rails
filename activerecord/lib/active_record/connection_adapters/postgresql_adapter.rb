@@ -7,6 +7,7 @@ require 'active_record/connection_adapters/postgresql/quoting'
 require 'active_record/connection_adapters/postgresql/schema_statements'
 require 'active_record/connection_adapters/postgresql/database_statements'
 require 'active_record/connection_adapters/postgresql/referential_integrity'
+require 'active_record/connection_adapters/postgresql/column'
 require 'arel/visitors/bind_visitor'
 
 # Make sure we're using pg high enough for PGResult#values
@@ -43,222 +44,6 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-    # PostgreSQL-specific extensions to column definitions in a table.
-    class PostgreSQLColumn < Column #:nodoc:
-      attr_accessor :array
-
-      def initialize(name, default, oid_type, sql_type = nil, null = true)
-        @oid_type = oid_type
-        default_value     = self.class.extract_value_from_default(default)
-
-        if sql_type =~ /\[\]$/
-          @array = true
-          super(name, default_value, sql_type[0..sql_type.length - 3], null)
-        else
-          @array = false
-          super(name, default_value, sql_type, null)
-        end
-
-        @default_function = default if has_default_function?(default_value, default)
-      end
-
-      def number?
-        !array && super
-      end
-
-      def text?
-        !array && super
-      end
-
-      # :stopdoc:
-      class << self
-        include ConnectionAdapters::PostgreSQLColumn::Cast
-        include ConnectionAdapters::PostgreSQLColumn::ArrayParser
-        attr_accessor :money_precision
-      end
-      # :startdoc:
-
-      # Extracts the value from a PostgreSQL column default definition.
-      def self.extract_value_from_default(default)
-        # This is a performance optimization for Ruby 1.9.2 in development.
-        # If the value is nil, we return nil straight away without checking
-        # the regular expressions. If we check each regular expression,
-        # Regexp#=== will call NilClass#to_str, which will trigger
-        # method_missing (defined by whiny nil in ActiveSupport) which
-        # makes this method very very slow.
-        return default unless default
-
-        case default
-          when /\A'(.*)'::(num|date|tstz|ts|int4|int8)range\z/m
-            $1
-          # Numeric types
-          when /\A\(?(-?\d+(\.\d*)?\)?(::bigint)?)\z/
-            $1
-          # Character types
-          when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
-            $1.gsub(/''/, "'")
-          # Binary data types
-          when /\A'(.*)'::bytea\z/m
-            $1
-          # Date/time types
-          when /\A'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)\z/
-            $1
-          when /\A'(.*)'::interval\z/
-            $1
-          # Boolean type
-          when 'true'
-            true
-          when 'false'
-            false
-          # Geometric types
-          when /\A'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)\z/
-            $1
-          # Network address types
-          when /\A'(.*)'::(?:cidr|inet|macaddr)\z/
-            $1
-          # Bit string types
-          when /\AB'(.*)'::"?bit(?: varying)?"?\z/
-            $1
-          # XML type
-          when /\A'(.*)'::xml\z/m
-            $1
-          # Arrays
-          when /\A'(.*)'::"?\D+"?\[\]\z/
-            $1
-          # Hstore
-          when /\A'(.*)'::hstore\z/
-            $1
-          # JSON
-          when /\A'(.*)'::json\z/
-            $1
-          # Object identifier types
-          when /\A-?\d+\z/
-            $1
-          else
-            # Anything else is blank, some user type, or some function
-            # and we can't know the value of that, so return nil.
-            nil
-        end
-      end
-
-      def type_cast_for_write(value)
-        if @oid_type.respond_to?(:type_cast_for_write)
-          @oid_type.type_cast_for_write(value)
-        else
-          super
-        end
-      end
-
-      def type_cast(value)
-        return if value.nil?
-        return super if encoded?
-
-        @oid_type.type_cast value
-      end
-
-      def accessor
-        @oid_type.accessor
-      end
-
-      private
-
-        def has_default_function?(default_value, default)
-          !default_value && (%r{\w+\(.*\)} === default)
-        end
-
-        def extract_limit(sql_type)
-          case sql_type
-          when /^bigint/i;    8
-          when /^smallint/i;  2
-          when /^timestamp/i; nil
-          else super
-          end
-        end
-
-        # Extracts the scale from PostgreSQL-specific data types.
-        def extract_scale(sql_type)
-          # Money type has a fixed scale of 2.
-          sql_type =~ /^money/ ? 2 : super
-        end
-
-        # Extracts the precision from PostgreSQL-specific data types.
-        def extract_precision(sql_type)
-          if sql_type == 'money'
-            self.class.money_precision
-          elsif sql_type =~ /timestamp/i
-            $1.to_i if sql_type =~ /\((\d+)\)/
-          else
-            super
-          end
-        end
-
-        # Maps PostgreSQL-specific data types to logical Rails types.
-        def simplified_type(field_type)
-          case field_type
-          # Numeric and monetary types
-          when /^(?:real|double precision)$/
-            :float
-          # Monetary types
-          when 'money'
-            :decimal
-          when 'hstore'
-            :hstore
-          when 'ltree'
-            :ltree
-          # Network address types
-          when 'inet'
-            :inet
-          when 'cidr'
-            :cidr
-          when 'macaddr'
-            :macaddr
-          # Character types
-          when /^(?:character varying|bpchar)(?:\(\d+\))?$/
-            :string
-          # Binary data types
-          when 'bytea'
-            :binary
-          # Date/time types
-          when /^timestamp with(?:out)? time zone$/
-            :datetime
-          when /^interval(?:|\(\d+\))$/
-            :string
-          # Geometric types
-          when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
-            :string
-          # Bit strings
-          when /^bit(?: varying)?(?:\(\d+\))?$/
-            :string
-          # XML type
-          when 'xml'
-            :xml
-          # tsvector type
-          when 'tsvector'
-            :tsvector
-          # Arrays
-          when /^\D+\[\]$/
-            :string
-          # Object identifier types
-          when 'oid'
-            :integer
-          # UUID type
-          when 'uuid'
-            :uuid
-          # JSON type
-          when 'json'
-            :json
-          # Small and big integer types
-          when /^(?:small|big)int$/
-            :integer
-          when /(num|date|tstz|ts|int4|int8)range$/
-            field_type.to_sym
-          # Pass through all types that are not specific to PostgreSQL.
-          else
-            super
-          end
-        end
-    end
-
     # The PostgreSQL adapter works with the native C (https://bitbucket.org/ged/ruby-pg) driver.
     #
     # Options:
@@ -353,6 +138,10 @@ module ActiveRecord
         def json(name, options = {})
           column(name, 'json', options)
         end
+
+        def citext(name, options = {})
+          column(name, 'citext', options)
+        end
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
@@ -393,6 +182,10 @@ module ActiveRecord
           column name, type, options
         end
 
+        def citext(name, options = {})
+          column(name, 'citext', options)
+        end
+
         def column(name, type = nil, options = {})
           super
           column = self[name]
@@ -416,7 +209,7 @@ module ActiveRecord
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "serial primary key",
-        string:      { name: "character varying", limit: 255 },
+        string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer" },
         float:       { name: "float" },
@@ -441,7 +234,8 @@ module ActiveRecord
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
         json:        { name: "json" },
-        ltree:       { name: "ltree" }
+        ltree:       { name: "ltree" },
+        citext:      { name: "citext" }
       }
 
       include Quoting
@@ -592,10 +386,6 @@ module ActiveRecord
         false
       end
 
-      def active_threadsafe?
-        @connection.connect_poll != PG::PGRES_POLLING_FAILED
-      end
-
       # Close then reopen the connection.
       def reconnect!
         super
@@ -605,7 +395,12 @@ module ActiveRecord
 
       def reset!
         clear_cache!
-        super
+        reset_transaction
+        unless @connection.transaction_status == ::PG::PQTRANS_IDLE
+          @connection.query 'ROLLBACK'
+        end
+        @connection.query 'DISCARD ALL'
+        configure_connection
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -657,6 +452,10 @@ module ActiveRecord
       # Range datatypes weren't introduced until PostgreSQL 9.2
       def supports_ranges?
         postgresql_version >= 90200
+      end
+
+      def supports_materialized_views?
+        postgresql_version >= 90300
       end
 
       def enable_extension(name)
@@ -760,6 +559,17 @@ module ActiveRecord
           @type_map
         end
 
+        def get_oid_type(oid, fmod, column_name)
+          if !type_map.key?(oid)
+            initialize_type_map(type_map, [oid])
+          end
+
+          type_map.fetch(oid, fmod) {
+            warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
+            type_map[oid] = OID::Identity.new
+          }
+        end
+
         def reload_type_map
           type_map.clear
           initialize_type_map(type_map)
@@ -784,18 +594,42 @@ module ActiveRecord
           type_map
         end
 
-        def initialize_type_map(type_map)
-          result = execute('SELECT oid, typname, typelem, typdelim, typinput FROM pg_type', 'SCHEMA')
-          leaves, nodes = result.partition { |row| row['typelem'] == '0' }
+        def initialize_type_map(type_map, oids = nil)
+          if supports_ranges?
+            query = <<-SQL
+              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
+              FROM pg_type as t
+              LEFT JOIN pg_range as r ON oid = rngtypid
+            SQL
+          else
+            query = <<-SQL
+              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
+              FROM pg_type as t
+            SQL
+          end
 
-          # populate the leaf nodes
+          if oids
+            query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
+          end
+
+          result = execute(query, 'SCHEMA')
+          ranges, nodes = result.partition { |row| row['typtype'] == 'r' }
+          enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
+          domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
+          arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
+          leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
+
+          # populate the enum types
+          enums.each do |row|
+            type_map[row['oid'].to_i] = OID::Enum.new
+          end
+
+          # populate the base types
           leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
             type_map[row['oid'].to_i] = OID::NAMES[row['typname']]
           end
 
           records_by_oid = result.group_by { |row| row['oid'] }
-
-          arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
 
           # populate composite types
           nodes.each do |row|
@@ -807,9 +641,34 @@ module ActiveRecord
             array = OID::Array.new  type_map[row['typelem'].to_i]
             type_map[row['oid'].to_i] = array
           end
+
+          # populate range types
+          ranges.find_all { |row| type_map.key? row['rngsubtype'].to_i }.each do |row|
+            subtype = type_map[row['rngsubtype'].to_i]
+            range = OID::Range.new subtype
+            type_map[row['oid'].to_i] = range
+          end
+
+          # populate domain types
+          domains.each do |row|
+            base_type_oid = row["typbasetype"].to_i
+            if base_type = type_map[base_type_oid]
+              type_map[row['oid'].to_i] = base_type
+            else
+              warn "unknown base type (OID: #{base_type_oid}) for domain #{row["typname"]}."
+            end
+          end
         end
 
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
+
+        def execute_and_clear(sql, name, binds)
+          result = without_prepared_statement?(binds) ? exec_no_cache(sql, name, binds) :
+                                                        exec_cache(sql, name, binds)
+          ret = yield result
+          result.clear
+          ret
+        end
 
         def exec_no_cache(sql, name, binds)
           log(sql, name, binds) { @connection.async_exec(sql) }
@@ -888,9 +747,9 @@ module ActiveRecord
           configure_connection
         rescue ::PG::Error => error
           if error.message.include?("does not exist")
-            raise ActiveRecord::NoDatabaseError.new(error.message)
+            raise ActiveRecord::NoDatabaseError.new(error.message, error)
           else
-            raise error
+            raise
           end
         end
 

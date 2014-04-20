@@ -6,6 +6,11 @@ module ActiveRecord
       module OID
         class Type
           def type; end
+          def simplified_type(sql_type); type end
+
+          def infinity(options = {})
+            ::Float::INFINITY * (options[:negative] ? -1 : 1)
+          end
         end
 
         class Identity < Type
@@ -14,9 +19,33 @@ module ActiveRecord
           end
         end
 
-        class Bit < Type
+        class String < Type
+          def type; :string end
+
           def type_cast(value)
-            if String === value
+            return if value.nil?
+
+            value.to_s
+          end
+        end
+
+        class SpecializedString < OID::String
+          def type; @type end
+
+          def initialize(type)
+            @type = type
+          end
+        end
+
+        class Text < OID::String
+          def type; :text end
+        end
+
+        class Bit < Type
+          def type; :string end
+
+          def type_cast(value)
+            if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_bit value
             else
               value
@@ -25,6 +54,8 @@ module ActiveRecord
         end
 
         class Bytea < Type
+          def type; :binary end
+
           def type_cast(value)
             return if value.nil?
             PGconn.unescape_bytea value
@@ -32,9 +63,11 @@ module ActiveRecord
         end
 
         class Money < Type
+          def type; :decimal end
+
           def type_cast(value)
             return if value.nil?
-            return value unless String === value
+            return value unless ::String === value
 
             # Because money output is formatted according to the locale, there are two
             # cases to consider (note the decimal separators):
@@ -76,8 +109,10 @@ module ActiveRecord
         end
 
         class Point < Type
+          def type; :string end
+
           def type_cast(value)
-            if String === value
+            if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_point value
             else
               value
@@ -86,13 +121,15 @@ module ActiveRecord
         end
 
         class Array < Type
+          def type; @subtype.type end
+
           attr_reader :subtype
           def initialize(subtype)
             @subtype = subtype
           end
 
           def type_cast(value)
-            if String === value
+            if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_array value, @subtype
             else
               value
@@ -102,6 +139,8 @@ module ActiveRecord
 
         class Range < Type
           attr_reader :subtype
+          def simplified_type(sql_type); sql_type.to_sym end
+
           def initialize(subtype)
             @subtype = subtype
           end
@@ -109,23 +148,19 @@ module ActiveRecord
           def extract_bounds(value)
             from, to = value[1..-2].split(',')
             {
-              from:          (value[1] == ',' || from == '-infinity') ? infinity(:negative => true) : from,
-              to:            (value[-2] == ',' || to == 'infinity') ? infinity : to,
+              from:          (value[1] == ',' || from == '-infinity') ? @subtype.infinity(negative: true) : from,
+              to:            (value[-2] == ',' || to == 'infinity') ? @subtype.infinity : to,
               exclude_start: (value[0] == '('),
               exclude_end:   (value[-1] == ')')
             }
-          end
-
-          def infinity(options = {})
-            ::Float::INFINITY * (options[:negative] ? -1 : 1)
           end
 
           def infinity?(value)
             value.respond_to?(:infinite?) && value.infinite?
           end
 
-          def to_integer(value)
-            infinity?(value) ? value : value.to_i
+          def type_cast_single(value)
+            infinity?(value) ? value : @subtype.type_cast(value)
           end
 
           def type_cast(value)
@@ -133,32 +168,27 @@ module ActiveRecord
             return value if value.is_a?(::Range)
 
             extracted = extract_bounds(value)
+            from = type_cast_single extracted[:from]
+            to = type_cast_single extracted[:to]
 
-            case @subtype
-            when :date
-              from  = ConnectionAdapters::Column.value_to_date(extracted[:from])
-              from -= 1.day if extracted[:exclude_start]
-              to    = ConnectionAdapters::Column.value_to_date(extracted[:to])
-            when :decimal
-              from  = BigDecimal.new(extracted[:from].to_s)
-              # FIXME: add exclude start for ::Range, same for timestamp ranges
-              to    = BigDecimal.new(extracted[:to].to_s)
-            when :time
-              from = ConnectionAdapters::Column.string_to_time(extracted[:from])
-              to   = ConnectionAdapters::Column.string_to_time(extracted[:to])
-            when :integer
-              from = to_integer(extracted[:from]) rescue value ? 1 : 0
-              from -= 1 if extracted[:exclude_start]
-              to   = to_integer(extracted[:to]) rescue value ? 1 : 0
-            else
-              return value
+            if !infinity?(from) && extracted[:exclude_start]
+              if from.respond_to?(:succ)
+                from = from.succ
+                ActiveSupport::Deprecation.warn <<-MESSAGE
+Excluding the beginning of a Range is only partialy supported through `#succ`.
+This is not reliable and will be removed in the future.
+                MESSAGE
+              else
+                raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
+              end
             end
-
             ::Range.new(from, to, extracted[:exclude_end])
           end
         end
 
         class Integer < Type
+          def type; :integer end
+
           def type_cast(value)
             return if value.nil?
 
@@ -167,6 +197,8 @@ module ActiveRecord
         end
 
         class Boolean < Type
+          def type; :boolean end
+
           def type_cast(value)
             return if value.nil?
 
@@ -176,6 +208,14 @@ module ActiveRecord
 
         class Timestamp < Type
           def type; :timestamp; end
+          def simplified_type(sql_type)
+            case sql_type
+            when /^timestamp with(?:out)? time zone$/
+              :datetime
+            else
+              :timestamp
+            end
+          end
 
           def type_cast(value)
             return if value.nil?
@@ -187,7 +227,7 @@ module ActiveRecord
         end
 
         class Date < Type
-          def type; :datetime; end
+          def type; :date; end
 
           def type_cast(value)
             return if value.nil?
@@ -199,6 +239,8 @@ module ActiveRecord
         end
 
         class Time < Type
+          def type; :time end
+
           def type_cast(value)
             return if value.nil?
 
@@ -209,6 +251,8 @@ module ActiveRecord
         end
 
         class Float < Type
+          def type; :float end
+
           def type_cast(value)
             return if value.nil?
 
@@ -217,14 +261,30 @@ module ActiveRecord
         end
 
         class Decimal < Type
+          def type; :decimal end
+
           def type_cast(value)
             return if value.nil?
 
             ConnectionAdapters::Column.value_to_decimal value
           end
+
+          def infinity(options = {})
+            BigDecimal.new("Infinity") * (options[:negative] ? -1 : 1)
+          end
+        end
+
+        class Enum < Type
+          def type; :enum end
+
+          def type_cast(value)
+            value.to_s
+          end
         end
 
         class Hstore < Type
+          def type; :hstore end
+
           def type_cast_for_write(value)
             ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
           end
@@ -241,14 +301,20 @@ module ActiveRecord
         end
 
         class Cidr < Type
+          def type; :cidr end
           def type_cast(value)
             return if value.nil?
 
             ConnectionAdapters::PostgreSQLColumn.string_to_cidr value
           end
         end
+        class Inet < Cidr
+          def type; :inet end
+        end
 
         class Json < Type
+          def type; :json end
+
           def type_cast_for_write(value)
             ConnectionAdapters::PostgreSQLColumn.json_to_string value
           end
@@ -261,6 +327,13 @@ module ActiveRecord
 
           def accessor
             ActiveRecord::Store::StringKeyedHashAccessor
+          end
+        end
+
+        class Uuid < Type
+          def type; :uuid end
+          def type_cast(value)
+            value.presence
           end
         end
 
@@ -310,7 +383,7 @@ module ActiveRecord
         }
 
         # Register an OID type named +name+ with a typecasting object in
-        # +type+.  +name+ should correspond to the `typname` column in
+        # +type+. +name+ should correspond to the `typname` column in
         # the `pg_type` table.
         def self.register_type(name, type)
           NAMES[name] = type
@@ -327,54 +400,46 @@ module ActiveRecord
         end
 
         register_type 'int2', OID::Integer.new
-        alias_type    'int4', 'int2'
-        alias_type    'int8', 'int2'
-        alias_type    'oid',  'int2'
-
-        register_type 'daterange', OID::Range.new(:date)
-        register_type 'numrange', OID::Range.new(:decimal)
-        register_type 'tsrange', OID::Range.new(:time)
-        register_type 'int4range', OID::Range.new(:integer)
-        alias_type    'tstzrange', 'tsrange'
-        alias_type    'int8range', 'int4range'
-
+        alias_type 'int4', 'int2'
+        alias_type 'int8', 'int2'
+        alias_type 'oid', 'int2'
         register_type 'numeric', OID::Decimal.new
-        register_type 'text', OID::Identity.new
-        alias_type 'varchar', 'text'
-        alias_type 'char', 'text'
-        alias_type 'bpchar', 'text'
-        alias_type 'xml', 'text'
-
-        # FIXME: why are we keeping these types as strings?
-        alias_type 'tsvector', 'text'
-        alias_type 'interval', 'text'
-        alias_type 'macaddr',  'text'
-        alias_type 'uuid',     'text'
-
-        register_type 'money', OID::Money.new
-        register_type 'bytea', OID::Bytea.new
-        register_type 'bool', OID::Boolean.new
-        register_type 'bit', OID::Bit.new
-        register_type 'varbit', OID::Bit.new
-
         register_type 'float4', OID::Float.new
         alias_type 'float8', 'float4'
-
+        register_type 'text', OID::Text.new
+        register_type 'varchar', OID::String.new
+        alias_type 'char', 'varchar'
+        alias_type 'bpchar', 'varchar'
+        register_type 'bool', OID::Boolean.new
+        register_type 'bit', OID::Bit.new
+        alias_type 'varbit', 'bit'
         register_type 'timestamp', OID::Timestamp.new
-        register_type 'timestamptz', OID::Timestamp.new
+        alias_type 'timestamptz', 'timestamp'
         register_type 'date', OID::Date.new
         register_type 'time', OID::Time.new
 
-        register_type 'path', OID::Identity.new
+        register_type 'money', OID::Money.new
+        register_type 'bytea', OID::Bytea.new
         register_type 'point', OID::Point.new
-        register_type 'polygon', OID::Identity.new
-        register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
-        register_type 'ltree', OID::Identity.new
-
         register_type 'cidr', OID::Cidr.new
-        alias_type 'inet', 'cidr'
+        register_type 'inet', OID::Inet.new
+        register_type 'uuid', OID::Uuid.new
+        register_type 'xml', SpecializedString.new(:xml)
+        register_type 'tsvector', SpecializedString.new(:tsvector)
+        register_type 'macaddr', SpecializedString.new(:macaddr)
+        register_type 'citext', SpecializedString.new(:citext)
+        register_type 'ltree', SpecializedString.new(:ltree)
+
+        # FIXME: why are we keeping these types as strings?
+        alias_type 'interval', 'varchar'
+        alias_type 'path', 'varchar'
+        alias_type 'line', 'varchar'
+        alias_type 'polygon', 'varchar'
+        alias_type 'circle', 'varchar'
+        alias_type 'lseg', 'varchar'
+        alias_type 'box', 'varchar'
       end
     end
   end

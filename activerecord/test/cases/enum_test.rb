@@ -194,6 +194,7 @@ class EnumTest < ActiveRecord::TestCase
       :valid,    # generates #valid?, which conflicts with an AR method
       :save,     # generates #save!, which conflicts with an AR method
       :proposed, # same value as an existing enum
+      :public, :private, :protected, # generates a method that conflict with ruby words
     ]
 
     conflicts.each_with_index do |value, i|
@@ -221,5 +222,68 @@ class EnumTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  test "validate uniqueness" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Book'; end
+      enum status: [:proposed, :written]
+      validates_uniqueness_of :status
+    end
+    klass.delete_all
+    klass.create!(status: "proposed")
+    book = klass.new(status: "written")
+    assert book.valid?
+    book.status = "proposed"
+    assert_not book.valid?
+  end
+
+  test "validate inclusion of value in array" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Book'; end
+      enum status: [:proposed, :written]
+      validates_inclusion_of :status, in: ["written"]
+    end
+    klass.delete_all
+    invalid_book = klass.new(status: "proposed")
+    assert_not invalid_book.valid?
+    valid_book = klass.new(status: "written")
+    assert valid_book.valid?
+  end
+
+  test "enums are distinct per class" do
+    klass1 = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written]
+    end
+
+    klass2 = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:drafted, :uploaded]
+    end
+
+    book1 = klass1.proposed.create!
+    book1.status = :written
+    assert_equal ['proposed', 'written'], book1.status_change
+
+    book2 = klass2.drafted.create!
+    book2.status = :uploaded
+    assert_equal ['drafted', 'uploaded'], book2.status_change
+  end
+
+  test "enums are inheritable" do
+    subklass1 = Class.new(Book)
+
+    subklass2 = Class.new(Book) do
+      enum status: [:drafted, :uploaded]
+    end
+
+    book1 = subklass1.proposed.create!
+    book1.status = :written
+    assert_equal ['proposed', 'written'], book1.status_change
+
+    book2 = subklass2.drafted.create!
+    book2.status = :uploaded
+    assert_equal ['drafted', 'uploaded'], book2.status_change
   end
 end

@@ -1,14 +1,14 @@
 require 'rails/generators/active_model'
+require 'rails/generators/model_helpers'
 
 module Rails
   module Generators
     # Deal with controller names on scaffold and add some helpers to deal with
     # ActiveModel.
     module ResourceHelpers # :nodoc:
-      mattr_accessor :skip_warn
 
       def self.included(base) #:nodoc:
-        base.class_option :force_plural, type: :boolean, desc: "Forces the use of a plural ModelName"
+        base.send :include, Rails::Generators::ModelHelpers
         base.class_option :model_name, type: :string, desc: "ModelName to be used"
       end
 
@@ -19,15 +19,6 @@ module Rails
         if options[:model_name]
           self.name = options[:model_name]
           assign_names!(self.name)
-        end
-
-        if name == name.pluralize && name.singularize != name.pluralize && !options[:force_plural]
-          unless ResourceHelpers.skip_warn
-            say "Plural version of the model detected, using singularized version. Override with --force-plural."
-            ResourceHelpers.skip_warn = true
-          end
-          name.replace name.singularize
-          assign_names!(name)
         end
 
         assign_controller_names!(controller_name.pluralize)

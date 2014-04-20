@@ -34,7 +34,7 @@ The naming convention of controllers in Rails favors pluralization of the last w
 
 Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
-NOTE: The controller naming convention differs from the naming convention of models, which expected to be named in singular form.
+NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
 
 Methods and Actions
@@ -260,7 +260,7 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any subhash of it
+This will mark the `:log_entry` parameters hash and any sub-hash of it
 permitted. Extreme care should be taken when using `permit!` as it
 will allow all current and future model attributes to be
 mass-assigned.
@@ -364,33 +364,48 @@ If you need a different session storage mechanism, you can change it in the `con
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
 # (create the session table with "rails g active_record:session_migration")
-# YourApp::Application.config.session_store :active_record_store
+# Rails.application.config.session_store :active_record_store
 ```
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in `config/initializers/session_store.rb`:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
+Rails.application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`
+Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/secrets.yml`
 
 ```ruby
 # Be sure to restart your server when you modify this file.
 
-# Your secret key for verifying the integrity of signed cookies.
+# Your secret key is used for verifying the integrity of signed cookies.
 # If you change this key, all old signed cookies will become invalid!
+
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
+# You can use `rake secret` to generate a secure secret key.
+
+# Make sure the secrets in this file are kept private
+# if you're sharing your code publicly.
+
+development:
+  secret_key_base: a75d...
+
+test:
+  secret_key_base: 492f...
+
+# Do not keep production secrets in the repository,
+# instead read values from the environment.
+production:
+  secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 ```
 
 NOTE: Changing the secret when using the `CookieStore` will invalidate all existing sessions.
@@ -603,6 +618,30 @@ It is also possible to pass a custom serializer that responds to `load` and
 ```ruby
 Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
 ```
+
+When using the `:json` or `:hybrid` serializer, you should beware that not all
+Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
+will be serialized as strings, and `Hash`es will have their keys stringified.
+
+```ruby
+class CookiesController < ApplicationController
+  def set_cookie
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
+    redirect_to action: 'read_cookie'
+  end
+
+  def read_cookie
+    cookies.encrypted[:expiration_date] # => "2014-03-20"
+  end
+end
+```
+
+It's advisable that you only store simple data (strings and numbers) in cookies.
+If you have to store complex objects, you would need to handle the conversion
+manually when reading the values on subsequent requests.
+
+If you use the cookie session store, this would apply to the `session` and
+`flash` hash as well.
 
 Rendering XML and JSON data
 ---------------------------

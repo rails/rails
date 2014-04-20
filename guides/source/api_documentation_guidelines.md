@@ -215,6 +215,13 @@ ordinary method names, symbols, paths (with forward slashes), etc. Please use
 `<tt>...</tt>` for everything else, notably class or module names with a
 namespace as in `<tt>ActiveRecord::Base</tt>`.
 
+You can quickly test the RDoc output with the following command:
+
+```
+$ echo "+:to_param+" | rdoc --pipe
+#=> <p><code>:to_param</code></p>
+```
+
 ### Regular Font
 
 When "true" and "false" are English words rather than Ruby keywords use a regular font:

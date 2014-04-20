@@ -212,7 +212,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) || mysql_56?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -533,6 +533,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
+    assert_equal false, Topic.new == Topic.new
   end
 
   def test_equality_of_destroyed_records
@@ -542,6 +543,47 @@ class BasicsTest < ActiveRecord::TestCase
     topic_1.destroy
     assert_equal topic_1, topic_2
     assert_equal topic_2, topic_1
+  end
+
+  def test_equality_with_blank_ids
+    one = Subscriber.new(:id => '')
+    two = Subscriber.new(:id => '')
+    assert_equal one, two
+  end
+
+  def test_equality_of_relation_and_collection_proxy
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert car.bulbs == Bulb.where(car_id: car.id), 'CollectionProxy should be comparable with Relation'
+    assert Bulb.where(car_id: car.id) == car.bulbs, 'Relation should be comparable with CollectionProxy'
+  end
+
+  def test_equality_of_relation_and_array
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, 'Relation should be comparable with Array'
+  end
+
+  def test_equality_of_relation_and_association_relation
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert_equal Bulb.where(car_id: car.id), car.bulbs.includes(:car), 'Relation should be comparable with AssociationRelation'
+    assert_equal car.bulbs.includes(:car), Bulb.where(car_id: car.id), 'AssociationRelation should be comparable with Relation'
+  end
+
+  def test_equality_of_collection_proxy_and_association_relation
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert_equal car.bulbs, car.bulbs.includes(:car), 'CollectionProxy should be comparable with AssociationRelation'
+    assert_equal car.bulbs.includes(:car), car.bulbs, 'AssociationRelation should be comparable with CollectionProxy'
   end
 
   def test_hashing
@@ -576,12 +618,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     assert_equal nil, Topic.find_by_id(topic.id)
-  end
-
-  def test_blank_ids
-    one = Subscriber.new(:id => '')
-    two = Subscriber.new(:id => '')
-    assert_equal one, two
   end
 
   def test_comparison_with_different_objects

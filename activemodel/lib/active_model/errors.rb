@@ -289,6 +289,13 @@ module ActiveModel
     #   # => NameIsInvalid: name is invalid
     #
     #   person.errors.messages # => {}
+    #
+    # +attribute+ should be set to <tt>:base</tt> if the error is not
+    # directly associated with a single attribute.
+    #
+    #   person.errors.add(:base, "either name or email must be present")
+    #   person.errors.messages
+    #   # => {:base=>["either name or email must be present"]}
     def add(attribute, message = :invalid, options = {})
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]

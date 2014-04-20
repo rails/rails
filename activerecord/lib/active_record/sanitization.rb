@@ -107,6 +107,13 @@ module ActiveRecord
         end.join(', ')
       end
 
+      # Sanitizes a +string+ so that it is safe to use within a sql
+      # LIKE statement. This method uses +escape_character+ to escape all occurrences of "\", "_" and "%"
+      def sanitize_sql_like(string, escape_character = "\\")
+        pattern = Regexp.union(escape_character, "%", "_")
+        string.gsub(pattern) { |x| [escape_character, x].join }
+      end
+
       # Accepts an array of conditions. The array has each value
       # sanitized and interpolated into the SQL statement.
       #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"

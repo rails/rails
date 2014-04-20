@@ -248,7 +248,7 @@ To see how a test failure is reported, you can add a failing test to the `post_t
 ```ruby
 test "should not save post without title" do
   post = Post.new
-  assert !post.save
+  assert_not post.save
 end
 ```
 
@@ -272,7 +272,7 @@ In the output, `F` denotes a failure. You can see the corresponding trace shown 
 ```ruby
 test "should not save post without title" do
   post = Post.new
-  assert !post.save, "Saved the post without a title"
+  assert_not post.save, "Saved the post without a title"
 end
 ```
 
@@ -796,7 +796,7 @@ when you initiate a Rails project.
 Brief Note About `MiniTest`
 -----------------------------
 
-Ruby ships with a boat load of libraries. Ruby 1.8 provides `Test::Unit`, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in `Test::Unit::Assertions`. The class `ActiveSupport::TestCase` which we have been using in our unit and functional tests extends `Test::Unit::TestCase`, allowing
+Ruby ships with a vast Standard Library for all common use-cases including testing. Ruby 1.8 provided `Test::Unit`, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in `Test::Unit::Assertions`. The class `ActiveSupport::TestCase` which we have been using in our unit and functional tests extends `Test::Unit::TestCase`, allowing
 us to use all of the basic assertions in our tests.
 
 Ruby 1.9 introduced `MiniTest`, an updated version of `Test::Unit` which provides a backwards compatible API for `Test::Unit`. You could also use `MiniTest` in Ruby 1.8 by installing the `minitest` gem.
@@ -943,7 +943,7 @@ class UserMailerTest < ActionMailer::TestCase
     # Send the email, then test that it got queued
     email = UserMailer.create_invite('me@example.com',
                                      'friend@example.com', Time.now).deliver
-    assert !ActionMailer::Base.deliveries.empty?
+    assert_not ActionMailer::Base.deliveries.empty?
 
     # Test the body of the sent email contains what we expect it to
     assert_equal ['me@example.com'], email.from

@@ -15,38 +15,37 @@ directory "pkg"
       rm_f gem
     end
 
-    task :update_version_rb do
+    task :update_versions do
       glob = root.dup
-      glob << "/#{framework}/lib/*" unless framework == "rails"
-      glob << "/version.rb"
+      if framework == "rails"
+        glob << "/version.rb"
+      else
+        glob << "/#{framework}/lib/*"
+        glob << "/gem_version.rb"
+      end
 
       file = Dir[glob].first
       ruby = File.read(file)
 
-      if framework == "rails" || framework == "railties"
-        major, minor, tiny, pre = version.split('.')
-        pre = pre ? pre.inspect : "nil"
+      major, minor, tiny, pre = version.split('.')
+      pre = pre ? pre.inspect : "nil"
 
-        ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
-        raise "Could not insert MAJOR in #{file}" unless $1
+      ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
+      raise "Could not insert MAJOR in #{file}" unless $1
 
-        ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{minor}")
-        raise "Could not insert MINOR in #{file}" unless $1
+      ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{minor}")
+      raise "Could not insert MINOR in #{file}" unless $1
 
-        ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{tiny}")
-        raise "Could not insert TINY in #{file}" unless $1
+      ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{tiny}")
+      raise "Could not insert TINY in #{file}" unless $1
 
-        ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre}")
-        raise "Could not insert PRE in #{file}" unless $1
-      else
-        ruby.gsub!(/^(\s*)Gem::Version\.new .*?$/, "\\1Gem::Version.new \"#{version}\"")
-        raise "Could not insert Gem::Version in #{file}" unless $1
-      end
+      ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre}")
+      raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, 'w') { |f| f.write ruby }
     end
 
-    task gem => %w(update_version_rb pkg) do
+    task gem => %w(update_versions pkg) do
       cmd = ""
       cmd << "cd #{framework} && " unless framework == "rails"
       cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
@@ -68,7 +67,7 @@ end
 
 namespace :changelog do
   task :release_date do
-    FRAMEWORKS.each do |fw|
+    (FRAMEWORKS + ['guides']).each do |fw|
       require 'date'
       replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
       fname = File.join fw, 'CHANGELOG.md'
@@ -79,7 +78,7 @@ namespace :changelog do
   end
 
   task :release_summary do
-    FRAMEWORKS.each do |fw|
+    (FRAMEWORKS + ['guides']).each do |fw|
       puts "## #{fw}"
       fname    = File.join fw, 'CHANGELOG.md'
       contents = File.readlines fname
@@ -93,16 +92,17 @@ namespace :changelog do
 end
 
 namespace :all do
-  task :build   => FRAMEWORKS.map { |f| "#{f}:build"   } + ['rails:build']
-  task :install => FRAMEWORKS.map { |f| "#{f}:install" } + ['rails:install']
-  task :push    => FRAMEWORKS.map { |f| "#{f}:push"    } + ['rails:push']
+  task :build           => FRAMEWORKS.map { |f| "#{f}:build"           } + ['rails:build']
+  task :update_versions => FRAMEWORKS.map { |f| "#{f}:update_versions" } + ['rails:update_versions']
+  task :install         => FRAMEWORKS.map { |f| "#{f}:install"         } + ['rails:install']
+  task :push            => FRAMEWORKS.map { |f| "#{f}:push"            } + ['rails:push']
 
   task :ensure_clean_state do
     unless `git status -s | grep -v RAILS_VERSION`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
-    unless ENV['SKIP_TAG'] || `git tag | grep #{tag}`.strip.empty?
+    unless ENV['SKIP_TAG'] || `git tag | grep '^#{tag}$`.strip.empty?
       abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
     end

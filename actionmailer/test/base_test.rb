@@ -13,6 +13,7 @@ class BaseTest < ActiveSupport::TestCase
   def teardown
     ActionMailer::Base.asset_host = nil
     ActionMailer::Base.assets_dir = nil
+    ActionMailer::Base.preview_interceptors.clear
   end
 
   test "method call to mail does not raise error" do
@@ -593,7 +594,7 @@ class BaseTest < ActiveSupport::TestCase
   test "you can register a preview interceptor to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor(MyInterceptor)
     mail = BaseMailer.welcome
-    BaseMailerPreview.stubs(:welcome).returns(mail)
+    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
     MyInterceptor.expects(:previewing_email).with(mail)
     BaseMailerPreview.call(:welcome)
   end
@@ -601,7 +602,7 @@ class BaseTest < ActiveSupport::TestCase
   test "you can register a preview interceptor using its stringified name to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor("BaseTest::MyInterceptor")
     mail = BaseMailer.welcome
-    BaseMailerPreview.stubs(:welcome).returns(mail)
+    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
     MyInterceptor.expects(:previewing_email).with(mail)
     BaseMailerPreview.call(:welcome)
   end
@@ -609,7 +610,7 @@ class BaseTest < ActiveSupport::TestCase
   test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor(:"base_test/my_interceptor")
     mail = BaseMailer.welcome
-    BaseMailerPreview.stubs(:welcome).returns(mail)
+    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
     MyInterceptor.expects(:previewing_email).with(mail)
     BaseMailerPreview.call(:welcome)
   end
@@ -617,7 +618,7 @@ class BaseTest < ActiveSupport::TestCase
   test "you can register multiple preview interceptors to the mail object that both get passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
     mail = BaseMailer.welcome
-    BaseMailerPreview.stubs(:welcome).returns(mail)
+    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
     MyInterceptor.expects(:previewing_email).with(mail)
     MySecondInterceptor.expects(:previewing_email).with(mail)
     BaseMailerPreview.call(:welcome)

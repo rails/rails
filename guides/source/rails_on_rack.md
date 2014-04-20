@@ -27,10 +27,9 @@ Rails on Rack
 
 ### Rails Application's Rack Object
 
-`ApplicationName::Application` is the primary Rack application object of a Rails
+`Rails.application` is the primary Rack application object of a Rails
 application. Any Rack compliant web server should be using
-`ApplicationName::Application` object to serve a Rails
-application. `Rails.application` refers to the same application object.
+`Rails.application` object to serve a Rails application.
 
 ### `rails server`
 
@@ -141,7 +140,7 @@ use ActionDispatch::ParamsParser
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
-run MyApp::Application.routes
+run Rails.application.routes
 ```
 
 The default middlewares shown here (and some others) are each summarized in the [Internal Middlewares](#internal-middleware-stack) section, below.
@@ -201,7 +200,7 @@ use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
 use Rack::Runtime
 ...
-run Blog::Application.routes
+run Rails.application.routes
 ```
 
 If you want to remove session related middleware, do the following:

@@ -166,6 +166,7 @@ is called.
 COMMAND_WHITELIST = %(plugin generate destroy console server dbconsole application runner new version help)
 
 def run_command!(command)
+  command = parse_command(command)
   if COMMAND_WHITELIST.include?(command)
     send(command)
   else
@@ -178,8 +179,7 @@ With the `server` command, Rails will further run the following code:
 
 ```ruby
 def set_application_directory!
-  Dir.chdir(File.expand_path('../../', APP_PATH)) unless
-  File.exist?(File.expand_path("config.ru"))
+  Dir.chdir(File.expand_path('../../', APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
 end
 
 def server
@@ -187,6 +187,8 @@ def server
   require_command!("server")
 
   Rails::Server.new.tap do |server|
+    # We need to require application after the server sets environment,
+    # otherwise the --environment option given to the server won't propagate.
     require APP_PATH
     Dir.chdir(Rails.application.root)
     server.start
@@ -207,6 +209,7 @@ sets up the `Rails::Server` class.
 require 'fileutils'
 require 'optparse'
 require 'action_dispatch'
+require 'rails'
 
 module Rails
   class Server < ::Rack::Server
@@ -273,7 +276,7 @@ def parse_options(args)
   # http://www.meb.uni-bonn.de/docs/cgi/cl.html
   args.clear if ENV.include?("REQUEST_METHOD")
 
-  options.merge! opt_parser.parse! args
+  options.merge! opt_parser.parse!(args)
   options[:config] = ::File.expand_path(options[:config])
   ENV["RACK_ENV"] = options[:environment]
   options
@@ -284,13 +287,16 @@ With the `default_options` set to this:
 
 ```ruby
 def default_options
+  environment  = ENV['RACK_ENV'] || 'development'
+  default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
+
   {
-    environment: ENV['RACK_ENV'] || "development",
-    pid:         nil,
-    Port:        9292,
-    Host:        "0.0.0.0",
-    AccessLog:   [],
-    config:      "config.ru"
+    :environment => environment,
+    :pid         => nil,
+    :Port        => 9292,
+    :Host        => default_host,
+    :AccessLog   => [],
+    :config      => "config.ru"
   }
 end
 ```
@@ -348,6 +354,7 @@ private
   def print_boot_information
     ...
     puts "=> Run `rails server -h` for more startup options"
+    ...
     puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
   end
 
@@ -434,7 +441,11 @@ The `app` method here is defined like so:
 
 ```ruby
 def app
-  @app ||= begin
+  @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
+end
+...
+private
+  def build_app_and_options_from_config
     if !::File.exist? options[:config]
       abort "configuration #{options[:config]} not found"
     end
@@ -443,7 +454,10 @@ def app
     self.options.merge! options
     app
   end
-end
+
+  def build_app_from_string
+    Rack::Builder.new_from_string(self.options[:builder])
+  end
 ```
 
 The `options[:config]` value defaults to `config.ru` which contains this:
@@ -459,8 +473,14 @@ run <%= app_const %>
 The `Rack::Builder.parse_file` method here takes the content from this `config.ru` file and parses it using this code:
 
 ```ruby
-app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
-    TOPLEVEL_BINDING, config
+app = new_from_string cfgfile, config
+
+...
+
+def self.new_from_string(builder_script, file="(rackup)")
+  eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
+    TOPLEVEL_BINDING, file, 0
+end
 ```
 
 The `initialize` method of `Rack::Builder` will take the block here and execute it within an instance of `Rack::Builder`. This is where the majority of the initialization process of Rails happens. The `require` line for `config/environment.rb` in `config.ru` is the first to run:
@@ -473,11 +493,22 @@ require ::File.expand_path('../config/environment', __FILE__)
 
 This file is the common file required by `config.ru` (`rails server`) and Passenger. This is where these two ways to run the server meet; everything before this point has been Rack and Rails setup.
 
-This file begins with requiring `config/application.rb`.
+This file begins with requiring `config/application.rb`:
+
+```ruby
+require File.expand_path('../application', __FILE__)
+```
 
 ### `config/application.rb`
 
-This file requires `config/boot.rb`, but only if it hasn't been required before, which would be the case in `rails server` but **wouldn't** be the case with Passenger.
+This file requires `config/boot.rb`:
+
+```ruby
+require File.expand_path('../boot', __FILE__)
+```
+
+But only if it hasn't been required before, which would be the case in `rails server`
+but **wouldn't** be the case with Passenger.
 
 Then the fun begins!
 
@@ -498,11 +529,12 @@ This file is responsible for requiring all the individual frameworks of Rails:
 require "rails"
 
 %w(
-    active_record
-    action_controller
-    action_mailer
-    rails/test_unit
-    sprockets
+  active_record
+  action_controller
+  action_view
+  action_mailer
+  rails/test_unit
+  sprockets
 ).each do |framework|
   begin
     require "#{framework}/railtie"
@@ -526,7 +558,7 @@ The rest of `config/application.rb` defines the configuration for the
 initialized. When `config/application.rb` has finished loading Rails and defined
 the application namespace, we go back to `config/environment.rb`,
 where the application is initialized. For example, if the application was called
-`Blog`, here we would find `Blog::Application.initialize!`, which is
+`Blog`, here we would find `Rails.application.initialize!`, which is
 defined in `rails/application.rb`
 
 ### `railties/lib/rails/application.rb`
@@ -555,7 +587,7 @@ def run_initializers(group=:default, *args)
 end
 ```
 
-The run_initializers code itself is tricky. What Rails is doing here is
+The `run_initializers` code itself is tricky. What Rails is doing here is
 traversing all the class ancestors looking for those that respond to an
 `initializers` method. It then sorts the ancestors by name, and runs them.
 For example, the `Engine` class will make all the engines available by
@@ -568,7 +600,7 @@ initializers (like building the middleware stack) are run last. The `railtie`
 initializers are the initializers which have been defined on the `Rails::Application`
 itself and are run between the `bootstrap` and `finishers`.
 
-After this is done we go back to `Rack::Server`
+After this is done we go back to `Rack::Server`.
 
 ### Rack: lib/rack/server.rb
 
@@ -576,7 +608,11 @@ Last time we left when the `app` method was being defined:
 
 ```ruby
 def app
-  @app ||= begin
+  @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
+end
+...
+private
+  def build_app_and_options_from_config
     if !::File.exist? options[:config]
       abort "configuration #{options[:config]} not found"
     end
@@ -585,7 +621,10 @@ def app
     self.options.merge! options
     app
   end
-end
+
+  def build_app_from_string
+    Rack::Builder.new_from_string(self.options[:builder])
+  end
 ```
 
 At this point `app` is the Rails app itself (a middleware), and what
@@ -603,7 +642,7 @@ def build_app(app)
 end
 ```
 
-Remember, `build_app` was called (by wrapped_app) in the last line of `Server#start`.
+Remember, `build_app` was called (by `wrapped_app`) in the last line of `Server#start`.
 Here's how it looked like when we left:
 
 ```ruby
@@ -611,40 +650,50 @@ server.run wrapped_app, options, &blk
 ```
 
 At this point, the implementation of `server.run` will depend on the
-server you're using. For example, if you were using Mongrel, here's what
+server you're using. For example, if you were using Puma, here's what
 the `run` method would look like:
 
 ```ruby
-def self.run(app, options={})
-  server = ::Mongrel::HttpServer.new(
-    options[:Host]           || '0.0.0.0',
-    options[:Port]           || 8080,
-    options[:num_processors] || 950,
-    options[:throttle]       || 0,
-    options[:timeout]        || 60)
-  # Acts like Rack::URLMap, utilizing Mongrel's own path finding methods.
-  # Use is similar to #run, replacing the app argument with a hash of
-  # { path=>app, ... } or an instance of Rack::URLMap.
-  if options[:map]
-    if app.is_a? Hash
-      app.each do |path, appl|
-        path = '/'+path unless path[0] == ?/
-        server.register(path, Rack::Handler::Mongrel.new(appl))
-      end
-    elsif app.is_a? URLMap
-      app.instance_variable_get(:@mapping).each do |(host, path, appl)|
-       next if !host.nil? && !options[:Host].nil? && options[:Host] != host
-       path = '/'+path unless path[0] == ?/
-       server.register(path, Rack::Handler::Mongrel.new(appl))
-      end
-    else
-      raise ArgumentError, "first argument should be a Hash or URLMap"
-    end
-  else
-    server.register('/', Rack::Handler::Mongrel.new(app))
+...
+DEFAULT_OPTIONS = {
+  :Host => '0.0.0.0',
+  :Port => 8080,
+  :Threads => '0:16',
+  :Verbose => false
+}
+
+def self.run(app, options = {})
+  options  = DEFAULT_OPTIONS.merge(options)
+
+  if options[:Verbose]
+    app = Rack::CommonLogger.new(app, STDOUT)
   end
+
+  if options[:environment]
+    ENV['RACK_ENV'] = options[:environment].to_s
+  end
+
+  server   = ::Puma::Server.new(app)
+  min, max = options[:Threads].split(':', 2)
+
+  puts "Puma #{::Puma::Const::PUMA_VERSION} starting..."
+  puts "* Min threads: #{min}, max threads: #{max}"
+  puts "* Environment: #{ENV['RACK_ENV']}"
+  puts "* Listening on tcp://#{options[:Host]}:#{options[:Port]}"
+
+  server.add_tcp_listener options[:Host], options[:Port]
+  server.min_threads = min
+  server.max_threads = max
   yield server if block_given?
-  server.run.join
+
+  begin
+    server.run.join
+  rescue Interrupt
+    puts "* Gracefully stopping, waiting for requests to finish"
+    server.stop(true)
+    puts "* Goodbye!"
+  end
+
 end
 ```
 

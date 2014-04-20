@@ -163,6 +163,29 @@ XML
     end
   end
 
+  class DefaultUrlOptionsCachingController < ActionController::Base
+    before_filter { @dynamic_opt = 'opt' }
+
+    def test_url_options_reset
+      render text: url_for(params)
+    end
+
+    def default_url_options
+      if defined?(@dynamic_opt)
+        super.merge dynamic_opt: @dynamic_opt
+      else
+        super
+      end
+    end
+  end
+
+  def test_url_options_reset
+    @controller = DefaultUrlOptionsCachingController.new
+    get :test_url_options_reset
+    assert_nil @request.params['dynamic_opt']
+    assert_match(/dynamic_opt=opt/, @response.body)
+  end
+
   def test_raw_post_handling
     params = Hash[:page, {:name => 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup

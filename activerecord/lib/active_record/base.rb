@@ -310,8 +310,8 @@ module ActiveRecord #:nodoc:
     include Locking::Optimistic
     include Locking::Pessimistic
     include AttributeMethods
-    include Callbacks
     include Timestamp
+    include Callbacks
     include Associations
     include ActiveModel::SecurePassword
     include AutosaveAssociation

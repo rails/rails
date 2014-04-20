@@ -18,8 +18,7 @@ module ActiveRecord
         end
       end
 
-      def teardown
-        super
+      teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Base.primary_key_prefix_type = nil
       end

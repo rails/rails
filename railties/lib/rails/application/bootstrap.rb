@@ -53,11 +53,7 @@ INFO
           logger
         end
 
-        if ::Logger === Rails.logger
-          Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
-        else
-          Rails.logger.level = config.log_level
-        end
+        Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
       end
 
       # Initialize cache early in the stack so railties can make use of it.

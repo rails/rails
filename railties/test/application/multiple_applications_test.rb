@@ -21,6 +21,12 @@ module ApplicationTests
       assert_equal Rails.application.config.secret_key_base, clone.config.secret_key_base, "The base secret key on the config should be the same"
     end
 
+    def test_inheriting_multiple_times_from_application
+      new_application_class = Class.new(Rails::Application)
+
+      assert_not_equal Rails.application.object_id, new_application_class.instance.object_id
+    end
+
     def test_initialization_of_multiple_copies_of_same_application
       application1 = AppTemplate::Application.new
       application2 = AppTemplate::Application.new
@@ -114,6 +120,26 @@ module ApplicationTests
       AppTemplate::Application.new { config.eager_load = false }.initialize!
 
       assert_equal 3, $run_count, "There should have been three initializers that incremented the count"
+    end
+
+    def test_consoles_run_on_different_applications_go_to_the_same_class
+      $run_count = 0
+      AppTemplate::Application.console { $run_count += 1 }
+      AppTemplate::Application.new.console { $run_count += 1 }
+
+      assert_equal 0, $run_count, "Without loading the consoles, the count should be 0"
+      Rails.application.load_console
+      assert_equal 2, $run_count, "There should have been two consoles that increment the count"
+    end
+
+    def test_generators_run_on_different_applications_go_to_the_same_class
+      $run_count = 0
+      AppTemplate::Application.generators { $run_count += 1 }
+      AppTemplate::Application.new.generators { $run_count += 1 }
+
+      assert_equal 0, $run_count, "Without loading the generators, the count should be 0"
+      Rails.application.load_generators
+      assert_equal 2, $run_count, "There should have been two generators that increment the count"
     end
 
     def test_runners_run_on_different_applications_go_to_the_same_class

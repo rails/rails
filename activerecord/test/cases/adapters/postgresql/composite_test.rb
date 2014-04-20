@@ -8,7 +8,7 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
     self.table_name = "postgresql_composites"
   end
 
-  def teardown
+  teardown do
     @connection.execute 'DROP TABLE IF EXISTS postgresql_composites'
     @connection.execute 'DROP TYPE IF EXISTS full_address'
   end
@@ -27,6 +27,17 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
         t.column :address, :full_address
       end
     end
+  end
+
+  def test_column
+    column = PostgresqlComposite.columns_hash["address"]
+    # TODO: Composite columns should have a type
+    assert_nil column.type
+    assert_equal "full_address", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
   end
 
   def test_composite_mapping

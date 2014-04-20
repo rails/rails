@@ -71,8 +71,8 @@ module ActiveRecord
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use, :logger
-      alias :in_use? :in_use
+      attr_reader :schema_cache, :owner, :logger
+      alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
         if config =~ SIMPLE_INT
@@ -94,9 +94,8 @@ module ActiveRecord
         super()
 
         @connection          = connection
-        @in_use              = false
+        @owner               = nil
         @instrumenter        = ActiveSupport::Notifications.instrumenter
-        @last_use            = false
         @logger              = logger
         @pool                = pool
         @schema_cache        = SchemaCache.new self
@@ -114,9 +113,8 @@ module ActiveRecord
 
       def lease
         synchronize do
-          unless in_use
-            @in_use   = true
-            @last_use = Time.now
+          unless in_use?
+            @owner = Thread.current
           end
         end
       end
@@ -127,7 +125,7 @@ module ActiveRecord
       end
 
       def expire
-        @in_use = false
+        @owner = nil
       end
 
       def unprepared_visitor
@@ -148,28 +146,19 @@ module ActiveRecord
         'Abstract'
       end
 
-      # Does this adapter support migrations? Backend specific, as the
-      # abstract adapter always returns +false+.
+      # Does this adapter support migrations?
       def supports_migrations?
         false
       end
 
       # Can this adapter determine the primary key for tables not attached
-      # to an Active Record class, such as join tables? Backend specific, as
-      # the abstract adapter always returns +false+.
+      # to an Active Record class, such as join tables?
       def supports_primary_key?
         false
       end
 
-      # Does this adapter support using DISTINCT within COUNT? This is +true+
-      # for all adapters except sqlite.
-      def supports_count_distinct?
-        true
-      end
-
       # Does this adapter support DDL rollbacks in transactions? That is, would
-      # CREATE TABLE or ALTER TABLE get rolled back by a transaction? PostgreSQL,
-      # SQL Server, and others support this. MySQL and others do not.
+      # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
       def supports_ddl_transactions?
         false
       end
@@ -178,8 +167,7 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support savepoints? PostgreSQL and MySQL do,
-      # SQLite < 3.6.8 does not.
+      # Does this adapter support savepoints?
       def supports_savepoints?
         false
       end
@@ -187,7 +175,6 @@ module ActiveRecord
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
-      # This is false for all adapters but Firebird.
       def prefetch_primary_key?(table_name = nil)
         false
       end
@@ -202,8 +189,7 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support explain? As of this writing sqlite3,
-      # mysql2, and postgresql are the only ones that do.
+      # Does this adapter support explain?
       def supports_explain?
         false
       end
@@ -213,9 +199,14 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support database extensions? As of this writing only
-      # postgresql does.
+      # Does this adapter support database extensions?
       def supports_extensions?
+        false
+      end
+
+      # Does this adapter support creating indexes in the same statement as
+      # creating the table?
+      def supports_indexes_in_create?
         false
       end
 
@@ -227,14 +218,12 @@ module ActiveRecord
       def enable_extension(name)
       end
 
-      # A list of extensions, to be filled in by adapters that support them. At
-      # the moment only postgresql does.
+      # A list of extensions, to be filled in by adapters that support them.
       def extensions
         []
       end
 
       # A list of index algorithms, to be filled by adapters that support them.
-      # MySQL and PostgreSQL have support for them right now.
       def index_algorithms
         {}
       end
@@ -260,12 +249,6 @@ module ActiveRecord
       # checking whether the database is actually capable of responding, i.e. whether
       # the connection isn't stale.
       def active?
-      end
-
-      # Adapter should redefine this if it needs a threadsafe way to approximate
-      # if the connection is active
-      def active_threadsafe?
-        active?
       end
 
       # Disconnects from the database if already connected, and establishes a
@@ -301,7 +284,6 @@ module ActiveRecord
       end
 
       # Returns true if its required to reload the connection between requests for development mode.
-      # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
       def requires_reloading?
         false
       end
@@ -338,6 +320,11 @@ module ActiveRecord
 
       def case_sensitive_modifier(node)
         node
+      end
+
+      def case_sensitive_comparison(table, attribute, column, value)
+        value = case_sensitive_modifier(value) unless value.nil?
+        table[attribute].eq(value)
       end
 
       def case_insensitive_comparison(table, attribute, column, value)

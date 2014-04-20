@@ -3,7 +3,7 @@ namespace :rails do
   task update: [ "update:configs", "update:bin" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
-  task :template do
+  task template: :environment do
     template = ENV["LOCATION"]
     raise "No LOCATION value given. Please set LOCATION either as path to a file or a URL" if template.blank?
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}

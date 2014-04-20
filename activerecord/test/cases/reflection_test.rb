@@ -63,7 +63,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_column_string_type_and_limit
     assert_equal :string, @first.column_for_attribute("title").type
-    assert_equal 255, @first.column_for_attribute("title").limit
+    assert_equal 250, @first.column_for_attribute("title").limit
   end
 
   def test_column_null_not_null
@@ -85,6 +85,14 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_nothing_raised do
       assert_equal MyApplication::Business::Company, reflection.klass
     end
+  end
+
+  def test_irregular_reflection_class_name
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.irregular 'plural_irregular', 'plurales_irregulares'
+    end
+    reflection = AssociationReflection.new(:has_many, 'plurales_irregulares', nil, {}, ActiveRecord::Base)
+    assert_equal 'PluralIrregular', reflection.class_name
   end
 
   def test_aggregation_reflection
@@ -192,7 +200,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_should_not_raise_error_when_compared_to_other_object
-    assert_nothing_raised { Firm.reflections[:clients] == Object.new }
+    assert_nothing_raised { Firm.reflections['clients'] == Object.new }
   end
 
   def test_has_many_through_reflection

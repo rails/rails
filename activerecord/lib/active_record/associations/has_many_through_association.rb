@@ -18,7 +18,7 @@ module ActiveRecord
       # SELECT query if you use #length.
       def size
         if has_cached_counter?
-          owner.send(:read_attribute, cached_counter_attribute_name)
+          owner.read_attribute cached_counter_attribute_name(reflection)
         elsif loaded?
           target.size
         else
@@ -30,7 +30,6 @@ module ActiveRecord
         unless owner.new_record?
           records.flatten.each do |record|
             raise_on_type_mismatch!(record)
-            record.save! if record.new_record?
           end
         end
 
@@ -40,7 +39,7 @@ module ActiveRecord
       def concat_records(records)
         ensure_not_nested
 
-        records = super
+        records = super(records, true)
 
         if owner.new_record? && records
           records.flatten.each do |record|
@@ -84,10 +83,14 @@ module ActiveRecord
           @through_records[record.object_id] ||= begin
             ensure_mutable
 
-            through_record = through_association.build
+            through_record = through_association.build through_scope_attributes
             through_record.send("#{source_reflection.name}=", record)
             through_record
           end
+        end
+
+        def through_scope_attributes
+          scope.where_values_hash(through_association.reflection.name.to_s)
         end
 
         def save_through_record(record)

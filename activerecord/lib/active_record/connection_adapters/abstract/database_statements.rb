@@ -20,14 +20,7 @@ module ActiveRecord
 
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [])
-        if arel.is_a?(Relation)
-          relation = arel
-          arel = relation.arel
-          if !binds || binds.empty?
-            binds = relation.bind_values
-          end
-        end
-
+        arel, binds = binds_from_relation arel, binds
         select(to_sql(arel, binds), name, binds)
       end
 
@@ -47,10 +40,7 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil)
-        binds = []
-        if arel.is_a?(Relation)
-          arel, binds = arel.arel, arel.bind_values
-        end
+        arel, binds = binds_from_relation arel, []
         select_rows(to_sql(arel, binds), name, binds).map(&:first)
       end
 
@@ -328,7 +318,7 @@ module ActiveRecord
       def sanitize_limit(limit)
         if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
           limit
-        elsif limit.to_s =~ /,/
+        elsif limit.to_s.include?(',')
           Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
         else
           Integer(limit)
@@ -388,6 +378,13 @@ module ActiveRecord
         def last_inserted_id(result)
           row = result.rows.first
           row && row.first
+        end
+
+        def binds_from_relation(relation, binds)
+          if relation.is_a?(Relation) && binds.empty?
+            relation, binds = relation.arel, relation.bind_values
+          end
+          [relation, binds]
         end
     end
   end

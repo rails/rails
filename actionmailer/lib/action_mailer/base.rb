@@ -94,7 +94,7 @@ module ActionMailer
   #   Hi <%= @account.name %>,
   #   Thanks for joining our service! Please check back often.
   #
-  # You can even use Action Pack helpers in these views. For example:
+  # You can even use Action View helpers in these views. For example:
   #
   #   You got a new note!
   #   <%= truncate(@note.body, length: 25) %>

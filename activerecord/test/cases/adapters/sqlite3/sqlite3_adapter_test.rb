@@ -2,28 +2,22 @@
 require "cases/helper"
 require 'models/owner'
 require 'tempfile'
+require 'support/ddl_helper'
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::TestCase
+      include DdlHelper
+
       self.use_transactional_fixtures = false
 
       class DualEncoding < ActiveRecord::Base
       end
 
       def setup
-        @conn = Base.sqlite3_connection :database => ':memory:',
-                                       :adapter => 'sqlite3',
-                                       :timeout => 100
-        @conn.execute <<-eosql
-          CREATE TABLE items (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            number integer
-          )
-        eosql
-
-        @subscriber = SQLSubscriber.new
-        ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+        @conn = Base.sqlite3_connection database: ':memory:',
+                                        adapter: 'sqlite3',
+                                        timeout: 100
       end
 
       def test_bad_connection
@@ -37,7 +31,7 @@ module ActiveRecord
         def test_connect_with_url
           original_connection = ActiveRecord::Base.remove_connection
           tf = Tempfile.open 'whatever'
-          url = "sqlite3://#{tf.path}"
+          url = "sqlite3:#{tf.path}"
           ActiveRecord::Base.establish_connection(url)
           assert ActiveRecord::Base.connection
         ensure
@@ -48,7 +42,7 @@ module ActiveRecord
 
         def test_connect_memory_with_url
           original_connection = ActiveRecord::Base.remove_connection
-          url = "sqlite3:///:memory:"
+          url = "sqlite3::memory:"
           ActiveRecord::Base.establish_connection(url)
           assert ActiveRecord::Base.connection
         ensure
@@ -57,8 +51,10 @@ module ActiveRecord
       end
 
       def test_valid_column
-        column = @conn.columns('items').find { |col| col.name == 'id' }
-        assert @conn.valid_type?(column.type)
+        with_example_table do
+          column = @conn.columns('ex').find { |col| col.name == 'id' }
+          assert @conn.valid_type?(column.type)
+        end
       end
 
       # sqlite databases should be able to support any type and not
@@ -69,13 +65,8 @@ module ActiveRecord
         assert @conn.valid_type?(:foobar)
       end
 
-      def teardown
-        ActiveSupport::Notifications.unsubscribe(@subscriber)
-        super
-      end
-
       def test_column_types
-        owner = Owner.create!(:name => "hello".encode('ascii-8bit'))
+        owner = Owner.create!(name: "hello".encode('ascii-8bit'))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ', '
         result = Owner.connection.exec_query <<-esql
@@ -85,23 +76,28 @@ module ActiveRecord
         esql
 
         assert(!result.rows.first.include?("blob"), "should not store blobs")
+      ensure
+        owner.delete
       end
 
       def test_exec_insert
-        column = @conn.columns('items').find { |col| col.name == 'number' }
-        vals   = [[column, 10]]
-        @conn.exec_insert('insert into items (number) VALUES (?)', 'SQL', vals)
+        with_example_table do
+          column = @conn.columns('ex').find { |col| col.name == 'number' }
+          vals   = [[column, 10]]
+          @conn.exec_insert('insert into ex (number) VALUES (?)', 'SQL', vals)
 
-        result = @conn.exec_query(
-          'select number from items where number = ?', 'SQL', vals)
+          result = @conn.exec_query(
+            'select number from ex where number = ?', 'SQL', vals)
 
-        assert_equal 1, result.rows.length
-        assert_equal 10, result.rows.first.first
+          assert_equal 1, result.rows.length
+          assert_equal 10, result.rows.first.first
+        end
       end
 
       def test_primary_key_returns_nil_for_no_pk
-        @conn.exec_query('create table ex(id int, data string)')
-        assert_nil @conn.primary_key('ex')
+        with_example_table 'id int, data string' do
+          assert_nil @conn.primary_key('ex')
+        end
       end
 
       def test_connection_no_db
@@ -112,17 +108,17 @@ module ActiveRecord
 
       def test_bad_timeout
         assert_raises(TypeError) do
-          Base.sqlite3_connection :database => ':memory:',
-                                  :adapter => 'sqlite3',
-                                  :timeout => 'usa'
+          Base.sqlite3_connection database: ':memory:',
+                                  adapter: 'sqlite3',
+                                  timeout: 'usa'
         end
       end
 
       # connection is OK with a nil timeout
       def test_nil_timeout
-        conn = Base.sqlite3_connection :database => ':memory:',
-                                       :adapter => 'sqlite3',
-                                       :timeout => nil
+        conn = Base.sqlite3_connection database: ':memory:',
+                                       adapter: 'sqlite3',
+                                       timeout: nil
         assert conn, 'made a connection'
       end
 
@@ -141,44 +137,47 @@ module ActiveRecord
       end
 
       def test_exec_no_binds
-        @conn.exec_query('create table ex(id int, data string)')
-        result = @conn.exec_query('SELECT id, data FROM ex')
-        assert_equal 0, result.rows.length
-        assert_equal 2, result.columns.length
-        assert_equal %w{ id data }, result.columns
+        with_example_table 'id int, data string' do
+          result = @conn.exec_query('SELECT id, data FROM ex')
+          assert_equal 0, result.rows.length
+          assert_equal 2, result.columns.length
+          assert_equal %w{ id data }, result.columns
 
-        @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
-        result = @conn.exec_query('SELECT id, data FROM ex')
-        assert_equal 1, result.rows.length
-        assert_equal 2, result.columns.length
+          @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+          result = @conn.exec_query('SELECT id, data FROM ex')
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-        assert_equal [[1, 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
+        end
       end
 
       def test_exec_query_with_binds
-        @conn.exec_query('create table ex(id int, data string)')
-        @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
-        result = @conn.exec_query(
-          'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
+        with_example_table 'id int, data string' do
+          @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+          result = @conn.exec_query(
+            'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
 
-        assert_equal 1, result.rows.length
-        assert_equal 2, result.columns.length
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-        assert_equal [[1, 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
+        end
       end
 
       def test_exec_query_typecasts_bind_vals
-        @conn.exec_query('create table ex(id int, data string)')
-        @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
-        column = @conn.columns('ex').find { |col| col.name == 'id' }
+        with_example_table 'id int, data string' do
+          @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+          column = @conn.columns('ex').find { |col| col.name == 'id' }
 
-        result = @conn.exec_query(
-          'SELECT id, data FROM ex WHERE id = ?', nil, [[column, '1-fuu']])
+          result = @conn.exec_query(
+            'SELECT id, data FROM ex WHERE id = ?', nil, [[column, '1-fuu']])
 
-        assert_equal 1, result.rows.length
-        assert_equal 2, result.columns.length
+          assert_equal 1, result.rows.length
+          assert_equal 2, result.columns.length
 
-        assert_equal [[1, 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
+        end
       end
 
       def test_quote_binary_column_escapes_it
@@ -190,7 +189,7 @@ module ActiveRecord
           )
         eosql
         str = "\x80".force_encoding("ASCII-8BIT")
-        binary = DualEncoding.new :name => 'いただきます！', :data => str
+        binary = DualEncoding.new name: 'いただきます！', data: str
         binary.save!
         assert_equal str, binary.data
 
@@ -202,16 +201,20 @@ module ActiveRecord
         name  = 'hello'.force_encoding(Encoding::ASCII_8BIT)
         Owner.create(name: name)
         assert_equal Encoding::ASCII_8BIT, name.encoding
+      ensure
+        Owner.delete_all
       end
 
       def test_execute
-        @conn.execute "INSERT INTO items (number) VALUES (10)"
-        records = @conn.execute "SELECT * FROM items"
-        assert_equal 1, records.length
+        with_example_table do
+          @conn.execute "INSERT INTO ex (number) VALUES (10)"
+          records = @conn.execute "SELECT * FROM ex"
+          assert_equal 1, records.length
 
-        record = records.first
-        assert_equal 10, record['number']
-        assert_equal 1, record['id']
+          record = records.first
+          assert_equal 10, record['number']
+          assert_equal 1, record['id']
+        end
       end
 
       def test_quote_string
@@ -219,128 +222,141 @@ module ActiveRecord
       end
 
       def test_insert_sql
-        2.times do |i|
-          rv = @conn.insert_sql "INSERT INTO items (number) VALUES (#{i})"
-          assert_equal(i + 1, rv)
-        end
+        with_example_table do
+          2.times do |i|
+            rv = @conn.insert_sql "INSERT INTO ex (number) VALUES (#{i})"
+            assert_equal(i + 1, rv)
+          end
 
-        records = @conn.execute "SELECT * FROM items"
-        assert_equal 2, records.length
+          records = @conn.execute "SELECT * FROM ex"
+          assert_equal 2, records.length
+        end
       end
 
       def test_insert_sql_logged
-        sql = "INSERT INTO items (number) VALUES (10)"
-        name = "foo"
-
-        assert_logged([[sql, name, []]]) do
-          @conn.insert_sql sql, name
+        with_example_table do
+          sql = "INSERT INTO ex (number) VALUES (10)"
+          name = "foo"
+          assert_logged [[sql, name, []]] do
+            @conn.insert_sql sql, name
+          end
         end
       end
 
       def test_insert_id_value_returned
-        sql = "INSERT INTO items (number) VALUES (10)"
-        idval = 'vuvuzela'
-        id = @conn.insert_sql sql, nil, nil, idval
-        assert_equal idval, id
+        with_example_table do
+          sql = "INSERT INTO ex (number) VALUES (10)"
+          idval = 'vuvuzela'
+          id = @conn.insert_sql sql, nil, nil, idval
+          assert_equal idval, id
+        end
       end
 
       def test_select_rows
-        2.times do |i|
-          @conn.create "INSERT INTO items (number) VALUES (#{i})"
+        with_example_table do
+          2.times do |i|
+            @conn.create "INSERT INTO ex (number) VALUES (#{i})"
+          end
+          rows = @conn.select_rows 'select number, id from ex'
+          assert_equal [[0, 1], [1, 2]], rows
         end
-        rows = @conn.select_rows 'select number, id from items'
-        assert_equal [[0, 1], [1, 2]], rows
       end
 
       def test_select_rows_logged
-        sql = "select * from items"
-        name = "foo"
-
-        assert_logged([[sql, name, []]]) do
-          @conn.select_rows sql, name
+        with_example_table do
+          sql = "select * from ex"
+          name = "foo"
+          assert_logged [[sql, name, []]] do
+            @conn.select_rows sql, name
+          end
         end
       end
 
       def test_transaction
-        count_sql = 'select count(*) from items'
+        with_example_table do
+          count_sql = 'select count(*) from ex'
 
-        @conn.begin_db_transaction
-        @conn.create "INSERT INTO items (number) VALUES (10)"
+          @conn.begin_db_transaction
+          @conn.create "INSERT INTO ex (number) VALUES (10)"
 
-        assert_equal 1, @conn.select_rows(count_sql).first.first
-        @conn.rollback_db_transaction
-        assert_equal 0, @conn.select_rows(count_sql).first.first
+          assert_equal 1, @conn.select_rows(count_sql).first.first
+          @conn.rollback_db_transaction
+          assert_equal 0, @conn.select_rows(count_sql).first.first
+        end
       end
 
       def test_tables
-        assert_equal %w{ items }, @conn.tables
-
-        @conn.execute <<-eosql
-          CREATE TABLE people (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            number integer
-          )
-        eosql
-        assert_equal %w{ items people }.sort, @conn.tables.sort
+        with_example_table do
+          assert_equal %w{ ex }, @conn.tables
+          with_example_table 'id integer PRIMARY KEY AUTOINCREMENT, number integer', 'people' do
+            assert_equal %w{ ex people }.sort, @conn.tables.sort
+          end
+        end
       end
 
       def test_tables_logs_name
-        assert_logged [['SCHEMA', []]] do
+        sql = <<-SQL
+          SELECT name FROM sqlite_master
+          WHERE type = 'table' AND NOT name = 'sqlite_sequence'
+        SQL
+        assert_logged [[sql.squish, 'SCHEMA', []]] do
           @conn.tables('hello')
-          assert_not_nil @subscriber.logged.first.shift
         end
       end
 
       def test_indexes_logs_name
-        assert_logged [["PRAGMA index_list(\"items\")", 'SCHEMA', []]] do
-          @conn.indexes('items', 'hello')
+        with_example_table do
+          assert_logged [["PRAGMA index_list(\"ex\")", 'SCHEMA', []]] do
+            @conn.indexes('ex', 'hello')
+          end
         end
       end
 
       def test_table_exists_logs_name
-        assert @conn.table_exists?('items')
-        assert_equal 'SCHEMA', @subscriber.logged[0][1]
+        with_example_table do
+          sql = <<-SQL
+            SELECT name FROM sqlite_master
+            WHERE type = 'table'
+            AND NOT name = 'sqlite_sequence' AND name = \"ex\"
+          SQL
+          assert_logged [[sql.squish, 'SCHEMA', []]] do
+            assert @conn.table_exists?('ex')
+          end
+        end
       end
 
       def test_columns
-        columns = @conn.columns('items').sort_by { |x| x.name }
-        assert_equal 2, columns.length
-        assert_equal %w{ id number }.sort, columns.map { |x| x.name }
-        assert_equal [nil, nil], columns.map { |x| x.default }
-        assert_equal [true, true], columns.map { |x| x.null }
+        with_example_table do
+          columns = @conn.columns('ex').sort_by { |x| x.name }
+          assert_equal 2, columns.length
+          assert_equal %w{ id number }.sort, columns.map { |x| x.name }
+          assert_equal [nil, nil], columns.map { |x| x.default }
+          assert_equal [true, true], columns.map { |x| x.null }
+        end
       end
 
       def test_columns_with_default
-        @conn.execute <<-eosql
-          CREATE TABLE columns_with_default (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            number integer default 10
-          )
-        eosql
-        column = @conn.columns('columns_with_default').find { |x|
-          x.name == 'number'
-        }
-        assert_equal 10, column.default
+        with_example_table 'id integer PRIMARY KEY AUTOINCREMENT, number integer default 10' do
+          column = @conn.columns('ex').find { |x|
+            x.name == 'number'
+          }
+          assert_equal 10, column.default
+        end
       end
 
       def test_columns_with_not_null
-        @conn.execute <<-eosql
-          CREATE TABLE columns_with_default (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            number integer not null
-          )
-        eosql
-        column = @conn.columns('columns_with_default').find { |x|
-          x.name == 'number'
-        }
-        assert !column.null, "column should not be null"
+        with_example_table 'id integer PRIMARY KEY AUTOINCREMENT, number integer not null' do
+          column = @conn.columns('ex').find { |x| x.name == 'number' }
+          assert_not column.null, "column should not be null"
+        end
       end
 
       def test_indexes_logs
-        assert_difference('@subscriber.logged.length') do
-          @conn.indexes('items')
+        with_example_table do
+          assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
+            @conn.indexes('ex')
+          end
         end
-        assert_match(/items/, @subscriber.logged.last.first)
       end
 
       def test_no_indexes
@@ -348,41 +364,45 @@ module ActiveRecord
       end
 
       def test_index
-        @conn.add_index 'items', 'id', :unique => true, :name => 'fun'
-        index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
+        with_example_table do
+          @conn.add_index 'ex', 'id', unique: true, name: 'fun'
+          index = @conn.indexes('ex').find { |idx| idx.name == 'fun' }
 
-        assert_equal 'items', index.table
-        assert index.unique, 'index is unique'
-        assert_equal ['id'], index.columns
+          assert_equal 'ex', index.table
+          assert index.unique, 'index is unique'
+          assert_equal ['id'], index.columns
+        end
       end
 
       def test_non_unique_index
-        @conn.add_index 'items', 'id', :name => 'fun'
-        index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
-        assert !index.unique, 'index is not unique'
+        with_example_table do
+          @conn.add_index 'ex', 'id', name: 'fun'
+          index = @conn.indexes('ex').find { |idx| idx.name == 'fun' }
+          assert_not index.unique, 'index is not unique'
+        end
       end
 
       def test_compound_index
-        @conn.add_index 'items', %w{ id number }, :name => 'fun'
-        index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
-        assert_equal %w{ id number }.sort, index.columns.sort
+        with_example_table do
+          @conn.add_index 'ex', %w{ id number }, name: 'fun'
+          index = @conn.indexes('ex').find { |idx| idx.name == 'fun' }
+          assert_equal %w{ id number }.sort, index.columns.sort
+        end
       end
 
       def test_primary_key
-        assert_equal 'id', @conn.primary_key('items')
-
-        @conn.execute <<-eosql
-          CREATE TABLE foos (
-            internet integer PRIMARY KEY AUTOINCREMENT,
-            number integer not null
-          )
-        eosql
-        assert_equal 'internet', @conn.primary_key('foos')
+        with_example_table do
+          assert_equal 'id', @conn.primary_key('ex')
+          with_example_table 'internet integer PRIMARY KEY AUTOINCREMENT, number integer not null', 'foos' do
+            assert_equal 'internet', @conn.primary_key('foos')
+          end
+        end
       end
 
       def test_no_primary_key
-        @conn.execute 'CREATE TABLE failboat (number integer not null)'
-        assert_nil @conn.primary_key('failboat')
+        with_example_table 'number integer not null' do
+          assert_nil @conn.primary_key('ex')
+        end
       end
 
       def test_supports_extensions
@@ -400,10 +420,21 @@ module ActiveRecord
       private
 
       def assert_logged logs
+        subscriber = SQLSubscriber.new
+        subscription = ActiveSupport::Notifications.subscribe('sql.active_record', subscriber)
         yield
-        assert_equal logs, @subscriber.logged
+        assert_equal logs, subscriber.logged
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
       end
 
+      def with_example_table(definition = nil, table_name = 'ex', &block)
+        definition ||= <<-SQL
+          id integer PRIMARY KEY AUTOINCREMENT,
+          number integer
+        SQL
+        super(@conn, table_name, definition, &block)
+      end
     end
   end
 end

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/deep_dup'
+
 module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database,
   # but can be queried by name. Example:
@@ -65,10 +67,14 @@ module ActiveRecord
   #
   # Where conditions on an enum attribute must use the ordinal value of an enum.
   module Enum
-    DEFINED_ENUMS = {} # :nodoc:
+    def self.extended(base)
+      base.class_attribute(:defined_enums)
+      base.defined_enums = {}
+    end
 
-    def enum_mapping_for(attr_name) # :nodoc:
-      DEFINED_ENUMS[attr_name.to_s]
+    def inherited(base)
+      base.defined_enums = defined_enums.deep_dup
+      super
     end
 
     def enum(definitions)
@@ -122,9 +128,8 @@ module ActiveRecord
             klass.send(:detect_enum_conflict!, name, value, true)
             klass.scope value, -> { klass.where name => i }
           end
-
-          DEFINED_ENUMS[name.to_s] = enum_values
         end
+        defined_enums[name.to_s] = enum_values
       end
     end
 
@@ -134,7 +139,7 @@ module ActiveRecord
           mod = Module.new do
             private
               def save_changed_attribute(attr_name, value)
-                if (mapping = self.class.enum_mapping_for(attr_name))
+                if (mapping = self.class.defined_enums[attr_name.to_s])
                   if attribute_changed?(attr_name)
                     old = changed_attributes[attr_name]
 

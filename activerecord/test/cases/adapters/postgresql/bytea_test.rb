@@ -23,7 +23,7 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
     assert(@column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn))
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists bytea_data_type'
   end
 
@@ -68,6 +68,23 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
     record = ByteaDataType.create(payload: data)
     assert_not record.new_record?
     assert_equal(data, record.payload)
+  end
+
+  def test_via_to_sql
+    data = "'\u001F\\"
+    ByteaDataType.create(payload: data)
+    sql = ByteaDataType.where(payload: data).select(:payload).to_sql
+    result = @connection.query(sql)
+    assert_equal([[data]], result)
+  end
+
+  def test_via_to_sql_with_complicating_connection
+    Thread.new do
+      other_conn = ActiveRecord::Base.connection
+      other_conn.execute('SET standard_conforming_strings = off')
+    end.join
+
+    test_via_to_sql
   end
 
   def test_write_binary

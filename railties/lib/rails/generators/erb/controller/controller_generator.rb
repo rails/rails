@@ -11,7 +11,7 @@ module Erb # :nodoc:
 
         actions.each do |action|
           @action = action
-          Array(formats).each do |format|
+          formats.each do |format|
             @path = File.join(base_path, filename_with_extensions(action, format))
             template filename_with_extensions(:view, format), @path
           end

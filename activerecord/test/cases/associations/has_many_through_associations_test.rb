@@ -817,6 +817,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert author.named_categories(true).include?(category)
   end
 
+  def test_collection_exists
+    author   = authors(:mary)
+    category = Category.create!(author_ids: [author.id], name: "Primary")
+    assert category.authors.exists?(id: author.id)
+    assert category.reload.authors.exists?(id: author.id)
+  end
+
   def test_collection_delete_with_nonstandard_primary_key_on_belongs_to
     author   = authors(:mary)
     category = author.named_categories.create(:name => "Primary")
@@ -1095,7 +1102,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [posts(:thinking)], person.reload.first_posts
   end
 
-  def test_has_many_through_with_includes_in_through_association_scope
+  test "has many through with includes in through association scope" do
     assert_not_empty posts(:welcome).author_address_extra_with_address
+  end
+
+  test "insert records via has_many_through association with scope" do
+    club = Club.create!
+    member = Member.create!
+    Membership.create!(club: club, member: member)
+
+    club.favourites << member
+    assert_equal [member], club.favourites
+
+    club.reload
+    assert_equal [member], club.favourites
   end
 end

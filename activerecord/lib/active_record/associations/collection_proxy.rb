@@ -357,7 +357,7 @@ module ActiveRecord
 
       # Deletes all the records from the collection. For +has_many+ associations,
       # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
-      # option. Returns an array with the deleted records.
+      # option.
       #
       # If no <tt>:dependent</tt> option is given, then it will follow the
       # default strategy. The default strategy is <tt>:nullify</tt>. This
@@ -435,11 +435,6 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
@@ -858,6 +853,10 @@ module ActiveRecord
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
         !!@association.include?(record)
+      end
+
+      def arel
+        scope.arel
       end
 
       def proxy_association

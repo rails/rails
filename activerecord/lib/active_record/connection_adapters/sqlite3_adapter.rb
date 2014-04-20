@@ -30,12 +30,12 @@ module ActiveRecord
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
 
-      ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
+      ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
     rescue Errno::ENOENT => error
       if error.message.include?("No such file or directory")
-        raise ActiveRecord::NoDatabaseError.new(error.message)
+        raise ActiveRecord::NoDatabaseError.new(error.message, error)
       else
-        raise error
+        raise
       end
     end
   end
@@ -63,7 +63,7 @@ module ActiveRecord
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
-        string:       { name: "varchar", limit: 255 },
+        string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
         float:        { name: "float" },
@@ -127,7 +127,7 @@ module ActiveRecord
         include Arel::Visitors::BindVisitor
       end
 
-      def initialize(connection, logger, config)
+      def initialize(connection, logger, connection_options, config)
         super(connection, logger)
 
         @active     = nil

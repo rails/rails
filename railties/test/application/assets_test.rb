@@ -199,6 +199,7 @@ module ApplicationTests
     end
 
     test "precompile creates a manifest file with all the assets listed" do
+      app_file "app/assets/images/rails.png", "notactuallyapng"
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
       # digest is default in false, we must enable it for test environment
@@ -260,7 +261,7 @@ module ApplicationTests
     test "precompile shouldn't use the digests present in manifest.json" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
 
-      app_file "app/assets/stylesheets/application.css.erb", "//= depend_on rails.png\np { url: <%= asset_path('rails.png') %> }"
+      app_file "app/assets/stylesheets/application.css.erb", "p { url: <%= asset_path('rails.png') %> }"
 
       ENV["RAILS_ENV"] = "production"
       precompile!
@@ -448,23 +449,23 @@ module ApplicationTests
 
     test "asset urls should be protocol-relative if no request is in scope" do
       app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/image_loader.js.erb", 'var src="<%= image_path("rails.png") %>";'
+      app_file "app/assets/javascripts/image_loader.js.erb", "var src='<%= image_path('rails.png') %>';"
       add_to_config "config.assets.precompile = %w{image_loader.js}"
       add_to_config "config.asset_host = 'example.com'"
       precompile!
 
-      assert_match 'src="//example.com/assets/rails.png"', File.read(Dir["#{app_path}/public/assets/image_loader-*.js"].first)
+      assert_match "src='//example.com/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/image_loader-*.js"].first)
     end
 
     test "asset paths should use RAILS_RELATIVE_URL_ROOT by default" do
       ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
       app_file "app/assets/images/rails.png", "notreallyapng"
 
-      app_file "app/assets/javascripts/app.js.erb", 'var src="<%= image_path("rails.png") %>";'
+      app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
       add_to_config "config.assets.precompile = %w{app.js}"
       precompile!
 
-      assert_match 'src="/sub/uri/assets/rails.png"', File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
+      assert_match "src='/sub/uri/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
     end
 
     test "assets:cache:clean should clean cache" do

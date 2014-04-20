@@ -267,6 +267,7 @@ module ActiveRecord
       @attributes_cache  = {}
 
       @new_record  = true
+      @destroyed   = false
 
       super
     end
@@ -299,7 +300,7 @@ module ActiveRecord
     def ==(comparison_object)
       super ||
         comparison_object.instance_of?(self.class) &&
-        id &&
+        !id.nil? &&
         comparison_object.id == id
     end
     alias :eql? :==

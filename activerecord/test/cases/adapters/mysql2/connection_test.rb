@@ -1,15 +1,18 @@
 require "cases/helper"
+require 'support/connection_helper'
 
 class MysqlConnectionTest < ActiveRecord::TestCase
+  include ConnectionHelper
+
   def setup
     super
     @subscriber = SQLSubscriber.new
-    ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+    @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     @connection = ActiveRecord::Base.connection
   end
 
   def teardown
-    ActiveSupport::Notifications.unsubscribe(@subscriber)
+    ActiveSupport::Notifications.unsubscribe(@subscription)
     super
   end
 
@@ -97,14 +100,10 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.execute "DROP TABLE `bar_baz`"
   end
 
-  private
-
-  def run_without_connection
-    original_connection = ActiveRecord::Base.remove_connection
-    begin
-      yield original_connection
-    ensure
-      ActiveRecord::Base.establish_connection(original_connection)
+  if mysql_56?
+    def test_quote_time_usec
+      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0))
+      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0).to_datetime)
     end
   end
 end

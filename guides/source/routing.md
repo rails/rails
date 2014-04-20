@@ -352,15 +352,15 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                   | Controller#Action | Named Helper        |
-| --------- | -------------------------------------- | ----------------- | ------------------- |
-| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments       |
-| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments       |
-| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment    |
-| GET       | /sekret/comments/:id/edit(.:format)    | comments#edit     | edit_comment        |
-| GET       | /sekret/comments/:id(.:format)         | comments#show     | comment             |
-| PATCH/PUT | /sekret/comments/:id(.:format)         | comments#update   | comment             |
-| DELETE    | /sekret/comments/:id(.:format)         | comments#destroy  | comment             |
+| HTTP Verb | Path                                   | Controller#Action | Named Helper          |
+| --------- | -------------------------------------- | ----------------- | --------------------- |
+| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments_path    |
+| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments_path    |
+| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment_path |
+| GET       | /sekret/comments/:id/edit(.:format)    | comments#edit     | edit_comment_path     |
+| GET       | /sekret/comments/:id(.:format)         | comments#show     | comment_path          |
+| PATCH/PUT | /sekret/comments/:id(.:format)         | comments#update   | comment_path          |
+| DELETE    | /sekret/comments/:id(.:format)         | comments#destroy  | comment_path          |
 
 The `:shallow_prefix` option adds the specified parameter to the named helpers:
 
@@ -374,15 +374,15 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                   | Controller#Action | Named Helper        |
-| --------- | -------------------------------------- | ----------------- | ------------------- |
-| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments       |
-| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments       |
-| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment    |
-| GET       | /comments/:id/edit(.:format)           | comments#edit     | edit_sekret_comment |
-| GET       | /comments/:id(.:format)                | comments#show     | sekret_comment      |
-| PATCH/PUT | /comments/:id(.:format)                | comments#update   | sekret_comment      |
-| DELETE    | /comments/:id(.:format)                | comments#destroy  | sekret_comment      |
+| HTTP Verb | Path                                   | Controller#Action | Named Helper             |
+| --------- | -------------------------------------- | ----------------- | ------------------------ |
+| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments_path       |
+| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments_path       |
+| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment_path    |
+| GET       | /comments/:id/edit(.:format)           | comments#edit     | edit_sekret_comment_path |
+| GET       | /comments/:id(.:format)                | comments#show     | sekret_comment_path      |
+| PATCH/PUT | /comments/:id(.:format)                | comments#update   | sekret_comment_path      |
+| DELETE    | /comments/:id(.:format)                | comments#destroy  | sekret_comment_path      |
 
 ### Routing concerns
 
@@ -694,6 +694,8 @@ namespace :admin do
 end
 ```
 
+NOTE: Request constraints work by calling a method on the <a href="action_controller_overview.html#the-request-object">Request object</a> with the same name as the hash key and then compare the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected, however using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
+
 ### Advanced Constraints
 
 If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a blacklist to the `BlacklistController`. You could do:
@@ -709,7 +711,7 @@ class BlacklistConstraint
   end
 end
 
-TwitterClone::Application.routes.draw do
+Rails.application.routes.draw do
   get '*path', to: 'blacklist#index',
     constraints: BlacklistConstraint.new
 end
@@ -718,7 +720,7 @@ end
 You can also specify constraints as a lambda:
 
 ```ruby
-TwitterClone::Application.routes.draw do
+Rails.application.routes.draw do
   get '*path', to: 'blacklist#index',
     constraints: lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
 end
