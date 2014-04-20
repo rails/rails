@@ -29,7 +29,7 @@ module ActiveSupport
       end
 
       def push_tags(*tags)
-        tags.flatten.reject(&:blank?).tap do |new_tags|
+        tags.flatten.select(&:present?).tap do |new_tags|
           current_tags.concat new_tags
         end
       end

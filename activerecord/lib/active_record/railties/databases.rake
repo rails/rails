@@ -354,7 +354,7 @@ db_namespace = namespace :db do
 
     # desc 'Check for pending migrations and load the test schema'
     task :prepare => %w(db:test:deprecated environment load_config) do
-      unless ActiveRecord::Base.configurations.blank?
+      if ActiveRecord::Base.configurations.present?
         db_namespace['test:load'].invoke
       end
     end

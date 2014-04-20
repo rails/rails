@@ -131,7 +131,7 @@ module ActiveRecord
     end
 
     def includes!(*args) # :nodoc:
-      args.reject!(&:blank?)
+      args.select!(&:present?)
       args.flatten!
 
       self.includes_values |= args
@@ -826,7 +826,7 @@ module ActiveRecord
 
     def reverse_order! # :nodoc:
       orders = order_values.uniq
-      orders.reject!(&:blank?)
+      orders.select!(&:present?)
       self.order_values = reverse_sql_order(orders)
       self
     end
@@ -845,12 +845,12 @@ module ActiveRecord
 
       collapse_wheres(arel, (where_values - ['']).uniq)
 
-      arel.having(*having_values.uniq.reject(&:blank?)) unless having_values.empty?
+      arel.having(*having_values.uniq.select(&:present?)) unless having_values.empty?
 
       arel.take(connection.sanitize_limit(limit_value)) if limit_value
       arel.skip(offset_value.to_i) if offset_value
 
-      arel.group(*group_values.uniq.reject(&:blank?)) unless group_values.empty?
+      arel.group(*group_values.uniq.select(&:present?)) unless group_values.empty?
 
       build_order(arel)
 
@@ -896,7 +896,7 @@ module ActiveRecord
     end
 
     def custom_join_ast(table, joins)
-      joins = joins.reject(&:blank?)
+      joins = joins.select(&:present?)
 
       return [] if joins.empty?
 
@@ -1031,7 +1031,7 @@ module ActiveRecord
 
     def build_order(arel)
       orders = order_values.uniq
-      orders.reject!(&:blank?)
+      orders.select!(&:present?)
 
       arel.order(*orders) unless orders.empty?
     end

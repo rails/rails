@@ -47,7 +47,7 @@ module ActiveRecord
       def structure_dump(filename)
         set_psql_env
         search_path = configuration['schema_search_path']
-        unless search_path.blank?
+        if search_path.present?
           search_path = search_path.split(",").map{|search_path_part| "--schema=#{Shellwords.escape(search_path_part.strip)}" }.join(" ")
         end
 
