@@ -14,6 +14,7 @@ require 'models/car'
 require 'models/engine'
 require 'models/tyre'
 require 'models/minivan'
+require 'models/aircraft'
 
 
 class RelationTest < ActiveRecord::TestCase
@@ -363,6 +364,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_null_relation_where_values_hash
     assert_equal({ 'salary' => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
+  end
+
+
+  def test_null_relation_count
+    ac = Aircraft.new
+    assert_equal Hash.new, ac.engines.group(:id).count
+    assert_equal        0, ac.engines.count
+    ac.save
+    assert_equal Hash.new, ac.engines.group(:id).count
+    assert_equal        0, ac.engines.count
   end
 
   def test_joins_with_nil_argument
@@ -862,6 +873,17 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal 1, posts.where('comments_count > 1').count
     assert_equal 9, posts.where(:comments_count => 0).count
+  end
+
+  def test_count_on_association_relation
+    author = Author.last
+    another_author = Author.first
+    posts = Post.where(author_id: author.id)
+
+    assert_equal author.posts.where(author_id: author.id).size, posts.count
+
+    assert_equal 0, author.posts.where(author_id: another_author.id).size
+    assert author.posts.where(author_id: another_author.id).empty?
   end
 
   def test_count_with_distinct

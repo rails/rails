@@ -3596,8 +3596,8 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
   include Routes.url_helpers
   def app; Routes end
 
-  test 'escapes generated path segment' do
-    assert_equal '/a%20b/c+d', segment_path(:segment => 'a b/c+d')
+  test 'escapes slash in generated path segment' do
+    assert_equal '/a%20b%2Fc+d', segment_path(:segment => 'a b/c+d')
   end
 
   test 'unescapes recognized path segment' do
@@ -3605,7 +3605,7 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
     assert_equal 'a b/c+d', @response.body
   end
 
-  test 'escapes generated path splat' do
+  test 'does not escape slash in generated path splat' do
     assert_equal '/a%20b/c+d', splat_path(:splat => 'a b/c+d')
   end
 
@@ -3790,6 +3790,8 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       get '/post(/:action(/:id))' => ok, as: :posts
       get '/:foo/:foo_type/bars/:id' => ok, as: :bar
       get '/projects/:id.:format' => ok, as: :project
+      get '/pages/:id' => ok, as: :page
+      get '/wiki/*page' => ok, as: :wiki
     end
   end
 
@@ -3821,6 +3823,26 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   test 'segments separated with a period are replaced correctly' do
     assert_equal '/projects/1.json', Routes.url_helpers.project_path(1, :json)
     assert_equal '/projects/1.json', project_path(1, :json)
+  end
+
+  test 'segments with question marks are escaped' do
+    assert_equal '/pages/foo%3Fbar', Routes.url_helpers.page_path('foo?bar')
+    assert_equal '/pages/foo%3Fbar', page_path('foo?bar')
+  end
+
+  test 'segments with slashes are escaped' do
+    assert_equal '/pages/foo%2Fbar', Routes.url_helpers.page_path('foo/bar')
+    assert_equal '/pages/foo%2Fbar', page_path('foo/bar')
+  end
+
+  test 'glob segments with question marks are escaped' do
+    assert_equal '/wiki/foo%3Fbar', Routes.url_helpers.wiki_path('foo?bar')
+    assert_equal '/wiki/foo%3Fbar', wiki_path('foo?bar')
+  end
+
+  test 'glob segments with slashes are not escaped' do
+    assert_equal '/wiki/foo/bar', Routes.url_helpers.wiki_path('foo/bar')
+    assert_equal '/wiki/foo/bar', wiki_path('foo/bar')
   end
 end
 

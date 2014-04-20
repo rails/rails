@@ -367,7 +367,18 @@ module ActionDispatch
           nil, { :controller        => "tasks",
                  :action            => "a/b c+d",
         }, {})
-        assert_equal '/tasks/a/b%20c+d', path
+        assert_equal '/tasks/a%2Fb%20c+d', path
+      end
+
+      def test_generate_escapes_with_namespaced_controller
+        path  = Path::Pattern.new '/:controller(/:action)'
+        @router.routes.add_route @app, path, {}, {}, {}
+
+        path, _ = @formatter.generate(:path_info,
+          nil, { :controller        => "admin/tasks",
+                 :action            => "a/b c+d",
+        }, {})
+        assert_equal '/admin/tasks/a%2Fb%20c+d', path
       end
 
       def test_generate_extra_params

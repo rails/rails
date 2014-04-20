@@ -3020,12 +3020,13 @@ class FormHelperTest < ActionView::TestCase
   protected
 
   def hidden_fields(method = nil)
-    txt =  %{<div style="display:none">}
-    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+    txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+
     if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
     end
-    txt << %{</div>}
+
+    txt
   end
 
   def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)

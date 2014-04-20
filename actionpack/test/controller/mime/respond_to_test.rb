@@ -492,6 +492,11 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal 'Whatever you ask for, I got it', @response.body
   end
 
+  def test_handle_any_any_unkown_format
+    get :handle_any_any, { format: 'php' }
+    assert_equal 'Whatever you ask for, I got it', @response.body
+  end
+
   def test_browser_check_with_any_any
     @request.accept = "application/json, application/xml"
     get :json_xml_or_html

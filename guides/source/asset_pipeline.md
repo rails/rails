@@ -56,11 +56,11 @@ the comment operator on that line to later enable the asset pipeline:
 
 To set asset compression methods, set the appropriate configuration options
 in `production.rb` - `config.assets.css_compressor` for your CSS and
-`config.assets.js_compressor` for your Javascript:
+`config.assets.js_compressor` for your JavaScript:
 
 ```ruby
 config.assets.css_compressor = :yui
-config.assets.js_compressor = :uglify
+config.assets.js_compressor = :uglifier
 ```
 
 NOTE: The `sass-rails` gem is automatically used for CSS compression if included
@@ -766,7 +766,7 @@ exception indicating the name of the missing file(s).
 
 #### Far-future Expires Header
 
-Precompiled assets exist on the filesystem and are served directly by your web
+Precompiled assets exist on the file system and are served directly by your web
 server. They do not have far-future headers by default, so to get the benefit of
 fingerprinting you'll have to update your server configuration to add those
 headers.

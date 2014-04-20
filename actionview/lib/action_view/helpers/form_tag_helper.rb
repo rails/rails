@@ -550,6 +550,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   color_field_tag 'name'
+      #   # => <input id="name" name="name" type="color" />
+      #
+      #   color_field_tag 'color', '#DEF726'
+      #   # => <input id="color" name="color" type="color" value="#DEF726" />
+      #
+      #   color_field_tag 'color', nil, class: 'special_input'
+      #   # => <input class="special_input" id="color" name="color" type="color" />
+      #
+      #   color_field_tag 'color', '#DEF726', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="color" name="color" type="color" value="#DEF726" />
       def color_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "color"))
       end
@@ -558,6 +571,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   search_field_tag 'name'
+      #   # => <input id="name" name="name" type="search" />
+      #
+      #   search_field_tag 'search', 'Enter your search query here'
+      #   # => <input id="search" name="search" type="search" value="Enter your search query here" />
+      #
+      #   search_field_tag 'search', nil, class: 'special_input'
+      #   # => <input class="special_input" id="search" name="search" type="search" />
+      #
+      #   search_field_tag 'search', 'Enter your search query here', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="search" name="search" type="search" value="Enter your search query here" />
       def search_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "search"))
       end
@@ -566,6 +592,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   telephone_field_tag 'name'
+      #   # => <input id="name" name="name" type="tel" />
+      #
+      #   telephone_field_tag 'tel', '0123456789'
+      #   # => <input id="tel" name="tel" type="tel" value="0123456789" />
+      #
+      #   telephone_field_tag 'tel', nil, class: 'special_input'
+      #   # => <input class="special_input" id="tel" name="tel" type="tel" />
+      #
+      #   telephone_field_tag 'tel', '0123456789', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="tel" name="tel" type="tel" value="0123456789" />
       def telephone_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "tel"))
       end
@@ -638,6 +677,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   url_field_tag 'name'
+      #   # => <input id="name" name="name" type="url" />
+      #
+      #   url_field_tag 'url', 'http://rubyonrails.org'
+      #   # => <input id="url" name="url" type="url" value="http://rubyonrails.org" />
+      #
+      #   url_field_tag 'url', nil, class: 'special_input'
+      #   # => <input class="special_input" id="url" name="url" type="url" />
+      #
+      #   url_field_tag 'url', 'http://rubyonrails.org', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="url" name="url" type="url" value="http://rubyonrails.org" />
       def url_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "url"))
       end
@@ -726,9 +778,11 @@ module ActionView
               method_tag(method) + token_tag(authenticity_token)
           end
 
-          enforce_utf8 = html_options.delete("enforce_utf8") { true }
-          tags = (enforce_utf8 ? utf8_enforcer_tag : ''.html_safe) << method_tag
-          content_tag(:div, tags, :style => 'display:none')
+          if html_options.delete("enforce_utf8") { true }
+            utf8_enforcer_tag + method_tag
+          else
+            method_tag
+          end
         end
 
         def form_tag_html(html_options)

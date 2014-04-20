@@ -1,3 +1,41 @@
+*   `@destroyed` should always be set to `false` when an object is duped.
+
+    *Kuldeep Aggarwal*
+
+*   Fixed has_many association to make it support irregular inflections.
+
+    Fixes #8928.
+
+    *arthurnn*, *Javier Goizueta*
+
+*   Fixed a problem where count used with a grouping was not returning a Hash.
+
+    Fixes #14721.
+
+    *Eric Chahin*
+
+*   `sanitize_sql_like` helper method to escape a string for safe use in a SQL
+    LIKE statement.
+
+    Example:
+
+        class Article
+          def self.search(term)
+            where("title LIKE ?", sanitize_sql_like(term))
+          end
+        end
+
+        Article.search("20% _reduction_")
+        # => Query looks like "... title LIKE '20\% \_reduction\_' ..."
+
+    *Rob Gilson*, *Yves Senn*
+
+*   Do not quote uuid default value on `change_column`.
+
+    Fixes #14604.
+
+    *Eric Chahin*
+
 *   The comparison between `Relation` and `CollectionProxy` should be consistent.
 
     Example:

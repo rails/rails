@@ -333,6 +333,7 @@ module ActiveRecord
       @attributes_cache  = {}
 
       @new_record  = true
+      @destroyed   = false
 
       super
     end

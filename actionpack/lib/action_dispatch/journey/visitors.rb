@@ -114,19 +114,26 @@ module ActionDispatch
         end
 
         private
+          def escape_path(value)
+            Router::Utils.escape_path(value)
+          end
+
+          def escape_segment(value)
+            Router::Utils.escape_segment(value)
+          end
 
           def visit(node, optional = false)
             case node.type
             when :LITERAL, :SLASH, :DOT
               node.left
             when :STAR
-              visit(node.left)
+              visit_STAR(node.left)
             when :GROUP
               visit(node.left, true)
             when :CAT
               visit_CAT(node, optional)
             when :SYMBOL
-              visit_SYMBOL(node)
+              visit_SYMBOL(node, node.to_sym)
             end
           end
 
@@ -141,9 +148,15 @@ module ActionDispatch
             end
           end
 
-          def visit_SYMBOL(node)
+          def visit_STAR(node)
             if value = options[node.to_sym]
-              Router::Utils.escape_path(value)
+              escape_path(value)
+            end
+          end
+
+          def visit_SYMBOL(node, name)
+            if value = options[name]
+              name == :controller ? escape_path(value) : escape_segment(value)
             end
           end
       end
