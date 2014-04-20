@@ -761,7 +761,7 @@ Arguments may be bare constant names:
 Math.qualified_const_get("E") # => 2.718281828459045
 ```
 
-These methods are analogous to their builtin counterparts. In particular,
+These methods are analogous to their built-in counterparts. In particular,
 `qualified_constant_defined?` accepts an optional second argument to be
 able to say whether you want the predicate to look in the ancestors.
 This flag is taken into account for each constant in the expression while
@@ -792,7 +792,7 @@ N.qualified_const_defined?("C::X")        # => true
 As the last example implies, the second argument defaults to true,
 as in `const_defined?`.
 
-For coherence with the builtin methods only relative paths are accepted.
+For coherence with the built-in methods only relative paths are accepted.
 Absolute qualified constant names like `::Math::PI` raise `NameError`.
 
 NOTE: Defined in `active_support/core_ext/module/qualified_const.rb`.

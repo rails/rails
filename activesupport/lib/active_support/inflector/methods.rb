@@ -173,7 +173,7 @@ module ActiveSupport
     #   'ActiveRecord::CoreExtensions::String::Inflections'.demodulize # => "Inflections"
     #   'Inflections'.demodulize                                       # => "Inflections"
     #   '::Inflections'.demodulize                                     # => "Inflections"
-    #   ''.demodulize                                                  # => ''
+    #   ''.demodulize                                                  # => ""
     #
     # See also +deconstantize+.
     def demodulize(path)
@@ -230,7 +230,7 @@ module ActiveSupport
     def constantize(camel_cased_word)
       names = camel_cased_word.split('::')
 
-      # Trigger a builtin NameError exception including the ill-formed constant in the message.
+      # Trigger a built-in NameError exception including the ill-formed constant in the message.
       Object.const_get(camel_cased_word) if names.empty?
 
       # Remove the first blank element in case of '::ClassName' notation.

@@ -22,7 +22,7 @@ module ActionController #:nodoc:
   #
   #   3) if the responder does not <code>respond_to :to_xml</code>, call <code>#to_format</code> on it.
   #
-  # === Builtin HTTP verb semantics
+  # === Built-in HTTP verb semantics
   #
   # The default \Rails responder holds semantics for each HTTP verb. Depending on the
   # content type, verb and the resource status, it will behave differently.
