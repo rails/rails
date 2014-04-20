@@ -496,6 +496,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [1..2, 3, 5, 6..8, 9]).to_a.map(&:id).sort
   end
 
+  def test_find_on_hash_conditions_with_array_of_ranges
+    relation = Comment.where(:id => [1..2, 6..8])
+    assert_equal [1, 2, 6, 7, 8], relation.map(&:id).sort
+  end
+
   def test_find_on_multiple_hash_conditions
     assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
@@ -943,15 +948,22 @@ class FinderTest < ActiveRecord::TestCase
                               order('author_addresses_authors.id DESC ').limit(3).to_a.size
   end
 
-  def test_find_with_nil_inside_set_passed_for_one_attribute
-    client_of = Company.
-      where(client_of: [2, 1, nil],
-            name: ['37signals', 'Summit', 'Microsoft']).
-      order('client_of DESC').
-      map { |x| x.client_of }
+  def test_find_with_nil_inside_set_passed_for_one_attribute_with_multiple_values
+    data = [nil, 1, 2]
+    relation = Company.
+      where(client_of: data, name: %w(37signals Summit Microsoft))
 
-    assert client_of.include?(nil)
-    assert_equal [2, 1].sort, client_of.compact.sort
+    client_of = relation.map(&:client_of).uniq.sort { |a, b| a.to_s <=> b.to_s }
+    assert_equal data, client_of
+  end
+
+  def test_find_with_nil_inside_set_passed_for_one_attribute_with_one_value
+    data = [nil, 2]
+    relation = Company.
+      where(client_of: data)
+
+    client_of = relation.map(&:client_of).uniq.sort { |a, b| a.to_s <=> b.to_s }
+    assert_equal data, client_of
   end
 
   def test_find_with_nil_inside_set_passed_for_attribute
