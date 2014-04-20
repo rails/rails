@@ -550,6 +550,18 @@ module ActionController
         end
       end
 
+      # Simulate a HTTP request to action with the given parameters and set/volley the response.
+      #
+      # - +action+: The controller action to call.
+      # - +http_method+: http method, defaults to +GET+
+      # - +session+: A hash of parameters to store in the session. This may be +nil+.
+      # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
+      #
+      # You can also simulate GET, POST, PATCH, PUT, DELETE, and HEAD requests with
+      # +post+, +patch+, +put+, +delete+, and +head+.
+      #
+      # Note that the request method is not verified. The different methods are
+      # available to make the tests more expressive.
       def process(action, http_method = 'GET', *args)
         check_required_ivars
 
