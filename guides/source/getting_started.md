@@ -429,10 +429,14 @@ your wanted actions during the generation process.
 To manually define an action inside a controller, all you need to do is to
 define a new method inside the controller.
 Open `app/controllers/articles_controller.rb` and inside the `ArticlesController`
-class, define a `new` method like this:
+class, define a `new` method so that the controller now looks like this:
 
 ```ruby
-def new
+class ArticlesController < ApplicationController
+
+  def new
+  end
+
 end
 ```
 
@@ -503,6 +507,7 @@ method called `form_for`. To use this method, add this code into
 
 ```html+erb
 <%= form_for :article do |f| %>
+
   <p>
     <%= f.label :title %><br>
     <%= f.text_field :title %>
@@ -516,6 +521,7 @@ method called `form_for`. To use this method, add this code into
   <p>
     <%= f.submit %>
   </p>
+
 <% end %>
 ```
 
@@ -585,15 +591,17 @@ this to work.
 
 To make the "Unknown action" go away, you can define a `create` action within
 the `ArticlesController` class in `app/controllers/articles_controller.rb`,
-underneath the `new` action:
+underneath the `new` action, as shown:
 
 ```ruby
 class ArticlesController < ApplicationController
+
   def new
   end
 
   def create
   end
+
 end
 ```
 
@@ -765,7 +773,8 @@ or worse.
 We have to whitelist our controller parameters to prevent wrongful
 mass assignment. In this case, we want to both allow and require the
 `title` and `text` parameters for valid use of `create`. The syntax for
-this introduces `require` and `permit`. The change will involve one line:
+this introduces `require` and `permit`. The change will involve one line
+in the `create` action:
 
 ```ruby
   @article = Article.new(params.require(:article).permit(:title, :text))
@@ -778,6 +787,8 @@ Above and beyond mass assignment issues, the method is often made
 Here is the result:
 
 ```ruby
+...
+
 def create
   @article = Article.new(article_params)
 
@@ -789,6 +800,8 @@ private
   def article_params
     params.require(:article).permit(:title, :text)
   end
+
+...
 ```
 
 TIP: For more information, refer to the reference above and
@@ -813,10 +826,26 @@ parameter, which in our case will be the id of the article.
 As we did before, we need to add the `show` action in
 `app/controllers/articles_controller.rb` and its respective view.
 
+NOTE: The convention in Rails is to put the standard CRUD actions in each
+controller in the following order: `index` `show` `new` `edit` `create`
+`update` `destroy`. These actions are `public` methods and, as mentioned
+earlier in this guide, they must be placed before any `private` or `protected`
+method in the controller in order to work.
+
+Given that, let's add the `show` action before the `new` action we
+defined earlier on, as follows:
+
 ```ruby
-def show
-  @article = Article.find(params[:id])
-end
+class ArticlesController < ApplicationController
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new
+  end
+
+  ...
 ```
 
 A couple of things to note. We use `Article.find` to find the article we're
@@ -855,12 +884,26 @@ articles GET    /articles(.:format)          articles#index
 ```
 
 Add the corresponding `index` action for that route inside the
-`ArticlesController` in the `app/controllers/articles_controller.rb` file:
+`ArticlesController` in the `app/controllers/articles_controller.rb`
+file. The standard practice in Rails is to place the `index` action
+at the top of the CRUD actions, between the controller class
+declaration and the other actions. So here we go:
 
 ```ruby
-def index
-  @articles = Article.all
-end
+class ArticlesController < ApplicationController
+
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new
+  end
+
+  ...
 ```
 
 And then finally, add the view for this action, located at
@@ -913,7 +956,7 @@ Let's add links to the other views as well, starting with adding this
 
 This link will allow you to bring up the form that lets you create a new article.
 
-Also add a link in `app/views/articles/new.html.erb`, underneath the form, to
+Add another link in `app/views/articles/new.html.erb`, underneath the form, to
 go back to the `index` action:
 
 ```erb
@@ -924,7 +967,7 @@ go back to the `index` action:
 <%= link_to 'Back', articles_path %>
 ```
 
-Finally, add another link to the `app/views/articles/show.html.erb` template to
+Finally, add a link to the `app/views/articles/show.html.erb` template to
 go back to the `index` action as well, so that people who are viewing a single
 article can go back and view the whole list again:
 
@@ -990,6 +1033,8 @@ user. To do this, change the `new` and `create` actions inside
 `app/controllers/articles_controller.rb` to these:
 
 ```ruby
+...
+
 def new
   @article = Article.new
 end
@@ -1008,6 +1053,8 @@ private
   def article_params
     params.require(:article).permit(:title, :text)
   end
+
+...
 ```
 
 The `new` action is now creating a new instance variable called `@article`, and
@@ -1089,12 +1136,31 @@ you attempt to do just that on the new article form
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
 articles.
 
-The first step we'll take is adding an `edit` action to the `ArticlesController`.
+The first step we'll take is adding an `edit` action to the `ArticlesController`,
+generally between the `new` and `create` actions, as shown:
 
 ```ruby
+...
+
+def new
+  @article = Article.new
+end
+
 def edit
   @article = Article.find(params[:id])
 end
+
+def create
+  @article = Article.new(article_params)
+
+  if @article.save
+    redirect_to @article
+  else
+    render 'new'
+  end
+end
+
+...
 ```
 
 The view will contain a form similar to the one we used when creating
@@ -1150,12 +1216,26 @@ The first parameter of `form_for` can be an object, say, `@article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
 symbol (`:article`) with the same name as the instance variable (`@article`) also
 automagically leads to the same behavior. This is what is happening here. More details
-can be found in [form_for documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
+can be found in
+[form_for documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
 
-Next we need to create the `update` action in
-`app/controllers/articles_controller.rb`:
+Next, we need to create the `update` action in
+`app/controllers/articles_controller.rb`.
+Add it between the `create` action and the `private` methods:
 
 ```ruby
+...
+
+def create
+  @article = Article.new(article_params)
+
+  if @article.save
+    redirect_to @article
+  else
+    render 'new'
+  end
+end
+
 def update
   @article = Article.find(params[:id])
 
@@ -1170,6 +1250,8 @@ private
   def article_params
     params.require(:article).permit(:title, :text)
   end
+
+...
 ```
 
 The new method, `update`, is used when you want to update a record
@@ -1215,8 +1297,8 @@ bottom of the template:
 ```html+erb
 ...
 
-<%= link_to 'Back', articles_path %>
-| <%= link_to 'Edit', edit_article_path(@article) %>
+<%= link_to 'Back', articles_path %> |
+<%= link_to 'Edit', edit_article_path(@article) %>
 ```
 
 And here's how our app looks so far:
@@ -1225,10 +1307,10 @@ And here's how our app looks so far:
 
 ### Using partials to clean up duplication in views
 
-Our `edit` page looks very similar to the `new` page, in fact they
-both share the same code for displaying the form. Let's remove some duplication
-by using a view partial. By convention, partial files are prefixed by an
-underscore.
+Our `edit` page looks very similar to the `new` page; in fact, they
+both share the same code for displaying the form. Let's remove this
+duplication by using a view partial. By convention, partial files are
+prefixed by an underscore.
 
 TIP: You can read more about partials in the
 [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
@@ -1317,17 +1399,38 @@ people to craft malicious URLs like this:
 <a href='http://example.com/articles/1/destroy'>look at this cat!</a>
 ```
 
-We use the `delete` method for destroying resources, and this route is mapped to
-the `destroy` action inside `app/controllers/articles_controller.rb`, which
-doesn't exist yet, but is provided below:
+We use the `delete` method for destroying resources, and this route is mapped
+to the `destroy` action inside `app/controllers/articles_controller.rb`, which
+doesn't exist yet. The `destroy` method is generally placed at the end of the
+CRUD actions in the controller, and before any `private` or `protected`
+methods, as follows:
 
 ```ruby
+...
+
+def update
+  @article = Article.find(params[:id])
+
+  if @article.update(article_params)
+    redirect_to @article
+  else
+    render 'edit'
+  end
+end
+
 def destroy
   @article = Article.find(params[:id])
   @article.destroy
 
   redirect_to articles_path
 end
+
+private
+  def article_params
+    params.require(:article).permit(:title, :text)
+  end
+
+...
 ```
 
 You can call `destroy` on Active Record objects when you want to delete
@@ -1377,8 +1480,7 @@ Congratulations, you can now create, show, list, update and destroy
 articles.
 
 TIP: In general, Rails encourages the use of resources objects in place
-of declaring routes manually.
-For more information about routing, see
+of declaring routes manually. For more information about routing, see
 [Rails Routing from the Outside In](routing.html).
 
 Adding a Second Model
