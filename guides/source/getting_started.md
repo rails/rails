@@ -432,7 +432,11 @@ Open `app/controllers/articles_controller.rb` and inside the `ArticlesController
 class, define a `new` method like this:
 
 ```ruby
-def new
+class ArticlesController < ApplicationController
+
+  def new
+  end
+
 end
 ```
 
@@ -589,11 +593,13 @@ underneath the `new` action:
 
 ```ruby
 class ArticlesController < ApplicationController
+
   def new
   end
 
   def create
   end
+
 end
 ```
 
@@ -811,12 +817,25 @@ The special syntax `:id` tells rails that this route expects an `:id`
 parameter, which in our case will be the id of the article.
 
 As we did before, we need to add the `show` action in
-`app/controllers/articles_controller.rb` and its respective view.
+`app/controllers/articles_controller.rb` (underneath the `create` action)
+and its respective view.
 
 ```ruby
+def create
+  @article = Article.new(article_params)
+
+  @article.save
+  redirect_to @article
+end
+
 def show
   @article = Article.find(params[:id])
 end
+
+private
+  def article_params
+    params.require(:article).permit(:title, :text)
+  end
 ```
 
 A couple of things to note. We use `Article.find` to find the article we're
@@ -855,12 +874,18 @@ articles GET    /articles(.:format)          articles#index
 ```
 
 Add the corresponding `index` action for that route inside the
-`ArticlesController` in the `app/controllers/articles_controller.rb` file:
+`ArticlesController` in the `app/controllers/articles_controller.rb` file
+(before the `new` action):
 
 ```ruby
-def index
-  @articles = Article.all
-end
+class ArticlesController < ApplicationController
+
+  def index
+    @articles = Article.all
+  end
+
+  def new
+  end
 ```
 
 And then finally, add view for this action, located at
