@@ -863,7 +863,7 @@ def index
 end
 ```
 
-And then finally, add view for this action, located at
+And then finally, add the view for this action, located at
 `app/views/articles/index.html.erb`:
 
 ```html+erb
