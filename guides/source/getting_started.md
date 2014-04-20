@@ -1100,17 +1100,21 @@ it look as follows:
 <h1>Editing article</h1>
 
 <%= form_for :article, url: article_path(@article), method: :patch do |f| %>
+
   <% if @article.errors.any? %>
-  <div id="error_explanation">
-    <h2><%= pluralize(@article.errors.count, "error") %> prohibited
-      this article from being saved:</h2>
-    <ul>
-    <% @article.errors.full_messages.each do |msg| %>
-      <li><%= msg %></li>
-    <% end %>
-    </ul>
-  </div>
+    <div id="error_explanation">
+      <h2>
+        <%= pluralize(@article.errors.count, "error") %> prohibited
+        this article from being saved:
+      </h2>
+      <ul>
+        <% @article.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
   <% end %>
+
   <p>
     <%= f.label :title %><br>
     <%= f.text_field :title %>
@@ -1124,6 +1128,7 @@ it look as follows:
   <p>
     <%= f.submit %>
   </p>
+
 <% end %>
 
 <%= link_to 'Back', articles_path %>
