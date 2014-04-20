@@ -155,7 +155,7 @@ module ActionDispatch
           end
 
           def self.optimize_helper?(route)
-            route.requirements.except(:controller, :action).empty?
+            !route.glob? && route.requirements.except(:controller, :action).empty?
           end
 
           class OptimizedUrlHelper < UrlHelper # :nodoc:
@@ -194,7 +194,7 @@ module ActionDispatch
             end
 
             def replace_segment(params, segment)
-              Symbol === segment ? @klass.escape_fragment(params[segment]) : segment
+              Symbol === segment ? @klass.escape_segment(params[segment]) : segment
             end
 
             def optimize_routes_generation?(t)

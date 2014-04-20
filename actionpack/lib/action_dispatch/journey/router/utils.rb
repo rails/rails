@@ -37,6 +37,7 @@ module ActionDispatch
           ESCAPED  = /%[a-zA-Z0-9]{2}/.freeze
 
           FRAGMENT = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/\?]/.freeze
+          SEGMENT  = /[^#{UNRESERVED}#{SUB_DELIMS}:@]/.freeze
           PATH     = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/]/.freeze
 
           def escape_fragment(fragment)
@@ -45,6 +46,10 @@ module ActionDispatch
 
           def escape_path(path)
             escape(path, PATH)
+          end
+
+          def escape_segment(segment)
+            escape(segment, SEGMENT)
           end
 
           def unescape_uri(uri)
@@ -67,6 +72,10 @@ module ActionDispatch
 
         def self.escape_path(path)
           ENCODER.escape_path(path.to_s)
+        end
+
+        def self.escape_segment(segment)
+          ENCODER.escape_segment(segment.to_s)
         end
 
         def self.escape_fragment(fragment)
