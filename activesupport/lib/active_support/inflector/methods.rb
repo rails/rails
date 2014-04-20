@@ -155,7 +155,7 @@ module ActiveSupport
     #
     # Singular names are not handled correctly:
     #
-    #   'business'.classify     # => "Business"
+    #   'calculus'.classify     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
       camelize(singularize(table_name.to_s.sub(/.*\./, '')))
