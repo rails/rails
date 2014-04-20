@@ -527,6 +527,15 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal copy, source
   end
 
+  def test_query_string_is_passed_to_asset_host_proc
+    @controller.config.asset_host = Proc.new do |source|
+      assert_equal '/images/image.png?query=string', source
+      "cdn.example.com"
+    end
+
+    assert_equal 'http://cdn.example.com/images/image.png?query=string', image_path('image.png?query=string')
+  end
+
   def test_image_path_with_asset_host_proc_returning_nil
     @controller.config.asset_host = Proc.new do |source|
       unless source.end_with?("tiff")
