@@ -188,7 +188,7 @@ module ActiveRecord
         end
 
         def column_for(table_name, column_name) #:nodoc:
-          columns(table_name).detect { |c| c.name == column_name.to_s } 
+          columns(table_name).detect { |c| c.name == column_name.to_s }
         end
 
         # Returns the current database name.
@@ -486,12 +486,12 @@ module ActiveRecord
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
         def columns_for_distinct(columns, orders) #:nodoc:
-          order_columns = orders.reject(&:blank?).map{ |s|
+          order_columns = orders.select(&:present?).map{ |s|
               # Convert Arel node to string
               s = s.to_sql unless s.is_a?(String)
               # Remove any ASC/DESC modifiers
               s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
-            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+            }.select(&:present?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           [super, *order_columns].join(', ')
         end

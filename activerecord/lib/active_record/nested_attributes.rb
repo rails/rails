@@ -379,7 +379,7 @@ module ActiveRecord
       attributes = attributes.with_indifferent_access
       existing_record = send(association_name)
 
-      if (options[:update_only] || !attributes['id'].blank?) && existing_record &&
+      if (options[:update_only] || attributes['id'].present?) && existing_record &&
           (options[:update_only] || existing_record.id.to_s == attributes['id'].to_s)
         assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 

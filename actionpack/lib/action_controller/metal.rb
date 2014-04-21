@@ -23,7 +23,7 @@ module ActionController
         if @only.present?
           @only.include?(action)
         elsif @except.present?
-          !@except.include?(action)
+          @except.exclude?(action)
         else
           true
         end

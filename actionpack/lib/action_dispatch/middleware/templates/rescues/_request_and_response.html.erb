@@ -1,4 +1,4 @@
-<% unless @exception.blamed_files.blank? %>
+<% if @exception.blamed_files.present? %>
   <% if (hide = @exception.blamed_files.length > 8) %>
     <a href="#" onclick="return toggleTrace()">Toggle blamed files</a>
   <% end %>

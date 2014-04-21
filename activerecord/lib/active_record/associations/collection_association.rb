@@ -56,7 +56,7 @@ module ActiveRecord
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
         pk_column = reflection.primary_key_column
-        ids = Array(ids).reject { |id| id.blank? }
+        ids = Array(ids).select(&:present?)
         ids.map! { |i| pk_column.type_cast(i) }
         replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
       end

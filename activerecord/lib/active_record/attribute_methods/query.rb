@@ -20,12 +20,12 @@ module ActiveRecord
               !value.to_i.zero?
             else
               return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
-              !value.blank?
+              value.present?
             end
           elsif column.number?
             !value.zero?
           else
-            !value.blank?
+            value.present?
           end
         end
       end

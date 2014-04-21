@@ -39,7 +39,7 @@ module ActionView #:nodoc:
         )
       end
 
-      templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }
+      templates.sort_by {|t| -t.identifier.match(/^#{query}$/).captures.select(&:present?).size }
     end
   end
 

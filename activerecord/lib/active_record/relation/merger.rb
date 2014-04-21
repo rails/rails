@@ -133,14 +133,14 @@ module ActiveRecord
           relation.order! values[:order]
         end
 
-        relation.extend(*values[:extending]) unless values[:extending].blank?
+        relation.extend(*values[:extending]) if values[:extending].present?
       end
 
       def merge_single_values
         relation.from_value          = values[:from] unless relation.from_value
         relation.lock_value          = values[:lock] unless relation.lock_value
 
-        unless values[:create_with].blank?
+        if values[:create_with].present?
           relation.create_with_value = (relation.create_with_value || {}).merge(values[:create_with])
         end
       end
