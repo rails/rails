@@ -170,7 +170,7 @@ module ActionController
             "Expected no partials to be rendered"
         end
       else
-        raise ArgumentError, "assert_template only accepts a String, Symbol, Hash, Regexp, nil or false"
+        raise ArgumentError, "assert_template only accepts a String, Symbol, Hash, Regexp, or nil"
       end
     end
   end
