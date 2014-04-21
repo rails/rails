@@ -163,6 +163,22 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal [:width, :height], second_model.stored_attributes[:data]
   end
 
+  test "stored_attributes are tracked per subclass" do
+    first_model = Class.new(ActiveRecord::Base) do
+      store_accessor :data, :color
+    end
+    second_model = Class.new(first_model) do
+      store_accessor :data, :width, :height
+    end
+    third_model = Class.new(first_model) do
+      store_accessor :data, :area, :volume
+    end
+
+    assert_equal [:color], first_model.stored_attributes[:data]
+    assert_equal [:color, :width, :height], second_model.stored_attributes[:data]
+    assert_equal [:color, :area, :volume], third_model.stored_attributes[:data]
+  end
+
   test "YAML coder initializes the store when a Nil value is given" do
     assert_equal({}, @john.params)
   end
