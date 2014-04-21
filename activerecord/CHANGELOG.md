@@ -1,3 +1,10 @@
+*   Fix `stored_attributes` to correctly merge the details of stored
+    attributes defined in parent classes.
+
+    Fixes #14672.
+
+    *Brad Bennett*, *Jessica Yao*, *Lakshmi Parthasarathy*
+
 *   `change_column_default` allows `[]` as argument to `change_column_default`.
 
     Fixes #11586.
