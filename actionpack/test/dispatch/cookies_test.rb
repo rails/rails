@@ -138,12 +138,12 @@ class CookiesTest < ActionController::TestCase
     end
 
     def set_cookie_with_domain_and_tld
-      cookies[:user_name] = {:value => "rizwanreza", :domain => :all, :tld_length => 2}
+      cookies[:user_name] = {:value => "rizwanreza", :domain => :all, :tld_length => 1}
       head :ok
     end
 
     def delete_cookie_with_domain_and_tld
-      cookies.delete(:user_name, :domain => :all, :tld_length => 2)
+      cookies.delete(:user_name, :domain => :all, :tld_length => 1)
       head :ok
     end
 

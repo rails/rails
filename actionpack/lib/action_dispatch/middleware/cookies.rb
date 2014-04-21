@@ -276,7 +276,7 @@ module ActionDispatch
 
         if options[:domain] == :all
           # if there is a provided tld length then we use it otherwise default domain regexp
-          domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
+          domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length] + 1}}$/ : DOMAIN_REGEXP
 
           # if host is not ip and matches domain regexp
           # (ip confirms to domain regexp so we explicitly check for ip)
