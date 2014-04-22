@@ -1116,5 +1116,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     club.reload
     assert_equal [member], club.favourites
+
+  def test_has_many_through_unscope_default_scope
+    post = Post.create!(:title => 'Beaches', :body => "I like beaches!")
+    Reader.create! :person => people(:david), :post => post
+    LazyReader.create! :person => people(:susan), :post => post
+
+    assert_equal 2, post.people.to_a.size
+    assert_equal 1, post.lazy_people.to_a.size
+
+    assert_equal 2, post.lazy_readers_unscope_skimmers.to_a.size
+    assert_equal 2, post.lazy_people_unscope_skimmers.to_a.size
   end
 end

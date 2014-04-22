@@ -1,3 +1,12 @@
+*   Fixed unexpected behavior for `has_many :through` associations going through a scoped `has_many`.
+
+    If a `has_many` association is adjusted using a scope, and another `has_many :through`
+    uses this association, then the scope adjustment is unexpectedly neglected.
+
+    Fixes #14537.
+
+    *Jan Habermann*
+
 *   `@destroyed` should always be set to `false` when an object is duped.
 
     *Kuldeep Aggarwal*
