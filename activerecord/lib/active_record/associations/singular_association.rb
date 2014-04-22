@@ -38,8 +38,12 @@ module ActiveRecord
           scope.scope_for_create.stringify_keys.except(klass.primary_key)
         end
 
+        def get_records
+          scope.limit(1).to_a
+        end
+
         def find_target
-          if record = scope.take
+          if record = get_records.first
             set_inverse_instance record
           end
         end
