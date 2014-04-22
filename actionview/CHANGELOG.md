@@ -1,3 +1,18 @@
+*   Change `favicon_link_tag` default mimetype from `image/vnd.microsoft.icon` to
+    `image/x-icon`.
+
+    Before:
+    
+        #=> favicon_link_tag 'myicon.ico'
+        <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+
+    After:
+
+        #=> favicon_link_tag 'myicon.ico'
+        <link href="/assets/myicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    *Geoffroy Lorieux*
+
 *   Remove wrapping div with inline styles for hidden form fields.
 
     We are dropping HTML 4.01 and XHTML strict compliance since input tags directly

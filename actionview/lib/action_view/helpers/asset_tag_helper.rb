@@ -149,12 +149,12 @@ module ActionView
       # ==== Options
       #
       # * <tt>:rel</tt>   - Specify the relation of this link, defaults to 'shortcut icon'
-      # * <tt>:type</tt>  - Override the auto-generated mime type, defaults to 'image/vnd.microsoft.icon'
+      # * <tt>:type</tt>  - Override the auto-generated mime type, defaults to 'image/x-icon'
       #
       # ==== Examples
       #
       #   favicon_link_tag 'myicon.ico'
-      #   # => <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      #   # => <link href="/assets/myicon.ico" rel="shortcut icon" type="image/x-icon" />
       #
       # Mobile Safari looks for a different <link> tag, pointing to an image that
       # will be used if you add the page to the home screen of an iPod Touch, iPhone, or iPad.
@@ -165,7 +165,7 @@ module ActionView
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
-          :type => 'image/vnd.microsoft.icon',
+          :type => 'image/x-icon',
           :href => path_to_image(source)
         }.merge!(options.symbolize_keys))
       end
