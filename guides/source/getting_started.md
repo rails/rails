@@ -1839,7 +1839,7 @@ database and send us back to the show action for the article.
 
 ### Deleting Associated Objects
 
-If you delete an article then its associated comments will also need to be
+If you delete an article, its associated comments will also need to be
 deleted. Otherwise they would simply occupy space in the database. Rails allows
 you to use the `dependent` option of an association to achieve this. Modify the
 Article model, `app/models/article.rb`, as follows:
@@ -1857,21 +1857,21 @@ Security
 
 ### Basic Authentication
 
-If you were to publish your blog online, anybody would be able to add, edit and
+If you were to publish your blog online, anyone would be able to add, edit and
 delete articles or delete comments.
 
 Rails provides a very simple HTTP authentication system that will work nicely in
 this situation.
 
-In the `ArticlesController` we need to have a way to block access to the various
-actions if the person is not authenticated, here we can use the Rails
-`http_basic_authenticate_with` method, allowing access to the requested
+In the `ArticlesController` we need to have a way to block access to the
+various actions if the person is not authenticated. Here we can use the Rails
+`http_basic_authenticate_with` method, which allows access to the requested
 action if that method allows it.
 
 To use the authentication system, we specify it at the top of our
-`ArticlesController`, in this case, we want the user to be authenticated on
-every action, except for `index` and `show`, so we write that in
-`app/controllers/articles_controller.rb`:
+`ArticlesController` in `app/controllers/articles_controller.rb`. In our case,
+we want the user to be authenticated on every action except `index` and `show`,
+so we write that:
 
 ```ruby
 class ArticlesController < ApplicationController
