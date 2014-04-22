@@ -1,3 +1,9 @@
+*   Fix name collision with `Array#select!` with `Relation#select!`.
+
+    Fixes #14752.
+
+    *Earl St Sauver*
+
 *   When a destroyed record is duped, the dup is not `destroyed?`.
 
     *Kuldeep Aggarwal*

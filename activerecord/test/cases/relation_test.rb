@@ -231,11 +231,16 @@ module ActiveRecord
       @relation ||= Relation.new FakeKlass.new('posts'), :b
     end
 
-    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :select]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
       end
+    end
+
+    test "#_select!" do
+      assert relation.public_send("_select!", :foo).equal?(relation)
+      assert_equal [:foo], relation.public_send("select_values")
     end
 
     test "#order!" do
