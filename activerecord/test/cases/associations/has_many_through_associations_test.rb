@@ -1082,7 +1082,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal ["parrot", "bulbul"], owner.toys.map { |r| r.pet.name }
   end
 
-  test "has many through associations on new records use null relations" do
+  def test_has_many_through_associations_on_new_records_use_null_relations
     person = Person.new
 
     assert_no_queries do
@@ -1094,7 +1094,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  test "has many through with default scope on the target" do
+  def test_has_many_through_with_default_scope_on_the_target
     person = people(:michael)
     assert_equal [posts(:thinking)], person.first_posts
 
@@ -1102,11 +1102,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [posts(:thinking)], person.reload.first_posts
   end
 
-  test "has many through with includes in through association scope" do
+  def test_has_many_through_with_includes_in_through_association_scope
     assert_not_empty posts(:welcome).author_address_extra_with_address
   end
 
-  test "insert records via has_many_through association with scope" do
+  def test_insert_records_via_has_many_through_association_with_scope
     club = Club.create!
     member = Member.create!
     Membership.create!(club: club, member: member)
