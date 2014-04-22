@@ -1,3 +1,9 @@
+*   Fix name collision with `Array#select!` with `Relation#select!`.
+
+    Fixes #14752.
+
+    *Earl St Sauver*
+
 *   Fixed unexpected behavior for `has_many :through` associations going through a scoped `has_many`.
 
     If a `has_many` association is adjusted using a scope, and another `has_many :through`
