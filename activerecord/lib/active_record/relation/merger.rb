@@ -30,6 +30,8 @@ module ActiveRecord
             else
               other.joins!(*v)
             end
+          elsif k == :select
+            other._select!(v)
           else
             other.send("#{k}!", v)
           end
@@ -62,7 +64,13 @@ module ActiveRecord
           # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
           # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
           # don't fall through the cracks.
-          relation.send("#{name}!", *value) unless value.nil? || (value.blank? && false != value)
+          unless value.nil? || (value.blank? && false != value)
+            if name == :select
+              relation._select!(*value)
+            else
+              relation.send("#{name}!", *value)
+            end
+          end
         end
 
         merge_multi_values
