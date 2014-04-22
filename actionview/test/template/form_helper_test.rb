@@ -265,6 +265,13 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_label_with_block_and_html
+    assert_dom_equal(
+      '<label for="post_terms">Accept <a href="/terms">Terms</a>.</label>',
+      label(:post, :terms) { 'Accept <a href="/terms">Terms</a>.'.html_safe }
+    )
+  end
+
   def test_label_with_block_and_options
     assert_dom_equal(
       '<label for="my_for">The title, please:</label>',
