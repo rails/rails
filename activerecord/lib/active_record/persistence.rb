@@ -483,9 +483,14 @@ module ActiveRecord
     end
 
     def create_or_update
-      raise ReadOnlyRecord if readonly?
-      result = new_record? ? _create_record : _update_record
-      result != false
+      if readonly?
+        raise ReadOnlyRecord
+      elsif destroyed?
+        false
+      else
+        result = new_record? ? _create_record : _update_record
+        result != false
+      end
     end
 
     # Updates the associated record with values matching those of the instance attributes.
