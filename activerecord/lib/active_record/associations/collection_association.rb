@@ -416,7 +416,7 @@ module ActiveRecord
         return scope.to_a if reflection.scope_chain.any?(&:any?)
 
         conn = klass.connection
-        sc = reflection.association_scope_cache(conn) do
+        sc = reflection.association_scope_cache(conn, owner) do
           StatementCache.create(conn) { |params|
             as = AssociationScope.create { params.bind }
             target_scope.merge as.scope(self, conn)

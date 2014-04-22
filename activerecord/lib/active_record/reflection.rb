@@ -205,8 +205,11 @@ module ActiveRecord
         @scope_lock = Mutex.new
       end
 
-      def association_scope_cache(conn)
+      def association_scope_cache(conn, owner)
         key = conn.prepared_statements
+        if options[:polymorphic]
+          key = [key, owner.read_attribute(@foreign_type)]
+        end
         @association_scope_cache[key] ||= @scope_lock.synchronize {
           @association_scope_cache[key] ||= yield
         }
