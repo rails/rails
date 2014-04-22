@@ -107,6 +107,8 @@ ActiveRecord::Schema.define do
     t.column :status, :integer, default: 0
     t.column :read_status, :integer, default: 0
     t.column :nullable_status, :integer
+    t.column :skip_status, :integer, default: 0
+    t.column :prefix_status, :integer, default: 0
   end
 
   create_table :booleans, force: true do |t|
