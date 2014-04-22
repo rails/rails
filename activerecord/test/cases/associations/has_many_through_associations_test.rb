@@ -1116,6 +1116,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     club.reload
     assert_equal [member], club.favourites
+  end
 
   def test_has_many_through_unscope_default_scope
     post = Post.create!(:title => 'Beaches', :body => "I like beaches!")
