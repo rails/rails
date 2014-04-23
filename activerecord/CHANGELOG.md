@@ -1,3 +1,9 @@
+*   `ActiveRecord::Base.no_touching` no longer triggers callbacks or start empty transactions.
+
+    Fixes #14841.
+
+    *Lucas Mazza*
+
 *   Fix name collision with `Array#select!` with `Relation#select!`.
 
     Fixes #14752.
