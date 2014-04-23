@@ -296,7 +296,6 @@ module ActiveRecord #:nodoc:
 
     include Core
     include Persistence
-    include NoTouching
     include ReadonlyAttributes
     include ModelSchema
     include Inheritance
@@ -318,6 +317,7 @@ module ActiveRecord #:nodoc:
     include NestedAttributes
     include Aggregations
     include Transactions
+    include NoTouching
     include Reflection
     include Serialization
     include Store
