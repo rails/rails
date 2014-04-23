@@ -449,8 +449,8 @@ module ApplicationTests
 
     test "asset urls should be protocol-relative if no request is in scope" do
       app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/image_loader.js.erb", "//= depend_on_asset 'rails.png'\n\nvar src='<%= image_path('rails.png') %>';"
-      add_to_config "config.assets.precompile = %w{image_loader.js}"
+      app_file "app/assets/javascripts/image_loader.js.erb", "var src='<%= image_path('rails.png') %>';"
+      add_to_config "config.assets.precompile = %w{rails.png image_loader.js}"
       add_to_config "config.asset_host = 'example.com'"
       precompile!
 
@@ -461,8 +461,8 @@ module ApplicationTests
       ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
       app_file "app/assets/images/rails.png", "notreallyapng"
 
-      app_file "app/assets/javascripts/app.js.erb", "//= depend_on_asset 'rails.png'\n\nvar src='<%= image_path('rails.png') %>';"
-      add_to_config "config.assets.precompile = %w{app.js}"
+      app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
+      add_to_config "config.assets.precompile = %w{rails.png app.js}"
       precompile!
 
       assert_match "src='/sub/uri/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
