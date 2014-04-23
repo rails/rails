@@ -1,3 +1,16 @@
+*   Fixed an issue with migrating legacy json cookies.
+
+    Previously, the `VerifyAndUpgradeLegacySignedMessage` assumes all incoming
+    cookies are marshal-encoded. This is not the case when `secret_token` is
+    used in conjunction with the `:json` or `:hybrid` serializer.
+
+    In those case, when upgrading to use `secret_key_base`, this would cause a
+    `TypeError: incompatible marshal file format` and a 500 error for the user.
+
+    Fixes #14774.
+
+    *Godfrey Chan*
+
 *   Make URL escaping more consistent:
 
     1. Escape '%' characters in URLs - only unescaped data should be passed to URL helpers
