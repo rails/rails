@@ -82,7 +82,7 @@ In the remainder of this guide, you'll learn how to declare and use the various 
 
 ### The `belongs_to` Association
 
-A `belongs_to` association sets up a one-to-one connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes customers and orders, and each order can be assigned to exactly one customer, you'd declare the order model this way:
+A `belongs_to` association serves two purposes. The first is to set up a many-to-one connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes customers and orders, and each order can be assigned to exactly one customer, you'd declare the order model this way:
 
 ```ruby
 class Order < ActiveRecord::Base
@@ -113,9 +113,11 @@ class CreateOrders < ActiveRecord::Migration
 end
 ```
 
+The second purpose of `belongs_to` is to set up one half of a one-to-one association, in tandem with `has_one` on the other model.
+
 ### The `has_one` Association
 
-A `has_one` association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
+A `has_one` association sets up one half of a one-to-one connection with another model (which uses `belongs_to`). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
 
 ```ruby
 class Supplier < ActiveRecord::Base
