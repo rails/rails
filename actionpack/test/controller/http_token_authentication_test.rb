@@ -118,6 +118,12 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal(expected, actual)
   end
 
+  test "token_and_options returns nil with no value after the equal sign" do
+    actual = ActionController::HttpAuthentication::Token.token_and_options(malformed_request)
+    expected = nil
+    assert_equal(expected, actual)
+  end
+
   test "token_and_options returns correct token with slashes" do
     token = 'rcHu+\\\\"/896A'
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
@@ -136,6 +142,10 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
   def sample_request(token)
     @sample_request ||= OpenStruct.new authorization: %{Token token="#{token}"}
+  end
+
+  def malformed_request
+    @malformed_request ||= OpenStruct.new authorization: %{Token token=}
   end
 
   def encode_credentials(token, options = {})
