@@ -176,11 +176,11 @@ module ActionDispatch
     module VerifyAndUpgradeLegacySignedMessage
       def initialize(*args)
         super
-        @legacy_verifier = ActiveSupport::MessageVerifier.new(@options[:secret_token])
+        @legacy_verifier = ActiveSupport::MessageVerifier.new(@options[:secret_token], serializer: NullSerializer)
       end
 
       def verify_and_upgrade_legacy_signed_message(name, signed_message)
-        @legacy_verifier.verify(signed_message).tap do |value|
+        deserialize(name, @legacy_verifier.verify(signed_message)).tap do |value|
           self[name] = { value: value }
         end
       rescue ActiveSupport::MessageVerifier::InvalidSignature
