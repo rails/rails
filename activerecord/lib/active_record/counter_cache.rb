@@ -75,13 +75,7 @@ module ActiveRecord
       #   #    SET comment_count = COALESCE(comment_count, 0) + 1
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
-        updates = counters.map do |counter_name, value|
-          operator = value < 0 ? '-' : '+'
-          quoted_column = connection.quote_column_name(counter_name)
-          "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
-        end
-
-        unscoped.where(primary_key => id).update_all updates.join(', ')
+        unscoped.where(primary_key => id).update_counters(counters)
       end
 
       # Increment a numeric field by one, via a direct SQL update.
@@ -146,6 +140,22 @@ module ActiveRecord
         end
 
         id
+      end
+
+      def _update_record(*)
+        affected_rows = super
+
+        each_counter_cached_associations do |association|
+          if affected_rows > 0 && association.changed? && !new_record?
+            foreign_key_was = attribute_was(association.reflection.foreign_key)
+            foreign_key     = attribute(association.reflection.foreign_key)
+
+            association.increment_counters if foreign_key
+            association.decrement_previous_counters if foreign_key_was
+          end
+        end
+
+        affected_rows
       end
 
       def destroy_row

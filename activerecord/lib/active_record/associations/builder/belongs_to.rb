@@ -14,50 +14,14 @@ module ActiveRecord::Associations::Builder
 
     def self.define_callbacks(model, reflection)
       super
-      add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
+      mark_counter_cache_readonly(model, reflection) if reflection.options[:counter_cache]
       add_touch_callbacks(model, reflection)         if reflection.options[:touch]
-    end
-
-    def self.define_accessors(mixin, reflection)
-      super
-      add_counter_cache_methods mixin
     end
 
     private
 
-    def self.add_counter_cache_methods(mixin)
-      return if mixin.method_defined? :belongs_to_counter_cache_after_update
-
-      mixin.class_eval do
-        def belongs_to_counter_cache_after_update(reflection)
-          foreign_key  = reflection.foreign_key
-          cache_column = reflection.counter_cache_column
-
-          if (@_after_create_counter_called ||= false)
-            @_after_create_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record? && reflection.constructable?
-            model           = reflection.klass
-            foreign_key_was = attribute_was foreign_key
-            foreign_key     = attribute foreign_key
-
-            if foreign_key && model.respond_to?(:increment_counter)
-              model.increment_counter(cache_column, foreign_key)
-            end
-            if foreign_key_was && model.respond_to?(:decrement_counter)
-              model.decrement_counter(cache_column, foreign_key_was)
-            end
-          end
-        end
-      end
-    end
-
-    def self.add_counter_cache_callbacks(model, reflection)
+    def self.mark_counter_cache_readonly(model, reflection)
       cache_column = reflection.counter_cache_column
-
-      model.after_update lambda { |record|
-        record.belongs_to_counter_cache_after_update(reflection)
-      }
-
       klass = reflection.class_name.safe_constantize
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end

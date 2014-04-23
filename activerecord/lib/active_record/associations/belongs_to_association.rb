@@ -10,12 +10,10 @@ module ActiveRecord
       def replace(record)
         if record
           raise_on_type_mismatch!(record)
-          update_counters(record)
           replace_keys(record)
           set_inverse_instance(record)
           @updated = true
         else
-          decrement_counters
           remove_keys
         end
 
@@ -35,8 +33,17 @@ module ActiveRecord
         with_cache_name { |name| decrement_counter name }
       end
 
+      def decrement_previous_counters # :nodoc:
+        with_cache_name { |name| decrement_previous_counter name }
+      end
+
       def increment_counters # :nodoc:
         with_cache_name { |name| increment_counter name }
+      end
+
+      # To be overrided by subclasses
+      def changed?
+        owner.attribute_changed?(reflection.foreign_key)
       end
 
       private
@@ -65,10 +72,28 @@ module ActiveRecord
           end
         end
 
+        def decrement_previous_counter(counter_cache_name)
+          if scope = previous_target_scope
+            scope.decrement_counter(counter_cache_name)
+          end
+        end
+
         def increment_counter(counter_cache_name)
           if foreign_key_present?
             klass.increment_counter(counter_cache_name, target_id)
           end
+        end
+
+        def previous_target_scope
+          if klass = previous_klass
+            primary_key = reflection.association_primary_key(klass)
+            klass.where(primary_key => owner.attribute_was(reflection.foreign_key))
+          end
+        end
+
+        # To be overrided by subclasses
+        def previous_klass
+          klass
         end
 
         # Checks whether record is different to the current target, without loading it
