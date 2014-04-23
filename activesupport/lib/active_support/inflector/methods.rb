@@ -244,8 +244,8 @@ module ActiveSupport
           next candidate if constant.const_defined?(name, false)
           next candidate unless Object.const_defined?(name)
 
-          # Go down the ancestors to check it it's owned
-          # directly before we reach Object or the end of ancestors.
+          # Go down the ancestors to check if it is owned directly. The check
+          # stops when we reach Object or the end of ancestors tree.
           constant = constant.ancestors.inject do |const, ancestor|
             break const    if ancestor == Object
             break ancestor if ancestor.const_defined?(name, false)
