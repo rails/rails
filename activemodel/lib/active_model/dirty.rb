@@ -17,6 +17,7 @@ module ActiveModel
   # * Call <tt>changes_applied</tt> after the changes are persisted.
   # * Call <tt>reset_changes</tt> when you want to reset the changes
   #   information.
+  # * Call <tt>rollback_changes</tt> when you want to restore previous data
   #
   # A minimal implementation could be:
   #
@@ -41,6 +42,10 @@ module ActiveModel
   #
   #     def reload!
   #       reset_changes
+  #     end
+  #
+  #     def rollback!
+  #       rollback_changes
   #     end
   #   end
   #
@@ -71,6 +76,13 @@ module ActiveModel
   #   person.previous_changes # => {"name" => ["Uncle Bob", "Bill"]}
   #   person.reload!
   #   person.previous_changes # => {}
+  #
+  # Rollback the changes:
+  #
+  #   person.name = "Uncle Bob"
+  #   person.rollback!
+  #   person.name           # => "Bill"
+  #   person.name_changed?  # => false
   #
   # Assigning the same value leaves the attribute unchanged:
   #
@@ -174,6 +186,11 @@ module ActiveModel
       def reset_changes
         @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+      end
+
+      # Restore all previous data
+      def rollback_changes #:doc:
+        changed_attributes.each_key { |attr| reset_attribute! attr }
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
