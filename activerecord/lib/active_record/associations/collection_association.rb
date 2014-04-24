@@ -252,10 +252,10 @@ module ActiveRecord
       end
 
       def delete_all_with_dependency(dependent)
-        if (loaded? || dependent == :destroy) && dependent != :delete_all
-          delete_or_destroy(load_target, dependent)
-        else
+        if dependent == :delete_all
           delete_records(:all, dependent)
+        else
+          delete_or_destroy(load_target, dependent)
         end
       end
 
