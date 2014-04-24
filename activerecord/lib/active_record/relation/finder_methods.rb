@@ -242,7 +242,7 @@ module ActiveRecord
     # If no order is defined it will order by primary key.
     #
     #   Person.forty_two # returns the forty-second object fetched by SELECT * FROM people
-    #   Person.offset(3).forty_two # returns the fifth object from OFFSET 3 (which is OFFSET 44)
+    #   Person.offset(3).forty_two # returns the forty-second object from OFFSET 3 (which is OFFSET 44)
     #   Person.where(["user_name = :u", { u: user_name }]).forty_two
     def forty_two
       find_nth(41, offset_index)
