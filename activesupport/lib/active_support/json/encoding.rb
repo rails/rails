@@ -25,8 +25,8 @@ module ActiveSupport
       class JSONGemEncoder #:nodoc:
         attr_reader :options
 
-        def initialize(options = nil)
-          @options = options || {}
+        def initialize(options = {})
+          @options = options
         end
 
         # Encode the given object into a JSON string
