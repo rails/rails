@@ -209,12 +209,7 @@ This is not reliable and will be removed in the future.
         class Timestamp < Type
           def type; :timestamp; end
           def simplified_type(sql_type)
-            case sql_type
-            when /^timestamp with(?:out)? time zone$/
-              :datetime
-            else
-              :timestamp
-            end
+            :datetime
           end
 
           def type_cast(value)
