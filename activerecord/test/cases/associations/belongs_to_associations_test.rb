@@ -570,6 +570,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert companies(:first_client).readonly_firm.readonly?
   end
 
+  def test_test_polymorphic_assignment_foreign_key_type_string
+    comment = Comment.first
+    comment.author   = Author.first
+    comment.resource = Member.first
+    comment.save
+
+    assert_equal Comment.all.to_a,
+      Comment.includes(:author).to_a
+
+    assert_equal Comment.all.to_a,
+      Comment.includes(:resource).to_a
+  end
+
   def test_polymorphic_assignment_foreign_type_field_updating
     # should update when assigning a saved record
     sponsor = Sponsor.new
