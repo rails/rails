@@ -1,9 +1,11 @@
 require 'cases/helper'
+require 'support/connection_helper'
 require 'models/topic'    # For booleans
 require 'models/pirate'   # For timestamps
 require 'models/parrot'
 require 'models/person'   # For optimistic locking
 require 'models/aircraft'
+require 'models/comment'
 
 class Pirate # Just reopening it, not defining it
   attr_accessor :detected_changes_in_after_update # Boolean for if changes are detected
@@ -28,6 +30,7 @@ end
 
 class DirtyTest < ActiveRecord::TestCase
   include InTimeZone
+  include ConnectionHelper
 
   # Dummy to force column loads so query counts are clean.
   def setup
@@ -613,6 +616,21 @@ class DirtyTest < ActiveRecord::TestCase
       a = Aircraft.create!
       a.reload
       assert_not_nil a.id
+    end
+  end
+
+  test 'partial insert should not skip "not null" column that has nil value' do
+    if current_adapter?(:Mysql2Adapter)
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.merge(strict: false))
+
+        with_partial_writes Comment do
+          assert_raise ActiveRecord::StatementInvalid do
+            # this should raise not null violation error
+            Comment.create!
+          end
+        end
+      end
     end
   end
 
