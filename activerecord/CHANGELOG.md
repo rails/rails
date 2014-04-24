@@ -1,3 +1,8 @@
+*   Reset the cache when modifying a Relation with cached Arel.
+    Additionally display a warning message to make the user aware.
+
+    *Yves Senn*
+
 *   PostgreSQL should internally use `:datetime` consistently for TimeStamp. Assures
     different spellings of timestamps are treated the same.
 
