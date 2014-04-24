@@ -1,3 +1,17 @@
+*   PostgreSQL should internally use `:datetime` consistently for TimeStamp. Assures
+    different spellings of timestamps are treated the same.
+
+    Example:
+
+        mytimestamp.simplified_type('timestamp without time zone')
+        # => :datetime
+        mytimestamp.simplified_type('timestamp(6) without time zone')
+        # => also :datetime (previously would be :timestamp)
+
+    See #14513.
+
+    *Jefferson Lai*
+
 *   `ActiveRecord::Base.no_touching` no longer triggers callbacks or start empty transactions.
 
     Fixes #14841.
