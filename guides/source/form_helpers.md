@@ -819,21 +819,21 @@ As a shortcut you can append [] to the name and omit the `:index` option. This i
 
 produces exactly the same output as the previous example.
 
-Forms to external resources
+Forms to External Resources
 ---------------------------
 
-If you need to post some data to an external resource it is still great to build your form using rails form helpers. But sometimes you need to set an `authenticity_token` for this resource. You can do it by passing an `authenticity_token: 'your_external_token'` parameter to the `form_tag` options:
+Rails' form helpers can also be used to build a form for posting data to an external resource. However, at times it can be necessary to set an `authenticity_token` for the resource; this can be done by passing an `authenticity_token: 'your_external_token'` parameter to the `form_tag` options:
 
 ```erb
-<%= form_tag 'http://farfar.away/form', authenticity_token: 'external_token') do %>
+<%= form_tag 'http://farfar.away/form', authenticity_token: 'external_token' do %>
   Form contents
 <% end %>
 ```
 
-Sometimes when you submit data to an external resource, like payment gateway, fields you can use in your form are limited by an external API. So you may want not to generate an `authenticity_token` hidden field at all. For doing this just pass `false` to the `:authenticity_token` option:
+Sometimes when submitting data to an external resource, like a payment gateway, the fields that can be used in the form are limited by an external API and it may be undesirable to generate an `authenticity_token`. To not send a token, simply pass `false` to the `:authenticity_token` option:
 
 ```erb
-<%= form_tag 'http://farfar.away/form', authenticity_token: false) do %>
+<%= form_tag 'http://farfar.away/form', authenticity_token: false do %>
   Form contents
 <% end %>
 ```
