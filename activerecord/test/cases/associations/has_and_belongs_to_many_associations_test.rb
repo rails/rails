@@ -21,6 +21,7 @@ require 'models/membership'
 require 'models/sponsor'
 require 'models/country'
 require 'models/treaty'
+require 'models/vertex'
 require 'active_support/core_ext/string/conversions'
 
 class ProjectWithAfterCreateHook < ActiveRecord::Base
@@ -818,5 +819,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 1, treasure.rich_people.size
     assert_equal person_first_name, rich_person.first_name, 'should not run associated person validation on update when validate: false'
+  end
+
+  def test_custom_join_table
+    assert_equal 'edges', Vertex.reflect_on_association(:sources).join_table
   end
 end
