@@ -1,3 +1,11 @@
+*   When using a custom `join_table` name on a `habtm`, rails was not saving it
+    on Reflections. This causes a problem when rails loads fixtures, because it
+    uses the reflections to set database with fixtures.
+
+    Fixes #14845.
+
+    *Kassio Borges*
+
 *   Reset the cache when modifying a Relation with cached Arel.
     Additionally display a warning message to make the user aware.
 
