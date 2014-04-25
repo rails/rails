@@ -64,6 +64,7 @@ module ActiveRecord
                                              #
         def #{name}_values=(values)          # def select_values=(values)
           raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
+          check_cached_relation
           @values[:#{name}] = values         #   @values[:select] = values
         end                                  # end
       CODE
@@ -81,9 +82,20 @@ module ActiveRecord
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_value=(value)            # def readonly_value=(value)
           raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
+          check_cached_relation
           @values[:#{name}] = value          #   @values[:readonly] = value
         end                                  # end
       CODE
+    end
+
+    def check_cached_relation # :nodoc:
+      if defined?(@arel) && @arel
+        @arel = nil
+        ActiveSupport::Deprecation.warn <<-WARNING
+Modifying already cached Relation. The cache will be reset.
+Use a cloned Relation to prevent this warning.
+WARNING
+      end
     end
 
     def create_with_value # :nodoc:
@@ -235,11 +247,11 @@ module ActiveRecord
         to_a.select { |*block_args| yield(*block_args) }
       else
         raise ArgumentError, 'Call this with at least one field' if fields.empty?
-        spawn.select!(*fields)
+        spawn._select!(*fields)
       end
     end
 
-    def select!(*fields) # :nodoc:
+    def _select!(*fields) # :nodoc:
       fields.flatten!
       fields.map! do |field|
         klass.attribute_alias?(field) ? klass.attribute_alias(field) : field

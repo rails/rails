@@ -154,7 +154,7 @@ module ActionMailer
   # * signup_notification.text.erb
   # * signup_notification.html.erb
   # * signup_notification.xml.builder
-  # * signup_notification.yaml.erb
+  # * signup_notification.yml.erb
   #
   # Each would be rendered and added as a separate part to the message, with the corresponding content
   # type. The content type for the entire message is automatically set to <tt>multipart/alternative</tt>,
@@ -325,7 +325,7 @@ module ActionMailer
   # directory can be configured using the <tt>preview_path</tt> option which has a default
   # of <tt>test/mailers/previews</tt>:
   #
-  #     config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+  #   config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
   #
   # An overview of all previews is accessible at <tt>http://localhost:3000/rails/mailers</tt>
   # on a running development server instance.

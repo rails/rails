@@ -1,3 +1,43 @@
+*   Reset the cache when modifying a Relation with cached Arel.
+    Additionally display a warning message to make the user aware.
+
+    *Yves Senn*
+
+*   PostgreSQL should internally use `:datetime` consistently for TimeStamp. Assures
+    different spellings of timestamps are treated the same.
+
+    Example:
+
+        mytimestamp.simplified_type('timestamp without time zone')
+        # => :datetime
+        mytimestamp.simplified_type('timestamp(6) without time zone')
+        # => also :datetime (previously would be :timestamp)
+
+    See #14513.
+
+    *Jefferson Lai*
+
+*   `ActiveRecord::Base.no_touching` no longer triggers callbacks or start empty transactions.
+
+    Fixes #14841.
+
+    *Lucas Mazza*
+
+*   Fix name collision with `Array#select!` with `Relation#select!`.
+
+    Fixes #14752.
+
+    *Earl St Sauver*
+
+*   Fixed unexpected behavior for `has_many :through` associations going through a scoped `has_many`.
+
+    If a `has_many` association is adjusted using a scope, and another `has_many :through`
+    uses this association, then the scope adjustment is unexpectedly neglected.
+
+    Fixes #14537.
+
+    *Jan Habermann*
+
 *   `@destroyed` should always be set to `false` when an object is duped.
 
     *Kuldeep Aggarwal*

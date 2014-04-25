@@ -92,7 +92,7 @@ module ActiveRecord
 
     def test_relative_migrations
       list = Dir.chdir(MIGRATIONS_ROOT) do
-        ActiveRecord::Migrator.migrations("valid/")
+        ActiveRecord::Migrator.migrations("valid")
       end
 
       migration_proxy = list.find { |item|

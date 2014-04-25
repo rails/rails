@@ -178,41 +178,35 @@ module AbstractController
       # set up before_action, prepend_before_action, skip_before_action, etc.
       # for each of before, after, and around.
       [:before, :after, :around].each do |callback|
-        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-          # Append a before, after or around callback. See _insert_callbacks
-          # for details on the allowed parameters.
-          def #{callback}_action(*names, &blk)                                                    # def before_action(*names, &blk)
-            _insert_callbacks(names, blk) do |name, options|                                      #   _insert_callbacks(names, blk) do |name, options|
-              set_callback(:process_action, :#{callback}, name, options)                          #     set_callback(:process_action, :before, name, options)
-            end                                                                                   #   end
-          end                                                                                     # end
+        define_method "#{callback}_action" do |*names, &blk|
+          _insert_callbacks(names, blk) do |name, options|
+            set_callback(:process_action, callback, name, options)
+          end
+        end
 
-          alias_method :#{callback}_filter, :#{callback}_action
+        alias_method :"#{callback}_filter", :"#{callback}_action"
 
-          # Prepend a before, after or around callback. See _insert_callbacks
-          # for details on the allowed parameters.
-          def prepend_#{callback}_action(*names, &blk)                                            # def prepend_before_action(*names, &blk)
-            _insert_callbacks(names, blk) do |name, options|                                      #   _insert_callbacks(names, blk) do |name, options|
-              set_callback(:process_action, :#{callback}, name, options.merge(:prepend => true))  #     set_callback(:process_action, :before, name, options.merge(:prepend => true))
-            end                                                                                   #   end
-          end                                                                                     # end
+        define_method "prepend_#{callback}_action" do |*names, &blk|
+          _insert_callbacks(names, blk) do |name, options|
+            set_callback(:process_action, callback, name, options.merge(:prepend => true))
+          end
+        end
 
-          alias_method :prepend_#{callback}_filter, :prepend_#{callback}_action
+        alias_method :"prepend_#{callback}_filter", :"prepend_#{callback}_action"
 
-          # Skip a before, after or around callback. See _insert_callbacks
-          # for details on the allowed parameters.
-          def skip_#{callback}_action(*names)                                                     # def skip_before_action(*names)
-            _insert_callbacks(names) do |name, options|                                           #   _insert_callbacks(names) do |name, options|
-              skip_callback(:process_action, :#{callback}, name, options)                         #     skip_callback(:process_action, :before, name, options)
-            end                                                                                   #   end
-          end                                                                                     # end
+        # Skip a before, after or around callback. See _insert_callbacks
+        # for details on the allowed parameters.
+        define_method "skip_#{callback}_action" do |*names|
+          _insert_callbacks(names) do |name, options|
+            skip_callback(:process_action, callback, name, options)
+          end
+        end
 
-          alias_method :skip_#{callback}_filter, :skip_#{callback}_action
+        alias_method :"skip_#{callback}_filter", :"skip_#{callback}_action"
 
-          # *_action is the same as append_*_action
-          alias_method :append_#{callback}_action, :#{callback}_action  # alias_method :append_before_action, :before_action
-          alias_method :append_#{callback}_filter, :#{callback}_action  # alias_method :append_before_filter, :before_action
-        RUBY_EVAL
+        # *_action is the same as append_*_action
+        alias_method :"append_#{callback}_action", :"#{callback}_action"  # alias_method :append_before_action, :before_action
+        alias_method :"append_#{callback}_filter", :"#{callback}_action"  # alias_method :append_before_filter, :before_action
       end
     end
   end

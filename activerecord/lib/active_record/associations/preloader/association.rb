@@ -119,7 +119,7 @@ module ActiveRecord
           scope.references_values = Array(values[:references]) + Array(preload_values[:references])
           scope.bind_values       = (reflection_binds + preload_binds)
 
-          scope.select!   preload_values[:select] || values[:select] || table[Arel.star]
+          scope._select!   preload_values[:select] || values[:select] || table[Arel.star]
           scope.includes! preload_values[:includes] || values[:includes]
 
           if preload_values.key? :order

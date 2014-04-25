@@ -42,8 +42,8 @@ module ActionController
       nil
     end
 
-    # Hash of available renderers, mapping a renderer name to its proc.
-    # Default keys are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
+    # A Set containing renderer names that correspond to available renderer procs.
+    # Default values are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
     RENDERERS = Set.new
 
     # Adds a new renderer to call within controller actions.

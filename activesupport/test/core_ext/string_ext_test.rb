@@ -58,6 +58,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("blargles", "blargle".pluralize(2))
   end
 
+  test 'pluralize with count = 1 still returns new string' do
+    name = "Kuldeep"
+    assert_not_same name.pluralize(1), name
+  end
+
   def test_singularize
     SingularToPlural.each do |singular, plural|
       assert_equal(singular, plural.singularize)

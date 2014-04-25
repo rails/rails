@@ -112,7 +112,7 @@ class TimestampTest < ActiveRecord::TestCase
     previous_starting = task.starting
     previous_ending = task.ending
     task.touch(:starting, :ending)
-    
+
     assert_not_equal previous_starting, task.starting
     assert_not_equal previous_ending, task.ending
     assert_in_delta Time.now, task.starting, 1
@@ -168,6 +168,25 @@ class TimestampTest < ActiveRecord::TestCase
     end
 
     assert !@developer.no_touching?
+  end
+
+  def test_no_touching_with_callbacks
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers"
+
+      attr_accessor :after_touch_called
+
+      after_touch do |user|
+        user.after_touch_called = true
+      end
+    end
+
+    developer = klass.first
+
+    klass.no_touching do
+      developer.touch
+      assert_not developer.after_touch_called
+    end
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at

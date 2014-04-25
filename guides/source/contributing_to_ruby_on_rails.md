@@ -24,9 +24,9 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 ### Creating a Bug Report
 
-If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
+If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it has already been reported. If you do not find any issue addressing it you may proceed to [open a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
+Your issue report should contain a title and a clear description of the issue at the bare minimum. You should include as much relevant information as possible and should at least post a code sample that demonstrates the issue. It would be even better if you could include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
@@ -298,7 +298,7 @@ The CHANGELOG is an important part of every release. It keeps the list of change
 
 You should add an entry to the CHANGELOG of the framework that you modified if you're adding or removing a feature, committing a bug fix or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
 
-A CHANGELOG entry should summarize what was changed and should end with author's name and it should go on top of a CHANGELOG. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach issue's number. Here is an example CHANGELOG entry:
+A CHANGELOG entry should summarize what was changed and should end with author's name and it should go on top of a CHANGELOG. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach the issue's number. Here is an example CHANGELOG entry:
 
 ```
 *   Summary of a change that briefly describes what was changed. You can use multiple
@@ -475,11 +475,11 @@ the same way that you appreciate feedback on your patches.
 
 ### Iterate as Necessary
 
-It's entirely possible that the feedback you get will suggest changes. Don't get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it's worth making the tweaks and resubmitting. If the feedback is that your code doesn't belong in the core, you might still think about releasing it as a gem.
+It's entirely possible that the feedback you get will suggest changes. Don't get discouraged: the whole point of contributing to an active open source project is to tap into the knowledge of the community. If people are encouraging you to tweak your code, then it's worth making the tweaks and resubmitting. If the feedback is that your code doesn't belong in the core, you might still think about releasing it as a gem.
 
 #### Squashing commits
 
-One of the things that we may ask you to do is "squash your commits," which
+One of the things that we may ask you to do is to "squash your commits", which
 will combine all of your commits into a single commit. We prefer pull requests
 that are a single commit. This makes it easier to backport changes to stable
 branches, squashing makes it easier to revert bad commits, and the git history
