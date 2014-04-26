@@ -55,7 +55,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
 
-    @connection.execute("INSERT INTO postgresql_network_addresses (id, cidr_address, inet_address, mac_address) VALUES(1, '192.168.0/24', '172.16.1.254/32', '01:23:45:67:89:0a')")
+    @connection.execute("INSERT INTO postgresql_network_addresses (id, cidr_address, inet_address, mac_address) VALUES(1, '192.168.0/24', '172.16.1.254/24', '01:23:45:67:89:0a')")
     @first_network_address = PostgresqlNetworkAddress.find(1)
 
     @connection.execute("INSERT INTO postgresql_bit_strings (id, bit_string, bit_string_varying) VALUES (1, B'00010101', X'15')")
@@ -163,7 +163,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_network_address_values_ipaddr
     cidr_address = IPAddr.new '192.168.0.0/24'
-    inet_address = IPAddr.new '172.16.1.254'
+    inet_address = IPAddr.new '172.16.1.254/24'
 
     assert_equal cidr_address, @first_network_address.cidr_address
     assert_equal inet_address, @first_network_address.inet_address
