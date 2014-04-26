@@ -80,6 +80,12 @@ module Rails
         }
         assert_equal gems.drop(2), generator.gemfile_entries
       end
+
+      def test_sets_original_wd_instance_variable
+        klass = make_builder_class
+        klass.start(['new', 'blah'])
+        assert_not_nil klass.instance_variable_get("@original_wd")
+      end
     end
   end
 end
