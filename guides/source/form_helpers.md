@@ -1,16 +1,16 @@
 Form Helpers
 ============
 
-Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails does away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
+Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of the need to handle form control naming and its numerous attributes. Rails does away with this complexity by providing view helpers for generating form markup. However, since these helpers have different use cases, developers need to know the differences between the helper methods before putting them to use.
 
 After reading this guide, you will know:
 
 * How to create search forms and similar kind of generic forms not representing any specific model in your application.
-* How to make model-centric forms for creation and editing of specific database records.
+* How to make model-centric forms for creating and editing specific database records.
 * How to generate select boxes from multiple types of data.
-* The date and time helpers Rails provides.
+* What date and time helpers Rails provides.
 * What makes a file upload form different.
-* Some cases of building forms to external resources.
+* How to post forms to external resources and specify setting an `authenticity_token`.
 * How to build complex forms.
 
 --------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ Output:
 <label for="age_adult">I'm over 21</label>
 ```
 
-As with `check_box_tag`, the second parameter to `radio_button_tag` is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one, and `params[:age]` will contain either "child" or "adult".
+As with `check_box_tag`, the second parameter to `radio_button_tag` is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either "child" or "adult".
 
 NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and,
 by expanding the clickable region,
@@ -442,7 +442,12 @@ WARNING: when `:include_blank` or `:prompt` are not present, `:include_blank` is
 You can add arbitrary attributes to the options using hashes:
 
 ```html+erb
-<%= options_for_select([['Lisbon', 1, {'data-size' => '2.8 million'}], ['Madrid', 2, {'data-size' => '3.2 million'}]], 2) %>
+<%= options_for_select(
+  [
+    ['Lisbon', 1, { 'data-size' => '2.8 million' }],
+    ['Madrid', 2, { 'data-size' => '3.2 million' }]
+  ], 2
+) %>
 
 output:
 
