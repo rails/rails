@@ -1,3 +1,10 @@
+*   Handle `offset` on `update_all`. The offset will not be handled by MySQL,
+    because it does not have support for it on `update`.
+
+    Fixes #10849.
+
+    *Lauro Caetano*
+
 *   When using a custom `join_table` name on a `habtm`, rails was not saving it
     on Reflections. This causes a problem when rails loads fixtures, because it
     uses the reflections to set database with fixtures.

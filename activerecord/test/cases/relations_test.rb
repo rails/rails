@@ -1324,6 +1324,84 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
   end
 
+  def test_update_all_with_limit
+    post = Post.create(title: 'title', body: 'body')
+    Comment.create(post_id: post.id, body: 'bar')
+    Comment.create(post_id: post.id, body: 'foo')
+
+    all_comments = Comment.where(post_id: post.id)
+    comments     = all_comments.limit(1)
+
+    assert_equal 1, comments.update_all(body: 'new')
+    assert_equal 0, Comment.where(post_id: post.id, body: 'bar').count
+    assert_equal 1, Comment.where(post_id: post.id, body: 'foo').count
+    assert_equal 1, Comment.where(post_id: post.id, body: 'new').count
+  end
+
+  def test_update_all_with_limit_order_and_offset
+    unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      post = Post.create(title: 'title', body: 'body')
+      Comment.create(post_id: post.id, body: 'bar')
+      Comment.create(post_id: post.id, body: 'foo')
+      Comment.create(post_id: post.id, body: 'lol')
+
+      all_comments = Comment.where(post_id: post.id).order('body asc')
+      comments     = all_comments.limit(1).offset(1)
+
+      assert_equal 1, comments.update_all(body: 'new')
+      assert_equal 1, Comment.where(post_id: post.id, body: 'bar').count
+      assert_equal 0, Comment.where(post_id: post.id, body: 'foo').count
+      assert_equal 1, Comment.where(post_id: post.id, body: 'new').count
+      assert_equal 1, Comment.where(post_id: post.id, body: 'lol').count
+    end
+  end
+
+  def test_update_all_with_limit_and_order
+    post = Post.create(title: 'title', body: 'body')
+    Comment.create(post_id: post.id, body: 'bar')
+    Comment.create(post_id: post.id, body: 'foo')
+
+    all_comments = Comment.where(post_id: post.id).order('body asc')
+    comments     = all_comments.limit(1)
+
+    assert_equal 1, comments.update_all(body: 'new')
+    assert_equal 0, Comment.where(post_id: post.id, body: 'bar').count
+    assert_equal 1, Comment.where(post_id: post.id, body: 'new').count
+    assert_equal 1, Comment.where(post_id: post.id, body: 'foo').count
+  end
+
+  def test_update_all_with_offset
+    unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      post = Post.create(title: 'title', body: 'body')
+      Comment.create(post_id: post.id, body: 'bar')
+      Comment.create(post_id: post.id, body: 'foo')
+
+      all_comments = Comment.where(post_id: post.id)
+      comments     = all_comments.offset(1)
+
+      assert_equal 1, comments.update_all(body: 'new')
+      assert_equal 1, Comment.where(body: 'bar').count
+      assert_equal 1, Comment.where(body: 'new').count
+      assert_equal 0, Comment.where(body: 'foo').count
+    end
+  end
+
+  def test_update_all_with_offset_and_order
+    unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      post = Post.create(title: 'title', body: 'body')
+      Comment.create(post_id: post.id, body: 'bar')
+      Comment.create(post_id: post.id, body: 'foo')
+
+      all_comments = Comment.where(post_id: post.id).order('body asc')
+      comments     = all_comments.offset(1)
+
+      assert_equal 1, comments.update_all(body: 'new')
+      assert_equal 1, Comment.where(body: 'bar').count
+      assert_equal 1, Comment.where(body: 'new').count
+      assert_equal 0, Comment.where(body: 'foo').count
+    end
+  end
+
   def test_update_all_with_blank_argument
     assert_raises(ArgumentError) { Comment.update_all({}) }
   end
