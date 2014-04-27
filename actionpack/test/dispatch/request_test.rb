@@ -528,6 +528,13 @@ class RequestCGI < BaseRequestTest
   end
 end
 
+class LocalhostTest < BaseRequestTest
+  test "IPs that match localhost" do
+    request = stub_request("REMOTE_IP" => "127.1.1.1", "REMOTE_ADDR" => "127.1.1.1")
+    assert_equal !!request.local?, true 
+  end
+end
+
 class RequestCookie < BaseRequestTest
   test "cookie syntax resilience" do
     request = stub_request("HTTP_COOKIE" => "_session_id=c84ace84796670c052c6ceb2451fb0f2; is_admin=yes")
