@@ -67,7 +67,9 @@ module ActionController
         options[:html] = ERB::Util.html_escape(options[:html])
       end
 
-      if options.delete(:nothing) || _any_render_format_is_nil?(options)
+      if options.delete(:nothing)
+        options[:body] = nil
+      elsif _any_render_format_is_nil?(options)
         options[:body] = " "
       end
 

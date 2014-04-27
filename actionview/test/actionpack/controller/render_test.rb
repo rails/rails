@@ -1022,7 +1022,7 @@ class RenderTest < ActionController::TestCase
 
   def test_rendering_nothing_on_layout
     get :rendering_nothing_on_layout
-    assert_equal " ", @response.body
+    assert_equal "", @response.body
   end
 
   def test_render_to_string_doesnt_break_assigns
@@ -1332,4 +1332,3 @@ class RenderTest < ActionController::TestCase
     assert_equal "Before (Anthony)\nInside from partial (Anthony)\nAfter\nBefore (David)\nInside from partial (David)\nAfter\nBefore (Ramm)\nInside from partial (Ramm)\nAfter", @response.body
   end
 end
-
