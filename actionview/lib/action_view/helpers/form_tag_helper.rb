@@ -614,6 +614,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   date_field_tag 'name'
+      #   # => <input id="name" name="name" type="date" />
+      #
+      #   date_field_tag 'date', '01/01/2014'
+      #   # => <input id="date" name="date" type="date" value="01/01/2014" />
+      #
+      #   date_field_tag 'date', nil, class: 'special_input'
+      #   # => <input class="special_input" id="date" name="date" type="date" />
+      #
+      #   date_field_tag 'date', '01/01/2014', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="date" name="date" type="date" value="01/01/2014" />
       def date_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
       end
@@ -698,6 +711,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   email_field_tag 'name'
+      #   # => <input id="name" name="name" type="email" />
+      #
+      #   email_field_tag 'email', 'email@example.com'
+      #   # => <input id="email" name="email" type="email" value="email@example.com" />
+      #
+      #   email_field_tag 'email', nil, class: 'special_input'
+      #   # => <input class="special_input" id="email" name="email" type="email" />
+      #
+      #   email_field_tag 'email', 'email@example.com', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="email" name="email" type="email" value="email@example.com" />
       def email_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "email"))
       end
@@ -709,12 +735,40 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:in</tt> - A range specifying the <tt>:min</tt> and
       #   <tt>:max</tt> values.
+      # * <tt>:within</tt> - Same as <tt>:in</tt>.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       #
       # ==== Examples
+      #   number_field_tag 'quantity'
+      #   # => <input id="quantity" name="quantity" type="number" />
+      #
+      #   number_field_tag 'quantity', '1'
+      #   # => <input id="quantity" name="quantity" type="number" value="1" />
+      #
+      #   number_field_tag 'quantity', nil, class: 'special_input'
+      #   # => <input class="special_input" id="quantity" name="quantity" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, min: 1
+      #   # => <input id="quantity" name="quantity" min="1" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, max: 9
+      #   # => <input id="quantity" name="quantity" max="9" type="number" />
+      #
       #   number_field_tag 'quantity', nil, in: 1...10
       #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, within: 1...10
+      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, min: 1, max: 10
+      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, min: 1, max: 10, step: 2
+      #   # => <input id="quantity" name="quantity" min="1" max="9" step="2" type="number" />
+      #
+      #   number_field_tag 'quantity', '1', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="quantity" name="quantity" type="number" value="1" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"
