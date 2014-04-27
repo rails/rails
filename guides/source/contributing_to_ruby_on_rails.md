@@ -244,14 +244,19 @@ $ bundle exec rake test
 
 ##### Testing Active Record
 
-This is how you run the Active Record test suite only for specific database:
+This is how you run the Active Record test suite only for SQLite3:
 
 ```bash
 $ cd activerecord
-$ bundle exec rake test_sqlite3 #sqlite
-$ bundle exec rake test_mysql #mysql using mysql gem
-$ bundle exec rake test_mysql2 #mysql using mysql2 gem
-$ bundle exec rake test_postgresql #postgres
+$ bundle exec rake test_sqlite3
+```
+
+You can now run the tests as you did for `sqlite3`. The tasks are respectively
+
+```bash
+test_mysql
+test_mysql2
+test_postgresql
 ```
 
 Finally,
