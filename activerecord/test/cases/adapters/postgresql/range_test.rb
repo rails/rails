@@ -203,6 +203,14 @@ if ActiveRecord::Base.connection.supports_ranges?
       assert_nil_round_trip(@first_range, :int8_range, 39999...39999)
     end
 
+    def test_exclude_beginning_for_int_ranges
+      range = PostgresqlRange.create!(int4_range: "(1, 10]")
+      assert_equal 2..10, range.int4_range
+
+      range = PostgresqlRange.create!(int8_range: "(10, 100]")
+      assert_equal 11..100, range.int8_range
+    end
+
     private
       def assert_equal_round_trip(range, attribute, value)
         round_trip(range, attribute, value)

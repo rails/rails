@@ -148,7 +148,7 @@ module ActiveRecord
               to   = ConnectionAdapters::Column.string_to_time(extracted[:to])
             when :integer
               from = to_integer(extracted[:from]) rescue value ? 1 : 0
-              from -= 1 if extracted[:exclude_start]
+              from += 1 if extracted[:exclude_start]
               to   = to_integer(extracted[:to]) rescue value ? 1 : 0
             else
               return value
