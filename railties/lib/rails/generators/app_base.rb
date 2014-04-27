@@ -79,7 +79,6 @@ module Rails
       end
 
       def initialize(*args)
-        @original_wd   = Dir.pwd
         @gem_filter    = lambda { |gem| true }
         @extra_entries = []
         super
