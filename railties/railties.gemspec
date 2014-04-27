@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   s.rdoc_options << '--exclude' << '.'
 
   s.add_dependency('rake',          '>= 0.8.7')
-  s.add_dependency('rack-ssl',      '~> 1.3.2')
+  s.add_dependency('rack-ssl',      '~> 1.4.1')
 
   # The current API of the Thor gem (0.14) will remain stable at least until Thor 2.0. Because
   # Thor is so heavily used by other gems, we will accept Thor's semver guarantee to reduce
