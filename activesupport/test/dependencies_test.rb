@@ -379,7 +379,7 @@ class DependenciesTest < ActiveSupport::TestCase
     relative_root = File.dirname(__FILE__) + '/dependencies'
     ['', '/'].each do |suffix|
       with_loading fake_root + suffix do
-        assert_equal ["A::B"], ActiveSupport::Dependencies.loadable_constants_for_path(relative_root + '/a/b')
+        assert_equal %w(A::B), ActiveSupport::Dependencies.loadable_constants_for_path(relative_root + '/a/b')
       end
     end
   end
@@ -388,7 +388,7 @@ class DependenciesTest < ActiveSupport::TestCase
     fake_root = '/usr/apps/backpack'
     with_loading fake_root, fake_root + '/lib' do
       root = ActiveSupport::Dependencies.autoload_paths.first
-      assert_equal ["Lib::A::B", "A::B"], ActiveSupport::Dependencies.loadable_constants_for_path(root + '/lib/a/b')
+      assert_equal %w(Lib::A::B A::B), ActiveSupport::Dependencies.loadable_constants_for_path(root + '/lib/a/b')
     end
   end
 
@@ -396,7 +396,7 @@ class DependenciesTest < ActiveSupport::TestCase
     fake_root = '/usr/apps/backpack/lib'
     with_loading fake_root, fake_root + '/' do
       root = ActiveSupport::Dependencies.autoload_paths.first
-      assert_equal ["A::B"], ActiveSupport::Dependencies.loadable_constants_for_path(root + '/a/b')
+      assert_equal %w(A::B), ActiveSupport::Dependencies.loadable_constants_for_path(root + '/a/b')
     end
   end
 
@@ -686,7 +686,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_new_constants_in_with_a_single_constant
-    assert_equal ["Hello"], ActiveSupport::Dependencies.new_constants_in(Object) {
+    assert_equal %w(Hello), ActiveSupport::Dependencies.new_constants_in(Object) {
                               Object.const_set :Hello, 10
                             }.map(&:to_s)
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
@@ -698,14 +698,14 @@ class DependenciesTest < ActiveSupport::TestCase
     outer = ActiveSupport::Dependencies.new_constants_in(Object) do
       Object.const_set :OuterBefore, 10
 
-      assert_equal ["Inner"], ActiveSupport::Dependencies.new_constants_in(Object) {
+      assert_equal %w(Inner), ActiveSupport::Dependencies.new_constants_in(Object) {
                                 Object.const_set :Inner, 20
                               }.map(&:to_s)
 
       Object.const_set :OuterAfter, 30
     end
 
-    assert_equal ["OuterAfter", "OuterBefore"], outer.sort.map(&:to_s)
+    assert_equal %w(OuterAfter OuterBefore), outer.sort.map(&:to_s)
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
     %w(OuterBefore Inner OuterAfter).each do |name|
@@ -722,11 +722,11 @@ class DependenciesTest < ActiveSupport::TestCase
       inner = ActiveSupport::Dependencies.new_constants_in(M) do
         M.const_set :Inner, 20
       end
-      assert_equal ["M::Inner"], inner
+      assert_equal %w(M::Inner), inner
 
       M.const_set :OuterAfter, 30
     end
-    assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
+    assert_equal %w(M::OuterAfter M::OuterBefore), outer.sort
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
     Object.class_eval { remove_const :M }
@@ -740,11 +740,11 @@ class DependenciesTest < ActiveSupport::TestCase
       inner = ActiveSupport::Dependencies.new_constants_in(:M) do
         M.const_set :Inner, 20
       end
-      assert_equal ["M::Inner"], inner
+      assert_equal %w(M::Inner), inner
 
       M.const_set :OuterAfter, 30
     end
-    assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
+    assert_equal %w(M::OuterAfter M::OuterBefore), outer.sort
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
     Object.class_eval { remove_const :M }
