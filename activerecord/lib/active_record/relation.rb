@@ -289,10 +289,11 @@ module ActiveRecord
       klass.current_scope = previous
     end
 
-    # Updates all records with details given if they match a set of conditions supplied, limits and order can
-    # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
-    # database. It does not instantiate the involved models and it does not trigger Active Record callbacks
-    # or validations.
+    # Updates all records with details given if they match a set of conditions
+    # supplied, limits, offset (except for MySQL) and order can also be supplied. This method
+    # constructs a single SQL UPDATE statement and sends it straight to the
+    # database. It does not instantiate the involved models and it does not
+    # trigger Active Record callbacks or validations.
     #
     # ==== Parameters
     #
@@ -308,6 +309,11 @@ module ActiveRecord
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(author: 'David')
+    #
+    #   # Update all books that match conditions, but offset it to 5 ordered by date
+    #   Book.where('title LIKE ?', '%Rails%').order(:created_at).offset(5).update_all(author: 'David')
+    #
+    #   Note that the offset is not supported by MySQL update.
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
@@ -322,6 +328,7 @@ module ActiveRecord
       else
         stmt.take(arel.limit)
         stmt.order(*arel.orders)
+        stmt.skip(offset_value.to_i) if offset_value
         stmt.wheres = arel.constraints
       end
 
