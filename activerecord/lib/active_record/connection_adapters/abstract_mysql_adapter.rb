@@ -765,22 +765,22 @@ module ActiveRecord
       end
 
       def configure_connection
-        variables = @config[:variables] || {}
+        variables = @config.fetch(:variables, {}).stringify_keys
 
         # By default, MySQL 'where id is null' selects the last inserted id.
         # Turn this off. http://dev.rubyonrails.org/ticket/6778
-        variables[:sql_auto_is_null] = 0
+        variables['sql_auto_is_null'] = 0
 
         # Increase timeout so the server doesn't disconnect us.
         wait_timeout = @config[:wait_timeout]
         wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
-        variables[:wait_timeout] = self.class.type_cast_config_to_integer(wait_timeout)
+        variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
-        if strict_mode? && !variables.has_key?(:sql_mode)
-          variables[:sql_mode] = 'STRICT_ALL_TABLES'
+        if strict_mode? && !variables.has_key?('sql_mode')
+          variables['sql_mode'] = 'STRICT_ALL_TABLES'
         end
 
         # NAMES does not have an equals sign, see
