@@ -1,3 +1,7 @@
+*   Support for aria-* style attributes similar to data-* HTML element attributes.
+
+    *Kurtis Rainbolt-Greene*
+
 *   The `video_tag` helper accepts a number as `:size`
 
     The `:size` option of the `video_tag` helper now can be specified
