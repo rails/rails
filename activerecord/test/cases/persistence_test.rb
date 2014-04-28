@@ -319,13 +319,22 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_nothing_raised { minimalistic.save }
   end
 
-  def test_update_sti_type
+  def test_update_sti_superclass_type
     assert_instance_of Reply, topics(:second)
 
     topic = topics(:second).becomes!(Topic)
     assert_instance_of Topic, topic
     topic.save!
     assert_instance_of Topic, Topic.find(topic.id)
+  end
+
+  def test_update_sti_subclass_type
+    assert_instance_of Topic, topics(:first)
+
+    reply = topics(:first).becomes!(Reply)
+    assert_instance_of Reply, reply
+    reply.save!
+    assert_instance_of Reply, Reply.find(reply.id)
   end
 
   def test_preserve_original_sti_type
