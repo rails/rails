@@ -194,7 +194,7 @@ module ActiveRecord
                       options[:dependent]
                     end
 
-        delete(:all, dependent: dependent).tap do
+        delete_all_with_dependency(dependent).tap do
           reset
           loaded!
         end
@@ -247,15 +247,15 @@ module ActiveRecord
         _options = records.extract_options!
         dependent = _options[:dependent] || options[:dependent]
 
-        if records.first == :all
-          if (loaded? || dependent == :destroy) && dependent != :delete_all
-            delete_or_destroy(load_target, dependent)
-          else
-            delete_records(:all, dependent)
-          end
+        records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
+        delete_or_destroy(records, dependent)
+      end
+
+      def delete_all_with_dependency(dependent)
+        if dependent == :delete_all
+          delete_records(:all, dependent)
         else
-          records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
-          delete_or_destroy(records, dependent)
+          delete_or_destroy(load_target, dependent)
         end
       end
 
