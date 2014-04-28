@@ -65,6 +65,7 @@ module AbstractController
         self._helper_methods += meths
 
         meths.each do |meth|
+          raise TypeError.new("value cannot be nil") if meth.nil?
           _helpers.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
             def #{meth}(*args, &blk)                               # def current_user(*args, &blk)
               controller.send(%(#{meth}), *args, &blk)             #   controller.send(:current_user, *args, &blk)
