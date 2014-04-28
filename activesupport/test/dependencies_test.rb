@@ -172,62 +172,54 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_directories_manifest_as_modules_unless_const_defined
-    with_autoloading_fixtures do
+    const_scope(:ModuleFolder) do
       assert_kind_of Module, ModuleFolder
-      Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
   def test_module_with_nested_class
-    with_autoloading_fixtures do
+    const_scope(:ModuleFolder) do
       assert_kind_of Class, ModuleFolder::NestedClass
-      Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
   def test_module_with_nested_inline_class
-    with_autoloading_fixtures do
+    const_scope(:ModuleFolder) do
       assert_kind_of Class, ModuleFolder::InlineClass
-      Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
   def test_directories_may_manifest_as_nested_classes
-    with_autoloading_fixtures do
+    const_scope(:ClassFolder) do
       assert_kind_of Class, ClassFolder
-      Object.__send__ :remove_const, :ClassFolder
     end
   end
 
   def test_class_with_nested_class
-    with_autoloading_fixtures do
+    const_scope(:ClassFolder) do
       assert_kind_of Class, ClassFolder::NestedClass
-      Object.__send__ :remove_const, :ClassFolder
     end
   end
 
   def test_class_with_nested_inline_class
-    with_autoloading_fixtures do
+    const_scope(:ClassFolder) do
       assert_kind_of Class, ClassFolder::InlineClass
-      Object.__send__ :remove_const, :ClassFolder
     end
   end
 
   def test_class_with_nested_inline_subclass_of_parent
-    with_autoloading_fixtures do
+    const_scope(:ClassFolder) do
       assert_kind_of Class, ClassFolder::ClassFolderSubclass
       assert_kind_of Class, ClassFolder
       assert_equal 'indeed', ClassFolder::ClassFolderSubclass::ConstantInClassFolder
-      Object.__send__ :remove_const, :ClassFolder
     end
   end
 
   def test_nested_class_can_access_sibling
-    with_autoloading_fixtures do
+    const_scope(:ModuleFolder) do
       sibling = ModuleFolder::NestedClass.class_eval "NestedSibling"
       assert defined?(ModuleFolder::NestedSibling)
       assert_equal ModuleFolder::NestedSibling, sibling
-      Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
@@ -355,11 +347,10 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def failing_test_access_thru_and_upwards_fails
-    with_autoloading_fixtures do
+    const_scope(:ModuleFolder) do
       assert ! defined?(ModuleFolder)
       assert_raise(NameError) { ModuleFolder::Object }
       assert_raise(NameError) { ModuleFolder::NestedClass::Object }
-      Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
@@ -954,7 +945,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_kind_of Class, A::B # Necessary to load A::B for the test
       ActiveSupport::Dependencies.mark_for_unload(A::B)
       ActiveSupport::Dependencies.remove_unloadable_constants!
-       
+
       A::B # Make sure no circular dependency error
     end
   end
@@ -989,6 +980,13 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
 private
+  def const_scope(const_name)
+    with_autoloading_fixtures do
+      yield
+      Object.__send__ :remove_const, const_name
+    end
+  end
+
   def remove_constants(*constants)
     constants.each do |constant|
       Object.send(:remove_const, constant) if Object.const_defined?(constant)
