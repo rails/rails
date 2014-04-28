@@ -457,6 +457,7 @@ Most times you only care about the data itself. Here is a shortcut to just get t
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
   data = args.extract_options!
   data # { extra: :information }
+end
 ```
 
 You may also subscribe to events matching a regular expression. This enables you to subscribe to
