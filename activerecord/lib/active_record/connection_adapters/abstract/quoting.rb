@@ -24,13 +24,20 @@ module ActiveRecord
         when true, false
           if column && column.type == :integer
             value ? '1' : '0'
+          elsif column && [:text, :string, :binary].include?(column.type)
+            value = value ? type_casted_true : type_casted_false
+            "'#{value}'"
           else
             value ? quoted_true : quoted_false
           end
           # BigDecimals need to be put in a non-normalized form and quoted.
         when nil        then "NULL"
-        when BigDecimal then value.to_s('F')
-        when Numeric, ActiveSupport::Duration then value.to_s
+        when Numeric, ActiveSupport::Duration
+          value = BigDecimal === value ? value.to_s('F') : value.to_s
+          if column && ![:integer, :float, :decimal].include?(column.type)
+            value = "'#{value}'"
+          end
+          value
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
         when Class      then "'#{value.to_s}'"
@@ -63,12 +70,20 @@ module ActiveRecord
           if column && column.type == :integer
             value ? 1 : 0
           else
-            value ? 't' : 'f'
+            value = value ? type_casted_true : type_casted_false
+            if column && [:text, :string, :binary].include?(column.type)
+              value = value.to_s
+            end
+            value
           end
           # BigDecimals need to be put in a non-normalized form and quoted.
         when nil        then nil
         when BigDecimal then value.to_s('F')
-        when Numeric    then value
+        when Numeric, ActiveSupport::Duration
+          if column && ![:integer, :float, :decimal].include?(column.type)
+            value = value.to_s
+          end
+          value
         when Date, Time then quoted_date(value)
         when Symbol     then value.to_s
         else
@@ -111,6 +126,14 @@ module ActiveRecord
 
       def quoted_false
         "'f'"
+      end
+
+      def type_casted_true
+        't'
+      end
+
+      def type_casted_false
+        'f'
       end
 
       def quoted_date(value)

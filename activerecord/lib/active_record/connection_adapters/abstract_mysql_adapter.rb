@@ -221,17 +221,6 @@ module ActiveRecord
         true
       end
 
-      def type_cast(value, column)
-        case value
-        when TrueClass
-          1
-        when FalseClass
-          0
-        else
-          super
-        end
-      end
-
       # MySQL 4 technically support transaction isolation, but it is affected by a bug
       # where the transaction level gets persisted for the whole session:
       #
@@ -277,8 +266,6 @@ module ActiveRecord
         if value.kind_of?(String) && column && column.type == :binary
           s = value.unpack("H*")[0]
           "x'#{s}'"
-        elsif value.kind_of?(BigDecimal)
-          value.to_s("F")
         else
           super
         end
@@ -298,6 +285,14 @@ module ActiveRecord
 
       def quoted_false
         QUOTED_FALSE
+      end
+
+      def type_casted_true
+        1
+      end
+
+      def type_casted_false
+        0
       end
 
       # REFERENTIAL INTEGRITY ====================================

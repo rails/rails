@@ -9,15 +9,25 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          c = Column.new(nil, 1, 'boolean')
           assert_equal 1, @conn.type_cast(true, nil)
-          assert_equal 1, @conn.type_cast(true, c)
+          assert_equal 1, @conn.type_cast(true, boolean_column)
+          assert_equal '1', @conn.type_cast(true, string_column)
         end
 
         def test_type_cast_false
-          c = Column.new(nil, 1, 'boolean')
           assert_equal 0, @conn.type_cast(false, nil)
-          assert_equal 0, @conn.type_cast(false, c)
+          assert_equal 0, @conn.type_cast(false, boolean_column)
+          assert_equal '0', @conn.type_cast(false, string_column)
+        end
+
+        private
+
+        def boolean_column
+          c = Column.new(nil, 1, 'boolean')
+        end
+
+        def string_column
+          c = Column.new(nil, nil, 'text')
         end
       end
     end
