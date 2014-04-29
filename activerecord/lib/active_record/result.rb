@@ -78,6 +78,10 @@ module ActiveRecord
       hash_rows[idx]
     end
 
+    def []=(idx, value)
+      hash_rows[idx] = value
+    end
+
     def last
       hash_rows.last
     end
