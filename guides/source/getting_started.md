@@ -822,14 +822,14 @@ parameter, which in our case will be the id of the article.
 As we did before, we need to add the `show` action in
 `app/controllers/articles_controller.rb` and its respective view.
 
-NOTE: The convention in Rails is to put the standard CRUD actions in each
-controller in the following order: `index` `show` `new` `edit` `create`
-`update` `destroy`. These actions are `public` methods and, as mentioned
-earlier in this guide, they must be placed before any `private` or `protected`
-method in the controller in order to work.
+NOTE: A frequent practice is to place the standard CRUD actions in each
+controller in the following order: `index`, `show`, `new`, `edit`, `create`,
+`update` and `destroy`. You may use any order you choose, but keep in mind that
+these are public methods; as mentioned earlier in this guide, they must be
+placed before any private or protected method in the controller in order to
+work.
 
-Given that, let's add the `show` action before the `new` action we
-defined earlier on, as follows:
+Given that, let's add the `show` action, as follows:
 
 ```ruby
 class ArticlesController < ApplicationController
@@ -880,10 +880,9 @@ articles GET    /articles(.:format)          articles#index
 ```
 
 Add the corresponding `index` action for that route inside the
-`ArticlesController` in the `app/controllers/articles_controller.rb`
-file. The standard practice in Rails is to place the `index` action
-at the top of the CRUD actions, between the controller class
-declaration and the other actions. Let's do it:
+`ArticlesController` in the `app/controllers/articles_controller.rb` file. When
+there is an `index` action, the usual practice is to place it as the first
+method in the controller. Let's do it:
 
 ```ruby
 class ArticlesController < ApplicationController
