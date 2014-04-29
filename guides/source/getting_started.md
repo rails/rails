@@ -1500,8 +1500,8 @@ Without this file, the confirmation dialog box wouldn't appear.
 Congratulations, you can now create, show, list, update and destroy
 articles.
 
-TIP: In general, Rails encourages the use of resources objects in place
-of declaring routes manually. For more information about routing, see
+TIP: In general, Rails encourages using resources objects instead of
+declaring routes manually. For more information about routing, see
 [Rails Routing from the Outside In](routing.html).
 
 Adding a Second Model
