@@ -698,9 +698,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :before, "Roger"],
       [:added, :after, "Roger"]
     ], log.last(4)
-
-    post.people_with_callbacks.clear
-    assert_equal((%w(Michael David Julian Roger) * 2).sort, log.last(8).collect(&:last).sort)
   end
 
   def test_dynamic_find_should_respect_association_include
