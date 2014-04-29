@@ -1382,11 +1382,11 @@ people to craft malicious URLs like this:
 <a href='http://example.com/articles/1/destroy'>look at this cat!</a>
 ```
 
-We use the `delete` method for destroying resources, and this route is mapped
-to the `destroy` action inside `app/controllers/articles_controller.rb`, which
-doesn't exist yet. The `destroy` method is generally placed at the end of the
-CRUD actions in the controller, and before any `private` or `protected`
-methods. Let's add it:
+We use the `delete` method for destroying resources. This route is mapped to
+the `destroy` action, which we now need to add, in
+`app/controllers/articles_controller.rb`. The `destroy` method is generally the
+last CRUD action in the controller, and like the other public CRUD actions, it
+must be placed before any `private` or `protected` methods. Let's add it:
 
 ```ruby
 def destroy
