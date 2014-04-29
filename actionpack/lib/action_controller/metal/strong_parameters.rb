@@ -454,7 +454,7 @@ module ActionController
             params[key] = each_element(value) do |element|
               if element.is_a?(Hash)
                 element = self.class.new(element) unless element.respond_to?(:permit)
-                element.permit(*Array.wrap(filter[key]))
+                element.permit(*Array.wrap(Proc === filter[key] ? filter[key].call(element) : filter[key]))
               end
             end
           end

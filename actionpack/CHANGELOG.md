@@ -79,4 +79,8 @@
 
     *Tony Wooster*
 
+*   Add procs as a way to allow strong parameters related to polymorphic connections
+
+    *Rainer Sai*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionpack/CHANGELOG.md) for previous changes.
