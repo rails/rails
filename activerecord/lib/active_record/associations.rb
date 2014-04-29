@@ -776,7 +776,7 @@ module ActiveRecord
     #
     # If you want to load all posts (including posts with no approved comments) then write
     # your own LEFT OUTER JOIN query using ON
-    # 
+    #
     #   Post.joins('LEFT OUTER JOIN comments ON comments.post_id = posts.id AND comments.approved = true')
     #
     # You must disambiguate column references for this fallback to happen, for example
