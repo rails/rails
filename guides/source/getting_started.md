@@ -427,12 +427,16 @@ are generated in Rails they are empty by default, unless you tell it
 your wanted actions during the generation process.
 
 To manually define an action inside a controller, all you need to do is to
-define a new method inside the controller.
-Open `app/controllers/articles_controller.rb` and inside the `ArticlesController`
-class, define a `new` method like this:
+define a new method inside the controller. Open
+`app/controllers/articles_controller.rb` and inside the `ArticlesController`
+class, define a `new` method so that the controller now looks like this:
 
 ```ruby
-def new
+class ArticlesController < ApplicationController
+
+  def new
+  end
+
 end
 ```
 
@@ -503,6 +507,7 @@ method called `form_for`. To use this method, add this code into
 
 ```html+erb
 <%= form_for :article do |f| %>
+
   <p>
     <%= f.label :title %><br>
     <%= f.text_field :title %>
@@ -516,6 +521,7 @@ method called `form_for`. To use this method, add this code into
   <p>
     <%= f.submit %>
   </p>
+
 <% end %>
 ```
 
@@ -576,7 +582,8 @@ form and then click the submit button to begin the process of creating a new
 article, so go ahead and do that. When you submit the form, you should see a
 familiar error:
 
-![Unknown action create for ArticlesController](images/getting_started/unknown_action_create_for_articles.png)
+![Unknown action create for ArticlesController]
+(images/getting_started/unknown_action_create_for_articles.png)
 
 You now need to create the `create` action within the `ArticlesController` for
 this to work.
@@ -585,15 +592,17 @@ this to work.
 
 To make the "Unknown action" go away, you can define a `create` action within
 the `ArticlesController` class in `app/controllers/articles_controller.rb`,
-underneath the `new` action:
+underneath the `new` action, as shown:
 
 ```ruby
 class ArticlesController < ApplicationController
+
   def new
   end
 
   def create
   end
+
 end
 ```
 
@@ -765,7 +774,8 @@ or worse.
 We have to whitelist our controller parameters to prevent wrongful
 mass assignment. In this case, we want to both allow and require the
 `title` and `text` parameters for valid use of `create`. The syntax for
-this introduces `require` and `permit`. The change will involve one line:
+this introduces `require` and `permit`. The change will involve one line
+in the `create` action:
 
 ```ruby
   @article = Article.new(params.require(:article).permit(:title, :text))
@@ -813,10 +823,26 @@ parameter, which in our case will be the id of the article.
 As we did before, we need to add the `show` action in
 `app/controllers/articles_controller.rb` and its respective view.
 
+NOTE: A frequent practice is to place the standard CRUD actions in each
+controller in the following order: `index`, `show`, `new`, `edit`, `create`,
+`update` and `destroy`. You may use any order you choose, but keep in mind that
+these are public methods; as mentioned earlier in this guide, they must be
+placed before any private or protected method in the controller in order to
+work.
+
+Given that, let's add the `show` action, as follows:
+
 ```ruby
-def show
-  @article = Article.find(params[:id])
-end
+class ArticlesController < ApplicationController
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new
+  end
+
+  # snipped for brevity
 ```
 
 A couple of things to note. We use `Article.find` to find the article we're
@@ -855,12 +881,25 @@ articles GET    /articles(.:format)          articles#index
 ```
 
 Add the corresponding `index` action for that route inside the
-`ArticlesController` in the `app/controllers/articles_controller.rb` file:
+`ArticlesController` in the `app/controllers/articles_controller.rb` file.
+When we write an `index` action, the usual practice is to place it as the
+first method in the controller. Let's do it:
 
 ```ruby
-def index
-  @articles = Article.all
-end
+class ArticlesController < ApplicationController
+
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new
+  end
+
+  # snipped for brevity
 ```
 
 And then finally, add the view for this action, located at
@@ -913,8 +952,8 @@ Let's add links to the other views as well, starting with adding this
 
 This link will allow you to bring up the form that lets you create a new article.
 
-Also add a link in `app/views/articles/new.html.erb`, underneath the form, to
-go back to the `index` action:
+Now, add another link in `app/views/articles/new.html.erb`, underneath the
+form, to go back to the `index` action:
 
 ```erb
 <%= form_for :article, url: articles_path do |f| %>
@@ -924,7 +963,7 @@ go back to the `index` action:
 <%= link_to 'Back', articles_path %>
 ```
 
-Finally, add another link to the `app/views/articles/show.html.erb` template to
+Finally, add a link to the `app/views/articles/show.html.erb` template to
 go back to the `index` action as well, so that people who are viewing a single
 article can go back and view the whole list again:
 
@@ -1089,11 +1128,26 @@ you attempt to do just that on the new article form
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
 articles.
 
-The first step we'll take is adding an `edit` action to the `ArticlesController`.
+The first step we'll take is adding an `edit` action to the `ArticlesController`,
+generally between the `new` and `create` actions, as shown:
 
 ```ruby
+def new
+  @article = Article.new
+end
+
 def edit
   @article = Article.find(params[:id])
+end
+
+def create
+  @article = Article.new(article_params)
+
+  if @article.save
+    redirect_to @article
+  else
+    render 'new'
+  end
 end
 ```
 
@@ -1148,14 +1202,26 @@ via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 
 The first parameter of `form_for` can be an object, say, `@article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
-symbol (`:article`) with the same name as the instance variable (`@article`) also
-automagically leads to the same behavior. This is what is happening here. More details
-can be found in [form_for documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
+symbol (`:article`) with the same name as the instance variable (`@article`)
+also automagically leads to the same behavior. This is what is happening here.
+More details can be found in [form_for documentation]
+(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
 
-Next we need to create the `update` action in
-`app/controllers/articles_controller.rb`:
+Next, we need to create the `update` action in
+`app/controllers/articles_controller.rb`.
+Add it between the `create` action and the `private` method:
 
 ```ruby
+def create
+  @article = Article.new(article_params)
+
+  if @article.save
+    redirect_to @article
+  else
+    render 'new'
+  end
+end
+
 def update
   @article = Article.find(params[:id])
 
@@ -1215,8 +1281,8 @@ bottom of the template:
 ```html+erb
 ...
 
-<%= link_to 'Back', articles_path %>
-| <%= link_to 'Edit', edit_article_path(@article) %>
+<%= link_to 'Back', articles_path %> |
+<%= link_to 'Edit', edit_article_path(@article) %>
 ```
 
 And here's how our app looks so far:
@@ -1225,10 +1291,10 @@ And here's how our app looks so far:
 
 ### Using partials to clean up duplication in views
 
-Our `edit` page looks very similar to the `new` page, in fact they
-both share the same code for displaying the form. Let's remove some duplication
-by using a view partial. By convention, partial files are prefixed by an
-underscore.
+Our `edit` page looks very similar to the `new` page; in fact, they
+both share the same code for displaying the form. Let's remove this
+duplication by using a view partial. By convention, partial files are
+prefixed by an underscore.
 
 TIP: You can read more about partials in the
 [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
@@ -1317,9 +1383,11 @@ people to craft malicious URLs like this:
 <a href='http://example.com/articles/1/destroy'>look at this cat!</a>
 ```
 
-We use the `delete` method for destroying resources, and this route is mapped to
-the `destroy` action inside `app/controllers/articles_controller.rb`, which
-doesn't exist yet, but is provided below:
+We use the `delete` method for destroying resources, and this route is mapped
+to the `destroy` action inside `app/controllers/articles_controller.rb`, which
+doesn't exist yet. The `destroy` method is generally the last CRUD action in
+the controller, and like the other public CRUD actions, it must be placed
+before any `private` or `protected` methods. Let's add it:
 
 ```ruby
 def destroy
@@ -1327,6 +1395,62 @@ def destroy
   @article.destroy
 
   redirect_to articles_path
+end
+```
+
+The complete `ArticlesController` in the
+`app/controllers/articles_controller.rb` file should now look like this:
+
+```ruby
+class ArticlesController < ApplicationController
+
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def edit
+    @article = Article.find(params[:id])
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      redirect_to @article
+    else
+      render 'new'
+    end
+  end
+
+  def update
+    @article = Article.find(params[:id])
+
+    if @article.update(article_params)
+      redirect_to @article
+    else
+      render 'edit'
+    end
+  end
+
+  def destroy
+    @article = Article.find(params[:id])
+    @article.destroy
+
+    redirect_to articles_path
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :text)
+    end
 end
 ```
 
@@ -1377,8 +1501,7 @@ Congratulations, you can now create, show, list, update and destroy
 articles.
 
 TIP: In general, Rails encourages the use of resources objects in place
-of declaring routes manually.
-For more information about routing, see
+of declaring routes manually. For more information about routing, see
 [Rails Routing from the Outside In](routing.html).
 
 Adding a Second Model
@@ -1840,7 +1963,7 @@ database and send us back to the show action for the article.
 ### Deleting Associated Objects
 
 If you delete an article, its associated comments will also need to be
-deleted. Otherwise they would simply occupy space in the database. Rails allows
+deleted, otherwise they would simply occupy space in the database. Rails allows
 you to use the `dependent` option of an association to achieve this. Modify the
 Article model, `app/models/article.rb`, as follows:
 
@@ -1895,7 +2018,7 @@ class CommentsController < ApplicationController
 
   def create
     @article = Article.find(params[:article_id])
-    ...
+    # ...
   end
 
   # snipped for brevity
