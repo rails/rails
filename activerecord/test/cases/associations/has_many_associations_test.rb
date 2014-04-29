@@ -131,6 +131,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal(expected_sql, loaded_sql)
   end
 
+  def test_delete_all_on_association_with_nil_dependency_is_the_same_as_not_loaded
+    author = authors :david
+    author.posts.create!(:title => "test", :body => "body")
+    author.reload
+    expected_sql = capture_sql { author.posts.delete_all }
+
+    author.posts.create!(:title => "test", :body => "body")
+    author.reload
+    author.posts.to_a
+    loaded_sql = capture_sql { author.posts.delete_all }
+    assert_equal(expected_sql, loaded_sql)
+  end
+
   def test_building_the_associated_object_with_implicit_sti_base_class
     firm = DependentFirm.new
     company = firm.companies.build
