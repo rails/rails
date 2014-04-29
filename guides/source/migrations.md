@@ -112,7 +112,7 @@ identifying the migration followed by an underscore followed by the name
 of the migration. The name of the migration class (CamelCased version)
 should match the latter part of the file name. For example
 `20080906120000_create_products.rb` should define class `CreateProducts` and
-`20080906120001_add_details_to_products.rb` should define
+`20080906120001_add_details_to_products.rb` should define class
 `AddDetailsToProducts`. Rails uses this timestamp to determine which migration
 should be run and in what order, so if you're copying a migration from another
 application or generate a file yourself, be aware of its position in the order.
@@ -661,7 +661,7 @@ migrating upwards), this will run the `change` (or `up`) method
 on all migrations up to and
 including 20080906120000, and will not execute any later migrations. If
 migrating downwards, this will run the `down` method on all the migrations
-down to, but not including, 20080906120000.
+down to, but not including 20080906120000.
 
 ### Rolling Back
 
