@@ -77,10 +77,10 @@ module ActionView
       case options
       when String
         options
-      when nil, Hash
-        options ||= {}
-        options = { :only_path => options[:host].nil? }.merge!(options.symbolize_keys)
-        super
+      when nil
+        super({:only_path => true})
+      when Hash
+        super({ :only_path => options[:host].nil? }.merge!(options.symbolize_keys))
       when :back
         _back_url
       when Array
