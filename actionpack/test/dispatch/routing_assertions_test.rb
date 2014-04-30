@@ -78,6 +78,14 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_routing('/articles', :controller => 'articles', :action => 'index')
   end
 
+  def test_assert_routing_raises_message
+    err = assert_raise(Assertion) do
+            assert_routing('/thisIsNotARoute', { :controller => 'articles', :action => 'edit', :id => '1' }, { :id => '1' }, {}, "This is a really bad msg")
+    end
+
+    assert_match err.message, "This is a really bad msg"
+  end
+
   def test_assert_routing_with_defaults
     assert_routing('/articles/1/edit', { :controller => 'articles', :action => 'edit', :id => '1' }, { :id => '1' })
   end
