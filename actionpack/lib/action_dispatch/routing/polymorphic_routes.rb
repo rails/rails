@@ -101,10 +101,12 @@ module ActionDispatch
       #   polymorphic_url(Comment) # same as comments_url()
       #
       def polymorphic_url(record_or_hash_or_array, options = {})
+        recipient = self
+
         if record_or_hash_or_array.kind_of?(Array)
           record_or_hash_or_array = record_or_hash_or_array.compact
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
-            proxy = record_or_hash_or_array.shift
+            recipient = record_or_hash_or_array.shift
           end
           record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
         end
@@ -139,7 +141,7 @@ module ActionDispatch
 
         args.collect! { |a| convert_to_model(a) }
 
-        (proxy || self).send(named_route, *args)
+        recipient.send(named_route, *args)
       end
 
       # Returns the path component of a URL for the given record. It uses
