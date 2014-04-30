@@ -187,10 +187,6 @@ module ActiveRecord
           end
         end
 
-        def column_for(table_name, column_name) #:nodoc:
-          columns(table_name).detect { |c| c.name == column_name.to_s } 
-        end
-
         # Returns the current database name.
         def current_database
           query('select current_database()', 'SCHEMA')[0][0]

@@ -713,7 +713,7 @@ module ActiveRecord
       def rename_column_sql(table_name, column_name, new_column_name)
         options = { name: new_column_name }
 
-        if column = columns(table_name).find { |c| c.name == column_name.to_s }
+        if column = column_for(table_name, column_name)
           options[:default] = column.default
           options[:null] = column.null
           options[:auto_increment] = (column.extra == "auto_increment")
@@ -755,13 +755,6 @@ module ActiveRecord
 
       def supports_views?
         version[0] >= 5
-      end
-
-      def column_for(table_name, column_name)
-        unless column = columns(table_name).find { |c| c.name == column_name.to_s }
-          raise "No such column: #{table_name}.#{column_name}"
-        end
-        column
       end
 
       def configure_connection

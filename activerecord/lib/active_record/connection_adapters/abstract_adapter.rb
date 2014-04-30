@@ -390,6 +390,13 @@ module ActiveRecord
       def without_prepared_statement?(binds)
         !@prepared_statements || binds.empty?
       end
+
+      def column_for(table_name, column_name) # :nodoc:
+        unless column = columns(table_name).detect { |c| c.name == column_name.to_s }
+          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
+        end
+        column
+      end
     end
   end
 end
