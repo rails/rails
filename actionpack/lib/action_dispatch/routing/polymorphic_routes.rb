@@ -132,7 +132,7 @@ module ActionDispatch
         end
 
         args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
-        named_route = build_named_route_call(record_or_hash_or_array, inflection, options)
+        named_route = build_named_route_call(record_or_hash_or_array, record, inflection, options)
 
         url_options = options.except(:action, :routing_type)
         unless url_options.empty?
@@ -175,7 +175,7 @@ module ActionDispatch
           options[:routing_type] || :url
         end
 
-        def build_named_route_call(records, inflection, options = {})
+        def build_named_route_call(records, record, inflection, options = {})
           if records.is_a?(Array)
             record = records.pop
             route = records.map do |parent|
@@ -186,7 +186,6 @@ module ActionDispatch
               end
             end
           else
-            record = extract_record(records)
             route  = []
           end
 
