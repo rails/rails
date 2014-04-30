@@ -32,7 +32,7 @@ module ActionController
 
       if (same_origin = _routes.equal?(env["action_dispatch.routes".freeze])) ||
          (script_name = env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]) ||
-         (original_script_name = env['ORIGINAL_SCRIPT_NAME'])
+         (original_script_name = env['ORIGINAL_SCRIPT_NAME'.freeze])
 
         @_url_options.dup.tap do |options|
           if original_script_name
