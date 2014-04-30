@@ -3,15 +3,6 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class AdapterLeasingTest < ActiveRecord::TestCase
-      class Pool < ConnectionPool
-        def insert_connection_for_test!(c)
-          synchronize do
-            @connections << c
-            @available.add c
-          end
-        end
-      end
-
       def setup
         @adapter = AbstractAdapter.new nil, nil
       end
@@ -35,12 +26,10 @@ module ActiveRecord
       end
 
       def test_close
-        pool = Pool.new(ConnectionSpecification.new({}, nil))
-        pool.insert_connection_for_test! @adapter
-        @adapter.pool = pool
+        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
 
         # Make sure the pool marks the connection in use
-        assert_equal @adapter, pool.connection
+        assert @adapter = pool.connection
         assert @adapter.in_use?
 
         # Close should put the adapter back in the pool

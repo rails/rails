@@ -218,6 +218,7 @@ module ActiveRecord
       # correct in this case.
       def test_checkout_fairness
         @pool.instance_variable_set(:@size, 10)
+        @pool.instance_variable_get(:@pool).pool_size = 10
         expected = (1..@pool.size).to_a.freeze
         # check out all connections so our threads start out waiting
         conns = expected.map { @pool.checkout }
@@ -256,6 +257,7 @@ module ActiveRecord
       # threads acquired a connection is enforced.
       def test_checkout_fairness_by_group
         @pool.instance_variable_set(:@size, 10)
+        @pool.instance_variable_get(:@pool).pool_size = 10
         # take all the connections
         conns = (1..10).map { @pool.checkout }
         mutex = Mutex.new

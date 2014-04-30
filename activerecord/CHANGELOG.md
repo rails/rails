@@ -1,3 +1,21 @@
+*   Fixes database connection pool performance regression as of Rails 4.0 in
+    highly concurrent environments running on JRuby.
+
+    Replaces the new Rails 4 connection pool with an old, tried and tested
+    connection pool called GenePool, yet maintains backward compatibility.
+
+    Addresses significant slow down when multiple threads attempt to checkout
+    connections at the same time. Would take as much as 3 seconds to get an
+    existing database connection with 100 concurrent threads.
+
+    Adds new database connection pool configuration option +checkout_warning+
+    which logs a warning when it takes longer than supplied number of seconds to
+    return a connection from the pool
+
+    Fixes #14891.
+
+    *Reid Morrison*
+
 *   When using a custom `join_table` name on a `habtm`, rails was not saving it
     on Reflections. This causes a problem when rails loads fixtures, because it
     uses the reflections to set database with fixtures.
