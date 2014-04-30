@@ -352,6 +352,22 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read("fu/foo")
   end
 
+  def test_arrayish_as_cache_key
+    obj = Object.new
+    def obj.to_a
+      ["foobar"]
+    end
+
+    @cache.write(obj, "bar")
+    assert_equal "bar", @cache.read("foobar")
+  end
+
+  def test_other_as_cache_key
+    # If it doesn't meet any of the special criteria (Array, Hash, etc.)
+    @cache.write("foo", "bar")
+    assert_equal "bar", @cache.read("foo")
+  end
+
   def test_hash_as_cache_key
     @cache.write({:foo => 1, :fu => 2}, "bar")
     assert_equal "bar", @cache.read("foo=1/fu=2")
