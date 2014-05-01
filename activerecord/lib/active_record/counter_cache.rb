@@ -118,5 +118,54 @@ module ActiveRecord
         update_counters(id, counter_name => -1)
       end
     end
+
+    protected
+
+      def actually_destroyed?
+        @_actually_destroyed
+      end
+
+      def clear_destroy_state
+        @_actually_destroyed = nil
+      end
+
+    private
+
+      def _create_record(*)
+        id = super
+
+        each_counter_cached_associations do |association|
+          if send(association.reflection.name)
+            association.increment_counters
+            @_after_create_counter_called = true
+          end
+        end
+
+        id
+      end
+
+      def destroy_row
+        affected_rows = super
+
+        if affected_rows > 0
+          each_counter_cached_associations do |association|
+            foreign_key = association.reflection.foreign_key.to_sym
+            unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
+              if send(association.reflection.name)
+                association.decrement_counters
+              end
+            end
+          end
+        end
+
+        affected_rows
+      end
+
+      def each_counter_cached_associations
+        reflections.each do |name, reflection|
+          yield association(name) if reflection.belongs_to? && reflection.counter_cache_column
+        end
+      end
+
   end
 end

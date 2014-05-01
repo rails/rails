@@ -9,12 +9,8 @@ module ActiveRecord
       @association
     end
 
-    def size
-      @association.size
-    end
-
-    def empty?
-      @association.empty?
+    def ==(other)
+      other == to_a
     end
 
     private

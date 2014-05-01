@@ -79,13 +79,13 @@ class AssertSelectTest < ActionController::TestCase
   def test_assert_select
     render_html %Q{<div id="1"></div><div id="2"></div>}
     assert_select "div", 2
-    assert_failure(/Expected at least 1 element matching \"p\", found 0/) { assert_select "p" }
+    assert_failure(/\AExpected at least 1 element matching \"p\", found 0\.$/) { assert_select "p" }
   end
 
   def test_equality_integer
     render_html %Q{<div id="1"></div><div id="2"></div>}
-    assert_failure(/Expected exactly 3 elements matching \"div\", found 2/) { assert_select "div", 3 }
-    assert_failure(/Expected exactly 0 elements matching \"div\", found 2/) { assert_select "div", 0 }
+    assert_failure(/\AExpected exactly 3 elements matching \"div\", found 2\.$/) { assert_select "div", 3 }
+    assert_failure(/\AExpected exactly 0 elements matching \"div\", found 2\.$/) { assert_select "div", 0 }
   end
 
   def test_equality_true_false
@@ -100,13 +100,14 @@ class AssertSelectTest < ActionController::TestCase
 
   def test_equality_false_message
     render_html %Q{<div id="1"></div><div id="2"></div>}
-    assert_failure(/Expected exactly 0 elements matching \"div\", found 2/) { assert_select "div", false }
+    assert_failure(/\AExpected exactly 0 elements matching \"div\", found 2\.$/) { assert_select "div", false }
   end
 
   def test_equality_string_and_regexp
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
     assert_nothing_raised    { assert_select "div", "foo" }
     assert_raise(Assertion) { assert_select "div", "bar" }
+    assert_failure(/\A<bar> expected but was\n<foo>\.$/) { assert_select "div", "bar" }
     assert_nothing_raised    { assert_select "div", :text=>"foo" }
     assert_raise(Assertion) { assert_select "div", :text=>"bar" }
     assert_nothing_raised    { assert_select "div", /(foo|bar)/ }
@@ -124,6 +125,7 @@ class AssertSelectTest < ActionController::TestCase
     assert_raise(Assertion) { assert_select "p", html }
     assert_nothing_raised    { assert_select "p", :html=>html }
     assert_raise(Assertion) { assert_select "p", :html=>text }
+    assert_failure(/\A<#{text}> expected but was\n<#{html}>\.$/) { assert_select "p", :html=>text }
     # No stripping for pre.
     render_html %Q{<pre>\n<em>"This is <strong>not</strong> a big problem,"</em> he said.\n</pre>}
     text = "\n\"This is not a big problem,\" he said.\n"
@@ -144,29 +146,29 @@ class AssertSelectTest < ActionController::TestCase
   def test_counts
     render_html %Q{<div id="1">foo</div><div id="2">foo</div>}
     assert_nothing_raised               { assert_select "div", 2 }
-    assert_failure(/Expected exactly 3 elements matching \"div\", found 2/) do
+    assert_failure(/\AExpected exactly 3 elements matching \"div\", found 2\.$/) do
       assert_select "div", 3
     end
     assert_nothing_raised               { assert_select "div", 1..2 }
-    assert_failure(/Expected between 3 and 4 elements matching \"div\", found 2/) do
+    assert_failure(/\AExpected between 3 and 4 elements matching \"div\", found 2\.$/) do
       assert_select "div", 3..4
     end
     assert_nothing_raised               { assert_select "div", :count=>2 }
-    assert_failure(/Expected exactly 3 elements matching \"div\", found 2/) do
+    assert_failure(/\AExpected exactly 3 elements matching \"div\", found 2\.$/) do
       assert_select "div", :count=>3
     end
     assert_nothing_raised               { assert_select "div", :minimum=>1 }
     assert_nothing_raised               { assert_select "div", :minimum=>2 }
-    assert_failure(/Expected at least 3 elements matching \"div\", found 2/) do
+    assert_failure(/\AExpected at least 3 elements matching \"div\", found 2\.$/) do
       assert_select "div", :minimum=>3
     end
     assert_nothing_raised               { assert_select "div", :maximum=>2 }
     assert_nothing_raised               { assert_select "div", :maximum=>3 }
-    assert_failure(/Expected at most 1 element matching \"div\", found 2/) do
+    assert_failure(/\AExpected at most 1 element matching \"div\", found 2\.$/) do
       assert_select "div", :maximum=>1
     end
     assert_nothing_raised               { assert_select "div", :minimum=>1, :maximum=>2 }
-    assert_failure(/Expected between 3 and 4 elements matching \"div\", found 2/) do
+    assert_failure(/\AExpected between 3 and 4 elements matching \"div\", found 2\.$/) do
       assert_select "div", :minimum=>3, :maximum=>4
     end
   end
@@ -204,7 +206,7 @@ class AssertSelectTest < ActionController::TestCase
       end
     end
 
-    assert_failure(/Expected at least 1 element matching \"#4\", found 0\./) do
+    assert_failure(/\AExpected at least 1 element matching \"#4\", found 0\.$/) do
       assert_select "div" do
         assert_select "#4"
       end

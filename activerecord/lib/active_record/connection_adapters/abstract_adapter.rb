@@ -6,6 +6,8 @@ require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/abstract/schema_dumper'
 require 'active_record/connection_adapters/abstract/schema_creation'
 require 'monitor'
+require 'arel/collectors/bind'
+require 'arel/collectors/sql_string'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -90,6 +92,8 @@ module ActiveRecord
         end
       end
 
+      attr_reader :prepared_statements
+
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
         super()
 
@@ -101,6 +105,26 @@ module ActiveRecord
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
         @prepared_statements = false
+      end
+
+      class BindCollector < Arel::Collectors::Bind
+        def compile(bvs, conn)
+          super(bvs.map { |bv| conn.quote(*bv.reverse) })
+        end
+      end
+
+      class SQLString < Arel::Collectors::SQLString
+        def compile(bvs, conn)
+          super(bvs)
+        end
+      end
+
+      def collector
+        if @prepared_statements
+          SQLString.new
+        else
+          BindCollector.new
+        end
       end
 
       def valid_type?(type)
@@ -128,16 +152,11 @@ module ActiveRecord
         @owner = nil
       end
 
-      def unprepared_visitor
-        self.class::BindSubstitution.new self
-      end
-
       def unprepared_statement
         old_prepared_statements, @prepared_statements = @prepared_statements, false
-        old_visitor, @visitor = @visitor, unprepared_visitor
         yield
       ensure
-        @visitor, @prepared_statements = old_visitor, old_prepared_statements
+        @prepared_statements = old_prepared_statements
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
@@ -318,13 +337,14 @@ module ActiveRecord
       def release_savepoint(name = nil)
       end
 
-      def case_sensitive_modifier(node)
+      def case_sensitive_modifier(node, table_attribute)
         node
       end
 
       def case_sensitive_comparison(table, attribute, column, value)
-        value = case_sensitive_modifier(value) unless value.nil?
-        table[attribute].eq(value)
+        table_attr = table[attribute]
+        value = case_sensitive_modifier(value, table_attr) unless value.nil?
+        table_attr.eq(value)
       end
 
       def case_insensitive_comparison(table, attribute, column, value)

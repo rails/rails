@@ -18,7 +18,7 @@ module ActiveRecord
       # SELECT query if you use #length.
       def size
         if has_cached_counter?
-          owner.send(:read_attribute, cached_counter_attribute_name)
+          owner.read_attribute cached_counter_attribute_name(reflection)
         elsif loaded?
           target.size
         else
@@ -202,7 +202,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          scope.to_a
+          get_records
         end
 
         # NOTE - not sure that we can actually cope with inverses here

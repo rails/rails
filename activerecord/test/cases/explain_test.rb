@@ -26,8 +26,12 @@ if ActiveRecord::Base.connection.supports_explain?
 
       sql, binds = queries[0]
       assert_match "SELECT", sql
-      assert_match "honda", sql
-      assert_equal [], binds
+      if binds.any?
+        assert_equal 1, binds.length
+        assert_equal "honda", binds.flatten.last
+      else
+        assert_match 'honda', sql
+      end
     end
 
     def test_exec_explain_with_no_binds

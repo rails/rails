@@ -5,11 +5,15 @@ module ActionDispatch
     class Router
       class TestUtils < ActiveSupport::TestCase
         def test_path_escape
-          assert_equal "a/b%20c+d", Utils.escape_path("a/b c+d")
+          assert_equal "a/b%20c+d%25", Utils.escape_path("a/b c+d%")
+        end
+
+        def test_segment_escape
+          assert_equal "a%2Fb%20c+d%25", Utils.escape_segment("a/b c+d%")
         end
 
         def test_fragment_escape
-          assert_equal "a/b%20c+d?e", Utils.escape_fragment("a/b c+d?e")
+          assert_equal "a/b%20c+d%25?e", Utils.escape_fragment("a/b c+d%?e")
         end
 
         def test_uri_unescape

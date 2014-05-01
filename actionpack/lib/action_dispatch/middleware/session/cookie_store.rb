@@ -29,7 +29,7 @@ module ActionDispatch
     #
     # Configure your session store in config/initializers/session_store.rb:
     #
-    #   Myapp::Application.config.session_store :cookie_store, key: '_your_app_session'
+    #   Rails.application.config.session_store :cookie_store, key: '_your_app_session'
     #
     # Configure your secret key in config/secrets.yml:
     #

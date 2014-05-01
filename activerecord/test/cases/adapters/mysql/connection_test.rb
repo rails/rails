@@ -151,6 +151,14 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_mysql_sql_mode_variable_overides_strict_mode
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql_mode' => 'ansi' }))
+      result = ActiveRecord::Base.connection.exec_query 'SELECT @@SESSION.sql_mode'
+      assert_not_equal [['STRICT_ALL_TABLES']], result.rows
+    end
+  end
+
   def test_mysql_set_session_variable_to_default
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => :default}}))

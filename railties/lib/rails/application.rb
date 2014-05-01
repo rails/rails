@@ -231,6 +231,18 @@ module Rails
       self.class.runner(&blk)
     end
 
+    # Sends any console called in the instance of a new application up
+    # to the +console+ method defined in Rails::Railtie.
+    def console(&blk)
+      self.class.console(&blk)
+    end
+
+    # Sends any generators called in the instance of a new application up
+    # to the +generators+ method defined in Rails::Railtie.
+    def generators(&blk)
+      self.class.generators(&blk)
+    end
+
     # Sends the +isolate_namespace+ method up to the class method.
     def isolate_namespace(mod)
       self.class.isolate_namespace(mod)

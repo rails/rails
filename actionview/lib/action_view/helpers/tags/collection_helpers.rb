@@ -44,7 +44,7 @@ module ActionView
         def default_html_options_for_collection(item, value) #:nodoc:
           html_options = @html_options.dup
 
-          [:checked, :selected, :disabled].each do |option|
+          [:checked, :selected, :disabled, :readonly].each do |option|
             current_value = @options[option]
             next if current_value.nil?
 

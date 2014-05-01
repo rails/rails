@@ -21,8 +21,11 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
+        JoinInformation = Struct.new :joins, :binds
+
         def join_constraints(foreign_table, foreign_klass, node, join_type, tables, scope_chain, chain)
           joins         = []
+          bind_values   = []
           tables        = tables.reverse
 
           scope_chain_index = 0
@@ -60,12 +63,18 @@ module ActiveRecord
               left.merge right
             end
 
-            if reflection.type
-              constraint = constraint.and table[reflection.type].eq foreign_klass.base_class.name
+            if rel && !rel.arel.constraints.empty?
+              bind_values.concat rel.bind_values
+              constraint = constraint.and rel.arel.constraints
             end
 
-            if rel && !rel.arel.constraints.empty?
-              constraint = constraint.and rel.arel.constraints
+            if reflection.type
+              value = foreign_klass.base_class.name
+              column = klass.columns_hash[column.to_s]
+
+              substitute = klass.connection.substitute_at(column, bind_values.length)
+              bind_values.push [column, value]
+              constraint = constraint.and table[reflection.type].eq substitute
             end
 
             joins << table.create_join(table, table.create_on(constraint), join_type)
@@ -74,7 +83,7 @@ module ActiveRecord
             foreign_table, foreign_klass = table, klass
           end
 
-          joins
+          JoinInformation.new joins, bind_values
         end
 
         #  Builds equality condition.

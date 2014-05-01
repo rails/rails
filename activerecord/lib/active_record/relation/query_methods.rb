@@ -64,6 +64,7 @@ module ActiveRecord
                                              #
         def #{name}_values=(values)          # def select_values=(values)
           raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
+          check_cached_relation
           @values[:#{name}] = values         #   @values[:select] = values
         end                                  # end
       CODE
@@ -81,9 +82,20 @@ module ActiveRecord
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_value=(value)            # def readonly_value=(value)
           raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
+          check_cached_relation
           @values[:#{name}] = value          #   @values[:readonly] = value
         end                                  # end
       CODE
+    end
+
+    def check_cached_relation # :nodoc:
+      if defined?(@arel) && @arel
+        @arel = nil
+        ActiveSupport::Deprecation.warn <<-WARNING
+Modifying already cached Relation. The cache will be reset.
+Use a cloned Relation to prevent this warning.
+WARNING
+      end
     end
 
     def create_with_value # :nodoc:
@@ -235,11 +247,11 @@ module ActiveRecord
         to_a.select { |*block_args| yield(*block_args) }
       else
         raise ArgumentError, 'Call this with at least one field' if fields.empty?
-        spawn.select!(*fields)
+        spawn._select!(*fields)
       end
     end
 
-    def select!(*fields) # :nodoc:
+    def _select!(*fields) # :nodoc:
       fields.flatten!
       fields.map! do |field|
         klass.attribute_alias?(field) ? klass.attribute_alias(field) : field
@@ -843,7 +855,7 @@ module ActiveRecord
 
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
-      collapse_wheres(arel, (where_values - ['']).uniq)
+      collapse_wheres(arel, (where_values - [''])) #TODO: Add uniq with real value comparison / ignore uniqs that have binds
 
       arel.having(*having_values.uniq.reject(&:blank?)) unless having_values.empty?
 
@@ -860,6 +872,15 @@ module ActiveRecord
       arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
 
+      # Reorder bind indexes if joins produced bind values
+      if arel.bind_values.any?
+        bvs = arel.bind_values + bind_values
+        arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
+          column = bvs[i].first
+          bp.replace connection.substitute_at(column, i)
+        end
+      end
+
       arel
     end
 
@@ -874,6 +895,8 @@ module ActiveRecord
       case scope
       when :order
         result = []
+      when :where
+        self.bind_values = []
       else
         result = [] unless single_val_method
       end
@@ -924,18 +947,16 @@ module ActiveRecord
     def build_where(opts, other = [])
       case opts
       when String, Array
-        #TODO: Remove duplication with: /activerecord/lib/active_record/sanitization.rb:113
-        values = Hash === other.first ? other.first.values : other
-
-        values.grep(ActiveRecord::Relation) do |rel|
-          self.bind_values += rel.bind_values
-        end
-
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
+        bv_len = bind_values.length
+        tmp_opts, bind_values = create_binds(opts, bv_len)
+        self.bind_values += bind_values
+
+        attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
         attributes.values.grep(ActiveRecord::Relation) do |rel|
           self.bind_values += rel.bind_values
         end
@@ -944,6 +965,29 @@ module ActiveRecord
       else
         [opts]
       end
+    end
+
+    def create_binds(opts, idx)
+      bindable, non_binds = opts.partition do |column, value|
+        case value
+        when String, Integer, ActiveRecord::StatementCache::Substitute
+          @klass.columns_hash.include? column.to_s
+        else
+          false
+        end
+      end
+
+      new_opts = {}
+      binds = []
+
+      bindable.each_with_index do |(column,value), index|
+        binds.push [@klass.columns_hash[column.to_s], value]
+        new_opts[column] = connection.substitute_at(column, index + idx)
+      end
+
+      non_binds.each { |column,value| new_opts[column] = value }
+
+      [new_opts, binds]
     end
 
     def build_from
@@ -987,9 +1031,12 @@ module ActiveRecord
         join_list
       )
 
-      joins = join_dependency.join_constraints stashed_association_joins
+      join_infos = join_dependency.join_constraints stashed_association_joins
 
-      joins.each { |join| manager.from(join) }
+      join_infos.each do |info|
+        info.joins.each { |join| manager.from(join) }
+        manager.bind_values.concat info.binds
+      end
 
       manager.join_sources.concat(join_list)
 

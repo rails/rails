@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'arel/collectors/bind'
 
 module ActiveRecord
   # = Active Record Relation
@@ -223,6 +224,7 @@ module ActiveRecord
     # Please see further details in the
     # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
+      #TODO: Fix for binds.
       exec_explain(collecting_queries_for_explain { exec_queries })
     end
 
@@ -323,7 +325,8 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, 'SQL', bind_values
+      bvs = bind_values + arel.bind_values
+      @klass.connection.update stmt, 'SQL', bvs
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -516,11 +519,11 @@ module ActiveRecord
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    ast   = relation.arel.ast
-                    binds = relation.bind_values.dup
-                    visitor.accept(ast) do
-                      connection.quote(*binds.shift.reverse)
-                    end
+                    arel  = relation.arel
+                    binds = (arel.bind_values + relation.bind_values).dup
+                    binds.map! { |bv| connection.quote(*bv.reverse) }
+                    collect = visitor.accept(arel.ast, Arel::Collectors::Bind.new)
+                    collect.substitute_binds(binds).join
                   end
     end
 
@@ -537,7 +540,13 @@ module ActiveRecord
 
       Hash[equalities.map { |where|
         name = where.left.name
-        [name, binds.fetch(name.to_s) { where.right }]
+        [name, binds.fetch(name.to_s) {
+          case where.right
+          when Array then where.right.map(&:val)
+          else
+            where.right.val
+          end
+        }]
       }]
     end
 
@@ -569,6 +578,8 @@ module ActiveRecord
     # Compares two relations for equality.
     def ==(other)
       case other
+      when Associations::CollectionProxy, AssociationRelation
+        self == other.to_a
       when Relation
         other.to_sql == to_sql
       when Array
@@ -599,7 +610,7 @@ module ActiveRecord
     private
 
     def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, arel.bind_values + bind_values)
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?

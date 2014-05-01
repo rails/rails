@@ -233,13 +233,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_counter
     debate = Topic.create("title" => "debate")
-    assert_equal 0, debate.send(:read_attribute, "replies_count"), "No replies yet"
+    assert_equal 0, debate.read_attribute("replies_count"), "No replies yet"
 
     trash = debate.replies.create("title" => "blah!", "content" => "world around!")
-    assert_equal 1, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply created"
+    assert_equal 1, Topic.find(debate.id).read_attribute("replies_count"), "First reply created"
 
     trash.destroy
-    assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
+    assert_equal 0, Topic.find(debate.id).read_attribute("replies_count"), "First reply deleted"
   end
 
   def test_belongs_to_counter_with_assigning_nil
@@ -498,6 +498,27 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 4, topic.reload[:replies_count]
 
     reply.destroy
+    assert_equal 4, topic.reload[:replies_count]
+    assert_equal 4, topic.replies.size
+  end
+
+  def test_concurrent_counter_cache_double_destroy
+    topic = Topic.create :title => "Zoom-zoom-zoom"
+
+    5.times do
+      topic.replies.create(:title => "re: zoom", :content => "speedy quick!")
+    end
+
+    assert_equal 5, topic.reload[:replies_count]
+    assert_equal 5, topic.replies.size
+
+    reply = topic.replies.first
+    reply_clone = Reply.find(reply.id)
+
+    reply.destroy
+    assert_equal 4, topic.reload[:replies_count]
+
+    reply_clone.destroy
     assert_equal 4, topic.reload[:replies_count]
     assert_equal 4, topic.replies.size
   end

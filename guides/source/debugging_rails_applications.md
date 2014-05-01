@@ -210,7 +210,7 @@ logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "
 ```
 
 ### Impact of Logs on Performance
-Logging will always have a small impact on performance of your rails app, 
+Logging will always have a small impact on performance of your rails app,
         particularly when logging to disk.However, there are a few subtleties:
 
 Using the `:debug` level will have a greater performance penalty than `:fatal`,
@@ -224,20 +224,20 @@ Another potential pitfall is that if you have many calls to `Logger` like this
 logger.debug "Person attributes hash: #{@person.attributes.inspect}"
 ```
 
-In the above example, There will be a performance impact even if the allowed 
-output level doesn't include debug. The reason is that Ruby has to evaluate 
-these strings, which includes instantiating the somewhat heavy `String` object 
+In the above example, There will be a performance impact even if the allowed
+output level doesn't include debug. The reason is that Ruby has to evaluate
+these strings, which includes instantiating the somewhat heavy `String` object
 and interpolating the variables, and which takes time.
-Therefore, it's recommended to pass blocks to the logger methods, as these are 
-only evaluated if the output level is the same or included in the allowed level 
+Therefore, it's recommended to pass blocks to the logger methods, as these are
+only evaluated if the output level is the same or included in the allowed level
 (i.e. lazy loading). The same code rewritten would be:
 
 ```ruby
 logger.debug {"Person attributes hash: #{@person.attributes.inspect}"}
 ```
 
-The contents of the block, and therefore the string interpolation, is only 
-evaluated if debug is enabled. This performance savings is only really 
+The contents of the block, and therefore the string interpolation, is only
+evaluated if debug is enabled. This performance savings is only really
 noticeable with large amounts of logging, but it's a good practice to employ.
 
 Debugging with the `byebug` gem
@@ -380,7 +380,7 @@ To see the previous ten lines you should type `list-` (or `l-`)
 ```
 
 This way you can move inside the file, being able to see the code above and over
-the line where you added the `byebug` call.  Finally, to see where you are in
+the line where you added the `byebug` call. Finally, to see where you are in
 the code again you can type `list=`
 
 ```
@@ -464,7 +464,7 @@ towards lower-numbered stack frames.
 ### Threads
 
 The debugger can list, stop, resume and switch between running threads by using
-the command `thread` (or the abbreviated `th`). This command has a handful of
+the `thread` command (or the abbreviated `th`). This command has a handful of
 options:
 
 * `thread` shows the current thread.
@@ -483,7 +483,7 @@ code.
 Any expression can be evaluated in the current context. To evaluate an
 expression, just type it!
 
-This example shows how you can print the instance_variables defined within the
+This example shows how you can print the instance variables defined within the
 current context:
 
 ```
@@ -626,7 +626,7 @@ Processing by PostsController#index as HTML
 (byebug)
 ```
 
-If we use  `next`, we want go deep inside method calls. Instead, byebug will go
+If we use `next`, we want go deep inside method calls. Instead, byebug will go
 to the next line within the same context. In this case, this is the last line of
 the method, so `byebug` will jump to next next line of the previous frame.
 
@@ -731,7 +731,7 @@ No breakpoints.
 
 You can also enable or disable breakpoints:
 
-* `enable breakpoints`: allow a list _breakpoints_ or all of them if no list is
+* `enable breakpoints`: allow a _breakpoints_ list or all of them if no list is
 specified, to stop your program. This is the default state when you create a
 breakpoint.
 * `disable breakpoints`: the _breakpoints_ will have no effect on your program.

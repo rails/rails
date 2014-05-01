@@ -1,11 +1,33 @@
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
-      INSTANCE = new
-
       def self.scope(association, connection)
         INSTANCE.scope association, connection
       end
+
+      class BindSubstitution
+        def initialize(block)
+          @block = block
+        end
+
+        def bind_value(scope, column, value, alias_tracker)
+          substitute = alias_tracker.connection.substitute_at(
+            column, scope.bind_values.length)
+          scope.bind_values += [[column, @block.call(value)]]
+          substitute
+        end
+      end
+
+      def self.create(&block)
+        block = block ? block : lambda { |val| val }
+        new BindSubstitution.new(block)
+      end
+
+      def initialize(bind_substitution)
+        @bind_substitution = bind_substitution
+      end
+
+      INSTANCE = create
 
       def scope(association, connection)
         klass         = association.klass
@@ -20,6 +42,30 @@ module ActiveRecord
 
       def join_type
         Arel::Nodes::InnerJoin
+      end
+
+      def self.get_bind_values(owner, chain)
+        bvs = []
+        chain.each_with_index do |reflection, i|
+          if reflection.source_macro == :belongs_to
+            foreign_key = reflection.foreign_key
+          else
+            foreign_key = reflection.active_record_primary_key
+          end
+
+          if reflection == chain.last
+            bvs << owner[foreign_key]
+
+            if reflection.type
+              bvs << owner.class.base_class.name
+            end
+          else
+            if reflection.type
+              bvs << chain[i + 1].klass.base_class.name
+            end
+          end
+        end
+        bvs
       end
 
       private
@@ -49,10 +95,7 @@ module ActiveRecord
       end
 
       def bind_value(scope, column, value, alias_tracker)
-        substitute = alias_tracker.connection.substitute_at(
-          column, scope.bind_values.length)
-        scope.bind_values += [[column, value]]
-        substitute
+        @bind_substitution.bind_value scope, column, value, alias_tracker
       end
 
       def bind(scope, table_name, column_name, value, tracker)
@@ -120,6 +163,7 @@ module ActiveRecord
             end
 
             scope.where_values += item.where_values
+            scope.bind_values  += item.bind_values
             scope.order_values |= item.order_values
           end
         end

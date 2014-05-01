@@ -1,3 +1,135 @@
+*   Stringify all variables keys of mysql connection configuration.
+
+    When `sql_mode` variable for mysql adapters set in configuration as `String`
+    was ignored and overwritten by strict mode option.
+
+    Fixes #14895
+
+    *Paul Nikitochkin*
+
+*   Ensure SQLite3 statements are closed on errors.
+
+    Fixes: #13631
+
+    *Timur Alperovich*
+
+*   Give ActiveRecord::PredicateBuilder private methods the privacy they deserve
+
+    *Hector Satre*
+
+*   When using a custom `join_table` name on a `habtm`, rails was not saving it
+    on Reflections. This causes a problem when rails loads fixtures, because it
+    uses the reflections to set database with fixtures.
+
+    Fixes #14845.
+
+    *Kassio Borges*
+
+*   Reset the cache when modifying a Relation with cached Arel.
+    Additionally display a warning message to make the user aware.
+
+    *Yves Senn*
+
+*   PostgreSQL should internally use `:datetime` consistently for TimeStamp. Assures
+    different spellings of timestamps are treated the same.
+
+    Example:
+
+        mytimestamp.simplified_type('timestamp without time zone')
+        # => :datetime
+        mytimestamp.simplified_type('timestamp(6) without time zone')
+        # => also :datetime (previously would be :timestamp)
+
+    See #14513.
+
+    *Jefferson Lai*
+
+*   `ActiveRecord::Base.no_touching` no longer triggers callbacks or start empty transactions.
+
+    Fixes #14841.
+
+    *Lucas Mazza*
+
+*   Fix name collision with `Array#select!` with `Relation#select!`.
+
+    Fixes #14752.
+
+    *Earl St Sauver*
+
+*   Fixed unexpected behavior for `has_many :through` associations going through a scoped `has_many`.
+
+    If a `has_many` association is adjusted using a scope, and another `has_many :through`
+    uses this association, then the scope adjustment is unexpectedly neglected.
+
+    Fixes #14537.
+
+    *Jan Habermann*
+
+*   `@destroyed` should always be set to `false` when an object is duped.
+
+    *Kuldeep Aggarwal*
+
+*   Fixed has_many association to make it support irregular inflections.
+
+    Fixes #8928.
+
+    *arthurnn*, *Javier Goizueta*
+
+*   Fixed a problem where count used with a grouping was not returning a Hash.
+
+    Fixes #14721.
+
+    *Eric Chahin*
+
+*   `sanitize_sql_like` helper method to escape a string for safe use in a SQL
+    LIKE statement.
+
+    Example:
+
+        class Article
+          def self.search(term)
+            where("title LIKE ?", sanitize_sql_like(term))
+          end
+        end
+
+        Article.search("20% _reduction_")
+        # => Query looks like "... title LIKE '20\% \_reduction\_' ..."
+
+    *Rob Gilson*, *Yves Senn*
+
+*   Do not quote uuid default value on `change_column`.
+
+    Fixes #14604.
+
+    *Eric Chahin*
+
+*   The comparison between `Relation` and `CollectionProxy` should be consistent.
+
+    Example:
+
+        author.posts == Post.where(author_id: author.id)
+        # => true
+        Post.where(author_id: author.id) == author.posts
+        # => true
+
+    Fixes #13506.
+
+    *Lauro Caetano*
+
+*   Calling `delete_all` on an unloaded `CollectionProxy` no longer
+    generates a SQL statement containing each id of the collection:
+
+    Before:
+
+        DELETE FROM `model` WHERE `model`.`parent_id` = 1
+        AND `model`.`id` IN (1, 2, 3...)
+
+    After:
+
+        DELETE FROM `model` WHERE `model`.`parent_id` = 1
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Fixed error for aggregate methods (`empty?`, `any?`, `count`) with `select`
     which created invalid SQL.
 

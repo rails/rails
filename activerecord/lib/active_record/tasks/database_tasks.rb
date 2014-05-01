@@ -28,7 +28,7 @@ module ActiveRecord
     # Example usage of +DatabaseTasks+ outside Rails could look as such:
     #
     #   include ActiveRecord::Tasks
-    #   DatabaseTasks.database_configuration = YAML.load(File.read('my_database_config.yml'))
+    #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')
     #   DatabaseTasks.db_dir = 'db'
     #   # other settings...
     #

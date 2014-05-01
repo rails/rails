@@ -51,4 +51,31 @@ class SanitizeTest < ActiveRecord::TestCase
     select_author_sql = Post.send(:sanitize_sql_array, [''])
     assert_equal('', select_author_sql)
   end
+
+  def test_sanitize_sql_like
+    assert_equal '100\%', Binary.send(:sanitize_sql_like, '100%')
+    assert_equal 'snake\_cased\_string', Binary.send(:sanitize_sql_like, 'snake_cased_string')
+    assert_equal 'C:\\\\Programs\\\\MsPaint', Binary.send(:sanitize_sql_like, 'C:\\Programs\\MsPaint')
+    assert_equal 'normal string 42', Binary.send(:sanitize_sql_like, 'normal string 42')
+  end
+
+  def test_sanitize_sql_like_with_custom_escape_character
+    assert_equal '100!%', Binary.send(:sanitize_sql_like, '100%', '!')
+    assert_equal 'snake!_cased!_string', Binary.send(:sanitize_sql_like, 'snake_cased_string', '!')
+    assert_equal 'great!!', Binary.send(:sanitize_sql_like, 'great!', '!')
+    assert_equal 'C:\\Programs\\MsPaint', Binary.send(:sanitize_sql_like, 'C:\\Programs\\MsPaint', '!')
+    assert_equal 'normal string 42', Binary.send(:sanitize_sql_like, 'normal string 42', '!')
+  end
+
+  def test_sanitize_sql_like_example_use_case
+    searchable_post = Class.new(Post) do
+      def self.search(term)
+        where("title LIKE ?", sanitize_sql_like(term, '!'))
+      end
+    end
+
+    assert_sql(/LIKE '20!% !_reduction!_!!'/) do
+      searchable_post.search("20% _reduction_!").to_a
+    end
+  end
 end

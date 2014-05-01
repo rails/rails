@@ -34,7 +34,7 @@ The naming convention of controllers in Rails favors pluralization of the last w
 
 Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
-NOTE: The controller naming convention differs from the naming convention of models, which expected to be named in singular form.
+NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
 
 Methods and Actions
@@ -260,7 +260,7 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any subhash of it
+This will mark the `:log_entry` parameters hash and any sub-hash of it
 permitted. Extreme care should be taken when using `permit!` as it
 will allow all current and future model attributes to be
 mass-assigned.
@@ -364,21 +364,21 @@ If you need a different session storage mechanism, you can change it in the `con
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
 # (create the session table with "rails g active_record:session_migration")
-# YourApp::Application.config.session_store :active_record_store
+# Rails.application.config.session_store :active_record_store
 ```
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in `config/initializers/session_store.rb`:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
+Rails.application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
 Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/secrets.yml`

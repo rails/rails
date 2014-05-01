@@ -79,7 +79,6 @@ module Rails
       end
 
       def initialize(*args)
-        @original_wd   = Dir.pwd
         @gem_filter    = lambda { |gem| true }
         @extra_entries = []
         super
@@ -203,7 +202,8 @@ module Rails
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
            GemfileEntry.github('arel', 'rails/arel')]
         elsif options.edge?
-          [GemfileEntry.github('rails', 'rails/rails')]
+          [GemfileEntry.github('rails', 'rails/rails'),
+           GemfileEntry.github('arel', 'rails/arel')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,

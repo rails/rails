@@ -138,14 +138,14 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :index
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_button_to_with_token_tag
     assert_not_blocked do
       get :show_button
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_form_without_token_tag_if_remote
@@ -175,7 +175,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_for_remote_with_external_token
       end
-      assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
+      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -185,21 +185,21 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :form_for_remote_with_external_token
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_authenticity_token_requested
     assert_not_blocked do
       get :form_for_remote_with_token
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_form_with_token_tag_with_authenticity_token_requested
     assert_not_blocked do
       get :form_for_with_token
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_allow_get

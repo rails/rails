@@ -182,7 +182,7 @@ module ActiveRecord
 
       def test_quote_binary_column_escapes_it
         DualEncoding.connection.execute(<<-eosql)
-          CREATE TABLE dual_encodings (
+          CREATE TABLE IF NOT EXISTS dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
             name varchar(255),
             data binary
@@ -192,9 +192,8 @@ module ActiveRecord
         binary = DualEncoding.new name: 'いただきます！', data: str
         binary.save!
         assert_equal str, binary.data
-
       ensure
-        DualEncoding.connection.drop_table('dual_encodings')
+        DualEncoding.connection.execute('DROP TABLE IF EXISTS dual_encodings')
       end
 
       def test_type_cast_should_not_mutate_encoding
@@ -415,6 +414,21 @@ module ActiveRecord
 
       def test_respond_to_disable_extension
         assert @conn.respond_to?(:disable_extension)
+      end
+
+      def test_statement_closed
+        db = SQLite3::Database.new(ActiveRecord::Base.
+                                   configurations['arunit']['database'])
+        statement = SQLite3::Statement.new(db,
+                                           'CREATE TABLE statement_test (number integer not null)')
+        statement.stubs(:step).raises(SQLite3::BusyException, 'busy')
+        statement.stubs(:columns).once.returns([])
+        statement.expects(:close).once
+        SQLite3::Statement.stubs(:new).returns(statement)
+
+        assert_raises ActiveRecord::StatementInvalid do
+          @conn.exec_query 'select * from statement_test'
+        end
       end
 
       private

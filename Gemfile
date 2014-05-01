@@ -11,6 +11,7 @@ gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0'
+gem 'arel', github: 'rails/arel'
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: '2-1-stable'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.

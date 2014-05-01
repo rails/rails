@@ -558,7 +558,7 @@ The rest of `config/application.rb` defines the configuration for the
 initialized. When `config/application.rb` has finished loading Rails and defined
 the application namespace, we go back to `config/environment.rb`,
 where the application is initialized. For example, if the application was called
-`Blog`, here we would find `Blog::Application.initialize!`, which is
+`Blog`, here we would find `Rails.application.initialize!`, which is
 defined in `rails/application.rb`
 
 ### `railties/lib/rails/application.rb`
@@ -587,7 +587,7 @@ def run_initializers(group=:default, *args)
 end
 ```
 
-The run_initializers code itself is tricky. What Rails is doing here is
+The `run_initializers` code itself is tricky. What Rails is doing here is
 traversing all the class ancestors looking for those that respond to an
 `initializers` method. It then sorts the ancestors by name, and runs them.
 For example, the `Engine` class will make all the engines available by
@@ -642,7 +642,7 @@ def build_app(app)
 end
 ```
 
-Remember, `build_app` was called (by wrapped_app) in the last line of `Server#start`.
+Remember, `build_app` was called (by `wrapped_app`) in the last line of `Server#start`.
 Here's how it looked like when we left:
 
 ```ruby

@@ -164,17 +164,17 @@ module ActiveRecord
       def make_outer_joins(parent, child)
         tables    = table_aliases_for(parent, child)
         join_type = Arel::Nodes::OuterJoin
-        joins     = make_constraints parent, child, tables, join_type
+        info      = make_constraints parent, child, tables, join_type
 
-        joins.concat child.children.flat_map { |c| make_outer_joins(child, c) }
+        [info] + child.children.flat_map { |c| make_outer_joins(child, c) }
       end
 
       def make_inner_joins(parent, child)
         tables    = child.tables
         join_type = Arel::Nodes::InnerJoin
-        joins     = make_constraints parent, child, tables, join_type
+        info      = make_constraints parent, child, tables, join_type
 
-        joins.concat child.children.flat_map { |c| make_inner_joins(child, c) }
+        [info] + child.children.flat_map { |c| make_inner_joins(child, c) }
       end
 
       def table_aliases_for(parent, node)

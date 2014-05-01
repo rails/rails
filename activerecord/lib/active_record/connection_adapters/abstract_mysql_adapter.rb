@@ -183,21 +183,18 @@ module ActiveRecord
       INDEX_TYPES  = [:fulltext, :spatial]
       INDEX_USINGS = [:btree, :hash]
 
-      class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
-        include Arel::Visitors::BindVisitor
-      end
-
       # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
 
+        @visitor = Arel::Visitors::MySQL.new self
+
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
-          @visitor = Arel::Visitors::MySQL.new self
         else
-          @visitor = unprepared_visitor
+          @prepared_statements = false
         end
       end
 
@@ -610,7 +607,8 @@ module ActiveRecord
         pk_and_sequence && pk_and_sequence.first
       end
 
-      def case_sensitive_modifier(node)
+      def case_sensitive_modifier(node, table_attribute)
+        node = Arel::Nodes.build_quoted node, table_attribute
         Arel::Nodes::Bin.new(node)
       end
 
@@ -767,22 +765,22 @@ module ActiveRecord
       end
 
       def configure_connection
-        variables = @config[:variables] || {}
+        variables = @config.fetch(:variables, {}).stringify_keys
 
         # By default, MySQL 'where id is null' selects the last inserted id.
         # Turn this off. http://dev.rubyonrails.org/ticket/6778
-        variables[:sql_auto_is_null] = 0
+        variables['sql_auto_is_null'] = 0
 
         # Increase timeout so the server doesn't disconnect us.
         wait_timeout = @config[:wait_timeout]
         wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
-        variables[:wait_timeout] = self.class.type_cast_config_to_integer(wait_timeout)
+        variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
-        if strict_mode? && !variables.has_key?(:sql_mode)
-          variables[:sql_mode] = 'STRICT_ALL_TABLES'
+        if strict_mode? && !variables.has_key?('sql_mode')
+          variables['sql_mode'] = 'STRICT_ALL_TABLES'
         end
 
         # NAMES does not have an equals sign, see

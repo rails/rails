@@ -323,7 +323,7 @@ module ActionView
             inner_tags.safe_concat tag(:input, type: "hidden", name: param_name, value: value.to_param)
           end
         end
-        content_tag('form', content_tag('div', inner_tags), form_options)
+        content_tag('form', inner_tags, form_options)
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of

@@ -64,7 +64,7 @@ class String
 
   # Returns the first character. If a limit is supplied, returns a substring
   # from the beginning of the string until it reaches the limit value. If the
-  # given limit is greater than or equal to the string length, returns self.
+  # given limit is greater than or equal to the string length, returns a copy of self.
   #
   #   str = "hello"
   #   str.first    # => "h"
@@ -76,7 +76,7 @@ class String
     if limit == 0
       ''
     elsif limit >= size
-      self
+      self.dup
     else
       to(limit - 1)
     end
@@ -84,7 +84,7 @@ class String
 
   # Returns the last character of the string. If a limit is supplied, returns a substring
   # from the end of the string until it reaches the limit value (counting backwards). If
-  # the given limit is greater than or equal to the string length, returns self.
+  # the given limit is greater than or equal to the string length, returns a copy of self.
   #
   #   str = "hello"
   #   str.last    # => "o"
@@ -96,7 +96,7 @@ class String
     if limit == 0
       ''
     elsif limit >= size
-      self
+      self.dup
     else
       from(-limit)
     end

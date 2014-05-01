@@ -14,6 +14,7 @@ require 'models/car'
 require 'models/engine'
 require 'models/tyre'
 require 'models/minivan'
+require 'models/aircraft'
 
 
 class RelationTest < ActiveRecord::TestCase
@@ -363,6 +364,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_null_relation_where_values_hash
     assert_equal({ 'salary' => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
+  end
+
+
+  def test_null_relation_count
+    ac = Aircraft.new
+    assert_equal Hash.new, ac.engines.group(:id).count
+    assert_equal        0, ac.engines.count
+    ac.save
+    assert_equal Hash.new, ac.engines.group(:id).count
+    assert_equal        0, ac.engines.count
   end
 
   def test_joins_with_nil_argument
@@ -864,6 +875,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 9, posts.where(:comments_count => 0).count
   end
 
+  def test_count_on_association_relation
+    author = Author.last
+    another_author = Author.first
+    posts = Post.where(author_id: author.id)
+
+    assert_equal author.posts.where(author_id: author.id).size, posts.count
+
+    assert_equal 0, author.posts.where(author_id: another_author.id).size
+    assert author.posts.where(author_id: another_author.id).empty?
+  end
+
   def test_count_with_distinct
     posts = Post.all
 
@@ -872,6 +894,14 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal 3, posts.distinct(true).select(:comments_count).count
     assert_equal 11, posts.distinct(false).select(:comments_count).count
+  end
+
+  def test_update_all_with_scope
+    tag = Tag.first
+    Post.tagged_with(tag.id).update_all title: "rofl"
+    list = Post.tagged_with(tag.id).all.to_a
+    assert_operator list.length, :>, 0
+    list.each { |post| assert_equal 'rofl', post.title }
   end
 
   def test_count_explicit_columns
@@ -1621,10 +1651,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_merging_removes_rhs_bind_parameters
-    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
-    column = Post.columns_hash['id']
-    left.bind_values += [[column, 20]]
-    right   = Post.where(id: 10)
+    left  = Post.where(id: 20)
+    right   = Post.where(id: [1,2,3,4])
 
     merged = left.merge(right)
     assert_equal [], merged.bind_values
@@ -1634,8 +1662,7 @@ class RelationTest < ActiveRecord::TestCase
     column = Post.columns_hash['id']
     binds = [[column, 20]]
 
-    right  = Post.where(id: Arel::Nodes::BindParam.new('?'))
-    right.bind_values += binds
+    right  = Post.where(id: 20)
     left   = Post.where(id: 10)
 
     merged = left.merge(right)
@@ -1643,17 +1670,9 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_merging_reorders_bind_params
-    post         = Post.first
-    id_column    = Post.columns_hash['id']
-    title_column = Post.columns_hash['title']
-
-    bv = Post.connection.substitute_at id_column, 0
-
-    right  = Post.where(id: bv)
-    right.bind_values += [[id_column, post.id]]
-
-    left   = Post.where(title: bv)
-    left.bind_values += [[title_column, post.title]]
+    post  = Post.first
+    right = Post.where(id: post.id)
+    left  = Post.where(title: post.title)
 
     merged = left.merge(right)
     assert_equal post, merged.first

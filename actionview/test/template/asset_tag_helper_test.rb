@@ -195,9 +195,9 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   FaviconLinkToTag = {
-    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/vnd.microsoft.icon" />),
+    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/x-icon" />),
     %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />),
     %(favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
   }
@@ -307,6 +307,14 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_asset_path_tag
     AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_asset_path_tag_to_not_create_duplicate_slashes
+    @controller.config.asset_host = "host/"
+    assert_dom_equal('http://host/foo', asset_path("foo"))
+
+    @controller.config.relative_url_root = '/some/root/'
+    assert_dom_equal('http://host/some/root/foo', asset_path("foo"))
   end
 
   def test_compute_asset_public_path

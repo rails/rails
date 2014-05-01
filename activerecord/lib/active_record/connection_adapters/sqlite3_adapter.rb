@@ -30,7 +30,7 @@ module ActiveRecord
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
 
-      ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
+      ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
     rescue Errno::ENOENT => error
       if error.message.include?("No such file or directory")
         raise ActiveRecord::NoDatabaseError.new(error.message, error)
@@ -123,11 +123,7 @@ module ActiveRecord
         end
       end
 
-      class BindSubstitution < Arel::Visitors::SQLite # :nodoc:
-        include Arel::Visitors::BindVisitor
-      end
-
-      def initialize(connection, logger, config)
+      def initialize(connection, logger, connection_options, config)
         super(connection, logger)
 
         @active     = nil
@@ -135,11 +131,12 @@ module ActiveRecord
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @config = config
 
+        @visitor = Arel::Visitors::SQLite.new self
+
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
-          @visitor = Arel::Visitors::SQLite.new self
         else
-          @visitor = unprepared_visitor
+          @prepared_statements = false
         end
       end
 
@@ -273,7 +270,7 @@ module ActiveRecord
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', []))
       end
 
       class ExplainPrettyPrinter
@@ -299,9 +296,12 @@ module ActiveRecord
           # Don't cache statements if they are not prepared
           if without_prepared_statement?(binds)
             stmt    = @connection.prepare(sql)
-            cols    = stmt.columns
-            records = stmt.to_a
-            stmt.close
+            begin
+              cols    = stmt.columns
+              records = stmt.to_a
+            ensure
+              stmt.close
+            end
             stmt = records
           else
             cache = @statements[sql] ||= {

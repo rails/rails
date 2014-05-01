@@ -92,7 +92,7 @@ module ActiveRecord
 
         table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
         PredicateBuilder.build_from_hash(self, attrs, table).map { |b|
-          connection.visitor.accept b
+          connection.visitor.compile b
         }.join(' AND ')
       end
       alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
@@ -105,6 +105,13 @@ module ActiveRecord
         attrs.map do |attr, value|
           "#{c.quote_table_name_for_assignment(table, attr)} = #{quote_bound_value(value, c, columns_hash[attr.to_s])}"
         end.join(', ')
+      end
+
+      # Sanitizes a +string+ so that it is safe to use within a sql
+      # LIKE statement. This method uses +escape_character+ to escape all occurrences of "\", "_" and "%"
+      def sanitize_sql_like(string, escape_character = "\\")
+        pattern = Regexp.union(escape_character, "%", "_")
+        string.gsub(pattern) { |x| [escape_character, x].join }
       end
 
       # Accepts an array of conditions. The array has each value

@@ -228,7 +228,7 @@ module ActionView
       File.mtime(p)
     end
 
-    # Extract handler and formats from path. If a format cannot be a found neither
+    # Extract handler, formats and variant from path. If a format cannot be found neither
     # from the path, or the handler, we should return the array of formats given
     # to the resolver.
     def extract_handler_and_format_and_variant(path, default_formats)

@@ -129,9 +129,9 @@ module ActiveRecord
     #
     def first(limit = nil)
       if limit
-        find_nth_with_limit(offset_value, limit)
+        find_nth_with_limit(offset_index, limit)
       else
-        find_nth(:first, offset_value)
+        find_nth(0, offset_index)
       end
     end
 
@@ -181,7 +181,7 @@ module ActiveRecord
     #   Person.offset(3).second # returns the second object from OFFSET 3 (which is OFFSET 4)
     #   Person.where(["user_name = :u", { u: user_name }]).second
     def second
-      find_nth(:second, offset_value ? offset_value + 1 : 1)
+      find_nth(1, offset_index)
     end
 
     # Same as +second+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -197,7 +197,7 @@ module ActiveRecord
     #   Person.offset(3).third # returns the third object from OFFSET 3 (which is OFFSET 5)
     #   Person.where(["user_name = :u", { u: user_name }]).third
     def third
-      find_nth(:third, offset_value ? offset_value + 2 : 2)
+      find_nth(2, offset_index)
     end
 
     # Same as +third+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -213,7 +213,7 @@ module ActiveRecord
     #   Person.offset(3).fourth # returns the fourth object from OFFSET 3 (which is OFFSET 6)
     #   Person.where(["user_name = :u", { u: user_name }]).fourth
     def fourth
-      find_nth(:fourth, offset_value ? offset_value + 3 : 3)
+      find_nth(3, offset_index)
     end
 
     # Same as +fourth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -229,7 +229,7 @@ module ActiveRecord
     #   Person.offset(3).fifth # returns the fifth object from OFFSET 3 (which is OFFSET 7)
     #   Person.where(["user_name = :u", { u: user_name }]).fifth
     def fifth
-      find_nth(:fifth, offset_value ? offset_value + 4 : 4)
+      find_nth(4, offset_index)
     end
 
     # Same as +fifth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -242,10 +242,10 @@ module ActiveRecord
     # If no order is defined it will order by primary key.
     #
     #   Person.forty_two # returns the forty-second object fetched by SELECT * FROM people
-    #   Person.offset(3).forty_two # returns the fifth object from OFFSET 3 (which is OFFSET 44)
+    #   Person.offset(3).forty_two # returns the forty-second object from OFFSET 3 (which is OFFSET 44)
     #   Person.where(["user_name = :u", { u: user_name }]).forty_two
     def forty_two
-      find_nth(:forty_two, offset_value ? offset_value + 41 : 41)
+      find_nth(41, offset_index)
     end
 
     # Same as +forty_two+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
@@ -299,11 +299,8 @@ module ActiveRecord
       when Array, Hash
         relation = relation.where(conditions)
       else
-        if conditions != :none
-          column = columns_hash[primary_key]
-          substitute = connection.substitute_at(column, bind_values.length)
-          relation = where(table[primary_key].eq(substitute))
-          relation.bind_values += [[column, conditions]]
+        unless conditions == :none
+          relation = where(primary_key => conditions)
         end
       end
 
@@ -334,6 +331,10 @@ module ActiveRecord
 
     private
 
+    def offset_index
+      offset_value || 0
+    end
+
     def find_with_associations
       join_dependency = construct_join_dependency
 
@@ -347,7 +348,8 @@ module ActiveRecord
         if ActiveRecord::NullRelation === relation
           []
         else
-          rows = connection.select_all(relation.arel, 'SQL', relation.bind_values.dup)
+          arel = relation.arel
+          rows = connection.select_all(arel, 'SQL', arel.bind_values + relation.bind_values)
           join_dependency.instantiate(rows, aliases)
         end
       end
@@ -468,20 +470,24 @@ module ActiveRecord
       end
     end
 
-    def find_nth(ordinal, offset)
+    def find_nth(index, offset)
       if loaded?
-        @records.send(ordinal)
+        @records[index]
       else
+        offset += index
         @offsets[offset] ||= find_nth_with_limit(offset, 1).first
       end
     end
 
     def find_nth_with_limit(offset, limit)
-      if order_values.empty? && primary_key
-        order(arel_table[primary_key].asc).limit(limit).offset(offset).to_a
-      else
-        limit(limit).offset(offset).to_a
-      end
+      relation = if order_values.empty? && primary_key
+                   order(arel_table[primary_key].asc)
+                 else
+                   self
+                 end
+
+      relation = relation.offset(offset) unless offset.zero?
+      relation.limit(limit).to_a
     end
 
     def find_last

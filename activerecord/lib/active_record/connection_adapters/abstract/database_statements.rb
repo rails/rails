@@ -9,12 +9,20 @@ module ActiveRecord
       # Converts an arel AST to SQL
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
-          binds = binds.dup
-          visitor.accept(arel.ast) do
-            quote(*binds.shift.reverse)
-          end
+          collected = visitor.accept(arel.ast, collector)
+          collected.compile(binds.dup, self)
         else
           arel
+        end
+      end
+
+      # This is used in the StatementCache object. It returns an object that
+      # can be used to query the database repeatedly.
+      def cacheable_query(arel) # :nodoc:
+        if prepared_statements
+          ActiveRecord::StatementCache.query visitor, arel.ast
+        else
+          ActiveRecord::StatementCache.partial_query visitor, arel.ast, collector
         end
       end
 

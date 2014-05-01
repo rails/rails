@@ -8,10 +8,10 @@ Rake can be found at http://rake.rubyforge.org.
 
 == Running by hand
 
-To run a single test suite
+Run a single test suite:
 
    rake test TEST=path/to/test.rb
 
-which can be further narrowed down to one test:
+Run one test in a test suite:
 
    rake test TEST=path/to/test.rb TESTOPTS="--name=test_something"

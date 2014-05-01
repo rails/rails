@@ -1,16 +1,16 @@
 Form Helpers
 ============
 
-Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails does away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
+Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of the need to handle form control naming and its numerous attributes. Rails does away with this complexity by providing view helpers for generating form markup. However, since these helpers have different use cases, developers need to know the differences between the helper methods before putting them to use.
 
 After reading this guide, you will know:
 
 * How to create search forms and similar kind of generic forms not representing any specific model in your application.
-* How to make model-centric forms for creation and editing of specific database records.
+* How to make model-centric forms for creating and editing specific database records.
 * How to generate select boxes from multiple types of data.
-* The date and time helpers Rails provides.
+* What date and time helpers Rails provides.
 * What makes a file upload form different.
-* Some cases of building forms to external resources.
+* How to post forms to external resources and specify setting an `authenticity_token`.
 * How to build complex forms.
 
 --------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ Output:
 <label for="age_adult">I'm over 21</label>
 ```
 
-As with `check_box_tag`, the second parameter to `radio_button_tag` is the value of the input. Because these two radio buttons share the same name (age) the user will only be able to select one, and `params[:age]` will contain either "child" or "adult".
+As with `check_box_tag`, the second parameter to `radio_button_tag` is the value of the input. Because these two radio buttons share the same name (`age`), the user will only be able to select one of them, and `params[:age]` will contain either "child" or "adult".
 
 NOTE: Always use labels for checkbox and radio buttons. They associate text with a specific option and,
 by expanding the clickable region,
@@ -442,7 +442,12 @@ WARNING: when `:include_blank` or `:prompt` are not present, `:include_blank` is
 You can add arbitrary attributes to the options using hashes:
 
 ```html+erb
-<%= options_for_select([['Lisbon', 1, {'data-size' => '2.8 million'}], ['Madrid', 2, {'data-size' => '3.2 million'}]], 2) %>
+<%= options_for_select(
+  [
+    ['Lisbon', 1, { 'data-size' => '2.8 million' }],
+    ['Madrid', 2, { 'data-size' => '3.2 million' }]
+  ], 2
+) %>
 
 output:
 
@@ -819,21 +824,21 @@ As a shortcut you can append [] to the name and omit the `:index` option. This i
 
 produces exactly the same output as the previous example.
 
-Forms to external resources
+Forms to External Resources
 ---------------------------
 
-If you need to post some data to an external resource it is still great to build your form using rails form helpers. But sometimes you need to set an `authenticity_token` for this resource. You can do it by passing an `authenticity_token: 'your_external_token'` parameter to the `form_tag` options:
+Rails' form helpers can also be used to build a form for posting data to an external resource. However, at times it can be necessary to set an `authenticity_token` for the resource; this can be done by passing an `authenticity_token: 'your_external_token'` parameter to the `form_tag` options:
 
 ```erb
-<%= form_tag 'http://farfar.away/form', authenticity_token: 'external_token') do %>
+<%= form_tag 'http://farfar.away/form', authenticity_token: 'external_token' do %>
   Form contents
 <% end %>
 ```
 
-Sometimes when you submit data to an external resource, like payment gateway, fields you can use in your form are limited by an external API. So you may want not to generate an `authenticity_token` hidden field at all. For doing this just pass `false` to the `:authenticity_token` option:
+Sometimes when submitting data to an external resource, like a payment gateway, the fields that can be used in the form are limited by an external API and it may be undesirable to generate an `authenticity_token`. To not send a token, simply pass `false` to the `:authenticity_token` option:
 
 ```erb
-<%= form_tag 'http://farfar.away/form', authenticity_token: false) do %>
+<%= form_tag 'http://farfar.away/form', authenticity_token: false do %>
   Form contents
 <% end %>
 ```
@@ -1008,4 +1013,4 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 ### Adding Fields on the Fly
 
-Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new address' button. Rails does not provide any builtin support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds after the epoch) is a common choice.
+Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new address' button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds after the epoch) is a common choice.

@@ -40,7 +40,7 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super
-        @visitor = BindSubstitution.new self
+        @prepared_statements = false
         configure_connection
       end
 

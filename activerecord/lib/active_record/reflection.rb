@@ -1,3 +1,5 @@
+require 'thread'
+
 module ActiveRecord
   # = Active Record Reflection
   module Reflection # :nodoc:
@@ -199,6 +201,18 @@ module ActiveRecord
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
         @constructable = calculate_constructable(macro, options)
+        @association_scope_cache = {}
+        @scope_lock = Mutex.new
+      end
+
+      def association_scope_cache(conn, owner)
+        key = conn.prepared_statements
+        if options[:polymorphic]
+          key = [key, owner.read_attribute(@foreign_type)]
+        end
+        @association_scope_cache[key] ||= @scope_lock.synchronize {
+          @association_scope_cache[key] ||= yield
+        }
       end
 
       # Returns a new, unsaved instance of the associated class. +attributes+ will
@@ -449,9 +463,9 @@ module ActiveRecord
         end
 
         def derive_class_name
-          class_name = name.to_s.camelize
+          class_name = name.to_s
           class_name = class_name.singularize if collection?
-          class_name
+          class_name.camelize
         end
 
         def derive_foreign_key

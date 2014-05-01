@@ -9,7 +9,12 @@ module ActiveRecord
         scope = AssociationScope.scope(Author.new.association(:welcome_posts),
                                         Author.connection)
         wheres = scope.where_values.map(&:right)
+        binds = scope.bind_values.map(&:last)
+        wheres = scope.where_values.map(&:right).reject { |node|
+          Arel::Nodes::BindParam === node
+        }
         assert_equal wheres.uniq, wheres
+        assert_equal binds.uniq, binds
       end
     end
   end

@@ -62,8 +62,8 @@ module ActiveRecord
 
         # Converts the query parameters of the URI into a hash.
         #
-        #   "localhost?pool=5&reap_frequency=2"
-        #   # => { "pool" => "5", "reap_frequency" => "2" }
+        #   "localhost?pool=5&reaping_frequency=2"
+        #   # => { "pool" => "5", "reaping_frequency" => "2" }
         #
         # returns empty hash if no query present.
         #

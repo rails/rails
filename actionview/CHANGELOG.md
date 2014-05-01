@@ -1,3 +1,42 @@
+*   Change `asset_path` to use File.join to create proper paths (#14932):
+
+        https://some.host.com//assets/some.js
+
+    becomes
+
+        https://some.host.com/assets/some.js
+
+    *Peter Schröder*
+
+*   Change `favicon_link_tag` default mimetype from `image/vnd.microsoft.icon` to
+    `image/x-icon`.
+
+    Before:
+    
+        #=> favicon_link_tag 'myicon.ico'
+        <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+
+    After:
+
+        #=> favicon_link_tag 'myicon.ico'
+        <link href="/assets/myicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    *Geoffroy Lorieux*
+
+*   Remove wrapping div with inline styles for hidden form fields.
+
+    We are dropping HTML 4.01 and XHTML strict compliance since input tags directly
+    inside a form are valid HTML5, and the absense of inline styles help in validating
+    for Content Security Policy.
+
+    *Joost Baaij*
+
+*   `collection_check_boxes` respects `:index` option for the hidden filed name.
+
+    Fixes #14147.
+
+    *Vasiliy Ermolovich*
+
 *   `date_select` helper with option `with_css_classes: true` does not overwrite other classes.
 
     *Izumi Wong-Horiuchi*

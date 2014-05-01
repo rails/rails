@@ -11,7 +11,7 @@ module ActionDispatch
   # Think of creating routes as drawing a map for your requests. The map tells
   # them where to go based on some predefined pattern:
   #
-  #   AppName::Application.routes.draw do
+  #   Rails.application.routes.draw do
   #     Pattern 1 tells some request to go to one place
   #     Pattern 2 tell them to go to another
   #     ...

@@ -101,10 +101,12 @@ module ActionDispatch
       #   polymorphic_url(Comment) # same as comments_url()
       #
       def polymorphic_url(record_or_hash_or_array, options = {})
+        recipient = self
+
         if record_or_hash_or_array.kind_of?(Array)
           record_or_hash_or_array = record_or_hash_or_array.compact
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
-            proxy = record_or_hash_or_array.shift
+            recipient = record_or_hash_or_array.shift
           end
           record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
         end
@@ -130,7 +132,7 @@ module ActionDispatch
         end
 
         args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
-        named_route = build_named_route_call(record_or_hash_or_array, inflection, options)
+        named_route = build_named_route_call(record_or_hash_or_array, record, inflection, options)
 
         url_options = options.except(:action, :routing_type)
         unless url_options.empty?
@@ -139,7 +141,7 @@ module ActionDispatch
 
         args.collect! { |a| convert_to_model(a) }
 
-        (proxy || self).send(named_route, *args)
+        recipient.send(named_route, *args)
       end
 
       # Returns the path component of a URL for the given record. It uses
@@ -173,7 +175,7 @@ module ActionDispatch
           options[:routing_type] || :url
         end
 
-        def build_named_route_call(records, inflection, options = {})
+        def build_named_route_call(records, record, inflection, options = {})
           if records.is_a?(Array)
             record = records.pop
             route = records.map do |parent|
@@ -184,7 +186,6 @@ module ActionDispatch
               end
             end
           else
-            record = extract_record(records)
             route  = []
           end
 

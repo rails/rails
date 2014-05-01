@@ -194,7 +194,7 @@ module ActiveRecord
                       options[:dependent]
                     end
 
-        delete(:all, dependent: dependent).tap do
+        delete_all_with_dependency(dependent).tap do
           reset
           loaded!
         end
@@ -247,15 +247,15 @@ module ActiveRecord
         _options = records.extract_options!
         dependent = _options[:dependent] || options[:dependent]
 
-        if records.first == :all
-          if (loaded? || dependent == :destroy) && dependent != :delete_all
-            delete_or_destroy(load_target, dependent)
-          else
-            delete_records(:all, dependent)
-          end
+        records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
+        delete_or_destroy(records, dependent)
+      end
+
+      def delete_all_with_dependency(dependent)
+        if dependent == :destroy
+          delete_or_destroy(load_target, dependent)
         else
-          records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
-          delete_or_destroy(records, dependent)
+          delete_records(:all, dependent)
         end
       end
 
@@ -412,9 +412,23 @@ module ActiveRecord
       end
 
       private
+      def get_records
+        return scope.to_a if reflection.scope_chain.any?(&:any?)
+
+        conn = klass.connection
+        sc = reflection.association_scope_cache(conn, owner) do
+          StatementCache.create(conn) { |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge as.scope(self, conn)
+          }
+        end
+
+        binds = AssociationScope.get_bind_values(owner, reflection.chain)
+        sc.execute binds, klass, klass.connection
+      end
 
         def find_target
-          records = scope.to_a
+          records = get_records
           records.each { |record| set_inverse_instance(record) }
           records
         end
