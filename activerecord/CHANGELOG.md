@@ -1,3 +1,12 @@
+*   Stringify all variables keys of mysql connection configuration.
+
+    When `sql_mode` variable for mysql adapters set in configuration as `String`
+    was ignored and overwritten by strict mode option.
+
+    Fixes #14895
+
+    *Paul Nikitochkin*
+
 *   Ensure SQLite3 statements are closed on errors.
 
     Fixes: #13631
