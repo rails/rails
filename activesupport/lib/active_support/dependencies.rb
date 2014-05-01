@@ -1,19 +1,26 @@
 require 'set'
 require 'active_support/core_ext/module/concerning'
+require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
   module Dependencies
 
-    Module.concerning :ConstMissingReplacement do
-      def self.append_features(base)
-        base.send :remove_method, :const_missing
+    def const_missing(const_name)
+      require_dependency path_for_const_name(const_name)
+    end
 
-        super
+    def require_dependency(file_name, message = nil)
+      constant_watcher.capture_constants(file_name) do
+        Kernel.send kernel_mechanism, mechanism_aware_file_name(file_name)
       end
+    end
 
-      def const_missing(const_name)
-        Dependencies.require_named_dependency const_name
+    private
+
+    Module.concerning :ConstMissingReplacement do
+      redefine_method :const_missing do |const_name|
+        Dependencies.const_missing const_name
       end
     end
 
@@ -22,18 +29,6 @@ module ActiveSupport
         Dependencies.require_dependency(file_name, message)
       end
     end
-
-    def require_dependency(file_name, message)
-      constant_watcher.capture_constants(file_name) do
-        Kernel.send kernel_mechanism, mechanism_aware_file_name(file_name)
-      end
-    end
-
-    def require_named_dependency(const_name)
-      require_dependency path_for_const_name(const_name)
-    end
-
-    private
 
     # Could be mattr_accessor instead
     def constant_watcher
