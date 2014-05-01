@@ -111,11 +111,10 @@ module ActionDispatch
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
             recipient = record_or_hash_or_array.shift
           end
+          args = record_or_hash_or_array.dup
+        else
+          args = [record_or_hash_or_array]
         end
-
-        args = Array === record_or_hash_or_array ?
-          record_or_hash_or_array.dup :
-          [ record_or_hash_or_array ]
 
         record_list = extract_record_list(record_or_hash_or_array)
         record = convert_to_model(record_list.pop)
