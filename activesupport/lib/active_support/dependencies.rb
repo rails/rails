@@ -49,7 +49,7 @@ module ActiveSupport
       end
 
       def capture_constants(namespace)
-        const_scope = Inflector.constantize(namespace)
+        const_scope = namespace.constantize
         old_constants = const_scope.local_constants
 
         yield
