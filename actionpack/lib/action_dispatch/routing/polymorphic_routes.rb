@@ -111,7 +111,6 @@ module ActionDispatch
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
             recipient = record_or_hash_or_array.shift
           end
-          record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
         end
 
         args = Array === record_or_hash_or_array ?
