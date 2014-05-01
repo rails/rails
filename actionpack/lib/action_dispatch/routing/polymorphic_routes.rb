@@ -135,9 +135,7 @@ module ActionDispatch
         named_route = build_named_route_call(record_or_hash_or_array, record, inflection, options)
 
         url_options = options.except(:action, :routing_type)
-        unless url_options.empty?
-          args << url_options
-        end
+        args << url_options
 
         args.collect! { |a| convert_to_model(a) }
 
