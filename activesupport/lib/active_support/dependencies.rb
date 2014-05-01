@@ -1,3 +1,4 @@
+require 'set'
 require 'active_support/core_ext/module/concerning'
 
 module ActiveSupport
@@ -22,7 +23,7 @@ module ActiveSupport
     end
 
     def require_dependency(file_name, message)
-      constant_watcher.capture_constants do
+      constant_watcher.capture_constants(file_name) do
         Kernel.send kernel_mechanism, mechanism_aware_file_name(file_name)
       end
     end
@@ -39,17 +40,20 @@ module ActiveSupport
     end
 
     class ConstantWatcher
-      # how can I watch/keep-track-of the constants in a simple and hopefully easy to understand way?
+      attr_accessor :paths, :loaded_constants
+
       def initialize
-        # data structure here plz
+        @paths = Set.new
+        @loaded_constants = Set.new
       end
 
-      def capture_constants
-        begin
-          yield
-        rescue NameError
-          # later!
-        end
+      def capture_constants(namespace)
+        const_scope = Inflector.constantize(namespace)
+        old_constants = const_scope.local_constants
+
+        yield
+
+        loaded_constants |= Set.new(const_scope.local_constants - old_constants)
       end
     end
 
