@@ -376,7 +376,7 @@ module ActiveRecord
         statement.expects(:close).once
         SQLite3::Statement.stubs(:new).returns(statement)
 
-        assert_raises ActiveRecord::StatementInvalid do
+        assert_raises SQLite3::BusyException do
           @conn.exec_query 'select * from statement_test'
         end
       end
