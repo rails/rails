@@ -309,6 +309,14 @@ class AssetTagHelperTest < ActionView::TestCase
     AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_asset_path_tag_to_not_create_duplicate_slashes
+    @controller.config.asset_host = "host/"
+    assert_dom_equal('http://host/foo', asset_path("foo"))
+
+    @controller.config.relative_url_root = '/some/root/'
+    assert_dom_equal('http://host/some/root/foo', asset_path("foo"))
+  end
+
   def test_compute_asset_public_path
     assert_equal "/robots.txt", compute_asset_path("robots.txt")
     assert_equal "/robots.txt", compute_asset_path("/robots.txt")

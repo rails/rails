@@ -1,3 +1,13 @@
+*   Change `asset_path` to use File.join to create proper paths (#14932):
+
+        https://some.host.com//assets/some.js
+
+    becomes
+
+        https://some.host.com/assets/some.js
+
+    *Peter Schröder*
+
 *   `collection_check_boxes` respects `:index` option for the hidden filed name.
 
     Fixes #14147.

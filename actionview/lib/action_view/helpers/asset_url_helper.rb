@@ -134,11 +134,11 @@ module ActionView
 
         relative_url_root = defined?(config.relative_url_root) && config.relative_url_root
         if relative_url_root
-          source = "#{relative_url_root}#{source}" unless source.starts_with?("#{relative_url_root}/")
+          source = File.join(relative_url_root, source) unless source.starts_with?("#{relative_url_root}/")
         end
 
         if host = compute_asset_host(source, options)
-          source = "#{host}#{source}"
+          source = File.join(host, source)
         end
 
         "#{source}#{tail}"
