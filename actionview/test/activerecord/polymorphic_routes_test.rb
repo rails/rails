@@ -131,11 +131,20 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def test_namespaced_model_with_name_the_same_as_namespace_omg
+  def test_polymorphic_url_with_2_objects
     with_namespaced_routes(:blog) do
       @blog_blog.save
       @blog_post.save
       assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}", polymorphic_url([@blog_blog, @blog_post])
+    end
+  end
+
+  def test_polymorphic_url_with_3_objects
+    with_namespaced_routes(:blog) do
+      @blog_blog.save
+      @blog_post.save
+      @fax.save
+      assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}/faxes/#{@fax.id}", polymorphic_url([@blog_blog, @blog_post, @fax])
     end
   end
 
@@ -578,7 +587,9 @@ class PolymorphicRoutesTest < ActionController::TestCase
       set.draw do
         scope(:module => name) do
           resources :blogs do
-            resources :posts
+            resources :posts do
+              resources :faxes
+            end
           end
           resources :posts
         end
