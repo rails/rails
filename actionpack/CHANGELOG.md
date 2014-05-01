@@ -1,3 +1,11 @@
+*   Properly treat the entire IPv6 User Local Address space as private for
+    purposes of remote IP detection. Also handle uppercase private IPv6
+    addresses.
+
+    Fixes #12638.
+
+    *Caleb Spare*
+
 *   Fixed an issue with migrating legacy json cookies.
 
     Previously, the `VerifyAndUpgradeLegacySignedMessage` assumes all incoming
