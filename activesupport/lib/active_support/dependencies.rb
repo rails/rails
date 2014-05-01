@@ -5,6 +5,7 @@ require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
   module Dependencies
+    extend self
 
     def const_missing(const_name)
       require_dependency path_for_const_name(const_name)
