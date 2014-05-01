@@ -21,13 +21,8 @@
     <%%= f.label :password_confirmation %><br>
     <%%= f.password_field :password_confirmation %>
 <% else -%>
-  <%- if attribute.reference? -%>
     <%%= f.label :<%= attribute.column_name %> %><br>
     <%%= f.<%= attribute.field_type %> :<%= attribute.column_name %> %>
-  <%- else -%>
-    <%%= f.label :<%= attribute.name %> %><br>
-    <%%= f.<%= attribute.field_type %> :<%= attribute.name %> %>
-  <%- end -%>
 <% end -%>
   </div>
 <% end -%>
