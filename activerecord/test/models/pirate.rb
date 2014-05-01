@@ -84,3 +84,9 @@ end
 class DestructivePirate < Pirate
   has_one :dependent_ship, :class_name => 'Ship', :foreign_key => :pirate_id, :dependent => :destroy
 end
+
+class FamousPirate < ActiveRecord::Base
+  self.table_name = 'pirates'
+  has_many :famous_ships
+  validates_presence_of :catchphrase, on: :conference
+end

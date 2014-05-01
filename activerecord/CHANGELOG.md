@@ -1,3 +1,10 @@
+*   Rails will now pass a custom validation context through to autosave associations 
+    in order to validate child associations with the same context.
+
+    Fixes #13854.
+
+    *Eric Chahin*, *Aaron Nelson*, *Kevin Casey*
+
 *   When using a custom `join_table` name on a `habtm`, rails was not saving it
     on Reflections. This causes a problem when rails loads fixtures, because it
     uses the reflections to set database with fixtures.
