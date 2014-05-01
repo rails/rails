@@ -83,12 +83,16 @@ module ActionView
       # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:include_blank</tt> - If set to true, an empty option will be created.
-      # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something
+      # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
+      # * <tt>:selected</tt> - Provide a default selected value. The value provided should be the exact type the options are provided.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name")
       #   # <select id="people" name="people"><option value="1">David</option></select>
+      #
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), selected: ["1", "David"]
+      #   # <select id="people" name="people"><option value="1" selected="selected">David</option></select>
       #
       #   select_tag "people", "<option>David</option>".html_safe
       #   # => <select id="people" name="people"><option>David</option></select>
