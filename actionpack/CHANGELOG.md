@@ -1,3 +1,10 @@
+*   The method `token_and_options` now returns `nil` if there is no value after the equal
+    sign : `Authorization: Token token=`.
+
+    Fixes #14846
+
+    *Simon Bonnard*
+
 *   Fixed an issue with migrating legacy json cookies.
 
     Previously, the `VerifyAndUpgradeLegacySignedMessage` assumes all incoming
