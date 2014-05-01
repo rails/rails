@@ -1,3 +1,13 @@
+*   Quote numeric values being compared to non-numeric columns. Otherwise,
+    in some database, the string column values will be coerced to a numeric
+    allowing 0, 0.0 or false to match any string starting with a non-digit.
+
+    Example:
+
+        App.where(apikey: 0) # => SELECT * FROM users WHERE apikey = '0'
+
+    *Dylan Thacker-Smith*
+
 *   When using a custom `join_table` name on a `habtm`, rails was not saving it
     on Reflections. This causes a problem when rails loads fixtures, because it
     uses the reflections to set database with fixtures.
