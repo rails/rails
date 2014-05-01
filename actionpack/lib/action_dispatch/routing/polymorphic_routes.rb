@@ -194,7 +194,7 @@ module ActionDispatch
 
         def build_named_route_call(records, record, inflection, options)
           if records.is_a?(Array)
-            record = records.pop
+            records.pop
             route  = records.map { |parent| build_route_part parent, :singular }
           else
             route  = []
