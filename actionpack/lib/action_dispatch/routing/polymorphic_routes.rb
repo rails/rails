@@ -111,12 +111,15 @@ module ActionDispatch
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
             recipient = record_or_hash_or_array.shift
           end
-          args = record_or_hash_or_array.dup
+
+          args        = record_or_hash_or_array.dup
+          record_list = record_or_hash_or_array.dup
         else
-          args = [record_or_hash_or_array]
+
+          args        = [record_or_hash_or_array]
+          record_list = extract_record_list(record_or_hash_or_array)
         end
 
-        record_list = extract_record_list(record_or_hash_or_array)
         record = convert_to_model(record_list.pop)
 
         inflection = if options[:action] && options[:action].to_s == "new"
@@ -201,7 +204,6 @@ module ActionDispatch
 
         def extract_record_list(record_or_hash_or_array)
           case record_or_hash_or_array
-          when Array; record_or_hash_or_array
           when Hash;  [record_or_hash_or_array[:id]].compact
           else        [record_or_hash_or_array]
           end
