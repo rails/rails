@@ -1,6 +1,7 @@
 require 'set'
 require 'active_support/core_ext/module/concerning'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
