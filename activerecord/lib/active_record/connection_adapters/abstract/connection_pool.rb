@@ -219,7 +219,7 @@ module ActiveRecord
       end
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :spec, :connections, :size, :reaper
+      attr_reader :spec, :size, :reaper
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -237,9 +237,11 @@ module ActiveRecord
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
 
         # The hash of reserved connections mapped to threads
+        #   It may be possible to make this a ThreadSafe::Cache instead
         @reserved_connections = ThreadSafe::Hash.new
         @connections          = ThreadSafe::Array.new
         @automatic_reconnect  = true
+        @acquire_lock         = Mutex.new
         @available            = Queue.new
 
         @reaper.run
@@ -282,12 +284,12 @@ module ActiveRecord
 
       # Returns true if a connection has already been opened.
       def connected?
-        @connections.any?
+        @connections.any? {|c| !c.is_a?(Fixnum)}
       end
 
       # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
-        @connections.each do |conn|
+        connections.each do |conn|
           remove(conn)
           conn.disconnect!
         end
@@ -295,7 +297,7 @@ module ActiveRecord
 
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
-        @connections.each do |conn|
+        connections.each do |conn|
           if conn.requires_reloading?
             conn.disconnect!
             remove(conn)
@@ -338,24 +340,32 @@ module ActiveRecord
       # +conn+: an AbstractAdapter object, which was obtained by earlier by
       # calling +checkout+ on this pool.
       def checkin(conn)
-        owner = conn.owner
-        conn.run_callbacks :checkin do
-          # Release the connection from this thread
-          conn.expire
+        # In case checkin is accidently called twice for the same connection
+        if owner = conn.owner
+          conn.run_callbacks :checkin do
+            # Release the connection from this thread
+            conn.expire
+          end
+          @reserved_connections.delete(owner.object_id)
+          @available.add(conn)
         end
-        @reserved_connections.delete(owner.object_id)
-        @available.add(conn)
       end
 
       # Remove a connection from the connection pool.  The connection will
       # remain open and active but will no longer be managed by this pool.
       def remove(conn)
         @available.delete(conn)
-        @connections.delete(conn)
         @reserved_connections.delete(conn.owner.object_id)
 
         # If any threads are blocked waiting for a connection make sure they get fed
-        @available.add(checkout_new_connection) if @available.any_waiting?
+        if @available.any_waiting?
+          new_conn = new_connection
+          # Replace old connection with new connection
+          @connections.map!{|c| c == conn ? new_conn : c }
+          @available.add(new_conn)
+        else
+          @connections.delete(conn)
+        end
       end
 
       # Recover lost connections for the pool.  A lost connection can occur if
@@ -363,17 +373,23 @@ module ActiveRecord
       # or a thread dies unexpectedly.
       def reap
         # Since @connections is thread safe it suspends any changes to the
-        # array while the select is running
-        stale_connections = @connections.select { |conn| conn.in_use? && !conn.owner.alive? }
-        # The threads using these connections are no longer active
-        stale_connections.each do |conn|
-          if conn.active?
-            conn.reset!
-            checkin(conn)
-          else
-            remove(conn)
+        # array while the each is running
+        @connections.each do |conn|
+          if (!conn.is_a?(Fixnum)) && conn.in_use? && !conn.owner.alive?
+            if conn.active?
+              conn.reset!
+              checkin(conn)
+            else
+              remove(conn)
+            end
           end
         end
+      end
+
+      # Returns the list of connections without any place-holders for
+      # connections in the process of being created
+      def connections
+        @connections.select {|c| !c.is_a?(Fixnum)}
       end
 
       private
@@ -386,31 +402,54 @@ module ActiveRecord
       # Raises:
       # - ConnectionTimeoutError if a connection could not be acquired
       def acquire_connection
-        if conn = @available.poll
+        conn = @available.poll
+        return conn if conn
+
+        thread_id = nil
+        @acquire_lock.synchronize do
+          # At capacity? Call reap which can checkin and/or remove current connections
+          reap if @connections.size >= @size
+
+          # Did reap make available any connections
+          conn = @available.poll
+          return conn if conn
+
+          # Capacity to create a new connection
+          if @connections.size < @size
+            # Prevent run-away requests where the number of connections can
+            # exceed the pool size by adding a place-holder to the connection
+            # list. For example, with a pool size of 5, and 100 threads asking
+            # for connections at the same time
+            thread_id = Thread.current.object_id
+            @connections << thread_id
+          end
+        end
+
+        # Check for place-holder
+        if thread_id
+          # Create connection outside of the lock
+          conn = new_connection
+          # Replace place-holder with actual connection
+          @connections.map!{|c| c == thread_id ? conn : c }
           conn
-        elsif @connections.size < @size
-          # Warning: This does not prevent run-away requests where the number of
-          # connections can exceed the pool size
-          # For example, with a pool size of 5, and 100 threads asking for
-          #              connections at the same time
-          checkout_new_connection
         else
-          reap
+          # Wait until timeout for someone else to checkin a connection
           @available.poll(@checkout_timeout)
         end
+
       end
 
       def current_connection_id #:nodoc:
         Base.connection_id ||= Thread.current.object_id
       end
 
-      def checkout_new_connection
+      # Return a new database connection
+      def new_connection
         raise ConnectionNotEstablished unless @automatic_reconnect
 
         # Create a new database connection
         c = Base.send(spec.adapter_method, spec.config)
         c.pool = self
-        @connections << c
         c
       end
     end
