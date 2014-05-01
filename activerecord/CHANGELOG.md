@@ -1,3 +1,9 @@
+*   Ensure SQLite3 statements are closed on errors.
+
+    Fixes: #13631
+
+    *Timur Alperovich*
+
 *   When joining tables with a default scope, ensure the generated table name
     in the ON conditions from the default scope is correctly aliased .
 
