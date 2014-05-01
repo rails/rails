@@ -14,7 +14,7 @@ module ActiveSupport
 
     def require_dependency(file_name, message = nil)
       constant_watcher.capture_constants(file_name) do
-        Kernel.send kernel_mechanism, mechanism_aware_file_name(file_name)
+        Kernel.send kernel_mechanism, path_for_file_name(file_name)
       end
     end
 
@@ -63,13 +63,14 @@ module ActiveSupport
       !ENV['NO_RELOAD']
     end
 
-    # horrible name...
-    def mechanism_aware_file_name(file_name)
-      if load?
+    def path_for_file_name(file_name)
+      name = if load?
         file_name.sub(/(\.rb)?\z/, '.rb')
       else
         file_name.sub(/\.rb$/, '')
       end
+
+      File.expand_path name
     end
 
     def path_for_const_name(const_name)
