@@ -136,7 +136,7 @@ module ActionDispatch
 
         url_options = options.except(:action, :routing_type)
         unless url_options.empty?
-          args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
+          args << url_options
         end
 
         args.collect! { |a| convert_to_model(a) }
