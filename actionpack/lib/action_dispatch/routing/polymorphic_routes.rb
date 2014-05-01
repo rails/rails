@@ -114,12 +114,12 @@ module ActionDispatch
           record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
         end
 
-        record_list = extract_record_list(record_or_hash_or_array)
-        record = convert_to_model(record_list.last)
-
         args = Array === record_or_hash_or_array ?
           record_or_hash_or_array.dup :
           [ record_or_hash_or_array ]
+
+        record_list = extract_record_list(record_or_hash_or_array)
+        record = convert_to_model(record_list.pop)
 
         inflection = if options[:action] && options[:action].to_s == "new"
           args.pop
@@ -195,7 +195,6 @@ module ActionDispatch
         end
 
         def build_named_route_call(records, record, inflection, options)
-          records.pop
           route  = records.map { |parent| build_route_part parent, :singular }
 
           route << build_route_part(record, inflection)
