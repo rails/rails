@@ -296,9 +296,12 @@ module ActiveRecord
           # Don't cache statements if they are not prepared
           if without_prepared_statement?(binds)
             stmt    = @connection.prepare(sql)
-            cols    = stmt.columns
-            records = stmt.to_a
-            stmt.close
+            begin
+              cols    = stmt.columns
+              records = stmt.to_a
+            ensure
+              stmt.close
+            end
             stmt = records
           else
             cache = @statements[sql] ||= {

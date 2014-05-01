@@ -1,3 +1,9 @@
+*   Ensure SQLite3 statements are closed on errors.
+
+    Fixes: #13631
+
+    *Timur Alperovich*
+
 *   Give ActiveRecord::PredicateBuilder private methods the privacy they deserve
 
     *Hector Satre*

@@ -416,6 +416,21 @@ module ActiveRecord
         assert @conn.respond_to?(:disable_extension)
       end
 
+      def test_statement_closed
+        db = SQLite3::Database.new(ActiveRecord::Base.
+                                   configurations['arunit']['database'])
+        statement = SQLite3::Statement.new(db,
+                                           'CREATE TABLE statement_test (number integer not null)')
+        statement.stubs(:step).raises(SQLite3::BusyException, 'busy')
+        statement.stubs(:columns).once.returns([])
+        statement.expects(:close).once
+        SQLite3::Statement.stubs(:new).returns(statement)
+
+        assert_raises ActiveRecord::StatementInvalid do
+          @conn.exec_query 'select * from statement_test'
+        end
+      end
+
       private
 
       def assert_logged logs
