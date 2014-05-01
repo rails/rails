@@ -114,10 +114,8 @@ module ActionDispatch
           record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
         end
 
-        record = extract_record(record_or_hash_or_array)
-        record = convert_to_model(record)
-
         record_list = extract_record_list(record_or_hash_or_array)
+        record = convert_to_model(record_list.last)
 
         args = Array === record_or_hash_or_array ?
           record_or_hash_or_array.dup :
@@ -133,7 +131,6 @@ module ActionDispatch
           args.pop
           :plural
         elsif record.is_a?(Hash)
-          record_list = []
           :singular
         else
           :singular
@@ -205,14 +202,6 @@ module ActionDispatch
           route << routing_type(options)
 
           action_prefix(options) + route.join("_")
-        end
-
-        def extract_record(record_or_hash_or_array)
-          case record_or_hash_or_array
-          when Array; record_or_hash_or_array.last
-          when Hash;  record_or_hash_or_array[:id]
-          else        record_or_hash_or_array
-          end
         end
 
         def extract_record_list(record_or_hash_or_array)
