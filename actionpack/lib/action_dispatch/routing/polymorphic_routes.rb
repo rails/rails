@@ -178,32 +178,29 @@ module ActionDispatch
           options[:routing_type] || :url
         end
 
-        def build_named_route_call(records, record, inflection, options = {})
-          if records.is_a?(Array)
-            record = records.pop
-            route = records.map do |parent|
-              if parent.is_a?(Symbol) || parent.is_a?(String)
-                parent
-              else
-                model_name_from_record_or_class(parent).singular_route_key
-              end
-            end
-          else
-            route  = []
-          end
-
+        def build_route_part(record, inflection)
           if record.is_a?(Symbol) || record.is_a?(String)
-            route << record
+            record.to_s
           elsif record
             if inflection == :singular
-              route << model_name_from_record_or_class(record).singular_route_key
+              model_name_from_record_or_class(record).singular_route_key
             else
-              route << model_name_from_record_or_class(record).route_key
+              model_name_from_record_or_class(record).route_key
             end
           else
             raise ArgumentError, "Nil location provided. Can't build URI."
           end
+        end
 
+        def build_named_route_call(records, record, inflection, options)
+          if records.is_a?(Array)
+            record = records.pop
+            route  = records.map { |parent| build_route_part parent, :singular }
+          else
+            route  = []
+          end
+
+          route << build_route_part(record, inflection)
           route << routing_type(options)
 
           action_prefix(options) + route.join("_")
