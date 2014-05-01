@@ -1,3 +1,13 @@
+*   Change `asset_path` to use File.join to create proper paths (#14932):
+
+        https://some.host.com//assets/some.js
+
+    becomes
+
+        https://some.host.com/assets/some.js
+
+    *Peter Schröder*
+
 *   Change `favicon_link_tag` default mimetype from `image/vnd.microsoft.icon` to
     `image/x-icon`.
 
