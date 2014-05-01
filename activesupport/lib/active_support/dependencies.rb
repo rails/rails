@@ -1,5 +1,6 @@
 require 'set'
 require 'active_support/core_ext/module/concerning'
+require 'active_support/core_ext/string/inflections'
 
 module ActiveSupport
   module Dependencies
@@ -75,8 +76,7 @@ module ActiveSupport
     end
 
     def path_for_const_name(const_name)
-      file_name = normalize_const_name(const_name)
-      normalize_path(file_name)
+      const_name.to_s.underscore
     end
   end
 end
