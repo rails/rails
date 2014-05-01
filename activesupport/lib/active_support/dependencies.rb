@@ -46,7 +46,7 @@ module ActiveSupport
       end
 
       def capture_constants(namespace)
-        const_scope = namespace.constantize
+        const_scope = namespace.safe_constantize || Object
         old_constants = const_scope.local_constants
 
         yield
