@@ -113,13 +113,14 @@ module ActiveRecord
     register_handler(Relation, RelationHandler.new)
     register_handler(Array, ArrayHandler.new)
 
-    private
-      def self.build(attribute, value)
-        handler_for(value).call(attribute, value)
-      end
+    def self.build(attribute, value)
+      handler_for(value).call(attribute, value)
+    end
+    private_class_method :build
 
-      def self.handler_for(object)
-        @handlers.detect { |klass, _| klass === object }.last
-      end
+    def self.handler_for(object)
+      @handlers.detect { |klass, _| klass === object }.last
+    end
+    private_class_method :handler_for
   end
 end
