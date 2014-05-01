@@ -117,6 +117,8 @@ module ActionDispatch
         record = extract_record(record_or_hash_or_array)
         record = convert_to_model(record)
 
+        record_list = extract_record_list(record_or_hash_or_array)
+
         args = Array === record_or_hash_or_array ?
           record_or_hash_or_array.dup :
           [ record_or_hash_or_array ]
@@ -130,12 +132,15 @@ module ActionDispatch
         elsif record.is_a?(Class)
           args.pop
           :plural
+        elsif record.is_a?(Hash)
+          record_list = []
+          :singular
         else
           :singular
         end
 
         args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
-        named_route = build_named_route_call(record_or_hash_or_array, record, inflection, options)
+        named_route = build_named_route_call(record_list, record, inflection, options)
 
         url_options = options.except(:action, :routing_type)
         unless url_options.empty?
@@ -193,12 +198,8 @@ module ActionDispatch
         end
 
         def build_named_route_call(records, record, inflection, options)
-          if records.is_a?(Array)
-            records.pop
-            route  = records.map { |parent| build_route_part parent, :singular }
-          else
-            route  = []
-          end
+          records.pop
+          route  = records.map { |parent| build_route_part parent, :singular }
 
           route << build_route_part(record, inflection)
           route << routing_type(options)
@@ -208,9 +209,17 @@ module ActionDispatch
 
         def extract_record(record_or_hash_or_array)
           case record_or_hash_or_array
-            when Array; record_or_hash_or_array.last
-            when Hash;  record_or_hash_or_array[:id]
-            else        record_or_hash_or_array
+          when Array; record_or_hash_or_array.last
+          when Hash;  record_or_hash_or_array[:id]
+          else        record_or_hash_or_array
+          end
+        end
+
+        def extract_record_list(record_or_hash_or_array)
+          case record_or_hash_or_array
+          when Array; record_or_hash_or_array
+          when Hash;  [record_or_hash_or_array[:id]].compact
+          else        [record_or_hash_or_array]
           end
         end
     end
