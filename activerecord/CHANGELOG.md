@@ -1,3 +1,9 @@
+*   Ensure SQLite3 statements are closed on errors.
+
+    Fixes: #13631
+
+    *Timur Alperovich*
+
 *   Fix excluding lower bounds of PostgreSQL date and int ranges.
 
     *River MacLeod*, *Yves Senn*
