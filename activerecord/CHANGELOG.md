@@ -1,3 +1,12 @@
+*   Stringify all variables keys of mysql connection configuration.
+
+    When `sql_mode` variable for mysql adapters set in configuration as `String`
+    was ignored and overwritten by strict mode option.
+
+    Fixes #14895
+
+    *Paul Nikitochkin*
+
 *   When using a custom `join_table` name on a `habtm`, rails was not saving it
     on Reflections. This causes a problem when rails loads fixtures, because it
     uses the reflections to set database with fixtures.
