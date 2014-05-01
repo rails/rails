@@ -130,8 +130,6 @@ module ActionDispatch
         elsif record.is_a?(Class)
           args.pop
           :plural
-        elsif record.is_a?(Hash)
-          :singular
         else
           :singular
         end
