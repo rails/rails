@@ -1,3 +1,7 @@
+*   Give ActiveRecord::PredicateBuilder private methods the privacy they deserve
+
+    *Hector Satre*
+
 *   When using a custom `join_table` name on a `habtm`, rails was not saving it
     on Reflections. This causes a problem when rails loads fixtures, because it
     uses the reflections to set database with fixtures.
