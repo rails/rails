@@ -84,7 +84,7 @@ module ActionView
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:include_blank</tt> - If set to true, an empty option will be created.
       # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
-      # * <tt>:selected</tt> - Provide a default selected value. The value provided should be the exact type the options are provided.
+      # * <tt>:selected</tt> - Provide a default selected value. It should be of the exact type as the provided options.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
