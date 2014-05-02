@@ -32,6 +32,14 @@ module ActiveRecord
       assert duped.new_record?, 'topic is new'
     end
 
+    def test_dup_not_destroyed
+      topic = Topic.first
+      topic.destroy
+
+      duped = topic.dup
+      assert_not duped.destroyed?
+    end
+
     def test_dup_has_no_id
       topic = Topic.first
       duped = topic.dup

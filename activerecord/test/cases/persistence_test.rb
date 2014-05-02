@@ -234,19 +234,12 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_save_with_duping_of_destroyed_object
-    developer = Developer.create(name: "Kuldeep")
+    developer = Developer.first
     developer.destroy
     new_developer = developer.dup
     new_developer.save
     assert new_developer.persisted?
-  end
-
-  def test_dup_of_destroyed_object_is_not_destroyed
-    developer = Developer.create(name: "Kuldeep")
-    developer.destroy
-    new_developer = developer.dup
-    new_developer.save
-    assert_equal new_developer.destroyed?, false
+    assert_not new_developer.destroyed?
   end
 
   def test_create_many
