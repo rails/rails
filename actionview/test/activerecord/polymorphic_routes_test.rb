@@ -320,17 +320,17 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def test_nesting_with_array_containing_nil
+  def test_nesting_with_array
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}/bid", polymorphic_url([@project, nil, :bid])
+      assert_equal "http://example.com/projects/#{@project.id}/bid", polymorphic_url([@project, :bid])
     end
   end
 
   def test_with_array_containing_single_object
     with_test_routes do
       @project.save
-      assert_equal "http://example.com/projects/#{@project.id}", polymorphic_url([nil, @project])
+      assert_equal "http://example.com/projects/#{@project.id}", polymorphic_url([@project])
     end
   end
 
@@ -463,7 +463,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def test_with_array_containing_single_irregular_plural_object
     with_test_routes do
       @tax.save
-      assert_equal "http://example.com/taxes/#{@tax.id}", polymorphic_url([nil, @tax])
+      assert_equal "http://example.com/taxes/#{@tax.id}", polymorphic_url([@tax])
     end
   end
 

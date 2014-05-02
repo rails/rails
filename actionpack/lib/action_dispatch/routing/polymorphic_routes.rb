@@ -104,6 +104,10 @@ module ActionDispatch
         recipient = self
 
         if record_or_hash_or_array.kind_of?(Array)
+          if record_or_hash_or_array.any?(&:nil?)
+            raise ArgumentError, "Nil location provided. Can't build URI."
+          end
+          record_or_hash_or_array = record_or_hash_or_array.dup
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
             recipient = record_or_hash_or_array.shift
           end
