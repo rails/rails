@@ -346,13 +346,12 @@ module ActionDispatch
         # without specifying an HTTP method.
         #
         # If you want to expose your action to both GET and POST, use:
-        # 
+        #
         #   # sets :controller, :action and :id in params
         #   match ':controller/:action/:id', via: [:get, :post]
         #
-        # Note that +:controller+, +:action+, +:id+  are interpreted as url query 
-        # parameters and thus available as +params+
-        # in an action.
+        # Note that +:controller+, +:action+ and +:id+ are interpreted as url
+        # query parameters and thus available through +params+ in an action.
         #
         # If you want to expose your action to GET, use `get` in the router:
         #
@@ -381,17 +380,17 @@ module ActionDispatch
         # When a pattern points to an internal route, the route's +:action+ and
         # +:controller+ should be set in options or hash shorthand. Examples:
         #
-        #   match 'photos/:id' => 'photos#show', via: [:get]
-        #   match 'photos/:id', to: 'photos#show', via: [:get]
-        #   match 'photos/:id', controller: 'photos', action: 'show', via: [:get]
+        #   match 'photos/:id' => 'photos#show', via: :get
+        #   match 'photos/:id', to: 'photos#show', via: :get
+        #   match 'photos/:id', controller: 'photos', action: 'show', via: :get
         #
         # A pattern can also point to a +Rack+ endpoint i.e. anything that
         # responds to +call+:
         #
-        #   match 'photos/:id', to: lambda {|hash| [200, {}, ["Coming soon"]] }, via: [:get]
-        #   match 'photos/:id', to: PhotoRackApp, via: [:get]
+        #   match 'photos/:id', to: lambda {|hash| [200, {}, ["Coming soon"]] }, via: :get
+        #   match 'photos/:id', to: PhotoRackApp, via: :get
         #   # Yes, controller actions are just rack endpoints
-        #   match 'photos/:id', to: PhotosController.action(:show), via: [:get]
+        #   match 'photos/:id', to: PhotosController.action(:show), via: :get
         #
         # Because requesting various HTTP verbs with a single action has security
         # implications, you must either specify the actions in
@@ -414,7 +413,7 @@ module ActionDispatch
         # [:module]
         #   The namespace for :controller.
         #
-        #     match 'path', to: 'c#a', module: 'sekret', controller: 'posts', via: [:get]
+        #     match 'path', to: 'c#a', module: 'sekret', controller: 'posts', via: :get
         #     # => Sekret::PostsController
         #
         #   See <tt>Scoping#namespace</tt> for its scope equivalent.
@@ -433,9 +432,9 @@ module ActionDispatch
         #   Points to a +Rack+ endpoint. Can be an object that responds to
         #   +call+ or a string representing a controller's action.
         #
-        #      match 'path', to: 'controller#action', via: [:get]
-        #      match 'path', to: lambda { |env| [200, {}, ["Success!"]] }, via: [:get]
-        #      match 'path', to: RackApp, via: [:get]
+        #      match 'path', to: 'controller#action', via: :get
+        #      match 'path', to: lambda { |env| [200, {}, ["Success!"]] }, via: :get
+        #      match 'path', to: RackApp, via: :get
         #
         # [:on]
         #   Shorthand for wrapping routes in a specific RESTful context. Valid
@@ -460,14 +459,14 @@ module ActionDispatch
         #   other than path can also be specified with any object
         #   that responds to <tt>===</tt> (eg. String, Array, Range, etc.).
         #
-        #     match 'path/:id', constraints: { id: /[A-Z]\d{5}/ }, via: [:get]
+        #     match 'path/:id', constraints: { id: /[A-Z]\d{5}/ }, via: :get
         #
-        #     match 'json_only', constraints: { format: 'json' }, via: [:get]
+        #     match 'json_only', constraints: { format: 'json' }, via: :get
         #
         #     class Whitelist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path', to: 'c#a', constraints: Whitelist.new, via: [:get]
+        #     match 'path', to: 'c#a', constraints: Whitelist.new, via: :get
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -476,7 +475,7 @@ module ActionDispatch
         #   Sets defaults for parameters
         #
         #     # Sets params[:format] to 'jpg' by default
-        #     match 'path', to: 'c#a', defaults: { format: 'jpg' }, via: [:get]
+        #     match 'path', to: 'c#a', defaults: { format: 'jpg' }, via: :get
         #
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         #
@@ -485,7 +484,7 @@ module ActionDispatch
         #   false, the pattern matches any request prefixed with the given path.
         #
         #     # Matches any request starting with 'path'
-        #     match 'path', to: 'c#a', anchor: false, via: [:get]
+        #     match 'path', to: 'c#a', anchor: false, via: :get
         #
         # [:format]
         #   Allows you to specify the default value for optional +format+
