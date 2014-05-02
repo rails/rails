@@ -370,43 +370,6 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_includes "uninitialized constant ImaginaryObject", e.message
   end
 
-  def test_loadable_constants_for_path_should_handle_empty_autoloads
-    assert_equal [], ActiveSupport::Dependencies.loadable_constants_for_path('hello')
-  end
-
-  def test_loadable_constants_for_path_should_handle_relative_paths
-    fake_root = 'dependencies'
-    relative_root = File.dirname(__FILE__) + '/dependencies'
-    ['', '/'].each do |suffix|
-      with_loading fake_root + suffix do
-        assert_equal %w(A::B), ActiveSupport::Dependencies.loadable_constants_for_path(relative_root + '/a/b')
-      end
-    end
-  end
-
-  def test_loadable_constants_for_path_should_provide_all_results
-    fake_root = '/usr/apps/backpack'
-    with_loading fake_root, fake_root + '/lib' do
-      root = ActiveSupport::Dependencies.autoload_paths.first
-      assert_equal %w(Lib::A::B A::B), ActiveSupport::Dependencies.loadable_constants_for_path(root + '/lib/a/b')
-    end
-  end
-
-  def test_loadable_constants_for_path_should_uniq_results
-    fake_root = '/usr/apps/backpack/lib'
-    with_loading fake_root, fake_root + '/' do
-      root = ActiveSupport::Dependencies.autoload_paths.first
-      assert_equal %w(A::B), ActiveSupport::Dependencies.loadable_constants_for_path(root + '/a/b')
-    end
-  end
-
-  def test_loadable_constants_with_load_path_without_trailing_slash
-    path = File.dirname(__FILE__) + '/autoloading_fixtures/class_folder/inline_class.rb'
-    with_loading 'autoloading_fixtures/class/' do
-      assert_equal [], ActiveSupport::Dependencies.loadable_constants_for_path(path)
-    end
-  end
-
   def test_qualified_const_defined
     assert ActiveSupport::Dependencies.qualified_const_defined?("Object")
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Object")
@@ -542,25 +505,6 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def test_references_should_work
-    with_loading 'dependencies' do
-      c = ActiveSupport::Dependencies.reference("ServiceOne")
-      service_one_first = ServiceOne
-      assert_equal service_one_first, c.get("ServiceOne")
-      ActiveSupport::Dependencies.clear
-      assert ! defined?(ServiceOne)
-
-      service_one_second = ServiceOne
-      assert_not_equal service_one_first, c.get("ServiceOne")
-      assert_equal service_one_second, c.get("ServiceOne")
-    end
-  end
-
-  def test_constantize_shortcut_for_cached_constant_lookups
-    with_loading 'dependencies' do
-      assert_equal ServiceOne, ActiveSupport::Dependencies.constantize("ServiceOne")
-    end
-  end
 
   def test_nested_load_error_isnt_rescued
     with_loading 'dependencies' do
@@ -730,37 +674,6 @@ class DependenciesTest < ActiveSupport::TestCase
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
     Object.class_eval { remove_const :M }
-  end
-
-  def test_new_constants_in_module_using_name
-    outer = ActiveSupport::Dependencies.new_constants_in(:M) do
-      Object.const_set :M, Module.new
-      M.const_set :OuterBefore, 10
-
-      inner = ActiveSupport::Dependencies.new_constants_in(:M) do
-        M.const_set :Inner, 20
-      end
-      assert_equal %w(M::Inner), inner
-
-      M.const_set :OuterAfter, 30
-    end
-    assert_equal %w(M::OuterAfter M::OuterBefore), outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
-  ensure
-    Object.class_eval { remove_const :M }
-  end
-
-  def test_new_constants_in_with_inherited_constants
-    m = ActiveSupport::Dependencies.new_constants_in(:Object) do
-      Object.class_eval { include ModuleWithConstant }
-    end
-    assert_equal [], m
-  end
-
-  def test_new_constants_in_with_illegal_module_name_raises_correct_error
-    assert_raise(NameError) do
-      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") {}
-    end
   end
 
   def test_file_with_multiple_constants_and_require_dependency
@@ -964,18 +877,6 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     ActiveSupport::Dependencies.autoload_once_paths = []
-  end
-
-  def test_hook_called_multiple_times
-    assert_nothing_raised { ActiveSupport::Dependencies.hook! }
-  end
-
-  def test_unhook
-    ActiveSupport::Dependencies.unhook!
-    assert !Module.new.respond_to?(:const_missing_without_dependencies)
-    assert !Module.new.respond_to?(:load_without_new_constant_marking)
-  ensure
-    ActiveSupport::Dependencies.hook!
   end
 
 private
