@@ -1,3 +1,10 @@
+*   Moved `params[request_forgery_protection_token]` into its own method
+    and improved tests.
+
+    Fixes #11316.
+
+    *Tom Kadwill*
+
 *   Added verification of route constraints given as a Proc or an object responding
     to `:matches?`. Previously, when given an non-complying object, it would just
     silently fail to enforce the constraint. It will now raise an `ArgumentError`
