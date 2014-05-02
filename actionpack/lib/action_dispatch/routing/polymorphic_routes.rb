@@ -120,6 +120,10 @@ module ActionDispatch
           record_list = extract_record_list(record_or_hash_or_array)
         end
 
+        if record_list.empty? || record_list.any?(&:nil?)
+          raise ArgumentError, "Nil location provided. Can't build URI."
+        end
+
         record = convert_to_model(record_list.pop)
 
         inflection = if options[:action] && options[:action].to_s == "new"
@@ -182,14 +186,12 @@ module ActionDispatch
         def build_route_part(record, inflection)
           if record.is_a?(Symbol) || record.is_a?(String)
             record.to_s
-          elsif record
+          else
             if inflection == :singular
               model_name_from_record_or_class(record).singular_route_key
             else
               model_name_from_record_or_class(record).route_key
             end
-          else
-            raise ArgumentError, "Nil location provided. Can't build URI."
           end
         end
 
