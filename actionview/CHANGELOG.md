@@ -1,4 +1,4 @@
-*   Change `asset_path` to use File.join to create proper paths (#14932):
+*   Change `asset_path` to use File.join to create proper paths:
 
         https://some.host.com//assets/some.js
 
@@ -12,7 +12,7 @@
     `image/x-icon`.
 
     Before:
-    
+
         #=> favicon_link_tag 'myicon.ico'
         <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
 

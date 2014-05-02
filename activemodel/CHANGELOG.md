@@ -1,6 +1,7 @@
 *   Introduce `validate` as an alias for `valid?`.
 
-    This is more intuitive when you want to run validations but don't care about the return value.
+    This is more intuitive when you want to run validations but don't care about
+    the return value.
 
     *Henrik Nyh*
 

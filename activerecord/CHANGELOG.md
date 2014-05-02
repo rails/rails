@@ -1,19 +1,19 @@
-*   Stringify all variables keys of mysql connection configuration.
+*   Stringify all variable keys of mysql connection configuration.
 
-    When `sql_mode` variable for mysql adapters set in configuration as `String`
-    was ignored and overwritten by strict mode option.
+    When the `sql_mode` variable for mysql adapters is set in the configuration
+    as a `String`, it was ignored and overwritten by the strict mode option.
 
-    Fixes #14895
+    Fixes #14895.
 
     *Paul Nikitochkin*
 
 *   Ensure SQLite3 statements are closed on errors.
 
-    Fixes: #13631
+    Fixes #13631.
 
     *Timur Alperovich*
 
-*   Give ActiveRecord::PredicateBuilder private methods the privacy they deserve
+*   Give ActiveRecord::PredicateBuilder private methods the privacy they deserve.
 
     *Hector Satre*
 
