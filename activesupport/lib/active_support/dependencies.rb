@@ -13,7 +13,7 @@ module ActiveSupport
     end
 
     def require_dependency(file_name, message = nil)
-      constant_watcher.capture_constants(file_name) do
+      capture_constants(file_name) do
         Kernel.send kernel_mechanism, path_for_file_name(file_name)
       end
     end
@@ -32,27 +32,18 @@ module ActiveSupport
       end
     end
 
-    # Could be mattr_accessor instead
-    def constant_watcher
-      @@constant_watcher ||= ConstantWatcher.new
+    def loaded_constants
+      @@loaded_constants
     end
+    @@loaded_constants = Set.new
 
-    class ConstantWatcher
-      attr_accessor :paths, :loaded_constants
+    def capture_constants(namespace)
+      const_scope = namespace.safe_constantize || Object
+      old_constants = const_scope.local_constants
 
-      def initialize
-        @paths = Set.new
-        @loaded_constants = Set.new
-      end
+      yield
 
-      def capture_constants(namespace)
-        const_scope = namespace.safe_constantize || Object
-        old_constants = const_scope.local_constants
-
-        yield
-
-        loaded_constants |= Set.new(const_scope.local_constants - old_constants)
-      end
+      loaded_constants |= Set.new(const_scope.local_constants - old_constants)
     end
 
     def kernel_mechanism
