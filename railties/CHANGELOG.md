@@ -1,3 +1,10 @@
+*   Reading name and email from git for plugin gemspec.
+
+    Fixes #9589.
+
+    *Arun Agrawal*, *Abd ar-Rahman Hamidi*, *Roman Shmatov*
+
+
 ## Rails 4.1.15 (March 07, 2016) ##
 
 *   No changes.

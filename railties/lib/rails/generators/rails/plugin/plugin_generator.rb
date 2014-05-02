@@ -288,6 +288,10 @@ task default: :test
         options[:mountable]
       end
 
+      def skip_git?
+        options[:skip_git]
+      end
+
       def with_dummy_app?
         options[:skip_test_unit].blank? || options[:dummy_path] != 'test/dummy'
       end
@@ -305,17 +309,21 @@ task default: :test
       end
 
       def author
-        if @author.nil?
-          git_user_name = `git config user.name`.chomp
-          @author = git_user_name.empty? ? "TODO: Write your name" : git_user_name
+        default = "TODO: Write your name"
+        if skip_git?
+          @author = default
+        else
+          @author = `git config user.name`.chomp rescue default
         end
         @author
       end
 
       def email
-        if @email.nil?
-          git_user_email = `git config user.email`.chomp
-          @email = git_user_email.empty? ? "TODO: Write your email address" : git_user_email
+        default = "TODO: Write your email address"
+        if skip_git?
+          @email = default
+        else
+          @email = `git config user.email`.chomp rescue default
         end
         @email
       end
