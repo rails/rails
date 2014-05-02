@@ -64,13 +64,11 @@ module ActiveSupport
     end
 
     def path_for_file_name(file_name)
-      name = if load?
+      if load?
         file_name.sub(/(\.rb)?\z/, '.rb')
       else
         file_name.sub(/\.rb$/, '')
       end
-
-      File.expand_path name
     end
 
     def path_for_const_name(const_name)
