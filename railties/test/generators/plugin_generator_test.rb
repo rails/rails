@@ -371,6 +371,40 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_git_name_and_email_in_gemspec_file
+    name = `git config user.name`.chomp rescue "TODO: Write your name"
+    email = `git config user.email`.chomp rescue "TODO: Write your email address"
+
+    run_generator [destination_root]
+    assert_file "bukkits.gemspec" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match(/#{Regexp.escape(email)}/, contents)
+    end
+  end
+
+  def test_git_name_in_license_file
+    name = `git config user.name`.chomp rescue "TODO: Write your name"
+
+    run_generator [destination_root]
+    assert_file "MIT-LICENSE" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+    end
+  end
+
+  def test_no_details_from_git_when_skip_git
+    name = "TODO: Write your name"
+    email = "TODO: Write your email address"
+
+    run_generator [destination_root, '--skip-git']
+    assert_file "MIT-LICENSE" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+    end
+    assert_file "bukkits.gemspec" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match(/#{Regexp.escape(email)}/, contents)
+    end
+  end
+
 protected
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }

@@ -288,6 +288,10 @@ task default: :test
         options[:mountable]
       end
 
+      def skip_git?
+        options[:skip_git]
+      end
+
       def with_dummy_app?
         options[:skip_test_unit].blank? || options[:dummy_path] != 'test/dummy'
       end
@@ -302,6 +306,24 @@ task default: :test
 
       def camelized
         @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
+      end
+
+      def author
+        default = "TODO: Write your name"
+        if skip_git?
+          @author = default
+        else
+          @author = `git config user.name`.chomp rescue default
+        end
+      end
+
+      def email
+        default = "TODO: Write your email address"
+        if skip_git?
+          @email = default
+        else
+          @email = `git config user.email`.chomp rescue default
+        end
       end
 
       def valid_const?
