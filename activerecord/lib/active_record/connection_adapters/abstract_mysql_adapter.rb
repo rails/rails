@@ -129,6 +129,8 @@ module ActiveRecord
           when /^mediumint/i; 3
           when /^smallint/i;  2
           when /^tinyint/i;   1
+          when /^float/i;     24
+          when /^double/i;    53
           else
             super
           end
