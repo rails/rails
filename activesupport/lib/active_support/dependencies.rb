@@ -60,7 +60,7 @@ module ActiveSupport
     end
 
     def load?
-      !ENV['NO_RELOAD']
+      !!ENV['NO_RELOAD']
     end
 
     def path_for_file_name(file_name)
