@@ -49,13 +49,15 @@ class ToQueryTest < ActiveSupport::TestCase
   def test_nested_empty_hash
     assert_equal '',
       {}.to_query
-    assert_query_equal 'a=1&b%5Bc%5D=3&b%5Bd%5D=',
+    assert_query_equal 'a=1&b%5Bc%5D=3',
       { a: 1, b: { c: 3, d: {} } }
+    assert_query_equal '',
+      { a: {b: {c: {}}} }
     assert_query_equal 'b%5Bc%5D=false&b%5Be%5D=&b%5Bf%5D=&p=12',
       { p: 12, b: { c: false, e: nil, f: '' } }
-    assert_query_equal 'b%5Bc%5D=3&b%5Bf%5D=&b%5Bk%5D=',
+    assert_query_equal 'b%5Bc%5D=3&b%5Bf%5D=',
       { b: { c: 3, k: {}, f: '' } }
-    assert_query_equal 'a%5B%5D=&b=3',
+    assert_query_equal 'b=3',
       {a: [], b: 3}
   end
 
