@@ -125,5 +125,12 @@ class LogSubscriberTest < ActiveRecord::TestCase
       wait
       assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)
     end
+
+    def test_nil_binary_data_is_logged
+      binary = Binary.create(data: "")
+      binary.update_attributes(data: nil)
+      wait
+      assert_match(/<NULL binary data>/, @logger.logged(:debug).join)
+    end
   end
 end
