@@ -113,7 +113,7 @@ module ActiveSupport
     def humanize(lower_case_and_underscored_word, options = {})
       result = lower_case_and_underscored_word.to_s.dup
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
-      result.gsub!(/_id$/, "")
+      result.sub!(/(?!^)_id$/, "")
       result.tr!('_', ' ')
       result.gsub!(/([a-z\d]*)/i) { |match|
         "#{inflections.acronyms[match] || match.downcase}"

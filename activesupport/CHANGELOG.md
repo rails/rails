@@ -1,3 +1,10 @@
+*   Fix "_id".humanize
+
+    Before this patch it returns ""
+    After this patch it returns " id"
+
+    *Bogdan Gusiev*
+
 *   Add `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5` to support stable
     UUID fixtures on PostgreSQL.
 

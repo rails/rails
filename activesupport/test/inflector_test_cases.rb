@@ -210,7 +210,8 @@ module InflectorTestCases
   UnderscoreToHuman = {
     "employee_salary" => "Employee salary",
     "employee_id"     => "Employee",
-    "underground"     => "Underground"
+    "underground"     => "Underground",
+    "_id"             => " id"
   }
 
   UnderscoreToHumanWithoutCapitalize = {
