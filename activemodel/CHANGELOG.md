@@ -1,3 +1,7 @@
+*   Add plural and singular form for length validator's default messages
+
+    *Abd ar-Rahman Hamid*
+
 *   Introduce `validate` as an alias for `valid?`.
 
     This is more intuitive when you want to run validations but don't care about
