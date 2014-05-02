@@ -242,7 +242,7 @@ module ActiveRecord
         return 0 if relation.limit_value == 0
 
         query_builder = build_count_subquery(relation, column_name, distinct)
-        bind_values = relation.bind_values
+        bind_values = query_builder.bind_values + relation.bind_values
       else
         column = aggregate_column(column_name)
 
@@ -389,9 +389,11 @@ module ActiveRecord
 
       aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
       relation.select_values = [aliased_column]
-      subquery = relation.arel.as(subquery_alias)
+      arel = relation.arel
+      subquery = arel.as(subquery_alias)
 
       sm = Arel::SelectManager.new relation.engine
+      sm.bind_values = arel.bind_values
       select_value = operation_over_aggregate_column(column_alias, 'count', distinct)
       sm.project(select_value).from(subquery)
     end

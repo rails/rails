@@ -43,10 +43,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
            :people, :posts, :readers, :taggings, :cars, :essays,
-           :categorizations, :jobs
+           :categorizations, :jobs, :tags, :posts
 
   def setup
     Client.destroyed_client_ids.clear
+  end
+
+  def test_sti_subselect_count
+    tag = Tag.first
+    len = Post.tagged_with(tag.id).limit(10).size
+    assert_operator len, :>, 0
   end
 
   def test_anonymous_has_many
