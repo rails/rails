@@ -74,7 +74,7 @@ module Arel
         collector << " )"
       end
 
-      def visit_Arel_Nodes_UpdateStatement o
+      def visit_Arel_Nodes_UpdateStatement o, collector
         # Oracle does not allow ORDER BY/LIMIT in UPDATEs.
         if o.orders.any? && o.limit.nil?
           # However, there is no harm in silently eating the ORDER BY clause if no LIMIT has been provided,
