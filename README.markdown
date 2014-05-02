@@ -53,11 +53,30 @@ users.project(users[:id])
 # => SELECT users.id FROM users
 ```
 
+Comparison operators `=`, `!=`, `<`, `>`, `<=`, `>=`, `IN`:
+
+```ruby
+users.where(users[:age].eq(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" = 10
+users.where(users[:age].not_eq(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" != 10
+users.where(users[:age].lt(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" < 10
+users.where(users[:age].gt(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" > 10
+users.where(users[:age].lteq(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" <= 10
+users.where(users[:age].gteq(10)).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" >= 10
+users.where(users[:age].in([20, 16, 17])).project(Arel.sql('*')) # => SELECT * FROM "users"  WHERE "users"."age" IN (20, 16, 17)
+```
+
 Joins resemble SQL strongly:
 
 ```ruby
 users.join(photos).on(users[:id].eq(photos[:user_id]))
 # => SELECT * FROM users INNER JOIN photos ON users.id = photos.user_id
+```
+
+Left Joins
+
+```ruby
+users.join(photos, Arel::Nodes::OuterJoin).on(users[:id].eq(photos[:user_id]))
+# => SELECT FROM users LEFT OUTER JOIN photos ON users.id = photos.user_id
 ```
 
 What are called `LIMIT` and `OFFSET` in SQL are called `take` and `skip` in Arel:
@@ -96,6 +115,23 @@ users.where(users[:name].eq('bob').or(users[:age].lt(25)))
 ```
 
 The `AND` operator behaves similarly.
+
+Aggregate functions `AVG`, `SUM`, `COUNT`, `MIN`, `MAX`, `HAVING`:
+
+```ruby
+photos.group(photos[:user_id]).having(photos[:id].count.gt(5)) # => SELECT FROM photos GROUP BY photos.user_id HAVING COUNT(photos.id) > 5
+users.project(users[:age].sum) # => SELECT SUM(users.age) AS sum_id FROM users
+users.project(users[:age].average) # => SELECT AVG(users.age) AS avg_id FROM users
+users.project(users[:age].maximum) # => SELECT MAX(users.age) AS max_id FROM users
+users.project(users[:age].minimum) # => SELECT MIN(users.age) AS min_id FROM users
+users.project(users[:age].count) # => SELECT COUNT(users.age) FROM users
+```
+
+Aliasing Aggregate Functions:
+
+```ruby
+users.project(users[:age].average.as("mean_age")) # => SELECT AVG(users.age) AS mean_age FROM users
+```
 
 ### The Crazy Features
 
@@ -146,6 +182,44 @@ comments_with_replies = \
 ```
 
 This will return the first comment's reply's body.
+
+[Common Table Expresssions(CTE)](https://en.wikipedia.org/wiki/Common_table_expressions#Common_table_expression) support via:
+
+Create a `CTE`
+
+```ruby
+cte_table = Arel::Table.new(:cte_table)
+composed_cte = Arel::Nodes::As.new(cte_table, photos.where(photos[:created_at].gt(Date.current)))
+```
+
+Use the created `CTE`:
+
+```ruby
+users.
+  join(cte_table).on(users[:id].eq(cte_table[:user_id])).
+  project(users[:id], cte_table[:click].sum).
+  with(composed_cte)
+
+# => WITH cte_table AS (SELECT FROM photos  WHERE photos.created_at > '2014-05-02') SELECT users.id, SUM(cte_table.click) AS sum_id FROM users INNER JOIN cte_table ON users.id = cte_table.user_id
+```
+
+When your query is too complex for `Arel`, you can use `Arel::SqlLiteral`:
+
+```ruby
+photo_clicks =Arel::Nodes::SqlLiteral.new(<<-SQL
+    CASE WHEN condition1 THEN calculation1
+    WHEN condition2 THEN calculation2
+    WHEN condition3 THEN calculation3
+    ELSE default_calculation END
+SQL
+)
+photos.project(photo_clicks.as("photo_clicks"))
+# => SELECT CASE WHEN condition1 THEN calculation1
+    WHEN condition2 THEN calculation2
+    WHEN condition3 THEN calculation3
+    ELSE default_calculation END
+ FROM "photos"
+```
 
 ### License
 
