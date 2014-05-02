@@ -32,10 +32,8 @@ module ActiveSupport
       end
     end
 
-    def loaded_constants
-      @@loaded_constants
-    end
-    @@loaded_constants = Set.new
+    mattr_accessor :loaded_constants
+    self.loaded_constants = Set.new
 
     def capture_constants(namespace)
       const_scope = namespace.safe_constantize || Object
@@ -43,7 +41,7 @@ module ActiveSupport
 
       yield
 
-      loaded_constants |= Set.new(const_scope.local_constants - old_constants)
+      self.loaded_constants |= (const_scope.local_constants - old_constants)
     end
 
     def kernel_mechanism
