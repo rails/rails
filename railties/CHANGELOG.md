@@ -1,3 +1,9 @@
+*   Reading name and email from git for plugin gemspec.
+
+    Fixes #9589.
+
+    *Arun Agrawal*, *Abd ar-Rahman Hamidi*, *Roman Shmatov*
+
 *   Fix `console` and `generators` blocks defined at different environments.
 
     Fixes #14748.
