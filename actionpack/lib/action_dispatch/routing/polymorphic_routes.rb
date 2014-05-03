@@ -103,53 +103,59 @@ module ActionDispatch
       def polymorphic_url(record_or_hash_or_array, options = {})
         recipient = self
 
-        if record_or_hash_or_array.kind_of?(Array)
-          if record_or_hash_or_array.include? nil
+        opts = options.except(:action, :routing_type)
+
+        case record_or_hash_or_array
+        when Array
+          if record_or_hash_or_array.empty? || record_or_hash_or_array.any?(&:nil?)
             raise ArgumentError, "Nil location provided. Can't build URI."
           end
-          record_or_hash_or_array = record_or_hash_or_array.dup
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
             recipient = record_or_hash_or_array.shift
           end
 
           args        = record_or_hash_or_array.dup
           record_list = record_or_hash_or_array.dup
+        when Hash
+          unless record_or_hash_or_array[:id]
+            raise ArgumentError, "Nil location provided. Can't build URI."
+          end
+
+          opts        = record_or_hash_or_array.dup.merge!(opts)
+          args        = [opts.delete(:id)]
+          record_list = args.dup
+        when nil
+          raise ArgumentError, "Nil location provided. Can't build URI."
         else
 
           args        = [record_or_hash_or_array]
-          record_list = extract_record_list(record_or_hash_or_array)
+          record_list = [record_or_hash_or_array]
         end
 
-        if record_list.empty? || record_list.any?(&:nil?)
-          raise ArgumentError, "Nil location provided. Can't build URI."
-        end
 
         record = convert_to_model(record_list.pop)
+        args.pop
 
-        inflection = if options[:action] && options[:action].to_s == "new"
-          args.pop
-          :singular
+        inflection = nil
+
+        if options[:action] && options[:action].to_s == "new"
+          inflection = :singular
         elsif (record.respond_to?(:persisted?) && !record.persisted?)
-          args.pop
-          :plural
+          inflection = :plural
         elsif record.is_a?(Class)
-          args.pop
-          :plural
+          inflection = :plural
         else
-          :singular
+          args << record
+          inflection = :singular
         end
 
         args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
-        named_route = build_named_route_call(record_list, record, inflection, options)
 
-        url_options = options.except(:action, :routing_type)
-        unless url_options.empty?
-          args << url_options
-        end
+        named_route = build_named_route_call(record_list, record, inflection, options)
 
         args.collect! { |a| convert_to_model(a) }
 
-        recipient.send(named_route, *args)
+        recipient.send(named_route, *args, opts)
       end
 
       # Returns the path component of a URL for the given record. It uses
@@ -202,13 +208,6 @@ module ActionDispatch
           route << routing_type(options)
 
           action_prefix(options) + route.join("_")
-        end
-
-        def extract_record_list(record_or_hash_or_array)
-          case record_or_hash_or_array
-          when Hash;  [record_or_hash_or_array[:id]].compact
-          else        [record_or_hash_or_array]
-          end
         end
     end
   end
