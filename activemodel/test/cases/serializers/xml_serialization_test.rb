@@ -8,7 +8,7 @@ class Contact
 
   attr_accessor :address, :friends, :contact
 
-  remove_method :attributes if method_defined?(:attributes)
+  remove_possible_method :attributes
 
   def attributes
     instance_values.except("address", "friends", "contact")
