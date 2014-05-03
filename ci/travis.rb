@@ -52,7 +52,7 @@ class Build
 
   def tasks
     if activerecord?
-      ['mysql:rebuild_databases', "#{adapter}:#{'isolated_' if isolated?}test"]
+      ['mysql:db:rebuild', "#{adapter}:#{'isolated_' if isolated?}test"]
     else
       ["test#{':isolated' if isolated?}"]
     end
