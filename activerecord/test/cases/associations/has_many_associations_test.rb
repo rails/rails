@@ -45,7 +45,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
            :people, :posts, :readers, :taggings, :cars, :essays,
-           :categorizations, :jobs, :tags, :posts
+           :categorizations, :jobs, :tags
 
   def setup
     Client.destroyed_client_ids.clear
