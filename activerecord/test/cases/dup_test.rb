@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/reply'
 require 'models/topic'
 
 module ActiveRecord
