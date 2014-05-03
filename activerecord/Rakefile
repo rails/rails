@@ -38,33 +38,36 @@ namespace :test do
   end
 end
 
+desc 'Build MySQL and PostgreSQL test databases'
 namespace :db do
-  desc 'Build MySQL and PostgreSQL test databases'
-  task create: ['mysql:build_databases', 'postgresql:build_databases']
-  desc 'Drop MySQL and PostgreSQL test databases'
-  task drop: ['mysql:drop_databases', 'postgresql:drop_databases']
+  task :create => ['db:mysql:build', 'db:postgresql:build']
+  task :drop => ['db:mysql:drop', 'db:postgresql:drop']
 end
 
 %w( mysql mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
-  Rake::TestTask.new("test_#{adapter}") { |t|
-    adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
-    t.libs << 'test'
-    t.test_files = (Dir.glob( "test/cases/**/*_test.rb" ).reject {
-      |x| x =~ /\/adapters\//
-    } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb")).sort
+  namespace :test do
+    Rake::TestTask.new(adapter => "#{adapter}:env") { |t|
+      adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
+      t.libs << 'test'
+      t.test_files = (Dir.glob( "test/cases/**/*_test.rb" ).reject {
+        |x| x =~ /\/adapters\//
+      } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb")).sort
 
-    t.warning = true
-    t.verbose = true
-  }
+      t.warning = true
+      t.verbose = true
+    }
 
-  task "isolated_test_#{adapter}" do
-    adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
-    puts [adapter, adapter_short].inspect
-    (Dir["test/cases/**/*_test.rb"].reject {
-      |x| x =~ /\/adapters\//
-    } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-      sh(Gem.ruby, '-w' ,"-Itest", file)
-    end or raise "Failures"
+    namespace :isolated do
+      task adapter => "#{adapter}:env" do
+        adapter_short = adapter == 'db2' ? adapter : adapter[/^[a-z0-9]+/]
+        puts [adapter, adapter_short].inspect
+        (Dir["test/cases/**/*_test.rb"].reject {
+          |x| x =~ /\/adapters\//
+        } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
+          sh(Gem.ruby, '-w' ,"-Itest", file)
+        end or raise "Failures"
+      end
+    end
   end
 
   namespace adapter do
@@ -76,8 +79,8 @@ end
   end
 
   # Make sure the adapter test evaluates the env setting task
-  task "test_#{adapter}" => "#{adapter}:env"
-  task "isolated_test_#{adapter}" => "#{adapter}:env"
+  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}"]
+  task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 
 rule '.sqlite3' do |t|
@@ -89,63 +92,58 @@ task :test_sqlite3 => [
   'test/fixtures/fixture_database_2.sqlite3'
 ]
 
-namespace :mysql do
-  desc 'Build the MySQL test databases'
-  task :build_databases do
-    config = ARTest.config['connections']['mysql']
-    %x( mysql --user=#{config['arunit']['username']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
-    %x( mysql --user=#{config['arunit2']['username']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
-  end
-
-  desc 'Drop the MySQL test databases'
-  task :drop_databases do
-    config = ARTest.config['connections']['mysql']
-    %x( mysqladmin --user=#{config['arunit']['username']} -f drop #{config['arunit']['database']} )
-    %x( mysqladmin --user=#{config['arunit2']['username']} -f drop #{config['arunit2']['database']} )
-  end
-
-  desc 'Rebuild the MySQL test databases'
-  task :rebuild_databases => [:drop_databases, :build_databases]
-end
-
-task :build_mysql_databases => 'mysql:build_databases'
-task :drop_mysql_databases => 'mysql:drop_databases'
-task :rebuild_mysql_databases => 'mysql:rebuild_databases'
-
-
-namespace :postgresql do
-  desc 'Build the PostgreSQL test databases'
-  task :build_databases do
-    config = ARTest.config['connections']['postgresql']
-    %x( createdb -E UTF8 -T template0 #{config['arunit']['database']} )
-    %x( createdb -E UTF8 -T template0 #{config['arunit2']['database']} )
-
-    # notify about preparing hstore
-    if %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"
-      puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
+namespace :db do
+  namespace :mysql do
+    desc 'Build the MySQL test databases'
+    task :build do
+      config = ARTest.config['connections']['mysql']
+      %x( mysql --user=#{config['arunit']['username']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+      %x( mysql --user=#{config['arunit2']['username']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
     end
+
+    desc 'Drop the MySQL test databases'
+    task :drop do
+      config = ARTest.config['connections']['mysql']
+      %x( mysqladmin --user=#{config['arunit']['username']} -f drop #{config['arunit']['database']} )
+      %x( mysqladmin --user=#{config['arunit2']['username']} -f drop #{config['arunit2']['database']} )
+    end
+
+    desc 'Rebuild the MySQL test databases'
+    task :rebuild => [:drop, :build]
   end
 
-  desc 'Drop the PostgreSQL test databases'
-  task :drop_databases do
-    config = ARTest.config['connections']['postgresql']
-    %x( dropdb #{config['arunit']['database']} )
-    %x( dropdb #{config['arunit2']['database']} )
+  namespace :postgresql do
+    desc 'Build the PostgreSQL test databases'
+    task :build do
+      config = ARTest.config['connections']['postgresql']
+      %x( createdb -E UTF8 -T template0 #{config['arunit']['database']} )
+      %x( createdb -E UTF8 -T template0 #{config['arunit2']['database']} )
+
+      # prepare hstore
+      if %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"
+        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
+      end
+    end
+
+    desc 'Drop the PostgreSQL test databases'
+    task :drop do
+      config = ARTest.config['connections']['postgresql']
+      %x( dropdb #{config['arunit']['database']} )
+      %x( dropdb #{config['arunit2']['database']} )
+    end
+
+    desc 'Rebuild the PostgreSQL test databases'
+    task :rebuild => [:drop, :build]
   end
-
-  desc 'Rebuild the PostgreSQL test databases'
-  task :rebuild_databases => [:drop_databases, :build_databases]
 end
 
-task :build_postgresql_databases => 'postgresql:build_databases'
-task :drop_postgresql_databases => 'postgresql:drop_databases'
-task :rebuild_postgresql_databases => 'postgresql:rebuild_databases'
+task :build_mysql_databases => 'db:mysql:build'
+task :drop_mysql_databases => 'db:mysql:drop'
+task :rebuild_mysql_databases => 'db:mysql:rebuild'
 
-
-spec = eval(File.read('activerecord.gemspec'))
-Gem::PackageTask.new(spec) do |p|
-  p.gem_spec = spec
-end
+task :build_postgresql_databases => 'db:postgresql:build'
+task :drop_postgresql_databases => 'db:postgresql:drop'
+task :rebuild_postgresql_databases => 'db:postgresql:rebuild'
 
 task :lines do
   lines, codelines, total_lines, total_codelines = 0, 0, 0, 0
@@ -171,6 +169,11 @@ task :lines do
   puts "Total: Lines #{total_lines}, LOC #{total_codelines}"
 end
 
+spec = eval(File.read('activerecord.gemspec'))
+
+Gem::PackageTask.new(spec) do |p|
+  p.gem_spec = spec
+end
 
 # Publishing ------------------------------------------------------
 
