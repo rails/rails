@@ -278,7 +278,7 @@ db_namespace = namespace :db do
       db_namespace['structure:dump'].reenable
     end
 
-    # desc "Recreate the databases from the structure.sql file"
+    desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema(:sql, ENV['DB_STRUCTURE'])
     end
