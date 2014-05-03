@@ -100,7 +100,7 @@ module ActiveRecord
             def quoted_id
               "'zomg'"
             end
-          }
+          }.new
           assert_raise(TypeError) { @conn.type_cast(quoted_id_obj, nil) }
         end
       end
