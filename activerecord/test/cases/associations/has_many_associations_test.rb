@@ -1886,11 +1886,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  test 'has_many_association passes context validation to validate children' do
+  test 'passes custom context validation to validate children' do
     pirate = FamousPirate.new
     pirate.famous_ships << ship = FamousShip.new
-    assert_equal true, pirate.valid?
-    assert_equal false, pirate.valid?(:conference)
+
+    assert pirate.valid?
+    assert_not pirate.valid?(:conference)
     assert_equal "can't be blank", ship.errors[:name].first
   end
 end
