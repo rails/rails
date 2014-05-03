@@ -1,3 +1,10 @@
+*   Rails will now pass a custom validation context through to autosave associations
+    in order to validate child associations with the same context.
+
+    Fixes #13854.
+
+    *Eric Chahin*, *Aaron Nelson*, *Kevin Casey*
+
 *   Stringify all variable keys of mysql connection configuration.
 
     When the `sql_mode` variable for mysql adapters is set in the configuration

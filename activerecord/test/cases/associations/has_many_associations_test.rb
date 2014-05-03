@@ -26,6 +26,8 @@ require 'models/reference'
 require 'models/job'
 require 'models/college'
 require 'models/student'
+require 'models/pirate'
+require 'models/ship'
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
@@ -1882,5 +1884,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  test 'has_many_association passes context validation to validate children' do
+    pirate = FamousPirate.new
+    pirate.famous_ships << ship = FamousShip.new
+    assert_equal true, pirate.valid?
+    assert_equal false, pirate.valid?(:conference)
+    assert_equal "can't be blank", ship.errors[:name].first
   end
 end
