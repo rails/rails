@@ -249,7 +249,7 @@ and create the test databases:
 
 ```bash
 $ cd activerecord
-$ bundle exec rake mysql:db:build
+$ bundle exec rake mysql:build_databases
 ```
 
 PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
@@ -267,7 +267,7 @@ and then create the test databases with
 
 ```bash
 $ cd activerecord
-$ bundle exec rake postgresql:db:build
+$ bundle exec rake postgresql:build_databases
 ```
 
 It is possible to build databases for both PostgreSQL and MySQL with

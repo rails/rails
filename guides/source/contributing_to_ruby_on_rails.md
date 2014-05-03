@@ -265,15 +265,15 @@ This is how you run the Active Record test suite only for SQLite3:
 
 ```bash
 $ cd activerecord
-$ bundle exec rake test:db:sqlite3
+$ bundle exec rake test_sqlite3
 ```
 
 You can now run the tests as you did for `sqlite3`. The tasks are respectively
 
 ```bash
-test:db:mysql
-test:db:mysql2
-test:db:postgresql
+test_mysql
+test_mysql2
+test_postgresql
 ```
 
 Finally,
