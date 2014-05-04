@@ -255,7 +255,9 @@ module ActionView
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that
       # all month choices are valid.
       def date_select(object_name, method, options = {}, html_options = {})
-        Tags::DateSelect.new(object_name, method, self, options, html_options).render
+        options_copy = options.dup
+        add_format_option(options_copy)
+        Tags::DateSelect.new(object_name, method, self, options_copy, html_options).render
       end
 
       # Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a
@@ -327,7 +329,9 @@ module ActionView
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def datetime_select(object_name, method, options = {}, html_options = {})
-        Tags::DatetimeSelect.new(object_name, method, self, options, html_options).render
+        options_copy = options.dup
+        add_format_option(options_copy)
+        Tags::DatetimeSelect.new(object_name, method, self, options_copy, html_options).render
       end
 
       # Returns a set of html select-tags (one for year, month, day, hour, minute, and second) pre-selected with the
@@ -376,7 +380,9 @@ module ActionView
       #   select_datetime(my_date_time, prompt: {hour: true}) # generic prompt for hours
       #   select_datetime(my_date_time, prompt: true) # generic prompts for all
       def select_datetime(datetime = Time.current, options = {}, html_options = {})
-        DateTimeSelector.new(datetime, options, html_options).select_datetime
+        options_copy = options.dup
+        add_format_option(options_copy)
+        DateTimeSelector.new(datetime, options_copy, html_options).select_datetime
       end
 
       # Returns a set of html select-tags (one for year, month, and day) pre-selected with the +date+.
@@ -415,7 +421,9 @@ module ActionView
       #   select_date(my_date, prompt: {hour: true}) # generic prompt for hours
       #   select_date(my_date, prompt: true) # generic prompts for all
       def select_date(date = Date.current, options = {}, html_options = {})
-        DateTimeSelector.new(date, options, html_options).select_date
+        options_copy = options.dup
+        add_format_option(options_copy)
+        DateTimeSelector.new(date, options_copy, html_options).select_date
       end
 
       # Returns a set of html select-tags (one for hour and minute).
@@ -603,7 +611,9 @@ module ActionView
       #   # generic prompt.
       #   select_month(14, prompt: 'Choose month')
       def select_month(date, options = {}, html_options = {})
-        DateTimeSelector.new(date, options, html_options).select_month
+        options_copy = options.dup
+        add_format_option(options_copy)
+        DateTimeSelector.new(date, options_copy, html_options).select_month
       end
 
       # Returns a select tag with options for each of the five years on each side of the current, which is selected.
@@ -660,6 +670,23 @@ module ActionView
 
         content_tag(:time, content, options.reverse_merge(:datetime => datetime), &block)
       end
+
+      # Adds the correct format option if needed
+      private
+        def add_format_option(h)
+          unless h[:format]
+            month_tag = h[:use_short_month] ? "%b" : "%B" 
+            number_tag = h[:use_two_digit_numbers] ? "%m" : "%-m"
+
+            if h[:add_month_numbers]
+              h[:format] = number_tag + " - " + month_tag
+            elsif h[:use_month_numbers]
+              h[:format] = number_tag
+            else
+              h[:format] = month_tag
+            end                                             
+          end
+        end
     end
 
     class DateTimeSelector #:nodoc:
@@ -833,30 +860,6 @@ module ActionView
           end
         end
 
-        # Returns translated month names, but also ensures that a custom month
-        # name array has a leading nil element.
-        def month_names
-          @month_names ||= begin
-            month_names = @options[:use_month_names] || translated_month_names
-            month_names.unshift(nil) if month_names.size < 13
-            month_names
-          end
-        end
-
-        # Returns translated month names.
-        #  => [nil, "January", "February", "March",
-        #           "April", "May", "June", "July",
-        #           "August", "September", "October",
-        #           "November", "December"]
-        #
-        # If <tt>:use_short_month</tt> option is set
-        #  => [nil, "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        #           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        def translated_month_names
-          key = @options[:use_short_month] ? :'date.abbr_month_names' : :'date.month_names'
-          I18n.translate(key, :locale => @options[:locale])
-        end
-
         # Looks up month names by number (1-based):
         #
         #   month_name(1) # => "January"
@@ -879,16 +882,21 @@ module ActionView
         #
         # depending on the format string.
         def month_name(number)
-          if @options[:use_month_numbers]
-            number
-          elsif @options[:use_two_digit_numbers]
-            '%02d' % number
-          elsif @options[:add_month_numbers]
-            "#{number} - #{month_names[number]}"
-          elsif format_string = @options[:month_format_string]
-            format_string % {number: number, name: month_names[number]}
+          if @options[:use_month_names]
+            @options[:use_month_names].unshift nil if @options[:use_month_names].size < 13
+          end
+
+          if @options[:use_month_names] || @options[:month_format_string]
+            custom_month = @options[:use_month_names] ? @options[:use_month_names][number] : Date.new(0,number).strftime("%B")
+            if format_string = @options[:month_format_string]
+              format_string % {number: number, name: custom_month}
+            else
+              calendar_month = Date.new(0,number).strftime("%B")
+              date_str = Date.new(0,number).strftime @options[:format]
+              date_str.gsub calendar_month, custom_month
+            end
           else
-            month_names[number]
+            Date.new(0,number).strftime @options[:format]
           end
         end
 
