@@ -1,3 +1,12 @@
+*   Baseclass becomes! subclass.
+
+    Before this change, a record which changed its STI type, could not be found when updated.
+    Setting update_record to the base class, ensures the record can be found.
+
+    Fixes #14785
+
+    *Matthew Draper*, *Earl St Sauver*, *Edo Balvers*
+
 *   Fix the schema dump generated for tables without constraints and with
     primary key with default value of custom PostgreSQL function result.
 

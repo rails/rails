@@ -72,7 +72,14 @@ module ActiveRecord
 
     def _update_record(values, id, id_was) # :nodoc:
       substitutes, binds = substitute_values values
-      um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes, @klass.primary_key)
+
+      scope = @klass.unscoped
+
+      if @klass.finder_needs_type_condition?
+        scope.unscope!(where: @klass.inheritance_column)
+      end
+
+      um = scope.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes, @klass.primary_key)
 
       @klass.connection.update(
         um,
