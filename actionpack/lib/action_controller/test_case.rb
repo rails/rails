@@ -554,27 +554,25 @@ module ActionController
       # parameters and set/volley the response.
       #
       # - +action+: The controller action to call.
-      # - +http_method+: request method used to send http request.
-      #   possible values GET, POST, HEAD, PUT, DELETE, PATCH. defaults to GET.
-      # - +parameters+: The HTTP parameters.
-      #   This may be +nil+, a hash, or a string that is appropriately encoded
-      #   (+application/x-www-form-urlencoded+ or +multipart/form-data+).
-      # - +session+: A hash of parameters to store in the session.
-      #   This may be +nil+.
-      # - +flash+: A hash of parameters to store in the flash.
-      #   This may be +nil+.
+      # - +http_method+: Request method used to send the http request. Possible values
+      #   are +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, +HEAD+. Defaults to +GET+.
+      # - +parameters+: The HTTP parameters. This may be +nil+, a hash, or a
+      #   string that is appropriately encoded (+application/x-www-form-urlencoded+
+      #   or +multipart/form-data+).
+      # - +session+: A hash of parameters to store in the session. This may be +nil+.
+      # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       #
-      # example: calling +create+ action & sending two params
+      # Example calling +create+ action and sending two params:
       #
-      #  process :create, 'POST', user: { name: 'Gaurish Sharma', email: 'user@example.com' }
+      #   process :create, 'POST', user: { name: 'Gaurish Sharma', email: 'user@example.com' }
       #
-      # another example with parameters, +nil+ session & flash message
+      # Example sending parameters, +nil+ session and setting a flash message:
       #
-      #  process :view, 'GET', { id: 7 }, nil, { message: 'This is flash message' }
+      #   process :view, 'GET', { id: 7 }, nil, { notice: 'This is flash message' }
       #
-      # To simulate +GET+, +POST+, +PATCH+, +PUT+,
-      # +DELETE+ and +HEAD+ requests prefer using #get, #post, #patch, #put,
-      # #delete and #head respectively which will make tests more expressive.
+      # To simulate +GET+, +POST+, +PATCH+, +PUT+, +DELETE+ and +HEAD+ requests
+      # prefer using #get, #post, #patch, #put, #delete and #head methods
+      # respectively which will make tests more expressive.
       #
       # Note that the request method is not verified.
       def process(action, http_method = 'GET', *args)
