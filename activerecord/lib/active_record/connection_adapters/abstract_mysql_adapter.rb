@@ -711,12 +711,13 @@ module ActiveRecord
       end
 
       def rename_column_sql(table_name, column_name, new_column_name)
-        options = { name: new_column_name }
         column  = column_for(table_name, column_name)
-
-        options[:default] = column.default
-        options[:null] = column.null
-        options[:auto_increment] = column.extra == "auto_increment"
+        options = {
+          name: new_column_name,
+          default: column.default,
+          null: column.null,
+          auto_increment: column.extra == "auto_increment"
+        }
 
         current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", 'SCHEMA')["Type"]
         schema_creation.accept ChangeColumnDefinition.new column, current_type, options
