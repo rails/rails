@@ -91,7 +91,7 @@ current version of Ruby installed:
 
 TIP. A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
-while Mac OS X users can use [Rails One Click](http://railsoneclick.com).
+while Mac OS X users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
 
 ```bash
 $ ruby -v
