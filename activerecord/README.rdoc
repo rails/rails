@@ -20,8 +20,8 @@ A short rundown of some of the major features:
    class Product < ActiveRecord::Base
    end
 
-   The Product class is automatically mapped to the table named "products",
-   which might look like this:
+The Product class is automatically mapped to the table named "products",
+which might look like this:
 
    CREATE TABLE products (
      id int(11) NOT NULL auto_increment,
