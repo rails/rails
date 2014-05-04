@@ -1,6 +1,6 @@
-*   Fixed backward compatibility isues introduced in 326e652
+*   Fixed backward compatibility isues introduced in 326e652.
 
-    Empty Hash or Array should not present in serialization result
+    Empty Hash or Array should not present in serialization result.
 
         {a: []}.to_query # => ""
         {a: {}}.to_query # => ""
