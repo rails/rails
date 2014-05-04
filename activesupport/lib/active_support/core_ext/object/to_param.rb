@@ -54,8 +54,6 @@ class Hash
     collect do |key, value|
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
         value.to_query(namespace ? "#{namespace}[#{key}]" : key)
-      else
-        nil
       end
     end.compact.sort! * '&'
   end
