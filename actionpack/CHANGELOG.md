@@ -1,6 +1,6 @@
 *   Added verification of route constraints given as a Proc or an object responding
-    to `:matches?`.  Previously, when given an non-complying object, it would just
-    silently fail to enforce the constraint.  It will now raise an ArgumentError
+    to `:matches?`. Previously, when given an non-complying object, it would just
+    silently fail to enforce the constraint. It will now raise an `ArgumentError`
     when setting up the routes.
 
     *Xavier Defrang*
