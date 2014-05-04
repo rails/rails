@@ -57,6 +57,15 @@
 
     *Paul B.*
 
+*   Baseclass becomes! subclass.
+
+    Before this change, a record which changed its STI type, could not be found when updated.
+    Setting update_record to the base class, ensures the record can be found.
+
+    Fixes #14785
+
+    *Matthew Draper*, *Earl St Sauver*, *Edo Balvers*
+
 *   Add support for module-level `table_name_suffix` in models.
 
     This makes `table_name_suffix` work the same way as `table_name_prefix` when
