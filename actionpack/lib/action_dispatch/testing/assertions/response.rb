@@ -72,8 +72,17 @@ module ActionDispatch
         def normalize_argument_to_redirection(fragment)
           if Regexp === fragment
             fragment
-          else
+          elsif @controller
             @controller._compute_redirect_to_location(fragment)
+          else
+            case fragment
+            when /\A([a-z][a-z\d\-+\.]*:|\/\/).*/i
+              fragment
+            when String
+              request.protocol + request.host_with_port + fragment
+            else
+              url_for(fragment)
+            end
           end
         end
     end

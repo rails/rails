@@ -638,3 +638,40 @@ class ActionPackHeaderTest < ActionController::TestCase
     assert_equal 'application/rss+xml; charset=utf-8', @response.headers['Content-Type']
   end
 end
+
+class ActionPackAssertionsIntegrationTest < ActionDispatch::IntegrationTest
+  def test_assert_redirected_to_router_redirect_success
+    with_routing do |set|
+      set.draw do
+        get 'route_one', :to => redirect('/route_two')
+        get 'route_two', :to => 'action_pack_assertions#nothing'
+      end
+
+      get '/route_one'
+
+      assert_redirected_to '/route_two'
+      assert_redirected_to 'http://www.example.com/route_two'
+      assert_redirected_to %r(route_two)
+      assert_redirected_to controller: 'action_pack_assertions', action: 'nothing'
+    end
+  end
+
+  def test_assert_redirected_to_router_redirect_failure
+    with_routing do |set|
+      set.draw do
+        get 'route_one', :to => redirect('/route_two')
+        get 'route_two', :to => 'action_pack_assertions#nothing'
+      end
+
+      get '/route_one'
+      assert_raises(ActiveSupport::TestCase::Assertion) do
+        assert_redirected_to '/route_one'
+      end
+
+      get '/route_two'
+      assert_raises(ActiveSupport::TestCase::Assertion) do
+        assert_redirected_to '/route_two'
+      end
+    end
+  end
+end
