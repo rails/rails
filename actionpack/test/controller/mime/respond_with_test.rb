@@ -138,8 +138,6 @@ class EmptyRespondWithController < ActionController::Base
 end
 
 class RespondWithControllerTest < ActionController::TestCase
-  tests RespondWithController
-
   def setup
     super
     @request.host = "www.example.com"
