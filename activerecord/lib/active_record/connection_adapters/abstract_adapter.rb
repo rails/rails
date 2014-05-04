@@ -120,7 +120,7 @@ module ActiveRecord
       end
 
       def collector
-        if @prepared_statements
+        if prepared_statements
           SQLString.new
         else
           BindCollector.new
@@ -388,7 +388,7 @@ module ActiveRecord
       end
 
       def without_prepared_statement?(binds)
-        !@prepared_statements || binds.empty?
+        !prepared_statements || binds.empty?
       end
 
       def column_for(table_name, column_name) # :nodoc:
