@@ -258,8 +258,6 @@ class RespondToController < ActionController::Base
 end
 
 class RespondToControllerTest < ActionController::TestCase
-  tests RespondToController
-
   def setup
     super
     @request.host = "www.example.com"

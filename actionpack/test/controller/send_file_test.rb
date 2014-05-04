@@ -30,7 +30,6 @@ class SendFileWithActionControllerLive < SendFileController
 end
 
 class SendFileTest < ActionController::TestCase
-  tests SendFileController
   include TestFileUtils
 
   Mime::Type.register "image/png", :png unless defined? Mime::PNG
