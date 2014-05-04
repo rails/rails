@@ -1,3 +1,15 @@
+*   Log nil binary column values correctly.
+
+    When an object with a binary column is updated with a nil value
+    in that column, the SQL logger would throw an exception when trying
+    to log that nil value. This only occurs when updating a record
+    that already has a non-nil value in that column since an initial nil
+    value isn't included in the SQL anyway (at least, when dirty checking
+    is enabled.) The column's new value will now be logged as `<NULL binary data>`
+    to parallel the existing `<N bytes of binary data>` for non-nil values.
+
+    *James Coleman*
+
 *   Rails will now pass a custom validation context through to autosave associations
     in order to validate child associations with the same context.
 
