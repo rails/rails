@@ -1,3 +1,14 @@
+*   Fixed backward compatibility isues introduced in 326e652
+
+    Empty Hash or Array should not present in serialization result
+
+        {a: []}.to_query # => ""
+        {a: {}}.to_query # => ""
+
+    For more info see #14948.
+
+    *Bogdan Gusiev*
+
 *   Add `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5` to support stable
     UUID fixtures on PostgreSQL.
 
