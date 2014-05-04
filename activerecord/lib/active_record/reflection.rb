@@ -14,7 +14,7 @@ module ActiveRecord
 
     def self.create(macro, name, scope, options, ar)
       case macro
-      when :has_many, :belongs_to, :has_one
+      when :has_many, :has_and_belongs_to_many, :belongs_to, :has_one
         klass = options[:through] ? ThroughReflection : AssociationReflection
       when :composed_of
         klass = AggregateReflection
@@ -101,7 +101,7 @@ module ActiveRecord
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>:composed_of</tt>
       # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
-      attr_reader :macro
+      attr_accessor :macro
 
       attr_reader :scope
 
@@ -196,7 +196,7 @@ module ActiveRecord
 
       def initialize(macro, name, scope, options, active_record)
         super
-        @collection = :has_many == macro
+        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
         @automatic_inverse_of = nil
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
@@ -357,7 +357,7 @@ module ActiveRecord
           else
             Associations::BelongsToAssociation
           end
-        when :has_many
+        when :has_many, :has_and_belongs_to_many
           if options[:through]
             Associations::HasManyThroughAssociation
           else
@@ -376,7 +376,7 @@ module ActiveRecord
         options.key? :polymorphic
       end
 
-      VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
+      VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_and_belongs_to_many, :has_one, :belongs_to]
       INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :polymorphic, :foreign_key]
 
       protected

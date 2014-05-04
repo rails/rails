@@ -824,4 +824,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_custom_join_table
     assert_equal 'edges', Vertex.reflect_on_association(:sources).join_table
   end
+
+  def test_habtm_reflection_macro_name
+    reflection = Developer.reflect_on_association(:special_projects)
+    assert_equal :has_and_belongs_to_many, reflection.macro
+  end
 end

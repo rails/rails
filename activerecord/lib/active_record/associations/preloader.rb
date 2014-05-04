@@ -177,7 +177,7 @@ module ActiveRecord
         end
 
         case reflection.macro
-        when :has_many
+        when :has_many, :has_and_belongs_to_many
           reflection.options[:through] ? HasManyThrough : HasMany
         when :has_one
           reflection.options[:through] ? HasOneThrough : HasOne

@@ -1212,6 +1212,9 @@ module ActiveRecord
       #   has_many :subscribers, through: :subscriptions, source: :user
       def has_many(name, scope = nil, options = {}, &extension)
         reflection = Builder::HasMany.build(self, name, scope, options, &extension)
+        if options.fetch(:habtm, false)
+          reflection.macro = :has_and_belongs_to_many
+        end
         Reflection.add_reflection self, name, reflection
       end
 
@@ -1594,6 +1597,7 @@ module ActiveRecord
         hm_options = {}
         hm_options[:through] = middle_reflection.name
         hm_options[:source] = join_model.right_reflection.name
+        hm_options[:habtm] = true
 
         [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table].each do |k|
           hm_options[k] = options[k] if options.key? k
