@@ -71,7 +71,8 @@ module ActiveRecord
       #   column_exists?(:suppliers, :tax, :decimal, precision: 8, scale: 2)
       #
       def column_exists?(table_name, column_name, type = nil, options = {})
-        columns(table_name).any?{ |c| c.name == column_name.to_s &&
+        column_name = column_name.to_s
+        columns(table_name).any?{ |c| c.name == column_name &&
                                       (!type                     || c.type == type) &&
                                       (!options.key?(:limit)     || c.limit == options[:limit]) &&
                                       (!options.key?(:precision) || c.precision == options[:precision]) &&
