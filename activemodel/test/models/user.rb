@@ -5,7 +5,7 @@ class User
   
   define_model_callbacks :create
 
-  has_secure_password
+  has_secure_password validations: { unless: :skip_hsp_validations }
 
-  attr_accessor :password_digest
+  attr_accessor :password_digest, :skip_hsp_validations
 end

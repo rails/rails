@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/with_options'
+
 module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
@@ -56,16 +58,19 @@ module ActiveModel
 
         include InstanceMethodsOnActivation
 
-        if options.fetch(:validations, true)
-          # This ensures the model has a password by checking whether the password_digest
-          # is present, so that this works with both new and existing records. However,
-          # when there is an error, the message is added to the password attribute instead
-          # so that the error message will make sense to the end-user.
-          validate do |record|
-            record.errors.add(:password, :blank) unless record.password_digest.present?
-          end
+        if validation_options = options.fetch(:validations, {})
 
-          validates_confirmation_of :password, if: ->{ password.present? }
+          with_options validation_options do |opt|
+            # This ensures the model has a password by checking whether the password_digest
+            # is present, so that this works with both new and existing records. However,
+            # when there is an error, the message is added to the password attribute instead
+            # so that the error message will make sense to the end-user
+            opt.validate do |record|
+              record.errors.add(:password, :blank) unless record.password_digest.present?
+            end
+
+            opt.validates_confirmation_of :password, if: ->{ password.present? }
+          end
         end
 
         if respond_to?(:attributes_protected_by_default)
