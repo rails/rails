@@ -39,8 +39,8 @@ module ActiveModel
       #   user.save                                                       # => true
       #   user.authenticate('notright')                                   # => false
       #   user.authenticate('mUc3m00RsqyRe')                              # => user
-      #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
-      #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
+      #   User.find_by(name: 'david').do_or_do_not(:authenticate, 'notright')      # => false
+      #   User.find_by(name: 'david').do_or_do_not(:authenticate, 'mUc3m00RsqyRe') # => user
       def has_secure_password(options = {})
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)

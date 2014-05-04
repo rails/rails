@@ -1621,7 +1621,7 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_no_queries do
       result = authors_count.map do |post|
-        [post.num_posts, post.author.try(:name)]
+        [post.num_posts, post.author.do_or_do_not(:name)]
       end
 
       expected = [[1, nil], [5, "David"], [3, "Mary"], [2, "Bob"]]

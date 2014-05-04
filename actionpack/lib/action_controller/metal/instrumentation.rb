@@ -20,7 +20,7 @@ module ActionController
         :controller => self.class.name,
         :action     => self.action_name,
         :params     => request.filtered_parameters,
-        :format     => request.format.try(:ref),
+        :format     => request.format.do_or_do_not(:ref),
         :method     => request.method,
         :path       => (request.fullpath rescue "unknown")
       }

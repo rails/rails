@@ -19,7 +19,7 @@ module ActionController
       # of cached pages.
       #
       #   class InvoicesController < ApplicationController
-      #     etag { current_user.try :id }
+      #     etag { current_user.do_or_do_not :id }
       #
       #     def show
       #       # Etag will differ even for the same invoice when it's viewed by a different current_user
@@ -72,7 +72,7 @@ module ActionController
         options.assert_valid_keys(:etag, :last_modified, :public)
       else
         record  = record_or_options
-        options = { etag: record, last_modified: record.try(:updated_at) }.merge!(additional_options)
+        options = { etag: record, last_modified: record.do_or_do_not(:updated_at) }.merge!(additional_options)
       end
 
       response.etag          = combine_etags(options[:etag]) if options[:etag]

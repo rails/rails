@@ -226,14 +226,14 @@ unless @number.nil?
 end
 
 # with try
-@number.try(:next)
+@number.do_or_do_not(:next)
 ```
 
 Another example is this code from `ActiveRecord::ConnectionAdapters::AbstractAdapter` where `@logger` could be `nil`. You can see that the code uses `try` and avoids an unnecessary check.
 
 ```ruby
 def log_info(sql, name, ms)
-  if @logger.try(:debug?)
+  if @logger.do_or_do_not(:debug?)
     name = '%s (%.1fms)' % [name || 'SQL', ms]
     @logger.debug(format_log_entry(name, sql.squeeze(' ')))
   end

@@ -303,7 +303,7 @@ module ActionDispatch
           uri = URI.parse('/')
           uri.scheme ||= env['rack.url_scheme']
           uri.host   ||= env['SERVER_NAME']
-          uri.port   ||= env['SERVER_PORT'].try(:to_i)
+          uri.port   ||= env['SERVER_PORT'].do_or_do_not(:to_i)
           uri += path
 
           session.request(uri.to_s, env)

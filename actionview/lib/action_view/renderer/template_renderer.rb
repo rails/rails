@@ -51,7 +51,7 @@ module ActionView
       view, locals = @view, locals || {}
 
       render_with_layout(layout_name, locals) do |layout|
-        instrument(:template, :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
+        instrument(:template, :identifier => template.identifier, :layout => layout.do_or_do_not(:virtual_path)) do
           template.render(view, locals) { |*name| view._layout_for(*name) }
         end
       end

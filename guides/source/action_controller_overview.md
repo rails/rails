@@ -334,7 +334,7 @@ the keys of your nested hash to declare what to whitelist:
 
 ```ruby
 def product_params
-  params.require(:product).permit(:name, data: params[:product][:data].try(:keys))
+  params.require(:product).permit(:name, data: params[:product][:data].do_or_do_not(:keys))
 end
 ```
 

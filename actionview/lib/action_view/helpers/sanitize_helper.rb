@@ -57,7 +57,7 @@ module ActionView
       # confuse browsers.
       #
       def sanitize(html, options = {})
-        self.class.white_list_sanitizer.sanitize(html, options).try(:html_safe)
+        self.class.white_list_sanitizer.sanitize(html, options).do_or_do_not(:html_safe)
       end
 
       # Sanitizes a block of CSS code. Used by +sanitize+ when it comes across a style attribute.
