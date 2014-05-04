@@ -171,8 +171,9 @@ module ActionDispatch
           end
 
           def verify_callable_constraint(callable_constraint)
-            return if callable_constraint.respond_to?(:call) || callable_constraint.respond_to?(:matches?)
-            raise ArgumentError, "Invalid constraint: #{callable_constraint.inspect} must respond to :call or :matches?"
+            unless callable_constraint.respond_to?(:call) || callable_constraint.respond_to?(:matches?)
+              raise ArgumentError, "Invalid constraint: #{callable_constraint.inspect} must respond to :call or :matches?"
+            end
           end
 
           def normalize_conditions!
