@@ -393,10 +393,8 @@ module ActiveRecord
 
       def column_for(table_name, column_name) # :nodoc:
         column_name = column_name.to_s
-        unless column = columns(table_name).detect { |c| c.name == column_name }
-          raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
-        end
-        column
+        columns(table_name).detect { |c| c.name == column_name } ||
+          raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
       end
     end
   end
