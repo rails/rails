@@ -1,3 +1,13 @@
+*   Fixed backward compatibility isues introduced in 326e652.
+
+    Empty Hash or Array should not present in serialization result.
+
+        {a: []}.to_query # => ""
+        {a: {}}.to_query # => ""
+
+    For more info see #14948.
+
+    *Bogdan Gusiev*
 *   Fixed `ActiveSupport::Duration#eql?` so that `1.second.eql?(1.second)` is
     true.
 
