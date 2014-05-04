@@ -114,7 +114,7 @@ module ActionView
     module ViewPaths
       attr_reader :view_paths, :html_fallback_for_js
 
-      # Whenever setting view paths, makes a copy so we can manipulate then in
+      # Whenever setting view paths, makes a copy so that we can manipulate them in
       # instance objects as we wish.
       def view_paths=(paths)
         @view_paths = ActionView::PathSet.new(Array(paths))
@@ -134,7 +134,8 @@ module ActionView
       end
       alias :template_exists? :exists?
 
-      # Add fallbacks to the view paths. Useful in cases you are rendering a :file.
+      # Adds fallbacks to the view paths. Useful in cases when you are rendering
+      # a :file.
       def with_fallbacks
         added_resolvers = 0
         self.class.fallbacks.each do |resolver|
@@ -227,7 +228,7 @@ module ActionView
     end
 
     # Overload locale= to also set the I18n.locale. If the current I18n.config object responds
-    # to original_config, it means that it's has a copy of the original I18n configuration and it's
+    # to original_config, it means that it has a copy of the original I18n configuration and it's
     # acting as proxy, which we need to skip.
     def locale=(value)
       if value
@@ -238,7 +239,7 @@ module ActionView
       super(@skip_default_locale ? I18n.locale : default_locale)
     end
 
-    # A method which only uses the first format in the formats array for layout lookup.
+    # Uses the first format in the formats array for layout lookup.
     def with_layout_format
       if formats.size == 1
         yield
