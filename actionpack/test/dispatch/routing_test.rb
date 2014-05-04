@@ -4111,6 +4111,21 @@ class TestFormatConstraints < ActionDispatch::IntegrationTest
   end
 end
 
+class TestCallableConstraintValidation < ActionDispatch::IntegrationTest
+
+  def test_constraint_with_object_not_callable
+    assert_raise(ArgumentError) do
+      ActionDispatch::Routing::RouteSet.new.tap do |app|
+        app.draw do
+          ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+          get '/test', to: ok, constraints: Object.new
+        end
+      end
+    end
+  end
+
+end
+
 class TestRouteDefaults < ActionDispatch::IntegrationTest
   stub_controllers do |routes|
     Routes = routes
