@@ -35,7 +35,18 @@ module ActiveRecord
       private
 
         def count_records
-          load_target.size
+          count = if options[:counter_sql] || options[:finder_sql]
+            reflection.klass.count_by_sql(custom_counter_sql)
+          else
+            scope.count
+          end
+
+          # If there's nothing in the database and @target has no new records
+          # we are certain the current target is an empty array. This is a
+          # documented side-effect of the method that may avoid an extra SELECT.
+          @target ||= [] && loaded! if count == 0
+
+          [association_scope.limit_value, count].compact.min
         end
 
         def delete_records(records, method)
@@ -45,6 +56,13 @@ module ActiveRecord
           else
             relation  = join_table
             condition = relation[reflection.foreign_key].eq(owner.id)
+
+            if reflection.scope
+              condition = condition.and(
+                relation[reflection.association_foreign_key]
+                  .in(self.scope.pluck(:id))
+              )
+            end
 
             unless records == :all
               condition = condition.and(

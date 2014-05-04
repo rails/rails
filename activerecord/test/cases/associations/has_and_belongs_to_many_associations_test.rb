@@ -271,6 +271,16 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
   end
 
+  def test_size_after_build_and_unloaded
+    devel = Developer.create(name: "no name")
+    proj = devel.projects.build("name" => "Projekt")
+    assert !devel.projects.loaded?
+
+    assert_equal 1, devel.projects.size
+    assert_equal devel.projects.last, proj
+    assert devel.projects.loaded?
+  end
+
   def test_create
     devel = Developer.find(1)
     proj = devel.projects.create("name" => "Projekt")
@@ -491,6 +501,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal developers(:david), projects(:active_record).developers_named_david_with_hash_conditions.find(developers(:david).id)
     assert_equal developers(:david), projects(:active_record).salaried_developers.find(developers(:david).id)
 
+    projects(:active_record).developers_named_david.clear
+    assert_equal 2, projects(:active_record, :reload).developers.size
+  end
+
+  def test_unloaded_associations_with_conditions
+    assert !projects(:active_record).developers_named_david.loaded?
     projects(:active_record).developers_named_david.clear
     assert_equal 2, projects(:active_record, :reload).developers.size
   end

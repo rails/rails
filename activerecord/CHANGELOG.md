@@ -2977,4 +2977,40 @@
 
     *Aaron Patterson*
 
+*   Fix wrong size result after built has_and_belongs_to_many association and
+    kept the assciation unloaded. GH#14914
+
+        class User < ActiveRecord::Base
+            has_and_belongs_to_many :comments
+        end
+
+        class Comment < ActiveRecord::Base
+            has_and_belongs_to_many :users
+        end
+
+        user = User.create
+        user.comments.build
+
+        user.comments.size                  # should be 1
+
+    *Xiang Li*
+
+*   Fix wrong `clear` behavior when has_and_belongs_to_many association has 
+    scopes and hasn't been loaded.
+
+        class User < ActiveRecord::Base
+            has_and_belongs_to_many :comments
+            has_and_belongs_to_many :scoped_comments, 
+              -> { where(attr: 'attr') }
+        end
+
+        class Comment < ActiveRecord::Base
+            has_and_belongs_to_many :users
+        end
+
+        User.first.scoped_comments.clear    # should delete scoped comments only
+
+    *Xiang Li*
+
+
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
