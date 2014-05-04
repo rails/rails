@@ -45,6 +45,12 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal ["can't be blank"], @user.errors[:password]
   end
 
+  test "create a new user with validation and a nil password when validation condition is not satisfied"  do
+    @user.password = nil
+    @user.skip_hsp_validations = true
+    assert @user.valid?(:create), 'user should be valid'
+  end
+
   test "create a new user with validation and a blank password confirmation" do
     @user.password = 'password'
     @user.password_confirmation = ''
@@ -65,6 +71,13 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert !@user.valid?(:create), 'user should be invalid'
     assert_equal 1, @user.errors.count
     assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
+  end
+
+  test "create a new user with validation and an incorrect password confirmation when validation condition is not satisfied" do
+    @user.password = 'password'
+    @user.password_confirmation = 'something else'
+    @user.skip_hsp_validations = true
+    assert @user.valid?(:create), 'user should be valid'
   end
 
   test "create a new user with validation and a correct password confirmation" do
