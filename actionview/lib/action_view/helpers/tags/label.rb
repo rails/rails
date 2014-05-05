@@ -35,9 +35,9 @@ module ActionView
           if block_given?
             content = @template_object.capture(&block)
           else
+            method_and_value = tag_value.present? ? "#{@method_name}.#{tag_value}" : @method_name
             content = if @content.blank?
                         @object_name.gsub!(/\[(.*)_attributes\]\[\d+\]/, '.\1')
-                        method_and_value = tag_value.present? ? "#{@method_name}.#{tag_value}" : @method_name
 
                         if object.respond_to?(:to_model)
                           key = object.class.model_name.i18n_key
@@ -51,7 +51,7 @@ module ActionView
                       end
 
             content ||= if object && object.class.respond_to?(:human_attribute_name)
-                          object.class.human_attribute_name(@method_name)
+                          object.class.human_attribute_name(method_and_value)
                         end
 
             content ||= @method_name.humanize

@@ -1,3 +1,23 @@
+* Take label values into account when doing I18n lookups for model attributes.
+
+    The following:
+
+        # form.html.erb
+        <%= form_for @post do |f| %>
+          <%= f.label :type, value: "long" %>
+        <% end %>
+
+        # en.yml
+        en:
+          activerecord:
+            attributes:
+              post/long: "Long-form Post"
+
+    Used to simply return "long", but now it will return "Long-form
+    Post".
+
+    *Joshua Cody*
+
 *   Change `asset_path` to use File.join to create proper paths:
 
         https://some.host.com//assets/some.js
