@@ -32,7 +32,7 @@ module ActiveRecord
       :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
       :map, :none?, :one?, :partition, :reject, :reverse,
       :sample, :second, :sort, :sort_by, :third,
-      :to_ary, :to_set, :to_xml, :to_yaml
+      :to_ary, :to_set, :to_xml, :to_yaml, :join
     ]
 
     ARRAY_DELEGATES.each do |method|
