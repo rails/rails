@@ -26,6 +26,10 @@ class Comment < ActiveRecord::Base
     all
   end
   scope :all_as_scope, -> { all }
+
+  def to_s
+    body
+  end
 end
 
 class SpecialComment < Comment
