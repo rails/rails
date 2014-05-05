@@ -1,3 +1,10 @@
+*   Add support for module-level `table_name_suffix` in models.
+
+    This makes `table_name_suffix` work the same way as `table_name_prefix` when
+    using namespaced models.
+
+    *Jenner LaFave*
+
 *   Revert the behaviour of `ActiveRecord::Relation#join` changed through 4.0 => 4.1 to 4.0.
 
     In 4.1.0 `Relation#join` is delegated to `Arel#SelectManager`.

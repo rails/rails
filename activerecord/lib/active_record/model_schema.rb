@@ -29,6 +29,10 @@ module ActiveRecord
       # :singleton-method:
       # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
       # "people_basecamp"). By default, the suffix is the empty string.
+      #
+      # If you are organising your models within modules, you can add a suffix to the models within
+      # a namespace by defining a singleton method in the parent module called table_name_suffix which
+      # returns your chosen suffix.
       class_attribute :table_name_suffix, instance_writer: false
       self.table_name_suffix = ""
 
@@ -151,6 +155,10 @@ module ActiveRecord
 
       def full_table_name_prefix #:nodoc:
         (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
+      end
+
+      def full_table_name_suffix #:nodoc:
+        (parents.detect {|p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
       # Defines the name of the table column which will store the class name on single-table
@@ -337,7 +345,8 @@ module ActiveRecord
             contained = contained.singularize if parent.pluralize_table_names
             contained += '_'
           end
-          "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{table_name_suffix}"
+
+          "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
         else
           # STI subclasses always use their superclass' table.
           base.table_name

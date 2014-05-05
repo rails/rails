@@ -112,6 +112,34 @@ class ModulesTest < ActiveRecord::TestCase
     classes.each(&:reset_table_name)
   end
 
+  def test_module_table_name_suffix
+    assert_equal 'companies_suffixed', MyApplication::Business::Suffixed::Company.table_name, 'inferred table_name for ActiveRecord model in module with table_name_suffix'
+    assert_equal 'companies_suffixed', MyApplication::Business::Suffixed::Nested::Company.table_name, 'table_name for ActiveRecord model in nested module with a parent table_name_suffix'
+    assert_equal 'companies', MyApplication::Business::Suffixed::Firm.table_name, 'explicit table_name for ActiveRecord model in module with table_name_suffix should not be suffixed'
+  end
+
+  def test_module_table_name_suffix_with_global_suffix
+    classes = [ MyApplication::Business::Company,
+                MyApplication::Business::Firm,
+                MyApplication::Business::Client,
+                MyApplication::Business::Client::Contact,
+                MyApplication::Business::Developer,
+                MyApplication::Business::Project,
+                MyApplication::Business::Suffixed::Company,
+                MyApplication::Business::Suffixed::Nested::Company,
+                MyApplication::Billing::Account ]
+
+    ActiveRecord::Base.table_name_suffix = '_global'
+    classes.each(&:reset_table_name)
+    assert_equal 'companies_global', MyApplication::Business::Company.table_name, 'inferred table_name for ActiveRecord model in module without table_name_suffix'
+    assert_equal 'companies_suffixed', MyApplication::Business::Suffixed::Company.table_name, 'inferred table_name for ActiveRecord model in module with table_name_suffix'
+    assert_equal 'companies_suffixed', MyApplication::Business::Suffixed::Nested::Company.table_name, 'table_name for ActiveRecord model in nested module with a parent table_name_suffix'
+    assert_equal 'companies', MyApplication::Business::Suffixed::Firm.table_name, 'explicit table_name for ActiveRecord model in module with table_name_suffix should not be suffixed'
+  ensure
+    ActiveRecord::Base.table_name_suffix = ''
+    classes.each(&:reset_table_name)
+  end
+
   def test_compute_type_can_infer_class_name_of_sibling_inside_module
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true
