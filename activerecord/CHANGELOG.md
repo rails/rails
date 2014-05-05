@@ -1,7 +1,7 @@
-*   Revert the behaviour of AR::Relation#join changed through 4.0 => 4.1 to 4.0
+*   Revert the behaviour of `ActiveRecord::Relation#join` changed through 4.0 => 4.1 to 4.0.
 
-    In 4.1.0 Relation#join is delegated to Arel#SelectManager.
-    In 4.0 series it is delegated to Array#join
+    In 4.1.0 `Relation#join` is delegated to `Arel#SelectManager`.
+    In 4.0 series it is delegated to `Array#join`.
 
     *Bogdan Gusiev*
 
