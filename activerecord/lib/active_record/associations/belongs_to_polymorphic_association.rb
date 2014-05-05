@@ -14,8 +14,7 @@ module ActiveRecord
       private
 
         def previous_klass
-          type = owner.attribute_was(reflection.foreign_type)
-          type.presence && type.constantize
+          owner.attribute_was(reflection.foreign_type).try(:constantize)
         end
 
         def replace_keys(record)

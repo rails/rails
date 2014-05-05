@@ -143,19 +143,22 @@ module ActiveRecord
       end
 
       def _update_record(*)
-        affected_rows = super
-
         each_counter_cached_associations do |association|
-          if affected_rows > 0 && association.changed? && !new_record?
-            foreign_key_was = attribute_was(association.reflection.foreign_key)
-            foreign_key     = attribute(association.reflection.foreign_key)
+          if association.changed? && !new_record?
+            column = association.reflection.foreign_key
+            foreign_key_was = attribute_was(column)
+            foreign_key = attribute(column)
 
-            association.increment_counters if foreign_key
-            association.decrement_previous_counters if foreign_key_was
+            affected_rows = self.class.where(id: id, column => foreign_key_was).update_all(column => foreign_key)
+            
+            if affected_rows > 0
+              association.increment_counters if foreign_key
+              association.decrement_previous_counters if foreign_key_was
+            end
           end
         end
 
-        affected_rows
+        super
       end
 
       def destroy_row
