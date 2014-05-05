@@ -1,3 +1,8 @@
+## Rails 4.0.5 (May 5, 2014) ##
+
+*No changes*
+
+
 ## Rails 4.0.4 (March 14, 2014) ##
 
 *   Added Thor-action for creation of migrations.

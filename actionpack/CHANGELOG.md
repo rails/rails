@@ -1,3 +1,14 @@
+## Rails 4.0.5 (May 5, 2014) ##
+
+*   Only accept actions without File::SEPARATOR in the name.
+
+    This will avoid directory traversal in implicit render.
+
+    Fixes: CVE-2014-0130
+
+    *Rafael Mendonça França*
+
+
 ## Rails 4.0.4 (March 14, 2014) ##
 
 *   Fix label translation for more than 10 nested elements.
