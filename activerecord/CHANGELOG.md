@@ -1,3 +1,10 @@
+## Rails 4.1.1 (May 6, 2014) ##
+
+*   No changes.
+
+
+## Rails 4.1.0 (April 8, 2014) ##
+
 *   Fixed a problem where an enum would overwrite values of another enum
     with the same name in an unrelated class.
 

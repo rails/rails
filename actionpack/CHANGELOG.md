@@ -1,3 +1,16 @@
+## Rails 4.1.1 (May 6, 2014) ##
+
+*   Only accept actions without File::SEPARATOR in the name.
+
+    This will avoid directory traversal in implicit render.
+
+    Fixes: CVE-2014-0130
+
+    *Rafael Mendonça França*
+
+
+## Rails 4.1.0 (April 8, 2014) ##
+
 *   Swapped the parameters of assert_equal in `assert_select` so that the
     proper values were printed correctly
 
