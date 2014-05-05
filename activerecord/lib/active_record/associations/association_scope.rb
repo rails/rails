@@ -47,15 +47,8 @@ module ActiveRecord
       def self.get_bind_values(owner, chain)
         bvs = []
         chain.each_with_index do |reflection, i|
-          if reflection.source_macro == :belongs_to
-            foreign_key = reflection.foreign_key
-          else
-            foreign_key = reflection.active_record_primary_key
-          end
-
           if reflection == chain.last
-            bvs << owner[foreign_key]
-
+            bvs << reflection.join_id_for(owner)
             if reflection.type
               bvs << owner.class.base_class.name
             end
