@@ -1677,4 +1677,8 @@ class RelationTest < ActiveRecord::TestCase
     merged = left.merge(right)
     assert_equal post, merged.first
   end
+
+  def test_relation_join_method
+    assert_equal 'Thank you for the welcome,Thank you again for the welcome', Post.first.comments.join(",")
+  end
 end
