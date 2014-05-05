@@ -94,4 +94,9 @@
 
     *Tony Wooster*
 
+*   Fix URL generation with :trailing_slash such that it does not add 
+    a trailing slash after  `.:format`
+
+    *Dan Langevin*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionpack/CHANGELOG.md) for previous changes.
