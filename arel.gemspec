@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
-# stub: arel 5.0.0.20140412150050 ruby lib
+# stub: arel 6.0.0.20140505020427 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "arel"
-  s.version = "5.0.0.20140412150050"
+  s.version = "6.0.0.20140505020427"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib"]
   s.authors = ["Aaron Patterson", "Bryan Helmkamp", "Emilio Tagua", "Nick Kallen"]
-  s.date = "2014-04-12"
+  s.date = "2014-05-05"
   s.description = "Arel Really Exasperates Logicians\n\nArel is a SQL AST manager for Ruby. It\n\n1. Simplifies the generation of complex SQL queries\n2. Adapts to various RDBMSes\n\nIt is intended to be a framework framework; that is, you can build your own ORM\nwith it, focusing on innovative object and collection modeling as opposed to\ndatabase compatibility and query generation."
   s.email = ["aaron@tenderlovemaking.com", "bryan@brynary.com", "miloops@gmail.com", "nick@example.org"]
   s.extra_rdoc_files = ["History.txt", "MIT-LICENSE.txt", "Manifest.txt", "README.markdown"]
