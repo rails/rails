@@ -194,7 +194,7 @@ module ActiveRecord
                       options[:dependent]
                     end
 
-        delete_all_with_dependency(dependent).tap do
+        delete_records(:all, dependent).tap do
           reset
           loaded!
         end
@@ -249,14 +249,6 @@ module ActiveRecord
 
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
         delete_or_destroy(records, dependent)
-      end
-
-      def delete_all_with_dependency(dependent)
-        if dependent == :destroy
-          delete_or_destroy(load_target, dependent)
-        else
-          delete_records(:all, dependent)
-        end
       end
 
       # Deletes the +records+ and removes them from this association calling
