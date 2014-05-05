@@ -103,7 +103,7 @@ module ActiveRecord::Associations::Builder
         BelongsTo.touch_record(record, foreign_key, n, touch)
       }
 
-      model.after_save    callback
+      model.after_save    callback, if: :changed?
       model.after_touch   callback
       model.after_destroy callback
     end

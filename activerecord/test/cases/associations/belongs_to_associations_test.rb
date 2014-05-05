@@ -369,6 +369,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(2) { line_item.update amount: 10 }
   end
 
+  def test_belongs_to_with_touch_option_on_empty_update
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(0) { line_item.save }
+  end
+
   def test_belongs_to_with_touch_option_on_destroy
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
