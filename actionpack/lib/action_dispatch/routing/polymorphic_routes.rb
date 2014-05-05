@@ -133,25 +133,60 @@ module ActionDispatch
         end
 
 
-        record = convert_to_model(record_list.pop)
-        args.pop
+        record = record_list.pop
 
         inflection = nil
 
-        if options[:action] && options[:action].to_s == "new"
+        should_pop = true
+        if record.try(:persisted?)
+          should_pop = false
           inflection = :singular
-        elsif (record.respond_to?(:persisted?) && !record.persisted?)
-          inflection = :plural
-        elsif record.is_a?(Class)
-          inflection = :plural
+        elsif options[:action] == 'new'
+          should_pop = true
+          inflection = :singular
         else
-          args << record
-          inflection = :singular
+          should_pop = true
+          inflection = :plural
         end
 
-        args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
+        record = record.respond_to?(:to_model) ? record.to_model : record
 
-        named_route = build_named_route_call(record_list, record, inflection, options)
+        #if options[:action] && options[:action].to_s == "new"
+        #  inflection = :singular
+        #elsif (record.respond_to?(:persisted?) && !record.persisted?)
+        #  inflection = :plural
+        #elsif record.is_a?(Class)
+        #  inflection = :plural
+        #else
+        #  args << record
+        #  inflection = :singular
+        #end
+
+        route  = record_list.map { |parent|
+          if parent.is_a?(Symbol) || parent.is_a?(String)
+            parent.to_s
+          else
+            model_name_from_record_or_class(parent).singular_route_key
+          end
+        }
+
+        route <<
+          if record.is_a?(Symbol) || record.is_a?(String)
+            record.to_s
+          else
+            if inflection == :singular
+              model_name_from_record_or_class(record).singular_route_key
+            else
+              model_name_from_record_or_class(record).route_key
+            end
+          end
+
+        route << routing_type(options)
+
+        named_route = action_prefix(options) + route.join("_")
+
+        args.pop if should_pop
+        args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
 
         args.collect! { |a| convert_to_model(a) }
 
@@ -199,15 +234,6 @@ module ActionDispatch
               model_name_from_record_or_class(record).route_key
             end
           end
-        end
-
-        def build_named_route_call(records, record, inflection, options)
-          route  = records.map { |parent| build_route_part parent, :singular }
-
-          route << build_route_part(record, inflection)
-          route << routing_type(options)
-
-          action_prefix(options) + route.join("_")
         end
     end
   end
