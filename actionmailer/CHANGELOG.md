@@ -1,4 +1,4 @@
-## Rails 4.0.5 (May 5, 2014) ##
+## Rails 4.0.5 (May 6, 2014) ##
 
 *No changes*
 
