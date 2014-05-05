@@ -167,10 +167,6 @@ class Post < ActiveRecord::Base
     return @log if message.nil?
     @log << [message, side, new_record]
   end
-
-  def self.what_are_you
-    'a post...'
-  end
 end
 
 class SpecialPost < Post; end
