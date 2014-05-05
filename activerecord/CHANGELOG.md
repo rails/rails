@@ -1,3 +1,9 @@
+*   Fixed the inferred table name of a HABTM auxiliar table inside a schema.
+
+    Fixes #14824
+
+    *Eric Chahin*
+
 *   Revert the behaviour of `ActiveRecord::Relation#join` changed through 4.0 => 4.1 to 4.0.
 
     In 4.1.0 `Relation#join` is delegated to `Arel#SelectManager`.

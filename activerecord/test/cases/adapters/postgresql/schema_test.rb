@@ -77,7 +77,7 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_schema_names
-    assert_equal ["public", "schema_1", "test_schema", "test_schema2"], @connection.schema_names
+    assert_equal ["music", "public", "schema_1", "test_schema", "test_schema2"], @connection.schema_names
   end
 
   def test_create_schema
@@ -390,4 +390,43 @@ class SchemaTest < ActiveRecord::TestCase
       assert_equal this_index_column, this_index.columns[0]
       assert_equal this_index_name, this_index.name
     end
+end
+
+class Music < ActiveRecord::TestCase
+  ActiveRecord::Schema.define do
+    execute 'DROP SCHEMA IF EXISTS music CASCADE;'
+    execute 'CREATE SCHEMA music;'
+    execute 'SET search_path TO music'
+    create_table :albums do |t|
+    end
+
+    create_table :songs do |t|
+    end
+
+    create_table :albums_songs do |t|
+      t.belongs_to :album
+      t.belongs_to :song
+    end
+    execute 'SET search_path TO public'
+  end
+
+  class Song < ActiveRecord::Base
+    self.table_name = "music.songs"
+    has_and_belongs_to_many :albums
+  end
+
+  class Album < ActiveRecord::Base
+    self.table_name = "music.albums"
+    has_and_belongs_to_many :songs
+  end
+
+  teardown do
+    ActiveRecord::Base.connection.execute "DROP SCHEMA music CASCADE;"
+  end
+
+  def test_habtm_table_name_with_schema
+    song = Music::Song.create
+    album = Music::Album.create
+    assert_equal song, Music::Song.includes(:albums).references(:albums).first
+  end
 end
