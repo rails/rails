@@ -135,17 +135,13 @@ module ActionDispatch
 
         record = record_list.pop
 
-        inflection = nil
-
+        inflection = :singular
         should_pop = true
+
         if record.try(:persisted?)
           should_pop = false
-          inflection = :singular
         elsif options[:action] == 'new'
-          should_pop = true
-          inflection = :singular
         else
-          should_pop = true
           inflection = :plural
         end
 
