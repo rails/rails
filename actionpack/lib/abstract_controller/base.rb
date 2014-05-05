@@ -125,9 +125,9 @@ module AbstractController
     # ==== Returns
     # * <tt>self</tt>
     def process(action, *args)
-      @_action_name = action_name = action.to_s
+      @_action_name = action.to_s
 
-      unless action_name = method_for_action(action_name)
+      unless action_name = method_for_action(@_action_name)
         raise ActionNotFound, "The action '#{action}' could not be found for #{self.class.name}"
       end
 
