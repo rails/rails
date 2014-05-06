@@ -133,11 +133,9 @@ module ActionDispatch
         end
 
         inflection = lambda { |name| name.singular_route_key }
-        should_pop = true
 
         if options[:action] == 'new'
         elsif record.try(:persisted?)
-          should_pop = false
         else
           inflection = lambda { |name| name.route_key }
         end
@@ -162,10 +160,9 @@ module ActionDispatch
           when Symbol, String
             record.to_s
           when Class
-            args << record unless should_pop
             inflection.call record.model_name
           else
-            args << record.to_model unless should_pop
+            args << record.to_model if record.persisted?
             inflection.call record.to_model.class.model_name
           end
 
