@@ -19,6 +19,9 @@ class FormHelperTest < ActionView::TestCase
         attributes: {
           post: {
             cost: "Total cost"
+          },
+          :"post/language" => {
+            spanish: "Espanol"
           }
         }
       },
@@ -151,6 +154,12 @@ class FormHelperTest < ActionView::TestCase
   def test_label_with_human_attribute_name
     with_locale :label do
       assert_dom_equal('<label for="post_cost">Total cost</label>', label(:post, :cost))
+    end
+  end
+
+  def test_label_with_human_attribute_name_and_options
+    with_locale :label do
+      assert_dom_equal('<label for="post_language_spanish">Espanol</label>', label(:post, :language, value: "spanish"))
     end
   end
 
