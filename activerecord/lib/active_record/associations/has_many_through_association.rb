@@ -72,7 +72,7 @@ module ActiveRecord
           @through_association ||= owner.association(through_reflection.name)
         end
 
-        # We temporarily cache through record that has been build, because if we build a
+        # We temporarily cache through record that has been built, because if we build a
         # through record in build_record and then subsequently call insert_record, then we
         # want to use the exact same object.
         #
