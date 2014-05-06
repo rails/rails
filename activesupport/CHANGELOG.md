@@ -10,6 +10,11 @@
     *Peter Jaros*
 
 
+## Rails 4.0.5 (May 6, 2014) ##
+
+*No changes*
+
+
 ## Rails 4.0.4 (March 14, 2014) ##
 
 *   Fix parsing bugs in `XmlMini`
