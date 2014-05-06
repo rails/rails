@@ -114,7 +114,6 @@ module ActionDispatch
             recipient = record_or_hash_or_array.shift
           end
 
-          args        = record_or_hash_or_array.dup
           record_list = record_or_hash_or_array.dup
         when Hash
           unless record_or_hash_or_array[:id]
@@ -122,16 +121,13 @@ module ActionDispatch
           end
 
           opts        = record_or_hash_or_array.dup.merge!(opts)
-          args        = [opts.delete(:id)]
-          record_list = args.dup
+          record_list = [opts.delete(:id)]
         when nil
           raise ArgumentError, "Nil location provided. Can't build URI."
         else
 
-          args        = [record_or_hash_or_array]
           record_list = [record_or_hash_or_array]
         end
-
 
         record = record_list.pop
 
