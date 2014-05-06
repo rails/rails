@@ -309,10 +309,10 @@ into the database. There are several methods that you can use to check your
 models and validate that an attribute value is not empty, is unique and not
 already in the database, follows a specific format and many more.
 
-Validation is a very important issue to consider when persisting to database, so
+Validation is a very important issue to consider when persisting to the database, so
 the methods `create`, `save` and `update` take it into account when
 running: they return `false` when validation fails and they didn't actually
-perform any operation on database. All of these have a bang counterpart (that
+perform any operation on the database. All of these have a bang counterpart (that
 is, `create!`, `save!` and `update!`), which are stricter in that
 they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
 A quick example to illustrate:
