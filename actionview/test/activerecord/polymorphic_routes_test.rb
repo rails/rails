@@ -156,6 +156,21 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_new_record_arguments
+    params = nil
+    extend Module.new {
+      define_method("projects_url") { |*args|
+        params = args
+        super(*args)
+      }
+    }
+
+    with_test_routes do
+      assert_equal "http://example.com/projects", polymorphic_url(@project)
+      assert_equal [], params
+    end
+  end
+
   def test_with_destroyed_record
     with_test_routes do
       @project.destroy
