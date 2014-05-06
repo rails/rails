@@ -13,6 +13,11 @@
     *Konstantin Shabanov*
 
 
+## Rails 4.1.1 (May 6, 2014) ##
+
+*   No changes.
+
+
 ## Rails 4.1.0 (April 8, 2014) ##
 
 *   Introduce `Rails.gem_version` as a convenience method to return

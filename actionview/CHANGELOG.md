@@ -19,6 +19,11 @@
     *Izumi Wong-Horiuchi*
 
 
+## Rails 4.1.1 (May 6, 2014) ##
+
+*   No changes.
+
+
 ## Rails 4.1.0 (April 8, 2014) ##
 
 *   Fixed ActionView::Digestor template lookup to use the lookup_context exclusively, and not rely on the passed-in format.

@@ -1,3 +1,8 @@
+## Rails 4.1.1 (May 6, 2014) ##
+
+*   No changes.
+
+
 ## Rails 4.1.0 (April 8, 2014) ##
 
 *   Support the use of underscored symbols when registering interceptors and
