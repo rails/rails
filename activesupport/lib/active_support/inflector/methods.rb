@@ -99,26 +99,46 @@ module ActiveSupport
       word
     end
 
-    # Capitalizes the first word, turns underscores into spaces, and strips a
-    # trailing '_id' if present.
-    # Like +titleize+, this is meant for creating pretty output.
+    # Tweaks an attribute name for display to end users.
+    #
+    # Specifically, +humanize+ performs these transformations:
+    #
+    #   * Applies human inflection rules to the argument.
+    #   * Deletes leading underscores, if any.
+    #   * Removes a "_id" suffix if present.
+    #   * Replaces underscores with spaces, if any.
+    #   * Downcases all words except acronyms.
+    #   * Capitalizes the first word.
     #
     # The capitalization of the first word can be turned off by setting the
-    # optional parameter +capitalize+ to false.
-    # By default, this parameter is true.
+    # +:capitalize+ option to false (default is true).
     #
     #   humanize('employee_salary')              # => "Employee salary"
     #   humanize('author_id')                    # => "Author"
     #   humanize('author_id', capitalize: false) # => "author"
+    #   humanize('_id')                          # => "Id"
+    #
+    # If "SSL" was defined to be an acronym:
+    #
+    #   humanize('ssl_error') # => "SSL error"
+    #
     def humanize(lower_case_and_underscored_word, options = {})
       result = lower_case_and_underscored_word.to_s.dup
+
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
-      result.gsub!(/_id$/, "")
+
+      result.sub!(/\A_+/, '')
+      result.sub!(/_id\z/, '')
       result.tr!('_', ' ')
-      result.gsub!(/([a-z\d]*)/i) { |match|
+
+      result.gsub!(/([a-z\d]*)/i) do |match|
         "#{inflections.acronyms[match] || match.downcase}"
-      }
-      result.gsub!(/^\w/) { |match| match.upcase } if options.fetch(:capitalize, true)
+      end
+
+      if options.fetch(:capitalize, true)
+        result.sub!(/\A\w/) { |match| match.upcase }
+      end
+
       result
     end
 

@@ -1768,21 +1768,36 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `humanize`
 
-The method `humanize` gives you a sensible name for display out of an attribute name. To do so it replaces underscores with spaces, removes any "_id" suffix, and capitalizes the first word:
+The method `humanize` tqweaks an attribute name for display to end users.
+
+Specifically performs these transformations:
+
+  * Applies human inflection rules to the argument.
+  * Deletes leading underscores, if any.
+  * Removes a "_id" suffix if present.
+  * Replaces underscores with spaces, if any.
+  * Downcases all words except acronyms.
+  * Capitalizes the first word.
+
+The capitalization of the first word can be turned off by setting the
++:capitalize+ option to false (default is true).
 
 ```ruby
-"name".humanize           # => "Name"
-"author_id".humanize      # => "Author"
-"comments_count".humanize # => "Comments count"
-```
-
-The capitalization of the first word can be turned off by setting the optional parameter `capitalize` to false:
-
-```ruby
+"name".humanize                         # => "Name"
+"author_id".humanize                    # => "Author"
 "author_id".humanize(capitalize: false) # => "author"
+"comments_count".humanize               # => "Comments count"
+"_id".humanize                          # => "Id"
 ```
 
-The helper method `full_messages` uses `humanize` as a fallback to include attribute names:
+If "SSL" was defined to be an acronym:
+
+```ruby
+'ssl_error'.humanize # => "SSL error"
+```
+
+The helper method `full_messages` uses `humanize` as a fallback to include
+attribute names:
 
 ```ruby
 def full_messages

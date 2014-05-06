@@ -1,3 +1,15 @@
+*   `humanize` strips leading underscores, if any.
+
+    Before:
+
+        '_id'.humanize # => ""
+
+    After:
+
+        '_id'.humanize # => "Id"
+
+    *Xavier Noria*
+
 *   Fixed backward compatibility isues introduced in 326e652.
 
     Empty Hash or Array should not present in serialization result.
