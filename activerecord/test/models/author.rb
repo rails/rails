@@ -140,6 +140,9 @@ class Author < ActiveRecord::Base
   has_many :posts_with_default_include, :class_name => 'PostWithDefaultInclude'
   has_many :comments_on_posts_with_default_include, :through => :posts_with_default_include, :source => :comments
 
+  has_many :sponsors, -> { where(sponsorable_type: "Author") }, as: :sponsorable
+  has_many :sponsor_clubs, through: :sponsors, source: :sponsor_club, class_name: "Club"
+
   scope :relation_include_posts, -> { includes(:posts) }
   scope :relation_include_tags,  -> { includes(:tags) }
 

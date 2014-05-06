@@ -590,7 +590,7 @@ module ActiveRecord
 
           through_scope_chain = through_reflection.scope_chain.map(&:dup)
 
-          if options[:source_type]
+          if options[:source_type] && !through_reflection.scope
             through_scope_chain.first <<
               through_reflection.klass.where(foreign_type => options[:source_type])
           end

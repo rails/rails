@@ -1,3 +1,12 @@
+*   Add condition to disable `source_type` scope when `through` association already has scope
+
+    Add a condition to disable the `source_type` automatic class scoping when the 
+    `through_reflection` already has a scope.
+
+    Fixes #13920
+
+    *Sergio Campamá*
+
 *   Add support for module-level `table_name_suffix` in models.
 
     This makes `table_name_suffix` work the same way as `table_name_prefix` when
