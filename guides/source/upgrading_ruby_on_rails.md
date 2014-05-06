@@ -82,10 +82,10 @@ secrets, you need to:
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
    set the SECRET_KEY_BASE environment variable for whichever users run the Rails
-   app in production mode. Alternately, you can simply copy the existing 
-   `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml` 
+   app in production mode. Alternately, you can simply copy the existing
+   `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
    under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
-   
+
 3. Remove the `secret_token.rb` initializer.
 
 4. Use `rake secret` to generate new keys for the `development` and `test` sections.
@@ -714,7 +714,7 @@ Upgrading from Rails 3.1 to Rails 3.2
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.
 
-The following changes are meant for upgrading your application to Rails 3.2.17,
+The following changes are meant for upgrading your application to Rails 3.2.18,
 the last 3.2.x version of Rails.
 
 ### Gemfile
@@ -722,7 +722,7 @@ the last 3.2.x version of Rails.
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '3.2.17'
+gem 'rails', '3.2.18'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.6'
