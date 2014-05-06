@@ -228,6 +228,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal developers(:poor_jamis, :jamis, :david), projects(:active_record).developers
   end
 
+  def test_habtm_collection_size_from_build
+    devel = Developer.create("name" => "Fred Wu")
+    devel.projects << Project.create("name" => "Grimetime")
+    devel.projects.build
+
+    assert_equal 2, devel.projects.size
+  end
+
   def test_build
     devel = Developer.find(1)
     proj = assert_no_queries { devel.projects.build("name" => "Projekt") }

@@ -35,7 +35,7 @@ module ActiveRecord
       private
 
         def count_records
-          load_target.size
+          load_target.reject { |r| r.new_record? }.size
         end
 
         def delete_records(records, method)
