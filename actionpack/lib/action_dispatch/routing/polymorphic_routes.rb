@@ -115,28 +115,29 @@ module ActionDispatch
           end
 
           record_list = record_or_hash_or_array.dup
+          record      = record_list.pop
         when Hash
           unless record_or_hash_or_array[:id]
             raise ArgumentError, "Nil location provided. Can't build URI."
           end
 
           opts        = record_or_hash_or_array.dup.merge!(opts)
-          record_list = [opts.delete(:id)]
+          record_list = []
+          record      = opts.delete(:id)
         when nil
           raise ArgumentError, "Nil location provided. Can't build URI."
         else
 
-          record_list = [record_or_hash_or_array]
+          record_list = []
+          record      = record_or_hash_or_array
         end
-
-        record = record_list.pop
 
         inflection = lambda { |name| name.singular_route_key }
         should_pop = true
 
-        if record.try(:persisted?)
+        if options[:action] == 'new'
+        elsif record.try(:persisted?)
           should_pop = false
-        elsif options[:action] == 'new'
         else
           inflection = lambda { |name| name.route_key }
         end
