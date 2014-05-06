@@ -1,13 +1,14 @@
-eActive Record and PostgreSQL
+Active Record and PostgreSQL
 ============================
 
-This guide goes over PostgreSQL specific usage of Active Record.
-
-How to use the PostgreSQL adapter for Active Record is described in the
-[configuring Rails guide](configuring.html#configuring-a-postgresql-database).
+This guide covers PostgreSQL specific usage of Active Record.
 
 In order to use the PostgreSQL adapter you need to have at least version 8.2
 installed. Older versions are not supported.
+
+To get started with PostgreSQL have a look at the
+[configuring Rails guide](configuring.html#configuring-a-postgresql-database).
+It describes how to properly setup Active Record for PostgreSQL.
 
 Datatypes
 ---------
@@ -37,8 +38,8 @@ Document.create payload: data
 
 ### Array
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/arrays.html)
-  * [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-array.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/arrays.html)
+* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-array.html)
 
 ```ruby
 # db/migrate/20140207133952_create_books.rb
@@ -69,7 +70,7 @@ Book.where("array_length(ratings, 1) >= 3")
 
 ### Hstore
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/hstore.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/hstore.html)
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
@@ -100,8 +101,8 @@ profile.save!
 
 ### Json
 
- * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-json.html)
- * [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-json.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-json.html)
+* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-json.html)
 
 ```ruby
 # db/migrate/20131220144913_create_events.rb
@@ -125,8 +126,8 @@ Event.where("payload->'kind' = ?", "user_renamed")
 
 ### Range Types
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/rangetypes.html)
-  * [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-range.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/rangetypes.html)
+* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-range.html)
 
 This type is mapped to Ruby [`Range`]() objects.
 
@@ -160,7 +161,7 @@ event.ends_at # => Thu, 13 Feb 2014
 
 ### Composite Types
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/rowtypes.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/rowtypes.html)
 
 Currently there is no special support for composite types. They are mapped to as
 normal text columns:
@@ -200,7 +201,7 @@ contact.save!
 
 ### Enumerated Types
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-enum.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-enum.html)
 
 Currently there is no special support for enumerated types. They are mapped as
 normal text columns:
@@ -229,8 +230,8 @@ article.save!
 
 ### UUID
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-uuid.html)
-  * [generator functions](http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-uuid.html)
+* [generator functions](http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
 
 
 ```ruby
@@ -252,8 +253,8 @@ revision.identifier # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 
 ### Bit String Types
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-bit.html)
-  * [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-bitstring.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-bit.html)
+* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-bitstring.html)
 
 ```ruby
 # db/migrate/20131220144913_create_users.rb
@@ -276,14 +277,14 @@ user.save!
 
 ### Network Address Types
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-net-types.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby [`IPAddr`]() objects. The
 `macaddr` type is mapped to normal text.
 
 ### Geometric Types
 
-  * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-geometric.html)
+* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-geometric.html)
 
 All geometric types are mapped to normal text.
 
