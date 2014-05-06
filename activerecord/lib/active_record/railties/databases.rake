@@ -83,8 +83,7 @@ db_namespace = namespace :db do
     desc 'Display status of migrations'
     task :status => [:environment, :load_config] do
       unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
-        puts 'Schema migrations table does not exist yet.'
-        next  # means "return" for rake task
+        abort 'Schema migrations table does not exist yet.'
       end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
       db_list.map! { |version| "%.3d" % version }
