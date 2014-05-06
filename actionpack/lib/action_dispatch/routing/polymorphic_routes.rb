@@ -135,56 +135,46 @@ module ActionDispatch
 
         record = record_list.pop
 
-        inflection = :singular
+        inflection = lambda { |name| name.singular_route_key }
         should_pop = true
 
         if record.try(:persisted?)
           should_pop = false
         elsif options[:action] == 'new'
         else
-          inflection = :plural
+          inflection = lambda { |name| name.route_key }
         end
 
-        record = record.respond_to?(:to_model) ? record.to_model : record
-
-        #if options[:action] && options[:action].to_s == "new"
-        #  inflection = :singular
-        #elsif (record.respond_to?(:persisted?) && !record.persisted?)
-        #  inflection = :plural
-        #elsif record.is_a?(Class)
-        #  inflection = :plural
-        #else
-        #  args << record
-        #  inflection = :singular
-        #end
+        args = []
 
         route  = record_list.map { |parent|
-          if parent.is_a?(Symbol) || parent.is_a?(String)
+          case parent
+          when Symbol, String
             parent.to_s
+          when Class
+            args << parent
+            parent.model_name.singular_route_key
           else
-            model_name_from_record_or_class(parent).singular_route_key
+            args << parent.to_model
+            parent.to_model.class.model_name.singular_route_key
           end
         }
 
         route <<
-          if record.is_a?(Symbol) || record.is_a?(String)
+          case record
+          when Symbol, String
             record.to_s
+          when Class
+            args << record unless should_pop
+            inflection.call record.model_name
           else
-            if inflection == :singular
-              model_name_from_record_or_class(record).singular_route_key
-            else
-              model_name_from_record_or_class(record).route_key
-            end
+            args << record.to_model unless should_pop
+            inflection.call record.to_model.class.model_name
           end
 
         route << routing_type(options)
 
         named_route = action_prefix(options) + route.join("_")
-
-        args.pop if should_pop
-        args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
-
-        args.collect! { |a| convert_to_model(a) }
 
         recipient.send(named_route, *args, opts)
       end
