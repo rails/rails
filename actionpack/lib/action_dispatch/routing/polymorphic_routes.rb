@@ -132,10 +132,8 @@ module ActionDispatch
           record      = record_or_hash_or_array
         end
 
-        inflection = lambda { |name| name.singular_route_key }
-
-        if options[:action] == 'new'
-        elsif record.try(:persisted?)
+        if options[:action] == 'new' || record.try(:persisted?)
+          inflection = lambda { |name| name.singular_route_key }
         else
           inflection = lambda { |name| name.route_key }
         end
@@ -170,7 +168,11 @@ module ActionDispatch
 
         named_route = action_prefix(options) + route.join("_")
 
-        recipient.send(named_route, *args, opts)
+        if opts.empty?
+          recipient.send(named_route, *args)
+        else
+          recipient.send(named_route, *args, opts)
+        end
       end
 
       # Returns the path component of a URL for the given record. It uses
