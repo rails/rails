@@ -115,12 +115,6 @@ class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
   end
 end
 
-class CustomAuthenticityParamController < RequestForgeryProtectionControllerUsingResetSession
-  def form_authenticity_param
-    'foobar'
-  end
-end
-
 # common test methods
 module RequestForgeryProtectionTests
   def setup
@@ -456,22 +450,5 @@ class FreeCookieControllerTest < ActionController::TestCase
   test 'should not emit a csrf-token meta tag' do
     get :meta
     assert @response.body.blank?
-  end
-end
-
-class CustomAuthenticityParamControllerTest < ActionController::TestCase
-  def setup
-    super
-    ActionController::Base.request_forgery_protection_token = :custom_token_name
-  end
-
-  def teardown
-    ActionController::Base.request_forgery_protection_token = :authenticity_token
-    super
-  end
-
-  def test_should_allow_custom_token
-    post :index, :custom_token_name => 'foobar'
-    assert_response :ok
   end
 end
