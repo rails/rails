@@ -20,7 +20,7 @@ module Rails
       ENV['RAILS_ENV'] = options[:environment] || environment
 
       case config["adapter"]
-      when /^mysql/
+      when /^(jdbc)?mysql/
         args = {
           'host'      => '--host',
           'port'      => '--port',
