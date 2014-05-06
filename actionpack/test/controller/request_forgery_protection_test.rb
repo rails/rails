@@ -462,16 +462,37 @@ end
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup
     super
-    ActionController::Base.request_forgery_protection_token = :custom_token_name
+    @old_logger = ActionController::Base.logger
+    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    @token = "foobar"
+    ActionController::Base.request_forgery_protection_token = @token
   end
 
   def teardown
-    ActionController::Base.request_forgery_protection_token = :authenticity_token
+    ActionController::Base.request_forgery_protection_token = nil
     super
   end
 
-  def test_should_allow_custom_token
-    post :index, :custom_token_name => 'foobar'
-    assert_response :ok
+  def test_should_not_warn_if_form_authenticity_param_matches_form_authenticity_token
+    ActionController::Base.logger = @logger
+    SecureRandom.stubs(:base64).returns(@token)
+
+    begin
+      post :index, :custom_token_name => 'foobar'
+      assert_equal 0, @logger.logged(:warn).size
+    ensure
+      ActionController::Base.logger = @old_logger
+    end
+  end
+
+  def test_should_warn_if_form_authenticity_param_does_not_match_form_authenticity_token
+    ActionController::Base.logger = @logger
+
+    begin
+      post :index, :custom_token_name => 'bazqux'
+      assert_equal 1, @logger.logged(:warn).size
+    ensure
+      ActionController::Base.logger = @old_logger
+    end
   end
 end
