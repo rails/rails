@@ -132,7 +132,7 @@ module ActionDispatch
           record      = record_or_hash_or_array
         end
 
-        if options[:action] == 'new' || record.try(:persisted?)
+        if options[:action] == 'new'
           inflection = lambda { |name| name.singular_route_key }
         else
           inflection = lambda { |name| name.route_key }
@@ -160,8 +160,12 @@ module ActionDispatch
           when Class
             inflection.call record.model_name
           else
-            args << record.to_model if record.persisted?
-            inflection.call record.to_model.class.model_name
+            if record.persisted?
+              args << record.to_model
+              record.to_model.class.model_name.singular_route_key
+            else
+              inflection.call record.to_model.class.model_name
+            end
           end
 
         route << routing_type(options)
