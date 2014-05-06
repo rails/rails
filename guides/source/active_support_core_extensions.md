@@ -1768,7 +1768,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `humanize`
 
-The method `humanize` tqweaks an attribute name for display to end users.
+The method `humanize` tweaks an attribute name for display to end users.
 
 Specifically performs these transformations:
 
