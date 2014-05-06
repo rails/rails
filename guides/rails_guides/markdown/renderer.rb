@@ -15,7 +15,7 @@ module RailsGuides
 HTML
       end
 
-      def header(text, header_level)
+      def header(text, header_level, anchor)
         # Always increase the heading level by, so we can use h1, h2 heading in the document
         header_level += 1
 
