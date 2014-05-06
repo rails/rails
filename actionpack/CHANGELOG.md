@@ -5,6 +5,18 @@
 
     *Shota Fukumori (sora_h)*
 
+
+## Rails 3.2.18 (May 6, 2014) ##
+
+*   Only accept actions without File::SEPARATOR in the name.
+
+    This will avoid directory traversal in implicit render.
+
+    Fixes: CVE-2014-0130
+
+    *Rafael Mendonça França*
+
+
 ## Rails 3.2.17 (Feb 18, 2014) ##
 
 *   Use the reference for the mime type to get the format
