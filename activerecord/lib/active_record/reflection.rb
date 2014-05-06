@@ -278,6 +278,11 @@ module ActiveRecord
         end
       end
 
+      def join_id_for(owner) #:nodoc:
+        key = (source_macro == :belongs_to) ? foreign_key : active_record_primary_key
+        owner[key]
+      end
+
       def through_reflection
         nil
       end
