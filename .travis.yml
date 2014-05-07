@@ -7,7 +7,7 @@ rvm:
   - 2.0.0
   - 2.1.1
   - rbx-2
-  - jruby
+  - jruby-head
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as,av"
@@ -18,7 +18,7 @@ env:
 matrix:
   allow_failures:
     - rvm: rbx-2
-    - rvm: jruby
+    - rvm: jruby-head
   fast_finish: true
 notifications:
   email: false
