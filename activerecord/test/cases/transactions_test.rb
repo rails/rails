@@ -274,6 +274,48 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_rollback_when_changing_inside_transaction
+    assert !@first.approved?
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+    assert @first.approved
+    assert @first.changes["approved"]
+    @first.save!
+    assert @first.reload.approved
+  end
+
+  def test_rollback_when_changing_outside_transaction
+    assert !@first.approved?
+    @first.approved = true
+    Topic.transaction do
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+    assert @first.changes["approved"]
+    assert @first.approved
+    @first.save!
+    assert @first.reload.approved
+  end
+
+  def test_rollback_when_changing_back_to_prev_stage
+    assert !@first.approved?
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+      @first.approved = false
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+    assert !@first.approved
+    assert !@first.changes["approved"]
+    @first.save!
+    assert !@first.reload.approved
+  end
+
+
   def test_force_savepoint_in_nested_transaction
     Topic.transaction do
       @first.approved = true
