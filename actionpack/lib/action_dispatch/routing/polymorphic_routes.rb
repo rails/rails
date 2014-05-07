@@ -209,18 +209,6 @@ module ActionDispatch
         def routing_type(options)
           options[:routing_type] || :url
         end
-
-        def build_route_part(record, inflection)
-          if record.is_a?(Symbol) || record.is_a?(String)
-            record.to_s
-          else
-            if inflection == :singular
-              model_name_from_record_or_class(record).singular_route_key
-            else
-              model_name_from_record_or_class(record).route_key
-            end
-          end
-        end
     end
   end
 end
