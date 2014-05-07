@@ -9,4 +9,10 @@ class VersionTest < ActiveSupport::TestCase
     assert Rails.gem_version.is_a? Gem::Version
     assert_equal Rails.version, Rails.gem_version.to_s
   end
+
+  def test_rails_base_version
+    base = Rails.version.split('.')[0..1].join('.')
+    assert_equal base, Rails::VERSION::BASE 
+    assert_equal base, Rails.base_version
+  end
 end
