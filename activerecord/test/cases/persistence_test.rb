@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/aircraft'
 require 'models/post'
 require 'models/comment'
 require 'models/author'
@@ -829,4 +830,17 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_persist_inherited_class_with_different_table_name
+    minimalistic_aircrafts = Class.new(Minimalistic) do
+      self.table_name = "aircraft"
+    end
+
+    assert_difference "Aircraft.count", 1 do
+      aircraft = minimalistic_aircrafts.create(name: "Wright Flyer")
+      aircraft.name = "Wright Glider"
+      aircraft.save
+    end
+
+    assert_equal "Wright Glider", Aircraft.last.name
+  end
 end
