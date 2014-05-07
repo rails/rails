@@ -79,6 +79,18 @@ class PolymorphicRoutesTest < ActionController::TestCase
     assert_equal url, url_for(args)
   end
 
+  def test_string
+    with_test_routes do
+      assert_equal "http://example.com/projects", polymorphic_url("projects")
+    end
+  end
+
+  def test_string_with_options
+    with_test_routes do
+      assert_equal "http://example.com/projects?id=10", polymorphic_url("projects", :id => 10)
+    end
+  end
+
   def test_passing_routes_proxy
     with_namespaced_routes(:blog) do
       proxy = ActionDispatch::Routing::RoutesProxy.new(_routes, self)
