@@ -26,7 +26,9 @@ module ActionDispatch
         @env[env_name(key)] = value
       end
 
-      def key?(key); @env.key? key; end
+      def key?(key)
+        @env.key? env_name(key)
+      end
       alias :include? :key?
 
       def fetch(key, *args, &block)
