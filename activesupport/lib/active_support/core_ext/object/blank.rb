@@ -11,15 +11,11 @@ class Object
   # to
   #
   #   address.blank?
-  #
-  # @return [true, false]
   def blank?
     respond_to?(:empty?) ? !!empty? : !self
   end
 
   # An object is present if it's not blank.
-  #
-  # @return [true, false]
   def present?
     !blank?
   end
@@ -38,8 +34,6 @@ class Object
   # becomes
   #
   #   region = params[:state].presence || params[:country].presence || 'US'
-  #
-  # @return [Object]
   def presence
     self if present?
   end
@@ -49,8 +43,6 @@ class NilClass
   # +nil+ is blank:
   #
   #   nil.blank? # => true
-  #
-  # @return [true]
   def blank?
     true
   end
@@ -60,8 +52,6 @@ class FalseClass
   # +false+ is blank:
   #
   #   false.blank? # => true
-  #
-  # @return [true]
   def blank?
     true
   end
@@ -71,8 +61,6 @@ class TrueClass
   # +true+ is not blank:
   #
   #   true.blank? # => false
-  #
-  # @return [false]
   def blank?
     false
   end
@@ -83,8 +71,6 @@ class Array
   #
   #   [].blank?      # => true
   #   [1,2,3].blank? # => false
-  #
-  # @return [true, false]
   alias_method :blank?, :empty?
 end
 
@@ -93,8 +79,6 @@ class Hash
   #
   #   {}.blank?                # => true
   #   { key: 'value' }.blank?  # => false
-  #
-  # @return [true, false]
   alias_method :blank?, :empty?
 end
 
@@ -111,8 +95,6 @@ class String
   # Unicode whitespace is supported:
   #
   #   "\u00a0".blank? # => true
-  #
-  # @return [true, false]
   def blank?
     BLANK_RE === self
   end
@@ -123,8 +105,6 @@ class Numeric #:nodoc:
   #
   #   1.blank? # => false
   #   0.blank? # => false
-  #
-  # @return [false]
   def blank?
     false
   end
