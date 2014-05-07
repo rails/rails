@@ -1,3 +1,9 @@
+*   Keep track of dirty attributes after transaction is rollback.
+
+    Related #13166.
+
+    *Bogdan Gusiev* *arthurnn*
+
 *   Stringify all variables keys of mysql connection configuration.
 
     When `sql_mode` variable for mysql adapters set in configuration as `String`
