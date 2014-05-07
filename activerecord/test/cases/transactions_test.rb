@@ -267,6 +267,27 @@ class TransactionTest < ActiveRecord::TestCase
     assert Topic.find(2).approved?, "Second should still be approved"
   end
 
+  def test_manually_rolling_back_a_nested_transaction
+    Topic.transaction do
+      Topic.transaction do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
+        @second.save
+
+        raise ActiveRecord::Rollback
+      end
+
+      assert false, "This should not be reached"
+    end
+
+    assert @first.approved?, "First should still be changed in the objects"
+    assert !@second.approved?, "Second should still be changed in the objects"
+
+    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    assert Topic.find(2).approved?, "Second should still be approved"
+  end
+
   def test_invalid_keys_for_transaction
     assert_raise ArgumentError do
       Topic.transaction :nested => true do
@@ -324,7 +345,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         Topic.transaction :requires_new => true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
@@ -345,7 +366,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         @second.transaction :requires_new => true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
@@ -376,6 +397,63 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert !@first.reload.approved?
     assert !@second.reload.approved?
+  end if Topic.connection.supports_savepoints?
+
+  def test_manually_rolling_back_a_nested_transaction_with_savepoint
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+
+      Topic.transaction requires_new: true do
+        @first.approved = false
+        @first.save!
+        raise ActiveRecord::Rollback
+      end
+
+      @second.approved = false
+      @second.save!
+    end
+
+    assert @first.reload.approved?
+    assert !@second.reload.approved?
+  end if Topic.connection.supports_savepoints?
+
+  def test_manually_rolling_back_a_nested_transaction_with_savepoint_on_instance
+    @first.transaction do
+      @first.approved  = true
+      @first.save!
+
+      @second.transaction requires_new: true do
+        @first.approved = false
+        @first.save!
+        raise ActiveRecord::Rollback
+      end
+
+      @second.approved = false
+      @second.save!
+    end
+
+    assert @first.reload.approved?
+    assert !@second.reload.approved?
+  end if Topic.connection.supports_savepoints?
+
+  def test_manually_rolling_back_a_nested_transaction_without_savepoint
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+
+      Topic.transaction do
+        @first.approved = false
+        @first.save!
+        raise ActiveRecord::Rollback
+      end
+
+      @second.approved = false
+      @second.save!
+    end
+
+    assert !@first.reload.approved?
+    assert @second.reload.approved?
   end if Topic.connection.supports_savepoints?
 
   def test_many_savepoints
