@@ -19,8 +19,6 @@ class Object
   #   params[:bucket_type].presence_in %w( project calendar )
   #
   # This will throw an ArgumentError if the argument doesn't respond to +#include?+.
-  #
-  # @return [Object]
   def presence_in(another_object)
     self.in?(another_object) ? self : nil
   end
