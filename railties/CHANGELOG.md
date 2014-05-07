@@ -1,3 +1,8 @@
+*   Load database configuration from the first
+    database.yml available in paths.
+
+    *Pier-Olivier Thibault*
+
 *   Fix `console` and `generators` blocks defined at different environments.
 
     Fixes #14748.
