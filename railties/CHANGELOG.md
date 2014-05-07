@@ -1,3 +1,8 @@
+*   Load database configuration from the first
+    database.yml available in paths.
+
+    *Pier-Olivier Thibault*
+
 *   Reading name and email from git for plugin gemspec.
 
     Fixes #9589.
