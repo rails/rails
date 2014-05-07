@@ -315,7 +315,6 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@first.reload.approved
   end
 
-
   def test_force_savepoint_in_nested_transaction
     Topic.transaction do
       @first.approved = true
