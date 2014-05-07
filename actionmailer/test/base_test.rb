@@ -303,12 +303,7 @@ class BaseTest < ActiveSupport::TestCase
     I18n::Backend::Simple.send(:include, I18n::Backend::Fallbacks)
     swap I18n, { locale: :missinglocale, fallbacks: I18n::Locale::Fallbacks.new(missinglocale: :pl) } do
       email = BaseMailer.implicit_with_locale
-      assert_equal(2, email.parts.size)
-      assert_equal("multipart/alternative", email.mime_type)
-      assert_equal("text/plain", email.parts[0].mime_type)
       assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
-      assert_equal("text/html", email.parts[1].mime_type)
-      assert_equal("Implicit with locale HTML", email.parts[1].body.encoded)
     end
   end
 
