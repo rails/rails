@@ -86,9 +86,6 @@ module Arel
 
     def from table
       table = Nodes::SqlLiteral.new(table) if String === table
-      # FIXME: this is a hack to support
-      # test_with_two_tables_in_from_without_getting_double_quoted
-      # from the AR tests.
 
       case table
       when Nodes::Join
