@@ -92,7 +92,7 @@ module Rails
       # Loads and returns the entire raw configuration of database from
       # values stored in `config/database.yml`.
       def database_configuration
-        yaml = Pathname.new(paths["config/database"].first || "")
+        yaml = Pathname.new(paths["config/database"].existent.first || "")
 
         config = if yaml.exist?
           require "yaml"

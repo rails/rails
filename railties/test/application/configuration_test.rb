@@ -879,5 +879,21 @@ module ApplicationTests
       Rails.application.load_runner
       assert $ran_block
     end
+
+    test "loading the first existing database configuration available" do
+      app_file 'config/environments/development.rb', <<-RUBY
+
+      Rails.application.configure do
+        config.paths.add 'config/database', with: 'config/nonexistant.yml'
+        config.paths['config/database'] << 'config/database.yml'
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      db_config =  Rails.application.config.database_configuration
+
+      assert db_config.is_a?(Hash)
+    end
   end
 end
