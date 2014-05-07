@@ -10,6 +10,15 @@ To get started with PostgreSQL have a look at the
 [configuring Rails guide](configuring.html#configuring-a-postgresql-database).
 It describes how to properly setup Active Record for PostgreSQL.
 
+After reading this guide, you will know:
+
+
+* How to use PostgreSQL's datatypes.
+* How to use UUID Primary keys.
+* How to implement Full text search with PostgreSQL.
+
+--------------------------------------------------------------------------------
+
 Datatypes
 ---------
 
@@ -99,7 +108,7 @@ profile.settings_will_change!
 profile.save!
 ```
 
-### Json
+### JSON
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-json.html)
 * [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-json.html)
@@ -129,7 +138,7 @@ Event.where("payload->'kind' = ?", "user_renamed")
 * [type definition](http://www.postgresql.org/docs/9.3/static/rangetypes.html)
 * [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-range.html)
 
-This type is mapped to Ruby [`Range`]() objects.
+This type is mapped to Ruby [`Range`](http://www.ruby-doc.org/core-2.1.1/Range.html) objects.
 
 ```ruby
 # db/migrate/20130923065404_create_events.rb
@@ -279,7 +288,7 @@ user.save!
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-net-types.html)
 
-The types `inet` and `cidr` are mapped to Ruby [`IPAddr`]() objects. The
+The types `inet` and `cidr` are mapped to Ruby [`IPAddr`](http://www.ruby-doc.org/stdlib-2.1.1/libdoc/ipaddr/rdoc/IPAddr.html) objects. The
 `macaddr` type is mapped to normal text.
 
 ### Geometric Types
