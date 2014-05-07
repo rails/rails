@@ -697,6 +697,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash_1
   end
 
+  def test_deep_merge_with_falsey_values
+    hash_1 = { e: false }
+    hash_2 = { e: 'e' }
+    expected = { e: [:e, false, 'e'] }
+    assert_equal(expected, hash_1.deep_merge(hash_2) { |k, o, n| [k, o, n] })
+
+    hash_1.deep_merge!(hash_2) { |k, o, n| [k, o, n] }
+    assert_equal expected, hash_1
+  end
+
   def test_deep_merge_on_indifferent_access
     hash_1 = HashWithIndifferentAccess.new({ :a => "a", :b => "b", :c => { :c1 => "c1", :c2 => "c2", :c3 => { :d1 => "d1" } } })
     hash_2 = HashWithIndifferentAccess.new({ :a => 1, :c => { :c1 => 2, :c3 => { :d2 => "d2" } } })
@@ -905,11 +915,11 @@ class HashExtTest < ActiveSupport::TestCase
   def test_compact
     hash_contain_nil_value = @symbols.merge(z: nil)
     hash_with_only_nil_values = { a: nil, b: nil }
-    
+
     h = hash_contain_nil_value.dup
     assert_equal(@symbols, h.compact)
     assert_equal(hash_contain_nil_value, h)
-    
+
     h = hash_with_only_nil_values.dup
     assert_equal({}, h.compact)
     assert_equal(hash_with_only_nil_values, h)
@@ -918,11 +928,11 @@ class HashExtTest < ActiveSupport::TestCase
   def test_compact!
     hash_contain_nil_value = @symbols.merge(z: nil)
     hash_with_only_nil_values = { a: nil, b: nil }
-    
+
     h = hash_contain_nil_value.dup
     assert_equal(@symbols, h.compact!)
     assert_equal(@symbols, h)
-    
+
     h = hash_with_only_nil_values.dup
     assert_equal({}, h.compact!)
     assert_equal({}, h)
