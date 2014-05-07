@@ -1,3 +1,7 @@
+*   Fix the warning of dependency version checking while building plugin gemspec
+
+    *Pan Gaoyong*
+
 *   Reading name and email from git for plugin gemspec.
 
     Fixes #9589.
