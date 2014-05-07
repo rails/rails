@@ -1,5 +1,11 @@
 module ActionDispatch
   module Http
+    # Provides access to the request's HTTP headers from the environment
+    # for example:
+    #
+    #   env     = { "CONTENT_TYPE" => "text/plain" }
+    #   headers = ActionDispatch::Http::Headers.new(env)
+    #   headers["Content-Type"] # => "text/plain"
     class Headers
       CGI_VARIABLES = %w(
         CONTENT_TYPE CONTENT_LENGTH
