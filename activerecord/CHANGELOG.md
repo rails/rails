@@ -1,3 +1,8 @@
+*   Return a non zero status when running `rake db:migrate:status` and migration table does
+    not exist.
+
+    *Paul B.*
+
 *   Keep track of dirty attributes after transaction is rollback.
 
     Related #13166.
