@@ -1,3 +1,9 @@
+*   Keep track of dirty attributes after transaction is rollback.
+
+    Related #13166.
+
+    *Bogdan Gusiev* *arthurnn*
+
 *   Revert the behaviour of `ActiveRecord::Relation#join` changed through 4.0 => 4.1 to 4.0.
 
     In 4.1.0 `Relation#join` is delegated to `Arel#SelectManager`.
