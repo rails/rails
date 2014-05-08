@@ -1894,4 +1894,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not pirate.valid?(:conference)
     assert_equal "can't be blank", ship.errors[:name].first
   end
+
+  test 'association with instance dependent scope' do
+    bob = authors(:bob)
+    Post.create!(title: "signed post by bob", body: "stuff", author: authors(:bob))
+    Post.create!(title: "anonymous post", body: "more stuff", author: authors(:bob))
+    assert_equal ["misc post by bob", "other post by bob",
+                  "signed post by bob"], bob.posts_with_signature.map(&:title).sort
+
+    assert_equal [], authors(:david).posts_with_signature.map(&:title)
+  end
 end
