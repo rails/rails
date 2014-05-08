@@ -350,7 +350,7 @@ module ActiveRecord
       end
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
       @_start_transaction_state[:frozen?] = @attributes.frozen?
-      @_start_transaction_state[:changed_attributes] ||= changed_attributes
+      @_start_transaction_state[:changed_attributes] ||= changed_attributes.dup
     end
 
     # Clear the new record state and id of a record.
