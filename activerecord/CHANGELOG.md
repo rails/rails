@@ -1,3 +1,12 @@
+*   Fixed HABTM's CollectionAssociation size calculation.
+
+    HABTM should fall back to using the normal CollectionAssociation's size
+    calculation if the collection is not cached or loaded.
+
+    Fixes #14913 and #14914.
+
+    *Fred Wu*
+
 *   Return a non zero status when running `rake db:migrate:status` and migration table does
     not exist.
 
