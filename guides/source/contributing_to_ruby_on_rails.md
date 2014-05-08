@@ -527,7 +527,7 @@ been updated.
 
 ### Older Versions of Ruby on Rails
 
-If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
+If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 4-0-stable branch:
 
 ```bash
 $ git branch --track 4-0-stable origin/4-0-stable
