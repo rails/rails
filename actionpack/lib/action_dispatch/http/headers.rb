@@ -1,7 +1,6 @@
 module ActionDispatch
   module Http
-    # Provides access to the request's HTTP headers from the environment
-    # for example:
+    # Provides access to the request's HTTP headers from the environment.
     #
     #   env     = { "CONTENT_TYPE" => "text/plain" }
     #   headers = ActionDispatch::Http::Headers.new(env)

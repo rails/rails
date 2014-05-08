@@ -98,7 +98,7 @@ module ActiveRecord
         end
       end
 
-      # Casts a Ruby value to something appropriate for writing to Postgresql.
+      # Casts a Ruby value to something appropriate for writing to PostgreSQL.
       # see ActiveRecord::ConnectionAdapters::Class#type_cast_for_write
       # see ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::Type
       def type_cast_for_write(value)
