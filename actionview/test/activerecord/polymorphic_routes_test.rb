@@ -99,8 +99,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_symbol
     with_test_routes do
-      assert_equal "http://example.com/projects", polymorphic_url(:projects)
-      assert_equal "http://example.com/projects", url_for(:projects)
+      assert_url "http://example.com/projects", :projects
     end
   end
 
@@ -211,6 +210,11 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do
       extend Module.new {
         define_method("projects_url") { |*args|
+          params = args
+          super(*args)
+        }
+
+        define_method("projects_path") { |*args|
           params = args
           super(*args)
         }
@@ -638,5 +642,18 @@ class PolymorphicRoutesTest < ActionController::TestCase
       extend @routes.url_helpers
       yield
     end
+  end
+end
+
+class PolymorphicPathRoutesTest < PolymorphicRoutesTest
+  include ActionView::RoutingUrlFor
+  include ActionView::Context
+
+  attr_accessor :controller
+
+  def assert_url(url, args)
+    host = self.class.default_url_options[:host]
+
+    assert_equal url.sub(/http:\/\/#{host}/, ''), url_for(args)
   end
 end
