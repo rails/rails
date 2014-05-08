@@ -1,3 +1,12 @@
+*   Fixed HABTM's CollectionAssociation size calculation.
+
+    HABTM should not include new records as part of #count_records as new
+    records are already counted.
+
+    Fixes #14914.
+
+    *Fred Wu*
+
 *   Keep track of dirty attributes after transaction is rollback.
 
     Related #13166.
