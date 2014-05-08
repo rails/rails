@@ -207,14 +207,15 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_new_record_arguments
     params = nil
-    extend Module.new {
-      define_method("projects_url") { |*args|
-        params = args
-        super(*args)
-      }
-    }
 
     with_test_routes do
+      extend Module.new {
+        define_method("projects_url") { |*args|
+          params = args
+          super(*args)
+        }
+      }
+
       assert_url "http://example.com/projects", @project
       assert_equal [], params
     end
@@ -571,7 +572,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
@@ -593,7 +594,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         resources :model_delegates
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
@@ -615,7 +616,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
@@ -634,7 +635,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
