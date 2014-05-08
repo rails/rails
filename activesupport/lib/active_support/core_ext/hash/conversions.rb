@@ -221,7 +221,7 @@ module ActiveSupport
       def garbage?(value)
         # If the type is the only element which makes it then
         # this still makes the value nil, except if type is
-        # a XML node(where type['value'] is a Hash)
+        # an XML node(where type['value'] is a Hash)
         value['type'] && !value['type'].is_a?(::Hash) && value.size == 1
       end
 
