@@ -274,34 +274,36 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_rollback_when_changing_inside_transaction
-    assert !@first.approved?
-    Topic.transaction do
-      @first.approved = true
-      @first.save!
-      raise ActiveRecord::Rollback
-    end
-    assert @first.approved
-    assert @first.changes["approved"]
+  def test_dirty_tracking_inside_transaction_after_rollback
+    assert_not @first.approved?
+     Topic.transaction do
+       @first.approved = true
+       @first.save!
+       raise ActiveRecord::Rollback
+     end
+    assert @first.approved_changed?
+    assert_equal true, @first.approved
+    assert_equal false, @first.approved_was
     @first.save!
-    assert @first.reload.approved
+    assert_equal true, @first.reload.approved
   end
 
-  def test_rollback_when_changing_outside_transaction
-    assert !@first.approved?
+  def test_dirty_tracking_outside_transaction_after_rollback
+    assert_not @first.approved?
     @first.approved = true
     Topic.transaction do
       @first.save!
       raise ActiveRecord::Rollback
     end
-    assert @first.changes["approved"]
-    assert @first.approved
+    assert @first.approved_changed?
+    assert_equal true, @first.approved
+    assert_equal false, @first.approved_was
     @first.save!
-    assert @first.reload.approved
+    assert_equal true, @first.reload.approved
   end
 
-  def test_rollback_when_changing_back_to_prev_stage
-    assert !@first.approved?
+  def test_dirty_tracking_changing_back_to_original_state_after_rollback
+    assert_not @first.approved?
     Topic.transaction do
       @first.approved = true
       @first.save!
@@ -309,10 +311,10 @@ class TransactionTest < ActiveRecord::TestCase
       @first.save!
       raise ActiveRecord::Rollback
     end
-    assert !@first.approved
-    assert !@first.changes["approved"]
+    assert_equal false, @first.approved
+    assert_not @first.approved_changed?
     @first.save!
-    assert !@first.reload.approved
+    assert_equal false, @first.reload.approved
   end
 
   def test_changed_attributes_is_duplicated
