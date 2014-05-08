@@ -315,6 +315,19 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@first.reload.approved
   end
 
+  def test_changed_attributes_is_duplicated
+    def @first.after_save_for_transaction
+      changed_attributes.clear
+    end
+
+    assert !@first.approved?
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+    assert @first.approved_changed?
+  end
 
   def test_force_savepoint_in_nested_transaction
     Topic.transaction do
