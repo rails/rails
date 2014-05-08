@@ -45,12 +45,14 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     UUIDType.reset_column_information
     column = UUIDType.columns.find { |c| c.name == 'thingy' }
     assert_equal "uuid_generate_v1()", column.default_function
-    
+
     @connection.change_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
-    
+
     UUIDType.reset_column_information
     column = UUIDType.columns.find { |c| c.name == 'thingy' }
     assert_equal "uuid_generate_v4()", column.default_function
+  ensure
+    UUIDType.reset_column_information
   end
 
   def test_data_type_of_uuid_types
