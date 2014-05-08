@@ -105,6 +105,15 @@ module ActionDispatch
 
         opts = options.except(:action, :routing_type)
 
+        if options[:action] == 'new'
+          inflection = SINGULAR_ROUTE_KEY
+        else
+          inflection = ROUTE_KEY
+        end
+
+        prefix = action_prefix options
+        suffix = routing_type options
+
         case record_or_hash_or_array
         when Array
           if record_or_hash_or_array.empty? || record_or_hash_or_array.any?(&:nil?)
@@ -114,29 +123,57 @@ module ActionDispatch
             recipient = record_or_hash_or_array.shift
           end
 
-          record_list = record_or_hash_or_array.dup
-          record      = record_list.pop
+          method, args = handle_list record_or_hash_or_array,
+                                     prefix,
+                                     suffix,
+                                     inflection
         when Hash
           unless record_or_hash_or_array[:id]
             raise ArgumentError, "Nil location provided. Can't build URI."
           end
 
           opts        = record_or_hash_or_array.dup.merge!(opts)
-          record_list = []
           record      = opts.delete(:id)
+
+          method, args = handle_model record,
+                                      prefix,
+                                      suffix,
+                                      inflection
+        when String, Symbol
+          args = []
+          method = prefix + "#{record_or_hash_or_array}_#{suffix}"
+        when Class
+          method, args = handle_class record_or_hash_or_array,
+                                       prefix,
+                                       suffix,
+                                       inflection
+
         when nil
           raise ArgumentError, "Nil location provided. Can't build URI."
         else
-
-          record_list = []
-          record      = record_or_hash_or_array
+          method, args = handle_model record_or_hash_or_array,
+                                       prefix,
+                                       suffix,
+                                       inflection
         end
 
-        if options[:action] == 'new'
-          inflection = lambda { |name| name.singular_route_key }
+
+        if opts.empty?
+          recipient.send(method, *args)
         else
-          inflection = lambda { |name| name.route_key }
+          recipient.send(method, *args, opts)
         end
+      end
+
+      # Returns the path component of a URL for the given record. It uses
+      # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
+      def polymorphic_path(record_or_hash_or_array, options)
+        polymorphic_url(record_or_hash_or_array, options.merge(:routing_type => :path))
+      end
+
+      def handle_list(list, prefix, suffix, inflection)
+        record_list = list.dup
+        record      = record_list.pop
 
         args = []
 
@@ -168,21 +205,10 @@ module ActionDispatch
             end
           end
 
-        route << routing_type(options)
+        route << suffix
 
-        named_route = action_prefix(options) + route.join("_")
-
-        if opts.empty?
-          recipient.send(named_route, *args)
-        else
-          recipient.send(named_route, *args, opts)
-        end
-      end
-
-      # Returns the path component of a URL for the given record. It uses
-      # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
-      def polymorphic_path(record_or_hash_or_array, options = {})
-        polymorphic_url(record_or_hash_or_array, options.merge(:routing_type => :path))
+        named_route = prefix + route.join("_")
+        [named_route, args]
       end
 
       %w(edit new).each do |action|
@@ -202,6 +228,38 @@ module ActionDispatch
       end
 
       private
+      ROUTE_KEY = lambda { |name| name.route_key }
+      SINGULAR_ROUTE_KEY = lambda { |name| name.singular_route_key }
+
+      def handle_model(record, prefix, suffix, inflection)
+        args  = []
+
+        model = record.to_model
+        name = if record.persisted?
+                 args << model
+                 model.class.model_name.singular_route_key
+               else
+                 inflection.call model.class.model_name
+               end
+
+        named_route = prefix + "#{name}_#{suffix}"
+
+        [named_route, args]
+      end
+
+      def handle_class(klass, prefix, suffix, inflection)
+        name   = inflection.call klass.model_name
+        [prefix + "#{name}_#{suffix}", []]
+      end
+
+      def model_path_helper_call(record)
+        handle_model record, ''.freeze, "path".freeze, ROUTE_KEY
+      end
+
+      def class_path_helper_call(klass)
+        handle_class klass, ''.freeze, "path".freeze, ROUTE_KEY
+      end
+
         def action_prefix(options)
           options[:action] ? "#{options[:action]}_" : ''
         end
@@ -212,4 +270,3 @@ module ActionDispatch
     end
   end
 end
-

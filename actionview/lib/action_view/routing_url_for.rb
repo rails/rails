@@ -85,8 +85,12 @@ module ActionView
         _back_url
       when Array
         polymorphic_path(options, options.extract_options!)
+      when Class
+        method = class_path_helper_call options
+        send method
       else
-        polymorphic_path(options)
+        method, args = model_path_helper_call options
+        send(method, *args)
       end
     end
 
