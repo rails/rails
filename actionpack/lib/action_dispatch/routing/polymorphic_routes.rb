@@ -140,8 +140,10 @@ module ActionDispatch
                                       suffix,
                                       inflection
         when String, Symbol
-          args = []
-          method = prefix + "#{record_or_hash_or_array}_#{suffix}"
+          method, args = handle_string record_or_hash_or_array,
+                                       prefix,
+                                       suffix,
+                                       inflection
         when Class
           method, args = handle_class record_or_hash_or_array,
                                        prefix,
@@ -170,6 +172,28 @@ module ActionDispatch
       def polymorphic_path(record_or_hash_or_array, options)
         polymorphic_url(record_or_hash_or_array, options.merge(:routing_type => :path))
       end
+
+
+      %w(edit new).each do |action|
+        module_eval <<-EOT, __FILE__, __LINE__ + 1
+          def #{action}_polymorphic_url(record_or_hash, options = {})         # def edit_polymorphic_url(record_or_hash, options = {})
+            polymorphic_url(                                                  #   polymorphic_url(
+              record_or_hash,                                                 #     record_or_hash,
+              options.merge(:action => "#{action}"))                          #     options.merge(:action => "edit"))
+          end                                                                 # end
+                                                                              #
+          def #{action}_polymorphic_path(record_or_hash, options = {})        # def edit_polymorphic_path(record_or_hash, options = {})
+            polymorphic_url(                                                  #   polymorphic_url(
+              record_or_hash,                                                 #     record_or_hash,
+              options.merge(:action => "#{action}", :routing_type => :path))  #     options.merge(:action => "edit", :routing_type => :path))
+          end                                                                 # end
+        EOT
+      end
+
+      private
+
+      ROUTE_KEY = lambda { |name| name.route_key }
+      SINGULAR_ROUTE_KEY = lambda { |name| name.singular_route_key }
 
       def handle_list(list, prefix, suffix, inflection)
         record_list = list.dup
@@ -211,26 +235,6 @@ module ActionDispatch
         [named_route, args]
       end
 
-      %w(edit new).each do |action|
-        module_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{action}_polymorphic_url(record_or_hash, options = {})         # def edit_polymorphic_url(record_or_hash, options = {})
-            polymorphic_url(                                                  #   polymorphic_url(
-              record_or_hash,                                                 #     record_or_hash,
-              options.merge(:action => "#{action}"))                          #     options.merge(:action => "edit"))
-          end                                                                 # end
-                                                                              #
-          def #{action}_polymorphic_path(record_or_hash, options = {})        # def edit_polymorphic_path(record_or_hash, options = {})
-            polymorphic_url(                                                  #   polymorphic_url(
-              record_or_hash,                                                 #     record_or_hash,
-              options.merge(:action => "#{action}", :routing_type => :path))  #     options.merge(:action => "edit", :routing_type => :path))
-          end                                                                 # end
-        EOT
-      end
-
-      private
-      ROUTE_KEY = lambda { |name| name.route_key }
-      SINGULAR_ROUTE_KEY = lambda { |name| name.singular_route_key }
-
       def handle_model(record, prefix, suffix, inflection)
         args  = []
 
@@ -250,6 +254,12 @@ module ActionDispatch
       def handle_class(klass, prefix, suffix, inflection)
         name   = inflection.call klass.model_name
         [prefix + "#{name}_#{suffix}", []]
+      end
+
+      def handle_string(record, prefix, suffix, inflection)
+        args = []
+        method = prefix + "#{record}_#{suffix}"
+        [method, args]
       end
 
       def model_path_helper_call(record)
