@@ -12,10 +12,9 @@ It describes how to properly setup Active Record for PostgreSQL.
 
 After reading this guide, you will know:
 
-
 * How to use PostgreSQL's datatypes.
-* How to use UUID Primary keys.
-* How to implement Full text search with PostgreSQL.
+* How to use UUID primary keys.
+* How to implement full text search with PostgreSQL.
 
 --------------------------------------------------------------------------------
 
@@ -290,6 +289,33 @@ user.save!
 
 The types `inet` and `cidr` are mapped to Ruby [`IPAddr`](http://www.ruby-doc.org/stdlib-2.1.1/libdoc/ipaddr/rdoc/IPAddr.html) objects. The
 `macaddr` type is mapped to normal text.
+
+```ruby
+# db/migrate/20140508144913_create_devices.rb
+create_table(:devices, force: true) do |t|
+  t.inet 'ip'
+  t.cidr 'network'
+  t.macaddr 'address'
+end
+
+# app/models/device.rb
+class Device < ActiveRecord::Base
+end
+
+# Usage
+macbook = Device.create(ip: "192.168.1.12",
+                        network: "192.168.2.0/24",
+                        address: "32:01:16:6d:05:ef")
+
+macbook.ip
+# => #<IPAddr: IPv4:192.168.1.12/255.255.255.255>
+
+macbook.network
+# => #<IPAddr: IPv4:192.168.2.0/255.255.255.0>
+
+macbook.address
+# => "32:01:16:6d:05:ef"
+```
 
 ### Geometric Types
 
