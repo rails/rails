@@ -1576,6 +1576,11 @@ module ActiveRecord
 
         join_model = builder.through_model
 
+        # FIXME: we should move this to the internal constants. Also people
+        # should never directly access this constant so I'm not happy about
+        # setting it.
+        const_set join_model.name, join_model
+
         middle_reflection = builder.middle_reflection join_model
 
         Builder::HasMany.define_callbacks self, middle_reflection

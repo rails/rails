@@ -83,6 +83,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     country.treaties << treaty
   end
 
+  def test_marshal_dump
+    post = posts :welcome
+    preloaded = Post.includes(:categories).find post.id
+    assert_equal preloaded, Marshal.load(Marshal.dump(preloaded))
+  end
+
   def test_should_property_quote_string_primary_keys
     setup_data_for_habtm_case
 
