@@ -87,5 +87,9 @@
 
     *Piotr Chmolowski, Łukasz Strzałkowski*
 
+*   Allow custom `:host` option to be passed to `asset_url` helper that
+    overwrites `config.action_controller.asset_host` for particular asset.
+
+    *Hubert Łępicki*
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionview/CHANGELOG.md) for previous changes.

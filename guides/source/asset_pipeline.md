@@ -913,6 +913,14 @@ that it plays nicely with the pipeline. You may find quirks related to your
 specific set up, you may not. The defaults nginx uses, for example, should give
 you no problems when used as an HTTP cache.
 
+If you want to serve only some assets from your CDN, you can use custom
+`:host` option of  `asset_url` helper, which overwrites value set in
+`config.action_controller.asset_host`.
+
+```ruby
+asset_url 'image.png', :host => 'http://cdn.example.com'
+```
+
 Customizing the Pipeline
 ------------------------
 

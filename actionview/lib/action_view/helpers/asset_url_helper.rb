@@ -147,7 +147,14 @@ module ActionView
 
       # Computes the full URL to an asset in the public directory. This
       # will use +asset_path+ internally, so most of their behaviors
-      # will be the same.
+      # will be the same. If :host options is set, it overwrites global
+      # +config.action_controller.asset_host+ setting.
+      #
+      # All other options provided are forwarded to +asset_path+ call.
+      #
+      #   asset_url "application.js"                                 # => http://example.com/application.js
+      #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/javascripts/application.js
+      #
       def asset_url(source, options = {})
         path_to_asset(source, options.merge(:protocol => :request))
       end
