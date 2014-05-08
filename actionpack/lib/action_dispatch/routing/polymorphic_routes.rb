@@ -109,11 +109,9 @@ module ActionDispatch
         suffix = routing_type options
 
         if options[:action] == 'new'
-          inflection = SINGULAR_ROUTE_KEY
-          builder = HelperMethodBuilder.singular suffix
+          builder = HelperMethodBuilder.singular prefix, suffix
         else
-          inflection = ROUTE_KEY
-          builder = HelperMethodBuilder.plural suffix
+          builder = HelperMethodBuilder.plural prefix, suffix
         end
 
         case record_or_hash_or_array
@@ -125,8 +123,7 @@ module ActionDispatch
             recipient = record_or_hash_or_array.shift
           end
 
-          method, args = builder.handle_list record_or_hash_or_array,
-                                             prefix
+          method, args = builder.handle_list record_or_hash_or_array
         when Hash
           unless record_or_hash_or_array[:id]
             raise ArgumentError, "Nil location provided. Can't build URI."
@@ -135,20 +132,17 @@ module ActionDispatch
           opts        = record_or_hash_or_array.dup.merge!(opts)
           record      = opts.delete(:id)
 
-          method, args = builder.handle_model record, prefix
+          method, args = builder.handle_model record
 
         when String, Symbol
-          method, args = builder.handle_string record_or_hash_or_array,
-                                               prefix
+          method, args = builder.handle_string record_or_hash_or_array
         when Class
-          method, args = builder.handle_class record_or_hash_or_array,
-                                              prefix
+          method, args = builder.handle_class record_or_hash_or_array
 
         when nil
           raise ArgumentError, "Nil location provided. Can't build URI."
         else
-          method, args = builder.handle_model record_or_hash_or_array,
-                                              prefix
+          method, args = builder.handle_model record_or_hash_or_array
         end
 
 
@@ -161,7 +155,7 @@ module ActionDispatch
 
       # Returns the path component of a URL for the given record. It uses
       # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
-      def polymorphic_path(record_or_hash_or_array, options)
+      def polymorphic_path(record_or_hash_or_array, options = {})
         polymorphic_url(record_or_hash_or_array, options.merge(:routing_type => :path))
       end
 
@@ -185,32 +179,33 @@ module ActionDispatch
       private
 
       class HelperMethodBuilder # :nodoc:
-        def self.singular(suffix)
-          new(->(name) { name.singular_route_key }, suffix)
+        def self.singular(prefix, suffix)
+          new(->(name) { name.singular_route_key }, prefix, suffix)
         end
 
-        def self.plural(suffix)
-          new(->(name) { name.route_key }, suffix)
+        def self.plural(prefix, suffix)
+          new(->(name) { name.route_key }, prefix, suffix)
         end
 
-        attr_reader :suffix
+        attr_reader :suffix, :prefix
 
-        def initialize(key_strategy, suffix)
+        def initialize(key_strategy, prefix, suffix)
           @key_strategy = key_strategy
+          @prefix       = prefix
           @suffix       = suffix
         end
 
-        def handle_string(record, prefix)
+        def handle_string(record)
           method = prefix + "#{record}_#{suffix}"
           [method, []]
         end
 
-        def handle_class(klass, prefix)
+        def handle_class(klass)
           name   = @key_strategy.call klass.model_name
           [prefix + "#{name}_#{suffix}", []]
         end
 
-        def handle_model(record, prefix)
+        def handle_model(record)
           args  = []
 
           model = record.to_model
@@ -226,7 +221,7 @@ module ActionDispatch
           [named_route, args]
         end
 
-        def handle_list(list, prefix)
+        def handle_list(list)
           record_list = list.dup
           record      = record_list.pop
 
@@ -265,18 +260,6 @@ module ActionDispatch
           named_route = prefix + route.join("_")
           [named_route, args]
         end
-      end
-
-      ROUTE_KEY = lambda { |name| name.route_key }
-      SINGULAR_ROUTE_KEY = lambda { |name| name.singular_route_key }
-
-
-      def model_path_helper_call(record)
-        handle_model record, ''.freeze, "path".freeze, ROUTE_KEY
-      end
-
-      def class_path_helper_call(klass)
-        handle_class klass, ''.freeze, "path".freeze, ROUTE_KEY
       end
 
         def action_prefix(options)

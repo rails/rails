@@ -158,7 +158,7 @@ module ActionDispatch
         when Array
           polymorphic_url(options, options.extract_options!)
         else
-          polymorphic_url(options)
+          polymorphic_url(options, {})
         end
       end
 
