@@ -662,7 +662,7 @@ get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
 `:constraints` takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 ```ruby
-get '/:id', to: 'posts#show', constraints: {id: /^\d/}
+get '/:id', to: 'posts#show', constraints: { id: /^\d/ }
 ```
 
 However, note that you don't need to use anchors because all routes are anchored at the start.
@@ -676,12 +676,12 @@ get '/:username', to: 'users#show'
 
 ### Request-Based Constraints
 
-You can also constrain a route based on any method on the <a href="action_controller_overview.html#the-request-object">Request</a> object that returns a `String`.
+You can also constrain a route based on any method on the [Request object](action_controller_overview.html#the-request-object) that returns a `String`.
 
 You specify a request-based constraint the same way that you specify a segment constraint:
 
 ```ruby
-get 'photos', constraints: {subdomain: 'admin'}
+get 'photos', constraints: { subdomain: 'admin' }
 ```
 
 You can also specify constraints in a block form:
@@ -694,7 +694,7 @@ namespace :admin do
 end
 ```
 
-NOTE: Request constraints work by calling a method on the <a href="action_controller_overview.html#the-request-object">Request object</a> with the same name as the hash key and then compare the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected, however using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
+NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then compare the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected, however using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
 
 ### Advanced Constraints
 
@@ -783,8 +783,8 @@ get '/stories/:name', to: redirect('/posts/%{name}')
 You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
 
 ```ruby
-get '/stories/:name', to: redirect {|path_params, req| "/posts/#{path_params[:name].pluralize}" }
-get '/stories', to: redirect {|path_params, req| "/posts/#{req.subdomain}" }
+get '/stories/:name', to: redirect { |path_params, req| "/posts/#{path_params[:name].pluralize}" }
+get '/stories', to: redirect { |path_params, req| "/posts/#{req.subdomain}" }
 ```
 
 Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
@@ -793,7 +793,7 @@ In all of these cases, if you don't provide the leading host (`http://www.exampl
 
 ### Routing to Rack Applications
 
-Instead of a String like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher:
+Instead of a String like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
 
 ```ruby
 match '/application.js', to: Sprockets, via: :all
@@ -879,7 +879,7 @@ a warning.
 You can use the `:constraints` option to specify a required format on the implicit `id`. For example:
 
 ```ruby
-resources :photos, constraints: {id: /[A-Z][A-Z][0-9]+/}
+resources :photos, constraints: { id: /[A-Z][A-Z][0-9]+/ }
 ```
 
 This declaration constrains the `:id` parameter to match the supplied regular expression. So, in this case, the router would no longer match `/photos/1` to this route. Instead, `/photos/RR27` would match.
@@ -919,7 +919,7 @@ will recognize incoming paths beginning with `/photos` and route the requests to
 
 ### Overriding the `new` and `edit` Segments
 
-The `:path_names` option lets you override the automatically-generated "new" and "edit" segments in paths:
+The `:path_names` option lets you override the automatically-generated `new` and `edit` segments in paths:
 
 ```ruby
 resources :photos, path_names: { new: 'make', edit: 'change' }
@@ -954,7 +954,7 @@ end
 resources :photos
 ```
 
-This will provide route helpers such as `admin_photos_path`, `new_admin_photo_path` etc.
+This will provide route helpers such as `admin_photos_path`, `new_admin_photo_path`, etc.
 
 To prefix a group of route helpers, use `:as` with `scope`:
 
@@ -982,7 +982,7 @@ This will provide you with URLs such as `/bob/posts/1` and will allow you to ref
 
 ### Restricting the Routes Created
 
-By default, Rails creates routes for the seven default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the `:only` and `:except` options to fine-tune this behavior. The `:only` option tells Rails to create only the specified routes:
+By default, Rails creates routes for the seven default actions (`index`, `show`, `new`, `create`, `edit`, `update`, and `destroy`) for every RESTful route in your application. You can use the `:only` and `:except` options to fine-tune this behavior. The `:only` option tells Rails to create only the specified routes:
 
 ```ruby
 resources :photos, only: [:index, :show]
