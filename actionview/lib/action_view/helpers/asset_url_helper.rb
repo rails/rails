@@ -191,7 +191,8 @@ module ActionView
       # (proc or otherwise).
       def compute_asset_host(source = "", options = {})
         request = self.request if respond_to?(:request)
-        host = config.asset_host if defined? config.asset_host
+        host = options[:host]
+        host ||= config.asset_host if defined? config.asset_host
         host ||= request.base_url if request && options[:protocol] == :request
 
         if host.respond_to?(:call)
