@@ -125,10 +125,9 @@ module ActionDispatch
             recipient = record_or_hash_or_array.shift
           end
 
-          method, args = handle_list record_or_hash_or_array,
-                                     prefix,
-                                     suffix,
-                                     inflection
+          method, args = builder.handle_list record_or_hash_or_array,
+                                             prefix,
+                                             suffix
         when Hash
           unless record_or_hash_or_array[:id]
             raise ArgumentError, "Nil location provided. Can't build URI."
@@ -227,50 +226,51 @@ module ActionDispatch
 
           [named_route, args]
         end
-      end
 
-      ROUTE_KEY = lambda { |name| name.route_key }
-      SINGULAR_ROUTE_KEY = lambda { |name| name.singular_route_key }
+        def handle_list(list, prefix, suffix)
+          record_list = list.dup
+          record      = record_list.pop
 
-      def handle_list(list, prefix, suffix, inflection)
-        record_list = list.dup
-        record      = record_list.pop
+          args = []
 
-        args = []
+          route  = record_list.map { |parent|
+            case parent
+            when Symbol, String
+              parent.to_s
+            when Class
+              args << parent
+              parent.model_name.singular_route_key
+            else
+              args << parent.to_model
+              parent.to_model.class.model_name.singular_route_key
+            end
+          }
 
-        route  = record_list.map { |parent|
-          case parent
-          when Symbol, String
-            parent.to_s
-          when Class
-            args << parent
-            parent.model_name.singular_route_key
-          else
-            args << parent.to_model
-            parent.to_model.class.model_name.singular_route_key
-          end
-        }
-
-        route <<
+          route <<
           case record
           when Symbol, String
             record.to_s
           when Class
-            inflection.call record.model_name
+            @key_strategy.call record.model_name
           else
             if record.persisted?
               args << record.to_model
               record.to_model.class.model_name.singular_route_key
             else
-              inflection.call record.to_model.class.model_name
+              @key_strategy.call record.to_model.class.model_name
             end
           end
 
-        route << suffix
+          route << suffix
 
-        named_route = prefix + route.join("_")
-        [named_route, args]
+          named_route = prefix + route.join("_")
+          [named_route, args]
+        end
       end
+
+      ROUTE_KEY = lambda { |name| name.route_key }
+      SINGULAR_ROUTE_KEY = lambda { |name| name.singular_route_key }
+
 
       def model_path_helper_call(record)
         handle_model record, ''.freeze, "path".freeze, ROUTE_KEY
