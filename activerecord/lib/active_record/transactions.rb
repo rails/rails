@@ -131,7 +131,7 @@ module ActiveRecord
     #
     # +transaction+ calls can be nested. By default, this makes all database
     # statements in the nested transaction block become part of the parent
-    # transaction. For example, the following behavior may be surprising:
+    # transaction.
     #
     #   User.transaction do
     #     User.create(username: 'Kotori')
@@ -139,17 +139,23 @@ module ActiveRecord
     #       User.create(username: 'Nemu')
     #       raise ActiveRecord::Rollback
     #     end
+    #
+    #     # Since the nested transaction cannot rolled back on its own, it
+    #     # will bubble up the rollback request to its parent transaction,
+    #     # and the entire database transaction will be rolled back. As a
+    #     # result, the follow line is not reached and no users are created
+    #     # in the database.
+    #     raise 'Not reached'
     #   end
     #
-    # creates both "Kotori" and "Nemu". Reason is the <tt>ActiveRecord::Rollback</tt>
-    # exception in the nested block does not issue a ROLLBACK. Since these exceptions
-    # are captured in transaction blocks, the parent block does not see it and the
-    # real transaction is committed.
+    #   User.where(username: 'Kotori').count # => 0
+    #   User.where(username: 'Nemu').count   # => 0
     #
-    # In order to get a ROLLBACK for the nested transaction you may ask for a real
-    # sub-transaction by passing <tt>requires_new: true</tt>. If anything goes wrong,
-    # the database rolls back to the beginning of the sub-transaction without rolling
-    # back the parent transaction. If we add it to the previous example:
+    # In order to get a seperate ROLLBACK for the nested transaction, you may
+    # ask for a "real" sub-transaction by passing <tt>requires_new: true</tt>.
+    # If anything goes wrong, the database rolls back to the beginning of the
+    # sub-transaction without rolling back the parent transaction. If we add it
+    # to the previous example:
     #
     #   User.transaction do
     #     User.create(username: 'Kotori')
@@ -159,13 +165,14 @@ module ActiveRecord
     #     end
     #   end
     #
-    # only "Kotori" is created. This works on MySQL and PostgreSQL. SQLite3 version >= '3.6.8' also supports it.
+    #   User.where(username: 'Kotori').count # => 1
+    #   User.where(username: 'Nemu').count   # => 0
     #
-    # Most databases don't support true nested transactions. At the time of
-    # writing, the only database that we're aware of that supports true nested
-    # transactions, is MS-SQL. Because of this, Active Record emulates nested
-    # transactions by using savepoints on MySQL and PostgreSQL. See
-    # http://dev.mysql.com/doc/refman/5.6/en/savepoint.html
+    #
+    # `requires_new` is supported on MySQL, PostgreSQL and SQLite3 version >= '3.6.8'.
+    #
+    # Because most databases don't support true nested transactions, these sub-
+    # transactions are emulated using "savepoints" under-the-hood. See http://dev.mysql.com/doc/refman/5.6/en/savepoint.html
     # for more information about savepoints.
     #
     # === Callbacks
