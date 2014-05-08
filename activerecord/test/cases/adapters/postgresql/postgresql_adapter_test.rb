@@ -396,6 +396,23 @@ module ActiveRecord
         reset_connection
       end
 
+      def test_unparsed_defaults_are_at_least_set_when_saving
+        with_example_table "id SERIAL PRIMARY KEY, number INTEGER NOT NULL DEFAULT (4 + 4) * 2 / 4" do
+          number_klass = Class.new(ActiveRecord::Base) do
+            self.table_name = 'ex'
+          end
+          column = number_klass.columns_hash["number"]
+          assert_nil column.default
+          assert_nil column.default_function
+
+          first_number = number_klass.new
+          assert_nil first_number.number
+
+          first_number.save!
+          assert_equal 4, first_number.reload.number
+        end
+      end
+
       private
       def insert(ctx, data)
         binds   = data.map { |name, value|
