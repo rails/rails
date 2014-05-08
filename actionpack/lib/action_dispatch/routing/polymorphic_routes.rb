@@ -110,10 +110,10 @@ module ActionDispatch
 
         if options[:action] == 'new'
           inflection = SINGULAR_ROUTE_KEY
-          builder = HelperMethodBuilder.singular
+          builder = HelperMethodBuilder.singular suffix
         else
           inflection = ROUTE_KEY
-          builder = HelperMethodBuilder.plural
+          builder = HelperMethodBuilder.plural suffix
         end
 
         case record_or_hash_or_array
@@ -126,8 +126,7 @@ module ActionDispatch
           end
 
           method, args = builder.handle_list record_or_hash_or_array,
-                                             prefix,
-                                             suffix
+                                             prefix
         when Hash
           unless record_or_hash_or_array[:id]
             raise ArgumentError, "Nil location provided. Can't build URI."
@@ -136,23 +135,20 @@ module ActionDispatch
           opts        = record_or_hash_or_array.dup.merge!(opts)
           record      = opts.delete(:id)
 
-          method, args = builder.handle_model record, prefix, suffix
+          method, args = builder.handle_model record, prefix
 
         when String, Symbol
           method, args = builder.handle_string record_or_hash_or_array,
-                                               prefix,
-                                               suffix
+                                               prefix
         when Class
           method, args = builder.handle_class record_or_hash_or_array,
-                                              prefix,
-                                              suffix
+                                              prefix
 
         when nil
           raise ArgumentError, "Nil location provided. Can't build URI."
         else
           method, args = builder.handle_model record_or_hash_or_array,
-                                              prefix,
-                                              suffix
+                                              prefix
         end
 
 
@@ -189,29 +185,32 @@ module ActionDispatch
       private
 
       class HelperMethodBuilder # :nodoc:
-        def self.singular
-          new(->(name) { name.singular_route_key })
+        def self.singular(suffix)
+          new(->(name) { name.singular_route_key }, suffix)
         end
 
-        def self.plural
-          new(->(name) { name.route_key })
+        def self.plural(suffix)
+          new(->(name) { name.route_key }, suffix)
         end
 
-        def initialize(key_strategy)
+        attr_reader :suffix
+
+        def initialize(key_strategy, suffix)
           @key_strategy = key_strategy
+          @suffix       = suffix
         end
 
-        def handle_string(record, prefix, suffix)
+        def handle_string(record, prefix)
           method = prefix + "#{record}_#{suffix}"
           [method, []]
         end
 
-        def handle_class(klass, prefix, suffix)
+        def handle_class(klass, prefix)
           name   = @key_strategy.call klass.model_name
           [prefix + "#{name}_#{suffix}", []]
         end
 
-        def handle_model(record, prefix, suffix)
+        def handle_model(record, prefix)
           args  = []
 
           model = record.to_model
@@ -227,7 +226,7 @@ module ActionDispatch
           [named_route, args]
         end
 
-        def handle_list(list, prefix, suffix)
+        def handle_list(list, prefix)
           record_list = list.dup
           record      = record_list.pop
 
