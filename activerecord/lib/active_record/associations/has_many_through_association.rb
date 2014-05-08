@@ -22,7 +22,7 @@ module ActiveRecord
         elsif loaded?
           target.size
         else
-          count
+          super
         end
       end
 

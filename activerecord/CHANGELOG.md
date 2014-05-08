@@ -1,3 +1,12 @@
+*   Fixed HABTM's CollectionAssociation size calculation.
+
+    HABTM should fall back to using the normal CollectionAssociation's size
+    calculation if the collection is not cached or loaded.
+
+    Fixes #14913 and #14914.
+
+    *Fred Wu*
+
 *   Keep track of dirty attributes after transaction is rollback.
 
     Related #13166.
