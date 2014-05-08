@@ -206,10 +206,15 @@ module ActiveRecord
 
           yield
         else
-          within_new_transaction(options) { yield }
+          begin
+            within_new_transaction(options) { yield }
+          rescue ActiveRecord::Rollback
+            # `ActiveRecord::Rollback` is a special exception that's used to
+            # manually rollback transactions. Once the rollback is handled,
+            # the "exception" can be safely discarded since it's not a real
+            # error.
+          end
         end
-      rescue ActiveRecord::Rollback
-        # rollbacks are silently swallowed
       end
 
       def within_new_transaction(options = {}) #:nodoc:
