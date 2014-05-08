@@ -183,6 +183,12 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_with_class_list_of_one
+    with_test_routes do
+      assert_url "http://example.com/projects", [@project.class]
+    end
+  end
+
   def test_with_new_record
     with_test_routes do
       assert_url "http://example.com/projects", @project
@@ -386,6 +392,12 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_test_routes do
       @project.save
       assert_url "http://example.com/projects", [:projects]
+    end
+  end
+
+  def test_with_array_containing_single_string_name
+    with_test_routes do
+      assert_url "http://example.com/projects", ["projects"]
     end
   end
 
