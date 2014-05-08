@@ -105,14 +105,16 @@ module ActionDispatch
 
         opts = options.except(:action, :routing_type)
 
-        if options[:action] == 'new'
-          inflection = SINGULAR_ROUTE_KEY
-        else
-          inflection = ROUTE_KEY
-        end
-
         prefix = action_prefix options
         suffix = routing_type options
+
+        if options[:action] == 'new'
+          inflection = SINGULAR_ROUTE_KEY
+          builder = HelperMethodBuilder.singular
+        else
+          inflection = ROUTE_KEY
+          builder = HelperMethodBuilder.plural
+        end
 
         case record_or_hash_or_array
         when Array
@@ -135,28 +137,24 @@ module ActionDispatch
           opts        = record_or_hash_or_array.dup.merge!(opts)
           record      = opts.delete(:id)
 
-          method, args = handle_model record,
-                                      prefix,
-                                      suffix,
-                                      inflection
+          method, args = builder.handle_model record, prefix, suffix
+
         when String, Symbol
           method, args = handle_string record_or_hash_or_array,
                                        prefix,
                                        suffix,
                                        inflection
         when Class
-          method, args = handle_class record_or_hash_or_array,
-                                       prefix,
-                                       suffix,
-                                       inflection
+          method, args = builder.handle_class record_or_hash_or_array,
+                                              prefix,
+                                              suffix
 
         when nil
           raise ArgumentError, "Nil location provided. Can't build URI."
         else
-          method, args = handle_model record_or_hash_or_array,
-                                       prefix,
-                                       suffix,
-                                       inflection
+          method, args = builder.handle_model record_or_hash_or_array,
+                                              prefix,
+                                              suffix
         end
 
 
@@ -191,6 +189,41 @@ module ActionDispatch
       end
 
       private
+
+      class HelperMethodBuilder # :nodoc:
+        def self.singular
+          new(->(name) { name.singular_route_key })
+        end
+
+        def self.plural
+          new(->(name) { name.route_key })
+        end
+
+        def initialize(key_strategy)
+          @key_strategy = key_strategy
+        end
+
+        def handle_class(klass, prefix, suffix)
+          name   = @key_strategy.call klass.model_name
+          [prefix + "#{name}_#{suffix}", []]
+        end
+
+        def handle_model(record, prefix, suffix)
+          args  = []
+
+          model = record.to_model
+          name = if record.persisted?
+                   args << model
+                   model.class.model_name.singular_route_key
+                 else
+                   @key_strategy.call model.class.model_name
+                 end
+
+          named_route = prefix + "#{name}_#{suffix}"
+
+          [named_route, args]
+        end
+      end
 
       ROUTE_KEY = lambda { |name| name.route_key }
       SINGULAR_ROUTE_KEY = lambda { |name| name.singular_route_key }
@@ -233,27 +266,6 @@ module ActionDispatch
 
         named_route = prefix + route.join("_")
         [named_route, args]
-      end
-
-      def handle_model(record, prefix, suffix, inflection)
-        args  = []
-
-        model = record.to_model
-        name = if record.persisted?
-                 args << model
-                 model.class.model_name.singular_route_key
-               else
-                 inflection.call model.class.model_name
-               end
-
-        named_route = prefix + "#{name}_#{suffix}"
-
-        [named_route, args]
-      end
-
-      def handle_class(klass, prefix, suffix, inflection)
-        name   = inflection.call klass.model_name
-        [prefix + "#{name}_#{suffix}", []]
       end
 
       def handle_string(record, prefix, suffix, inflection)
