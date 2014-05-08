@@ -140,10 +140,9 @@ module ActionDispatch
           method, args = builder.handle_model record, prefix, suffix
 
         when String, Symbol
-          method, args = handle_string record_or_hash_or_array,
-                                       prefix,
-                                       suffix,
-                                       inflection
+          method, args = builder.handle_string record_or_hash_or_array,
+                                               prefix,
+                                               suffix
         when Class
           method, args = builder.handle_class record_or_hash_or_array,
                                               prefix,
@@ -201,6 +200,11 @@ module ActionDispatch
 
         def initialize(key_strategy)
           @key_strategy = key_strategy
+        end
+
+        def handle_string(record, prefix, suffix)
+          method = prefix + "#{record}_#{suffix}"
+          [method, []]
         end
 
         def handle_class(klass, prefix, suffix)
@@ -266,12 +270,6 @@ module ActionDispatch
 
         named_route = prefix + route.join("_")
         [named_route, args]
-      end
-
-      def handle_string(record, prefix, suffix, inflection)
-        args = []
-        method = prefix + "#{record}_#{suffix}"
-        [method, args]
       end
 
       def model_path_helper_call(record)
