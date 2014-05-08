@@ -192,6 +192,13 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_class_with_options
+    with_test_routes do
+      assert_equal "http://example.com/projects?foo=bar", polymorphic_url(@project.class, { :foo => :bar })
+      assert_equal "/projects?foo=bar", polymorphic_path(@project.class, { :foo => :bar })
+    end
+  end
+
   def test_with_new_record
     with_test_routes do
       assert_url "http://example.com/projects", @project
