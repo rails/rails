@@ -419,10 +419,8 @@ module ActiveRecord
 
       # Should not be called normally, but this operation is non-destructive.
       # The migrations module handles this automatically.
-      MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191
       def initialize_schema_migrations_table
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
-        connection_config = ActiveRecord::Base.connection_config
 
         unless table_exists?(sm_table)
           create_table(sm_table, :id => false) do |schema_migrations_table|
@@ -433,8 +431,8 @@ module ActiveRecord
             :unique => true, 
             :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
           }
-
-          index_options[:length] = MAX_INDEX_LENGTH_FOR_UTF8MB4 if 'mysql2' == connection_config[:adapter] && 'utf8mb4' == connection_config[:encoding]
+          
+          index_options[:length] = Base.connection.max_index_length if Base.connection.max_index_length
 
           add_index sm_table, :version, index_options
 

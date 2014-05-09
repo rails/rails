@@ -93,6 +93,12 @@ module ActiveRecord
         'Abstract'
       end
 
+      # Returns the max limit of chars supported by an index, according to the
+      # especified encoding.
+      def max_index_length
+        nil
+      end
+
       # Does this adapter support migrations? Backend specific, as the
       # abstract adapter always returns +false+.
       def supports_migrations?
