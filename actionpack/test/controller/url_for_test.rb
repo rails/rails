@@ -169,6 +169,18 @@ module AbstractController
         )
       end
 
+      def test_without_protocol_and_with_port
+        add_host!
+        add_port!
+
+        assert_equal('//www.basecamphq.com:3000/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => '//')
+        )
+        assert_equal('//www.basecamphq.com:3000/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => false)
+        )
+      end
+
       def test_trailing_slash
         add_host!
         options = {:controller => 'foo', :trailing_slash => true, :action => 'bar', :id => '33'}
