@@ -1,2 +1,0 @@
-class A::B
-end
