@@ -419,14 +419,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get 'page' => 'content#show_page', :as => 'pages', :host => 'foo.com'
     end
     routes = setup_for_named_route
-    routes.expects(:url_for).with({
-      :host => 'foo.com',
-      :only_path => false,
-      :controller => 'content',
-      :action => 'show_page',
-      :use_route => 'pages'
-    }).once
-    routes.send(:pages_url)
+    assert_equal "http://foo.com/page", routes.pages_url
   end
 
   def setup_for_named_route(options = {})
