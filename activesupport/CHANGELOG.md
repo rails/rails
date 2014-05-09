@@ -1,3 +1,8 @@
+*   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
+    when a subscriber method is redefined.
+
+    *Dennis Schön*
+
 *   `humanize` strips leading underscores, if any.
 
     Before:
