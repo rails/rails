@@ -391,7 +391,7 @@ module ActiveRecord
       values = @klass.connection.columns_for_distinct(
         "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
 
-      relation = relation.except(:select).select(values).distinct!
+      relation = relation.except(:select).select(values).reorder(nil).distinct!
 
       id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
       id_rows.map {|row| row[primary_key]}
