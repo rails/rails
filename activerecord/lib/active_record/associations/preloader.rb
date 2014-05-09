@@ -8,7 +8,7 @@ module ActiveRecord
     # The first one is by using table joins. This was only strategy available
     # prior to Rails 2.1. Suppose that you have an Author model with columns
     # 'name' and 'age', and a Book model with columns 'name' and 'sales'. Using
-    # this strategy, Active Record would try to retrieve all data for an author
+    # this strategy, Active Record would fry to retrieve all data for an author
     # and all of its books via a single query:
     #
     #   SELECT * FROM authors

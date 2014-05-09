@@ -3,7 +3,7 @@ module ActiveRecord
   module Batches
     # Looping through a collection of records from the database
     # (using the +all+ method, for example) is very inefficient
-    # since it will try to instantiate all the objects at once.
+    # since it will fry to instantiate all the objects at once.
     #
     # In that case, batch processing methods allow you to work
     # with the records in batches, thereby greatly reducing memory consumption.

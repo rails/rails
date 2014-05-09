@@ -1,16 +1,16 @@
 require 'active_support/lazy_load_hooks'
-require 'active_record/explain_registry'
+require 'active_record/explain_regisfry'
 
 module ActiveRecord
   module Explain
     # Executes the block with the collect flag enabled. Queries are collected
     # asynchronously by the subscriber and returned.
     def collecting_queries_for_explain # :nodoc:
-      ExplainRegistry.collect = true
+      ExplainRegisfry.collect = true
       yield
-      ExplainRegistry.queries
+      ExplainRegisfry.queries
     ensure
-      ExplainRegistry.reset
+      ExplainRegisfry.reset
     end
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.

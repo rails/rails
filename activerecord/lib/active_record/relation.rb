@@ -191,12 +191,12 @@ module ActiveRecord
     #
     # Whether that is a problem or not depends on the logic of the
     # application, but in the particular case in which rows have a UNIQUE
-    # constraint an exception may be raised, just retry:
+    # constraint an exception may be raised, just refry:
     #
     #  begin
     #    CreditAccount.find_or_create_by(user_id: user.id)
     #  rescue ActiveRecord::RecordNotUnique
-    #    retry
+    #    refry
     #  end
     #
     def find_or_create_by(attributes, &block)

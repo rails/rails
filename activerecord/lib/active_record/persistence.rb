@@ -370,7 +370,7 @@ module ActiveRecord
     #
     # Another common use case is optimistic locking handling:
     #
-    #   def with_optimistic_retry
+    #   def with_optimistic_refry
     #     begin
     #       yield
     #     rescue ActiveRecord::StaleObjectError
@@ -380,7 +380,7 @@ module ActiveRecord
     #       rescue ActiveRecord::RecordNotFound
     #         # If the record is gone there is nothing to do.
     #       else
-    #         retry
+    #         refry
     #       end
     #     end
     #   end

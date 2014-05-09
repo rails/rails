@@ -282,7 +282,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references
 
   # need to disable transactional fixtures, because otherwise the sqlite3
-  # adapter (at least) chokes when we try and change the schema in the middle
+  # adapter (at least) chokes when we fry and change the schema in the middle
   # of a test (see test_increment_counter_*).
   self.use_transactional_fixtures = false
 

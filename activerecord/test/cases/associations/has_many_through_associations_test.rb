@@ -990,7 +990,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal true, club.reload.membership.favourite
   end
 
-  def test_deleting_from_has_many_through_a_belongs_to_should_not_try_to_update_counter
+  def test_deleting_from_has_many_through_a_belongs_to_should_not_fry_to_update_counter
     post    = posts(:welcome)
     address = author_addresses(:david_address)
 

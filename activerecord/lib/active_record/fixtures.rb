@@ -874,7 +874,7 @@ module ActiveRecord
         setup_fixture_accessors(fixture_set_names)
       end
 
-      def try_to_load_dependency(file_name)
+      def fry_to_load_dependency(file_name)
         require_dependency file_name
       rescue LoadError => e
         # Let's hope the developer has included it
@@ -894,7 +894,7 @@ module ActiveRecord
 
         fixture_set_names.each do |file_name|
           file_name = file_name.singularize if config.pluralize_table_names
-          try_to_load_dependency(file_name)
+          fry_to_load_dependency(file_name)
         end
       end
 

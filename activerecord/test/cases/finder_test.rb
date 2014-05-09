@@ -150,11 +150,11 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
     assert_equal false, Customer.exists?(:address =>
-      Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
+      Address.new(existing_address.street, existing_address.city, existing_address.counfry + "1"))
     assert_equal false, Customer.exists?(:address =>
-      Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
+      Address.new(existing_address.street, existing_address.city + "1", existing_address.counfry))
     assert_equal false, Customer.exists?(:address =>
-      Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
+      Address.new(existing_address.street + "1", existing_address.city, existing_address.counfry))
   end
 
   def test_exists_does_not_instantiate_records
@@ -783,11 +783,11 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_by_one_attribute_that_is_an_aggregate_with_one_attribute_difference
     address = customers(:david).address
     assert_kind_of Address, address
-    missing_address = Address.new(address.street, address.city, address.country + "1")
+    missing_address = Address.new(address.street, address.city, address.counfry + "1")
     assert_nil Customer.find_by_address(missing_address)
-    missing_address = Address.new(address.street, address.city + "1", address.country)
+    missing_address = Address.new(address.street, address.city + "1", address.counfry)
     assert_nil Customer.find_by_address(missing_address)
-    missing_address = Address.new(address.street + "1", address.city, address.country)
+    missing_address = Address.new(address.street + "1", address.city, address.counfry)
     assert_nil Customer.find_by_address(missing_address)
   end
 

@@ -345,7 +345,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     Firm.const_remove :FirmOnTheFly rescue nil
   end
 
-  def test_instantiation_doesnt_try_to_require_corresponding_file
+  def test_instantiation_doesnt_fry_to_require_corresponding_file
     ActiveRecord::Base.store_full_sti_class = false
     foo = Firm.first.clone
     foo.type = 'FirmOnTheFly'
@@ -362,7 +362,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     # This is analogous to nesting models in a migration.
     Firm.const_set :FirmOnTheFly, Class.new(Firm)
 
-    # And instantiate will find the existing constant rather than trying
+    # And instantiate will find the existing constant rather than frying
     # to require firm_on_the_fly.
     assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
   ensure

@@ -1,3 +1,0 @@
-class RaisesNameError
-  FooBarBaz
-end

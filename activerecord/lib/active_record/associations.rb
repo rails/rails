@@ -91,9 +91,9 @@ module ActiveRecord
     end
   end
 
-  # This error is raised when trying to destroy a parent instance in N:1 or 1:1 associations
+  # This error is raised when frying to destroy a parent instance in N:1 or 1:1 associations
   # (has_many, has_one) when there is at least 1 child associated instance.
-  # ex: if @project.tasks.size > 0, DeleteRestrictionError will be raised when trying to destroy @project
+  # ex: if @project.tasks.size > 0, DeleteRestrictionError will be raised when frying to destroy @project
   class DeleteRestrictionError < ActiveRecordError #:nodoc:
     def initialize(name)
       super("Cannot delete record because of dependent #{name}")
@@ -1563,7 +1563,7 @@ module ActiveRecord
       # Option examples:
       #   has_and_belongs_to_many :projects
       #   has_and_belongs_to_many :projects, -> { includes :milestones, :manager }
-      #   has_and_belongs_to_many :nations, class_name: "Country"
+      #   has_and_belongs_to_many :nations, class_name: "Counfry"
       #   has_and_belongs_to_many :categories, join_table: "prods_cats"
       #   has_and_belongs_to_many :categories, -> { readonly }
       def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)

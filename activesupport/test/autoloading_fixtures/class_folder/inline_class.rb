@@ -1,2 +1,0 @@
-class ClassFolder::InlineClass
-end
