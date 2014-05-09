@@ -641,7 +641,7 @@ class TestController < ApplicationController
              "accessing_params_in_template_with_layout",
              "render_with_explicit_template",
              "render_with_explicit_string_template",
-             "update_page", "update_page_with_instance_variables"
+             "update_page", "update_page_with_instance_variables", "render_action_hello_world"
 
           "layouts/standard"
         when "action_talk_to_layout", "layout_overriding_layout"
@@ -738,9 +738,8 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_render_action_upcased
-    assert_raise ActionView::MissingTemplate do
-      get :render_action_upcased_hello_world
-    end
+    get :render_action_upcased_hello_world
+    assert_equal "Hello world!", @response.body
   end
 
   # :ported:

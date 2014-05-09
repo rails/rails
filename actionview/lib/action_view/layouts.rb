@@ -204,20 +204,16 @@ module ActionView
     include ActionView::Rendering
 
     included do
-      class_attribute :_layout, :_layout_conditions, :instance_accessor => false
-      self._layout = nil
+      class_attribute :_layout_proc, :_layout_conditions, :instance_accessor => false
+      self._layout_proc       = nil
       self._layout_conditions = {}
-      _write_layout_method
+
+      include LayoutMethod
     end
 
     delegate :_layout_conditions, to: :class
 
     module ClassMethods
-      def inherited(klass) # :nodoc:
-        super
-        klass._write_layout_method
-      end
-
       # This module is mixed in if layout conditions are provided. This means
       # that if no layout conditions are used, this method is not used
       module LayoutConditions # :nodoc:
@@ -260,71 +256,14 @@ module ActionView
       # * :only   - A list of actions to apply this layout to.
       # * :except - Apply this layout to all actions but this one.
       def layout(layout, conditions = {})
+        raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil" unless layout == false || layout.nil? || layout.is_a?(Proc) || layout.is_a?(String) || layout.is_a?(Symbol)
+
         include LayoutConditions unless conditions.empty?
 
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
 
-        self._layout = layout
-        _write_layout_method
-      end
-
-      # Creates a _layout method to be called by _default_layout .
-      #
-      # If a layout is not explicitly mentioned then look for a layout with the controller's name.
-      # if nothing is found then try same procedure to find super class's layout.
-      def _write_layout_method # :nodoc:
-        remove_possible_method(:_layout)
-
-        prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
-        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}).first || super"
-        name_clause = if name
-          default_behavior
-        else
-          <<-RUBY
-            super
-          RUBY
-        end
-
-        layout_definition = case _layout
-          when String
-            _layout.inspect
-          when Symbol
-            <<-RUBY
-              #{_layout}.tap do |layout|
-                return #{default_behavior} if layout.nil?
-                unless layout.is_a?(String) || !layout
-                  raise ArgumentError, "Your layout method :#{_layout} returned \#{layout}. It " \
-                    "should have returned a String, false, or nil"
-                end
-              end
-            RUBY
-          when Proc
-            define_method :_layout_from_proc, &_layout
-            protected :_layout_from_proc
-            <<-RUBY
-              result = _layout_from_proc(#{_layout.arity == 0 ? '' : 'self'})
-              return #{default_behavior} if result.nil?
-              result
-            RUBY
-          when false
-            nil
-          when true
-            raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil"
-          when nil
-            name_clause
-        end
-
-        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def _layout
-            if _conditional_layout?
-              #{layout_definition}
-            else
-              #{name_clause}
-            end
-          end
-          private :_layout
-        RUBY
+        self._layout_proc = layout
       end
 
       private
@@ -339,7 +278,71 @@ module ActionView
       end
     end
 
-    def _normalize_options(options) # :nodoc:
+    # If a layout is not explicitly mentioned then look for a layout with the controller's name.
+    # if nothing is found then try same procedure to find super class's layout.
+    class DefaultLayout # :nodoc:
+      def initialize(lookup_context)
+        @lookup_context = lookup_context
+      end
+
+      # Default behaviour, traversing up the inheritance chain.
+      def for_class(controller_class)
+        return if controller_class.abstract?
+
+        implied_layout_name = controller_class.send(:_implied_layout_name)
+        prefixes = implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+
+        lookup_context.find_all(implied_layout_name, prefixes).first || for_class(controller_class.superclass) # we should call superclass._layout here for consistency.
+      end
+
+      # Evaluates the proc (or configuration) from Controller._layout_proc
+      def for_instance(controller, proc)
+        layout = proc
+
+        case proc
+        when Symbol
+          layout = invoke_for(controller, proc)
+        when Proc
+          layout = exec_for(controller, proc)
+        end
+
+        layout = for_class(controller.class) if layout.nil? # call default behaviour for nil return value.
+        layout
+      end
+
+
+      attr_reader :lookup_context
+      private :lookup_context
+
+      private
+      def invoke_for(controller, proc)
+        layout = controller.send(proc)
+        return if layout.nil?
+
+        raise ArgumentError, "Your layout method :#{proc} returned #{layout}. It " \
+          "should have returned a String, false, or nil" unless layout.is_a?(String) || layout === false
+
+        layout
+      end
+
+      def exec_for(controller, proc)
+        controller.instance_exec(&proc) || nil
+      end
+    end
+
+    # Creates a _layout method to be called by _default_layout .
+    module LayoutMethod
+      private
+      def _layout # reader, called in #_default_layout.
+        if _conditional_layout?
+          DefaultLayout.new(lookup_context).for_instance(self, self.class._layout_proc)
+        else
+          DefaultLayout.new(lookup_context).for_class(self.class)
+        end
+      end
+    end
+
+    def _normalize_options(options) # :nodoc: # DISCUSS: that's overriding a step in #render, that's stupid.
       super
 
       if _include_layout?(options)
@@ -350,11 +353,6 @@ module ActionView
 
     attr_internal_writer :action_has_layout
 
-    def initialize(*) # :nodoc:
-      @_action_has_layout = true
-      super
-    end
-
     # Controls whether an action should be rendered using a layout.
     # If you want to disable any <tt>layout</tt> settings for the
     # current action so that it is rendered without a layout then
@@ -362,7 +360,7 @@ module ActionView
     # for that action or set the <tt>action_has_layout</tt> attribute
     # to false before rendering.
     def action_has_layout?
-      @_action_has_layout
+      @_action_has_layout ||= true
     end
 
   private
@@ -371,7 +369,6 @@ module ActionView
       true
     end
 
-    # This will be overwritten by _write_layout_method
     def _layout; end
 
     # Determine the layout for a given name, taking into account the name type.
@@ -379,6 +376,7 @@ module ActionView
     # ==== Parameters
     # * <tt>name</tt> - The name of the template
     def _layout_for_option(name)
+      # called when render call contains :layout. where is this evaluated?
       case name
       when String     then _normalize_layout(name)
       when Proc       then name

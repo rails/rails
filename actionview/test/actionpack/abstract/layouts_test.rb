@@ -295,7 +295,7 @@ module AbstractControllerTests
       end
 
       test "when the layout is specified as a symbol and the method doesn't exist, raise an exception" do
-        assert_raises(NameError) { WithSymbolAndNoMethod.new.process(:index) }
+        assert_raises(NoMethodError) { WithSymbolAndNoMethod.new.process(:index) }
       end
 
       test "when the layout is specified as a symbol and the method returns something besides a string/false/nil, raise an exception" do
