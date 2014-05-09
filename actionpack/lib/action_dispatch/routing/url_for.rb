@@ -155,10 +155,14 @@ module ActionDispatch
           _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
         when String
           options
+        when Symbol
+          HelperMethodBuilder.url.handle_string_call self, options
         when Array
           polymorphic_url(options, options.extract_options!)
+        when Class
+          HelperMethodBuilder.url.handle_class_call self, options
         else
-          polymorphic_url(options, {})
+          HelperMethodBuilder.url.handle_model_call self, options
         end
       end
 

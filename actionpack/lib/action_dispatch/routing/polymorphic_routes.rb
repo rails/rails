@@ -101,62 +101,42 @@ module ActionDispatch
       #   polymorphic_url(Comment) # same as comments_url()
       #
       def polymorphic_url(record_or_hash_or_array, options = {})
-        recipient = self
-
-        opts = options.except(:action, :routing_type)
-
-        prefix = action_prefix options
-        suffix = routing_type options
-
-        if options[:action] == 'new'
-          builder = HelperMethodBuilder.singular prefix, suffix
-        else
-          builder = HelperMethodBuilder.plural prefix, suffix
+        if Hash === record_or_hash_or_array
+          options = record_or_hash_or_array.dup.merge!(options)
+          record  = options.delete :id
+          return polymorphic_url record, options
         end
 
-        case record_or_hash_or_array
-        when Array
-          if record_or_hash_or_array.empty? || record_or_hash_or_array.any?(&:nil?)
-            raise ArgumentError, "Nil location provided. Can't build URI."
-          end
-          if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
-            recipient = record_or_hash_or_array.shift
-          end
+        opts   = options.dup
+        action = opts.delete :action
+        type   = opts.delete(:routing_type) || :url
 
-          method, args = builder.handle_list record_or_hash_or_array
-        when Hash
-          unless record_or_hash_or_array[:id]
-            raise ArgumentError, "Nil location provided. Can't build URI."
-          end
+        HelperMethodBuilder.polymorphic_method self,
+                                               record_or_hash_or_array,
+                                               action,
+                                               type,
+                                               opts
 
-          opts        = record_or_hash_or_array.dup.merge!(opts)
-          record      = opts.delete(:id)
-
-          method, args = builder.handle_model record
-
-        when String, Symbol
-          method, args = builder.handle_string record_or_hash_or_array
-        when Class
-          method, args = builder.handle_class record_or_hash_or_array
-
-        when nil
-          raise ArgumentError, "Nil location provided. Can't build URI."
-        else
-          method, args = builder.handle_model record_or_hash_or_array
-        end
-
-
-        if opts.empty?
-          recipient.send(method, *args)
-        else
-          recipient.send(method, *args, opts)
-        end
       end
 
       # Returns the path component of a URL for the given record. It uses
       # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
       def polymorphic_path(record_or_hash_or_array, options = {})
-        polymorphic_url(record_or_hash_or_array, options.merge(:routing_type => :path))
+        if Hash === record_or_hash_or_array
+          options = record_or_hash_or_array.dup.merge!(options)
+          record  = options.delete :id
+          return polymorphic_path record, options
+        end
+
+        opts   = options.dup
+        action = opts.delete :action
+        type   = :path
+
+        HelperMethodBuilder.polymorphic_method self,
+                                               record_or_hash_or_array,
+                                               action,
+                                               type,
+                                               opts
       end
 
 
@@ -179,12 +159,64 @@ module ActionDispatch
       private
 
       class HelperMethodBuilder # :nodoc:
+        CACHE = { 'path' => {}, 'url' => {} }
+
+        def self.get(action, type)
+          type   = type.to_s
+          CACHE[type].fetch(action) { build action, type }
+        end
+
+        def self.url;  CACHE['url'.freeze][nil]; end
+        def self.path; CACHE['path'.freeze][nil]; end
+
+        def self.build(action, type)
+          prefix = action ? "#{action}_" : ""
+          suffix = type
+          if action.to_s == 'new'
+            HelperMethodBuilder.singular prefix, suffix
+          else
+            HelperMethodBuilder.plural prefix, suffix
+          end
+        end
+
         def self.singular(prefix, suffix)
           new(->(name) { name.singular_route_key }, prefix, suffix)
         end
 
         def self.plural(prefix, suffix)
           new(->(name) { name.route_key }, prefix, suffix)
+        end
+
+        def self.polymorphic_method(recipient, record_or_hash_or_array, action, type, options)
+          builder = get action, type
+
+          case record_or_hash_or_array
+          when Array
+            if record_or_hash_or_array.empty? || record_or_hash_or_array.include?(nil)
+              raise ArgumentError, "Nil location provided. Can't build URI."
+            end
+            if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
+              recipient = record_or_hash_or_array.shift
+            end
+
+            method, args = builder.handle_list record_or_hash_or_array
+          when String, Symbol
+            method, args = builder.handle_string record_or_hash_or_array
+          when Class
+            method, args = builder.handle_class record_or_hash_or_array
+
+          when nil
+            raise ArgumentError, "Nil location provided. Can't build URI."
+          else
+            method, args = builder.handle_model record_or_hash_or_array
+          end
+
+
+          if options.empty?
+            recipient.send(method, *args)
+          else
+            recipient.send(method, *args, options)
+          end
         end
 
         attr_reader :suffix, :prefix
@@ -196,13 +228,19 @@ module ActionDispatch
         end
 
         def handle_string(record)
-          method = prefix + "#{record}_#{suffix}"
-          [method, []]
+          [get_method_for_string(record), []]
+        end
+
+        def handle_string_call(target, str)
+          target.send get_method_for_string str
         end
 
         def handle_class(klass)
-          name   = @key_strategy.call klass.model_name
-          [prefix + "#{name}_#{suffix}", []]
+          [get_method_for_class(klass), []]
+        end
+
+        def handle_class_call(target, klass)
+          target.send get_method_for_class klass
         end
 
         def handle_model(record)
@@ -219,6 +257,11 @@ module ActionDispatch
           named_route = prefix + "#{name}_#{suffix}"
 
           [named_route, args]
+        end
+
+        def handle_model_call(target, model)
+          method, args = handle_model model
+          target.send(method, *args)
         end
 
         def handle_list(list)
@@ -260,15 +303,23 @@ module ActionDispatch
           named_route = prefix + route.join("_")
           [named_route, args]
         end
+
+        private
+
+        def get_method_for_class(klass)
+          name   = @key_strategy.call klass.model_name
+          prefix + "#{name}_#{suffix}"
+        end
+
+        def get_method_for_string(str)
+          prefix + "#{str}_#{suffix}"
+        end
+
+        [nil, 'new', 'edit'].each do |action|
+          CACHE['url'][action]  = build action, 'url'
+          CACHE['path'][action] = build action, 'path'
+        end
       end
-
-        def action_prefix(options)
-          options[:action] ? "#{options[:action]}_" : ''
-        end
-
-        def routing_type(options)
-          options[:routing_type] || :url
-        end
     end
   end
 end
