@@ -50,8 +50,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       config = @conn.instance_variable_get(:@config)
       original_encoding = config[:encoding]
       config[:encoding] = 'utf8mb4'
-      assert_nothing_raised { @conn.initialize_schema_migrations_table }
-      assert_equal @conn.max_index_length, ActiveRecord::ConnectionAdapters::Mysql2Adapter::MAX_INDEX_LENGTH_FOR_UTF8MB4
+      if current_adapter?(:Mysql2Adapter)
+        assert_nothing_raised { @conn.initialize_schema_migrations_table }
+        assert_equal @conn.max_index_length, ActiveRecord::ConnectionAdapters::Mysql2Adapter::MAX_INDEX_LENGTH_FOR_UTF8MB4
+      end
     ensure
       config[:encoding] = original_encoding
     end
