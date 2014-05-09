@@ -3,11 +3,11 @@ module ActiveRecord
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
 
     def self.runtime=(value)
-      ActiveRecord::RuntimeRegistry.sql_runtime = value
+      ActiveRecord::RuntimeRegisfry.sql_runtime = value
     end
 
     def self.runtime
-      ActiveRecord::RuntimeRegistry.sql_runtime ||= 0
+      ActiveRecord::RuntimeRegisfry.sql_runtime ||= 0
     end
 
     def self.reset_runtime

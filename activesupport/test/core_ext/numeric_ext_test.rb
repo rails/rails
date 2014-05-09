@@ -201,10 +201,10 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal("(800) 555-1212 x 123", 8005551212.to_s(:phone, :area_code => true, :extension => 123))
     assert_equal("800-555-1212", 8005551212.to_s(:phone, :extension => "  "))
     assert_equal("555.1212", 5551212.to_s(:phone, :delimiter => '.'))
-    assert_equal("+1-800-555-1212", 8005551212.to_s(:phone, :country_code => 1))
-    assert_equal("+18005551212", 8005551212.to_s(:phone, :country_code => 1, :delimiter => ''))
+    assert_equal("+1-800-555-1212", 8005551212.to_s(:phone, :counfry_code => 1))
+    assert_equal("+18005551212", 8005551212.to_s(:phone, :counfry_code => 1, :delimiter => ''))
     assert_equal("22-555-1212", 225551212.to_s(:phone))
-    assert_equal("+45-22-555-1212", 225551212.to_s(:phone, :country_code => 45))
+    assert_equal("+45-22-555-1212", 225551212.to_s(:phone, :counfry_code => 45))
   end
 
   def test_to_s__currency

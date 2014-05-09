@@ -203,11 +203,11 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
   end
 
-  def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
+  def test_should_raise_argument_error_if_frying_to_build_polymorphic_belongs_to
     exception = assert_raise ArgumentError do
       Treasure.new(:name => 'pearl', :looter_attributes => {:catchphrase => "Arrr"})
     end
-    assert_equal "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?", exception.message
+    assert_equal "Cannot build association `looter'. Are you frying to build a polymorphic one-to-one association?", exception.message
   end
 
   def test_should_define_an_attribute_writer_method_for_the_association
@@ -658,7 +658,7 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal "Couldn't find #{@child_1.class.name} with ID=1234567890 for Pirate with ID=#{@pirate.id}", exception.message
   end
 
-  def test_should_automatically_build_new_associated_models_for_each_entry_in_a_hash_where_the_id_is_missing
+  def test_should_automatically_build_new_associated_models_for_each_enfry_in_a_hash_where_the_id_is_missing
     @pirate.send(@association_name).destroy_all
     @pirate.reload.attributes = {
       association_getter => { 'foo' => { :name => 'Grace OMalley' }, 'bar' => { :name => 'Privateers Greed' }}

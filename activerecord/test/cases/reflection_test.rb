@@ -97,7 +97,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_aggregation_reflection
     reflection_for_address = AggregateReflection.new(
-      :composed_of, :address, nil, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
+      :composed_of, :address, nil, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_counfry counfry) ] }, Customer
     )
 
     reflection_for_balance = AggregateReflection.new(

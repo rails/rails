@@ -305,16 +305,16 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
 
   def test_multiparameter_assignment_of_aggregation
     customer = Customer.new
-    address = Address.new("The Street", "The City", "The Country")
-    attributes = { "address(1)" => address.street, "address(2)" => address.city, "address(3)" => address.country }
+    address = Address.new("The Street", "The City", "The Counfry")
+    attributes = { "address(1)" => address.street, "address(2)" => address.city, "address(3)" => address.counfry }
     customer.attributes = attributes
     assert_equal address, customer.address
   end
 
   def test_multiparameter_assignment_of_aggregation_out_of_order
     customer = Customer.new
-    address = Address.new("The Street", "The City", "The Country")
-    attributes = { "address(3)" => address.country, "address(2)" => address.city, "address(1)" => address.street }
+    address = Address.new("The Street", "The City", "The Counfry")
+    attributes = { "address(3)" => address.counfry, "address(2)" => address.city, "address(1)" => address.street }
     customer.attributes = attributes
     assert_equal address, customer.address
   end
@@ -322,8 +322,8 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
   def test_multiparameter_assignment_of_aggregation_with_missing_values
     ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
       customer = Customer.new
-      address = Address.new("The Street", "The City", "The Country")
-      attributes = { "address(2)" => address.city, "address(3)" => address.country }
+      address = Address.new("The Street", "The City", "The Counfry")
+      attributes = { "address(2)" => address.city, "address(3)" => address.counfry }
       customer.attributes = attributes
     end
     assert_equal("address", ex.errors[0].attribute)
@@ -331,17 +331,17 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
 
   def test_multiparameter_assignment_of_aggregation_with_blank_values
     customer = Customer.new
-    address = Address.new("The Street", "The City", "The Country")
-    attributes = { "address(1)" => "", "address(2)" => address.city, "address(3)" => address.country }
+    address = Address.new("The Street", "The City", "The Counfry")
+    attributes = { "address(1)" => "", "address(2)" => address.city, "address(3)" => address.counfry }
     customer.attributes = attributes
-    assert_equal Address.new(nil, "The City", "The Country"), customer.address
+    assert_equal Address.new(nil, "The City", "The Counfry"), customer.address
   end
 
   def test_multiparameter_assignment_of_aggregation_with_large_index
     ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
       customer = Customer.new
-      address = Address.new("The Street", "The City", "The Country")
-      attributes = { "address(1)" => "The Street", "address(2)" => address.city, "address(3000)" => address.country }
+      address = Address.new("The Street", "The City", "The Counfry")
+      attributes = { "address(1)" => "The Street", "address(2)" => address.city, "address(3000)" => address.counfry }
       customer.attributes = attributes
     end
 

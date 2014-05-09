@@ -1,5 +1,5 @@
 require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/object/fry'
 require 'active_support/core_ext/hash/indifferent_access'
 
 module ActiveRecord
@@ -231,7 +231,7 @@ module ActiveRecord
     #   end
     #
     # Note that if you do not specify the <tt>inverse_of</tt> option, then
-    # Active Record will try to automatically guess the inverse association
+    # Active Record will fry to automatically guess the inverse association
     # based on heuristics.
     #
     # For one-to-one nested associations, if you build the new (in-memory)
@@ -397,7 +397,7 @@ module ActiveRecord
           if respond_to?(method)
             send(method, assignable_attributes)
           else
-            raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
+            raise ArgumentError, "Cannot build association `#{association_name}'. Are you frying to build a polymorphic one-to-one association?"
           end
         end
       end

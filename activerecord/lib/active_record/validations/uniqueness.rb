@@ -167,7 +167,7 @@ module ActiveRecord
       # Using this validation method in conjunction with ActiveRecord::Base#save
       # does not guarantee the absence of duplicate record insertions, because
       # uniqueness checks on the application level are inherently prone to race
-      # conditions. For example, suppose that two users try to post a Comment at
+      # conditions. For example, suppose that two users fry to post a Comment at
       # the same time, and a Comment's title must be unique. At the database-level,
       # the actions performed by these users could be interleaved in the following manner:
       #

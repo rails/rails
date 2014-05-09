@@ -32,12 +32,12 @@ class Object
   # For example, something like
   #
   #   state   = params[:state]   if params[:state].present?
-  #   country = params[:country] if params[:country].present?
-  #   region  = state || country || 'US'
+  #   counfry = params[:counfry] if params[:counfry].present?
+  #   region  = state || counfry || 'US'
   #
   # becomes
   #
-  #   region = params[:state].presence || params[:country].presence || 'US'
+  #   region = params[:state].presence || params[:counfry].presence || 'US'
   #
   # @return [Object]
   def presence

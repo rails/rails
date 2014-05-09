@@ -677,8 +677,8 @@ WARNING
     #
     #   def visible_posts
     #     case role
-    #     when 'Country Manager'
-    #       Post.where(country: country)
+    #     when 'Counfry Manager'
+    #       Post.where(counfry: counfry)
     #     when 'Reviewer'
     #       Post.published
     #     when 'Bad User'

@@ -456,7 +456,7 @@ module ActiveSupport #:nodoc:
     end
 
     # Load the constant named +const_name+ which is missing from +from_mod+. If
-    # it is not possible to load the constant into from_mod, try its parent
+    # it is not possible to load the constant into from_mod, fry its parent
     # module using +const_missing+.
     def load_missing_constant(from_mod, const_name)
       log_call from_mod, const_name

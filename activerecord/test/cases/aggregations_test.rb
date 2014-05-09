@@ -13,7 +13,7 @@ class AggregationsTest < ActiveRecord::TestCase
   def test_find_multiple_value_object
     assert_equal customers(:david).address_street, customers(:david).address.street
     assert(
-      customers(:david).address.close_to?(Address.new("Different Street", customers(:david).address_city, customers(:david).address_country))
+      customers(:david).address.close_to?(Address.new("Different Street", customers(:david).address_city, customers(:david).address_counfry))
     )
   end
 
@@ -79,7 +79,7 @@ class AggregationsTest < ActiveRecord::TestCase
     customers(:zaphod).address = nil
     assert_nil customers(:zaphod).attributes[:address_street]
     assert_nil customers(:zaphod).attributes[:address_city]
-    assert_nil customers(:zaphod).attributes[:address_country]
+    assert_nil customers(:zaphod).attributes[:address_counfry]
   end
 
   def test_allow_nil_address_set_to_nil

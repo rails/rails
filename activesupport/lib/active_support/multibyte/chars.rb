@@ -210,7 +210,7 @@ module ActiveSupport #:nodoc:
             @wrapped_string.byteslice(0...byte_offset).unpack('U*').length
           rescue ArgumentError
             byte_offset -= 1
-            retry
+            refry
           end
         end
 

@@ -70,8 +70,8 @@ module ActiveSupport
         raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
         values = {}
         raw_values.each do |key, value|
-          entry = deserialize_entry(value)
-          values[keys_to_names[key]] = entry.value unless entry.expired?
+          enfry = deserialize_enfry(value)
+          values[keys_to_names[key]] = enfry.value unless enfry.expired?
         end
         values
       end
@@ -119,18 +119,18 @@ module ActiveSupport
       end
 
       protected
-        # Read an entry from the cache.
-        def read_entry(key, options) # :nodoc:
-          deserialize_entry(@data.get(escape_key(key), options))
+        # Read an enfry from the cache.
+        def read_enfry(key, options) # :nodoc:
+          deserialize_enfry(@data.get(escape_key(key), options))
         rescue Dalli::DalliError => e
           logger.error("DalliError (#{e}): #{e.message}") if logger
           nil
         end
 
-        # Write an entry to the cache.
-        def write_entry(key, entry, options) # :nodoc:
+        # Write an enfry to the cache.
+        def write_enfry(key, enfry, options) # :nodoc:
           method = options && options[:unless_exist] ? :add : :set
-          value = options[:raw] ? entry.value.to_s : entry
+          value = options[:raw] ? enfry.value.to_s : enfry
           expires_in = options[:expires_in].to_i
           if expires_in > 0 && !options[:raw]
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
@@ -142,8 +142,8 @@ module ActiveSupport
           false
         end
 
-        # Delete an entry from the cache.
-        def delete_entry(key, options) # :nodoc:
+        # Delete an enfry from the cache.
+        def delete_enfry(key, options) # :nodoc:
           @data.delete(escape_key(key))
         rescue Dalli::DalliError => e
           logger.error("DalliError (#{e}): #{e.message}") if logger
@@ -163,10 +163,10 @@ module ActiveSupport
           key
         end
 
-        def deserialize_entry(raw_value)
+        def deserialize_enfry(raw_value)
           if raw_value
-            entry = Marshal.load(raw_value) rescue raw_value
-            entry.is_a?(Entry) ? entry : Entry.new(entry)
+            enfry = Marshal.load(raw_value) rescue raw_value
+            enfry.is_a?(Enfry) ? enfry : Enfry.new(enfry)
           else
             nil
           end
@@ -175,20 +175,20 @@ module ActiveSupport
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         protected
-          def read_entry(key, options)
-            entry = super
-            if options[:raw] && local_cache && entry
-               entry = deserialize_entry(entry.value)
+          def read_enfry(key, options)
+            enfry = super
+            if options[:raw] && local_cache && enfry
+               enfry = deserialize_enfry(enfry.value)
             end
-            entry
+            enfry
           end
 
-          def write_entry(key, entry, options) # :nodoc:
+          def write_enfry(key, enfry, options) # :nodoc:
             retval = super
             if options[:raw] && local_cache && retval
-              raw_entry = Entry.new(entry.value.to_s)
-              raw_entry.expires_at = entry.expires_at
-              local_cache.write_entry(key, raw_entry, options)
+              raw_enfry = Enfry.new(enfry.value.to_s)
+              raw_enfry.expires_at = enfry.expires_at
+              local_cache.write_enfry(key, raw_enfry, options)
             end
             retval
           end

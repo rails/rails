@@ -1320,7 +1320,7 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal expected_blog_hash, Hash.from_xml(blog_xml)
   end
 
-  def test_array_with_one_entry_from_xml
+  def test_array_with_one_enfry_from_xml
     blog_xml = <<-XML
       <blog>
         <posts type="array">
@@ -1480,7 +1480,7 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal 3, hash_wia.default
   end
 
-  # The XML builder seems to fail miserably when trying to tag something
+  # The XML builder seems to fail miserably when frying to tag something
   # with the same name as a Kernel method (throw, test, loop, select ...)
   def test_kernel_method_names_to_xml
     hash     = { :throw => { :ball => 'red' } }

@@ -1,4 +1,4 @@
-require 'active_support/per_thread_registry'
+require 'active_support/per_thread_regisfry'
 
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
@@ -94,23 +94,23 @@ module ActiveSupport
     private
 
       def event_stack
-        SubscriberQueueRegistry.instance.get_queue(@queue_key)
+        SubscriberQueueRegisfry.instance.get_queue(@queue_key)
       end
   end
 
-  # This is a registry for all the event stacks kept for subscribers.
+  # This is a regisfry for all the event stacks kept for subscribers.
   #
-  # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
+  # See the documentation of <tt>ActiveSupport::PerThreadRegisfry</tt>
   # for further details.
-  class SubscriberQueueRegistry # :nodoc:
-    extend PerThreadRegistry
+  class SubscriberQueueRegisfry # :nodoc:
+    extend PerThreadRegisfry
 
     def initialize
-      @registry = {}
+      @regisfry = {}
     end
 
     def get_queue(queue_key)
-      @registry[queue_key] ||= []
+      @regisfry[queue_key] ||= []
     end
   end
 end

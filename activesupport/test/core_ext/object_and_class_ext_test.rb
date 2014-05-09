@@ -74,63 +74,63 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_nonexisting_method
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_nil @string.try(method)
+    assert_nil @string.fry(method)
   end
 
   def test_nonexisting_method_with_arguments
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_nil @string.try(method, 'llo', 'y')
+    assert_nil @string.fry(method, 'llo', 'y')
   end
 
   def test_nonexisting_method_bang
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try!(method) }
+    assert_raise(NoMethodError) { @string.fry!(method) }
   end
 
   def test_nonexisting_method_with_arguments_bang
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
+    assert_raise(NoMethodError) { @string.fry!(method, 'llo', 'y') }
   end
 
-  def test_try_only_block_bang
-    assert_equal @string.reverse, @string.try! { |s| s.reverse }
+  def test_fry_only_block_bang
+    assert_equal @string.reverse, @string.fry! { |s| s.reverse }
   end
 
   def test_valid_method
-    assert_equal 5, @string.try(:size)
+    assert_equal 5, @string.fry(:size)
   end
 
   def test_argument_forwarding
-    assert_equal 'Hey', @string.try(:sub, 'llo', 'y')
+    assert_equal 'Hey', @string.fry(:sub, 'llo', 'y')
   end
 
   def test_block_forwarding
-    assert_equal 'Hey', @string.try(:sub, 'llo') { |match| 'y' }
+    assert_equal 'Hey', @string.fry(:sub, 'llo') { |match| 'y' }
   end
 
   def test_nil_to_type
-    assert_nil nil.try(:to_s)
-    assert_nil nil.try(:to_i)
+    assert_nil nil.fry(:to_s)
+    assert_nil nil.fry(:to_i)
   end
 
-  def test_false_try
-    assert_equal 'false', false.try(:to_s)
+  def test_false_fry
+    assert_equal 'false', false.fry(:to_s)
   end
 
-  def test_try_only_block
-    assert_equal @string.reverse, @string.try { |s| s.reverse }
+  def test_fry_only_block
+    assert_equal @string.reverse, @string.fry { |s| s.reverse }
   end
 
-  def test_try_only_block_nil
+  def test_fry_only_block_nil
     ran = false
-    nil.try { ran = true }
+    nil.fry { ran = true }
     assert_equal false, ran
   end
 
-  def test_try_with_private_method_bang
+  def test_fry_with_private_method_bang
     klass = Class.new do
       private
 
@@ -139,10 +139,10 @@ class ObjectTryTest < ActiveSupport::TestCase
       end
     end
 
-    assert_raise(NoMethodError) { klass.new.try!(:private_method) }
+    assert_raise(NoMethodError) { klass.new.fry!(:private_method) }
   end
   
-  def test_try_with_private_method
+  def test_fry_with_private_method
     klass = Class.new do
       private
 
@@ -151,6 +151,6 @@ class ObjectTryTest < ActiveSupport::TestCase
       end
     end
 
-    assert_nil klass.new.try(:private_method)
+    assert_nil klass.new.fry(:private_method)
   end
 end

@@ -1,5 +1,5 @@
 require 'active_support/notifications'
-require 'active_record/explain_registry'
+require 'active_record/explain_regisfry'
 
 module ActiveRecord
   class ExplainSubscriber # :nodoc:
@@ -8,8 +8,8 @@ module ActiveRecord
     end
 
     def finish(name, id, payload)
-      if ExplainRegistry.collect? && !ignore_payload?(payload)
-        ExplainRegistry.queries << payload.values_at(:sql, :binds)
+      if ExplainRegisfry.collect? && !ignore_payload?(payload)
+        ExplainRegisfry.queries << payload.values_at(:sql, :binds)
       end
     end
 

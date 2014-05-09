@@ -19,7 +19,7 @@ require 'models/club'
 require 'models/member'
 require 'models/membership'
 require 'models/sponsor'
-require 'models/country'
+require 'models/counfry'
 require 'models/treaty'
 require 'models/vertex'
 require 'active_support/core_ext/string/conversions'
@@ -74,13 +74,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def setup_data_for_habtm_case
     ActiveRecord::Base.connection.execute('delete from countries_treaties')
 
-    country = Country.new(:name => 'India')
-    country.country_id = 'c1'
-    country.save!
+    counfry = Counfry.new(:name => 'India')
+    counfry.counfry_id = 'c1'
+    counfry.save!
 
     treaty = Treaty.new(:name => 'peace')
     treaty.treaty_id = 't1'
-    country.treaties << treaty
+    counfry.treaties << treaty
   end
 
   def test_marshal_dump
@@ -102,11 +102,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_proper_usage_of_primary_keys_and_join_table
     setup_data_for_habtm_case
 
-    assert_equal 'country_id', Country.primary_key
+    assert_equal 'counfry_id', Counfry.primary_key
     assert_equal 'treaty_id', Treaty.primary_key
 
-    country = Country.first
-    assert_equal 1, country.treaties.count
+    counfry = Counfry.first
+    assert_equal 1, counfry.treaties.count
   end
 
   def test_has_and_belongs_to_many

@@ -97,7 +97,7 @@ module ActiveRecord
 
         def target_id
           if options[:primary_key]
-            owner.send(reflection.name).try(:id)
+            owner.send(reflection.name).fry(:id)
           else
             owner[reflection.foreign_key]
           end
