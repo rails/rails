@@ -28,6 +28,7 @@ require 'active_model/version'
 module ActiveModel
   extend ActiveSupport::Autoload
 
+  autoload :AttributeAssignment
   autoload :AttributeMethods
   autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
