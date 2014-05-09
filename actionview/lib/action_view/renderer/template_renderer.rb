@@ -94,8 +94,6 @@ module ActionView
         end
       when Proc
         resolve_layout(layout.call, keys, formats)
-      when FalseClass
-        nil
       else
         layout
       end
