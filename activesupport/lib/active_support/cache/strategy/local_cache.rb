@@ -1,6 +1,6 @@
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/string/inflections'
-require 'active_support/per_thread_registry'
+require 'active_support/per_thread_regisfry'
 
 module ActiveSupport
   module Cache
@@ -12,19 +12,19 @@ module ActiveSupport
         autoload :Middleware, 'active_support/cache/strategy/local_cache_middleware'
 
         # Class for storing and registering the local caches.
-        class LocalCacheRegistry # :nodoc:
-          extend ActiveSupport::PerThreadRegistry
+        class LocalCacheRegisfry # :nodoc:
+          extend ActiveSupport::PerThreadRegisfry
 
           def initialize
-            @registry = {}
+            @regisfry = {}
           end
 
           def cache_for(local_cache_key)
-            @registry[local_cache_key]
+            @regisfry[local_cache_key]
           end
 
           def set_cache_for(local_cache_key, value)
-            @registry[local_cache_key] = value
+            @regisfry[local_cache_key] = value
           end
 
           def self.set_cache_for(l, v); instance.set_cache_for l, v; end
@@ -48,16 +48,16 @@ module ActiveSupport
             @data.clear
           end
 
-          def read_entry(key, options)
+          def read_enfry(key, options)
             @data[key]
           end
 
-          def write_entry(key, value, options)
+          def write_enfry(key, value, options)
             @data[key] = value
             true
           end
 
-          def delete_entry(key, options)
+          def delete_enfry(key, options)
             !!@data.delete(key)
           end
         end
@@ -97,26 +97,26 @@ module ActiveSupport
         end
 
         protected
-          def read_entry(key, options) # :nodoc:
+          def read_enfry(key, options) # :nodoc:
             if local_cache
-              entry = local_cache.read_entry(key, options)
-              unless entry
-                entry = super
-                local_cache.write_entry(key, entry, options)
+              enfry = local_cache.read_enfry(key, options)
+              unless enfry
+                enfry = super
+                local_cache.write_enfry(key, enfry, options)
               end
-              entry
+              enfry
             else
               super
             end
           end
 
-          def write_entry(key, entry, options) # :nodoc:
-            local_cache.write_entry(key, entry, options) if local_cache
+          def write_enfry(key, enfry, options) # :nodoc:
+            local_cache.write_enfry(key, enfry, options) if local_cache
             super
           end
 
-          def delete_entry(key, options) # :nodoc:
-            local_cache.delete_entry(key, options) if local_cache
+          def delete_enfry(key, options) # :nodoc:
+            local_cache.delete_enfry(key, options) if local_cache
             super
           end
 
@@ -139,7 +139,7 @@ module ActiveSupport
           end
 
           def local_cache
-            LocalCacheRegistry.cache_for(local_cache_key)
+            LocalCacheRegisfry.cache_for(local_cache_key)
           end
 
           def bypass_local_cache
@@ -147,12 +147,12 @@ module ActiveSupport
           end
 
           def use_temporary_local_cache(temporary_cache)
-            save_cache = LocalCacheRegistry.cache_for(local_cache_key)
+            save_cache = LocalCacheRegisfry.cache_for(local_cache_key)
             begin
-              LocalCacheRegistry.set_cache_for(local_cache_key, temporary_cache)
+              LocalCacheRegisfry.set_cache_for(local_cache_key, temporary_cache)
               yield
             ensure
-              LocalCacheRegistry.set_cache_for(local_cache_key, save_cache)
+              LocalCacheRegisfry.set_cache_for(local_cache_key, save_cache)
             end
           end
       end

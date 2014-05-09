@@ -1,16 +1,16 @@
-require 'active_support/per_thread_registry'
+require 'active_support/per_thread_regisfry'
 
 module ActiveRecord
-  # This is a thread locals registry for EXPLAIN. For example
+  # This is a thread locals regisfry for EXPLAIN. For example
   #
-  #   ActiveRecord::ExplainRegistry.queries
+  #   ActiveRecord::ExplainRegisfry.queries
   #
   # returns the collected queries local to the current thread.
   #
-  # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
+  # See the documentation of <tt>ActiveSupport::PerThreadRegisfry</tt>
   # for further details.
-  class ExplainRegistry # :nodoc:
-    extend ActiveSupport::PerThreadRegistry
+  class ExplainRegisfry # :nodoc:
+    extend ActiveSupport::PerThreadRegisfry
 
     attr_accessor :queries, :collect
 

@@ -35,8 +35,8 @@ module ActiveSupport
         options = merged_options(options)
         search_dir(cache_path) do |fname|
           key = file_path_key(fname)
-          entry = read_entry(key, options)
-          delete_entry(key, options) if entry && entry.expired?
+          enfry = read_enfry(key, options)
+          delete_enfry(key, options) if enfry && enfry.expired?
         end
       end
 
@@ -58,14 +58,14 @@ module ActiveSupport
           matcher = key_matcher(matcher, options)
           search_dir(cache_path) do |path|
             key = file_path_key(path)
-            delete_entry(key, options) if key.match(matcher)
+            delete_enfry(key, options) if key.match(matcher)
           end
         end
       end
 
       protected
 
-        def read_entry(key, options)
+        def read_enfry(key, options)
           file_name = key_file_path(key)
           if File.exist?(file_name)
             File.open(file_name) { |f| Marshal.load(f) }
@@ -75,15 +75,15 @@ module ActiveSupport
           nil
         end
 
-        def write_entry(key, entry, options)
+        def write_enfry(key, enfry, options)
           file_name = key_file_path(key)
           return false if options[:unless_exist] && File.exist?(file_name)
           ensure_cache_path(File.dirname(file_name))
-          File.atomic_write(file_name, cache_path) {|f| Marshal.dump(entry, f)}
+          File.atomic_write(file_name, cache_path) {|f| Marshal.dump(enfry, f)}
           true
         end
 
-        def delete_entry(key, options)
+        def delete_enfry(key, options)
           file_name = key_file_path(key)
           if File.exist?(file_name)
             begin

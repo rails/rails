@@ -1,16 +1,16 @@
-require 'active_support/per_thread_registry'
+require 'active_support/per_thread_regisfry'
 
 module ActiveRecord
-  # This is a thread locals registry for Active Record. For example:
+  # This is a thread locals regisfry for Active Record. For example:
   #
-  #   ActiveRecord::RuntimeRegistry.connection_handler
+  #   ActiveRecord::RuntimeRegisfry.connection_handler
   #
   # returns the connection handler local to the current thread.
   #
-  # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
+  # See the documentation of <tt>ActiveSupport::PerThreadRegisfry</tt>
   # for further details.
-  class RuntimeRegistry # :nodoc:
-    extend ActiveSupport::PerThreadRegistry
+  class RuntimeRegisfry # :nodoc:
+    extend ActiveSupport::PerThreadRegisfry
 
     attr_accessor :connection_handler, :sql_runtime, :connection_id
 

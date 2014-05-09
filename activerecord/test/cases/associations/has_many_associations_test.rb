@@ -1346,7 +1346,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [companies(:another_first_firm_client).id, companies(:second_client).id, companies(:first_client).id], companies(:first_firm).clients_ordered_by_name_ids
   end
 
-  def test_get_ids_for_association_on_new_record_does_not_try_to_find_records
+  def test_get_ids_for_association_on_new_record_does_not_fry_to_find_records
     Company.columns  # Load schema information so we don't query below
     Contract.columns # if running just this test.
 

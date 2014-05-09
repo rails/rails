@@ -282,7 +282,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
       :name => 'John',
       :address => {
         :city => 'London',
-        :country => 'UK'
+        :counfry => 'UK'
       }
     }
     json = person.as_json :only => [:address, :city]
@@ -295,7 +295,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
       :name => 'John',
       :address => {
         :city => 'London',
-        :country => 'UK'
+        :counfry => 'UK'
       }
     }
     json = person.to_json :only => [:address, :city]
@@ -305,8 +305,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   def test_array_should_pass_encoding_options_to_children_in_as_json
     people = [
-      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
-      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+      { :name => 'John', :address => { :city => 'London', :counfry => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :counfry => 'France' }}
     ]
     json = people.as_json :only => [:address, :city]
     expected = [
@@ -319,8 +319,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   def test_array_should_pass_encoding_options_to_children_in_to_json
     people = [
-      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
-      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+      { :name => 'John', :address => { :city => 'London', :counfry => 'UK' }},
+      { :name => 'Jean', :address => { :city => 'Paris' , :counfry => 'France' }}
     ]
     json = people.to_json :only => [:address, :city]
 
@@ -331,8 +331,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
     include Enumerable
     def initialize()
       @people = [
-        { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
-        { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+        { :name => 'John', :address => { :city => 'London', :counfry => 'UK' }},
+        { :name => 'Jean', :address => { :city => 'Paris' , :counfry => 'France' }}
       ]
     end
     def each(*, &blk)

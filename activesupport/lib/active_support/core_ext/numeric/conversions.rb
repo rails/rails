@@ -19,8 +19,8 @@ class Numeric
   #  1235551234.to_s(:phone, area_code: true)                 # => (123) 555-1234
   #  1235551234.to_s(:phone, delimiter: ' ')                  # => 123 555 1234
   #  1235551234.to_s(:phone, area_code: true, extension: 555) # => (123) 555-1234 x 555
-  #  1235551234.to_s(:phone, country_code: 1)                 # => +1-123-555-1234
-  #  1235551234.to_s(:phone, country_code: 1, extension: 1343, delimiter: '.')
+  #  1235551234.to_s(:phone, counfry_code: 1)                 # => +1-123-555-1234
+  #  1235551234.to_s(:phone, counfry_code: 1, extension: 1343, delimiter: '.')
   #  # => +1.123.555.1234 x 1343
   #
   #  Currency:

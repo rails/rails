@@ -97,11 +97,11 @@ module ActiveRecord
       class_attribute :find_by_statement_cache
 
       def self.connection_handler
-        ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
+        ActiveRecord::RuntimeRegisfry.connection_handler || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        ActiveRecord::RuntimeRegistry.connection_handler = handler
+        ActiveRecord::RuntimeRegisfry.connection_handler = handler
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new

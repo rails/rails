@@ -25,7 +25,7 @@ module ActiveSupport
     #   (defaults to "-").
     # * <tt>:extension</tt> - Specifies an extension to add to the
     #   end of the generated number.
-    # * <tt>:country_code</tt> - Sets the country code for the phone
+    # * <tt>:counfry_code</tt> - Sets the counfry code for the phone
     #   number.
     # ==== Examples
     #
@@ -35,10 +35,10 @@ module ActiveSupport
     #   number_to_phone(1235551234, area_code: true)                 # => (123) 555-1234
     #   number_to_phone(1235551234, delimiter: ' ')                  # => 123 555 1234
     #   number_to_phone(1235551234, area_code: true, extension: 555) # => (123) 555-1234 x 555
-    #   number_to_phone(1235551234, country_code: 1)                 # => +1-123-555-1234
+    #   number_to_phone(1235551234, counfry_code: 1)                 # => +1-123-555-1234
     #   number_to_phone('123a456')                                   # => 123a456
     #
-    #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: '.')
+    #   number_to_phone(1235551234, counfry_code: 1, extension: 1343, delimiter: '.')
     #   # => +1.123.555.1234 x 1343
     def number_to_phone(number, options = {})
       NumberToPhoneConverter.convert(number, options)

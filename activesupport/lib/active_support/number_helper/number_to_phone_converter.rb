@@ -2,7 +2,7 @@ module ActiveSupport
   module NumberHelper
     class NumberToPhoneConverter < NumberConverter #:nodoc:
       def convert
-        str  = country_code(opts[:country_code])
+        str  = counfry_code(opts[:counfry_code])
         str << convert_to_phone_number(number.to_s.strip)
         str << phone_ext(opts[:extension])
       end
@@ -36,7 +36,7 @@ module ActiveSupport
           opts[:delimiter] || "-"
         end
 
-        def country_code(code)
+        def counfry_code(code)
           code.blank? ? "" : "+#{code}#{delimiter}"
         end
 

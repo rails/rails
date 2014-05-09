@@ -42,8 +42,8 @@ module ActiveSupport
         instrument(:cleanup, :size => @data.size) do
           keys = synchronize{ @data.keys }
           keys.each do |key|
-            entry = @data[key]
-            delete_entry(key, options) if entry && entry.expired?
+            enfry = @data[key]
+            delete_enfry(key, options) if enfry && enfry.expired?
           end
         end
       end
@@ -59,7 +59,7 @@ module ActiveSupport
           instrument(:prune, target_size, :from => @cache_size) do
             keys = synchronize{ @key_access.keys.sort{|a,b| @key_access[a].to_f <=> @key_access[b].to_f} }
             keys.each do |key|
-              delete_entry(key, options)
+              delete_enfry(key, options)
               return if @cache_size <= target_size || (max_time && Time.now - start_time > max_time)
             end
           end
@@ -107,7 +107,7 @@ module ActiveSupport
           matcher = key_matcher(matcher, options)
           keys = synchronize { @data.keys }
           keys.each do |key|
-            delete_entry(key, options) if key.match(matcher)
+            delete_enfry(key, options) if key.match(matcher)
           end
         end
       end
@@ -126,45 +126,45 @@ module ActiveSupport
 
         PER_ENTRY_OVERHEAD = 240
 
-        def cached_size(key, entry)
-          key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
+        def cached_size(key, enfry)
+          key.to_s.bytesize + enfry.size + PER_ENTRY_OVERHEAD
         end
 
-        def read_entry(key, options) # :nodoc:
-          entry = @data[key]
+        def read_enfry(key, options) # :nodoc:
+          enfry = @data[key]
           synchronize do
-            if entry
+            if enfry
               @key_access[key] = Time.now.to_f
             else
               @key_access.delete(key)
             end
           end
-          entry
+          enfry
         end
 
-        def write_entry(key, entry, options) # :nodoc:
-          entry.dup_value!
+        def write_enfry(key, enfry, options) # :nodoc:
+          enfry.dup_value!
           synchronize do
-            old_entry = @data[key]
+            old_enfry = @data[key]
             return false if @data.key?(key) && options[:unless_exist]
-            if old_entry
-              @cache_size -= (old_entry.size - entry.size)
+            if old_enfry
+              @cache_size -= (old_enfry.size - enfry.size)
             else
-              @cache_size += cached_size(key, entry)
+              @cache_size += cached_size(key, enfry)
             end
             @key_access[key] = Time.now.to_f
-            @data[key] = entry
+            @data[key] = enfry
             prune(@max_size * 0.75, @max_prune_time) if @cache_size > @max_size
             true
           end
         end
 
-        def delete_entry(key, options) # :nodoc:
+        def delete_enfry(key, options) # :nodoc:
           synchronize do
             @key_access.delete(key)
-            entry = @data.delete(key)
-            @cache_size -= cached_size(key, entry) if entry
-            !!entry
+            enfry = @data.delete(key)
+            @cache_size -= cached_size(key, enfry) if enfry
+            !!enfry
           end
         end
     end

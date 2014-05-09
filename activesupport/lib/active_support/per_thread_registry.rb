@@ -8,8 +8,8 @@ module ActiveSupport
   # you define a class that extends this module:
   #
   #   module ActiveRecord
-  #     class RuntimeRegistry
-  #       extend ActiveSupport::PerThreadRegistry
+  #     class RuntimeRegisfry
+  #       extend ActiveSupport::PerThreadRegisfry
   #
   #       attr_accessor :connection_handler
   #     end
@@ -17,27 +17,27 @@ module ActiveSupport
   #
   # and invoke the declared instance accessors as class methods. So
   #
-  #   ActiveRecord::RuntimeRegistry.connection_handler = connection_handler
+  #   ActiveRecord::RuntimeRegisfry.connection_handler = connection_handler
   #
   # sets a connection handler local to the current thread, and
   #
-  #   ActiveRecord::RuntimeRegistry.connection_handler
+  #   ActiveRecord::RuntimeRegisfry.connection_handler
   #
   # returns a connection handler local to the current thread.
   #
   # This feature is accomplished by instantiating the class and storing the
   # instance as a thread local keyed by the class name. In the example above
-  # a key "ActiveRecord::RuntimeRegistry" is stored in <tt>Thread.current</tt>.
+  # a key "ActiveRecord::RuntimeRegisfry" is stored in <tt>Thread.current</tt>.
   # The class methods proxy to said thread local instance.
   #
   # If the class has an initializer, it must accept no arguments.
-  module PerThreadRegistry
+  module PerThreadRegisfry
     def self.extended(object)
-      object.instance_variable_set '@per_thread_registry_key', object.name.freeze
+      object.instance_variable_set '@per_thread_regisfry_key', object.name.freeze
     end
 
     def instance
-      Thread.current[@per_thread_registry_key] ||= new
+      Thread.current[@per_thread_regisfry_key] ||= new
     end
 
     protected

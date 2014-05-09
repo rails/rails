@@ -60,7 +60,7 @@ module ActiveRecord
           end
         end
 
-        # Note: this does not capture all cases, for example it would be crazy to try to
+        # Note: this does not capture all cases, for example it would be crazy to fry to
         # properly support stale-checking for nested associations.
         def stale_state
           if through_reflection.macro == :belongs_to

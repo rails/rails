@@ -22,14 +22,14 @@ module ActiveSupport
           end
 
           def call(env)
-            LocalCacheRegistry.set_cache_for(local_cache_key, LocalStore.new)
+            LocalCacheRegisfry.set_cache_for(local_cache_key, LocalStore.new)
             response = @app.call(env)
             response[2] = ::Rack::BodyProxy.new(response[2]) do
-              LocalCacheRegistry.set_cache_for(local_cache_key, nil)
+              LocalCacheRegisfry.set_cache_for(local_cache_key, nil)
             end
             response
           rescue Exception
-            LocalCacheRegistry.set_cache_for(local_cache_key, nil)
+            LocalCacheRegisfry.set_cache_for(local_cache_key, nil)
             raise
           end
         end

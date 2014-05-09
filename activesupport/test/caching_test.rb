@@ -10,28 +10,28 @@ module ActiveSupport
         class MiddlewareTest < ActiveSupport::TestCase
           def test_local_cache_cleared_on_close
             key = "super awesome key"
-            assert_nil LocalCacheRegistry.cache_for key
+            assert_nil LocalCacheRegisfry.cache_for key
             middleware = Middleware.new('<3', key).new(->(env) {
-              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              assert LocalCacheRegisfry.cache_for(key), 'should have a cache'
               [200, {}, []]
             })
             _, _, body = middleware.call({})
-            assert LocalCacheRegistry.cache_for(key), 'should still have a cache'
+            assert LocalCacheRegisfry.cache_for(key), 'should still have a cache'
             body.each { }
-            assert LocalCacheRegistry.cache_for(key), 'should still have a cache'
+            assert LocalCacheRegisfry.cache_for(key), 'should still have a cache'
             body.close
-            assert_nil LocalCacheRegistry.cache_for(key)
+            assert_nil LocalCacheRegisfry.cache_for(key)
           end
 
           def test_local_cache_cleared_on_exception
             key = "super awesome key"
-            assert_nil LocalCacheRegistry.cache_for key
+            assert_nil LocalCacheRegisfry.cache_for key
             middleware = Middleware.new('<3', key).new(->(env) {
-              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              assert LocalCacheRegisfry.cache_for(key), 'should have a cache'
               raise
             })
             assert_raises(RuntimeError) { middleware.call({}) }
-            assert_nil LocalCacheRegistry.cache_for(key)
+            assert_nil LocalCacheRegisfry.cache_for(key)
           end
         end
       end
@@ -40,8 +40,8 @@ module ActiveSupport
 end
 
 class CacheKeyTest < ActiveSupport::TestCase
-  def test_entry_legacy_optional_ivars
-    legacy = Class.new(ActiveSupport::Cache::Entry) do
+  def test_enfry_legacy_optional_ivars
+    legacy = Class.new(ActiveSupport::Cache::Enfry) do
       def initialize(value, options = {})
         @value = value
         @expires_in = nil
@@ -50,8 +50,8 @@ class CacheKeyTest < ActiveSupport::TestCase
       end
     end
 
-    entry = legacy.new 'foo'
-    assert_equal 'foo', entry.value
+    enfry = legacy.new 'foo'
+    assert_equal 'foo', enfry.value
   end
 
   def test_expand_cache_key
@@ -744,7 +744,7 @@ class FileStoreTest < ActiveSupport::TestCase
 
   def test_log_exception_when_cache_read_fails
     File.expects(:exist?).raises(StandardError, "failed")
-    @cache.send(:read_entry, "winston", {})
+    @cache.send(:read_enfry, "winston", {})
     assert @buffer.string.present?
   end
 
@@ -770,7 +770,7 @@ end
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
+    @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Enfry.new("aaaaaaaaaa"))
     @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10 + 1)
   end
 
@@ -789,9 +789,9 @@ class MemoryStoreTest < ActiveSupport::TestCase
     @cache.prune(@record_size * 3)
     assert @cache.exist?(5)
     assert @cache.exist?(4)
-    assert !@cache.exist?(3), "no entry"
+    assert !@cache.exist?(3), "no enfry"
     assert @cache.exist?(2)
-    assert !@cache.exist?(1), "no entry"
+    assert !@cache.exist?(1), "no enfry"
   end
 
   def test_prune_size_on_write
@@ -813,12 +813,12 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(9)
     assert @cache.exist?(8)
     assert @cache.exist?(7)
-    assert !@cache.exist?(6), "no entry"
-    assert !@cache.exist?(5), "no entry"
+    assert !@cache.exist?(6), "no enfry"
+    assert !@cache.exist?(5), "no enfry"
     assert @cache.exist?(4)
-    assert !@cache.exist?(3), "no entry"
+    assert !@cache.exist?(3), "no enfry"
     assert @cache.exist?(2)
-    assert !@cache.exist?(1), "no entry"
+    assert !@cache.exist?(1), "no enfry"
   end
 
   def test_prune_size_on_write_based_on_key_length
@@ -838,15 +838,15 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(8)
     assert @cache.exist?(7)
     assert @cache.exist?(6)
-    assert !@cache.exist?(5), "no entry"
-    assert !@cache.exist?(4), "no entry"
-    assert !@cache.exist?(3), "no entry"
-    assert !@cache.exist?(2), "no entry"
-    assert !@cache.exist?(1), "no entry"
+    assert !@cache.exist?(5), "no enfry"
+    assert !@cache.exist?(4), "no enfry"
+    assert !@cache.exist?(3), "no enfry"
+    assert !@cache.exist?(2), "no enfry"
+    assert !@cache.exist?(1), "no enfry"
   end
 
   def test_pruning_is_capped_at_a_max_time
-    def @cache.delete_entry (*args)
+    def @cache.delete_enfry (*args)
       sleep(0.01)
       super
     end
@@ -880,7 +880,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
     MEMCACHE_UP = true
   rescue Dalli::DalliError
-    $stderr.puts "Skipping memcached tests. Start memcached and try again."
+    $stderr.puts "Skipping memcached tests. Start memcached and fry again."
     MEMCACHE_UP = false
   end
 
@@ -1019,54 +1019,54 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
   end
 end
 
-class CacheEntryTest < ActiveSupport::TestCase
+class CacheEnfryTest < ActiveSupport::TestCase
   def test_expired
-    entry = ActiveSupport::Cache::Entry.new("value")
-    assert !entry.expired?, 'entry not expired'
-    entry = ActiveSupport::Cache::Entry.new("value", :expires_in => 60)
-    assert !entry.expired?, 'entry not expired'
+    enfry = ActiveSupport::Cache::Enfry.new("value")
+    assert !enfry.expired?, 'enfry not expired'
+    enfry = ActiveSupport::Cache::Enfry.new("value", :expires_in => 60)
+    assert !enfry.expired?, 'enfry not expired'
     time = Time.now + 61
     Time.stubs(:now).returns(time)
-    assert entry.expired?, 'entry is expired'
+    assert enfry.expired?, 'enfry is expired'
   end
 
   def test_compress_values
     value = "value" * 100
-    entry = ActiveSupport::Cache::Entry.new(value, :compress => true, :compress_threshold => 1)
-    assert_equal value, entry.value
-    assert(value.bytesize > entry.size, "value is compressed")
+    enfry = ActiveSupport::Cache::Enfry.new(value, :compress => true, :compress_threshold => 1)
+    assert_equal value, enfry.value
+    assert(value.bytesize > enfry.size, "value is compressed")
   end
 
   def test_non_compress_values
     value = "value" * 100
-    entry = ActiveSupport::Cache::Entry.new(value)
-    assert_equal value, entry.value
-    assert_equal value.bytesize, entry.size
+    enfry = ActiveSupport::Cache::Enfry.new(value)
+    assert_equal value, enfry.value
+    assert_equal value.bytesize, enfry.size
   end
 
   def test_restoring_version_4beta1_entries
-    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
-    version_4beta1_entry.instance_variable_set(:@v, "hello")
-    version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i + 60)
-    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
-    assert_equal "hello", entry.value
-    assert_equal false, entry.expired?
+    version_4beta1_enfry = ActiveSupport::Cache::Enfry.allocate
+    version_4beta1_enfry.instance_variable_set(:@v, "hello")
+    version_4beta1_enfry.instance_variable_set(:@x, Time.now.to_i + 60)
+    enfry = Marshal.load(Marshal.dump(version_4beta1_enfry))
+    assert_equal "hello", enfry.value
+    assert_equal false, enfry.expired?
   end
 
   def test_restoring_compressed_version_4beta1_entries
-    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
-    version_4beta1_entry.instance_variable_set(:@v, Zlib::Deflate.deflate(Marshal.dump("hello")))
-    version_4beta1_entry.instance_variable_set(:@c, true)
-    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
-    assert_equal "hello", entry.value
+    version_4beta1_enfry = ActiveSupport::Cache::Enfry.allocate
+    version_4beta1_enfry.instance_variable_set(:@v, Zlib::Deflate.deflate(Marshal.dump("hello")))
+    version_4beta1_enfry.instance_variable_set(:@c, true)
+    enfry = Marshal.load(Marshal.dump(version_4beta1_enfry))
+    assert_equal "hello", enfry.value
   end
 
   def test_restoring_expired_version_4beta1_entries
-    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
-    version_4beta1_entry.instance_variable_set(:@v, "hello")
-    version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i - 1)
-    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
-    assert_equal "hello", entry.value
-    assert_equal true, entry.expired?
+    version_4beta1_enfry = ActiveSupport::Cache::Enfry.allocate
+    version_4beta1_enfry.instance_variable_set(:@v, "hello")
+    version_4beta1_enfry.instance_variable_set(:@x, Time.now.to_i - 1)
+    enfry = Marshal.load(Marshal.dump(version_4beta1_enfry))
+    assert_equal "hello", enfry.value
+    assert_equal true, enfry.expired?
   end
 end

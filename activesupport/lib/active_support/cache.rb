@@ -212,23 +212,23 @@ module ActiveSupport
       #   cache.write('today', 'Monday')
       #   cache.fetch('today', force: true)  # => nil
       #
-      # Setting <tt>:compress</tt> will store a large cache entry set by the call
+      # Setting <tt>:compress</tt> will store a large cache enfry set by the call
       # in a compressed format.
       #
       # Setting <tt>:expires_in</tt> will set an expiration time on the cache.
       # All caches support auto-expiring content after a specified number of
       # seconds. This value can be specified as an option to the constructor
       # (in which case all entries will be affected), or it can be supplied to
-      # the +fetch+ or +write+ method to effect just one entry.
+      # the +fetch+ or +write+ method to effect just one enfry.
       #
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
-      #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
+      #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one enfry
       #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
-      # a cache entry is used very frequently and is under heavy load. If a
-      # cache expires and due to heavy load several different processes will try
-      # to read data natively and then they all will try to write to cache. To
-      # avoid that case the first process to find an expired cache entry will
+      # a cache enfry is used very frequently and is under heavy load. If a
+      # cache expires and due to heavy load several different processes will fry
+      # to read data natively and then they all will fry to write to cache. To
+      # avoid that case the first process to find an expired cache enfry will
       # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>.
       # Yes, this process is extending the time for a stale value by another few
       # seconds. Because of extended life of the previous cache, other processes
@@ -237,7 +237,7 @@ module ActiveSupport
       # new value. After that all the processes will start getting new value.
       # The key is to keep <tt>:race_condition_ttl</tt> small.
       #
-      # If the process regenerating the entry errors out, the entry will be
+      # If the process regenerating the enfry errors out, the enfry will be
       # regenerated after the specified number of seconds. Also note that the
       # life of stale cache is extended only if it expired recently. Otherwise
       # a new value is generated and <tt>:race_condition_ttl</tt> does not play
@@ -270,7 +270,7 @@ module ActiveSupport
       #   # cache.fetch('foo') => "new value 1"
       #
       # Other options will be handled by the specific cache store implementation.
-      # Internally, #fetch calls #read_entry, and calls #write_entry on a cache
+      # Internally, #fetch calls #read_enfry, and calls #write_enfry on a cache
       # miss. +options+ will be passed to the #read and #write calls.
       #
       # For example, MemCacheStore's #write method supports the +:raw+
@@ -287,11 +287,11 @@ module ActiveSupport
           options = merged_options(options)
           key = namespaced_key(name, options)
 
-          cached_entry = find_cached_entry(key, name, options) unless options[:force]
-          entry = handle_expired_entry(cached_entry, key, options)
+          cached_enfry = find_cached_enfry(key, name, options) unless options[:force]
+          enfry = handle_expired_enfry(cached_enfry, key, options)
 
-          if entry
-            get_entry_value(entry, name, options)
+          if enfry
+            get_enfry_value(enfry, name, options)
           else
             save_block_result_to_cache(name, options) { |_name| yield _name }
           end
@@ -309,15 +309,15 @@ module ActiveSupport
         options = merged_options(options)
         key = namespaced_key(name, options)
         instrument(:read, name, options) do |payload|
-          entry = read_entry(key, options)
-          if entry
-            if entry.expired?
-              delete_entry(key, options)
+          enfry = read_enfry(key, options)
+          if enfry
+            if enfry.expired?
+              delete_enfry(key, options)
               payload[:hit] = false if payload
               nil
             else
               payload[:hit] = true if payload
-              entry.value
+              enfry.value
             end
           else
             payload[:hit] = false if payload
@@ -338,12 +338,12 @@ module ActiveSupport
         results = {}
         names.each do |name|
           key = namespaced_key(name, options)
-          entry = read_entry(key, options)
-          if entry
-            if entry.expired?
-              delete_entry(key, options)
+          enfry = read_enfry(key, options)
+          if enfry
+            if enfry.expired?
+              delete_enfry(key, options)
             else
-              results[name] = entry.value
+              results[name] = enfry.value
             end
           end
         end
@@ -384,31 +384,31 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:write, name, options) do
-          entry = Entry.new(value, options)
-          write_entry(namespaced_key(name, options), entry, options)
+          enfry = Enfry.new(value, options)
+          write_enfry(namespaced_key(name, options), enfry, options)
         end
       end
 
-      # Deletes an entry in the cache. Returns +true+ if an entry is deleted.
+      # Deletes an enfry in the cache. Returns +true+ if an enfry is deleted.
       #
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
         options = merged_options(options)
 
         instrument(:delete, name) do
-          delete_entry(namespaced_key(name, options), options)
+          delete_enfry(namespaced_key(name, options), options)
         end
       end
 
-      # Returns +true+ if the cache contains an entry for the given key.
+      # Returns +true+ if the cache contains an enfry for the given key.
       #
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
         options = merged_options(options)
 
         instrument(:exist?, name) do
-          entry = read_entry(namespaced_key(name, options), options)
-          (entry && !entry.expired?) || false
+          enfry = read_enfry(namespaced_key(name, options), options)
+          (enfry && !enfry.expired?) || false
         end
       end
 
@@ -478,21 +478,21 @@ module ActiveSupport
           end
         end
 
-        # Read an entry from the cache implementation. Subclasses must implement
+        # Read an enfry from the cache implementation. Subclasses must implement
         # this method.
-        def read_entry(key, options) # :nodoc:
+        def read_enfry(key, options) # :nodoc:
           raise NotImplementedError.new
         end
 
-        # Write an entry to the cache implementation. Subclasses must implement
+        # Write an enfry to the cache implementation. Subclasses must implement
         # this method.
-        def write_entry(key, entry, options) # :nodoc:
+        def write_enfry(key, enfry, options) # :nodoc:
           raise NotImplementedError.new
         end
 
-        # Delete an entry from the cache implementation. Subclasses must
+        # Delete an enfry from the cache implementation. Subclasses must
         # implement this method.
-        def delete_entry(key, options) # :nodoc:
+        def delete_enfry(key, options) # :nodoc:
           raise NotImplementedError.new
         end
 
@@ -553,32 +553,32 @@ module ActiveSupport
           logger.debug("Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}")
         end
 
-        def find_cached_entry(key, name, options)
+        def find_cached_enfry(key, name, options)
           instrument(:read, name, options) do |payload|
             payload[:super_operation] = :fetch if payload
-            read_entry(key, options)
+            read_enfry(key, options)
           end
         end
 
-        def handle_expired_entry(entry, key, options)
-          if entry && entry.expired?
+        def handle_expired_enfry(enfry, key, options)
+          if enfry && enfry.expired?
             race_ttl = options[:race_condition_ttl].to_i
-            if race_ttl && (Time.now.to_f - entry.expires_at <= race_ttl)
-              # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
-              # for a brief period while the entry is begin recalculated.
-              entry.expires_at = Time.now + race_ttl
-              write_entry(key, entry, :expires_in => race_ttl * 2)
+            if race_ttl && (Time.now.to_f - enfry.expires_at <= race_ttl)
+              # When an enfry has :race_condition_ttl defined, put the stale enfry back into the cache
+              # for a brief period while the enfry is begin recalculated.
+              enfry.expires_at = Time.now + race_ttl
+              write_enfry(key, enfry, :expires_in => race_ttl * 2)
             else
-              delete_entry(key, options)
+              delete_enfry(key, options)
             end
-            entry = nil
+            enfry = nil
           end
-          entry
+          enfry
         end
 
-        def get_entry_value(entry, name, options)
+        def get_enfry_value(enfry, name, options)
           instrument(:fetch_hit, name, options) { |payload| }
-          entry.value
+          enfry.value
         end
 
         def save_block_result_to_cache(name, options)
@@ -597,10 +597,10 @@ module ActiveSupport
     #
     # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
     # using short instance variable names that are lazily defined.
-    class Entry # :nodoc:
+    class Enfry # :nodoc:
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
 
-      # Create a new cache entry for the specified value. Options supported are
+      # Create a new cache enfry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
       def initialize(value, options = {})
         if should_compress?(value, options)
@@ -616,14 +616,14 @@ module ActiveSupport
       end
 
       def value
-        convert_version_4beta1_entry! if defined?(@v)
+        convert_version_4beta1_enfry! if defined?(@v)
         compressed? ? uncompress(@value) : @value
       end
 
-      # Check if the entry is expired. The +expires_in+ parameter can override
-      # the value set when the entry was created.
+      # Check if the enfry is expired. The +expires_in+ parameter can override
+      # the value set when the enfry was created.
       def expired?
-        convert_version_4beta1_entry! if defined?(@value)
+        convert_version_4beta1_enfry! if defined?(@value)
         @expires_in && @created_at + @expires_in <= Time.now.to_f
       end
 
@@ -659,7 +659,7 @@ module ActiveSupport
       # Duplicate the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
-        convert_version_4beta1_entry! if defined?(@v)
+        convert_version_4beta1_enfry! if defined?(@v)
 
         if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
           if @value.is_a?(String)
@@ -696,7 +696,7 @@ module ActiveSupport
 
         # The internals of this method changed between Rails 3.x and 4.0. This method provides the glue
         # to ensure that cache entries created under the old version still work with the new class definition.
-        def convert_version_4beta1_entry!
+        def convert_version_4beta1_enfry!
           if defined?(@v)
             @value = @v
             remove_instance_variable(:@v)

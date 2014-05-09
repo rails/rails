@@ -44,10 +44,10 @@ module ActiveSupport
           assert_equal("800-555-1212", number_helper.number_to_phone(8005551212, :extension => "  "))
           assert_equal("555.1212", number_helper.number_to_phone(5551212, :delimiter => '.'))
           assert_equal("800-555-1212", number_helper.number_to_phone("8005551212"))
-          assert_equal("+1-800-555-1212", number_helper.number_to_phone(8005551212, :country_code => 1))
-          assert_equal("+18005551212", number_helper.number_to_phone(8005551212, :country_code => 1, :delimiter => ''))
+          assert_equal("+1-800-555-1212", number_helper.number_to_phone(8005551212, :counfry_code => 1))
+          assert_equal("+18005551212", number_helper.number_to_phone(8005551212, :counfry_code => 1, :delimiter => ''))
           assert_equal("22-555-1212", number_helper.number_to_phone(225551212))
-          assert_equal("+45-22-555-1212", number_helper.number_to_phone(225551212, :country_code => 45))
+          assert_equal("+45-22-555-1212", number_helper.number_to_phone(225551212, :counfry_code => 45))
         end
       end
 
@@ -373,7 +373,7 @@ module ActiveSupport
 
       def test_number_helpers_should_return_non_numeric_param_unchanged
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal("+1-x x 123", number_helper.number_to_phone("x", :country_code => 1, :extension => 123))
+          assert_equal("+1-x x 123", number_helper.number_to_phone("x", :counfry_code => 1, :extension => 123))
           assert_equal("x", number_helper.number_to_phone("x"))
           assert_equal("$x.", number_helper.number_to_currency("x."))
           assert_equal("$x", number_helper.number_to_currency("x"))

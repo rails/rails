@@ -20,7 +20,7 @@ module ActiveRecord
         end
 
         def add_column_options!(sql, options)
-          if options[:array] || options[:column].try(:array)
+          if options[:array] || options[:column].fry(:array)
             sql << '[]'
           end
 
@@ -307,7 +307,7 @@ module ActiveRecord
 
         # Returns a table's primary key and belonging sequence.
         def pk_and_sequence_for(table) #:nodoc:
-          # First try looking for a sequence with a dependency on the
+          # First fry looking for a sequence with a dependency on the
           # given table's primary key.
           result = query(<<-end_sql, 'SCHEMA')[0]
             SELECT attr.attname, seq.relname

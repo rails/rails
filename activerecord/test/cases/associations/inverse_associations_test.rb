@@ -254,7 +254,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to replaced-child-owned instance"
   end
 
-  def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
+  def test_frying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.dirty_face }
   end
 end
@@ -443,7 +443,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { man.interests.find() }
   end
 
-  def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
+  def test_frying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.secret_interests }
   end
 
@@ -514,7 +514,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to newly-created-parent-owned instance"
   end
 
-  def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
+  def test_should_not_fry_to_set_inverse_instances_when_the_inverse_is_a_has_many
     i = interests(:trainspotting)
     m = i.man
     assert_not_nil m.interests
@@ -539,7 +539,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
   end
 
-  def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
+  def test_frying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_man }
   end
 end
@@ -615,7 +615,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal old_inversed_man.object_id, new_inversed_man.object_id
   end
 
-  def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
+  def test_should_not_fry_to_set_inverse_instances_when_the_inverse_is_a_has_many
     i = interests(:llama_wrangling)
     m = i.polymorphic_man
     assert_not_nil m.polymorphic_interests
@@ -628,17 +628,17 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to parent-owned instance"
   end
 
-  def test_trying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error
-    # Ideally this would, if only for symmetry's sake with other association types
+  def test_frying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error
+    # Ideally this would, if only for symmefry's sake with other association types
     assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_polymorphic_man }
   end
 
-  def test_trying_to_set_polymorphic_inverses_that_dont_exist_at_all_should_raise_an_error
+  def test_frying_to_set_polymorphic_inverses_that_dont_exist_at_all_should_raise_an_error
     # fails because no class has the correct inverse_of for horrible_polymorphic_man
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_polymorphic_man = Man.first }
   end
 
-  def test_trying_to_set_polymorphic_inverses_that_dont_exist_on_the_instance_being_set_should_raise_an_error
+  def test_frying_to_set_polymorphic_inverses_that_dont_exist_on_the_instance_being_set_should_raise_an_error
     # passes because Man does have the correct inverse_of
     assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Man.first }
     # fails because Interest does have the correct inverse_of

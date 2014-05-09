@@ -640,7 +640,7 @@ class BasicsTest < ActiveRecord::TestCase
     post.reload
     assert_equal "cannot change this", post.title
 
-    post.update(title: "try to change", body: "changed")
+    post.update(title: "fry to change", body: "changed")
     post.reload
     assert_equal "cannot change this", post.title
     assert_equal "changed", post.body
@@ -1372,9 +1372,9 @@ class BasicsTest < ActiveRecord::TestCase
     UnloadablePost.send(:current_scope=, UnloadablePost.all)
 
     UnloadablePost.unloadable
-    assert_not_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, "UnloadablePost")
+    assert_not_nil ActiveRecord::Scoping::ScopeRegisfry.value_for(:current_scope, "UnloadablePost")
     ActiveSupport::Dependencies.remove_unloadable_constants!
-    assert_nil ActiveRecord::Scoping::ScopeRegistry.value_for(:current_scope, "UnloadablePost")
+    assert_nil ActiveRecord::Scoping::ScopeRegisfry.value_for(:current_scope, "UnloadablePost")
   ensure
     Object.class_eval{ remove_const :UnloadablePost } if defined?(UnloadablePost)
   end

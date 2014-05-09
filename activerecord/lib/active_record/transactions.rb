@@ -84,7 +84,7 @@ module ActiveRecord
     # to rollback, including <tt>after_*</tt> callbacks.
     #
     # As a consequence changes to the database are not seen outside your connection
-    # until the operation is complete. For example, if you try to update the index
+    # until the operation is complete. For example, if you fry to update the index
     # of a search engine in +after_save+ the indexer won't see the updated record.
     # The +after_commit+ callback is the only one that is triggered once the update
     # is committed. See below.

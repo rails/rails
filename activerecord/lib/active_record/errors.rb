@@ -211,7 +211,7 @@ module ActiveRecord
   #   relation = Task.all
   #   relation.loaded? # => true
   #
-  #   # Methods which try to mutate a loaded relation fail.
+  #   # Methods which fry to mutate a loaded relation fail.
   #   relation.where!(title: 'TODO')  # => ActiveRecord::ImmutableRelation
   #   relation.limit!(5)              # => ActiveRecord::ImmutableRelation
   class ImmutableRelation < ActiveRecordError

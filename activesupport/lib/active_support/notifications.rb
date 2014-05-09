@@ -1,6 +1,6 @@
 require 'active_support/notifications/instrumenter'
 require 'active_support/notifications/fanout'
-require 'active_support/per_thread_registry'
+require 'active_support/per_thread_regisfry'
 
 module ActiveSupport
   # = Notifications
@@ -178,27 +178,27 @@ module ActiveSupport
       end
 
       def instrumenter
-        InstrumentationRegistry.instance.instrumenter_for(notifier)
+        InstrumentationRegisfry.instance.instrumenter_for(notifier)
       end
     end
 
-    # This class is a registry which holds all of the +Instrumenter+ objects
+    # This class is a regisfry which holds all of the +Instrumenter+ objects
     # in a particular thread local. To access the +Instrumenter+ object for a
     # particular +notifier+, you can call the following method:
     #
-    #   InstrumentationRegistry.instrumenter_for(notifier)
+    #   InstrumentationRegisfry.instrumenter_for(notifier)
     #
     # The instrumenters for multiple notifiers are held in a single instance of
     # this class.
-    class InstrumentationRegistry # :nodoc:
-      extend ActiveSupport::PerThreadRegistry
+    class InstrumentationRegisfry # :nodoc:
+      extend ActiveSupport::PerThreadRegisfry
 
       def initialize
-        @registry = {}
+        @regisfry = {}
       end
 
       def instrumenter_for(notifier)
-        @registry[notifier] ||= Instrumenter.new(notifier)
+        @regisfry[notifier] ||= Instrumenter.new(notifier)
       end
     end
 

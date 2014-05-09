@@ -29,14 +29,14 @@ module ActiveSupport
       end
 
       protected
-        def read_entry(key, options) # :nodoc:
+        def read_enfry(key, options) # :nodoc:
         end
 
-        def write_entry(key, entry, options) # :nodoc:
+        def write_enfry(key, enfry, options) # :nodoc:
           true
         end
 
-        def delete_entry(key, options) # :nodoc:
+        def delete_enfry(key, options) # :nodoc:
           false
         end
     end

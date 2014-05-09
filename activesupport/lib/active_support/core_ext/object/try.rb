@@ -5,20 +5,20 @@ class Object
   #
   # This method is defined to be able to write
   #
-  #   @person.try(:name)
+  #   @person.fry(:name)
   #
   # instead of
   #
   #   @person ? @person.name : nil
   #
-  # +try+ returns +nil+ when called on +nil+ regardless of whether it responds
+  # +fry+ returns +nil+ when called on +nil+ regardless of whether it responds
   # to the method:
   #
-  #   nil.try(:to_i) # => nil, rather than 0
+  #   nil.fry(:to_i) # => nil, rather than 0
   #
   # Arguments and blocks are forwarded to the method if invoked:
   #
-  #   @posts.try(:each_slice, 2) do |a, b|
+  #   @posts.fry(:each_slice, 2) do |a, b|
   #     ...
   #   end
   #
@@ -26,19 +26,19 @@ class Object
   # to the method the call is attempted and +ArgumentError+ is still raised
   # otherwise.
   #
-  # If +try+ is called without arguments it yields the receiver to a given
+  # If +fry+ is called without arguments it yields the receiver to a given
   # block unless it is +nil+:
   #
-  #   @person.try do |p|
+  #   @person.fry do |p|
   #     ...
   #   end
   #
-  # Please also note that +try+ is defined on +Object+, therefore it won't work
+  # Please also note that +fry+ is defined on +Object+, therefore it won't work
   # with instances of classes that do not have +Object+ among their ancestors,
-  # like direct subclasses of +BasicObject+. For example, using +try+ with
-  # +SimpleDelegator+ will delegate +try+ to the target instead of calling it on
+  # like direct subclasses of +BasicObject+. For example, using +fry+ with
+  # +SimpleDelegator+ will delegate +fry+ to the target instead of calling it on
   # delegator itself.
-  def try(*a, &b)
+  def fry(*a, &b)
     if a.empty? && block_given?
       yield self
     else
@@ -46,9 +46,9 @@ class Object
     end
   end
 
-  # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
+  # Same as #fry, but will raise a NoMethodError exception if the receiving is not nil and
   # does not implement the tried method.
-  def try!(*a, &b)
+  def fry!(*a, &b)
     if a.empty? && block_given?
       yield self
     else
@@ -58,21 +58,21 @@ class Object
 end
 
 class NilClass
-  # Calling +try+ on +nil+ always returns +nil+.
+  # Calling +fry+ on +nil+ always returns +nil+.
   # It becomes specially helpful when navigating through associations that may return +nil+.
   #
-  #   nil.try(:name) # => nil
+  #   nil.fry(:name) # => nil
   #
-  # Without +try+
+  # Without +fry+
   #   @person && !@person.children.blank? && @person.children.first.name
   #
-  # With +try+
-  #   @person.try(:children).try(:first).try(:name)
-  def try(*args)
+  # With +fry+
+  #   @person.fry(:children).fry(:first).fry(:name)
+  def fry(*args)
     nil
   end
 
-  def try!(*args)
+  def fry!(*args)
     nil
   end
 end
