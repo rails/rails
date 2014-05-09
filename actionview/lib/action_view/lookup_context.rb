@@ -238,21 +238,5 @@ module ActionView
 
       super(@skip_default_locale ? I18n.locale : default_locale)
     end
-
-    # Uses the first format in the formats array for layout lookup.
-    def with_layout_format
-      if formats.size == 1
-        yield
-      else
-        old_formats = formats
-        _set_detail(:formats, formats[0,1])
-
-        begin
-          yield
-        ensure
-          _set_detail(:formats, old_formats)
-        end
-      end
-    end
   end
 end
