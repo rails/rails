@@ -88,7 +88,6 @@ module ActionView
       when Class
         polymorphic_path(options, {})
       else
-        raise
         polymorphic_path(options, {})
       end
     end
