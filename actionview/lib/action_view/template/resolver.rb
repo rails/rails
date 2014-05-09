@@ -181,12 +181,10 @@ module ActionView
     def query(path, details, formats)
       query = build_query(path, details)
 
-      # deals with case-insensitive file systems.
-      sanitizer = Hash.new { |h,dir| h[dir] = Dir["#{dir}/*"] }
-
       template_paths = Dir[query].reject { |filename|
         File.directory?(filename) ||
-          !sanitizer[File.dirname(filename)].include?(filename)
+          # deals with case-insensitive file systems.
+          !File.fnmatch(query, filename, File::FNM_EXTGLOB)
       }
 
       template_paths.map { |template|
