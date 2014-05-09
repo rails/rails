@@ -12,12 +12,6 @@
 
     *Paul B.*
 
-*   Keep track of dirty attributes after transaction is rollback.
-
-    Related #13166.
-
-    *Bogdan Gusiev* *arthurnn*
-
 *   Add support for module-level `table_name_suffix` in models.
 
     This makes `table_name_suffix` work the same way as `table_name_prefix` when
