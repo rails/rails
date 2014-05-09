@@ -55,7 +55,7 @@ module ActionDispatch
         private
 
         def build_host_url(options)
-          if options[:host].blank? && options[:only_path].blank?
+          unless options[:host] || options[:only_path]
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
