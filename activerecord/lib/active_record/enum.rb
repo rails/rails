@@ -27,8 +27,10 @@ module ActiveRecord
   #   conversation.status      # => nil
   #
   # Scopes based on the allowed values of the enum field will be provided
-  # as well. With the above example, it will create an +active+ and +archived+
-  # scope.
+  # as well. With the above example:
+  #
+  #   Conversation.active
+  #   Conversation.archived
   #
   # You can set the default value from the database declaration, like:
   #
