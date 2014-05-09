@@ -11,6 +11,16 @@ module ActiveRecord
     # If the passed hash responds to <tt>permitted?</tt> method and the return value
     # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
     # exception is raised.
+    #
+    # Example:
+    #
+    #   cat = Cat.new(name: "Gorby", status: "yawning")
+    #   cat.attributes # =>  {"name" => "Gorby", "status" => "yawning"}
+    #   cat.assign_attributes(status: "sleeping")
+    #   cat.attributes # =>  {"name" => "Gorby", "status" => "sleeping"}
+    #
+    # New attributes will be persisted to database when object is saved.
+    # <tt>attributes =</tt> is an alias.
     def assign_attributes(new_attributes)
       if !new_attributes.respond_to?(:stringify_keys)
         raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
