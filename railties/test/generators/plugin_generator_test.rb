@@ -312,7 +312,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bukkits.gemspec"
     assert_file "Gemfile" do |contents|
       assert_no_match('gemspec', contents)
-      assert_match(/gem "rails", "~> #{Rails.version}"/, contents)
+      assert_match(/gem 'rails', '~> #{Rails.version}'/, contents)
       assert_match_sqlite3(contents)
       assert_no_match(/# gem "jquery-rails"/, contents)
     end
@@ -323,7 +323,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bukkits.gemspec"
     assert_file "Gemfile" do |contents|
       assert_no_match('gemspec', contents)
-      assert_match(/gem "rails", "~> #{Rails.version}"/, contents)
+      assert_match(/gem 'rails', '~> #{Rails.version}'/, contents)
       assert_match_sqlite3(contents)
     end
   end
@@ -416,9 +416,9 @@ protected
 
   def assert_match_sqlite3(contents)
     unless defined?(JRUBY_VERSION)
-      assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
+      assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
     else
-      assert_match(/group :development do\n  gem "activerecord-jdbcsqlite3-adapter"\nend/, contents)
+      assert_match(/group :development do\n  gem 'activerecord-jdbcsqlite3-adapter'\nend/, contents)
     end
   end
 end

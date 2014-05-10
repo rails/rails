@@ -1,7 +1,7 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
 <% if options[:skip_gemspec] -%>
-<%= '# ' if options.dev? || options.edge? -%>gem "rails", "~> <%= Rails::VERSION::STRING %>"
+<%= '# ' if options.dev? || options.edge? -%>gem 'rails', '~> <%= Rails::VERSION::STRING %>'
 <% else -%>
 # Declare your gem's dependencies in <%= name %>.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
@@ -11,7 +11,7 @@ gemspec
 
 <% if options[:skip_gemspec] -%>
 group :development do
-  gem "<%= gem_for_database %>"
+  gem '<%= gem_for_database %>'
 end
 <% else -%>
 # Declare any dependencies that are still in development here instead of in
