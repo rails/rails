@@ -88,6 +88,13 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_method_defined child.new.config, :bar
   end
 
+  test "configuration is serializable" do
+    instance = Parent.new
+    instance.config.foo = :baz
+    unserialized_instance = Marshal.load(Marshal.dump(instance))
+    assert_equal :baz, unserialized_instance.config.foo
+  end
+
   test "should raise name error if attribute name is invalid" do
     assert_raises NameError do
       Class.new do
