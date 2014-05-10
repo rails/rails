@@ -142,6 +142,14 @@ module ActiveSupport
     def config
       @_config ||= self.class.config.inheritable_copy
     end
+
+    def marshal_dump # :nodoc:
+      config.to_h.tap { |hash| hash.default = nil }
+    end
+
+    def marshal_load(hash) # :nodoc:
+      config.merge! hash
+    end
   end
 end
 

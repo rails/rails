@@ -1,3 +1,7 @@
+*   Fixed serialization in classes that include `ActiveSupport::Configurable`.
+
+    *Leandro Facchinetti*
+
 *   `humanize` strips leading underscores, if any.
 
     Before:
