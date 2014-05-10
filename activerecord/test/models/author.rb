@@ -140,7 +140,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_default_include, :class_name => 'PostWithDefaultInclude'
   has_many :comments_on_posts_with_default_include, :through => :posts_with_default_include, :source => :comments
 
-  has_many :posts_with_signature, -> (record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
+  has_many :posts_with_signature, ->(record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
 
   scope :relation_include_posts, -> { includes(:posts) }
   scope :relation_include_tags,  -> { includes(:tags) }
