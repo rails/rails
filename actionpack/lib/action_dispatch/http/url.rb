@@ -33,10 +33,8 @@ module ActionDispatch
           path  = options[:script_name].to_s.chomp("/")
           path << options[:path].to_s
 
-          params = options[:params].is_a?(Hash) ? options[:params] : options.slice(:params)
-          params.reject! { |_,v| v.to_param.nil? }
-
           result = build_host_url(options)
+
           if options[:trailing_slash]
             if path.include?('?')
               result << path.sub(/\?/, '/\&')
@@ -46,7 +44,16 @@ module ActionDispatch
           else
             result << path
           end
-          result << "?#{params.to_query}" unless params.empty?
+
+          if options.key? :params
+            params = options[:params].is_a?(Hash) ?
+                                 options[:params] :
+                                 { params: options[:params] }
+
+            params.reject! { |_,v| v.to_param.nil? }
+            result << "?#{params.to_query}" unless params.empty?
+          end
+
           result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
           result
         end
