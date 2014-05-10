@@ -65,14 +65,14 @@ module ActiveSupport
       @silencers << block
     end
 
-    # Will remove all silencers, but leave in the filters. This is useful if
-    # your context of debugging suddenly expands as you suspect a bug in one of
+    # Removes all silencers, but leaves in the filters. Useful if your
+    # context of debugging suddenly expands as you suspect a bug in one of
     # the libraries you use.
     def remove_silencers!
       @silencers = []
     end
 
-    # Removes all filters, but leaves in silencers. Useful if you suddenly
+    # Removes all filters, but leaves in the silencers. Useful if you suddenly
     # need to see entire filepaths in the backtrace that you had already
     # filtered out.
     def remove_filters!
