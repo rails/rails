@@ -282,14 +282,26 @@ module ActiveSupport
     #
     #   Time.zone.now               # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     #   Time.zone.parse('22:30:00') # => Fri, 31 Dec 1999 22:30:00 HST -10:00
+    #
+    # If no day component is specified but a month component is, and the current
+    # day of the month is greater than the number of days in the specified
+    # month, then the last day of the specified month is used:
+    #
+    #   Time.zone.now               # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #   Time.zone.parse('February') # => Sun, 28 Feb 1999 00:00:00 HST -10:00
     def parse(str, now=now())
       parts = Date._parse(str, false)
       return if parts.empty?
 
+      year = parts.fetch(:year, now.year)
+      month = parts.fetch(:mon, now.month)
+
+      day = [Time.days_in_month(month, year), parts.fetch(:mday, now.day)].min
+
       time = Time.new(
-        parts.fetch(:year, now.year),
-        parts.fetch(:mon, now.month),
-        parts.fetch(:mday, now.day),
+        year,
+        month,
+        day,
         parts.fetch(:hour, 0),
         parts.fetch(:min, 0),
         parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
