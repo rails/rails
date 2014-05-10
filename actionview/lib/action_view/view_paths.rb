@@ -18,19 +18,23 @@ module ActionView
         @_prefixes ||= begin
           deprecated_prefixes = handle_deprecated_parent_prefixes and return deprecated_prefixes
 
-          return _local_prefixes if superclass.abstract?
-          _local_prefixes + superclass._prefixes
+          return local_prefixes if superclass.abstract?
+          local_prefixes + superclass._prefixes
         end
       end
 
-      def _local_prefixes
+      # Override this method in your controller if you want to change paths prefixes for finding views.
+      # Prefixes defined here will still be added to parents' prefixes.
+      #
+      # Override <tt>::_prefixes</tt> if you don't want to inherit from superclasses.
+      def local_prefixes
         [controller_path]
       end
 
       def handle_deprecated_parent_prefixes # TODO: remove in 4.3/5.0.
         return unless respond_to?(:parent_prefixes)
         ActiveSupport::Deprecation.warn "Overriding ActionController::Base::parent_prefixes is deprecated, override ::local_prefixes or ::_prefixes instead."
-        _local_prefixes + parent_prefixes
+        local_prefixes + parent_prefixes
       end
     end
 
