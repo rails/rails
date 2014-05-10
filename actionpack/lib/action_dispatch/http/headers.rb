@@ -28,7 +28,7 @@ module ActionDispatch
         @env[env_name(key)]
       end
 
-      # Set the given value for the key mapped to @env.
+      # Sets the given value for the key mapped to @env.
       def []=(key, value)
         @env[env_name(key)] = value
       end
@@ -36,12 +36,13 @@ module ActionDispatch
       def key?(key); @env.key? key; end
       alias :include? :key?
 
-
       # Returns the value for the given key mapped to @env.
-      # If the key can’t be found, there are several options:
-      # with no other arguments, it will raise an KeyError exception;
-      # If the optional code block is specified, then that will be run and its
-      # result returned.
+      #
+      # If the key is not found and an optional code block is not provided,
+      # raises a <tt>KeyError</tt> exception.
+      #
+      # If the code block is provided, then it will be run and
+      # its result returned.
       def fetch(key, *args, &block)
         @env.fetch env_name(key), *args, &block
       end
@@ -49,7 +50,6 @@ module ActionDispatch
       def each(&block)
         @env.each(&block)
       end
-
 
       # Returns a new Http::Headers instance containing the contents of
       # <tt>headers_or_env</tt> and the original instance.
@@ -60,7 +60,7 @@ module ActionDispatch
       end
 
       # Adds the contents of <tt>headers_or_env</tt> to original instance
-      # entries with duplicate keys are overwritten with the values from
+      # entries; duplicate keys are overwritten with the values from
       # <tt>headers_or_env</tt>.
       def merge!(headers_or_env)
         headers_or_env.each do |key, value|
