@@ -1,3 +1,12 @@
+*   Deprecate joining, eager loading and preloading of instance dependent
+    associations without replacement. These operations happen before instances
+    are created. The current behavior is unexpected and can result in broken
+    behavior.
+
+    Fixes #15024.
+
+    *Yves Senn*
+
 *   Fixed HABTM's CollectionAssociation size calculation.
 
     HABTM should fall back to using the normal CollectionAssociation's size

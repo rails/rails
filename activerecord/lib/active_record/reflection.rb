@@ -278,6 +278,20 @@ module ActiveRecord
         end
       end
 
+      def check_preloadable!
+        return unless scope
+
+        if scope.arity > 0
+          ActiveSupport::Deprecation.warn <<-WARNING
+The association scope '#{name}' is instance dependent (the scope block takes an argument).
+Preloading happens before the individual instances are created. This means that there is no instance
+being passed to the association scope. This will most likely result in broken or incorrect behavior.
+Joining, Preloading and eager loading of these associations is deprecated and will be removed in the future.
+          WARNING
+        end
+      end
+      alias :check_eager_loadable! :check_preloadable!
+
       def join_id_for(owner) #:nodoc:
         key = (source_macro == :belongs_to) ? foreign_key : active_record_primary_key
         owner[key]

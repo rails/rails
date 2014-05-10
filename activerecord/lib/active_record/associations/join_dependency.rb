@@ -215,6 +215,7 @@ module ActiveRecord
         associations.map do |name, right|
           reflection = find_reflection base_klass, name
           reflection.check_validity!
+          reflection.check_eager_loadable!
 
           if reflection.options[:polymorphic]
             raise EagerLoadPolymorphicError.new(reflection)

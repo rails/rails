@@ -826,11 +826,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preload_with_interpolation
-    post = Post.includes(:comments_with_interpolated_conditions).find(posts(:welcome).id)
-    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+    assert_deprecated do
+      post = Post.includes(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+      assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+    end
 
-    post = Post.joins(:comments_with_interpolated_conditions).find(posts(:welcome).id)
-    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+    assert_deprecated do
+      post = Post.joins(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+      assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+    end
   end
 
   def test_polymorphic_type_condition
@@ -1231,5 +1235,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries {
       assert_equal 2, author.posts.size
     }
+  end
+
+  test "include instance dependent associations is deprecated" do
+    message = "association scope 'posts_with_signature' is"
+    assert_deprecated message do
+      begin
+        Author.includes(:posts_with_signature).to_a
+      rescue NoMethodError
+        # it's expected that preloading of this association fails
+      end
+    end
+
+    assert_deprecated message do
+      Author.preload(:posts_with_signature).to_a rescue NoMethodError
+    end
+
+    assert_deprecated message do
+      Author.eager_load(:posts_with_signature).to_a
+    end
   end
 end

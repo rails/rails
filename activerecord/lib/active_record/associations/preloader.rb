@@ -175,6 +175,7 @@ module ActiveRecord
         if owners.first.association(reflection.name).loaded?
           return AlreadyLoaded
         end
+        reflection.check_preloadable!
 
         case reflection.macro
         when :has_many
