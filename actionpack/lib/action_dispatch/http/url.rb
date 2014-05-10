@@ -29,10 +29,9 @@ module ActionDispatch
           extract_subdomains(host, tld_length).join('.')
         end
 
-        def url_for(options = {})
-          options = options.dup
-          path  = options.delete(:script_name).to_s.chomp("/")
-          path << options.delete(:path).to_s
+        def url_for(options)
+          path  = options[:script_name].to_s.chomp("/")
+          path << options[:path].to_s
 
           params = options[:params].is_a?(Hash) ? options[:params] : options.slice(:params)
           params.reject! { |_,v| v.to_param.nil? }
