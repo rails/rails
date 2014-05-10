@@ -72,6 +72,8 @@ module ActiveRecord
       end
 
       # Casts a Ruby value to something appropriate for writing to the database.
+      # Numeric columns will typecast boolean and string to appropriate numeric
+      # values.
       def type_cast_for_write(value)
         return value unless number?
 

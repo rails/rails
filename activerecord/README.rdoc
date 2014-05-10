@@ -19,9 +19,11 @@ A short rundown of some of the major features:
 
    class Product < ActiveRecord::Base
    end
-
-   The Product class is automatically mapped to the table named "products",
-   which might look like this:
+  
+  {Learn more}[link:classes/ActiveRecord/Base.html]
+  
+The Product class is automatically mapped to the table named "products",
+which might look like this:
 
    CREATE TABLE products (
      id int(11) NOT NULL auto_increment,
@@ -29,11 +31,9 @@ A short rundown of some of the major features:
      PRIMARY KEY  (id)
    );
 
-   This would also define the following accessors: `Product#name` and
-   `Product#name=(new_name)`
-
-  {Learn more}[link:classes/ActiveRecord/Base.html]
-
+This would also define the following accessors: `Product#name` and
+`Product#name=(new_name)`.
+  
 
 * Associations between objects defined by simple class methods.
 
