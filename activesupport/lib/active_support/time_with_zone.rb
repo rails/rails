@@ -185,8 +185,11 @@ module ActiveSupport
     end
     alias_method :rfc822, :rfc2822
 
-    # <tt>:db</tt> format outputs time in UTC; all others output time in local.
-    # Uses TimeWithZone's +strftime+, so <tt>%Z</tt> and <tt>%z</tt> work correctly.
+    # Returns a string of the object's date and time.
+    # Accepts an optional <tt>format</tt>:
+    # * <tt>:default</tt> - default value, mimics Ruby 1.9 Time#to_s format.
+    # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_formatted_s(:db).
+    # * Any key in <tt>Time::DATE_FORMATS</tt> can be used. See active_support/core_ext/time/conversions.rb.
     def to_s(format = :default)
       if format == :db
         utc.to_s(format)
