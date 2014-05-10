@@ -1,4 +1,4 @@
-= Active Record -- Object-relational mapping put on rails
+= Active Record -- Object-relational mapping in Rails
 
 Active Record connects classes to relational database tables to establish an
 almost zero-configuration persistence layer for applications. The library
