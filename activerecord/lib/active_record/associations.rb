@@ -419,8 +419,8 @@ module ActiveRecord
     #     has_many :birthday_events, ->(user) { where starts_on: user.birthday }, class_name: 'Event'
     #   end
     #
-    # Note: Joining, eager loading and preloading of these associations is not fully possibly.
-    # These operations happen before instance creation. The scope will be called with a +nil+ argument.
+    # Note: Joining, eager loading and preloading of these associations is not fully possible.
+    # These operations happen before instance creation and the scope will be called with a +nil+ argument.
     # This can lead to unexpected behavior and is deprecated.
     #
     # == Association callbacks
