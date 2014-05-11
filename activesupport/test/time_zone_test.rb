@@ -255,10 +255,12 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_parse_with_day_omitted
-    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    zone.stubs(:now).returns zone.local(1999, 12, 31)
-    twz = zone.parse('Feb')
-    assert_equal Time.utc(1999, 2, 1), twz.time
+    with_env_tz 'US/Eastern' do
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      assert_equal Time.local(2000, 2, 1), zone.parse('Feb', Time.local(2000, 1, 1))
+      assert_equal Time.local(2005, 2, 1), zone.parse('Feb 2005', Time.local(2000, 1, 1))
+      assert_equal Time.local(2005, 2, 2), zone.parse('2 Feb 2005', Time.local(2000, 1, 1))
+    end
   end
 
   def test_parse_should_not_black_out_system_timezone_dst_jump

@@ -291,16 +291,10 @@ module ActiveSupport
       parts = Date._parse(str, false)
       return if parts.empty?
 
-      default_mday = if parts[:year] || parts[:mon]
-        1
-      else
-        now.day
-      end
-
       time = Time.new(
         parts.fetch(:year, now.year),
         parts.fetch(:mon, now.month),
-        parts.fetch(:mday, default_mday),
+        parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
         parts.fetch(:hour, 0),
         parts.fetch(:min, 0),
         parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
