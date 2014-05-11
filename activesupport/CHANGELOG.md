@@ -1,3 +1,9 @@
+*   `TimeZone#parse` defaults the day of the month to '1' if any other date
+    components are specified. This is more consistent with the behavior of
+    `Time#parse`.
+
+    *Ulysse Carion*
+
 *   `humanize` strips leading underscores, if any.
 
     Before:

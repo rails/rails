@@ -254,6 +254,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(1999,12,31,19), twz.time
   end
 
+  def test_parse_with_day_omitted
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    zone.stubs(:now).returns zone.local(1999, 12, 31)
+    twz = zone.parse('Feb')
+    assert_equal Time.utc(1999, 2, 1), twz.time
+  end
+
   def test_parse_should_not_black_out_system_timezone_dst_jump
     with_env_tz('EET') do
       zone = ActiveSupport::TimeZone['Pacific Time (US & Canada)']

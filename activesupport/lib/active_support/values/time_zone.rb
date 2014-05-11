@@ -282,14 +282,25 @@ module ActiveSupport
     #
     #   Time.zone.now               # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     #   Time.zone.parse('22:30:00') # => Fri, 31 Dec 1999 22:30:00 HST -10:00
+    #
+    # However, if the date component is not provided, but any other upper
+    # components are supplied, then the day of the month defaults to 1:
+    #
+    #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
     def parse(str, now=now())
       parts = Date._parse(str, false)
       return if parts.empty?
 
+      default_mday = if parts[:year] || parts[:mon]
+        1
+      else
+        now.day
+      end
+
       time = Time.new(
         parts.fetch(:year, now.year),
         parts.fetch(:mon, now.month),
-        parts.fetch(:mday, now.day),
+        parts.fetch(:mday, default_mday),
         parts.fetch(:hour, 0),
         parts.fetch(:min, 0),
         parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
