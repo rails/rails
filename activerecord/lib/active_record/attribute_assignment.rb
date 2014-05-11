@@ -13,9 +13,9 @@ module ActiveRecord
     # exception is raised.
     #
     #   cat = Cat.new(name: "Gorby", status: "yawning")
-    #   cat.attributes # =>  { "name" => "Gorby", "status" => "yawning" }
+    #   cat.attributes # =>  { "name" => "Gorby", "status" => "yawning", "created_at" => nil, "updated_at" => nil}
     #   cat.assign_attributes(status: "sleeping")
-    #   cat.attributes # =>  { "name" => "Gorby", "status" => "sleeping" }
+    #   cat.attributes # =>  { "name" => "Gorby", "status" => "sleeping", "created_at" => nil, "updated_at" => nil }
     #
     # New attributes will be persisted in the database when the object is saved.
     #
