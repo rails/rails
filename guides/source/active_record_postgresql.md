@@ -69,11 +69,35 @@ Book.create title: "Brave New World",
 ## Books for a single tag
 Book.where("'fantasy' = ANY (tags)")
 
-## Books for multiple tags
-Book.where("tags @> ARRAY[?]::varchar[]", ["fantasy", "fiction"])
-
 ## Books with 3 or more ratings
 Book.where("array_length(ratings, 1) >= 3")
+
+## Books for multiple tags
+Book.where("tags @> ARRAY[?]::varchar[]", ["fantasy", "fiction"])
+```
+
+Note the explicit casting `::varchar[]` in above example.
+The `tags` column is of type `string` that is `varchar(255)`.
+
+But PostgreSQL assumes that `ARRAY["fantasy", "fiction"]` is of type `text[]` and will
+require you to cast, otherwise you will see errors like this:
+
+```sql
+ERROR: operator does not exist: character varying[] && text[]
+```
+
+To avoid this explicit casting, `tags` column can be created with `text` datatype:
+
+```ruby
+# db/migrate/20140207133952_create_books.rb
+create_table :book do |t|
+  t.string 'title'
+  t.text 'tags', array: true
+  t.integer 'ratings', array: true
+end
+
+## Books for multiple tags without casting
+Book.where("tags @> ARRAY[?]", ["fantasy", "fiction"])
 ```
 
 ### Hstore
