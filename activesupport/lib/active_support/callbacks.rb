@@ -304,6 +304,7 @@ module ActiveSupport
                 env = next_callback.call env
                 env.value
               }
+              raise ArgumentError, "no block given (yield)" unless env.value
               env
             end
           }

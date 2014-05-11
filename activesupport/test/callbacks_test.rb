@@ -552,6 +552,29 @@ module CallbacksTest
     end
   end
 
+  class CallbackAroundTerminator
+    include ActiveSupport::Callbacks
+
+    define_callbacks :save, terminator: ->(_,result) { result == :halt }
+
+    set_callback :save, :around, :around_fail
+
+    attr_reader :history, :saved, :halted
+    def initialize
+      @history = []
+    end
+
+    def around_fail
+      @history << "failed"
+    end
+
+    def save
+      run_callbacks :save do
+        @saved = true
+      end
+    end
+  end
+
   class CallbackObject
     def before(caller)
       caller.record << "before"
@@ -704,6 +727,15 @@ module CallbacksTest
       obj = CallbackTerminator.new
       obj.save
       assert !obj.saved
+    end
+
+    def test_raise_when_around_not_yielded
+      exception = assert_raises(ArgumentError) do
+        obj = CallbackAroundTerminator.new
+        obj.save
+        assert !obj.saved
+      end
+      assert_equal("no block given (yield)", exception.message)
     end
   end
 
