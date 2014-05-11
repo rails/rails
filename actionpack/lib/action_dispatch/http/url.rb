@@ -135,6 +135,8 @@ module ActionDispatch
           return nil if options[:port].nil? || options[:port] == false
 
           case options[:protocol]
+          when "//"
+            options[:port]
           when "https://"
             options[:port].to_i == 443 ? nil : options[:port]
           else

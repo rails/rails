@@ -1,3 +1,9 @@
+*   Always use the provided port if the protocol is relative.
+
+    Fixes #15043.
+
+    *Guilherme Cavalcanti*, *Andrew White*
+
 *   Moved `params[request_forgery_protection_token]` into its own method
     and improved tests.
 

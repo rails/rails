@@ -64,18 +64,30 @@ module TestUrlGeneration
 
     test "port is extracted from the host" do
       assert_equal "http://www.example.com:8080/foo", foo_url(host: "www.example.com:8080", protocol: "http://")
+      assert_equal "//www.example.com:8080/foo", foo_url(host: "www.example.com:8080", protocol: "//")
+      assert_equal "//www.example.com:80/foo", foo_url(host: "www.example.com:80", protocol: "//")
+    end
+
+    test "port option is used" do
+      assert_equal "http://www.example.com:8080/foo", foo_url(host: "www.example.com", protocol: "http://", port: 8080)
+      assert_equal "//www.example.com:8080/foo", foo_url(host: "www.example.com", protocol: "//", port: 8080)
+      assert_equal "//www.example.com:80/foo", foo_url(host: "www.example.com", protocol: "//", port: 80)
     end
 
     test "port option overrides the host" do
       assert_equal "http://www.example.com:8080/foo", foo_url(host: "www.example.com:8443", protocol: "http://", port: 8080)
+      assert_equal "//www.example.com:8080/foo", foo_url(host: "www.example.com:8443", protocol: "//", port: 8080)
+      assert_equal "//www.example.com:80/foo", foo_url(host: "www.example.com:443", protocol: "//", port: 80)
     end
 
     test "port option disables the host when set to nil" do
       assert_equal "http://www.example.com/foo", foo_url(host: "www.example.com:8443", protocol: "http://", port: nil)
+      assert_equal "//www.example.com/foo", foo_url(host: "www.example.com:8443", protocol: "//", port: nil)
     end
 
     test "port option disables the host when set to false" do
       assert_equal "http://www.example.com/foo", foo_url(host: "www.example.com:8443", protocol: "http://", port: false)
+      assert_equal "//www.example.com/foo", foo_url(host: "www.example.com:8443", protocol: "//", port: false)
     end
 
     test "keep subdomain when key is true" do
