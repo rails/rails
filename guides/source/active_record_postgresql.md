@@ -371,3 +371,62 @@ Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
 
 Views
 -----
+
+* [view creation](http://www.postgresql.org/docs/9.3/static/sql-createview.html)
+
+Imagine you need to work with a legacy database containing the following table:
+
+```
+rails_pg_guide=# \d "TBL_ART"
+                                        Table "public.TBL_ART"
+   Column   |            Type             |                         Modifiers
+------------+-----------------------------+------------------------------------------------------------
+ INT_ID     | integer                     | not null default nextval('"TBL_ART_INT_ID_seq"'::regclass)
+ STR_TITLE  | character varying           |
+ STR_STAT   | character varying           | default 'draft'::character varying
+ DT_PUBL_AT | timestamp without time zone |
+ BL_ARCH    | boolean                     | default false
+Indexes:
+    "TBL_ART_pkey" PRIMARY KEY, btree ("INT_ID")
+```
+
+This table does not follow the Rails conventions at all.
+Because simple PostgreSQL views are updateable by default,
+we can wrap it as follows:
+
+```ruby
+# db/migrate/20131220144913_create_articles_view.rb
+execute <<-SQL
+CREATE VIEW articles AS
+  SELECT "INT_ID" AS id,
+         "STR_TITLE" AS title,
+         "STR_STAT" AS status,
+         "DT_PUBL_AT" AS published_at,
+         "BL_ARCH" AS archived
+  FROM "TBL_ART"
+  WHERE "BL_ARCH" = 'f'
+  SQL
+
+# app/models/article.rb
+class Article < ActiveRecord::Base
+  self.primary_key = "id"
+  def archive!
+    update_attribute :archived, true
+  end
+end
+
+# Usage
+first = Article.create! title: "Winter is coming",
+                        status: "published",
+                        published_at: 1.year.ago
+second = Article.create! title: "Brace yourself",
+                         status: "draft",
+                         published_at: 1.month.ago
+
+Article.count # => 1
+first.archive!
+p Article.count # => 2
+```
+
+Note: This application only cares about non-archived `Articles`. A view also
+allows for conditions so we can exclude the archived `Articles` directly.
