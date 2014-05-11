@@ -142,6 +142,14 @@ module ActiveSupport
     def config
       @_config ||= self.class.config.inheritable_copy
     end
+
+    def marshal_dump
+      config.each_with_object({}) { |(key, value), hash| hash[key] = value }
+    end
+
+    def marshal_load hash
+      hash.each { |key, value| config.send(key.to_s + '=', value) }
+    end
   end
 end
 
