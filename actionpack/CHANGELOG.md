@@ -1,3 +1,9 @@
+*   Always use the provided port if the protocol is relative.
+
+    Fixes #15043.
+
+    *Guilherme Cavalcanti*, *Andrew White*
+
 *   Append link to bad code to backtrace when exception is SyntaxError.
 
     *Boris Kuznetsov*
