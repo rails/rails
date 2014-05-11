@@ -8,7 +8,8 @@ module AbstractController
   class Error < StandardError #:nodoc:
   end
 
-  class ActionNotFound < StandardError #:nodoc:
+  # Raised when a non-existing controller action is triggered.
+  class ActionNotFound < StandardError
   end
 
   # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
