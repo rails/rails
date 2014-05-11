@@ -1,4 +1,4 @@
-* Deprecate `AbstractController::Base::parent_prefixes`. Override `AbstractController::Base::_prefixes` or `AbstractController::Base::local_prefixes` when you want to change where to find views.
+* Deprecate `AbstractController::Base::parent_prefixes`. Override `AbstractController::Base::local_prefixes` when you want to change where to find views.
 
     *Nick Sutterer*
 
