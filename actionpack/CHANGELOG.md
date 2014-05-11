@@ -1,3 +1,9 @@
+*   Always use the provided port if the protocol is relative.
+
+    Fixes #15043.
+
+    *Guilherme Cavalcanti*, *Andrew White*
+
 *   Change `asset_path` to use File.join to create proper paths (#14932):
 
         https://some.host.com//assets/some.js
