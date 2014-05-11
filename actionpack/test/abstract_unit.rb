@@ -251,7 +251,6 @@ end
 
 module ActionController
   class Base
-    include ActionController::Testing
     # This stub emulates the Railtie including the URL helpers from a Rails application
     include SharedTestRoutes.url_helpers
     include SharedTestRoutes.mounted_helpers
