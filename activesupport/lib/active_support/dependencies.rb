@@ -21,6 +21,11 @@ module ActiveSupport
     mattr_accessor :autoload_paths
     self.autoload_paths = []
 
+    def unload!
+      loaded_namespaces.each(&:unload!)
+      loaded_namespaces.clear
+    end
+
     private
 
     Module.concerning :ConstMissingReplacement do
