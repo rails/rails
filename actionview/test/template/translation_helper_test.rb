@@ -151,4 +151,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
     translation = translate(:'translations.missing', default: ['A Generic String', 'Second generic string'])
     assert_equal 'A Generic String', translation
   end
+
+  def test_translate_doesnt_change_options
+    options = {}
+    translate(:'translations.missing', options)
+    assert_equal options, {}
+  end
 end
