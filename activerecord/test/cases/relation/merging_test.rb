@@ -18,7 +18,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_to_sql
     sql = Post.first.comments.to_sql
-    assert_no_match(/\?/, sql)
+    assert_match(/.?post_id.? = 1\Z/i, sql)
   end
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality
