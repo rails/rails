@@ -15,6 +15,9 @@ module TestGenerationPrefix
 
       ActiveModel::Name.new(klass)
     end
+
+    def to_model; self; end
+    def persisted?; true; end
   end
 
   class WithMountedEngine < ActionDispatch::IntegrationTest
