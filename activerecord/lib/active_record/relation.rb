@@ -12,6 +12,7 @@ module ActiveRecord
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
                             :reverse_order, :distinct, :create_with, :uniq]
+    INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
@@ -430,12 +431,21 @@ module ActiveRecord
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     #
-    # If a limit scope is supplied, +delete_all+ raises an ActiveRecord error:
+    # If an invalid method is supplied, +delete_all+ raises an ActiveRecord error:
     #
     #   Post.limit(100).delete_all
-    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit scope
+    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
     def delete_all(conditions = nil)
-      raise ActiveRecordError.new("delete_all doesn't support limit scope") if self.limit_value
+      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
+        if MULTI_VALUE_METHODS.include?(method)
+          send("#{method}_values").any?
+        else
+          send("#{method}_value")
+        end
+      }
+      if invalid_methods.any?
+        raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
+      end
 
       if conditions
         where(conditions).delete_all
