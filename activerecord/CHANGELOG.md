@@ -1,3 +1,12 @@
+*   `ActiveRecord::Relation::Merger#filter_binds` now compares equivalent symbols and 
+    strings in column names as equal.
+    
+    This fixes a rare case in which more bind values are passed than there are
+    placeholders for them in the generated SQL statement, which can make PostgreSQL
+    throw a `StatementInvalid` exception.
+    
+    *Nat Budin*
+
 *   `change_column_default` allows `[]` as argument to `change_column_default`.
 
     Fixes #11586.
