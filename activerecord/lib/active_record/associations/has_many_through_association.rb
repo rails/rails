@@ -130,6 +130,10 @@ module ActiveRecord
           end
         end
 
+        def delete_all_records(method)
+          delete_records(:all, method)
+        end
+
         def delete_records(records, method)
           ensure_not_nested
 
