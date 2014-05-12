@@ -61,7 +61,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_change_column_with_array
     @connection.add_column :pg_arrays, :snippets, :string, array: true, default: []
-    @connection.change_column :pg_arrays, :snippets, :text, array: true, default: "{}"
+    @connection.change_column :pg_arrays, :snippets, :text, array: true, default: []
 
     PgArray.reset_column_information
     column = PgArray.columns.find { |c| c.name == 'snippets' }
@@ -78,6 +78,14 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
         @connection.change_column :pg_arrays, :a_string, :string, array: true
       end
     end
+  end
+
+  def test_change_column_default_with_array
+    @connection.change_column_default :pg_arrays, :tags, []
+
+    PgArray.reset_column_information
+    column = PgArray.columns_hash['tags']
+    assert_equal [], column.default
   end
 
   def test_type_cast_array

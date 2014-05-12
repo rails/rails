@@ -1,3 +1,9 @@
+*   `change_column_default` allows `[]` as argument to `change_column_default`.
+
+    Fixes #11586.
+
+    *Yves Senn*
+
 *   Handle `name` and `"char"` column types in the PostgreSQL adapter.
 
     `name` and `"char"` are special character types used internally by

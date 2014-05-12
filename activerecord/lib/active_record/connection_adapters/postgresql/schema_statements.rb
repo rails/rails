@@ -405,6 +405,7 @@ module ActiveRecord
         def change_column_default(table_name, column_name, default)
           clear_cache!
           column = column_for(table_name, column_name)
+
           execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote_default_value(default, column)}" if column
         end
 

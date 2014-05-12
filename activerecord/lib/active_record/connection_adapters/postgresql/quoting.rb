@@ -187,8 +187,8 @@ module ActiveRecord
         def quote_default_value(value, column) #:nodoc:
           if column.type == :uuid && value =~ /\(\)/
             value
-          else 
-            quote(value)
+          else
+            quote(value, column)
           end
         end
       end
