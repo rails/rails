@@ -105,11 +105,8 @@ module ActiveRecord
           }
         end
 
-        def delete_count(records, method, scope)
-          case method
-          when :destroy
-            records.length
-          when :delete_all
+        def delete_count(method, scope)
+          if method == :delete_all
             scope.delete_all
           else
             scope.update_all(reflection.foreign_key => nil)
@@ -117,23 +114,19 @@ module ActiveRecord
         end
 
         def delete_all_records(method)
-          scope = self.scope
-
-          count = delete_count(:all, method, scope)
-
+          count = delete_count(method, self.scope)
           update_counter(-count)
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
         def delete_records(records, method)
-          scope = self.scope.where(reflection.klass.primary_key => records)
-
-          count = delete_count(records, method, scope)
-
           if method == :destroy
+            count = records.length
             records.each(&:destroy!)
             update_counter(-count) unless inverse_updates_counter_cache?
           else
+            scope = self.scope.where(reflection.klass.primary_key => records)
+            count = delete_count(method, scope)
             update_counter(-count)
           end
         end
