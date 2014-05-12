@@ -15,10 +15,6 @@ class FileNamespace
     path == other.path
   end
 
-  def reachable?
-    const_defined? && @const_scope.reachable?
-  end
-
   def embrace(const)
     const_name = [@const_name, const].join('::')
     new path: const_name.underscore, const_name: const_name
@@ -37,6 +33,9 @@ class FileNamespace
   end
 
   private
+    def reachable?
+      const_defined? && @const_scope.reachable?
+    end
 
     def constants
       @const_scope.local_constants
