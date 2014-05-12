@@ -46,7 +46,7 @@ module ActiveSupport
     def capture_constants(namespace)
       return if loaded_namespaces.include? namespace
 
-      namespace.define_constants! { yield }.map do |constant|
+      namespace.define_constants! { yield }.each do |constant|
         loaded_namespaces << namespace.embrace(constant)
       end
     end
