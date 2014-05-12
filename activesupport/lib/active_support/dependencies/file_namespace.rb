@@ -1,18 +1,18 @@
 class FileNamespace
-  attr_reader :file_path, :const_scope, :const_name
+  attr_reader :path, :const_scope, :const_name
 
-  def initialize(file_path)
-    @file_path = file_path
-    @const_scope = file_path.safe_constantize
-    @parent, @const_name = split_hierarchy(file_path.camelize)
+  def initialize(options = {})
+    @path = options[:path]
+    @const_scope = options[:const_scope] || @path.safe_constantize
+    infer_nesting(options[:const_name] || @path.camelize)
   end
 
   def hash
-    file_path.hash
+    path.hash
   end
 
   def ==(other)
-    file_path == other.file_path
+    path == other.path
   end
 
   def reachable?
@@ -20,7 +20,8 @@ class FileNamespace
   end
 
   def embrace(const)
-    new [@const_name, const].join('::').underscore
+    const_name = [@const_name, const].join('::')
+    new path: const_name.underscore, const_name: const_name
   end
 
   def define_constants!
@@ -49,7 +50,7 @@ class FileNamespace
       @parent || Object
     end
 
-    def split_hierarchy(camel_string)
-      camel_string.split('::', 2)
+    def infer_nesting(nestable)
+      @parent, @const_name = nestable.split('::', 2)
     end
 end

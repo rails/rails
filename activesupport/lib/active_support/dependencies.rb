@@ -13,7 +13,7 @@ module ActiveSupport
     end
 
     def require_dependency(file_name, message = nil)
-      capture_constants FileNamespace.new(file_name) do
+      capture_constants FileNamespace.new(path: file_name) do
         Kernel.send kernel_mechanism, path_for_file_name(file_name)
       end
     end
