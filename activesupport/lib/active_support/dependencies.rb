@@ -9,7 +9,7 @@ module ActiveSupport
     extend self
 
     def const_missing(const_name)
-      require_dependency path_for_const_name(const_name)
+      require_dependency autoload_path_for(const_name)
     end
 
     def require_dependency(file_name, message = nil)
@@ -17,6 +17,9 @@ module ActiveSupport
         Kernel.send kernel_mechanism, path_for_file_name(file_name)
       end
     end
+
+    mattr_accessor :autoload_paths
+    self.autoload_paths = []
 
     private
 
@@ -60,8 +63,13 @@ module ActiveSupport
       end
     end
 
-    def path_for_const_name(const_name)
-      const_name.to_s.underscore
+    def autoload_path_for(const_name)
+      file_name = const_name.to_s.underscore
+
+      autoload_paths.find do |root|
+        path = File.join(root, file_name)
+        return path if File.file? path
+      end
     end
   end
 end
