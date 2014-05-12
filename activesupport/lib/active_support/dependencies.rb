@@ -14,7 +14,7 @@ module ActiveSupport
 
     def require_dependency(file_name, message = nil)
       capture_constants FileNamespace.new(path: file_name) do
-        Kernel.send kernel_mechanism, path_for_file_name(file_name)
+        Kernel.send kernel_mechanism, normalize_file_name(file_name)
       end
     end
 
@@ -59,12 +59,8 @@ module ActiveSupport
       !!ENV['NO_RELOAD']
     end
 
-    def path_for_file_name(file_name)
-      if load?
-        file_name.sub(/(\.rb)?\z/, '.rb')
-      else
-        file_name.sub(/\.rb$/, '')
-      end
+    def normalize_file_name(file_name)
+      file_name.sub(/(\.rb)?\z/, load? ? '.rb' : '')
     end
 
     def autoload_path_for(const_name)
