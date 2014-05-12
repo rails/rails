@@ -172,7 +172,7 @@ module ActionDispatch
             def call(t, args)
               if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
                 options = @options.dup
-                options.merge!(t.url_options) if t.respond_to?(:url_options)
+                options.merge!(t.url_options)
                 options[:path] = optimized_helper(args)
                 ActionDispatch::Http::URL.url_for(options)
               else
@@ -225,7 +225,12 @@ module ActionDispatch
           end
 
           def call(t, args)
-            t.url_for(handle_positional_args(t, args, @options, @segment_keys))
+            options = handle_positional_args(t, args, @options, @segment_keys)
+            hash = {
+              :only_path => options[:host].nil?
+            }.merge!(options.symbolize_keys)
+            hash.reverse_merge!(t.url_options)
+            t._routes.url_for(hash)
           end
 
           def handle_positional_args(t, args, options, keys)
@@ -234,7 +239,7 @@ module ActionDispatch
 
             if args.size > 0
               if args.size < keys.size - 1 # take format into account
-                keys -= t.url_options.keys if t.respond_to?(:url_options)
+                keys -= t.url_options.keys
                 keys -= options.keys
               end
               keys -= inner_options.keys
@@ -393,6 +398,8 @@ module ActionDispatch
             @_routes = routes
             class << self
               delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
+              attr_reader :_routes
+              def url_options; {}; end
             end
 
             # Make named_routes available in the module singleton
