@@ -1,3 +1,7 @@
+*   Added 'all' environment to secrets.yml
+
+    *Ian Mitchell*
+
 *   Load database configuration from the first
     database.yml available in paths.
 

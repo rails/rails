@@ -344,6 +344,35 @@ module ApplicationTests
       assert_nil app.secrets.not_defined
     end
 
+    test "generic environment secrets present in all environments" do
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+          aws_access_key_id: myamazonaccesskeyid
+
+        all:
+          aws_secret_access_key: myamazonsecretaccesskey
+      YAML
+
+      require "#{app_path}/config/environment"
+      assert_equal 'myamazonaccesskeyid', app.secrets.aws_access_key_id
+      assert_equal 'myamazonsecretaccesskey', app.secrets.aws_secret_access_key
+    end
+
+    test "environment specific secrets overrides generic secrets" do
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+          aws_secret_access_key: myamazonsecretaccesskey
+
+        all:
+          aws_secret_access_key: notmyamazonsecretaccesskey
+      YAML
+
+      require "#{app_path}/config/environment"
+      assert_equal 'myamazonsecretaccesskey', app.secrets.aws_secret_access_key
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 
