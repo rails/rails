@@ -173,7 +173,7 @@ module ActiveRecord
           if column.type == :uuid && value =~ /\(\)/
             value
           else
-            quote(value)
+            quote(value, column)
           end
         end
       end

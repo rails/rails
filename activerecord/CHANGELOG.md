@@ -1,3 +1,9 @@
+*   `change_column_default` allows `[]` as argument to `change_column_default`.
+
+    Fixes #11586.
+
+    *Yves Senn*
+
 *   Fixed HABTM's CollectionAssociation size calculation.
 
     HABTM should not include new records as part of #count_records as new
