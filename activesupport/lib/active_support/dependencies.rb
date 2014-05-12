@@ -13,7 +13,7 @@ module ActiveSupport
     end
 
     def require_dependency(file_name, message = nil)
-      capture_constants(file_name) do
+      capture_constants FileNamespace.new(file_name) do
         Kernel.send kernel_mechanism, path_for_file_name(file_name)
       end
     end
@@ -35,16 +35,15 @@ module ActiveSupport
       end
     end
 
-    mattr_accessor :loaded_constants
-    self.loaded_constants = Set.new
+    mattr_accessor :loaded_namespaces
+    self.loaded_namespaces = Set.new
 
     def capture_constants(namespace)
-      const_scope = namespace.safe_constantize || Object
-      old_constants = const_scope.local_constants
+      return if loaded_namespaces.include? namespace
 
-      yield
-
-      self.loaded_constants |= (const_scope.local_constants - old_constants)
+      namespace.define_constants! { yield }.map do |constant|
+        loaded_namespaces << namespace.embrace(constant)
+      end
     end
 
     def kernel_mechanism
