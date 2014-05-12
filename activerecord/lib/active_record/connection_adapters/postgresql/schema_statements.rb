@@ -12,7 +12,7 @@ module ActiveRecord
 
         def visit_ColumnDefinition(o)
           sql = super
-          if o.primary_key? && o.type == :uuid
+          if o.primary_key? && o.type != :primary_key
             sql << " PRIMARY KEY "
             add_column_options!(sql, column_options(o))
           end
