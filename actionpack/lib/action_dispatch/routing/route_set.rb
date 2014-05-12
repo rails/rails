@@ -655,7 +655,7 @@ module ActionDispatch
         options = default_url_options.merge(options || {})
 
         user, password = extract_authentication(options)
-        recall  = options.delete(:_recall) { {} }
+        recall  = options.delete(:_recall)
 
         original_script_name = options.delete(:original_script_name).presence
         script_name = options.delete(:script_name).presence || _generate_prefix(options)
@@ -668,11 +668,8 @@ module ActionDispatch
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
         path_options = yield(path_options) if block_given?
 
-        path, params = generate(path_options, recall)
-
-        if options.key? :params
-          params.merge! options[:params]
-        end
+        path, params = generate(path_options, recall || {})
+        params.merge!(options[:params] || {})
 
         ActionDispatch::Http::URL.url_for(options.merge!({
           :path => path,
