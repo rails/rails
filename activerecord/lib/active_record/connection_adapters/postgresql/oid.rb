@@ -249,9 +249,14 @@ This is not reliable and will be removed in the future.
           def type; :float end
 
           def type_cast(value)
-            return if value.nil?
-
-            value.to_f
+            case value
+              when nil;         nil
+              when 'Infinity';  ::Float::INFINITY
+              when '-Infinity'; -::Float::INFINITY
+              when 'NaN';       ::Float::NAN
+            else
+              value.to_f
+            end
           end
         end
 

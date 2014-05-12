@@ -50,7 +50,11 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @second_money = PostgresqlMoney.find(2)
 
     @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (1, 123.456, 123456.789)")
+    @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (2, '-Infinity', 'Infinity')")
+    @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (3, 123.456, 'NaN')")
     @first_number = PostgresqlNumber.find(1)
+    @second_number = PostgresqlNumber.find(2)
+    @third_number = PostgresqlNumber.find(3)
 
     @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
@@ -154,6 +158,9 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def test_number_values
     assert_equal 123.456, @first_number.single
     assert_equal 123456.789, @first_number.double
+    assert_equal -::Float::INFINITY, @second_number.single
+    assert_equal ::Float::INFINITY, @second_number.double
+    assert_same ::Float::NAN, @third_number.double
   end
 
   def test_time_values
