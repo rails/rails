@@ -1,3 +1,9 @@
+*   `change_column_default` allows `[]` as argument to `change_column_default`.
+
+    Fixes #11586.
+
+    *Yves Senn*
+
 *   Fix `PostgreSQLAdapter::OID::Float#type_cast` to convert Infinity and
     NaN PostgreSQL values into a native Ruby `Float::INFINITY` and `Float::NAN`
 
