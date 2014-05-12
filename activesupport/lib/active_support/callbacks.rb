@@ -297,14 +297,15 @@ module ActiveSupport
             target = env.target
             value  = env.value
 
-            unless env.halted
+            if env.halted
+              next_callback.call env
+            else
               user_callback.call(target, value) {
                 env = next_callback.call env
                 env.value
               }
+              raise ArgumentError, "no block given (yield)" unless env.value
               env
-            else
-              next_callback.call env
             end
           }
         end
