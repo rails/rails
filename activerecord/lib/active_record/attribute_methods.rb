@@ -329,7 +329,7 @@ module ActiveRecord
     #   task = Task.new(title: '', is_done: false)
     #   task.attribute_present?(:title)   # => false
     #   task.attribute_present?(:is_done) # => true
-    #   task.title = 'Francesco'
+    #   task.title = 'Buy milk'
     #   task.is_done = true
     #   task.attribute_present?(:title)   # => true
     #   task.attribute_present?(:is_done) # => true
