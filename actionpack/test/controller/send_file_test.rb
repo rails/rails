@@ -200,8 +200,6 @@ class SendFileTest < ActionController::TestCase
     end
   end
 
-  tests SendFileWithActionControllerLive
-
   def test_send_file_with_action_controller_live
     @controller = SendFileWithActionControllerLive.new
     @controller.options = { :content_type => "application/x-ruby" }
