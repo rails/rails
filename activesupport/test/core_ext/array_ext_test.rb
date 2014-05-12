@@ -234,7 +234,7 @@ class ArraySplitTests < ActiveSupport::TestCase
 end
 
 class ArrayToXmlTests < ActiveSupport::TestCase
-  def test_to_xml
+  def test_to_xml_with_hash_elements
     xml = [
       { :name => "David", :age => 26, :age_in_millis => 820497600000 },
       { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
@@ -247,6 +247,22 @@ class ArrayToXmlTests < ActiveSupport::TestCase
     assert xml.include?(%(<age type="integer">31</age>)), xml
     assert xml.include?(%(<age-in-millis type="decimal">1.0</age-in-millis>)), xml
     assert xml.include?(%(<name>Jason</name>)), xml
+  end
+
+  def test_to_xml_with_non_hash_elements
+    xml = [1, 2, 3].to_xml(:skip_instruct => true, :indent => 0)
+
+    assert_equal '<fixnums type="array"><fixnum', xml.first(29)
+    assert xml.include?(%(<fixnum type="integer">2</fixnum>)), xml
+  end
+
+  def test_to_xml_with_non_hash_different_type_elements
+    xml = [1, 2.0, '3'].to_xml(:skip_instruct => true, :indent => 0)
+
+    assert_equal '<objects type="array"><object', xml.first(29)
+    assert xml.include?(%(<object type="integer">1</object>)), xml
+    assert xml.include?(%(<object type="float">2.0</object>)), xml
+    assert xml.include?(%(object>3</object>)), xml
   end
 
   def test_to_xml_with_dedicated_name
@@ -269,6 +285,18 @@ class ArrayToXmlTests < ActiveSupport::TestCase
     assert xml.include?(%(<name>Jason</name>))
   end
 
+  def test_to_xml_with_indent_set
+    xml = [
+      { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
+    ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 4)
+
+    assert_equal "<objects>\n    <object>", xml.first(22)
+    assert xml.include?(%(\n        <street-address>Paulina</street-address>))
+    assert xml.include?(%(\n        <name>David</name>))
+    assert xml.include?(%(\n        <street-address>Evergreen</street-address>))
+    assert xml.include?(%(\n        <name>Jason</name>))
+  end
+
   def test_to_xml_with_dasherize_false
     xml = [
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
@@ -289,7 +317,7 @@ class ArrayToXmlTests < ActiveSupport::TestCase
     assert xml.include?(%(<street-address>Evergreen</street-address>))
   end
 
-  def test_to_with_instruct
+  def test_to_xml_with_instruct
     xml = [
       { :name => "David", :age => 26, :age_in_millis => 820497600000 },
       { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
