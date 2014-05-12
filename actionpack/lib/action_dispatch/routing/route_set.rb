@@ -657,7 +657,8 @@ module ActionDispatch
           script_name = original_script_name + script_name
         end
 
-        path_options = options.except(*RESERVED_OPTIONS)
+        path_options = options.dup
+        RESERVED_OPTIONS.each { |ro| path_options.delete ro }
         path_options = yield(path_options) if block_given?
 
         path, params = generate(path_options, recall || {})
