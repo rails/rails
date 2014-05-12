@@ -158,13 +158,13 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     k2.table_name = 'posts'
     k2.primary_key = 'title'
 
-    assert k1.columns.find { |c| c.name == 'id' }.primary
-    assert !k1.columns.find { |c| c.name == 'title' }.primary
+    assert k1.columns_hash['id'].primary
+    assert !k1.columns_hash['title'].primary
     assert k1.columns_hash['id'].primary
     assert !k1.columns_hash['title'].primary
 
-    assert !k2.columns.find { |c| c.name == 'id' }.primary
-    assert k2.columns.find { |c| c.name == 'title' }.primary
+    assert !k2.columns_hash['id'].primary
+    assert k2.columns_hash['title'].primary
     assert !k2.columns_hash['id'].primary
     assert k2.columns_hash['title'].primary
   end
