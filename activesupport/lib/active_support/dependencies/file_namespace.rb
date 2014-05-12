@@ -34,15 +34,11 @@ class FileNamespace
 
   private
     def reachable?
-      const_defined? && @const_scope.reachable?
+      defined?(@const_scope) && @const_scope.reachable?
     end
 
     def constants
       @const_scope.local_constants
-    end
-
-    def const_defined?
-      defined?(@const_scope)
     end
 
     def parent
