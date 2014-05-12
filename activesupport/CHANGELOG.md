@@ -1,3 +1,12 @@
+*   Fixed an issue when using
+    `ActiveSupport::NumberHelper::NumberToDelimitedConverter` to
+    convert a value that is an `ActiveSupport::SafeBuffer` introduced
+    in 2da9d67.
+
+    For more info see #15064.
+
+    *Mark J. Titorenko*
+
 *   `TimeZone#parse` defaults the day of the month to '1' if any other date
     components are specified. This is more consistent with the behavior of
     `Time#parse`.
