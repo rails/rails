@@ -16,7 +16,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
         t.integer 'ratings', array: true
       end
     end
-    @column = PgArray.columns.find { |c| c.name == 'tags' }
+    @column = PgArray.columns_hash['tags']
   end
 
   teardown do
@@ -64,7 +64,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     @connection.change_column :pg_arrays, :snippets, :text, array: true, default: []
 
     PgArray.reset_column_information
-    column = PgArray.columns.find { |c| c.name == 'snippets' }
+    column = PgArray.columns_hash['snippets']
 
     assert_equal :text, column.type
     assert_equal [], column.default

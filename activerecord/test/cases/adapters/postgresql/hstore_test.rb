@@ -28,7 +28,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
         t.hstore 'settings'
       end
     end
-    @column = Hstore.columns.find { |c| c.name == 'tags' }
+    @column = Hstore.columns_hash['tags']
   end
 
   teardown do
@@ -78,7 +78,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
           t.hstore 'users', default: ''
         end
         Hstore.reset_column_information
-        column = Hstore.columns.find { |c| c.name == 'users' }
+        column = Hstore.columns_hash['users']
         assert_equal :hstore, column.type
 
         raise ActiveRecord::Rollback # reset the schema change

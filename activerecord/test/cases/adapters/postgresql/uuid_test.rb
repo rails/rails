@@ -43,13 +43,13 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   def test_change_column_default
     @connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v1()"
     UUIDType.reset_column_information
-    column = UUIDType.columns.find { |c| c.name == 'thingy' }
+    column = UUIDType.columns_hash['thingy']
     assert_equal "uuid_generate_v1()", column.default_function
 
     @connection.change_column :uuid_data_type, :thingy, :uuid, null: false, default: "uuid_generate_v4()"
 
     UUIDType.reset_column_information
-    column = UUIDType.columns.find { |c| c.name == 'thingy' }
+    column = UUIDType.columns_hash['thingy']
     assert_equal "uuid_generate_v4()", column.default_function
   ensure
     UUIDType.reset_column_information

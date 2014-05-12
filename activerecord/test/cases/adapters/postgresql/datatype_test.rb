@@ -138,7 +138,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_money_type_cast
-    column = PostgresqlMoney.columns.find { |c| c.name == 'wealth' }
+    column = PostgresqlMoney.columns_hash['wealth']
     assert_equal(12345678.12, column.type_cast("$12,345,678.12"))
     assert_equal(12345678.12, column.type_cast("$12.345.678,12"))
     assert_equal(-1.15, column.type_cast("-$1.15"))

@@ -23,7 +23,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     rescue ActiveRecord::StatementInvalid
       skip "do not test on PG without json"
     end
-    @column = JsonDataType.columns.find { |c| c.name == 'payload' }
+    @column = JsonDataType.columns_hash['payload']
   end
 
   teardown do
@@ -57,7 +57,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
         t.json 'users', default: '{}'
       end
       JsonDataType.reset_column_information
-      column = JsonDataType.columns.find { |c| c.name == 'users' }
+      column = JsonDataType.columns_hash['users']
       assert_equal :json, column.type
 
       raise ActiveRecord::Rollback # reset the schema change

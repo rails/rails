@@ -50,7 +50,7 @@ if ActiveRecord::Base.connection.supports_extensions?
           t.citext 'username'
         end
         Citext.reset_column_information
-        column = Citext.columns.find { |c| c.name == 'username' }
+        column = Citext.columns_hash['username']
         assert_equal :citext, column.type
 
         raise ActiveRecord::Rollback # reset the schema change

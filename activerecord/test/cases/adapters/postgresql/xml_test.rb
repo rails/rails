@@ -20,7 +20,7 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
     rescue ActiveRecord::StatementInvalid
       skip "do not test on PG without xml"
     end
-    @column = XmlDataType.columns.find { |c| c.name == 'payload' }
+    @column = XmlDataType.columns_hash['payload']
   end
 
   teardown do

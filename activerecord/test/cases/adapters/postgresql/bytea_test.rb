@@ -19,7 +19,7 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
         end
       end
     end
-    @column = ByteaDataType.columns.find { |c| c.name == 'payload' }
+    @column = ByteaDataType.columns_hash['payload']
     assert(@column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn))
   end
 
