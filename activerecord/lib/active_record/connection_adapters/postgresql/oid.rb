@@ -409,6 +409,7 @@ This is not reliable and will be removed in the future.
         register_type 'text', OID::Text.new
         register_type 'varchar', OID::String.new
         alias_type 'char', 'varchar'
+        alias_type 'name', 'varchar'
         alias_type 'bpchar', 'varchar'
         register_type 'bool', OID::Boolean.new
         register_type 'bit', OID::Bit.new

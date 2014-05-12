@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/ddl_helper'
 
 class PostgresqlArray < ActiveRecord::Base
 end
@@ -313,5 +314,27 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     end
   ensure
     @connection.reconnect!
+  end
+end
+
+class PostgresqlInternalDataTypeTest < ActiveRecord::TestCase
+  include DdlHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+  end
+
+  def test_name_column_type
+    with_example_table @connection, 'ex', 'data name' do
+      column = @connection.columns('ex').find { |col| col.name == 'data' }
+      assert_equal :string, column.type
+    end
+  end
+
+  def test_char_column_type
+    with_example_table @connection, 'ex', 'data "char"' do
+      column = @connection.columns('ex').find { |col| col.name == 'data' }
+      assert_equal :string, column.type
+    end
   end
 end
