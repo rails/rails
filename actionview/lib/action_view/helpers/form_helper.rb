@@ -449,7 +449,11 @@ module ActionView
           method: method
         )
 
-        options[:url] ||= polymorphic_path(record, format: options.delete(:format))
+        options[:url] ||= if options.key?(:format)
+                            polymorphic_path(record, format: options.delete(:format))
+                          else
+                            polymorphic_path(record, {})
+                          end
       end
       private :apply_form_for_options!
 
