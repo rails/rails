@@ -1,3 +1,9 @@
+*   Allow the PostgreSQL adapter to handle bigserial pk types again.
+
+    Fixes #10410.
+
+    *Patrick Robertson*
+
 *   Fixed HABTM's CollectionAssociation size calculation.
 
     HABTM should fall back to using the normal CollectionAssociation's size
