@@ -326,13 +326,13 @@ module ActiveRecord
     #   class Task < ActiveRecord::Base
     #   end
     #
-    #   person = Task.new(title: '', is_done: false)
-    #   person.attribute_present?(:title)   # => false
-    #   person.attribute_present?(:is_done) # => true
-    #   person.name = 'Francesco'
-    #   person.is_done = true
-    #   person.attribute_present?(:title)   # => true
-    #   person.attribute_present?(:is_done) # => true
+    #   task = Task.new(title: '', is_done: false)
+    #   task.attribute_present?(:title)   # => false
+    #   task.attribute_present?(:is_done) # => true
+    #   task.title = 'Francesco'
+    #   task.is_done = true
+    #   task.attribute_present?(:title)   # => true
+    #   task.attribute_present?(:is_done) # => true
     def attribute_present?(attribute)
       value = read_attribute(attribute)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
