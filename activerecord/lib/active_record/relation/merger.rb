@@ -157,8 +157,8 @@ module ActiveRecord
       def filter_binds(lhs_binds, removed_wheres)
         return lhs_binds if removed_wheres.empty?
 
-        set = Set.new removed_wheres.map { |x| x.left.name }
-        lhs_binds.dup.delete_if { |col,_| set.include? col.name }
+        set = Set.new removed_wheres.map { |x| x.left.name.to_s }
+        lhs_binds.dup.delete_if { |col,_| set.include? col.name.to_s }
       end
 
       # Remove equalities from the existing relation with a LHS which is
