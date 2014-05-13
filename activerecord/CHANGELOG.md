@@ -1,3 +1,15 @@
+*   Added a new class that PostgreSQL Ranges will map to. 
+
+    Ruby Ranges are inferior to Postgres Ranges in that they support neither
+    unbounded ranges nor exclusive lower bounds. The new `PGRange` supports
+    the most common Range operations and provides a method to translate to a
+    Ruby Range when it makes sense to. `PGRange` delegates several methods
+    related to iteration and enumeration to this `::Range`.
+
+    Addresses #14010.
+
+    *Jefferson Lai*
+
 *   Fixed serialization for records with an attribute named `format`.
 
     Fixes #15188.

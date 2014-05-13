@@ -131,6 +131,8 @@ module ActiveRecord
             else
               super(value, column)
             end
+          when PGRange
+            value
           else
             super(value, column)
           end

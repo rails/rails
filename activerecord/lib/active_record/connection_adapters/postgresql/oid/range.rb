@@ -11,44 +11,178 @@ module ActiveRecord
           end
 
           def extract_bounds(value)
-            from, to = value[1..-2].split(',')
-            {
-              from:          (value[1] == ',' || from == '-infinity') ? @subtype.infinity(negative: true) : from,
-              to:            (value[-2] == ',' || to == 'infinity') ? @subtype.infinity : to,
-              exclude_start: (value[0] == '('),
-              exclude_end:   (value[-1] == ')')
-            }
-          end
-
-          def infinity?(value)
-            value.respond_to?(:infinite?) && value.infinite?
-          end
-
-          def type_cast_single(value)
-            infinity?(value) ? value : @subtype.type_cast(value)
+            if value.is_a?(::Range)
+              {
+                from:           value.begin,
+                to:             value.end,
+                exclude_start:  false,
+                exclude_end:    value.exclude_end?
+              }
+            else
+              from, to = value[1..-2].split(',')
+              {
+                from:          (value[1] == ',' || from == '-infinity') ? nil : from,
+                to:            (value[-2] == ',' || to == 'infinity') ? nil : to,
+                exclude_start: (value[0] == '('),
+                exclude_end:   (value[-1] == ')')
+              }
+            end
           end
 
           def cast_value(value)
             return if value == 'empty'
-            return value if value.is_a?(::Range)
+            return value if value.is_a?(PGRange)
 
             extracted = extract_bounds(value)
-            from = type_cast_single extracted[:from]
-            to = type_cast_single extracted[:to]
+            from = @subtype.type_cast(extracted[:from])
+            to = @subtype.type_cast(extracted[:to])
 
-            if !infinity?(from) && extracted[:exclude_start]
-              if from.respond_to?(:succ)
-                from = from.succ
-                ActiveSupport::Deprecation.warn <<-MESSAGE
-Excluding the beginning of a Range is only partialy supported through `#succ`.
-This is not reliable and will be removed in the future.
-                MESSAGE
-              else
-                raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
-              end
-            end
-            ::Range.new(from, to, extracted[:exclude_end])
+            PGRange.new(from, to, @subtype.type, extracted)
           end
+        end
+      end
+
+      class PGRange
+        attr_reader :from, :to, :subtype, :exclude_start, :exclude_end
+        delegate :bsearch, :each, :last, to: :to_range
+        
+        def initialize(from, to, subtype, opts={})
+          @from, @to = from, to
+          @subtype = subtype
+          # PostgreSQL automatically makes any unbounded start/end exclusive
+          @exclude_start = !!opts[:exclude_start] || @from.nil?
+          @exclude_end = !!opts[:exclude_end] || @to.nil?
+        end
+
+        alias exclude_end? exclude_end
+        alias exclude_start? exclude_start
+        alias :end to
+
+        def ==(other)
+          if other.is_a? PGRange
+            [:from, :to, :subtype, :exclude_start, :exclude_end].all?{|v| self.public_send(v) == other.public_send(v)}
+          else
+            false
+          end
+        end
+        alias eql? ==
+
+        def ===(other)
+          eql?(other) || (valid_ruby_range? && to_range === other)
+        end
+
+        def begin
+          @from
+        end
+
+        def cover?(value)
+          return false if empty?
+          return false if value == self.begin && exclude_start?
+          return false if value == self.end && exclude_end?
+          begin
+            if unbound_start?
+              unbound_end? || value <= self.end
+            else
+              value >= self.begin && (unbound_end? || value <= self.end)
+            end
+          rescue ArgumentError # Compared uncomparable types
+            false
+          end
+        end
+
+        def empty?
+          !unbound_start? && !unbound_end? && (@from > @to || @from == @to && (exclude_start? || exclude_end?))
+        end
+
+        def end
+          @to
+        end
+        
+        # Hacky way to dig out the values ourselves
+        def first(n=1)
+          raise(ArgumentError, "negative array size (or size too big)") if n < 0
+          if empty?
+            return n == 1 ? nil : []
+          else
+            return self.begin if n == 1
+            raise(RuntimeError, "can't find first #{n} elements without lower bound") if unbound_start?
+            raise(TypeError, "can't iterate from #{@subtype}") if !self.begin.respond_to?(:succ)
+            val = self.exclude_start? ? self.begin : self.begin.succ
+            values = []
+            n.times do
+              values << val
+              val = val.succ
+            end
+            values
+          end
+        end
+
+        def include?(value)
+          return false if empty?
+          to_range.include?(value)
+        end
+        alias member? include?
+
+        # Crude
+        def inspect
+          "<PGRange:#{@subtype} #{to_s}>"
+        end
+
+        # Will handle a special case with no lower bound, but otherwise delegates.
+        # Unlike min, we can't find the next value if the important end is excluded.
+        def max
+          return nil if empty?
+          if unbound_start? && !unbound_end? && !exclude_start? 
+            self.end
+          else
+            to_range.max
+          end
+        end
+
+        # Will handle cases with lower bound and no upper bound. All other cases delegated.
+        def min
+          return nil if empty?
+          if !unbound_start? && unbound_end?
+            exclude_start? ? self.begin.succ : self.begin
+          else
+            to_range.min
+          end
+        end
+
+        def size
+          return 0 if empty?
+          to_range.size
+        end
+
+        # Attempts to convert this PGRange to a ::Range for cases when only discrete values are used. Since
+        # only discrete values are used, we can deal with exclusive lower bounds.
+        def to_range
+          if defined? @discrete_rng
+            @discrete_rng
+          else
+            raise(RuntimeError, "can't discretize unbounded PGRange") if unbound_start? || unbound_end?
+            raise(TypeError, "can't iterate from #{@subtype}") if !self.begin.respond_to?(:succ)
+            start = self.exclude_start? ? self.begin.succ : self.begin
+            @discrete_rng = ::Range.new(start, self.end, self.exclude_end?)
+          end
+        end
+
+        def to_s
+          l_end = exclude_start? ? "(" : "["
+          r_end = exclude_end? ? ")" : "]"
+          "#{l_end}#{self.begin},#{self.end}#{r_end}"
+        end
+
+        def unbound_end?
+          @to.nil?
+        end
+
+        def unbound_start?
+          @from.nil?
+        end
+
+        def valid_ruby_range?
+          !(empty? || exclude_start? || @from.nil? || @to.nil?)
         end
       end
     end
