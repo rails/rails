@@ -228,7 +228,7 @@ module ActionDispatch
             options = handle_positional_args(t, args, @options, @segment_keys)
             hash = {
               :only_path => options[:host].nil?
-            }.merge!(options.symbolize_keys)
+            }.merge!(options)
             hash.reverse_merge!(t.url_options)
             t._routes.url_for(hash)
           end
