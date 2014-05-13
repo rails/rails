@@ -77,11 +77,11 @@ class Mysql2BooleanTest < ActiveRecord::TestCase
   end
 
   def boolean_column
-    BooleanType.columns.find { |c| c.name == 'archived' }
+    BooleanType.columns_hash['archived']
   end
 
   def string_column
-    BooleanType.columns.find { |c| c.name == 'published' }
+    BooleanType.columns_hash['published']
   end
 
   def emulate_booleans(value)
