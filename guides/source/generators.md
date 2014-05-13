@@ -248,7 +248,7 @@ end
 end
 ```
 
-We can try out our new generator by creating a helper for users:
+We can try out our new generator by creating a helper for products:
 
 ```bash
 $ rails generate my_helper products
@@ -507,7 +507,7 @@ Replaces text inside a file.
 gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code'
 ```
 
-Regular Expressions can be used to make this method more precise. You can also use append_file and prepend_file in the same way to place code at the beginning and end of a file respectively.
+Regular Expressions can be used to make this method more precise. You can also use `append_file` and `prepend_file` in the same way to place code at the beginning and end of a file respectively.
 
 ### `application`
 
