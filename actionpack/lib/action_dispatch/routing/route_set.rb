@@ -641,8 +641,8 @@ module ActionDispatch
         !mounted? && default_url_options.empty?
       end
 
-      def _generate_prefix(options)
-        nil
+      def find_script_name(options)
+        options.delete :script_name
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
@@ -659,7 +659,7 @@ module ActionDispatch
         recall  = options.delete(:_recall)
 
         original_script_name = options.delete(:original_script_name)
-        script_name = options.delete(:script_name) || _generate_prefix(options)
+        script_name = find_script_name options
 
         if script_name && original_script_name
           script_name = original_script_name + script_name
