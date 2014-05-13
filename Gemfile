@@ -13,6 +13,7 @@ gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: '2-1-stable'
+gem 'i18n', github: 'svenfuchs/i18n', branch: 'master'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
