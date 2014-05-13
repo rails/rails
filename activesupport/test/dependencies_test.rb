@@ -548,14 +548,6 @@ class DependenciesTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.autoload_once_paths = []
   end
 
-  def test_application_should_special_case_application_controller
-    with_autoloading_fixtures do
-      require_dependency 'application'
-      assert_equal 10, ApplicationController
-      assert ActiveSupport::Dependencies.autoloaded?(:ApplicationController)
-    end
-  end
-
   def test_preexisting_constants_are_not_marked_as_autoloaded
     with_autoloading_fixtures do
       require_dependency 'e'
@@ -580,100 +572,6 @@ class DependenciesTest < ActiveSupport::TestCase
 
       assert ActiveSupport::Dependencies.autoloaded?("HTML::SomeClass")
     end
-  end
-
-  def test_unloadable
-    with_autoloading_fixtures do
-      Object.const_set :M, Module.new
-      M.unloadable
-
-      ActiveSupport::Dependencies.unload!
-      assert ! defined?(M)
-
-      Object.const_set :M, Module.new
-      ActiveSupport::Dependencies.unload!
-      assert ! defined?(M), "Dependencies should unload unloadable constants each time"
-    end
-  end
-
-  def test_unloadable_should_fail_with_anonymous_modules
-    with_autoloading_fixtures do
-      m = Module.new
-      assert_raise(ArgumentError) { m.unloadable }
-    end
-  end
-
-  def test_unloadable_should_return_change_flag
-    with_autoloading_fixtures do
-      Object.const_set :M, Module.new
-      assert_equal true, M.unloadable
-      assert_equal false, M.unloadable
-    end
-  ensure
-    Object.class_eval { remove_const :M }
-  end
-
-  def test_unloadable_constants_should_receive_callback
-    Object.const_set :C, Class.new
-    C.unloadable
-    C.expects(:before_remove_const).once
-    assert C.respond_to?(:before_remove_const)
-    ActiveSupport::Dependencies.unload!
-    assert !defined?(C)
-  ensure
-    Object.class_eval { remove_const :C } if defined?(C)
-  end
-
-  def test_new_contants_in_without_constants
-    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
-  end
-
-  def test_new_constants_in_with_a_single_constant
-    assert_equal %w(Hello), ActiveSupport::Dependencies.new_constants_in(Object) {
-                              Object.const_set :Hello, 10
-                            }.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
-  ensure
-    Object.class_eval { remove_const :Hello }
-  end
-
-  def test_new_constants_in_with_nesting
-    outer = ActiveSupport::Dependencies.new_constants_in(Object) do
-      Object.const_set :OuterBefore, 10
-
-      assert_equal %w(Inner), ActiveSupport::Dependencies.new_constants_in(Object) {
-                                Object.const_set :Inner, 20
-                              }.map(&:to_s)
-
-      Object.const_set :OuterAfter, 30
-    end
-
-    assert_equal %w(OuterAfter OuterBefore), outer.sort.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
-  ensure
-    %w(OuterBefore Inner OuterAfter).each do |name|
-      Object.class_eval { remove_const name if const_defined?(name) }
-    end
-  end
-
-  def test_new_constants_in_module
-    Object.const_set :M, Module.new
-
-    outer = ActiveSupport::Dependencies.new_constants_in(M) do
-      M.const_set :OuterBefore, 10
-
-      inner = ActiveSupport::Dependencies.new_constants_in(M) do
-        M.const_set :Inner, 20
-      end
-      assert_equal %w(M::Inner), inner
-
-      M.const_set :OuterAfter, 30
-    end
-    assert_equal %w(M::OuterAfter M::OuterBefore), outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
-  ensure
-    Object.class_eval { remove_const :M }
   end
 
   def test_file_with_multiple_constants_and_require_dependency
