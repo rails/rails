@@ -29,8 +29,20 @@ module ActiveRecord
 
       # :stopdoc:
       class << self
-        include ConnectionAdapters::PostgreSQLColumn::Cast
-        include ConnectionAdapters::PostgreSQLColumn::ArrayParser
+        include PostgreSQLColumn::Cast
+
+        # Loads pg_array_parser if available. String parsing can be
+        # performed quicker by a native extension, which will not create
+        # a large amount of Ruby objects that will need to be garbage
+        # collected. pg_array_parser has a C and Java extension
+        begin
+          require 'pg_array_parser'
+          include PgArrayParser
+        rescue LoadError
+          require 'active_record/connection_adapters/postgresql/array_parser'
+          include PostgreSQLColumn::ArrayParser
+        end
+
         attr_accessor :money_precision
       end
       # :startdoc:
