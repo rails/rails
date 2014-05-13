@@ -1,3 +1,9 @@
+*   Fix how to calculate associated class name when using `habtm` namespaced.
+
+    Fixes #14709.
+
+    *Kassio Borges*
+
 *   `change_column_default` allows `[]` as argument to `change_column_default`.
 
     Fixes #11586.
