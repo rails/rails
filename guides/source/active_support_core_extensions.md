@@ -1106,7 +1106,7 @@ end
 
 A model may find it useful to set `:instance_accessor` to `false` as a way to prevent mass-assignment from setting the attribute.
 
-NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`. `active_support/core_ext/class/attribute_accessors.rb` is deprecated and will be removed in Ruby on Rails 4.2.
+NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
 ### Subclasses & Descendants
 
