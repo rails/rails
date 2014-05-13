@@ -7,7 +7,7 @@ module ActionView
     module TranslationHelper
       # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
       #
-      # First, it will ensure that any thrown +MissingTranslation+ messages will be turned 
+      # First, it will ensure that any thrown +MissingTranslation+ messages will be turned
       # into inline spans that:
       #
       #   * have a "translation-missing" class set,
@@ -35,7 +35,6 @@ module ActionView
       # you know what kind of output to expect when you call translate in a template.
       def translate(key, options = {})
         options = options.dup
-        
         options[:default] = wrap_translate_defaults(options[:default]) if options[:default]
 
         # If the user has specified rescue_format then pass it all through, otherwise use
