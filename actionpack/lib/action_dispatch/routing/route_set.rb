@@ -729,17 +729,6 @@ module ActionDispatch
 
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
-
-      private
-
-        def extract_authentication(options)
-          if options[:user] && options[:password]
-            [options.delete(:user), options.delete(:password)]
-          else
-            nil
-          end
-        end
-
     end
   end
 end
