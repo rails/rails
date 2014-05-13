@@ -19,6 +19,14 @@ module ActiveRecord
     #
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
+    #
+    # If +count+ is used with +select+, it will count the selected columns:
+    #
+    #   Person.select(:age).count
+    #   # => counts the number of different age values
+    #
+    # Note: not all valid +select+ expressions are valid +count+ expressions. The specifics differ
+    # between databases. In invalid cases, an error from the databsae is thrown.
     def count(column_name = nil, options = {})
       # TODO: Remove options argument as soon we remove support to
       # activerecord-deprecated_finders.
