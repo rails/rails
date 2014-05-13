@@ -571,25 +571,6 @@ module ActiveRecord
           initialize_type_map(type_map)
         end
 
-        def add_oid(row, records_by_oid, type_map)
-          return type_map if type_map.key? row['type_elem'].to_i
-
-          if OID.registered_type? row['typname']
-            # this composite type is explicitly registered
-            vector = OID::NAMES[row['typname']]
-          else
-            # use the default for composite types
-            unless type_map.key? row['typelem'].to_i
-              add_oid records_by_oid[row['typelem']], records_by_oid, type_map
-            end
-
-            vector = OID::Vector.new row['typdelim'], type_map[row['typelem'].to_i]
-          end
-
-          type_map[row['oid'].to_i] = vector
-          type_map
-        end
-
         def initialize_type_map(type_map, oids = nil)
           if supports_ranges?
             query = <<-SQL
@@ -608,52 +589,9 @@ module ActiveRecord
             query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
           end
 
-          result = execute(query, 'SCHEMA')
-          ranges, nodes = result.partition { |row| row['typtype'] == 'r' }
-          enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
-          domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
-          arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
-          leaves, nodes = nodes.partition { |row| row['typelem'] == '0' }
-
-          # populate the enum types
-          enums.each do |row|
-            type_map[row['oid'].to_i] = OID::Enum.new
-          end
-
-          # populate the base types
-          leaves.find_all { |row| OID.registered_type? row['typname'] }.each do |row|
-            type_map[row['oid'].to_i] = OID::NAMES[row['typname']]
-          end
-
-          records_by_oid = result.group_by { |row| row['oid'] }
-
-          # populate composite types
-          nodes.each do |row|
-            add_oid row, records_by_oid, type_map
-          end
-
-          # populate array types
-          arrays.find_all { |row| type_map.key? row['typelem'].to_i }.each do |row|
-            array = OID::Array.new  type_map[row['typelem'].to_i]
-            type_map[row['oid'].to_i] = array
-          end
-
-          # populate range types
-          ranges.find_all { |row| type_map.key? row['rngsubtype'].to_i }.each do |row|
-            subtype = type_map[row['rngsubtype'].to_i]
-            range = OID::Range.new subtype
-            type_map[row['oid'].to_i] = range
-          end
-
-          # populate domain types
-          domains.each do |row|
-            base_type_oid = row["typbasetype"].to_i
-            if base_type = type_map[base_type_oid]
-              type_map[row['oid'].to_i] = base_type
-            else
-              warn "unknown base type (OID: #{base_type_oid}) for domain #{row["typname"]}."
-            end
-          end
+          initializer = OID::TypeMapInitializer.new(type_map)
+          records = execute(query, 'SCHEMA')
+          initializer.run(records)
         end
 
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:

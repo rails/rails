@@ -374,6 +374,77 @@ This is not reliable and will be removed in the future.
           end
         end
 
+        # This class uses the data from PostgreSQL pg_type table to build
+        # the OID -> Type mapping.
+        #   - OID is and integer representing the type.
+        #   - Type is an OID::Type object.
+        # This class has side effects on the +store+ passed during initialization.
+        class TypeMapInitializer # :nodoc:
+          def initialize(store)
+            @store = store
+          end
+
+          def run(records)
+            mapped, nodes = records.partition { |row| OID.registered_type? row['typname'] }
+            ranges, nodes = nodes.partition { |row| row['typtype'] == 'r' }
+            enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
+            domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
+            arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
+            composites, nodes = nodes.partition { |row| row['typelem'] != '0' }
+
+            mapped.each     { |row| register_mapped_type(row)    }
+            enums.each      { |row| register_enum_type(row)      }
+            domains.each    { |row| register_domain_type(row)    }
+            arrays.each     { |row| register_array_type(row)     }
+            ranges.each     { |row| register_range_type(row)     }
+            composites.each { |row| register_composite_type(row) }
+          end
+
+          private
+          def register_mapped_type(row)
+            register row['oid'], OID::NAMES[row['typname']]
+          end
+
+          def register_enum_type(row)
+            register row['oid'], OID::Enum.new
+          end
+
+          def register_array_type(row)
+            if subtype = @store[row['typelem'].to_i]
+              register row['oid'], OID::Array.new(subtype)
+            end
+          end
+
+          def register_range_type(row)
+            if subtype = @store[row['rngsubtype'].to_i]
+              register row['oid'], OID::Range.new(subtype)
+            end
+          end
+
+          def register_domain_type(row)
+            if base_type = @store[row["typbasetype"].to_i]
+              register row['oid'], base_type
+            else
+              warn "unknown base type (OID: #{row["typbasetype"]}) for domain #{row["typname"]}."
+            end
+          end
+
+          def register_composite_type(row)
+            if subtype = @store[row['typelem'].to_i]
+              register row['oid'], OID::Vector.new(row['typdelim'], subtype)
+            end
+          end
+
+          def register(oid, oid_type)
+            oid = oid.to_i
+
+            raise ArgumentError, "can't register nil type for OID #{oid}" if oid_type.nil?
+            return if @store.key?(oid)
+
+            @store[oid] = oid_type
+          end
+        end
+
         # When the PG adapter connects, the pg_type table is queried. The
         # key of this hash maps to the `typname` column from the table.
         # type_map is then dynamically built with oids as the key and type
