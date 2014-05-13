@@ -6,6 +6,7 @@ rvm:
   - 1.9.3
   - 2.0.0
   - 2.1
+  - ruby-head
   - rbx-2
   - jruby
 env:
@@ -19,6 +20,7 @@ matrix:
   allow_failures:
     - rvm: rbx-2
     - rvm: jruby
+    - rvm: ruby-head
   fast_finish: true
 notifications:
   email: false
