@@ -658,8 +658,8 @@ module ActionDispatch
 
         recall  = options.delete(:_recall)
 
-        original_script_name = options.delete(:original_script_name).presence
-        script_name = options.delete(:script_name).presence || _generate_prefix(options)
+        original_script_name = options.delete(:original_script_name)
+        script_name = options.delete(:script_name) || _generate_prefix(options)
 
         if script_name && original_script_name
           script_name = original_script_name + script_name
