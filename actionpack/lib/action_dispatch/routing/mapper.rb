@@ -578,18 +578,15 @@ module ActionDispatch
             _route = @set.named_routes.routes[name.to_sym]
             _routes = @set
             app.routes.define_mounted_helper(name)
-            app.routes.singleton_class.class_eval do
-              redefine_method :mounted? do
-                true
-              end
-
-              redefine_method :_generate_prefix do |options|
+            app.routes.extend Module.new {
+              def mounted?; true; end
+              define_method :_generate_prefix do |options|
                 prefix_options = options.slice(*_route.segment_keys)
                 # we must actually delete prefix segment keys to avoid passing them to next url_for
                 _route.segment_keys.each { |k| options.delete(k) }
                 _routes.url_helpers.send("#{name}_path", prefix_options)
               end
-            end
+            }
           end
       end
 
