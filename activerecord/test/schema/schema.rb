@@ -62,6 +62,14 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :articles, force: true do |t|
+  end
+
+  create_table :articles_magazines, force: true do |t|
+    t.references :article
+    t.references :magazine
+  end
+
   create_table :audit_logs, force: true do |t|
     t.column :message, :string, null: false
     t.column :developer_id, :integer, null: false
@@ -383,6 +391,9 @@ ActiveRecord::Schema.define do
 
   create_table :lock_without_defaults_cust, force: true do |t|
     t.column :custom_lock_version, :integer
+  end
+
+  create_table :magazines, force: true do |t|
   end
 
   create_table :mateys, id: false, force: true do |t|

@@ -22,6 +22,9 @@ require 'models/sponsor'
 require 'models/country'
 require 'models/treaty'
 require 'models/vertex'
+require 'models/publisher'
+require 'models/publisher/article'
+require 'models/publisher/magazine'
 require 'active_support/core_ext/string/conversions'
 
 class ProjectWithAfterCreateHook < ActiveRecord::Base
@@ -847,5 +850,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_custom_join_table
     assert_equal 'edges', Vertex.reflect_on_association(:sources).join_table
+  end
+
+  def test_namespaced_habtm
+    magazine = Publisher::Magazine.create
+    article = Publisher::Article.create
+    magazine.articles << article
+    magazine.save
+
+    assert_includes magazine.articles, article
   end
 end
