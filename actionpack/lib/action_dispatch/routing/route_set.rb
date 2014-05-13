@@ -654,7 +654,13 @@ module ActionDispatch
       def url_for(options)
         options = default_url_options.merge(options || {})
 
-        user, password = extract_authentication(options)
+        user = password = nil
+
+        if options[:user] && options[:password]
+          user     = options.delete :user
+          password = options.delete :password
+        end
+
         recall  = options.delete(:_recall)
 
         original_script_name = options.delete(:original_script_name).presence
