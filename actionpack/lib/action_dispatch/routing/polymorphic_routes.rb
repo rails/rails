@@ -102,7 +102,7 @@ module ActionDispatch
       #
       def polymorphic_url(record_or_hash_or_array, options = {})
         if Hash === record_or_hash_or_array
-          options = record_or_hash_or_array.dup.merge!(options)
+          options = record_or_hash_or_array.merge(options)
           record  = options.delete :id
           return polymorphic_url record, options
         end
@@ -123,7 +123,7 @@ module ActionDispatch
       # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
       def polymorphic_path(record_or_hash_or_array, options = {})
         if Hash === record_or_hash_or_array
-          options = record_or_hash_or_array.dup.merge!(options)
+          options = record_or_hash_or_array.merge(options)
           record  = options.delete :id
           return polymorphic_path record, options
         end
