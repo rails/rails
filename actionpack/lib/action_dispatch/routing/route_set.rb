@@ -645,9 +645,9 @@ module ActionDispatch
         nil
       end
 
-      # The +options+ argument must be +nil+ or a hash whose keys are *symbols*.
+      # The +options+ argument must be a hash whose keys are *symbols*.
       def url_for(options)
-        options = default_url_options.merge(options || {})
+        options = default_url_options.merge options
 
         user = password = nil
 
