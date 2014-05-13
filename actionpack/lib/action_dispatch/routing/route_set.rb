@@ -225,10 +225,7 @@ module ActionDispatch
           end
 
           def call(t, args)
-            options = handle_positional_args(t, args, @options, @segment_keys)
-            hash = {
-              :only_path => options[:host].nil?
-            }.merge!(options)
+            hash = handle_positional_args(t, args, @options, @segment_keys)
             hash.reverse_merge!(t.url_options)
             t._routes.url_for(hash)
           end
