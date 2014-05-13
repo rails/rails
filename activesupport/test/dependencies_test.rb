@@ -17,7 +17,7 @@ end
 
 class DependenciesTest < ActiveSupport::TestCase
   def teardown
-    ActiveSupport::Dependencies.clear
+    ActiveSupport::Dependencies.unload!
   end
 
   include DependenciesTestHelpers
@@ -109,7 +109,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal true, $checked_verbose, 'On first load warnings should be enabled.'
 
       assert ActiveSupport::Dependencies.loaded.include?(expanded)
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       assert !ActiveSupport::Dependencies.loaded.include?(expanded)
       assert ActiveSupport::Dependencies.history.include?(expanded)
 
@@ -118,7 +118,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal nil, $checked_verbose, 'After first load warnings should be left alone.'
 
       assert ActiveSupport::Dependencies.loaded.include?(expanded)
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       assert !ActiveSupport::Dependencies.loaded.include?(expanded)
       assert ActiveSupport::Dependencies.history.include?(expanded)
 
@@ -137,7 +137,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_nothing_raised { require_dependency 'mutual_one' }
       assert_equal 2, $mutual_dependencies_count
 
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
 
       $mutual_dependencies_count = 0
       assert_nothing_raised { require_dependency 'mutual_two' }
@@ -233,7 +233,7 @@ class DependenciesTest < ActiveSupport::TestCase
       _ = RequiresConstant
       assert defined?(RequiresConstant)
       assert defined?(LoadedConstant)
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       _ = RequiresConstant
       assert defined?(RequiresConstant)
       assert defined?(LoadedConstant)
@@ -255,7 +255,7 @@ class DependenciesTest < ActiveSupport::TestCase
       _ = LoadsConstant
       assert defined?(LoadsConstant)
       assert defined?(LoadedConstant)
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       _ = LoadsConstant
       assert defined?(LoadsConstant)
       assert defined?(LoadedConstant)
@@ -496,7 +496,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_removal_from_tree_should_be_detected
     with_loading 'dependencies' do
       c = ServiceOne
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       assert ! defined?(ServiceOne)
       e = assert_raise ArgumentError do
         ActiveSupport::Dependencies.load_missing_constant(c, :FakeMissing)
@@ -560,14 +560,14 @@ class DependenciesTest < ActiveSupport::TestCase
     with_autoloading_fixtures do
       require_dependency 'e'
       assert ActiveSupport::Dependencies.autoloaded?(:E)
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
     end
 
     Object.const_set :E, Class.new
     with_autoloading_fixtures do
       require_dependency 'e'
       assert ! ActiveSupport::Dependencies.autoloaded?(:E), "E shouldn't be marked autoloaded!"
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
     end
 
   ensure
@@ -587,11 +587,11 @@ class DependenciesTest < ActiveSupport::TestCase
       Object.const_set :M, Module.new
       M.unloadable
 
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       assert ! defined?(M)
 
       Object.const_set :M, Module.new
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       assert ! defined?(M), "Dependencies should unload unloadable constants each time"
     end
   end
@@ -618,7 +618,7 @@ class DependenciesTest < ActiveSupport::TestCase
     C.unloadable
     C.expects(:before_remove_const).once
     assert C.respond_to?(:before_remove_const)
-    ActiveSupport::Dependencies.clear
+    ActiveSupport::Dependencies.unload!
     assert !defined?(C)
   ensure
     Object.class_eval { remove_const :C } if defined?(C)
@@ -687,7 +687,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert ActiveSupport::Dependencies.autoloaded?(:MultipleConstantFile)
       assert ActiveSupport::Dependencies.autoloaded?(:SiblingConstant)
 
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
 
       assert ! defined?(MultipleConstantFile)
       assert ! defined?(SiblingConstant)
@@ -706,7 +706,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert ActiveSupport::Dependencies.autoloaded?(:MultipleConstantFile)
       assert ActiveSupport::Dependencies.autoloaded?(:SiblingConstant)
 
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
 
       assert ! defined?(MultipleConstantFile)
       assert ! defined?(SiblingConstant)
@@ -725,7 +725,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert ActiveSupport::Dependencies.autoloaded?("ClassFolder::NestedClass")
       assert ActiveSupport::Dependencies.autoloaded?("ClassFolder::SiblingClass")
 
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
 
       assert ! defined?(ClassFolder::NestedClass)
       assert ! defined?(ClassFolder::SiblingClass)
@@ -744,7 +744,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert ActiveSupport::Dependencies.autoloaded?("ClassFolder::NestedClass")
       assert ActiveSupport::Dependencies.autoloaded?("ClassFolder::SiblingClass")
 
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
 
       assert ! defined?(ClassFolder::NestedClass)
       assert ! defined?(ClassFolder::SiblingClass)
@@ -843,7 +843,7 @@ class DependenciesTest < ActiveSupport::TestCase
       ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths
       _ = ::A # assignment to silence parse-time warning "possibly useless use of :: in void context"
       assert defined?(A)
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       assert defined?(A)
     end
   ensure
@@ -871,7 +871,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert defined?(CrossSiteDependency)
       assert !ActiveSupport::Dependencies.autoloaded?(CrossSiteDependency),
         "CrossSiteDependency shouldn't be marked as autoloaded!"
-      ActiveSupport::Dependencies.clear
+      ActiveSupport::Dependencies.unload!
       assert defined?(CrossSiteDependency),
         "CrossSiteDependency shouldn't have been unloaded!"
     end
