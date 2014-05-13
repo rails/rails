@@ -374,6 +374,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       follow_redirect!
       assert_response :success
       assert_equal "/get", path
+
+      get '/moved'
+      assert_response :redirect
+      assert_redirected_to '/method'
     end
   end
 
@@ -511,6 +515,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
+          get 'moved' => redirect('/method')
+
           match ':action', :to => controller, :via => [:get, :post], :as => :action
           get 'get/:action', :to => controller, :as => :get_action
         end
