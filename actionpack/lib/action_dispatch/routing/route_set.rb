@@ -641,7 +641,7 @@ module ActionDispatch
         !mounted? && default_url_options.empty?
       end
 
-      def _generate_prefix(options = {})
+      def _generate_prefix(options)
         nil
       end
 
