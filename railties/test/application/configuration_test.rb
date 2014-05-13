@@ -360,7 +360,7 @@ module ApplicationTests
     test "default method for update can be changed" do
       app_file 'app/models/post.rb', <<-RUBY
       class Post
-        extend ActiveModel::Naming
+        include ActiveModel::Model
         def to_key; [1]; end
         def persisted?; true; end
       end
