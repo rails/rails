@@ -109,17 +109,32 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal(['1', '2'], x.ratings)
   end
 
-  def test_rewrite
-    @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
-    x = PgArray.first
-    x.tags = ['1','2','3','4']
-    assert x.save!
-  end
-
-  def test_select
+  def test_select_with_strings
     @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
     x = PgArray.first
     assert_equal(['1','2','3'], x.tags)
+  end
+
+  def test_rewrite_with_strings
+    @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
+    x = PgArray.first
+    x.tags = ['1','2','3','4']
+    x.save!
+    assert_equal ['1','2','3','4'], x.reload.tags
+  end
+
+  def test_select_with_integers
+    @connection.execute "insert into pg_arrays (ratings) VALUES ('{1,2,3}')"
+    x = PgArray.first
+    assert_equal([1, 2, 3], x.ratings)
+  end
+
+  def test_rewrite_with_integers
+    @connection.execute "insert into pg_arrays (ratings) VALUES ('{1,2,3}')"
+    x = PgArray.first
+    x.ratings = [2, '3', 4]
+    x.save!
+    assert_equal [2, 3, 4], x.reload.ratings
   end
 
   def test_multi_dimensional_with_strings
@@ -181,6 +196,14 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
     PgArray.update_all tags: []
     assert_equal [], pg_array.reload.tags
+  end
+
+  def test_escaping
+    unknown = 'foo\\",bar,baz,\\'
+    tags = ["hello_#{unknown}"]
+    ar = PgArray.create!(tags: tags)
+    ar.reload
+    assert_equal tags, ar.tags
   end
 
   private

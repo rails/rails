@@ -38,9 +38,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
     @connection.execute("set lc_monetary = 'C'")
 
-    @connection.execute("INSERT INTO postgresql_arrays (id, commission_by_quarter, nicknames) VALUES (1, '{35000,21000,18000,17000}', '{foo,bar,baz}')")
-    @first_array = PostgresqlArray.find(1)
-
     @connection.execute("INSERT INTO postgresql_tsvectors (id, text_vector) VALUES (1, ' ''text'' ''vector'' ')")
 
     @first_tsvector = PostgresqlTsvector.find(1)
@@ -73,21 +70,8 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   teardown do
-    [PostgresqlArray, PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
+    [PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
      PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone].each(&:delete_all)
-  end
-
-  def test_array_escaping
-    unknown = %(foo\\",bar,baz,\\)
-    nicknames = ["hello_#{unknown}"]
-    ar = PostgresqlArray.create!(nicknames: nicknames, id: 100)
-    ar.reload
-    assert_equal nicknames, ar.nicknames
-  end
-
-  def test_data_type_of_array_types
-    assert_equal :integer, @first_array.column_for_attribute(:commission_by_quarter).type
-    assert_equal :text, @first_array.column_for_attribute(:nicknames).type
   end
 
   def test_data_type_of_tsvector_types
@@ -121,11 +105,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_data_type_of_oid_types
     assert_equal :integer, @first_oid.column_for_attribute(:obj_id).type
-  end
-
-  def test_array_values
-   assert_equal [35000,21000,18000,17000], @first_array.commission_by_quarter
-   assert_equal ['foo','bar','baz'], @first_array.nicknames
   end
 
   def test_tsvector_values
@@ -185,30 +164,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_oid_values
     assert_equal 1234, @first_oid.obj_id
-  end
-
-  def test_update_integer_array
-    new_value = [32800,95000,29350,17000]
-    @first_array.commission_by_quarter = new_value
-    assert @first_array.save
-    assert @first_array.reload
-    assert_equal new_value, @first_array.commission_by_quarter
-    @first_array.commission_by_quarter = new_value
-    assert @first_array.save
-    assert @first_array.reload
-    assert_equal new_value, @first_array.commission_by_quarter
-  end
-
-  def test_update_text_array
-    new_value = ['robby','robert','rob','robbie']
-    @first_array.nicknames = new_value
-    assert @first_array.save
-    assert @first_array.reload
-    assert_equal new_value, @first_array.nicknames
-    @first_array.nicknames = new_value
-    assert @first_array.save
-    assert @first_array.reload
-    assert_equal new_value, @first_array.nicknames
   end
 
   def test_update_money
