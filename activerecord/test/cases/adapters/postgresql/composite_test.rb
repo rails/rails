@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 require "cases/helper"
+require 'support/connection_helper'
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
-class PostgresqlCompositeTest < ActiveRecord::TestCase
+module PostgresqlCompositeBehavior
+  include ConnectionHelper
+
   class PostgresqlComposite < ActiveRecord::Base
     self.table_name = "postgresql_composites"
   end
 
-  teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_composites'
-    @connection.execute 'DROP TYPE IF EXISTS full_address'
-  end
-
   def setup
+    super
+
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
       @connection.execute <<-SQL
@@ -29,10 +29,94 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
     end
   end
 
+  def teardown
+    super
+
+    @connection.execute 'DROP TABLE IF EXISTS postgresql_composites'
+    @connection.execute 'DROP TYPE IF EXISTS full_address'
+    reset_connection
+    PostgresqlComposite.reset_column_information
+  end
+end
+
+# Composites are mapped to `OID::Identity` by default. The user is informed by a warning like:
+#   "unknown OID 5653508: failed to recognize type of 'address'. It will be treated as String."
+# To take full advantage of composite types, we suggest you register your own +OID::Type+.
+# See PostgresqlCompositeWithCustomOIDTest
+class PostgresqlCompositeTest < ActiveRecord::TestCase
+  include PostgresqlCompositeBehavior
+
+  def test_column
+    ensure_warning_is_issued
+
+    column = PostgresqlComposite.columns_hash["address"]
+    assert_nil column.type
+    assert_equal "full_address", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
+  end
+
+  def test_composite_mapping
+    ensure_warning_is_issued
+
+    @connection.execute "INSERT INTO postgresql_composites VALUES (1, ROW('Paris', 'Champs-Élysées'));"
+    composite = PostgresqlComposite.first
+    assert_equal "(Paris,Champs-Élysées)", composite.address
+
+    composite.address = "(Paris,Rue Basse)"
+    composite.save!
+
+    assert_equal '(Paris,"Rue Basse")', composite.reload.address
+  end
+
+  private
+  def ensure_warning_is_issued
+    warning = capture(:stderr) do
+      PostgresqlComposite.columns_hash
+    end
+    assert_match(/unknown OID \d+: failed to recognize type of 'address'\. It will be treated as String\./, warning)
+  end
+end
+
+class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
+  include PostgresqlCompositeBehavior
+
+  class FullAddressType
+    def type; :full_address end
+    def simplified_type(sql_type); type end
+
+    def type_cast(value)
+      if value =~ /\("?([^",]*)"?,"?([^",]*)"?\)/
+        FullAddress.new($1, $2)
+      end
+    end
+
+    def type_cast_for_write(value)
+      "(#{value.city},#{value.street})"
+    end
+  end
+
+  FullAddress = Struct.new(:city, :street)
+
+  def setup
+    super
+
+    @registration = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID
+    @registration.register_type "full_address", FullAddressType.new
+  end
+
+  def teardown
+    super
+
+    # there is currently no clean way to unregister a OID::Type
+    @registration::NAMES.delete("full_address")
+  end
+
   def test_column
     column = PostgresqlComposite.columns_hash["address"]
-    # TODO: Composite columns should have a type
-    assert_nil column.type
+    assert_equal :full_address, column.type
     assert_equal "full_address", column.sql_type
     assert_not column.number?
     assert_not column.text?
@@ -43,11 +127,14 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
   def test_composite_mapping
     @connection.execute "INSERT INTO postgresql_composites VALUES (1, ROW('Paris', 'Champs-Élysées'));"
     composite = PostgresqlComposite.first
-    assert_equal "(Paris,Champs-Élysées)", composite.address
+    assert_equal "Paris", composite.address.city
+    assert_equal "Champs-Élysées", composite.address.street
 
-    composite.address = "(Paris,Rue Basse)"
+    composite.address = FullAddress.new("Paris", "Rue Basse")
+    skip "Saving with custom OID type is currently not supported."
     composite.save!
 
-    assert_equal '(Paris,"Rue Basse")', composite.reload.address
+    assert_equal 'Paris', composite.reload.address.city
+    assert_equal 'Rue Basse', composite.reload.address.street
   end
 end
