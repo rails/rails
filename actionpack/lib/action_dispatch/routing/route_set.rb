@@ -155,7 +155,7 @@ module ActionDispatch
           end
 
           def self.optimize_helper?(route)
-            !route.glob? && route.requirements.except(:controller, :action).empty?
+            !route.glob? && route.requirements.except(:controller, :action, :host).empty?
           end
 
           class OptimizedUrlHelper < UrlHelper # :nodoc:
@@ -171,7 +171,7 @@ module ActionDispatch
 
             def call(t, args)
               if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
-                options = @options.merge t.url_options
+                options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
                 ActionDispatch::Http::URL.url_for(options)
               else
