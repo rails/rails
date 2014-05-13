@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/number_helper'
+require 'active_support/core_ext/string/output_safety'
 
 module ActiveSupport
   module NumberHelper
@@ -97,6 +98,7 @@ module ActiveSupport
           assert_equal("123,456,789.78901", number_helper.number_to_delimited(123456789.78901))
           assert_equal("0.78901", number_helper.number_to_delimited(0.78901))
           assert_equal("123,456.78", number_helper.number_to_delimited("123456.78"))
+          assert_equal("123,456.78", number_helper.number_to_delimited("123456.78".html_safe))
         end
       end
 
