@@ -1,3 +1,11 @@
+*   Instrument fragment cache metrics.
+
+    Adds `:controller`: and `:action` keys to the instrumentation payload
+    for the `*_fragment.action_controller` notifications. This allows tracking
+    e.g. the fragment cache hit rates for each controller action.
+
+    *Daniel Schierbeck*
+
 *   Always use the provided port if the protocol is relative.
 
     Fixes #15043.
