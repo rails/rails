@@ -181,7 +181,7 @@ class Module
         method_def = [
           "def #{method_prefix}#{method}(#{definition})",  # def customer_name(*args, &block)
           "_ = #{to}",                                     #   _ = client
-          "if !_.nil? || nil.respond_to?(:#{method})",     #   if !_.nil? || nil.respond_to?(:name)
+          "if !_.nil? || nil.respond_to?(:#{method})",     #   if !_.nil? || _.respond_to?(:name)
           "  _.#{method}(#{definition})",                  #     _.name(*args, &block)
           "end",                                           #   end
         "end"                                              # end
