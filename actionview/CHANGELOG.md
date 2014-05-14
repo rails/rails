@@ -1,8 +1,10 @@
-* Deprecate `AbstractController::Base::parent_prefixes`. Override `AbstractController::Base::local_prefixes` when you want to change where to find views.
+*   Deprecate `AbstractController::Base.parent_prefixes`.
+    Override `AbstractController::Base.local_prefixes` when you want to change
+    where to find views.
 
     *Nick Sutterer*
 
-* Take label values into account when doing I18n lookups for model attributes.
+*   Take label values into account when doing I18n lookups for model attributes.
 
     The following:
 
