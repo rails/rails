@@ -1643,4 +1643,9 @@ class RelationTest < ActiveRecord::TestCase
     merged = left.merge(right)
     assert_equal post, merged.first
   end
+
+  def test_merging_compares_symbols_and_strings_as_equal
+    post = PostThatLoadsCommentsInAnAfterSaveHook.create!(title: "First Post", body: "Blah blah blah.")
+    assert_equal "First comment!", post.comments.where(body: "First comment!").first_or_create.body
+  end
 end

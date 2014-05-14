@@ -1,3 +1,12 @@
+*   `ActiveRecord::Relation::Merger#filter_binds` now compares equivalent symbols and
+    strings in column names as equal.
+
+    This fixes a rare case in which more bind values are passed than there are
+    placeholders for them in the generated SQL statement, which can make PostgreSQL
+    throw a `StatementInvalid` exception.
+
+    *Nat Budin*
+
 *   Calling `delete_all` on an unloaded `CollectionProxy` no longer
     generates a SQL statement containing each id of the collection:
 

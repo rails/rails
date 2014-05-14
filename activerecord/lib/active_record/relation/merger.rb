@@ -161,7 +161,7 @@ module ActiveRecord
       end
 
       def filter_binds(lhs_binds, removed_wheres)
-        set = Set.new removed_wheres.map { |x| x.left.name }
+        set = Set.new removed_wheres.map { |x| x.left.name.to_s }
         lhs_binds.dup.delete_if { |col,_| set.include? col.name }
       end
 
