@@ -130,12 +130,12 @@ module ActiveRecord
           end
         end
 
+        def delete_or_nullify_all_records(method)
+          delete_records(load_target, method)
+        end
+
         def delete_records(records, method)
           ensure_not_nested
-
-          # This is unoptimised; it will load all the target records
-          # even when we just want to delete everything.
-          records = load_target if records == :all
 
           scope = through_association.scope
           scope.where! construct_join_attributes(*records)

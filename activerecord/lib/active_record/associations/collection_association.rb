@@ -194,7 +194,7 @@ module ActiveRecord
                       options[:dependent]
                     end
 
-        delete_records(:all, dependent).tap do
+        delete_or_nullify_all_records(dependent).tap do
           reset
           loaded!
         end
