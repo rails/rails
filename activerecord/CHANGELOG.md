@@ -1,3 +1,8 @@
+*   Fixed a problem where `sum`, `size`, `average`, `minimum` and `maximum`
+    used with a grouping was not returning a Hash.
+
+    *Kuldeep Aggarwal*
+
 *   Fix `stored_attributes` to correctly merge the details of stored
     attributes defined in parent classes.
 

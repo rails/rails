@@ -23,7 +23,7 @@ module ActiveRecord
     end
 
     def size
-      0
+      calculate :size, nil
     end
 
     def empty?
@@ -47,14 +47,28 @@ module ActiveRecord
     end
 
     def sum(*)
-      0
+      calculate :sum, nil
+    end
+
+    def average(*)
+      calculate :average, nil
+    end
+
+    def minimum(*)
+      calculate :minimum, nil
+    end
+
+    def maximum(*)
+      calculate :maximum, nil
     end
 
     def calculate(operation, _column_name, _options = {})
       # TODO: Remove _options argument as soon we remove support to
       # activerecord-deprecated_finders.
-      if operation == :count
+      if [:count, :sum, :size].include? operation
         group_values.any? ? Hash.new : 0
+      elsif [:average, :minimum, :maximum].include?(operation) && group_values.any?
+        Hash.new
       else
         nil
       end
