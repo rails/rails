@@ -14,7 +14,7 @@ module ActionView
              :locale, :locale=, :to => :lookup_context
 
     module ClassMethods
-      def _prefixes
+      def _prefixes # :nodoc:
         @_prefixes ||= begin
           deprecated_prefixes = handle_deprecated_parent_prefixes and return deprecated_prefixes
 
@@ -39,10 +39,9 @@ module ActionView
     end
 
     # The prefixes used in render "foo" shortcuts.
-    def _prefixes
+    def _prefixes # :nodoc:
       self.class._prefixes
     end
-
 
     # LookupContext is the object responsible to hold all information required to lookup
     # templates, i.e. view paths and details. Check ActionView::LookupContext for more
