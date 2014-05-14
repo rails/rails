@@ -309,13 +309,13 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_group_by_scoped_field
     c = companies(:rails_core).companies.group(:name).sum(:id)
     assert_equal 7, c['Leetsoft']
-    assert_equal 8, c['Jadedpixel']
+    assert_equal 8, c['Shopify']
   end
 
   def test_should_group_by_summed_field_through_association_and_having
     c = companies(:rails_core).companies.group(:name).having('sum(id) > 7').sum(:id)
     assert_nil      c['Leetsoft']
-    assert_equal 8, c['Jadedpixel']
+    assert_equal 8, c['Shopify']
   end
 
   def test_should_count_selected_field_with_include

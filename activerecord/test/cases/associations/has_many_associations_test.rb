@@ -1202,11 +1202,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     core = companies(:rails_core)
     assert_equal accounts(:rails_core_account), core.account
-    assert_equal companies(:leetsoft, :jadedpixel), core.companies
+    assert_equal companies(:leetsoft, :shopify), core.companies
     core.destroy
     assert_nil accounts(:rails_core_account).reload.firm_id
     assert_nil companies(:leetsoft).reload.client_of
-    assert_nil companies(:jadedpixel).reload.client_of
+    assert_nil companies(:shopify).reload.client_of
 
     assert_equal num_accounts, Account.count
   end
