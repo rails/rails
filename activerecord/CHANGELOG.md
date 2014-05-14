@@ -1,3 +1,10 @@
+*   Fix `stored_attributes` to correctly merge the details of stored
+    attributes defined in parent classes.
+
+    Fixes #14672.
+
+    *Brad Bennett*, *Jessica Yao*, *Lakshmi Parthasarathy*
+
 *   Fix bug where `ActiveRecord::Store` used a global `Hash` to keep track of
     all registered `stored_attributes`. Now every subclass of
     `ActiveRecord::Base` has it's own `Hash`.
