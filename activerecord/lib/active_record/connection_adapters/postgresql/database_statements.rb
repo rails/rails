@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapter < AbstractAdapter
+    module PostgreSQL
       module DatabaseStatements
         def explain(arel, binds = [])
           sql = "EXPLAIN #{to_sql(arel, binds)}"
@@ -93,6 +93,11 @@ module ActiveRecord
         def create
           super.insert
         end
+
+        # The internal PostgreSQL identifier of the money data type.
+        MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
+        # The internal PostgreSQL identifier of the BYTEA data type.
+        BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
 
         # create a 2D array representing the result set
         def result_as_array(res) #:nodoc:

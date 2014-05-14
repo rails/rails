@@ -245,7 +245,7 @@ module ActiveRecord
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
-      include DatabaseStatements
+      include PostgreSQL::DatabaseStatements
       include Savepoints
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -670,11 +670,6 @@ module ActiveRecord
           end
           @statements[sql_key]
         end
-
-        # The internal PostgreSQL identifier of the money data type.
-        MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
-        # The internal PostgreSQL identifier of the BYTEA data type.
-        BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
 
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
