@@ -208,3 +208,12 @@ class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => [1, 5,6]) }
 end
+
+class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
+  self.table_name = 'posts'
+  has_many :comments, class_name: "CommentThatAutomaticallyAltersPostBody", foreign_key: :post_id
+
+  after_save do |post|
+    post.comments.load
+  end
+end

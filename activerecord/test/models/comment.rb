@@ -40,3 +40,11 @@ end
 
 class VerySpecialComment < Comment
 end
+
+class CommentThatAutomaticallyAltersPostBody < Comment
+  belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id
+
+  after_save do |comment|
+    comment.post.update_attributes(body: "Automatically altered")
+  end
+end
