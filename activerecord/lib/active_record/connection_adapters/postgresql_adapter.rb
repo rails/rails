@@ -5,7 +5,6 @@ require 'active_record/connection_adapters/postgresql/column'
 require 'active_record/connection_adapters/postgresql/oid'
 require 'active_record/connection_adapters/postgresql/quoting'
 require 'active_record/connection_adapters/postgresql/referential_integrity'
-
 require 'active_record/connection_adapters/postgresql/schema_statements'
 require 'active_record/connection_adapters/postgresql/database_statements'
 
@@ -245,13 +244,17 @@ module ActiveRecord
 
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
-      include SchemaStatements
+      include PostgreSQL::SchemaStatements
       include DatabaseStatements
       include Savepoints
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
       def adapter_name
         ADAPTER_NAME
+      end
+
+      def schema_creation
+        PostgreSQL::SchemaCreation.new self
       end
 
       # Adds `:array` option to the default set provided by the
