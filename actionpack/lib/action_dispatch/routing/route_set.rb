@@ -667,7 +667,6 @@ module ActionDispatch
 
         path_options = options.dup
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
-        path_options = yield(path_options) if block_given?
 
         path, params = generate(path_options, recall || {})
         params.merge!(options[:params] || {})
