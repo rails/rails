@@ -1,3 +1,12 @@
+*   Change the order of execution of transactional fixtures so that they are executed in order
+    in which they were defined as opposed to reverse order before. That makes them consistent
+    with all other callbacks.
+
+    This behavior may be switched to the old one with retain_reversed_transactional_callbacks_order
+    option.
+
+    *Piotr Jakubowski*
+
 ## Rails 5.0.0.beta2 (February 01, 2016) ##
 
 *   `ActiveRecord::Relation#reverse_order` throws `ActiveRecord::IrreversibleOrderError`
