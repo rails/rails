@@ -17,11 +17,11 @@ module ActionView
       def _prefixes # :nodoc:
         @_prefixes ||= begin
           deprecated_prefixes = handle_deprecated_parent_prefixes
-          return deprecated_prefixes if deprecated_prefixes
-
-          if superclass.abstract?
-            local_prefixes
+          if deprecated_prefixes
+            deprecated_prefixes
           else
+            return local_prefixes if superclass.abstract?
+
             local_prefixes + superclass._prefixes
           end
         end
