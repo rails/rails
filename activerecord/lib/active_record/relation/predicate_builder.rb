@@ -15,6 +15,17 @@ module ActiveRecord
       hash
     end
 
+    def self.resolve_relation_names(klass, relation, hash)
+      joins_includes_values = relation.joins_values + relation.includes_values
+      hash = hash.dup
+      hash.keys.grep(Symbol) do |key|
+        if joins_includes_values.include?(key) && association = klass.reflect_on_association(key)
+          hash[association.table_name.to_sym] = hash.delete key
+        end
+      end
+      hash
+    end
+
     def self.build_from_hash(klass, attributes, default_table)
       queries = []
 

@@ -144,6 +144,13 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_nested_where_with_renamed_relation
+      expected = Author.joins(:posts_with_comments).where(posts: { id: 1})
+      actual   = Author.joins(:posts_with_comments).where(posts_with_comments: { id: 1})
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
     def test_aliased_attribute
       expected = Topic.where(heading: 'The First Topic')
       actual   = Topic.where(title: 'The First Topic')

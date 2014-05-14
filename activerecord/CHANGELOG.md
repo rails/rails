@@ -1,3 +1,13 @@
+*   When joining or including records, when querying the relation, you
+    can use either the table name or the relation name:
+
+    Example:
+        Author.joins(:posts_with_comments).where(posts: { id: 1})
+        # or
+        Author.joins(:posts_with_comments).where(posts_with_comments: { id: 1 })
+
+    *Dan McClain*
+
 *   `change_column_default` allows `[]` as argument to `change_column_default`.
 
     Fixes #11586.
