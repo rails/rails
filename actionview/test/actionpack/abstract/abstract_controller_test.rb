@@ -150,6 +150,55 @@ module AbstractController
       end
     end
 
+    class OverridingLocalPrefixes < AbstractController::Base
+      include AbstractController::Rendering
+      include ActionView::Rendering
+      append_view_path File.expand_path(File.join(File.dirname(__FILE__), "views"))
+
+
+      def index
+        render
+      end
+
+      def self.local_prefixes
+        # this would usually return "abstract_controller/testing/overriding_local_prefixes"
+        super + ["abstract_controller/testing/me3"]
+      end
+
+      class Inheriting < self
+      end
+    end
+
+    class OverridingLocalPrefixesTest < ActiveSupport::TestCase # TODO: remove me in 5.0/4.3.
+      test "overriding ::local_prefixes adds prefix" do
+        @controller = OverridingLocalPrefixes.new
+        @controller.process(:index)
+        assert_equal "Hello from me3/index.erb", @controller.response_body
+      end
+
+      test "::local_prefixes is inherited" do
+        @controller = OverridingLocalPrefixes::Inheriting.new
+        @controller.process(:index)
+        assert_equal "Hello from me3/index.erb", @controller.response_body
+      end
+    end
+
+    class DeprecatedParentPrefixes < OverridingLocalPrefixes
+      def self.parent_prefixes
+        ["abstract_controller/testing/me3"]
+      end
+    end
+
+    class DeprecatedParentPrefixesTest < ActiveSupport::TestCase # TODO: remove me in 5.0/4.3.
+      test "overriding ::parent_prefixes is deprecated" do
+        @controller = DeprecatedParentPrefixes.new
+        assert_deprecated do
+          @controller.process(:index)
+        end
+        assert_equal "Hello from me3/index.erb", @controller.response_body
+      end
+    end
+
     # Test rendering with layouts
     # ====
     # self._layout is used when defined

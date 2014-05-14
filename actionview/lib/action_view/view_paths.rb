@@ -14,28 +14,35 @@ module ActionView
              :locale, :locale=, :to => :lookup_context
 
     module ClassMethods
-      def parent_prefixes
-        @parent_prefixes ||= begin
-          parent_controller = superclass
-          prefixes = []
+      def _prefixes
+        @_prefixes ||= begin
+          deprecated_prefixes = handle_deprecated_parent_prefixes and return deprecated_prefixes
 
-          until parent_controller.abstract?
-            prefixes << parent_controller.controller_path
-            parent_controller = parent_controller.superclass
-          end
-
-          prefixes
+          return local_prefixes if superclass.abstract?
+          local_prefixes + superclass._prefixes
         end
+      end
+
+      private
+
+      # Override this method in your controller if you want to change paths prefixes for finding views.
+      # Prefixes defined here will still be added to parents' <tt>::_prefixes</tt>.
+      def local_prefixes
+        [controller_path]
+      end
+
+      def handle_deprecated_parent_prefixes # TODO: remove in 4.3/5.0.
+        return unless respond_to?(:parent_prefixes)
+        ActiveSupport::Deprecation.warn "Overriding ActionController::Base::parent_prefixes is deprecated, override ::local_prefixes or ::_prefixes instead."
+        local_prefixes + parent_prefixes
       end
     end
 
     # The prefixes used in render "foo" shortcuts.
     def _prefixes
-      @_prefixes ||= begin
-        parent_prefixes = self.class.parent_prefixes
-        parent_prefixes.dup.unshift(controller_path)
-      end
+      self.class._prefixes
     end
+
 
     # LookupContext is the object responsible to hold all information required to lookup
     # templates, i.e. view paths and details. Check ActionView::LookupContext for more
