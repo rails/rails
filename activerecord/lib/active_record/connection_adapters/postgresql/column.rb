@@ -1,7 +1,10 @@
+require 'active_record/connection_adapters/postgresql/cast'
+
 module ActiveRecord
   module ConnectionAdapters
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
+      
       attr_accessor :array
 
       def initialize(name, default, oid_type, sql_type = nil, null = true)
@@ -29,7 +32,7 @@ module ActiveRecord
 
       # :stopdoc:
       class << self
-        include PostgreSQLColumn::Cast
+        include PostgreSQL::Cast
 
         # Loads pg_array_parser if available. String parsing can be
         # performed quicker by a native extension, which will not create
@@ -40,7 +43,7 @@ module ActiveRecord
           include PgArrayParser
         rescue LoadError
           require 'active_record/connection_adapters/postgresql/array_parser'
-          include PostgreSQLColumn::ArrayParser
+          include PostgreSQL::ArrayParser
         end
 
         attr_accessor :money_precision

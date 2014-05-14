@@ -1,13 +1,14 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
+
+require 'active_record/connection_adapters/postgresql/column'
 require 'active_record/connection_adapters/postgresql/oid'
-require 'active_record/connection_adapters/postgresql/cast'
-require 'active_record/connection_adapters/postgresql/array_parser'
 require 'active_record/connection_adapters/postgresql/quoting'
+require 'active_record/connection_adapters/postgresql/referential_integrity'
+
 require 'active_record/connection_adapters/postgresql/schema_statements'
 require 'active_record/connection_adapters/postgresql/database_statements'
-require 'active_record/connection_adapters/postgresql/referential_integrity'
-require 'active_record/connection_adapters/postgresql/column'
+
 require 'arel/visitors/bind_visitor'
 
 # Make sure we're using pg high enough for PGResult#values
@@ -44,6 +45,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+
     # The PostgreSQL adapter works with the native C (https://bitbucket.org/ged/ruby-pg) driver.
     #
     # Options:
@@ -72,6 +74,7 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
+
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
         attr_accessor :array
       end
@@ -238,8 +241,10 @@ module ActiveRecord
         citext:      { name: "citext" }
       }
 
-      include Quoting
-      include ReferentialIntegrity
+      OID = PostgreSQL::OID #:nodoc:
+
+      include PostgreSQL::Quoting
+      include PostgreSQL::ReferentialIntegrity
       include SchemaStatements
       include DatabaseStatements
       include Savepoints
