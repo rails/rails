@@ -1,3 +1,8 @@
+*   Build full URI as string when processing path in integration tests for
+    performance reasons.
+
+    *Guo Xiang Tan*
+
 *   Fix 'Stack level too deep' when rendering `head :ok` in an action method
     called 'status' in a controller.
 

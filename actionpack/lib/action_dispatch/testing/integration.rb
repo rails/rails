@@ -300,13 +300,7 @@ module ActionDispatch
 
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
-          uri = URI.parse('/')
-          uri.scheme ||= env['rack.url_scheme']
-          uri.host   ||= env['SERVER_NAME']
-          uri.port   ||= env['SERVER_PORT'].try(:to_i)
-          uri += path
-
-          session.request(uri.to_s, env)
+          session.request(build_full_uri(path, env), env)
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(session.last_request.env)
@@ -318,6 +312,10 @@ module ActionDispatch
           @controller = session.last_request.env['action_controller.instance']
 
           return response.status
+        end
+
+        def build_full_uri(path, env)
+          "#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}#{path}"
         end
     end
 
