@@ -26,7 +26,7 @@ module ActionView
       private
 
       # Override this method in your controller if you want to change paths prefixes for finding views.
-      # Prefixes defined here will still be added to parents' <tt>::_prefixes</tt>.
+      # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
       def local_prefixes
         [controller_path]
       end
