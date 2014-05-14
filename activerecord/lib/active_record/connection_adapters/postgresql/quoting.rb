@@ -46,7 +46,9 @@ module ActiveRecord
             end
           when IPAddr
             case sql_type
-            when 'inet', 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
+            when 'inet' then super(PostgreSQLColumn.inet_to_string(value), column)
+            when 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
+
             else super
             end
           when Float
