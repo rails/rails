@@ -53,11 +53,13 @@ connections:
 
   firebird:
     arunit:
+      adapter: fb
       host: localhost
       username: rails
       password: rails
       charset: UTF8
     arunit2:
+      adapter: fb
       host: localhost
       username: rails
       password: rails
@@ -65,16 +67,19 @@ connections:
 
   frontbase:
     arunit:
+      adapter: frontbase
       host: localhost
       username: rails
       session_name: unittest-<%= $$ %>
     arunit2:
+      adapter: frontbase
       host: localhost
       username: rails
       session_name: unittest-<%= $$ %>
 
   mysql:
     arunit:
+      adapter: mysql
       username: rails
       encoding: utf8
     arunit2:
@@ -83,9 +88,11 @@ connections:
 
   mysql2:
     arunit:
+      adapter: mysql2
       username: rails
       encoding: utf8
     arunit2:
+      adapter: mysql2
       username: rails
       encoding: utf8
 
@@ -117,9 +124,11 @@ connections:
 
   sqlite3:
     arunit:
+      adapter: sqlite3
       database: <%= FIXTURES_ROOT %>/fixture_database.sqlite3
       timeout:  5000
     arunit2:
+      adapter: sqlite3
       database: <%= FIXTURES_ROOT %>/fixture_database_2.sqlite3
       timeout:  5000
 
@@ -133,8 +142,10 @@ connections:
 
   sybase:
     arunit:
+      adapter: sqlanywhere
       host: database_ASE
       username: sa
     arunit2:
+      adapter: sqlanywhere
       host: database_ASE
       username: sa
