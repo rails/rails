@@ -359,6 +359,8 @@ module ActiveRecord
     # "2004-12-12" in a date column is cast to a date object, like Date.new(2004, 12, 12)). It raises
     # <tt>ActiveModel::MissingAttributeError</tt> if the identified attribute is missing.
     #
+    # Note: +:id+ is always present.
+    #
     # Alias for the <tt>read_attribute</tt> method.
     #
     #   class Person < ActiveRecord::Base
