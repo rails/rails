@@ -109,14 +109,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_mysql_full
-    dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], '--host=locahost', '--port=1234', '--socket=socket', '--user=user', '--default-character-set=UTF-8', '-p', 'db')
+    dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], '--host=locahost', '--port=1234', '--socket=socket', '--user=user', '--default-character-set=UTF-8', '--password=qwerty', 'db')
     start(adapter: 'mysql', database: 'db', host: 'locahost', port: 1234, socket: 'socket', username: 'user', password: 'qwerty', encoding: 'UTF-8')
     assert !aborted
   end
 
   def test_mysql_include_password
     dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], '--user=user', '--password=qwerty', 'db')
-    start({adapter: 'mysql', database: 'db', username: 'user', password: 'qwerty'}, ['-p'])
+    start(adapter: 'mysql', database: 'db', username: 'user', password: 'qwerty')
     assert !aborted
   end
 
@@ -133,12 +133,12 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_equal 'user', ENV['PGUSER']
     assert_equal 'host', ENV['PGHOST']
     assert_equal '5432', ENV['PGPORT']
-    assert_not_equal 'q1w2e3', ENV['PGPASSWORD']
+    assert_equal 'q1w2e3', ENV['PGPASSWORD']
   end
 
   def test_postgresql_include_password
     dbconsole.expects(:find_cmd_and_exec).with('psql', 'db')
-    start({adapter: 'postgresql', database: 'db', username: 'user', password: 'q1w2e3'}, ['-p'])
+    start(adapter: 'postgresql', database: 'db', username: 'user', password: 'q1w2e3')
     assert !aborted
     assert_equal 'user', ENV['PGUSER']
     assert_equal 'q1w2e3', ENV['PGPASSWORD']
@@ -182,14 +182,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_oracle
-    dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user@db')
+    dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user/secret@db')
     start(adapter: 'oracle', database: 'db', username: 'user', password: 'secret')
     assert !aborted
   end
 
   def test_oracle_include_password
     dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user/secret@db')
-    start({adapter: 'oracle', database: 'db', username: 'user', password: 'secret'}, ['-p'])
+    start(adapter: 'oracle', database: 'db', username: 'user', password: 'secret')
     assert !aborted
   end
 

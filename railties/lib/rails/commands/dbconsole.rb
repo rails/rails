@@ -17,6 +17,7 @@ module Rails
 
     def start
       options = parse_arguments(arguments)
+
       ENV['RAILS_ENV'] = options[:environment] || environment
 
       case config["adapter"]
@@ -37,7 +38,7 @@ module Rails
         if config['password'] && options['include_password']
           args << "--password=#{config['password']}"
         elsif config['password'] && !config['password'].to_s.empty?
-          args << "-p"
+          args << "-a"
         end
 
         args << config['database']
@@ -106,12 +107,12 @@ module Rails
     end
 
     def parse_arguments(arguments)
-      options = {}
+      options = { 'include_password' => true }
 
       OptionParser.new do |opt|
         opt.banner = "Usage: rails dbconsole [environment] [options]"
-        opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
-          options['include_password'] = true
+        opt.on("-a", "--ask-for-password", "Ask for password explicitly") do |v|
+          options['include_password'] = false
         end
 
         opt.on("--mode [MODE]", ['html', 'list', 'line', 'column'],

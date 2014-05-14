@@ -1,3 +1,8 @@
+*   `rails dbconsole` includes password from database.yml by default and
+    `-p` argument have reverse effect - when passed asks for password.
+
+    *Łukasz Strzałkowski*
+
 *   Load database configuration from the first
     database.yml available in paths.
 
