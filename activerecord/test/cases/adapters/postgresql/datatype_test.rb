@@ -138,7 +138,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def test_number_values
     assert_equal 123.456, @first_number.single
     assert_equal 123456.789, @first_number.double
-    assert_equal -::Float::INFINITY, @second_number.single
+    assert_equal(-::Float::INFINITY, @second_number.single)
     assert_equal ::Float::INFINITY, @second_number.double
     assert_same ::Float::NAN, @third_number.double
   end
