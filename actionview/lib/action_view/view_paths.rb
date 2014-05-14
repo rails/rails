@@ -33,7 +33,7 @@ module ActionView
 
       def handle_deprecated_parent_prefixes # TODO: remove in 4.3/5.0.
         return unless respond_to?(:parent_prefixes)
-        ActiveSupport::Deprecation.warn "Overriding ActionController::Base::parent_prefixes is deprecated, override ::local_prefixes or ::_prefixes instead."
+        ActiveSupport::Deprecation.warn "Overriding ActionController::Base::parent_prefixes is deprecated, override .local_prefixes instead."
         local_prefixes + parent_prefixes
       end
     end
