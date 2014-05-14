@@ -155,7 +155,6 @@ module AbstractController
       include ActionView::Rendering
       append_view_path File.expand_path(File.join(File.dirname(__FILE__), "views"))
 
-
       def index
         render
       end
@@ -170,13 +169,13 @@ module AbstractController
     end
 
     class OverridingLocalPrefixesTest < ActiveSupport::TestCase # TODO: remove me in 5.0/4.3.
-      test "overriding ::local_prefixes adds prefix" do
+      test "overriding .local_prefixes adds prefix" do
         @controller = OverridingLocalPrefixes.new
         @controller.process(:index)
         assert_equal "Hello from me3/index.erb", @controller.response_body
       end
 
-      test "::local_prefixes is inherited" do
+      test ".local_prefixes is inherited" do
         @controller = OverridingLocalPrefixes::Inheriting.new
         @controller.process(:index)
         assert_equal "Hello from me3/index.erb", @controller.response_body
@@ -190,7 +189,7 @@ module AbstractController
     end
 
     class DeprecatedParentPrefixesTest < ActiveSupport::TestCase # TODO: remove me in 5.0/4.3.
-      test "overriding ::parent_prefixes is deprecated" do
+      test "overriding .parent_prefixes is deprecated" do
         @controller = DeprecatedParentPrefixes.new
         assert_deprecated do
           @controller.process(:index)
