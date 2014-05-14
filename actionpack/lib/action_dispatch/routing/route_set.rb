@@ -656,7 +656,7 @@ module ActionDispatch
           password = options.delete :password
         end
 
-        recall  = options.delete(:_recall)
+        recall  = options.delete(:_recall) { {} }
 
         original_script_name = options.delete(:original_script_name)
         script_name = find_script_name options
@@ -668,7 +668,7 @@ module ActionDispatch
         path_options = options.dup
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
-        path, params = generate(path_options, recall || {})
+        path, params = generate(path_options, recall)
         params.merge!(options[:params] || {})
 
         ActionDispatch::Http::URL.url_for(options.merge!({
