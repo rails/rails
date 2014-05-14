@@ -39,6 +39,13 @@ module ActionController
       ensure
         sse.close
       end
+
+      def sse_with_multiple_line_message
+        sse = SSE.new(response.stream)
+        sse.write("first line.\nsecond line.")
+      ensure
+        sse.close
+      end
     end
 
     tests SSETestController
@@ -86,6 +93,15 @@ module ActionController
 
       assert_match(/data: {\"name\":\"Ryan\"}/, second_response)
       assert_match(/id: 2/, second_response)
+    end
+
+    def test_sse_with_multiple_line_message
+      get :sse_with_multiple_line_message
+
+      wait_for_response_stream_close
+      first_response, second_response = response.body.split("\n")
+      assert_match(/data: first line/, first_response)
+      assert_match(/data: second line/, second_response)
     end
   end
 
