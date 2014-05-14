@@ -1,3 +1,7 @@
+*   Remove deprecated string based terminators for `ActiveSupport::Callbacks`.
+
+    *Eileen M. Uchitelle*
+
 *   Fixed an issue when using
     `ActiveSupport::NumberHelper::NumberToDelimitedConverter` to
     convert a value that is an `ActiveSupport::SafeBuffer` introduced

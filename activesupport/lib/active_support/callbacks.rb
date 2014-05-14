@@ -724,12 +724,6 @@ module ActiveSupport
       #   would call <tt>Audit#save</tt>.
       def define_callbacks(*names)
         options = names.extract_options!
-        if options.key?(:terminator) && String === options[:terminator]
-          ActiveSupport::Deprecation.warn "String based terminators are deprecated, please use a lambda"
-          value = options[:terminator]
-          line = class_eval "lambda { |result| #{value} }", __FILE__, __LINE__
-          options[:terminator] = lambda { |target, result| target.instance_exec(result, &line) }
-        end
 
         names.each do |name|
           class_attribute "_#{name}_callbacks"
