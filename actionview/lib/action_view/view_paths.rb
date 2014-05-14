@@ -14,6 +14,9 @@ module ActionView
              :locale, :locale=, :to => :lookup_context
 
     module ClassMethods
+      # Returns the view prefixes.
+      #
+      # This method is private API.
       def _prefixes # :nodoc:
         @_prefixes ||= begin
           deprecated_prefixes = handle_deprecated_parent_prefixes
@@ -31,6 +34,8 @@ module ActionView
 
       # Override this method in your controller if you want to change paths prefixes for finding views.
       # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
+      #
+      # This method is public API for framework extensions.
       def local_prefixes
         [controller_path]
       end
@@ -44,6 +49,8 @@ module ActionView
     end
 
     # The prefixes used in render "foo" shortcuts.
+    #
+    # This method is private API.
     def _prefixes # :nodoc:
       self.class._prefixes
     end
