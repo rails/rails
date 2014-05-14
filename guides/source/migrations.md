@@ -902,6 +902,11 @@ schema into a RDBMS other than the one used to create it.
 Because schema dumps are the authoritative source for your database schema, it
 is strongly recommended that you check them into source control.
 
+`db/schema.rb` contains the current version number of the database. This
+ensures conflicts are going to happen in the case of a merge where both
+branches touched the schema. When that happens, solve conflicts manually,
+keeping the highest version number of the two.
+
 Active Record and Referential Integrity
 ---------------------------------------
 
