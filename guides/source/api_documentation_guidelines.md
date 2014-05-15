@@ -286,3 +286,37 @@ self.class_eval %{
   end
 }
 ```
+
+Method Visibility
+-----------------
+
+When writing documentation for Rails, it's important to understand the difference between public API (or User-facing) vs. internal API.
+
+Rails, like most libraries, uses the private keyword from Ruby for defining internal API. However, public API follows a slightly different convention. Instead of assuming all public methods are designed for user consumption, Rails uses the `:nodoc:` directive to annotate these kinds of methods as internal API.
+
+This means that there are methods in Rails with `public` visibility that aren't meant for user consumption.
+
+An example of this is `ActiveRecord::Core::ClassMethods#arel_table`:
+
+```ruby
+module ActiveRecord::Core::ClassMethods
+  def arel_table #:nodoc:
+    # do some magic..
+  end
+end
+```
+
+If you thought, "this method looks like a public class method for `ActiveRecord::Core`", you were right. But actually the Rails team doesn't want users to rely on this method. So they mark it as `:nodoc:` and it's removed from public documentation. The reasoning behind this is to allow the team to change these methods according to their internal needs across releases as they see fit. The name of this method could change, or the return value, or this entire class may disappear; there's no guarantee and so you shouldn't depend on this API in your plugin or application. Otherwise, you risk your app or gem breaking when you upgrade to a newer release of Rails.
+
+As a contributor, it's important to think about whether this API is meant for end-user consumption. The Rails team is committed to not making any breaking changes to public API across releases without going through a full deprecation cycle, which takes an eternity. It's recommended that you `:nodoc:` any of your internal methods/classes unless they're already private (meaning visibility), in which case it's internal by default. Once the API stabilizes the visibility can change from private later, but changing public API is much harder due to backwards compatibility.
+
+A class or module is marked with `:nodoc:` to indicate that all methods are internal API and should never be used directly.
+
+If you come across an existing `:nodoc:` you should tread lightly. Consider asking someone from the core team or author of the code before removing it. This should almost always happen through a Pull Request process instead of the docrails project.
+
+A `:nodoc:` should never be added simply because a method or class is missing documentation. There may be an instance where an internal public method wasn't given a `:nodoc:` by mistake, for example when switching a method from private to public visibility. When this happens it should be discussed over a PR on a case-by-case basis and never committed directly to docrails.
+
+To summarize, the Rails team uses `:nodoc:` to mark publicly visible methods and classes for internal use; changes to the visibility of API should be considered carefully and discussed over a Pull Request first.
+
+For whatever reason, you have a question on how the Rails team handles certain API don't hesitate to open a ticket or send a patch to the [issue tracker](https://github.com/rails/rails/issues).
+
