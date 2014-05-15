@@ -664,7 +664,7 @@ module ActiveRecord
                 fk_type = association.active_record.columns_hash[association.foreign_key].type
                 row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
               end
-            when :has_many
+            when :has_many, :has_and_belongs_to_many
               if association.options[:through]
                 add_join_records(rows, row, HasManyThroughProxy.new(association))
               end

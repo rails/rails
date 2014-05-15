@@ -105,7 +105,7 @@ module ActiveRecord
 
           inverse = source_reflection.inverse_of
           if inverse
-            if inverse.macro == :has_many
+            if [:has_many, :has_and_belongs_to_many].include?(inverse.macro)
               record.send(inverse.name) << build_through_record(record)
             elsif inverse.macro == :has_one
               record.send("#{inverse.name}=", build_through_record(record))
@@ -170,7 +170,7 @@ module ActiveRecord
             klass.decrement_counter counter, records.map(&:id)
           end
 
-          if through_reflection.macro == :has_many && update_through_counter?(method)
+          if [:has_many, :has_and_belongs_to_many].include?(through_reflection.macro) && update_through_counter?(method)
             update_counter(-count, through_reflection)
           end
 
@@ -187,7 +187,7 @@ module ActiveRecord
           records.each do |record|
             through_records = through_records_for(record)
 
-            if through_reflection.macro == :has_many
+            if [:has_many, :has_and_belongs_to_many].include?(through_reflection.macro)
               through_records.each { |r| through_association.target.delete(r) }
             else
               if through_records.include?(through_association.target)
