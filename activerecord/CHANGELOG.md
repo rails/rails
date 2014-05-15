@@ -1,3 +1,10 @@
+*   Fix how to calculate associated class name when using namespaced `has_and_belongs_to_many`
+    association.
+
+    Fixes #14709.
+
+    *Kassio Borges*
+
 *   `ActiveRecord::Relation::Merger#filter_binds` now compares equivalent symbols and
     strings in column names as equal.
 
