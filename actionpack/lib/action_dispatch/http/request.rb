@@ -64,6 +64,7 @@ module ActionDispatch
     # Ordered Collections Protocol (WebDAV) (http://www.ietf.org/rfc/rfc3648.txt)
     # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (http://www.ietf.org/rfc/rfc3744.txt)
     # Web Distributed Authoring and Versioning (WebDAV) SEARCH (http://www.ietf.org/rfc/rfc5323.txt)
+    # Calendar Extensions to WebDAV (http://www.ietf.org/rfc/rfc4791.txt)
     # PATCH Method for HTTP (http://www.ietf.org/rfc/rfc5789.txt)
     RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
     RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
@@ -71,9 +72,10 @@ module ActionDispatch
     RFC3648 = %w(ORDERPATCH)
     RFC3744 = %w(ACL)
     RFC5323 = %w(SEARCH)
+    RFC4791 = %w(MKCALENDAR)
     RFC5789 = %w(PATCH)
 
-    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789
+    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
 
     HTTP_METHOD_LOOKUP = {}
 
