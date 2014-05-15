@@ -27,7 +27,7 @@ module ActionController
       self.status = status
       self.location = url_for(location) if location
 
-      if include_content?(self.status)
+      if include_content?(self._status_code)
         self.content_type = content_type || (Mime[formats.first] if formats)
         self.response.charset = false if self.response
         self.response_body = " "
