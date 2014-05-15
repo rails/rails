@@ -1,3 +1,10 @@
+*   Floats with limit >= 25 that get turned into doubles in MySQL no longer have
+    their limit dropped from the schema.
+
+    Fixes #14135.
+
+    *Aaron Nelson*
+
 *   Fix how to calculate associated class name when using namespaced `has_and_belongs_to_many`
     association.
 
