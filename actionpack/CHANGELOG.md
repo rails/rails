@@ -1,3 +1,10 @@
+*   Fix 'Stack level too deep' when rendering `head :ok` in an action method
+    called 'status' in a controller.
+
+    Fixes #13905.
+
+    *Christiaan Van den Poel*
+
 *   Add MKCALENDAR HTTP method (RFC 4791).
 
     *Sergey Karpesh*

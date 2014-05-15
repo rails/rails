@@ -775,3 +775,34 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal "/foo/1/edit", url_for(:action => 'edit', :only_path => true)
   end
 end
+
+class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def status
+      head :ok
+    end
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def app
+    self.class
+  end
+
+  routes.draw do
+    get "/foo/status" => 'head_with_status_action_integration_test/foo#status'
+  end
+
+  test "get /foo/status with head result does not cause stack overflow error" do
+    assert_nothing_raised do
+      get '/foo/status'
+    end
+    assert_response :ok
+  end
+end
