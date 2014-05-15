@@ -2,18 +2,18 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module Cast
-        def point_to_string(point)
+        def point_to_string(point) # :nodoc:
           "(#{point[0]},#{point[1]})"
         end
 
-        def string_to_point(string)
+        def string_to_point(string) # :nodoc:
           if string[0] == '(' && string[-1] == ')'
             string = string[1...-1]
           end
           string.split(',').map{ |v| Float(v) }
         end
 
-        def string_to_time(string)
+        def string_to_time(string) # :nodoc:
           return string unless String === string
 
           case string
@@ -26,7 +26,7 @@ module ActiveRecord
           end
         end
 
-        def string_to_bit(value)
+        def string_to_bit(value) # :nodoc:
           case value
           when /^0x/i
             value[2..-1].hex.to_s(2) # Hexadecimal notation
@@ -35,7 +35,7 @@ module ActiveRecord
           end
         end
 
-        def hstore_to_string(object, array_member = false)
+        def hstore_to_string(object, array_member = false) # :nodoc:
           if Hash === object
             string = object.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(',')
             string = escape_hstore(string) if array_member
@@ -45,7 +45,7 @@ module ActiveRecord
           end
         end
 
-        def string_to_hstore(string)
+        def string_to_hstore(string) # :nodoc:
           if string.nil?
             nil
           elsif String === string
@@ -59,7 +59,7 @@ module ActiveRecord
           end
         end
 
-        def json_to_string(object)
+        def json_to_string(object) # :nodoc:
           if Hash === object || Array === object
             ActiveSupport::JSON.encode(object)
           else
@@ -67,7 +67,7 @@ module ActiveRecord
           end
         end
 
-        def array_to_string(value, column, adapter)
+        def array_to_string(value, column, adapter) # :nodoc:
           casted_values = value.map do |val|
             if String === val
               if val == "NULL"
@@ -82,13 +82,13 @@ module ActiveRecord
           "{#{casted_values.join(',')}}"
         end
 
-        def range_to_string(object)
+        def range_to_string(object) # :nodoc:
           from = object.begin.respond_to?(:infinite?) && object.begin.infinite? ? '' : object.begin
           to   = object.end.respond_to?(:infinite?) && object.end.infinite? ? '' : object.end
           "[#{from},#{to}#{object.exclude_end? ? ')' : ']'}"
         end
 
-        def string_to_json(string)
+        def string_to_json(string) # :nodoc:
           if String === string
             ActiveSupport::JSON.decode(string)
           else
@@ -96,7 +96,7 @@ module ActiveRecord
           end
         end
 
-        def string_to_cidr(string)
+        def string_to_cidr(string) # :nodoc:
           if string.nil?
             nil
           elsif String === string
@@ -110,7 +110,7 @@ module ActiveRecord
           end
         end
 
-        def cidr_to_string(object)
+        def cidr_to_string(object) # :nodoc:
           if IPAddr === object
             "#{object.to_s}/#{object.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
           else
@@ -118,7 +118,7 @@ module ActiveRecord
           end
         end
 
-        def string_to_array(string, oid)
+        def string_to_array(string, oid) # :nodoc:
           parse_pg_array(string).map {|val| type_cast_array(oid, val)}
         end
 

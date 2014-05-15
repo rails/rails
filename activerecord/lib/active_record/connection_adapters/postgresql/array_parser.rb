@@ -9,7 +9,7 @@ module ActiveRecord
         BRACKET_OPEN = '{'
         BRACKET_CLOSE = '}'
 
-        def parse_pg_array(string)
+        def parse_pg_array(string) # :nodoc:
           local_index = 0
           array = []
           while(local_index < string.length)
