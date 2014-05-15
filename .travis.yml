@@ -20,7 +20,6 @@ matrix:
   allow_failures:
     - rvm: rbx-2
     - rvm: jruby
-    - rvm: ruby-head
   fast_finish: true
 notifications:
   email: false
