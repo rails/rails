@@ -37,7 +37,7 @@ module ActiveRecord
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of
-      # the appropriate class.
+      # the appropriate class. Accepts only keys as strings.
       #
       # For example, +Post.all+ may return Comments, Messages, and Emails
       # by storing the record's subclass in a +type+ attribute. By calling
