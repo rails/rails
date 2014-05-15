@@ -254,6 +254,9 @@ module ActionDispatch # :nodoc:
       cookies
     end
 
+    def _status_code
+      @status
+    end
   private
 
     def merge_default_headers(original, default)

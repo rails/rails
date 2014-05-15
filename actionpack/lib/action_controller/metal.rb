@@ -231,5 +231,9 @@ module ActionController
         new.dispatch(name, klass.new(env))
       end
     end
+
+    def _status_code
+      @_status
+    end
   end
 end
