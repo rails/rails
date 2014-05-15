@@ -1,13 +1,13 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
+
+require 'active_record/connection_adapters/postgresql/column'
 require 'active_record/connection_adapters/postgresql/oid'
-require 'active_record/connection_adapters/postgresql/cast'
-require 'active_record/connection_adapters/postgresql/array_parser'
 require 'active_record/connection_adapters/postgresql/quoting'
+require 'active_record/connection_adapters/postgresql/referential_integrity'
 require 'active_record/connection_adapters/postgresql/schema_statements'
 require 'active_record/connection_adapters/postgresql/database_statements'
-require 'active_record/connection_adapters/postgresql/referential_integrity'
-require 'active_record/connection_adapters/postgresql/column'
+
 require 'arel/visitors/bind_visitor'
 
 # Make sure we're using pg high enough for PGResult#values
@@ -44,6 +44,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+
     # The PostgreSQL adapter works with the native C (https://bitbucket.org/ged/ruby-pg) driver.
     #
     # Options:
@@ -72,6 +73,7 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
+
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
         attr_accessor :array
       end
@@ -238,15 +240,21 @@ module ActiveRecord
         citext:      { name: "citext" }
       }
 
-      include Quoting
-      include ReferentialIntegrity
-      include SchemaStatements
-      include DatabaseStatements
+      OID = PostgreSQL::OID #:nodoc:
+
+      include PostgreSQL::Quoting
+      include PostgreSQL::ReferentialIntegrity
+      include PostgreSQL::SchemaStatements
+      include PostgreSQL::DatabaseStatements
       include Savepoints
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
       def adapter_name
         ADAPTER_NAME
+      end
+
+      def schema_creation
+        PostgreSQL::SchemaCreation.new self
       end
 
       # Adds `:array` option to the default set provided by the
@@ -494,25 +502,6 @@ module ActiveRecord
         exec_query "SET SESSION AUTHORIZATION #{user}"
       end
 
-      module Utils
-        extend self
-
-        # Returns an array of <tt>[schema_name, table_name]</tt> extracted from +name+.
-        # +schema_name+ is nil if not specified in +name+.
-        # +schema_name+ and +table_name+ exclude surrounding quotes (regardless of whether provided in +name+)
-        # +name+ supports the range of schema/table references understood by PostgreSQL, for example:
-        #
-        # * <tt>table_name</tt>
-        # * <tt>"table.name"</tt>
-        # * <tt>schema_name.table_name</tt>
-        # * <tt>schema_name."table.name"</tt>
-        # * <tt>"schema.name"."table name"</tt>
-        def extract_schema_and_table(name)
-          table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
-          [schema, table]
-        end
-      end
-
       def use_insert_returning?
         @use_insert_returning
       end
@@ -662,11 +651,6 @@ module ActiveRecord
           end
           @statements[sql_key]
         end
-
-        # The internal PostgreSQL identifier of the money data type.
-        MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
-        # The internal PostgreSQL identifier of the BYTEA data type.
-        BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
 
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.

@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapter < AbstractAdapter
+    module PostgreSQL
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
 
@@ -31,10 +31,6 @@ module ActiveRecord
             super
           end
         end
-      end
-
-      def schema_creation
-        SchemaCreation.new self
       end
 
       module SchemaStatements
@@ -101,7 +97,7 @@ module ActiveRecord
         # If the schema is not specified as part of +name+ then it will only find tables within
         # the current schema search path (regardless of permissions to access tables in other schemas)
         def table_exists?(name)
-          schema, table = Utils.extract_schema_and_table(name.to_s)
+          schema, table = extract_schema_and_table(name.to_s)
           return false unless table
 
           exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
@@ -492,6 +488,24 @@ module ActiveRecord
 
           [super, *order_columns].join(', ')
         end
+
+        private
+
+        # Returns an array of <tt>[schema_name, table_name]</tt> extracted from +name+.
+        # +schema_name+ is nil if not specified in +name+.
+        # +schema_name+ and +table_name+ exclude surrounding quotes (regardless of whether provided in +name+)
+        # +name+ supports the range of schema/table references understood by PostgreSQL, for example:
+        #
+        # * <tt>table_name</tt>
+        # * <tt>"table.name"</tt>
+        # * <tt>schema_name.table_name</tt>
+        # * <tt>schema_name."table.name"</tt>
+        # * <tt>"schema.name"."table name"</tt>
+        def extract_schema_and_table(name)
+          table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
+          [schema, table]
+        end
+
       end
     end
   end

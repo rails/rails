@@ -1,8 +1,6 @@
-require 'active_record/connection_adapters/abstract_adapter'
-
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapter < AbstractAdapter
+    module PostgreSQL
       module OID
         class Type
           def type; end
