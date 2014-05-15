@@ -256,8 +256,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_after_transaction_callbacks_should_prevent_callbacks_from_being_called
     def @first.last_after_transaction_error=(e); @last_transaction_error = e; end
     def @first.last_after_transaction_error; @last_transaction_error; end
-    @first.after_commit_block { |r| r.last_after_transaction_error = :commit }
-    @first.after_rollback_block { |r| r.last_after_transaction_error = :rollback }
+    @first.after_commit_block{|r| r.last_after_transaction_error = :commit; raise "fail!";}
+    @first.after_rollback_block{|r| r.last_after_transaction_error = :rollback; raise "fail!";}
 
     second = TopicWithCallbacks.find(3)
     second.after_commit_block{|r| r.history << :after_commit}
@@ -281,15 +281,48 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_after_commit_callback_should_not_swallow_errors
+    old_transaction_config = ActiveRecord::Base.errors_in_transactional_callbacks
+    ActiveRecord::Base.errors_in_transactional_callbacks = :raise
+
     @first.after_commit_block{ fail "boom" }
     assert_raises(RuntimeError) do
       Topic.transaction do
         @first.save!
       end
     end
+  ensure
+    ActiveRecord::Base.errors_in_transactional_callbacks = old_transaction_config
   end
 
-  def test_after_rollback_callback_should_not_swallow_errors
+  def test_after_commit_callback_when_raise_should_not_restore_state
+    old_transaction_config = ActiveRecord::Base.errors_in_transactional_callbacks
+    ActiveRecord::Base.errors_in_transactional_callbacks = :raise
+
+    first = TopicWithCallbacks.new
+    second = TopicWithCallbacks.new
+    first.after_commit_block{ fail "boom" }
+    second.after_commit_block{ fail "boom" }
+
+    begin
+      Topic.transaction do
+        first.save!
+        assert_not_nil first.id
+        second.save!
+        assert_not_nil second.id
+      end
+    rescue
+    end
+    assert_not_nil first.id
+    assert_not_nil second.id
+    assert first.reload
+  ensure
+    ActiveRecord::Base.errors_in_transactional_callbacks = old_transaction_config
+  end
+
+  def test_after_rollback_callback_should_not_swallow_errors_when_set_to_raise
+    old_transaction_config = ActiveRecord::Base.errors_in_transactional_callbacks
+    ActiveRecord::Base.errors_in_transactional_callbacks = :raise
+
     error_class = Class.new(StandardError)
     @first.after_rollback_block{ raise error_class }
     assert_raises(error_class) do
@@ -298,6 +331,35 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
         raise ActiveRecord::Rollback
       end
     end
+  ensure
+    ActiveRecord::Base.errors_in_transactional_callbacks = old_transaction_config
+  end
+
+  def test_after_rollback_callback_when_raise_should_restore_state
+    old_transaction_config = ActiveRecord::Base.errors_in_transactional_callbacks
+    ActiveRecord::Base.errors_in_transactional_callbacks = :raise
+
+    error_class = Class.new(StandardError)
+
+    first = TopicWithCallbacks.new
+    second = TopicWithCallbacks.new
+    first.after_rollback_block{ raise error_class }
+    second.after_rollback_block{ raise error_class }
+
+    begin
+      Topic.transaction do
+        first.save!
+        assert_not_nil first.id
+        second.save!
+        assert_not_nil second.id
+        raise ActiveRecord::Rollback
+      end
+    rescue error_class
+    end
+    assert_nil first.id
+    assert_nil second.id
+  ensure
+    ActiveRecord::Base.errors_in_transactional_callbacks = old_transaction_config
   end
 
   def test_after_rollback_callbacks_should_validate_on_condition

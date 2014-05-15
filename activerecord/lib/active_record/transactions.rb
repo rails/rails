@@ -10,6 +10,9 @@ module ActiveRecord
       define_callbacks :commit, :rollback,
                        terminator: ->(_, result) { result == false },
                        scope: [:kind, :name]
+
+      mattr_accessor :errors_in_transactional_callbacks, instance_writer: false
+      self.errors_in_transactional_callbacks = :log
     end
 
     # = Active Record Transactions

@@ -136,14 +136,24 @@ module ActiveRecord
       def rollback_records
         @state.set_state(:rolledback)
         records.uniq.each do |record|
-          record.rolledback!(parent.closed?)
+          begin
+            record.rolledback!(parent.closed?)
+          rescue => e
+            raise if :raise == ActiveRecord::Base.errors_in_transactional_callbacks
+            record.logger.error(e) if record.respond_to?(:logger) && record.logger
+          end
         end
       end
 
       def commit_records
         @state.set_state(:committed)
         records.uniq.each do |record|
-          record.committed!
+          begin
+            record.committed!
+          rescue => e
+            raise if :raise == ActiveRecord::Base.errors_in_transactional_callbacks
+            record.logger.error(e) if record.respond_to?(:logger) && record.logger
+          end
         end
       end
 
