@@ -157,7 +157,7 @@ module ActionDispatch
           end
 
           def self.optimize_helper?(route)
-            !route.glob? && route.requirements.except(:controller, :action, :host).empty?
+            !route.glob? && route.path.requirements.empty?
           end
 
           class OptimizedUrlHelper < UrlHelper # :nodoc:
