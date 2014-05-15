@@ -1,3 +1,7 @@
+*   Add MKCALENDAR HTTP method (RFC 4791).
+
+    *Sergey Karpesh*
+
 *   Instrument fragment cache metrics.
 
     Adds `:controller`: and `:action` keys to the instrumentation payload

@@ -3553,6 +3553,7 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
   RFC3648 = %w(ORDERPATCH)
   RFC3744 = %w(ACL)
   RFC5323 = %w(SEARCH)
+  RFC4791 = %w(MKCALENDAR)
   RFC5789 = %w(PATCH)
 
   def simple_app(response)
@@ -3564,13 +3565,13 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
     @app = ActionDispatch::Routing::RouteSet.new
 
     @app.draw do
-      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789).each do |method|
+      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
         match '/' => s.simple_app(method), :via => method.underscore.to_sym
       end
     end
   end
 
-  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789).each do |method|
+  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
     test "request method #{method.underscore} can be matched" do
       get '/', nil, 'REQUEST_METHOD' => method
       assert_equal method, @response.body
