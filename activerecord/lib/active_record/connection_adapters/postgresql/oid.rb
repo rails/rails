@@ -2,47 +2,24 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID
-        class Type
-          def type; end
-          def simplified_type(sql_type); type end
-
-          def infinity(options = {})
-            ::Float::INFINITY * (options[:negative] ? -1 : 1)
-          end
-        end
-
-        class Identity < Type
-          def type_cast(value)
-            value
-          end
-        end
-
-        class String < Type
-          def type; :string end
-
-          def type_cast(value)
-            return if value.nil?
-
-            value.to_s
-          end
-        end
-
-        class SpecializedString < OID::String
-          def type; @type end
+        class SpecializedString < Type::String
+          attr_reader :type
 
           def initialize(type)
             @type = type
           end
+
+          def text?
+            false
+          end
         end
 
-        class Text < OID::String
-          def type; :text end
-        end
-
-        class Bit < Type
+        class Bit < Type::Value
           def type; :string end
 
-          def type_cast(value)
+          private
+
+          def cast_value(value)
             if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_bit value
             else
@@ -51,20 +28,18 @@ module ActiveRecord
           end
         end
 
-        class Bytea < Type
-          def type; :binary end
+        class Bytea < Type::Binary
+          private
 
-          def type_cast(value)
-            return if value.nil?
+          def cast_value(value)
             PGconn.unescape_bytea value
           end
         end
 
-        class Money < Type
-          def type; :decimal end
+        class Money < Type::Decimal
+          private
 
-          def type_cast(value)
-            return if value.nil?
+          def cast_value(value)
             return value unless ::String === value
 
             # Because money output is formatted according to the locale, there are two
@@ -83,11 +58,11 @@ module ActiveRecord
               value.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
             end
 
-            ConnectionAdapters::Column.value_to_decimal value
+            super(value)
           end
         end
 
-        class Vector < Type
+        class Vector < Type::Value
           attr_reader :delim, :subtype
 
           # +delim+ corresponds to the `typdelim` column in the pg_types
@@ -106,10 +81,10 @@ module ActiveRecord
           end
         end
 
-        class Point < Type
-          def type; :string end
+        class Point < Type::String
+          private
 
-          def type_cast(value)
+          def cast_value(value)
             if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_point value
             else
@@ -118,7 +93,7 @@ module ActiveRecord
           end
         end
 
-        class Array < Type
+        class Array < Type::Value
           def type; @subtype.type end
 
           attr_reader :subtype
@@ -126,7 +101,9 @@ module ActiveRecord
             @subtype = subtype
           end
 
-          def type_cast(value)
+          private
+
+          def cast_value(value)
             if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_array value, @subtype
             else
@@ -135,12 +112,12 @@ module ActiveRecord
           end
         end
 
-        class Range < Type
-          attr_reader :subtype
-          def simplified_type(sql_type); sql_type.to_sym end
+        class Range < Type::Value
+          attr_reader :subtype, :type
 
-          def initialize(subtype)
+          def initialize(subtype, type)
             @subtype = subtype
+            @type = type
           end
 
           def extract_bounds(value)
@@ -161,8 +138,10 @@ module ActiveRecord
             infinity?(value) ? value : @subtype.type_cast(value)
           end
 
-          def type_cast(value)
-            return if value.nil? || value == 'empty'
+          private
+
+          def cast_value(value)
+            return if value == 'empty'
             return value if value.is_a?(::Range)
 
             extracted = extract_bounds(value)
@@ -184,71 +163,32 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Integer < Type
-          def type; :integer end
-
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_integer value
-          end
-        end
-
-        class Boolean < Type
-          def type; :boolean end
-
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_boolean value
-          end
-        end
-
-        class Timestamp < Type
-          def type; :timestamp; end
-          def simplified_type(sql_type)
+        class Timestamp < Type::Timestamp
+          def type
             :datetime
           end
 
-          def type_cast(value)
-            return if value.nil?
+          private
 
-            # FIXME: probably we can improve this since we know it is PG
-            # specific
-            ConnectionAdapters::PostgreSQLColumn.string_to_time value
-          end
-        end
+          def cast_value(value)
+            return value unless ::String === value
 
-        class Date < Type
-          def type; :date; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is PG
-            # specific
-            ConnectionAdapters::Column.value_to_date value
-          end
-        end
-
-        class Time < Type
-          def type; :time end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is PG
-            # specific
-            ConnectionAdapters::Column.string_to_dummy_time value
-          end
-        end
-
-        class Float < Type
-          def type; :float end
-
-          def type_cast(value)
             case value
-              when nil;         nil
+            when 'infinity'; ::Float::INFINITY
+            when '-infinity'; -::Float::INFINITY
+            when / BC$/
+              super("-" + value.sub(/ BC$/, ""))
+            else
+              super
+            end
+          end
+        end
+
+        class Float < Type::Float
+          private
+
+          def cast_value(value)
+            case value
               when 'Infinity';  ::Float::INFINITY
               when '-Infinity'; -::Float::INFINITY
               when 'NaN';       ::Float::NAN
@@ -258,21 +198,13 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Decimal < Type
-          def type; :decimal end
-
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_decimal value
-          end
-
+        class Decimal < Type::Decimal
           def infinity(options = {})
-            BigDecimal.new("Infinity") * (options[:negative] ? -1 : 1)
+            ::BigDecimal.new("Infinity") * (options[:negative] ? -1 : 1)
           end
         end
 
-        class Enum < Type
+        class Enum < Type::Value
           def type; :enum end
 
           def type_cast(value)
@@ -280,80 +212,66 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Hstore < Type
+        class Hstore < Type::Value
           def type; :hstore end
 
           def type_cast_for_write(value)
             ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
           end
 
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::PostgreSQLColumn.string_to_hstore value
-          end
-
           def accessor
             ActiveRecord::Store::StringKeyedHashAccessor
           end
+
+          private
+
+          def cast_value(value)
+            ConnectionAdapters::PostgreSQLColumn.string_to_hstore value
+          end
         end
 
-        class Cidr < Type
+        class Cidr < Type::Value
           def type; :cidr end
-          def type_cast(value)
-            return if value.nil?
 
+          private
+
+          def cast_value(value)
             ConnectionAdapters::PostgreSQLColumn.string_to_cidr value
           end
         end
+
         class Inet < Cidr
           def type; :inet end
         end
 
-        class Json < Type
+        class Json < Type::Value
           def type; :json end
 
           def type_cast_for_write(value)
             ConnectionAdapters::PostgreSQLColumn.json_to_string value
           end
 
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::PostgreSQLColumn.string_to_json value
-          end
-
           def accessor
             ActiveRecord::Store::StringKeyedHashAccessor
           end
+
+          private
+
+          def cast_value(value)
+            ConnectionAdapters::PostgreSQLColumn.string_to_json value
+          end
         end
 
-        class Uuid < Type
+        class Uuid < Type::Value
           def type; :uuid end
           def type_cast(value)
             value.presence
           end
         end
 
-        class TypeMap
-          def initialize
-            @mapping = {}
-          end
-
-          def []=(oid, type)
-            @mapping[oid] = type
-          end
-
-          def [](oid)
-            @mapping[oid]
-          end
-
-          def clear
-            @mapping.clear
-          end
-
+        class TypeMap < Type::TypeMapping
           def key?(oid)
-            @mapping.key? oid
+            @mapping.key?(oid)
           end
 
           def fetch(ftype, fmod)
@@ -368,7 +286,7 @@ This is not reliable and will be removed in the future.
               ftype = 23
             end
 
-            @mapping.fetch(ftype) { |oid| yield oid, fmod }
+            @mapping.fetch(ftype) { |oid| yield oid, fmod }.call
           end
         end
 
@@ -408,19 +326,19 @@ This is not reliable and will be removed in the future.
           end
 
           def register_array_type(row)
-            if subtype = @store[row['typelem'].to_i]
+            if subtype = @store.lookup(row['typelem'].to_i)
               register row['oid'], OID::Array.new(subtype)
             end
           end
 
           def register_range_type(row)
-            if subtype = @store[row['rngsubtype'].to_i]
-              register row['oid'], OID::Range.new(subtype)
+            if subtype = @store.lookup(row['rngsubtype'].to_i)
+              register row['oid'], OID::Range.new(subtype, row['typname'].to_sym)
             end
           end
 
           def register_domain_type(row)
-            if base_type = @store[row["typbasetype"].to_i]
+            if base_type = @store.lookup(row["typbasetype"].to_i)
               register row['oid'], base_type
             else
               warn "unknown base type (OID: #{row["typbasetype"]}) for domain #{row["typname"]}."
@@ -428,7 +346,7 @@ This is not reliable and will be removed in the future.
           end
 
           def register_composite_type(row)
-            if subtype = @store[row['typelem'].to_i]
+            if subtype = @store.lookup(row['typelem'].to_i)
               register row['oid'], OID::Vector.new(row['typdelim'], subtype)
             end
           end
@@ -439,7 +357,7 @@ This is not reliable and will be removed in the future.
             raise ArgumentError, "can't register nil type for OID #{oid}" if oid_type.nil?
             return if @store.key?(oid)
 
-            @store[oid] = oid_type
+            @store.register_type(oid, oid_type)
           end
         end
 
@@ -468,25 +386,25 @@ This is not reliable and will be removed in the future.
           NAMES.key? name
         end
 
-        register_type 'int2', OID::Integer.new
+        register_type 'int2', Type::Integer.new
         alias_type 'int4', 'int2'
         alias_type 'int8', 'int2'
         alias_type 'oid', 'int2'
         register_type 'numeric', OID::Decimal.new
         register_type 'float4', OID::Float.new
         alias_type 'float8', 'float4'
-        register_type 'text', OID::Text.new
-        register_type 'varchar', OID::String.new
+        register_type 'text', Type::Text.new
+        register_type 'varchar', Type::String.new
         alias_type 'char', 'varchar'
         alias_type 'name', 'varchar'
         alias_type 'bpchar', 'varchar'
-        register_type 'bool', OID::Boolean.new
+        register_type 'bool', Type::Boolean.new
         register_type 'bit', OID::Bit.new
         alias_type 'varbit', 'bit'
         register_type 'timestamp', OID::Timestamp.new
         alias_type 'timestamptz', 'timestamp'
-        register_type 'date', OID::Date.new
-        register_type 'time', OID::Time.new
+        register_type 'date', Type::Date.new
+        register_type 'time', Type::Time.new
 
         register_type 'money', OID::Money.new
         register_type 'bytea', OID::Bytea.new

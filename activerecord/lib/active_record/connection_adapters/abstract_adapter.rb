@@ -15,6 +15,7 @@ module ActiveRecord
 
     autoload :Column
     autoload :ConnectionSpecification
+    autoload :Type
 
     autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
       autoload :IndexDefinition
@@ -360,6 +361,12 @@ module ActiveRecord
         pool.checkin self
       end
 
+      def type_map
+        @type_map ||= Type::TypeMapping.new.tap do |mapping|
+          initialize_type_map(mapping)
+        end
+      end
+
       protected
 
       def translate_exception_class(e, sql)
@@ -395,6 +402,39 @@ module ActiveRecord
         column_name = column_name.to_s
         columns(table_name).detect { |c| c.name == column_name } ||
           raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+      end
+
+      def initialize_type_map(mapping)
+        mapping.register_type(/boolean/i, Type::Boolean.new)
+        mapping.register_type(/char/i, Type::String.new)
+        mapping.register_type(/blob/i, Type::Binary.new)
+        mapping.alias_type(/binary/i, 'blob')
+        mapping.register_type(/text/i, Type::Text.new)
+        mapping.alias_type(/clob/i, 'text')
+        mapping.register_type(/date/i, Type::Date.new)
+        mapping.register_type(/time/i, Type::Time.new)
+        mapping.register_type(/timestamp/i, Type::Timestamp.new)
+        mapping.register_type(/datetime/i, Type::DateTime.new)
+        mapping.register_type(/decimal/i) do |field_type|
+          extract_scale(field_type) == 0 ? Type::Integer.new : Type::Decimal.new
+        end
+        mapping.alias_type(/numeric/i, 'decimal')
+        mapping.alias_type(/number/i, 'decimal')
+        mapping.register_type(/float/i, Type::Float.new)
+        mapping.alias_type(/double/i, 'float')
+        mapping.register_type(/int/i, Type::Integer.new)
+      end
+
+      def reload_type_map
+        type_map.clear
+        initialize_type_map(type_map)
+      end
+
+      def extract_scale(sql_type)
+        case sql_type
+          when /^(numeric|decimal|number)\((\d+)\)/i then 0
+          when /^(numeric|decimal|number)\((\d+)(,(\d+))\)/i then $4.to_i
+        end
       end
     end
   end

@@ -69,10 +69,6 @@ module ActiveRecord
         end
       end
 
-      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?, extra)
-      end
-
       def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
       end
@@ -113,6 +109,11 @@ module ActiveRecord
           @connection.close
           @connection = nil
         end
+      end
+
+      def clear_cache!
+        super
+        reload_type_map
       end
 
       # DATABASE STATEMENTS ======================================
@@ -269,6 +270,10 @@ module ActiveRecord
       end
 
       private
+
+      def column_class
+        Column
+      end
 
       def connect
         @connection = Mysql2::Client.new(@config)
