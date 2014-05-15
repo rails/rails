@@ -297,17 +297,11 @@ module ActiveRecord
     # but call it after the commit of a destroyed object.
     def committed! #:nodoc:
       run_callbacks :commit if destroyed? || persisted?
-    ensure
-      force_clear_transaction_record_state
     end
 
-    # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record
-    # state should be rolled back to the beginning or just to the last savepoint.
-    def rolledback!(force_restore_state = false) #:nodoc:
+    # Call the +after_rollback+ callbacks.
+    def rolledback! #:nodoc:
       run_callbacks :rollback
-    ensure
-      restore_transaction_record_state(force_restore_state)
-      clear_transaction_record_state
     end
 
     # Add the record to the current transaction so that the +after_rollback+ and +after_commit+ callbacks
@@ -367,6 +361,8 @@ module ActiveRecord
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
+    # The +force+ argument indicates if the record state should be rolled back to the beginning
+    # or just to the last savepoint.
     def restore_transaction_record_state(force = false) #:nodoc:
       unless @_start_transaction_state.empty?
         transaction_level = (@_start_transaction_state[:level] || 0) - 1
