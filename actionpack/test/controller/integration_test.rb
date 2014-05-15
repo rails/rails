@@ -797,5 +797,6 @@ class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
     assert_nothing_raised do
       get '/foo/status'
     end
+    assert_response :ok
   end
 end
