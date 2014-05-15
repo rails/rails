@@ -24,9 +24,11 @@ module ActiveRecord::Associations::Builder
         else
           class_name = options.fetch(:class_name) {
             model_name = name.to_s.camelize.singularize
-            if parent_name = lhs_class.parent_name.presence
+
+            if parent_name = lhs_class.parent_name
               model_name = model_name.prepend("#{parent_name}::")
             end
+
             model_name
           }
           KnownClass.new lhs_class, class_name
