@@ -119,4 +119,11 @@
 
     *Tony Wooster*
 
+*   Fix 'Stack level too deep' when rendering `head :ok` in an action method
+    called 'status' in a controller.
+
+    Fixes #13905
+
+    *Christiaan Van den Poel*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionpack/CHANGELOG.md) for previous changes.
