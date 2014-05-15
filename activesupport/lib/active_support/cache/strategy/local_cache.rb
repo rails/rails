@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/per_thread_registry'
 
 module ActiveSupport
   module Cache
@@ -8,6 +9,28 @@ module ActiveSupport
       # duration of a block. Repeated calls to the cache for the same key will hit the
       # in-memory cache for faster access.
       module LocalCache
+        autoload :Middleware, 'active_support/cache/strategy/local_cache_middleware'
+
+        # Class for storing and registering the local caches.
+        class LocalCacheRegistry # :nodoc:
+          extend ActiveSupport::PerThreadRegistry
+
+          def initialize
+            @registry = {}
+          end
+
+          def cache_for(local_cache_key)
+            @registry[local_cache_key]
+          end
+
+          def set_cache_for(local_cache_key, value)
+            @registry[local_cache_key] = value
+          end
+
+          def self.set_cache_for(l, v); instance.set_cache_for l, v; end
+          def self.cache_for(l); instance.cache_for l; end
+        end
+
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
         class LocalStore < Store
@@ -41,46 +64,14 @@ module ActiveSupport
 
         # Use a local cache for the duration of block.
         def with_local_cache
-          save_val = Thread.current[thread_local_key]
-          begin
-            Thread.current[thread_local_key] = LocalStore.new
-            yield
-          ensure
-            Thread.current[thread_local_key] = save_val
-          end
+          use_temporary_local_cache(LocalStore.new) { yield }
         end
-
-        #--
-        # This class wraps up local storage for middlewares. Only the middleware method should
-        # construct them.
-        class Middleware # :nodoc:
-          attr_reader :name, :thread_local_key
-
-          def initialize(name, thread_local_key)
-            @name             = name
-            @thread_local_key = thread_local_key
-            @app              = nil
-          end
-
-          def new(app)
-            @app = app
-            self
-          end
-
-          def call(env)
-            Thread.current[thread_local_key] = LocalStore.new
-            @app.call(env)
-          ensure
-            Thread.current[thread_local_key] = nil
-          end
-        end
-
         # Middleware class can be inserted as a Rack handler to be local cache for the
         # duration of request.
         def middleware
           @middleware ||= Middleware.new(
             "ActiveSupport::Cache::Strategy::LocalCache",
-            thread_local_key)
+            local_cache_key)
         end
 
         def clear(options = nil) # :nodoc:
@@ -95,29 +86,13 @@ module ActiveSupport
 
         def increment(name, amount = 1, options = nil) # :nodoc:
           value = bypass_local_cache{super}
-          if local_cache
-            local_cache.mute do
-              if value
-                local_cache.write(name, value, options)
-              else
-                local_cache.delete(name, options)
-              end
-            end
-          end
+          set_cache_value(value, name, amount, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
           value = bypass_local_cache{super}
-          if local_cache
-            local_cache.mute do
-              if value
-                local_cache.write(name, value, options)
-              else
-                local_cache.delete(name, options)
-              end
-            end
-          end
+          set_cache_value(value, name, amount, options)
           value
         end
 
@@ -145,22 +120,39 @@ module ActiveSupport
             super
           end
 
+          def set_cache_value(value, name, amount, options)
+            if local_cache
+              local_cache.mute do
+                if value
+                  local_cache.write(name, value, options)
+                else
+                  local_cache.delete(name, options)
+                end
+              end
+            end
+          end
+
         private
-          def thread_local_key
-            @thread_local_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
+
+          def local_cache_key
+            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
           end
 
           def local_cache
-            Thread.current[thread_local_key]
+            LocalCacheRegistry.cache_for(local_cache_key)
           end
 
           def bypass_local_cache
-            save_cache = Thread.current[thread_local_key]
+            use_temporary_local_cache(nil) { yield }
+          end
+
+          def use_temporary_local_cache(temporary_cache)
+            save_cache = LocalCacheRegistry.cache_for(local_cache_key)
             begin
-              Thread.current[thread_local_key] = nil
+              LocalCacheRegistry.set_cache_for(local_cache_key, temporary_cache)
               yield
             ensure
-              Thread.current[thread_local_key] = save_cache
+              LocalCacheRegistry.set_cache_for(local_cache_key, save_cache)
             end
           end
       end

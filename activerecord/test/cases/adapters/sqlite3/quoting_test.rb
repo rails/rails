@@ -17,7 +17,7 @@ module ActiveRecord
           @conn.extend(Module.new { def logger; end })
           column = Struct.new(:type, :name).new(:string, "foo")
           binary = SecureRandom.hex
-          expected = binary.dup.encode!('utf-8')
+          expected = binary.dup.encode!(Encoding::UTF_8)
           assert_equal expected, @conn.type_cast(binary, column)
         end
 
@@ -95,6 +95,13 @@ module ActiveRecord
             end
           }.new
           assert_equal 10, @conn.type_cast(quoted_id_obj, nil)
+
+          quoted_id_obj = Class.new {
+            def quoted_id
+              "'zomg'"
+            end
+          }.new
+          assert_raise(TypeError) { @conn.type_cast(quoted_id_obj, nil) }
         end
       end
     end

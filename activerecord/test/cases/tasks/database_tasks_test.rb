@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'active_record/tasks/database_tasks'
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -11,10 +12,10 @@ module ActiveRecord
   end
 
   ADAPTERS_TASKS = {
-     :mysql      => :mysql_tasks,
-     :mysql2     => :mysql_tasks,
-     :postgresql => :postgresql_tasks,
-     :sqlite3    => :sqlite_tasks
+    mysql:      :mysql_tasks,
+    mysql2:     :mysql_tasks,
+    postgresql: :postgresql_tasks,
+    sqlite3:    :sqlite_tasks
   }
 
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
@@ -31,8 +32,14 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
       ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :foo}, "awesome-file.sql")
     end
+
+    def test_unregistered_task
+      assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :bar}, "awesome-file.sql")
+      end
+    end
   end
- 
+
   class DatabaseTasksCreateTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
@@ -122,11 +129,22 @@ module ActiveRecord
       )
     end
 
-    def test_creates_test_database_when_environment_is_database
+    def test_creates_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'test-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
+    end
+
+    def test_creates_only_development_database_when_rails_env_is_development
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with('database' => 'dev-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns('development')
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
@@ -136,7 +154,7 @@ module ActiveRecord
     def test_establishes_connection_for_the_given_environment
       ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
 
-      ActiveRecord::Base.expects(:establish_connection).with('development')
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new('development')
@@ -232,11 +250,22 @@ module ActiveRecord
       )
     end
 
-    def test_creates_test_database_when_environment_is_database
+    def test_drops_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'test-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns(nil)
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
+    end
+
+    def test_drops_only_development_database_when_rails_env_is_development
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with('database' => 'dev-db')
+      ENV.expects(:[]).with('RAILS_ENV').returns('development')
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new('development')
@@ -258,7 +287,7 @@ module ActiveRecord
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
- 
+
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_charset") do
         eval("@#{v}").expects(:charset)
@@ -269,7 +298,7 @@ module ActiveRecord
 
   class DatabaseTasksCollationTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
- 
+
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_collation") do
         eval("@#{v}").expects(:collation)
@@ -297,6 +326,13 @@ module ActiveRecord
         eval("@#{v}").expects(:structure_load).with("awesome-file.sql")
         ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => k}, "awesome-file.sql")
       end
+    end
+  end
+
+  class DatabaseTasksCheckSchemaFileTest < ActiveRecord::TestCase
+    def test_check_schema_file
+      Kernel.expects(:abort).with(regexp_matches(/awesome-file.sql/))
+      ActiveRecord::Tasks::DatabaseTasks.check_schema_file("awesome-file.sql")
     end
   end
 end

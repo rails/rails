@@ -18,6 +18,20 @@ class SourceAnnotationExtractor
       @@directories ||= %w(app config db lib test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
     end
 
+    def self.extensions
+      @@extensions ||= {}
+    end
+
+    # Registers new Annotations File Extensions
+    #   SourceAnnotationExtractor::Annotation.register_extensions("css", "scss", "sass", "less", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+    def self.register_extensions(*exts, &block)
+      extensions[/\.(#{exts.join("|")})$/] = block
+    end
+
+    register_extensions("builder", "rb", "rake", "yml", "yaml", "ruby") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
+    register_extensions("css", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+    register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
+
     # Returns a representation of the annotation that looks like this:
     #
     #   [126] [TODO] This algorithm is simple and clearly correct, make it faster.
@@ -32,15 +46,24 @@ class SourceAnnotationExtractor
   end
 
   # Prints all annotations with tag +tag+ under the root directories +app+,
-  # +config+, +lib+, and +test+ (recursively). Filenames with extension
-  # +.builder+, +.rb+, +.erb+, +.haml+, +.slim+, +.css+, +.scss+, +.js+,
-  # +.coffee+, and +.rake+ are taken into account. The +options+ hash is
-  # passed to each annotation's +to_s+.
+  # +config+, +db+, +lib+, and +test+ (recursively).
+  #
+  # Additional directories may be added using a comma-delimited list set using
+  # <tt>ENV['SOURCE_ANNOTATION_DIRECTORIES']</tt>.
+  #
+  # Directories may also be explicitly set using the <tt>:dirs</tt> key in +options+.
+  #
+  #   SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
+  #
+  # If +options+ has a <tt>:tag</tt> flag, it will be passed to each annotation's +to_s+.
+  #
+  # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
   #
   # This class method is the single entry point for the rake tasks.
   def self.enumerate(tag, options={})
     extractor = new(tag)
-    extractor.display(extractor.find, options)
+    dirs = options.delete(:dirs) || Annotation.directories
+    extractor.display(extractor.find(dirs), options)
   end
 
   attr_reader :tag
@@ -51,14 +74,14 @@ class SourceAnnotationExtractor
 
   # Returns a hash that maps filenames under +dirs+ (recursively) to arrays
   # with their annotations.
-  def find(dirs = Annotation.directories)
+  def find(dirs)
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
   end
 
   # Returns a hash that maps filenames under +dir+ (recursively) to arrays
   # with their annotations. Only files with annotations are included. Files
   # with extension +.builder+, +.rb+, +.erb+, +.haml+, +.slim+, +.css+,
-  # +.scss+, +.js+, +.coffee+, and +.rake+
+  # +.scss+, +.js+, +.coffee+, +.rake+, +.sass+ and +.less+
   # are taken into account.
   def find_in(dir)
     results = {}
@@ -68,16 +91,15 @@ class SourceAnnotationExtractor
 
       if File.directory?(item)
         results.update(find_in(item))
-      elsif item =~ /\.(builder|rb|coffee|rake)$/
-        results.update(extract_annotations_from(item, /#\s*(#{tag}):?\s*(.*)$/))
-      elsif item =~ /\.(css|scss|js)$/
-        results.update(extract_annotations_from(item, /\/\/\s*(#{tag}):?\s*(.*)$/))
-      elsif item =~ /\.erb$/
-        results.update(extract_annotations_from(item, /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/))
-      elsif item =~ /\.haml$/
-        results.update(extract_annotations_from(item, /-\s*#\s*(#{tag}):?\s*(.*)$/))
-      elsif item =~ /\.slim$/
-        results.update(extract_annotations_from(item, /\/\s*\s*(#{tag}):?\s*(.*)$/))
+      else
+        extension = Annotation.extensions.detect do |regexp, _block|
+          regexp.match(item)
+        end
+
+        if extension
+          pattern = extension.last.call(tag)
+          results.update(extract_annotations_from(item, pattern)) if pattern
+        end
       end
     end
 
@@ -100,7 +122,7 @@ class SourceAnnotationExtractor
   # Prints the mapping from filenames to annotations in +results+ ordered by filename.
   # The +options+ hash is passed to each annotation's +to_s+.
   def display(results, options={})
-    options[:indent] = results.map { |f, a| a.map(&:line) }.flatten.max.to_s.size
+    options[:indent] = results.flat_map { |f, a| a.map(&:line) }.max.to_s.size
     results.keys.sort.each do |file|
       puts "#{file}:"
       results[file].each do |note|

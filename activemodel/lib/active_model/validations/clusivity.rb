@@ -15,26 +15,36 @@ module ActiveModel
     private
 
       def include?(record, value)
-        exclusions = if delimiter.respond_to?(:call)
-                       delimiter.call(record)
-                     elsif delimiter.respond_to?(:to_sym)
-                       record.send(delimiter)
-                     else
-                       delimiter
-                     end
+        members = if delimiter.respond_to?(:call)
+                    delimiter.call(record)
+                  elsif delimiter.respond_to?(:to_sym)
+                    record.send(delimiter)
+                  else
+                    delimiter
+                  end
 
-        exclusions.send(inclusion_method(exclusions), value)
+        members.send(inclusion_method(members), value)
       end
 
       def delimiter
         @delimiter ||= options[:in] || options[:within]
       end
 
-      # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible values in the
-      # range for equality, so it may be slow for large ranges. The new <tt>Range#cover?</tt>
-      # uses the previous logic of comparing a value with the range endpoints.
+      # In Ruby 1.9 <tt>Range#include?</tt> on non-number-or-time-ish ranges checks all
+      # possible values in the range for equality, which is slower but more accurate.
+      # <tt>Range#cover?</tt> uses the previous logic of comparing a value with the range
+      # endpoints, which is fast but is only accurate on Numeric, Time, or DateTime ranges.
       def inclusion_method(enumerable)
-        enumerable.is_a?(Range) ? :cover? : :include?
+        if enumerable.is_a? Range
+          case enumerable.first
+          when Numeric, Time, DateTime
+            :cover?
+          else
+            :include?
+          end
+        else
+          :include?
+        end
       end
     end
   end

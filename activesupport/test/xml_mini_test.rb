@@ -1,6 +1,9 @@
 require 'abstract_unit'
 require 'active_support/xml_mini'
 require 'active_support/builder'
+require 'active_support/core_ext/array'
+require 'active_support/core_ext/hash'
+require 'active_support/core_ext/big_decimal'
 
 module XmlMiniTest
   class RenameKeyTest < ActiveSupport::TestCase
@@ -88,6 +91,61 @@ module XmlMiniTest
       assert_xml "<b>Howdy</b>"
     end
 
+    test "#to_tag should use the type value in the options hash" do
+      @xml.to_tag(:b, "blue", @options.merge(type: 'color'))
+      assert_xml( "<b type=\"color\">blue</b>" )
+    end
+
+    test "#to_tag accepts symbol types" do
+      @xml.to_tag(:b, :name, @options)
+      assert_xml( "<b type=\"symbol\">name</b>" )
+    end
+
+    test "#to_tag accepts boolean types" do
+      @xml.to_tag(:b, true, @options)
+      assert_xml( "<b type=\"boolean\">true</b>")
+    end
+
+    test "#to_tag accepts float types" do
+      @xml.to_tag(:b, 3.14, @options)
+      assert_xml( "<b type=\"float\">3.14</b>")
+    end
+
+    test "#to_tag accepts decimal types" do
+      @xml.to_tag(:b, ::BigDecimal.new("1.2"), @options)
+      assert_xml( "<b type=\"decimal\">1.2</b>")
+    end
+
+    test "#to_tag accepts date types" do
+      @xml.to_tag(:b, Date.new(2001,2,3), @options)
+      assert_xml( "<b type=\"date\">2001-02-03</b>")
+    end
+
+    test "#to_tag accepts datetime types" do
+      @xml.to_tag(:b, DateTime.new(2001,2,3,4,5,6,'+7'), @options)
+      assert_xml( "<b type=\"dateTime\">2001-02-03T04:05:06+07:00</b>")
+    end
+
+    test "#to_tag accepts time types" do
+      @xml.to_tag(:b, Time.new(1993, 02, 24, 12, 0, 0, "+09:00"), @options)
+      assert_xml( "<b type=\"dateTime\">1993-02-24T12:00:00+09:00</b>")
+    end
+
+    test "#to_tag accepts array types" do
+      @xml.to_tag(:b, ["first_name", "last_name"], @options)
+      assert_xml( "<b type=\"array\"><b>first_name</b><b>last_name</b></b>" )
+    end
+
+    test "#to_tag accepts hash types" do
+      @xml.to_tag(:b, { first_name: "Bob", last_name: "Marley" }, @options)
+      assert_xml( "<b><first-name>Bob</first-name><last-name>Marley</last-name></b>" )
+    end
+
+    test "#to_tag should not add type when skip types option is set" do
+      @xml.to_tag(:b, "Bob", @options.merge(skip_types: 1))
+      assert_xml( "<b>Bob</b>" )
+    end
+
     test "#to_tag should dasherize the space when passed a string with spaces as a key" do
       @xml.to_tag("New   York", 33, @options)
       assert_xml "<New---York type=\"integer\">33</New---York>"
@@ -97,7 +155,6 @@ module XmlMiniTest
       @xml.to_tag(:"New   York", 33, @options)
       assert_xml "<New---York type=\"integer\">33</New---York>"
     end
-    # TODO: test the remaining functions hidden in #to_tag.
   end
 
   class WithBackendTest < ActiveSupport::TestCase
@@ -106,7 +163,11 @@ module XmlMiniTest
     module Nokogiri end
 
     setup do
-      @xml = ActiveSupport::XmlMini
+      @xml, @default_backend = ActiveSupport::XmlMini, ActiveSupport::XmlMini.backend
+    end
+
+    teardown do
+      ActiveSupport::XmlMini.backend = @default_backend
     end
 
     test "#with_backend should switch backend and then switch back" do
@@ -135,7 +196,11 @@ module XmlMiniTest
     module LibXML end
 
     setup do
-      @xml = ActiveSupport::XmlMini
+      @xml, @default_backend = ActiveSupport::XmlMini, ActiveSupport::XmlMini.backend
+    end
+
+    teardown do
+      ActiveSupport::XmlMini.backend = @default_backend
     end
 
     test "#with_backend should be thread-safe" do
@@ -159,6 +224,130 @@ module XmlMiniTest
 
         assert_equal REXML, @xml.backend
       end
+    end
+  end
+
+  class ParsingTest < ActiveSupport::TestCase
+    def setup
+      @parsing = ActiveSupport::XmlMini::PARSING
+    end
+
+    def test_symbol
+      parser = @parsing['symbol']
+      assert_equal :symbol, parser.call('symbol')
+      assert_equal :symbol, parser.call(:symbol)
+      assert_equal :'123', parser.call(123)
+      assert_raises(ArgumentError) { parser.call(Date.new(2013,11,12,02,11)) }
+    end
+
+    def test_date
+      parser = @parsing['date']
+      assert_equal Date.new(2013,11,12), parser.call("2013-11-12T0211Z")
+      assert_raises(TypeError) { parser.call(1384190018) }
+      assert_raises(ArgumentError) { parser.call("not really a date") }
+    end
+
+    def test_datetime
+      parser = @parsing['datetime']
+      assert_equal Time.new(2013,11,12,02,11,00,0), parser.call("2013-11-12T02:11:00Z")
+      assert_equal DateTime.new(2013,11,12), parser.call("2013-11-12T0211Z")
+      assert_equal DateTime.new(2013,11,12,02,11), parser.call("2013-11-12T02:11Z")
+      assert_equal DateTime.new(2013,11,12,02,11), parser.call("2013-11-12T11:11+9")
+      assert_raises(ArgumentError) { parser.call("1384190018") }
+    end
+
+    def test_integer
+      parser = @parsing['integer']
+      assert_equal 123, parser.call(123)
+      assert_equal 123, parser.call(123.003)
+      assert_equal 123, parser.call("123")
+      assert_equal 0, parser.call("")
+      assert_raises(ArgumentError) { parser.call(Date.new(2013,11,12,02,11)) }
+    end
+
+    def test_float
+      parser = @parsing['float']
+      assert_equal 123, parser.call("123")
+      assert_equal 123.003, parser.call("123.003")
+      assert_equal 123.0, parser.call("123,003")
+      assert_equal 0.0, parser.call("")
+      assert_equal 123, parser.call(123)
+      assert_equal 123.05, parser.call(123.05)
+      assert_raises(ArgumentError) { parser.call(Date.new(2013,11,12,02,11)) }
+    end
+
+    def test_decimal
+      parser = @parsing['decimal']
+      assert_equal 123, parser.call("123")
+      assert_equal 123.003, parser.call("123.003")
+      assert_equal 123.0, parser.call("123,003")
+      assert_equal 0.0, parser.call("")
+      assert_equal 123, parser.call(123)
+      assert_raises(ArgumentError) { parser.call(123.04) }
+      assert_raises(ArgumentError) { parser.call(Date.new(2013,11,12,02,11)) }
+    end
+
+    def test_boolean
+      parser = @parsing['boolean']
+      [1, true, "1"].each do |value|
+        assert parser.call(value)
+      end
+
+      [0, false, "0"].each do |value|
+        assert_not parser.call(value)
+      end
+    end
+
+    def test_string
+      parser = @parsing['string']
+      assert_equal "123", parser.call(123)
+      assert_equal "123", parser.call("123")
+      assert_equal "[]", parser.call("[]")
+      assert_equal "[]", parser.call([])
+      assert_equal "{}", parser.call({})
+      assert_raises(ArgumentError) { parser.call(Date.new(2013,11,12,02,11)) }
+    end
+
+    def test_yaml
+      yaml = <<YAML
+product:
+  - sku         : BL394D
+    quantity    : 4
+    description : Basketball
+YAML
+      expected = {
+        "product"=> [
+          {"sku"=>"BL394D", "quantity"=>4, "description"=>"Basketball"}
+        ]
+      }
+      parser = @parsing['yaml']
+      assert_equal(expected, parser.call(yaml))
+      assert_equal({1 => 'test'}, parser.call({1 => 'test'}))
+      assert_equal({"1 => 'test'"=>nil}, parser.call("{1 => 'test'}"))
+    end
+
+    def test_base64Binary_and_binary
+      base64 = <<BASE64
+TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=
+BASE64
+      expected_base64 = <<EXPECTED
+Man is distinguished, not only by his reason, but by this singular passion from
+other animals, which is a lust of the mind, that by a perseverance of delight
+in the continued and indefatigable generation of knowledge, exceeds the short
+vehemence of any carnal pleasure.
+EXPECTED
+
+      parser = @parsing['base64Binary']
+      assert_equal expected_base64.gsub(/\n/," ").strip, parser.call(base64)
+      parser.call("NON BASE64 INPUT")
+
+      parser = @parsing['binary']
+      assert_equal expected_base64.gsub(/\n/," ").strip, parser.call(base64, 'encoding' => 'base64')
+      assert_equal "IGNORED INPUT", parser.call("IGNORED INPUT", {})
     end
   end
 end

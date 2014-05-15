@@ -7,10 +7,10 @@ module Render
       "render/blank_render/access_request.html.erb"         => "The request: <%= request.method.to_s.upcase %>",
       "render/blank_render/access_action_name.html.erb"     => "Action Name: <%= action_name %>",
       "render/blank_render/access_controller_name.html.erb" => "Controller Name: <%= controller_name %>",
-      "render/blank_render/overriden_with_own_view_paths_appended.html.erb"              => "parent content",
-      "render/blank_render/overriden_with_own_view_paths_prepended.html.erb"              => "parent content",
-      "render/blank_render/overriden.html.erb"              => "parent content",
-      "render/child_render/overriden.html.erb"              => "child content"
+      "render/blank_render/overridden_with_own_view_paths_appended.html.erb"  => "parent content",
+      "render/blank_render/overridden_with_own_view_paths_prepended.html.erb" => "parent content",
+      "render/blank_render/overridden.html.erb"             => "parent content",
+      "render/child_render/overridden.html.erb"             => "child content"
     )]
 
     def index
@@ -25,13 +25,13 @@ module Render
       render :action => "access_action_name"
     end
 
-    def overriden_with_own_view_paths_appended
+    def overridden_with_own_view_paths_appended
     end
 
-    def overriden_with_own_view_paths_prepended
+    def overridden_with_own_view_paths_prepended
     end
 
-    def overriden
+    def overridden
     end
 
     private
@@ -49,8 +49,8 @@ module Render
   end
 
   class ChildRenderController < BlankRenderController
-    append_view_path ActionView::FixtureResolver.new("render/child_render/overriden_with_own_view_paths_appended.html.erb" => "child content")
-    prepend_view_path ActionView::FixtureResolver.new("render/child_render/overriden_with_own_view_paths_prepended.html.erb" => "child content")
+    append_view_path ActionView::FixtureResolver.new("render/child_render/overridden_with_own_view_paths_appended.html.erb" => "child content")
+    prepend_view_path ActionView::FixtureResolver.new("render/child_render/overridden_with_own_view_paths_prepended.html.erb" => "child content")
   end
 
   class RenderTest < Rack::TestCase
@@ -114,17 +114,17 @@ module Render
 
   class TestViewInheritance < Rack::TestCase
     test "Template from child controller gets picked over parent one" do
-      get "/render/child_render/overriden"
+      get "/render/child_render/overridden"
       assert_body "child content"
     end
 
     test "Template from child controller with custom view_paths prepended gets picked over parent one" do
-      get "/render/child_render/overriden_with_own_view_paths_prepended"
+      get "/render/child_render/overridden_with_own_view_paths_prepended"
       assert_body "child content"
     end
 
     test "Template from child controller with custom view_paths appended gets picked over parent one" do
-      get "/render/child_render/overriden_with_own_view_paths_appended"
+      get "/render/child_render/overridden_with_own_view_paths_appended"
       assert_body "child content"
     end
 

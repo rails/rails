@@ -2,14 +2,14 @@ module ActionDispatch
   # This middleware calculates the IP address of the remote client that is
   # making the request. It does this by checking various headers that could
   # contain the address, and then picking the last-set address that is not
-  # on the list of trusted IPs. This follows the precendent set by e.g.
+  # on the list of trusted IPs. This follows the precedent set by e.g.
   # {the Tomcat server}[https://issues.apache.org/bugzilla/show_bug.cgi?id=50453],
   # with {reasoning explained at length}[http://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection]
   # by @gingerlime. A more detailed explanation of the algorithm is given
   # at GetIp#calculate_ip.
   #
   # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
-  # requires. Some Rack servers simply drop preceeding headers, and only report
+  # requires. Some Rack servers simply drop preceding headers, and only report
   # the value that was {given in the last header}[http://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers].
   # If you are behind multiple proxy servers (like Nginx to HAProxy to Unicorn)
   # then you should test your Rack server to make sure your data is good.
@@ -31,7 +31,7 @@ module ActionDispatch
     TRUSTED_PROXIES = %r{
       ^127\.0\.0\.1$                | # localhost IPv4
       ^::1$                         | # localhost IPv6
-      ^fc00:                        | # private IPv6 range fc00
+      ^[fF][cCdD]                   | # private IPv6 range fc00::/7
       ^10\.                         | # private IPv4 range 10.x.x.x
       ^172\.(1[6-9]|2[0-9]|3[0-1])\.| # private IPv4 range 172.16.0.0 .. 172.31.255.255
       ^192\.168\.                     # private IPv4 range 192.168.x.x
@@ -47,12 +47,12 @@ module ActionDispatch
     # clients (like WAP devices), or behind proxies that set headers in an
     # incorrect or confusing way (like AWS ELB).
     #
-    # The +custom_trusted+ argument can take a regex, which will be used
+    # The +custom_proxies+ argument can take a regex, which will be used
     # instead of +TRUSTED_PROXIES+, or a string, which will be used in addition
     # to +TRUSTED_PROXIES+. Any proxy setup will put the value you want in the
     # middle (or at the beginning) of the X-Forwarded-For list, with your proxy
     # servers after it. If your proxies aren't removed, pass them in via the
-    # +custom_trusted+ parameter. That way, the middleware will ignore those
+    # +custom_proxies+ parameter. That way, the middleware will ignore those
     # IP addresses, and return the one that you want.
     def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
       @app = app
@@ -83,7 +83,7 @@ module ActionDispatch
 
       # This constant contains a regular expression that validates every known
       # form of IP v4 and v6 address, with or without abbreviations, adapted
-      # from {this gist}[https://gist.github.com/1289635].
+      # from {this gist}[https://gist.github.com/gazay/1289635].
       VALID_IP = %r{
         (^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}$)                                                        | # ip v4
         (^(
@@ -101,7 +101,7 @@ module ActionDispatch
         (([0-9A-Fa-f]{1,4}:){0,4}:([0-9A-Fa-f]{1,4}:){1}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))     | # ip v6 with compatible to v4
         (::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d) |(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))                         | # ip v6 with compatible to v4
         ([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})                                                                                               | # ip v6 with compatible to v4
-        (::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})                                                                                                               | # ip v6 with double colon at the begining
+        (::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})                                                                                                               | # ip v6 with double colon at the beginning
         (([0-9A-Fa-f]{1,4}:){1,7}:)                                                                                                                                  # ip v6 without ending
         )$)
       }x
@@ -143,7 +143,7 @@ module ActionDispatch
         # proxies with incompatible IP header conventions, and there is no way
         # for us to determine which header is the right one after the fact.
         # Since we have no idea, we give up and explode.
-        should_check_ip = @check_ip && client_ips.last
+        should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?! " +

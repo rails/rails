@@ -1,41 +1,74 @@
+require 'tmpdir'
 require 'abstract_unit'
 require 'rails/app_rails_loader'
 
 class AppRailsLoaderTest < ActiveSupport::TestCase
-  test "is in a rails application if bin/rails exists and contains APP_PATH" do
-    File.stubs(:exists?).returns(true)
-    File.stubs(:read).with('bin/rails').returns('APP_PATH')
-    assert Rails::AppRailsLoader.in_rails_application_or_engine?
+  def write(filename, contents=nil)
+    FileUtils.mkdir_p(File.dirname(filename))
+    File.write(filename, contents)
   end
 
-  test "is not in a rails application if bin/rails exists but doesn't contain APP_PATH" do
-    File.stubs(:exists?).returns(true)
-    File.stubs(:read).with('bin/rails').returns('railties bin/rails')
-    assert !Rails::AppRailsLoader.in_rails_application_or_engine?
+  def expects_exec(exe)
+    Rails::AppRailsLoader.expects(:exec).with(Rails::AppRailsLoader::RUBY, exe)
   end
 
-  test "is in a rails application if parent directory has bin/rails containing APP_PATH" do
-    File.stubs(:exists?).with("/foo/bar/bin/rails").returns(false)
-    File.stubs(:exists?).with("/foo/bin/rails").returns(true)
-    File.stubs(:read).with('/foo/bin/rails').returns('APP_PATH')
-    assert Rails::AppRailsLoader.in_rails_application_or_engine_subdirectory?(Pathname.new("/foo/bar"))
+  setup do
+    @tmp = Dir.mktmpdir('railties-rails-loader-test-suite')
+    @cwd = Dir.pwd
+    Dir.chdir(@tmp)
   end
 
-  test "is not in a rails application if at the root directory and doesn't have bin/rails" do
-    Pathname.any_instance.stubs(:root?).returns true
-    assert !Rails::AppRailsLoader.in_rails_application_or_engine?
+  ['bin', 'script'].each do |script_dir|
+    exe = "#{script_dir}/rails"
+
+    test "is not in a Rails application if #{exe} is not found in the current or parent directories" do
+      File.stubs(:file?).with('bin/rails').returns(false)
+      File.stubs(:file?).with('script/rails').returns(false)
+
+      assert !Rails::AppRailsLoader.exec_app_rails
+    end
+
+    test "is not in a Rails application if #{exe} exists but is a folder" do
+      FileUtils.mkdir_p(exe)
+
+      assert !Rails::AppRailsLoader.exec_app_rails
+    end
+
+    ['APP_PATH', 'ENGINE_PATH'].each do |keyword|
+      test "is in a Rails application if #{exe} exists and contains #{keyword}" do
+        write exe, keyword
+
+        expects_exec exe
+        Rails::AppRailsLoader.exec_app_rails
+      end
+
+      test "is not in a Rails application if #{exe} exists but doesn't contain #{keyword}" do
+        write exe
+
+        assert !Rails::AppRailsLoader.exec_app_rails
+      end
+
+      test "is in a Rails application if parent directory has #{exe} containing #{keyword} and chdirs to the root directory" do
+        write "foo/bar/#{exe}"
+        write "foo/#{exe}", keyword
+
+        Dir.chdir('foo/bar')
+
+        expects_exec exe
+        Rails::AppRailsLoader.exec_app_rails
+
+        # Compare the realpath in case either of them has symlinks.
+        #
+        # This happens in particular in Mac OS X, where @tmp starts
+        # with "/var", and Dir.pwd with "/private/var", due to a
+        # default system symlink var -> private/var.
+        assert_equal File.realpath("#@tmp/foo"), File.realpath(Dir.pwd)
+      end
+    end
   end
 
-  test "is in a rails engine if parent directory has bin/rails containing ENGINE_PATH" do
-    File.stubs(:exists?).with("/foo/bar/bin/rails").returns(false)
-    File.stubs(:exists?).with("/foo/bin/rails").returns(true)
-    File.stubs(:read).with('/foo/bin/rails').returns('ENGINE_PATH')
-    assert Rails::AppRailsLoader.in_rails_application_or_engine_subdirectory?(Pathname.new("/foo/bar"))
-  end
-
-  test "is in a rails engine if bin/rails exists containing ENGINE_PATH" do
-    File.stubs(:exists?).returns(true)
-    File.stubs(:read).with('bin/rails').returns('ENGINE_PATH')
-    assert Rails::AppRailsLoader.in_rails_application_or_engine?
+  teardown do
+    Dir.chdir(@cwd)
+    FileUtils.rm_rf(@tmp)
   end
 end

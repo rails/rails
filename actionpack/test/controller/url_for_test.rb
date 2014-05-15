@@ -89,6 +89,13 @@ module AbstractController
         )
       end
 
+      def test_subdomain_may_be_removed_with_blank_string
+        W.default_url_options[:host] = 'api.basecamphq.com'
+        assert_equal('http://basecamphq.com/c/a/i',
+          W.new.url_for(:subdomain => '', :controller => 'c', :action => 'a', :id => 'i')
+        )
+      end
+
       def test_multiple_subdomains_may_be_removed
         W.default_url_options[:host] = 'mobile.www.api.basecamphq.com'
         assert_equal('http://basecamphq.com/c/a/i',
@@ -162,6 +169,18 @@ module AbstractController
         )
       end
 
+      def test_without_protocol_and_with_port
+        add_host!
+        add_port!
+
+        assert_equal('//www.basecamphq.com:3000/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => '//')
+        )
+        assert_equal('//www.basecamphq.com:3000/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => false)
+        )
+      end
+
       def test_trailing_slash
         add_host!
         options = {:controller => 'foo', :trailing_slash => true, :action => 'bar', :id => '33'}
@@ -197,9 +216,6 @@ module AbstractController
       end
 
       def test_relative_url_root_is_respected
-        # ROUTES TODO: Tests should not have to pass :relative_url_root directly. This
-        # should probably come from routes.
-
         add_host!
         assert_equal('https://www.basecamphq.com/subdir/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :script_name => '/subdir')
@@ -361,6 +377,24 @@ module AbstractController
 
       def test_false_url_params_are_included_in_query
         assert_equal("/c/a?show=false", W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :show => false))
+      end
+
+      def test_url_generation_with_array_and_hash
+        with_routing do |set|
+          set.draw do
+            namespace :admin do
+              resources :posts
+            end
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = 'www.basecamphq.com'
+
+          controller = kls.new
+          assert_equal("http://www.basecamphq.com/admin/posts/new?param=value",
+            controller.send(:url_for, [:new, :admin, :post, { param: 'value' }])
+          )
+        end
       end
 
       private

@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapter < AbstractAdapter
+    module PostgreSQL
       module DatabaseStatements
         def explain(arel, binds = [])
           sql = "EXPLAIN #{to_sql(arel, binds)}"
@@ -44,10 +44,32 @@ module ActiveRecord
           end
         end
 
+        def select_value(arel, name = nil, binds = [])
+          arel, binds = binds_from_relation arel, binds
+          sql = to_sql(arel, binds)
+          execute_and_clear(sql, name, binds) do |result|
+            result.getvalue(0, 0) if result.ntuples > 0 && result.nfields > 0
+          end
+        end
+
+        def select_values(arel, name = nil)
+          arel, binds = binds_from_relation arel, []
+          sql = to_sql(arel, binds)
+          execute_and_clear(sql, name, binds) do |result|
+            if result.nfields > 0
+              result.column_values(0)
+            else
+              []
+            end
+          end
+        end
+
         # Executes a SELECT query and returns an array of rows. Each row is an
         # array of field values.
-        def select_rows(sql, name = nil)
-          select_raw(sql, name).last
+        def select_rows(sql, name = nil, binds = [])
+          execute_and_clear(sql, name, binds) do |result|
+            result.values
+          end
         end
 
         # Executes an INSERT query and returns the new record's ID
@@ -71,6 +93,11 @@ module ActiveRecord
         def create
           super.insert
         end
+
+        # The internal PostgreSQL identifier of the money data type.
+        MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
+        # The internal PostgreSQL identifier of the BYTEA data type.
+        BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
 
         # create a 2D array representing the result set
         def result_as_array(res) #:nodoc:
@@ -134,34 +161,20 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = 'SQL', binds = [])
-          log(sql, name, binds) do
-            result = binds.empty? ? exec_no_cache(sql, binds) :
-                                    exec_cache(sql, binds)
-
+          execute_and_clear(sql, name, binds) do |result|
             types = {}
-            result.fields.each_with_index do |fname, i|
+            fields = result.fields
+            fields.each_with_index do |fname, i|
               ftype = result.ftype i
               fmod  = result.fmod i
-              types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
-                warn "unknown OID: #{fname}(#{oid}) (#{sql})"
-                OID::Identity.new
-              }
+              types[fname] = get_oid_type(ftype, fmod, fname)
             end
-
-            ret = ActiveRecord::Result.new(result.fields, result.values, types)
-            result.clear
-            return ret
+            ActiveRecord::Result.new(fields, result.values, types)
           end
         end
 
         def exec_delete(sql, name = 'SQL', binds = [])
-          log(sql, name, binds) do
-            result = binds.empty? ? exec_no_cache(sql, binds) :
-                                    exec_cache(sql, binds)
-            affected = result.cmd_tuples
-            result.clear
-            affected
-          end
+          execute_and_clear(sql, name, binds) {|result| result.cmd_tuples }
         end
         alias :exec_update :exec_delete
 
@@ -216,25 +229,6 @@ module ActiveRecord
         # Aborts a transaction.
         def rollback_db_transaction
           execute "ROLLBACK"
-        end
-
-        def outside_transaction?
-          message = "#outside_transaction? is deprecated. This method was only really used " \
-                    "internally, but you can use #transaction_open? instead."
-          ActiveSupport::Deprecation.warn message
-          @connection.transaction_status == PGconn::PQTRANS_IDLE
-        end
-
-        def create_savepoint
-          execute("SAVEPOINT #{current_savepoint_name}")
-        end
-
-        def rollback_to_savepoint
-          execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
-        end
-
-        def release_savepoint
-          execute("RELEASE SAVEPOINT #{current_savepoint_name}")
         end
       end
     end

@@ -1,10 +1,13 @@
 # encoding: utf-8
+
+require 'thread_safe'
+
 module ActionDispatch
   module Journey # :nodoc:
     module Visitors # :nodoc:
       class Visitor # :nodoc:
-        DISPATCH_CACHE = Hash.new { |h,k|
-          h[k] = "visit_#{k}"
+        DISPATCH_CACHE = ThreadSafe::Cache.new { |h,k|
+          h[k] = :"visit_#{k}"
         }
 
         def accept(node)
@@ -74,46 +77,86 @@ module ActionDispatch
         end
       end
 
-      # Used for formatting urls (url_for)
-      class Formatter < Visitor # :nodoc:
-        attr_reader :options, :consumed
-
-        def initialize(options)
-          @options  = options
-          @consumed = {}
+      class OptimizedPath < Visitor # :nodoc:
+        def accept(node)
+          Array(visit(node))
         end
 
         private
 
-          def visit_GROUP(node)
-            if consumed == options
-              nil
-            else
-              route = visit(node.left)
-              route.include?("\0") ? nil : route
-            end
-          end
-
-          def terminal(node)
-            node.left
-          end
-
-          def binary(node)
-            [visit(node.left), visit(node.right)].join
-          end
-
-          def nary(node)
-            node.children.map { |c| visit(c) }.join
+          def visit_CAT(node)
+            [visit(node.left), visit(node.right)].flatten
           end
 
           def visit_SYMBOL(node)
-            key = node.to_sym
+            node.left[1..-1].to_sym
+          end
 
-            if value = options[key]
-              consumed[key] = value
-              Router::Utils.escape_path(value)
+          def visit_STAR(node)
+            visit(node.left)
+          end
+
+          def visit_GROUP(node)
+            []
+          end
+
+          %w{ LITERAL SLASH DOT }.each do |t|
+            class_eval %{ def visit_#{t}(n); n.left; end }, __FILE__, __LINE__
+          end
+      end
+
+      # Used for formatting urls (url_for)
+      class Formatter < Visitor # :nodoc:
+        attr_reader :options
+
+        def initialize(options)
+          @options  = options
+        end
+
+        private
+          def escape_path(value)
+            Router::Utils.escape_path(value)
+          end
+
+          def escape_segment(value)
+            Router::Utils.escape_segment(value)
+          end
+
+          def visit(node, optional = false)
+            case node.type
+            when :LITERAL, :SLASH, :DOT
+              node.left
+            when :STAR
+              visit_STAR(node.left)
+            when :GROUP
+              visit(node.left, true)
+            when :CAT
+              visit_CAT(node, optional)
+            when :SYMBOL
+              visit_SYMBOL(node, node.to_sym)
+            end
+          end
+
+          def visit_CAT(node, optional)
+            left = visit(node.left, optional)
+            right = visit(node.right, optional)
+
+            if optional && !(right && left)
+              ""
             else
-              "\0"
+              [left, right].join
+            end
+          end
+
+          def visit_STAR(node)
+            if value = options[node.to_sym]
+              escape_path(value)
+            end
+          end
+
+          def visit_SYMBOL(node, name)
+            if value = options[name]
+              name == :controller ? escape_path(value) : escape_segment(value)
             end
           end
       end

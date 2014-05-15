@@ -12,7 +12,24 @@ module AbstractController
       self._helper_methods = Array.new
     end
 
+    class MissingHelperError < LoadError
+      def initialize(error, path)
+        @error = error
+        @path  = "helpers/#{path}.rb"
+        set_backtrace error.backtrace
+
+        if error.path =~ /^#{path}(\.rb)?$/
+          super("Missing helper file helpers/%s.rb" % path)
+        else
+          raise error
+        end
+      end
+    end
+
     module ClassMethods
+      MissingHelperError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('AbstractController::Helpers::ClassMethods::MissingHelperError',
+                                                                                   'AbstractController::Helpers::MissingHelperError')
+
       # When a class is inherited, wrap its helper module in a new module.
       # This ensures that the parent class's module can be changed
       # independently of the child class's.
@@ -29,7 +46,7 @@ module AbstractController
       #     helper_method :current_user, :logged_in?
       #
       #     def current_user
-      #       @current_user ||= User.find_by_id(session[:user])
+      #       @current_user ||= User.find_by(id: session[:user])
       #     end
       #
       #     def logged_in?
@@ -59,7 +76,7 @@ module AbstractController
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
       # ==== Options
-      # * <tt>*args</tt> - Module, Symbol, String, :all
+      # * <tt>*args</tt> - Module, Symbol, String
       # * <tt>block</tt> - A block defining helper methods
       #
       # When the argument is a module it will be included directly in the template class.
@@ -134,7 +151,7 @@ module AbstractController
             begin
               require_dependency(file_name)
             rescue LoadError => e
-              raise MissingHelperError.new(e, file_name)
+              raise AbstractController::Helpers::MissingHelperError.new(e, file_name)
             end
             file_name.camelize.constantize
           when Module
@@ -142,15 +159,6 @@ module AbstractController
           else
             raise ArgumentError, "helper must be a String, Symbol, or Module"
           end
-        end
-      end
-
-      class MissingHelperError < LoadError
-        def initialize(error, path)
-          @error = error
-          @path  = "helpers/#{path}.rb"
-          set_backtrace error.backtrace
-          super("Missing helper file helpers/%s.rb" % path)
         end
       end
 

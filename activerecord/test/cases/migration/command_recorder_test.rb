@@ -4,7 +4,8 @@ module ActiveRecord
   class Migration
     class CommandRecorderTest < ActiveRecord::TestCase
       def setup
-        @recorder = CommandRecorder.new
+        connection = ActiveRecord::Base.connection
+        @recorder  = CommandRecorder.new(connection)
       end
 
       def test_respond_to_delegates
@@ -173,13 +174,13 @@ module ActiveRecord
       end
 
       def test_invert_add_index
-        remove = @recorder.inverse_of :add_index, [:table, [:one, :two], options: true]
-        assert_equal [:remove_index, [:table, {column: [:one, :two], options: true}]], remove
+        remove = @recorder.inverse_of :add_index, [:table, [:one, :two]]
+        assert_equal [:remove_index, [:table, {column: [:one, :two]}]], remove
       end
 
       def test_invert_add_index_with_name
         remove = @recorder.inverse_of :add_index, [:table, [:one, :two], name: "new_index"]
-        assert_equal [:remove_index, [:table, {column: [:one, :two], name: "new_index"}]], remove
+        assert_equal [:remove_index, [:table, {name: "new_index"}]], remove
       end
 
       def test_invert_add_index_with_no_options
@@ -241,6 +242,16 @@ module ActiveRecord
       def test_invert_remove_belongs_to_alias
         add = @recorder.inverse_of :remove_belongs_to, [:table, :user]
         assert_equal [:add_reference, [:table, :user], nil], add
+      end
+
+      def test_invert_enable_extension
+        disable = @recorder.inverse_of :enable_extension, ['uuid-ossp']
+        assert_equal [:disable_extension, ['uuid-ossp'], nil], disable
+      end
+
+      def test_invert_disable_extension
+        enable = @recorder.inverse_of :disable_extension, ['uuid-ossp']
+        assert_equal [:enable_extension, ['uuid-ossp'], nil], enable
       end
     end
   end

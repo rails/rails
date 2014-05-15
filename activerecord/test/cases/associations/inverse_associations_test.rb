@@ -5,6 +5,102 @@ require 'models/interest'
 require 'models/zine'
 require 'models/club'
 require 'models/sponsor'
+require 'models/rating'
+require 'models/comment'
+require 'models/car'
+require 'models/bulb'
+require 'models/mixed_case_monkey'
+
+class AutomaticInverseFindingTests < ActiveRecord::TestCase
+  fixtures :ratings, :comments, :cars
+
+  def test_has_one_and_belongs_to_should_find_inverse_automatically_on_multiple_word_name
+    monkey_reflection = MixedCaseMonkey.reflect_on_association(:man)
+    man_reflection = Man.reflect_on_association(:mixed_case_monkey)
+
+    assert_respond_to monkey_reflection, :has_inverse?
+    assert monkey_reflection.has_inverse?, "The monkey reflection should have an inverse"
+    assert_equal man_reflection, monkey_reflection.inverse_of, "The monkey reflection's inverse should be the man reflection"
+
+    assert_respond_to man_reflection, :has_inverse?
+    assert man_reflection.has_inverse?, "The man reflection should have an inverse"
+    assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
+  end
+
+  def test_has_one_and_belongs_to_should_find_inverse_automatically
+    car_reflection = Car.reflect_on_association(:bulb)
+    bulb_reflection = Bulb.reflect_on_association(:car)
+
+    assert_respond_to car_reflection, :has_inverse?
+    assert car_reflection.has_inverse?, "The Car reflection should have an inverse"
+    assert_equal bulb_reflection, car_reflection.inverse_of, "The Car reflection's inverse should be the Bulb reflection"
+
+    assert_respond_to bulb_reflection, :has_inverse?
+    assert bulb_reflection.has_inverse?, "The Bulb reflection should have an inverse"
+    assert_equal car_reflection, bulb_reflection.inverse_of, "The Bulb reflection's inverse should be the Car reflection"
+  end
+
+  def test_has_many_and_belongs_to_should_find_inverse_automatically
+    comment_reflection = Comment.reflect_on_association(:ratings)
+    rating_reflection = Rating.reflect_on_association(:comment)
+
+    assert_respond_to comment_reflection, :has_inverse?
+    assert comment_reflection.has_inverse?, "The Comment reflection should have an inverse"
+    assert_equal rating_reflection, comment_reflection.inverse_of, "The Comment reflection's inverse should be the Rating reflection"
+  end
+
+  def test_has_one_and_belongs_to_automatic_inverse_shares_objects
+    car = Car.first
+    bulb = Bulb.create!(car: car)
+
+    assert_equal car.bulb, bulb, "The Car's bulb should be the original bulb"
+
+    car.bulb.color = "Blue"
+    assert_equal car.bulb.color, bulb.color, "Changing the bulb's color on the car association should change the bulb's color"
+
+    bulb.color = "Red"
+    assert_equal bulb.color, car.bulb.color, "Changing the bulb's color should change the bulb's color on the car association"
+  end
+
+  def test_has_many_and_belongs_to_automatic_inverse_shares_objects_on_rating
+    comment = Comment.first
+    rating = Rating.create!(comment: comment)
+
+    assert_equal rating.comment, comment, "The Rating's comment should be the original Comment"
+
+    rating.comment.body = "Brogramming is the act of programming, like a bro."
+    assert_equal rating.comment.body, comment.body, "Changing the Comment's body on the association should change the original Comment's body"
+
+    comment.body = "Broseiden is the king of the sea of bros."
+    assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
+  end
+
+  def test_has_many_and_belongs_to_automatic_inverse_shares_objects_on_comment
+    rating = Rating.create!
+    comment = Comment.first
+    rating.comment = comment
+
+    assert_equal rating.comment, comment, "The Rating's comment should be the original Comment"
+
+    rating.comment.body = "Brogramming is the act of programming, like a bro."
+    assert_equal rating.comment.body, comment.body, "Changing the Comment's body on the association should change the original Comment's body"
+
+    comment.body = "Broseiden is the king of the sea of bros."
+    assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
+  end
+
+  def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses
+    sponsor_reflection = Sponsor.reflect_on_association(:sponsorable)
+
+    assert_respond_to sponsor_reflection, :has_inverse?
+    assert !sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
+
+    club_reflection = Club.reflect_on_association(:members)
+
+    assert_respond_to club_reflection, :has_inverse?
+    assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
+  end
+end
 
 class InverseAssociationTests < ActiveRecord::TestCase
   def test_should_allow_for_inverse_of_options_in_associations
@@ -235,6 +331,22 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
+  def test_parent_instance_should_be_shared_within_create_block_of_new_child
+    man = Man.first
+    interest = man.interests.build do |i|
+      assert i.man.equal?(man), "Man of child should be the same instance as a parent"
+    end
+    assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"
+  end
+
+  def test_parent_instance_should_be_shared_within_build_block_of_new_child
+    man = Man.first
+    interest = man.interests.build do |i|
+      assert i.man.equal?(man), "Man of child should be the same instance as a parent"
+    end
+    assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"
+  end
+
   def test_parent_instance_should_be_shared_with_poked_in_child
     m = men(:gordon)
     i = Interest.create(:topic => 'Industrial Revolution Re-enactment')
@@ -278,8 +390,74 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert interests[1].man.equal? man
   end
 
+  def test_parent_instance_should_find_child_instance_using_child_instance_id
+    man = Man.create!
+    interest = Interest.create!
+    man.interests = [interest]
+
+    assert interest.equal?(man.interests.first), "The inverse association should use the interest already created and held in memory"
+    assert interest.equal?(man.interests.find(interest.id)), "The inverse association should use the interest already created and held in memory"
+    assert man.equal?(man.interests.first.man), "Two inversion should lead back to the same object that was originally held"
+    assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
+  end
+
+  def test_parent_instance_should_find_child_instance_using_child_instance_id_when_created
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    assert man.equal?(man.interests.first.man), "Two inverses should lead back to the same object that was originally held"
+    assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
+
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
+    man.name = "Ben Bitdiddle"
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the parent name is changed"
+    man.interests.find(interest.id).man.name = "Alyssa P. Hacker"
+    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the child name is changed"
+  end
+
+  def test_find_on_child_instance_with_id_should_not_load_all_child_records
+    man = Man.create!
+    interest = Interest.create!(man: man)
+
+    man.interests.find(interest.id)
+    assert_not man.interests.loaded?
+  end
+
+  def test_raise_record_not_found_error_when_invalid_ids_are_passed
+    # delete all interest records to ensure that hard coded invalid_id(s)
+    # are indeed invalid.
+    Interest.delete_all
+
+    man = Man.create!
+
+    invalid_id = 245324523
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_id) }
+
+    invalid_ids = [8432342, 2390102913, 2453245234523452]
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find(invalid_ids) }
+  end
+
+  def test_raise_record_not_found_error_when_no_ids_are_passed
+    man = Man.create!
+
+    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find() }
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.secret_interests }
+  end
+
+  def test_child_instance_should_point_to_parent_without_saving
+    man = Man.new
+    i = Interest.create(:topic => 'Industrial Revolution Re-enactment')
+
+    man.interests << i
+    assert_not_nil i.man
+
+    i.man.name = "Charles"
+    assert_equal i.man.name, man.name
+
+    assert !man.persisted?
   end
 end
 
@@ -423,6 +601,18 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to parent instance"
     new_man.polymorphic_face.description = 'Mungo'
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
+  end
+
+  def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed
+    new_man = Man.new
+    face = Face.new
+    new_man.face = face
+
+    old_inversed_man = face.man
+    new_man.save!
+    new_inversed_man = face.man
+
+    assert_equal old_inversed_man.object_id, new_inversed_man.object_id
   end
 
   def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many

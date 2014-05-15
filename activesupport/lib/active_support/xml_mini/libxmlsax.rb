@@ -32,7 +32,7 @@ module ActiveSupport
       end
 
       def on_start_element(name, attrs = {})
-        new_hash = { CONTENT_KEY => '' }.merge(attrs)
+        new_hash = { CONTENT_KEY => '' }.merge!(attrs)
         new_hash[HASH_SIZE_KEY] = new_hash.size + 1
 
         case current_hash[name]

@@ -49,6 +49,10 @@ module ActiveSupport
       end
     end
 
+    def eql?(other)
+      other.is_a?(Duration) && self == other
+    end
+
     def self.===(other) #:nodoc:
       other.is_a?(Duration)
     rescue ::NoMethodError
@@ -70,13 +74,11 @@ module ActiveSupport
     alias :until :ago
 
     def inspect #:nodoc:
-      consolidated = parts.inject(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }
-      parts = [:years, :months, :days, :minutes, :seconds].map do |length|
-        n = consolidated[length]
-        "#{n} #{n == 1 ? length.to_s.singularize : length.to_s}" if n.nonzero?
-      end.compact
-      parts = ["0 seconds"] if parts.empty?
-      parts.to_sentence(:locale => :en)
+      parts.
+        reduce(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }.
+        sort_by {|unit,  _ | [:years, :months, :days, :minutes, :seconds].index(unit)}.
+        map     {|unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}"}.
+        to_sentence(:locale => :en)
     end
 
     def as_json(options = nil) #:nodoc:
@@ -100,6 +102,14 @@ module ActiveSupport
       end
 
     private
+
+      # We define it as a workaround to Ruby 2.0.0-p353 bug.
+      # For more information, check rails/rails#13055.
+      # It should be dropped once a new Ruby patch-level
+      # release after 2.0.0-p353 happens.
+      def ===(other) #:nodoc:
+        value === other
+      end
 
       def method_missing(method, *args, &block) #:nodoc:
         value.send(method, *args, &block)

@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'active_support/concurrency/latch'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -22,8 +23,7 @@ module ActiveRecord
         end
       end
 
-      def teardown
-        super
+      teardown do
         @pool.disconnect!
       end
 
@@ -89,10 +89,9 @@ module ActiveRecord
       end
 
       def test_full_pool_exception
+        @pool.size.times { @pool.checkout }
         assert_raises(ConnectionTimeoutError) do
-          (@pool.size + 1).times do
-            @pool.checkout
-          end
+          @pool.checkout
         end
       end
 
@@ -118,13 +117,13 @@ module ActiveRecord
         connection = cs.first
         @pool.remove connection
         assert_respond_to t.join.value, :execute
+        connection.close
       end
 
       def test_reap_and_active
         @pool.checkout
         @pool.checkout
         @pool.checkout
-        @pool.dead_connection_timeout = 0
 
         connections = @pool.connections.dup
 
@@ -134,21 +133,25 @@ module ActiveRecord
       end
 
       def test_reap_inactive
+        ready = ActiveSupport::Concurrency::Latch.new
         @pool.checkout
-        @pool.checkout
-        @pool.checkout
-        @pool.dead_connection_timeout = 0
-
-        connections = @pool.connections.dup
-        connections.each do |conn|
-          conn.extend(Module.new { def active?; false; end; })
+        child = Thread.new do
+          @pool.checkout
+          @pool.checkout
+          ready.release
+          Thread.stop
         end
+        ready.await
 
+        assert_equal 3, active_connections(@pool).size
+
+        child.terminate
+        child.join
         @pool.reap
 
-        assert_equal 0, @pool.connections.length
+        assert_equal 1, active_connections(@pool).size
       ensure
-        connections.each(&:close)
+        @pool.connections.each(&:close)
       end
 
       def test_remove_connection
@@ -185,7 +188,7 @@ module ActiveRecord
         assert_not_nil connection
         threads = []
         4.times do |i|
-          threads << Thread.new(i) do |pool_count|
+          threads << Thread.new(i) do
             connection = pool.connection
             assert_not_nil connection
             connection.close
@@ -326,6 +329,17 @@ module ActiveRecord
 
       def test_pool_sets_connection_visitor
         assert @pool.connection.visitor.is_a?(Arel::Visitors::ToSql)
+      end
+
+      # make sure exceptions are thrown when establish_connection
+      # is called with an anonymous class
+      def test_anonymous_class_exception
+        anonymous = Class.new(ActiveRecord::Base)
+        handler = ActiveRecord::Base.connection_handler
+
+        assert_raises(RuntimeError) {
+          handler.establish_connection anonymous, nil
+        }
       end
     end
   end

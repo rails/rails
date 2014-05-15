@@ -40,7 +40,7 @@ Here's a summary of the rack-related changes:
 * `ActiveRecord::QueryCache` middleware is automatically inserted onto the middleware stack if `ActiveRecord` has been loaded. This middleware sets up and flushes the per-request Active Record query cache.
 * The Rails router and controller classes follow the Rack spec. You can call a controller directly with `SomeController.call(env)`. The router stores the routing parameters in `rack.routing_args`.
 * `ActionController::Request` inherits from `Rack::Request`.
-* Instead of `config.action_controller.session = { :session_key => 'foo', ...` use  `config.action_controller.session = { :key => 'foo', ...`.
+* Instead of `config.action_controller.session = { :session_key => 'foo', ...` use `config.action_controller.session = { :key => 'foo', ...`.
 * Using the `ParamsParser` middleware preprocesses any XML, JSON, or YAML requests so they can be read normally with any `Rack::Request` object after it.
 
 ### Renewed Support for Rails Engines
@@ -134,7 +134,7 @@ Rails 2.3 will introduce the notion of _default scopes_ similar to named scopes,
 
 ### Batch Processing
 
-You can now process large numbers of records from an ActiveRecord model with less pressure on memory by using `find_in_batches`:
+You can now process large numbers of records from an Active Record model with less pressure on memory by using `find_in_batches`:
 
 ```ruby
 Customer.find_in_batches(:conditions => {:active => true}) do |customer_group|
@@ -173,8 +173,8 @@ before_save :update_credit_rating, :if => :active,
 Rails now has a `:having` option on find (as well as on `has_many` and `has_and_belongs_to_many` associations) for filtering records in grouped finds. As those with heavy SQL backgrounds know, this allows filtering based on grouped results:
 
 ```ruby
-developers =  Developer.find(:all, :group => "salary",
-  :having => "sum(salary) >  10000", :select => "salary")
+developers = Developer.find(:all, :group => "salary",
+  :having => "sum(salary) > 10000", :select => "salary")
 ```
 
 * Lead Contributor: [Emilio Tagua](http://github.com/miloops)
@@ -237,7 +237,7 @@ If you're one of the people who has always been bothered by the special-case nam
 
 ### HTTP Digest Authentication Support
 
-Rails now has built-in support for HTTP digest authentication. To use it, you call `authenticate_or_request_with_http_digest` with a block that returns the user’s password (which is then hashed and compared against the transmitted credentials):
+Rails now has built-in support for HTTP digest authentication. To use it, you call `authenticate_or_request_with_http_digest` with a block that returns the user's password (which is then hashed and compared against the transmitted credentials):
 
 ```ruby
 class PostsController < ApplicationController
@@ -451,11 +451,11 @@ select(:post, :category, Post::CATEGORIES, :disabled => 'private')
 returns
 
 ```html
-<select name=“post[category]“>
+<select name="post[category]">
 <option>story</option>
 <option>joke</option>
 <option>poem</option>
-<option disabled=“disabled“>private</option>
+<option disabled="disabled">private</option>
 </select>
 ```
 
@@ -504,7 +504,7 @@ A lot of folks have adopted the notion of using try() to attempt operations on o
 
 ### Swappable Parsers for XMLmini
 
-The support for XML parsing in ActiveSupport has been made more flexible by allowing you to swap in different parsers. By default, it uses the standard REXML implementation, but you can easily specify the faster LibXML or Nokogiri implementations for your own applications, provided you have the appropriate gems installed:
+The support for XML parsing in Active Support has been made more flexible by allowing you to swap in different parsers. By default, it uses the standard REXML implementation, but you can easily specify the faster LibXML or Nokogiri implementations for your own applications, provided you have the appropriate gems installed:
 
 ```ruby
 XmlMini.backend = 'LibXML'
@@ -594,7 +594,7 @@ The internals of the various <code>rake gem</code> tasks have been substantially
 * Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding `--with-dispatchers` when you run the `rails` command, or add them later with `rake rails:update:generate_dispatchers`).
 * Rails Guides have been converted from AsciiDoc to Textile markup.
 * Scaffolded views and controllers have been cleaned up a bit.
-* `script/server` now accepts a <tt>--path</tt> argument to mount a Rails application from a specific path.
+* `script/server` now accepts a `--path` argument to mount a Rails application from a specific path.
 * If any configured gems are missing, the gem rake tasks will skip loading much of the environment. This should solve many of the "chicken-and-egg" problems where rake gems:install couldn't run because gems were missing.
 * Gems are now unpacked exactly once. This fixes issues with gems (hoe, for instance) which are packed with read-only permissions on the files.
 
@@ -604,9 +604,9 @@ Deprecated
 A few pieces of older code are deprecated in this release:
 
 * If you're one of the (fairly rare) Rails developers who deploys in a fashion that depends on the inspector, reaper, and spawner scripts, you'll need to know that those scripts are no longer included in core Rails. If you need them, you'll be able to pick up copies via the [irs_process_scripts](http://github.com/rails/irs_process_scripts/tree) plugin.
-* `render_component` goes from "deprecated" to "nonexistent" in Rails 2.3. If you still need it, you can install the [render_component plugin](http://github.com/rails/render_component/tree/master.)
+* `render_component` goes from "deprecated" to "nonexistent" in Rails 2.3. If you still need it, you can install the [render_component plugin](http://github.com/rails/render_component/tree/master).
 * Support for Rails components has been removed.
-* If you were one of the people who got used to running `script/performance/request` to look at performance based on integration tests, you need to learn a new trick: that script has been removed from core Rails now. There’s a new request_profiler plugin that you can install to get the exact same functionality back.
+* If you were one of the people who got used to running `script/performance/request` to look at performance based on integration tests, you need to learn a new trick: that script has been removed from core Rails now. There's a new request_profiler plugin that you can install to get the exact same functionality back.
 * `ActionController::Base#session_enabled?` is deprecated because sessions are lazy-loaded now.
 * The `:digest` and `:secret` options to `protect_from_forgery` are deprecated and have no effect.
 * Some integration test helpers have been removed. `response.headers["Status"]` and `headers["Status"]` will no longer return anything. Rack does not allow "Status" in its return headers. However you can still use the `status` and `status_message` helpers. `response.headers["cookie"]` and `headers["cookie"]` will no longer return any CGI cookies. You can inspect `headers["Set-Cookie"]` to see the raw cookie header or use the `cookies` helper to get a hash of the cookies sent to the client.
@@ -618,4 +618,4 @@ A few pieces of older code are deprecated in this release:
 Credits
 -------
 
-Release notes compiled by [Mike Gunderloy](http://afreshcup.com.) This version of the Rails 2.3 release notes was compiled based on RC2 of Rails 2.3.
+Release notes compiled by [Mike Gunderloy](http://afreshcup.com). This version of the Rails 2.3 release notes was compiled based on RC2 of Rails 2.3.

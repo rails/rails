@@ -19,7 +19,7 @@ module ApplicationTests
     end
 
     test "default middleware stack" do
-      add_to_config "config.action_dispatch.x_sendfile_header = 'X-Sendfile'"
+      add_to_config "config.active_record.migration_error = :page_load"
 
       boot!
 
@@ -37,6 +37,7 @@ module ApplicationTests
         "ActionDispatch::RemoteIp",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::Migration::CheckPending",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
@@ -45,15 +46,8 @@ module ApplicationTests
         "ActionDispatch::ParamsParser",
         "Rack::Head",
         "Rack::ConditionalGet",
-        "Rack::ETag",
-        "ActionDispatch::BestStandardsSupport"
+        "Rack::ETag"
       ], middleware
-    end
-
-    test "Rack::Sendfile is not included by default" do
-      boot!
-
-      assert !middleware.include?("Rack::Sendfile"), "Rack::Sendfile is not included in the default stack unless you set config.action_dispatch.x_sendfile_header"
     end
 
     test "Rack::Cache is not included by default" do
@@ -67,7 +61,15 @@ module ApplicationTests
 
       boot!
 
-      assert_equal "Rack::Cache", middleware.first
+      assert middleware.include?("Rack::Cache")
+    end
+
+    test "ActiveRecord::Migration::CheckPending is present when active_record.migration_error is set to :page_load" do
+      add_to_config "config.active_record.migration_error = :page_load"
+
+      boot!
+
+      assert middleware.include?("ActiveRecord::Migration::CheckPending")
     end
 
     test "ActionDispatch::SSL is present when force_ssl is set" do
@@ -81,7 +83,7 @@ module ApplicationTests
       add_to_config "config.ssl_options = { host: 'example.com' }"
       boot!
 
-      assert_equal AppTemplate::Application.middleware.first.args, [{host: 'example.com'}]
+      assert_equal Rails.application.middleware.first.args, [{host: 'example.com'}]
     end
 
     test "removing Active Record omits its middleware" do
@@ -89,10 +91,17 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
+      assert !middleware.include?("ActiveRecord::Migration::CheckPending")
     end
 
     test "removes lock if cache classes is set" do
       add_to_config "config.cache_classes = true"
+      boot!
+      assert !middleware.include?("Rack::Lock")
+    end
+
+    test "removes lock if allow concurrency is set" do
+      add_to_config "config.allow_concurrency = true"
       boot!
       assert !middleware.include?("Rack::Lock")
     end
@@ -130,24 +139,30 @@ module ApplicationTests
     end
 
     test "insert middleware after" do
-      add_to_config "config.middleware.insert_after ActionDispatch::Static, Rack::Config"
+      add_to_config "config.middleware.insert_after Rack::Sendfile, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.second
+    end
+
+    test 'unshift middleware' do
+      add_to_config 'config.middleware.unshift Rack::Config'
+      boot!
+      assert_equal 'Rack::Config', middleware.first
     end
 
     test "Rails.cache does not respond to middleware" do
       add_to_config "config.cache_store = :memory_store"
       boot!
-      assert_equal "Rack::Runtime", middleware.third
+      assert_equal "Rack::Runtime", middleware.fourth
     end
 
     test "Rails.cache does respond to middleware" do
       boot!
-      assert_equal "Rack::Runtime", middleware.fourth
+      assert_equal "Rack::Runtime", middleware.fifth
     end
 
     test "insert middleware before" do
-      add_to_config "config.middleware.insert_before ActionDispatch::Static, Rack::Config"
+      add_to_config "config.middleware.insert_before Rack::Sendfile, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.first
     end
@@ -212,7 +227,7 @@ module ApplicationTests
       end
 
       def middleware
-        AppTemplate::Application.middleware.map(&:klass).map(&:name)
+        Rails.application.middleware.map(&:klass).map(&:name)
       end
   end
 end

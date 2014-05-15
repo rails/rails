@@ -23,6 +23,13 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses boolean and number json params for application json" do
+    assert_parses(
+      {"item" => {"enabled" => false, "count" => 10}},
+      "{\"item\": {\"enabled\": false, \"count\": 10}}", { 'CONTENT_TYPE' => 'application/json' }
+    )
+  end
+
   test "parses json params for application jsonrequest" do
     assert_parses(
       {"person" => {"name" => "David"}},
@@ -50,7 +57,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       output = StringIO.new
       json = "[\"person]\": {\"name\": \"David\"}}"
       post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output)}
-      assert_response :error
+      assert_response :bad_request
       output.rewind && err = output.read
       assert err =~ /Error occurred while parsing request parameters/
     end
@@ -62,11 +69,18 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
         $stderr = StringIO.new # suppress the log
         json = "[\"person]\": {\"name\": \"David\"}}"
         exception = assert_raise(ActionDispatch::ParamsParser::ParseError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
-        assert_equal MultiJson::DecodeError, exception.original_exception.class
+        assert_equal JSON::ParserError, exception.original_exception.class
         assert_equal exception.original_exception.message, exception.message
       ensure
         $stderr = STDERR
       end
+    end
+  end
+
+  test 'raw_post is not empty for JSON request' do
+    with_test_routing do
+      post '/parse', '{"posts": [{"title": "Post Title"}]}', 'CONTENT_TYPE' => 'application/json'
+      assert_equal '{"posts": [{"title": "Post Title"}]}', request.raw_post
     end
   end
 
@@ -119,6 +133,13 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     assert_parses(
       {"user" => {"username" => "sikachu"}, "username" => "sikachu"},
       "{\"username\": \"sikachu\"}", { 'CONTENT_TYPE' => 'application/jsonrequest' }
+    )
+  end
+
+  test "parses json with non-object JSON content" do
+    assert_parses(
+      {"user" => {"_json" => "string content" }, "_json" => "string content" },
+      "\"string content\"", { 'CONTENT_TYPE' => 'application/json' }
     )
   end
 

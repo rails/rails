@@ -11,11 +11,11 @@ module ActionController
     #     http_basic_authenticate_with name: "dhh", password: "secret", except: :index
     #
     #     def index
-    #       render text: "Everyone can see me!"
+    #       render plain: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render text: "I'm only accessible if you know the password"
+    #       render plain: "I'm only accessible if you know the password"
     #     end
     #  end
     #
@@ -29,7 +29,7 @@ module ActionController
     #
     #     protected
     #       def set_account
-    #         @account = Account.find_by_url_name(request.subdomains.first)
+    #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
     #
     #       def authenticate
@@ -96,7 +96,7 @@ module ActionController
       end
 
       def user_name_and_password(request)
-        decode_credentials(request).split(/:/, 2)
+        decode_credentials(request).split(':', 2)
       end
 
       def decode_credentials(request)
@@ -127,11 +127,11 @@ module ActionController
     #     before_action :authenticate, except: [:index]
     #
     #     def index
-    #       render text: "Everyone can see me!"
+    #       render plain: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render text: "I'm only accessible if you know the password"
+    #       render plain: "I'm only accessible if you know the password"
     #     end
     #
     #     private
@@ -299,6 +299,7 @@ module ActionController
       # allow a user to use new nonce without prompting user again for their
       # username and password.
       def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
+        return false if value.nil?
         t = ::Base64.decode64(value).split(":").first.to_i
         nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
@@ -320,11 +321,11 @@ module ActionController
     #     before_action :authenticate, except: [ :index ]
     #
     #     def index
-    #       render text: "Everyone can see me!"
+    #       render plain: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render text: "I'm only accessible if you know the password"
+    #       render plain: "I'm only accessible if you know the password"
     #     end
     #
     #     private
@@ -344,7 +345,7 @@ module ActionController
     #
     #     protected
     #       def set_account
-    #         @account = Account.find_by_url_name(request.subdomains.first)
+    #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
     #
     #       def authenticate

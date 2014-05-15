@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
+require 'active_support/json/decoding'
 
 class TestCaseTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -55,6 +56,10 @@ class TestCaseTest < ActionController::TestCase
 
     def test_protocol
       render :text => request.protocol
+    end
+
+    def test_headers
+      render text: request.headers.env.to_json
     end
 
     def test_html_output
@@ -158,6 +163,29 @@ XML
     end
   end
 
+  class DefaultUrlOptionsCachingController < ActionController::Base
+    before_filter { @dynamic_opt = 'opt' }
+
+    def test_url_options_reset
+      render text: url_for(params)
+    end
+
+    def default_url_options
+      if defined?(@dynamic_opt)
+        super.merge dynamic_opt: @dynamic_opt
+      else
+        super
+      end
+    end
+  end
+
+  def test_url_options_reset
+    @controller = DefaultUrlOptionsCachingController.new
+    get :test_url_options_reset
+    assert_nil @request.params['dynamic_opt']
+    assert_match(/dynamic_opt=opt/, @response.body)
+  end
+
   def test_raw_post_handling
     params = Hash[:page, {:name => 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup
@@ -195,11 +223,6 @@ XML
 
   def test_head_params_as_sting
     assert_raise(NoMethodError) { head :test_params, "document body", :id => 10 }
-  end
-
-  def test_options
-    options :test_params
-    assert_equal 200, @response.status
   end
 
   def test_process_without_flash
@@ -279,13 +302,6 @@ XML
   def test_process_with_request_uri_with_params
     process :test_uri, "GET", :id => 7
     assert_equal "/test_case_test/test/test_uri/7", @response.body
-  end
-
-  def test_process_with_old_api
-    assert_deprecated do
-      process :test_uri, :id => 7
-      assert_equal "/test_case_test/test/test_uri/7", @response.body
-    end
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
@@ -626,6 +642,24 @@ XML
     assert_equal 2004, page[:year]
   end
 
+  test "set additional HTTP headers" do
+    @request.headers['Referer'] = "http://nohost.com/home"
+    @request.headers['Content-Type'] = "application/rss+xml"
+    get :test_headers
+    parsed_env = ActiveSupport::JSON.decode(@response.body)
+    assert_equal "http://nohost.com/home", parsed_env["HTTP_REFERER"]
+    assert_equal "application/rss+xml", parsed_env["CONTENT_TYPE"]
+  end
+
+  test "set additional env variables" do
+    @request.headers['HTTP_REFERER'] = "http://example.com/about"
+    @request.headers['CONTENT_TYPE'] = "application/json"
+    get :test_headers
+    parsed_env = ActiveSupport::JSON.decode(@response.body)
+    assert_equal "http://example.com/about", parsed_env["HTTP_REFERER"]
+    assert_equal "application/json", parsed_env["CONTENT_TYPE"]
+  end
+
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
     assert_kind_of String, @request.path_parameters['id']
@@ -693,6 +727,14 @@ XML
     @request.recycle!
     post :no_op
     assert @request.params[:foo].blank?
+  end
+
+  def test_filtered_parameters_reset_between_requests
+    get :no_op, :foo => "bar"
+    assert_equal "bar", @request.filtered_parameters[:foo]
+
+    get :no_op, :foo => "baz"
+    assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
   def test_symbolized_path_params_reset_after_request
@@ -929,5 +971,36 @@ class AnonymousControllerTest < ActionController::TestCase
   def test_controller_name
     get :index
     assert_equal 'anonymous', @response.body
+  end
+end
+
+class RoutingDefaultsTest < ActionController::TestCase
+  def setup
+    @controller = Class.new(ActionController::Base) do
+      def post
+        render :text => request.fullpath
+      end
+
+      def project
+        render :text => request.fullpath
+      end
+    end.new
+
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
+      r.draw do
+        get '/posts/:id', :to => 'anonymous#post', :bucket_type => 'post'
+        get '/projects/:id', :to => 'anonymous#project', :defaults => { :bucket_type => 'project' }
+      end
+    end
+  end
+
+  def test_route_option_can_be_passed_via_process
+    get :post, :id => 1, :bucket_type => 'post'
+    assert_equal '/posts/1', @response.body
+  end
+
+  def test_route_default_is_not_required_for_building_request_uri
+    get :project, :id => 2
+    assert_equal '/projects/2', @response.body
   end
 end

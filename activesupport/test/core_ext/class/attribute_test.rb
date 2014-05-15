@@ -27,7 +27,7 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_equal 1, Class.new(@sub).setting
   end
 
-  test 'query method' do
+  test 'predicate method' do
     assert_equal false, @klass.setting?
     @klass.setting = 1
     assert_equal true, @klass.setting?
@@ -48,7 +48,7 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_equal 1, object.setting
   end
 
-  test 'instance query' do
+  test 'instance predicate' do
     object = @klass.new
     assert_equal false, object.setting?
     object.setting = 1
@@ -71,6 +71,11 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_raise(NoMethodError) { object.setting }
     assert_raise(NoMethodError) { object.setting? }
     assert_raise(NoMethodError) { object.setting = 'boom' }
+  end
+
+  test 'disabling instance predicate' do
+    object = Class.new { class_attribute :setting, instance_predicate: false }.new
+    assert_raise(NoMethodError) { object.setting? }
   end
 
   test 'works well with singleton classes' do

@@ -39,6 +39,31 @@ class DefaultTest < ActiveRecord::TestCase
   end
 end
 
+class DefaultStringsTest < ActiveRecord::TestCase
+  class DefaultString < ActiveRecord::Base; end
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :default_strings do |t|
+      t.string :string_col, default: "Smith"
+      t.string :string_col_with_quotes, default: "O'Connor"
+    end
+    DefaultString.reset_column_information
+  end
+
+  def test_default_strings
+    assert_equal "Smith", DefaultString.new.string_col
+  end
+
+  def test_default_strings_containing_single_quotes
+    assert_equal "O'Connor", DefaultString.new.string_col_with_quotes
+  end
+
+  teardown do
+    @connection.drop_table :default_strings
+  end
+end
+
 if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     # ActiveRecord::Base#create! (and #save and other related methods) will
@@ -181,7 +206,7 @@ if current_adapter?(:PostgreSQLAdapter)
       assert_equal "some text", Default.new.text_col, "Default of text column was not correctly parse after updating default using '::text' since postgreSQL will add parens to the default in db"
     end
 
-    def teardown
+    teardown do
       @connection.schema_search_path = @old_search_path
       Default.reset_column_information
     end

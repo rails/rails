@@ -61,6 +61,16 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
+
+    def test_create_when_database_exists_outputs_info_to_stderr
+      $stderr.expects(:puts).with("my-app-db already exists").once
+
+      ActiveRecord::Base.connection.stubs(:create_database).raises(
+        ActiveRecord::StatementInvalid.new('database "my-app-db" already exists')
+      )
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+    end
   end
 
   class PostgreSQLDBDropTest < ActiveRecord::TestCase
@@ -196,7 +206,7 @@ module ActiveRecord
       @connection.expects(:schema_search_path).returns("foo")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
-      assert File.exists?(filename)
+      assert File.exist?(filename)
     ensure
       FileUtils.rm(filename)
     end
@@ -215,9 +225,16 @@ module ActiveRecord
       Kernel.stubs(:system)
     end
 
-    def test_structure_dump
+    def test_structure_load
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("psql -f #{filename} my-app-db")
+      Kernel.expects(:system).with("psql -q -f #{filename} my-app-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+    end
+
+    def test_structure_load_accepts_path_with_spaces
+      filename = "awesome file.sql"
+      Kernel.expects(:system).with("psql -q -f awesome\\ file.sql my-app-db")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end

@@ -9,7 +9,7 @@ require 'bigdecimal'
 class NumericalityValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   NIL = [nil]
@@ -30,84 +30,84 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_of_with_nil_allowed
-    Topic.validates_numericality_of :approved, :allow_nil => true
+    Topic.validates_numericality_of :approved, allow_nil: true
 
     invalid!(JUNK + BLANK)
     valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
   end
 
   def test_validates_numericality_of_with_integer_only
-    Topic.validates_numericality_of :approved, :only_integer => true
+    Topic.validates_numericality_of :approved, only_integer: true
 
     invalid!(NIL + BLANK + JUNK + FLOATS + BIGDECIMAL + INFINITY)
     valid!(INTEGERS)
   end
 
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
-    Topic.validates_numericality_of :approved, :only_integer => true, :allow_nil => true
+    Topic.validates_numericality_of :approved, only_integer: true, allow_nil: true
 
     invalid!(JUNK + BLANK + FLOATS + BIGDECIMAL + INFINITY)
     valid!(NIL + INTEGERS)
   end
 
   def test_validates_numericality_with_greater_than
-    Topic.validates_numericality_of :approved, :greater_than => 10
+    Topic.validates_numericality_of :approved, greater_than: 10
 
     invalid!([-10, 10], 'must be greater than 10')
     valid!([11])
   end
 
   def test_validates_numericality_with_greater_than_or_equal
-    Topic.validates_numericality_of :approved, :greater_than_or_equal_to => 10
+    Topic.validates_numericality_of :approved, greater_than_or_equal_to: 10
 
     invalid!([-9, 9], 'must be greater than or equal to 10')
     valid!([10])
   end
 
   def test_validates_numericality_with_equal_to
-    Topic.validates_numericality_of :approved, :equal_to => 10
+    Topic.validates_numericality_of :approved, equal_to: 10
 
     invalid!([-10, 11] + INFINITY, 'must be equal to 10')
     valid!([10])
   end
 
   def test_validates_numericality_with_less_than
-    Topic.validates_numericality_of :approved, :less_than => 10
+    Topic.validates_numericality_of :approved, less_than: 10
 
     invalid!([10], 'must be less than 10')
     valid!([-9, 9])
   end
 
   def test_validates_numericality_with_less_than_or_equal_to
-    Topic.validates_numericality_of :approved, :less_than_or_equal_to => 10
+    Topic.validates_numericality_of :approved, less_than_or_equal_to: 10
 
     invalid!([11], 'must be less than or equal to 10')
     valid!([-10, 10])
   end
 
   def test_validates_numericality_with_odd
-    Topic.validates_numericality_of :approved, :odd => true
+    Topic.validates_numericality_of :approved, odd: true
 
     invalid!([-2, 2], 'must be odd')
     valid!([-1, 1])
   end
 
   def test_validates_numericality_with_even
-    Topic.validates_numericality_of :approved, :even => true
+    Topic.validates_numericality_of :approved, even: true
 
     invalid!([-1, 1], 'must be even')
     valid!([-2, 2])
   end
 
   def test_validates_numericality_with_greater_than_less_than_and_even
-    Topic.validates_numericality_of :approved, :greater_than => 1, :less_than => 4, :even => true
+    Topic.validates_numericality_of :approved, greater_than: 1, less_than: 4, even: true
 
     invalid!([1, 3, 4])
     valid!([2])
   end
 
   def test_validates_numericality_with_other_than
-    Topic.validates_numericality_of :approved, :other_than => 0
+    Topic.validates_numericality_of :approved, other_than: 0
 
     invalid!([0, 0.0])
     valid!([-1, 42])
@@ -115,30 +115,32 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
   def test_validates_numericality_with_proc
     Topic.send(:define_method, :min_approved, lambda { 5 })
-    Topic.validates_numericality_of :approved, :greater_than_or_equal_to => Proc.new {|topic| topic.min_approved }
+    Topic.validates_numericality_of :approved, greater_than_or_equal_to: Proc.new {|topic| topic.min_approved }
 
     invalid!([3, 4])
     valid!([5, 6])
+  ensure
     Topic.send(:remove_method, :min_approved)
   end
 
   def test_validates_numericality_with_symbol
     Topic.send(:define_method, :max_approved, lambda { 5 })
-    Topic.validates_numericality_of :approved, :less_than_or_equal_to => :max_approved
+    Topic.validates_numericality_of :approved, less_than_or_equal_to: :max_approved
 
     invalid!([6])
     valid!([4, 5])
+  ensure
     Topic.send(:remove_method, :max_approved)
   end
 
   def test_validates_numericality_with_numeric_message
-    Topic.validates_numericality_of :approved, :less_than => 4, :message => "smaller than %{count}"
+    Topic.validates_numericality_of :approved, less_than: 4, message: "smaller than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 10)
 
     assert !topic.valid?
     assert_equal ["smaller than 4"], topic.errors[:approved]
 
-    Topic.validates_numericality_of :approved, :greater_than => 4, :message => "greater than %{count}"
+    Topic.validates_numericality_of :approved, greater_than: 4, message: "greater than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 1)
 
     assert !topic.valid?
@@ -146,7 +148,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_of_for_ruby_class
-    Person.validates_numericality_of :karma, :allow_nil => false
+    Person.validates_numericality_of :karma, allow_nil: false
 
     p = Person.new
     p.karma = "Pix"
@@ -157,15 +159,15 @@ class NumericalityValidationTest < ActiveModel::TestCase
     p.karma = "1234"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 
   def test_validates_numericality_with_invalid_args
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, :greater_than_or_equal_to => "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, :less_than_or_equal_to => "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, :greater_than => "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, :less_than => "foo" }
-    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, :equal_to => "foo" }
+    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, greater_than_or_equal_to: "foo" }
+    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, less_than_or_equal_to: "foo" }
+    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, greater_than: "foo" }
+    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, less_than: "foo" }
+    assert_raise(ArgumentError){ Topic.validates_numericality_of :approved, equal_to: "foo" }
   end
 
   private
@@ -185,7 +187,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def with_each_topic_approved_value(values)
-    topic = Topic.new(:title => "numeric test", :content => "whatever")
+    topic = Topic.new(title: "numeric test", content: "whatever")
     values.each do |value|
       topic.approved = value
       yield topic, value

@@ -79,6 +79,13 @@ module ActiveSupport
           def initialize(pattern, delegate)
             @pattern = pattern
             @delegate = delegate
+            @can_publish = delegate.respond_to?(:publish)
+          end
+
+          def publish(name, *args)
+            if @can_publish
+              @delegate.publish name, *args
+            end
           end
 
           def start(name, id, payload)
@@ -100,21 +107,18 @@ module ActiveSupport
         end
 
         class Timed < Evented
-          def initialize(pattern, delegate)
-            @timestack = []
-            super
-          end
-
           def publish(name, *args)
             @delegate.call name, *args
           end
 
           def start(name, id, payload)
-            @timestack.push Time.now
+            timestack = Thread.current[:_timestack] ||= []
+            timestack.push Time.now
           end
 
           def finish(name, id, payload)
-            started = @timestack.pop
+            timestack = Thread.current[:_timestack]
+            started = timestack.pop
             @delegate.call(name, started, Time.now, id, payload)
           end
         end

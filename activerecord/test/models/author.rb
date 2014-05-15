@@ -8,21 +8,14 @@ class Author < ActiveRecord::Base
   has_many :posts_sorted_by_id_limited, -> { order('posts.id').limit(1) }, :class_name => "Post"
   has_many :posts_with_categories, -> { includes(:categories) }, :class_name => "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, :class_name => "Post"
-  has_many :posts_containing_the_letter_a, :class_name => "Post"
-  has_many :posts_with_extension, :class_name => "Post" do #, :extend => ProxyTestExtension
-    def testing_proxy_owner
-      proxy_owner
-    end
-    def testing_proxy_reflection
-      proxy_reflection
-    end
-    def testing_proxy_target
-      proxy_target
-    end
-  end
+  has_many :posts_with_special_categorizations, :class_name => 'PostWithSpecialCategorization'
   has_one  :post_about_thinking, -> { where("posts.title like '%thinking%'") }, :class_name => 'Post'
   has_one  :post_about_thinking_with_last_comment, -> { where("posts.title like '%thinking%'").includes(:last_comment) }, :class_name => 'Post'
-  has_many :comments, :through => :posts
+  has_many :comments, through: :posts do
+    def ratings
+      Rating.joins(:comment).merge(self)
+    end
+  end
   has_many :comments_containing_the_letter_e, :through => :posts, :source => :comments
   has_many :comments_with_order_and_conditions, -> { order('comments.body').where("comments.body like 'Thank%'") }, :through => :posts, :source => :comments
   has_many :comments_with_include, -> { includes(:post) }, :through => :posts, :source => :comments
@@ -36,11 +29,17 @@ class Author < ActiveRecord::Base
   has_many :thinking_posts, -> { where(:title => 'So I was thinking') }, :dependent => :delete_all, :class_name => 'Post'
   has_many :welcome_posts, -> { where(:title => 'Welcome to the weblog') }, :class_name => 'Post'
 
+  has_many :welcome_posts_with_one_comment,
+           -> { where(title: 'Welcome to the weblog').where('comments_count = ?', 1) },
+           class_name: 'Post'
+  has_many :welcome_posts_with_comments,
+           -> { where(title: 'Welcome to the weblog').where(Post.arel_table[:comments_count].gt(0)) },
+           class_name: 'Post'
+
   has_many :comments_desc, -> { order('comments.id DESC') }, :through => :posts, :source => :comments
-  has_many :limited_comments, -> { limit(1) }, :through => :posts, :source => :comments
   has_many :funky_comments, :through => :posts, :source => :comments
-  has_many :ordered_uniq_comments, -> { uniq.order('comments.id') }, :through => :posts, :source => :comments
-  has_many :ordered_uniq_comments_desc, -> { uniq.order('comments.id DESC') }, :through => :posts, :source => :comments
+  has_many :ordered_uniq_comments, -> { distinct.order('comments.id') }, :through => :posts, :source => :comments
+  has_many :ordered_uniq_comments_desc, -> { distinct.order('comments.id DESC') }, :through => :posts, :source => :comments
   has_many :readonly_comments, -> { readonly }, :through => :posts, :source => :comments
 
   has_many :special_posts
@@ -87,20 +86,20 @@ class Author < ActiveRecord::Base
   has_many :categories_like_general, -> { where(:name => 'General') }, :through => :categorizations, :source => :category, :class_name => 'Category'
 
   has_many :categorized_posts, :through => :categorizations, :source => :post
-  has_many :unique_categorized_posts, -> { uniq }, :through => :categorizations, :source => :post
+  has_many :unique_categorized_posts, -> { distinct }, :through => :categorizations, :source => :post
 
   has_many :nothings, :through => :kateggorisatons, :class_name => 'Category'
 
   has_many :author_favorites
   has_many :favorite_authors, -> { order('name') }, :through => :author_favorites
 
-  has_many :taggings,        :through => :posts
+  has_many :taggings,        :through => :posts, :source => :taggings
   has_many :taggings_2,      :through => :posts, :source => :tagging
   has_many :tags,            :through => :posts
   has_many :post_categories, :through => :posts, :source => :categories
   has_many :tagging_tags,    :through => :taggings, :source => :tag
 
-  has_many :similar_posts, -> { uniq }, :through => :tags, :source => :tagged_posts
+  has_many :similar_posts, -> { distinct }, :through => :tags, :source => :tagged_posts
   has_many :distinct_tags, -> { select("DISTINCT tags.*").order("tags.name") }, :through => :posts, :source => :tags
 
   has_many :tags_with_primary_key, :through => :posts
@@ -140,6 +139,8 @@ class Author < ActiveRecord::Base
 
   has_many :posts_with_default_include, :class_name => 'PostWithDefaultInclude'
   has_many :comments_on_posts_with_default_include, :through => :posts_with_default_include, :source => :comments
+
+  has_many :posts_with_signature, ->(record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
 
   scope :relation_include_posts, -> { includes(:posts) }
   scope :relation_include_tags,  -> { includes(:tags) }

@@ -37,12 +37,12 @@ module AbstractController
 
       test "does not register unknown mime types" do
         collector = MyCollector.new
-        assert_raise NameError do
+        assert_raise NoMethodError do
           collector.unknown
         end
       end
 
-      test "generated methods call custom with args received" do
+      test "generated methods call custom with arguments received" do
         collector = MyCollector.new
         collector.html
         collector.text(:foo)

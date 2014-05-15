@@ -5,7 +5,7 @@ module ActionController
   #
   # In addition to using the standard template helpers provided, creating custom helpers to
   # extract complicated logic or reusable functionality is strongly encouraged. By default, each controller
-  # will include all helpers.
+  # will include all helpers. These helpers are only accessible on the controller through <tt>.helpers</tt>
   #
   # In previous versions of \Rails the controller will include a helper whose
   # name matches that of the controller, e.g., <tt>MyController</tt> will automatically
@@ -73,7 +73,11 @@ module ActionController
 
       # Provides a proxy to access helpers methods from outside the view.
       def helpers
-        @helper_proxy ||= ActionView::Base.new.extend(_helpers)
+        @helper_proxy ||= begin 
+          proxy = ActionView::Base.new
+          proxy.config = config.inheritable_copy
+          proxy.extend(_helpers)
+        end
       end
 
       # Overwrite modules_for_helpers to accept :all as argument, which loads
@@ -94,7 +98,6 @@ module ActionController
           extract = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
           names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
           names.sort!
-          names
         end
         helpers.uniq!
         helpers

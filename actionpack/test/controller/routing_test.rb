@@ -2,6 +2,7 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/core_ext/object/with_options'
+require 'active_support/core_ext/object/json'
 
 class MilestonesController < ActionController::Base
   def index() head :ok end
@@ -86,36 +87,36 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_symbols_with_dashes
     rs.draw do
       get '/:artist/:song-omg', :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/faithfully-omg'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/faithfully-omg'))
     assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
   end
 
   def test_id_with_dash
     rs.draw do
       get '/journey/:id', :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/faithfully-omg'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/faithfully-omg'))
     assert_equal({"id"=>"faithfully-omg"}, hash)
   end
 
   def test_dash_with_custom_regexp
     rs.draw do
       get '/:artist/:song-omg', :constraints => { :song => /\d+/ }, :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/123-omg'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/123-omg'))
     assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
     assert_equal 'Not Found', get(URI('http://example.org/journey/faithfully-omg'))
   end
@@ -123,24 +124,24 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_pre_dash
     rs.draw do
       get '/:artist/omg-:song', :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/omg-faithfully'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/omg-faithfully'))
     assert_equal({"artist"=>"journey", "song"=>"faithfully"}, hash)
   end
 
   def test_pre_dash_with_custom_regexp
     rs.draw do
       get '/:artist/omg-:song', :constraints => { :song => /\d+/ }, :to => lambda { |env|
-        resp = JSON.dump env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
         [200, {}, [resp]]
       }
     end
 
-    hash = JSON.load get(URI('http://example.org/journey/omg-123'))
+    hash = ActiveSupport::JSON.decode get(URI('http://example.org/journey/omg-123'))
     assert_equal({"artist"=>"journey", "song"=>"123"}, hash)
     assert_equal 'Not Found', get(URI('http://example.org/journey/omg-faithfully'))
   end
@@ -160,14 +161,14 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_star_paths_are_greedy_but_not_too_much
     rs.draw do
       get "/*path", :to => lambda { |env|
-        x = JSON.dump env["action_dispatch.request.path_parameters"]
+        x = ActiveSupport::JSON.encode env["action_dispatch.request.path_parameters"]
         [200, {}, [x]]
       }
     end
 
     expected = { "path" => "foo/bar", "format" => "html" }
     u = URI('http://example.org/foo/bar.html')
-    assert_equal expected, JSON.parse(get(u))
+    assert_equal expected, ActiveSupport::JSON.decode(get(u))
   end
 
   def test_optional_star_paths_are_greedy
@@ -185,7 +186,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_optional_star_paths_are_greedy_but_not_too_much
     rs.draw do
       get "/(*filters)", :to => lambda { |env|
-        x = JSON.dump env["action_dispatch.request.path_parameters"]
+        x = ActiveSupport::JSON.encode env["action_dispatch.request.path_parameters"]
         [200, {}, [x]]
       }
     end
@@ -193,7 +194,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     expected = { "filters" => "ne_27.065938,-80.6092/sw_25.489856,-82",
                  "format"  => "542794" }
     u = URI('http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794')
-    assert_equal expected, JSON.parse(get(u))
+    assert_equal expected, ActiveSupport::JSON.decode(get(u))
   end
 
   def test_regexp_precidence
@@ -418,14 +419,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get 'page' => 'content#show_page', :as => 'pages', :host => 'foo.com'
     end
     routes = setup_for_named_route
-    routes.expects(:url_for).with({
-      :host => 'foo.com',
-      :only_path => false,
-      :controller => 'content',
-      :action => 'show_page',
-      :use_route => 'pages'
-    }).once
-    routes.send(:pages_url)
+    assert_equal "http://foo.com/page", routes.pages_url
   end
 
   def setup_for_named_route(options = {})
@@ -454,6 +448,22 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     routes = setup_for_named_route
     assert_equal("http://test.host/", routes.send(:root_url))
     assert_equal("/", routes.send(:root_path))
+  end
+
+  def test_named_route_root_with_hash
+    rs.draw do
+      root "hello#index", as: :index
+    end
+
+    routes = setup_for_named_route
+    assert_equal("http://test.host/", routes.send(:index_url))
+    assert_equal("/", routes.send(:index_path))
+  end
+
+  def test_root_without_path_raises_argument_error
+    assert_raises ArgumentError do
+      rs.draw { root nil }
+    end
   end
 
   def test_named_route_root_with_trailing_slash
@@ -699,17 +709,13 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def setup_request_method_routes_for(method)
     rs.draw do
-      match '/match' => 'books#get', :via => :get
-      match '/match' => 'books#post', :via => :post
-      match '/match' => 'books#put', :via => :put
-      match '/match' => 'books#patch', :via => :patch
-      match '/match' => 'books#delete', :via => :delete
+      match '/match' => "books##{method}", :via => method.to_sym
     end
   end
 
   %w(GET PATCH POST PUT DELETE).each do |request_method|
     define_method("test_request_method_recognized_with_#{request_method}") do
-      setup_request_method_routes_for(request_method)
+      setup_request_method_routes_for(request_method.downcase)
       params = rs.recognize_path("/match", :method => request_method)
       assert_equal request_method.downcase, params[:action]
     end
@@ -892,12 +898,13 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal set.routes.first, set.named_routes[:hello]
   end
 
-  def test_earlier_named_routes_take_precedence
-    set.draw do
-      get '/hello/world' => 'a#b', :as => 'hello'
-      get '/hello'       => 'a#b', :as => 'hello'
+  def test_duplicate_named_route_raises_rather_than_pick_precedence
+    assert_raise ArgumentError do
+      set.draw do
+        get '/hello/world' => 'a#b', :as => 'hello'
+        get '/hello'       => 'a#b', :as => 'hello'
+      end
     end
-    assert_equal set.routes.first, set.named_routes[:hello]
   end
 
   def setup_named_route_test
@@ -1819,11 +1826,11 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'foo', :action => 'id_default', :id => 1 }, @routes.recognize_path('/id_default'))
     assert_equal({:controller => 'foo', :action => 'get_or_post'}, @routes.recognize_path('/get_or_post', :method => :get))
     assert_equal({:controller => 'foo', :action => 'get_or_post'}, @routes.recognize_path('/get_or_post', :method => :post))
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/get_or_post', :method => :put) }
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/get_or_post', :method => :delete) }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/get_or_post', :method => :put) }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/get_or_post', :method => :delete) }
 
     assert_equal({:controller => 'posts', :action => 'index', :optional => 'bar'}, @routes.recognize_path('/optional/bar'))
-    assert_raise(ActionController::ActionControllerError) { @routes.recognize_path('/optional') }
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('/optional') }
 
     assert_equal({:controller => 'posts', :action => 'show', :id => '1', :ws => true}, @routes.recognize_path('/ws/posts/show/1', :method => :get))
     assert_equal({:controller => 'posts', :action => 'list', :ws => true}, @routes.recognize_path('/ws/posts/list', :method => :get))
@@ -1891,18 +1898,15 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path(URI.parser.escape('こんにちは/世界'), :method => :get))
   end
 
+  def test_downcased_unicode_path
+    assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path(URI.parser.escape('こんにちは/世界').downcase, :method => :get))
+  end
+
   private
     def sort_extras!(extras)
       if extras.length == 2
         extras[1].sort! { |a, b| a.to_s <=> b.to_s }
       end
       extras
-    end
-
-    def assert_raise(e)
-      result = yield
-      flunk "Did not raise #{e}, but returned #{result.inspect}"
-    rescue e
-      assert true
     end
 end

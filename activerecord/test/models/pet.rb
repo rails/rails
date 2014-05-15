@@ -1,5 +1,4 @@
 class Pet < ActiveRecord::Base
-
   attr_accessor :current_user
 
   self.primary_key = :pet_id
@@ -13,5 +12,4 @@ class Pet < ActiveRecord::Base
   after_destroy do |record|
     Pet.after_destroy_output = record.current_user
   end
-
 end

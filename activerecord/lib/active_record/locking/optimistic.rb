@@ -66,7 +66,7 @@ module ActiveRecord
           send(lock_col + '=', previous_lock_value + 1)
         end
 
-        def update_record(attribute_names = @attributes.keys) #:nodoc:
+        def _update_record(attribute_names = @attributes.keys) #:nodoc:
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
 
@@ -82,11 +82,14 @@ module ActiveRecord
 
             stmt = relation.where(
               relation.table[self.class.primary_key].eq(id).and(
-                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value))
+                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value, column_for_attribute(lock_col)))
               )
-            ).arel.compile_update(arel_attributes_with_values_for_update(attribute_names))
+            ).arel.compile_update(
+              arel_attributes_with_values_for_update(attribute_names),
+              self.class.primary_key
+            )
 
-            affected_rows = connection.update stmt
+            affected_rows = self.class.connection.update stmt
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError.new(self, "update")
@@ -117,7 +120,7 @@ module ActiveRecord
           if locking_enabled?
             column_name = self.class.locking_column
             column      = self.class.columns_hash[column_name]
-            substitute  = connection.substitute_at(column, relation.bind_values.length)
+            substitute  = self.class.connection.substitute_at(column, relation.bind_values.length)
 
             relation = relation.where(self.class.arel_table[column_name].eq(substitute))
             relation.bind_values << [column, self[column_name].to_i]
@@ -138,6 +141,7 @@ module ActiveRecord
 
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def locking_column=(value)
+          @column_defaults = nil
           @locking_column = value.to_s
         end
 
@@ -149,6 +153,7 @@ module ActiveRecord
 
         # Quote the column name used for optimistic locking.
         def quoted_locking_column
+          ActiveSupport::Deprecation.warn "ActiveRecord::Base.quoted_locking_column is deprecated and will be removed in Rails 4.2 or later."
           connection.quote_column_name(locking_column)
         end
 

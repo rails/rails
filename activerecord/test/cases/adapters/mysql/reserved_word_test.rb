@@ -2,7 +2,7 @@ require "cases/helper"
 
 class Group < ActiveRecord::Base
   Group.table_name = 'group'
-  belongs_to :select, :class_name => 'Select'
+  belongs_to :select
   has_one :values
 end
 
@@ -37,7 +37,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
       'distinct_select'=>'distinct_id int, select_id int'
   end
 
-  def teardown
+  teardown do
     drop_tables_directly ['group', 'select', 'values', 'distinct', 'distinct_select', 'order']
   end
 
@@ -61,11 +61,6 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     #the quoting here will reveal any double quoting issues in change_column's interaction with the column method in the adapter
     assert_nothing_raised { @connection.change_column('group', 'order', :Int, :default => 0) }
     assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
-  end
-
-  # dump structure of table with reserved word name
-  def test_structure_dump
-    assert_nothing_raised { @connection.structure_dump  }
   end
 
   # introspect table with reserved word name

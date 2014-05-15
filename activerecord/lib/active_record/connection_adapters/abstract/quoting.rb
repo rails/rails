@@ -15,7 +15,6 @@ module ActiveRecord
           return "'#{quote_string(value)}'" unless column
 
           case column.type
-          when :binary then "'#{quote_string(column.string_to_binary(value))}'"
           when :integer then value.to_i.to_s
           when :float then value.to_f.to_s
           else
@@ -44,7 +43,9 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value, column)
-        return value.id if value.respond_to?(:quoted_id)
+        if value.respond_to?(:quoted_id) && value.respond_to?(:id)
+          return value.id
+        end
 
         case value
         when String, ActiveSupport::Multibyte::Chars
@@ -52,7 +53,6 @@ module ActiveRecord
           return value unless column
 
           case column.type
-          when :binary then value
           when :integer then value.to_i
           when :float then value.to_f
           else
@@ -91,6 +91,18 @@ module ActiveRecord
       # Quotes the table name. Defaults to column name quoting.
       def quote_table_name(table_name)
         quote_column_name(table_name)
+      end
+
+      # Override to return the quoted table name for assignment. Defaults to
+      # table quoting.
+      #
+      # This works for mysql and mysql2 where table.column can be used to
+      # resolve ambiguity.
+      #
+      # We override this in the sqlite and postgresql adapters to use only
+      # the column name (as per syntax requirements).
+      def quote_table_name_for_assignment(table, attr)
+        quote_table_name("#{table}.#{attr}")
       end
 
       def quoted_true

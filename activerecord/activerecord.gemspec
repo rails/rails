@@ -24,6 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'activesupport', version
   s.add_dependency 'activemodel',   version
 
-  s.add_dependency 'arel',                            '~> 3.0.2'
-  s.add_dependency 'activerecord-deprecated_finders', '0.0.1'
+  s.add_dependency 'arel', '~> 6.0.0'
 end

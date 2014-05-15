@@ -53,84 +53,109 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
-  end
 
-  class MysqlDBCreateAsRootTest < ActiveRecord::TestCase
-    def setup
-      unless current_adapter?(:MysqlAdapter)
-        return skip("only tested on mysql")
-      end
+    def test_create_when_database_exists_outputs_info_to_stderr
+      $stderr.expects(:puts).with("my-app-db already exists").once
 
-      @connection    = stub(:create_database => true, :execute => true)
-      @error         = Mysql::Error.new "Invalid permissions"
-      @configuration = {
-        'adapter'  => 'mysql',
-        'database' => 'my-app-db',
-        'username' => 'pat',
-        'password' => 'wossname'
-      }
-
-      $stdin.stubs(:gets).returns("secret\n")
-      $stdout.stubs(:print).returns(nil)
-      @error.stubs(:errno).returns(1045)
-      ActiveRecord::Base.stubs(:connection).returns(@connection)
-      ActiveRecord::Base.stubs(:establish_connection).
-        raises(@error).
-        then.returns(true)
-    end
-
-    def test_root_password_is_requested
-      skip "only if mysql is available" unless defined?(::Mysql)
-      $stdin.expects(:gets).returns("secret\n")
-
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
-    end
-
-    def test_connection_established_as_root
-      ActiveRecord::Base.expects(:establish_connection).with(
-        'adapter'  => 'mysql',
-        'database' => nil,
-        'username' => 'root',
-        'password' => 'secret'
+      ActiveRecord::Base.connection.stubs(:create_database).raises(
+        ActiveRecord::StatementInvalid.new("Can't create database 'dev'; database exists:")
       )
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
+  end
 
-    def test_database_created_by_root
-      @connection.expects(:create_database).
-        with('my-app-db', :charset => 'utf8', :collation => 'utf8_unicode_ci')
-
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
-    end
-
-    def test_grant_privileges_for_normal_user
-      @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON my-app-db.* TO 'pat'@'localhost' IDENTIFIED BY 'wossname' WITH GRANT OPTION;")
-
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
-    end
-
-    def test_connection_established_as_normal_user
-      ActiveRecord::Base.expects(:establish_connection).returns do
-        ActiveRecord::Base.expects(:establish_connection).with(
+  if current_adapter?(:MysqlAdapter)
+    class MysqlDBCreateAsRootTest < ActiveRecord::TestCase
+      def setup
+        @connection    = stub("Connection", create_database: true)
+        @error         = Mysql::Error.new "Invalid permissions"
+        @configuration = {
           'adapter'  => 'mysql',
           'database' => 'my-app-db',
           'username' => 'pat',
+          'password' => 'wossname'
+        }
+
+        $stdin.stubs(:gets).returns("secret\n")
+        $stdout.stubs(:print).returns(nil)
+        @error.stubs(:errno).returns(1045)
+        ActiveRecord::Base.stubs(:connection).returns(@connection)
+        ActiveRecord::Base.stubs(:establish_connection).
+          raises(@error).
+          then.returns(true)
+      end
+
+      if defined?(::Mysql)
+        def test_root_password_is_requested
+          assert_permissions_granted_for "pat"
+          $stdin.expects(:gets).returns("secret\n")
+
+          ActiveRecord::Tasks::DatabaseTasks.create @configuration
+        end
+      end
+
+      def test_connection_established_as_root
+        assert_permissions_granted_for "pat"
+        ActiveRecord::Base.expects(:establish_connection).with(
+          'adapter'  => 'mysql',
+          'database' => nil,
+          'username' => 'root',
           'password' => 'secret'
         )
 
-        raise @error
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
       end
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
-    end
+      def test_database_created_by_root
+        assert_permissions_granted_for "pat"
+        @connection.expects(:create_database).
+          with('my-app-db', :charset => 'utf8', :collation => 'utf8_unicode_ci')
 
-    def test_sends_output_to_stderr_when_other_errors
-      @error.stubs(:errno).returns(42)
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      end
 
-      $stderr.expects(:puts).at_least_once.returns(nil)
+      def test_grant_privileges_for_normal_user
+        assert_permissions_granted_for "pat"
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      end
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      def test_do_not_grant_privileges_for_root_user
+        @configuration['username'] = 'root'
+        @configuration['password'] = ''
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      end
+
+      def test_connection_established_as_normal_user
+        assert_permissions_granted_for "pat"
+        ActiveRecord::Base.expects(:establish_connection).returns do
+          ActiveRecord::Base.expects(:establish_connection).with(
+            'adapter'  => 'mysql',
+            'database' => 'my-app-db',
+            'username' => 'pat',
+            'password' => 'secret'
+          )
+
+          raise @error
+        end
+
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      end
+
+      def test_sends_output_to_stderr_when_other_errors
+        @error.stubs(:errno).returns(42)
+
+        $stderr.expects(:puts).at_least_once.returns(nil)
+
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      end
+
+      private
+        def assert_permissions_granted_for(db_user)
+          db_name = @configuration['database']
+          db_password = @configuration['password']
+          @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}' WITH GRANT OPTION;")
+        end
     end
   end
 
@@ -239,9 +264,29 @@ module ActiveRecord
 
     def test_structure_dump
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db")
+      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+    end
+
+    def test_warn_when_external_structure_dump_fails
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db").returns(false)
+
+      warnings = capture(:stderr) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      end
+
+      assert_match(/Could not dump the database structure/, warnings)
+    end
+
+    def test_structure_dump_with_port_number
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("mysqldump", "--port", "10000", "--result-file", filename, "--no-data", "test-db").returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+        @configuration.merge('port' => 10000),
+        filename)
     end
   end
 

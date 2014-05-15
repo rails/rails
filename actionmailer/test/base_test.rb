@@ -10,9 +10,15 @@ require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
 
 class BaseTest < ActiveSupport::TestCase
-  def teardown
-    ActionMailer::Base.asset_host = nil
-    ActionMailer::Base.assets_dir = nil
+  setup do
+    @original_asset_host = ActionMailer::Base.asset_host
+    @original_assets_dir = ActionMailer::Base.assets_dir
+  end
+
+  teardown do
+    ActionMailer::Base.asset_host = @original_asset_host
+    ActionMailer::Base.assets_dir = @original_assets_dir
+    BaseMailer.deliveries.clear
   end
 
   test "method call to mail does not raise error" do
@@ -103,6 +109,7 @@ class BaseTest < ActiveSupport::TestCase
   test "attachment gets content type from filename" do
     email = BaseMailer.attachment_with_content
     assert_equal('invoice.pdf', email.attachments[0].filename)
+    assert_equal('application/pdf', email.attachments[0].mime_type)
   end
 
   test "attachment with hash" do
@@ -200,19 +207,29 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "subject gets default from I18n" do
-    BaseMailer.default subject: nil
-    email = BaseMailer.welcome(subject: nil)
-    assert_equal "Welcome", email.subject
+    with_default BaseMailer, subject: nil do
+      email = BaseMailer.welcome(subject: nil)
+      assert_equal "Welcome", email.subject
 
-    I18n.backend.store_translations('en', base_mailer: {welcome: {subject: "New Subject!"}})
-    email = BaseMailer.welcome(subject: nil)
-    assert_equal "New Subject!", email.subject
+      with_translation 'en', base_mailer: {welcome: {subject: "New Subject!"}} do
+        email = BaseMailer.welcome(subject: nil)
+        assert_equal "New Subject!", email.subject
+      end
+    end
+  end
+
+  test 'default subject can have interpolations' do
+    with_translation 'en', base_mailer: {with_subject_interpolations: {subject: 'Will the real %{rapper_or_impersonator} please stand up?'}} do
+      email = BaseMailer.with_subject_interpolations
+      assert_equal 'Will the real Slim Shady please stand up?', email.subject
+    end
   end
 
   test "translations are scoped properly" do
-    I18n.backend.store_translations('en', base_mailer: {email_with_translations: {greet_user: "Hello %{name}!"}})
-    email = BaseMailer.email_with_translations
-    assert_equal 'Hello lifo!', email.body.encoded
+    with_translation 'en', base_mailer: {email_with_translations: {greet_user: "Hello %{name}!"}} do
+      email = BaseMailer.email_with_translations
+      assert_equal 'Hello lifo!', email.body.encoded
+    end
   end
 
   # Implicit multipart
@@ -400,14 +417,12 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "calling just the action should return the generated mail object" do
-    BaseMailer.deliveries.clear
     email = BaseMailer.welcome
     assert_equal(0, BaseMailer.deliveries.length)
     assert_equal('The first email on new API!', email.subject)
   end
 
   test "calling deliver on the action should deliver the mail object" do
-    BaseMailer.deliveries.clear
     BaseMailer.expects(:deliver_mail).once
     mail = BaseMailer.welcome.deliver
     assert_equal 'The first email on new API!', mail.subject
@@ -415,7 +430,6 @@ class BaseTest < ActiveSupport::TestCase
 
   test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
     BaseMailer.delivery_method = :test
-    BaseMailer.deliveries.clear
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
   end
@@ -435,7 +449,6 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "should raise if missing template in implicit render" do
-    BaseMailer.deliveries.clear
     assert_raises ActionView::MissingTemplate do
       BaseMailer.implicit_different_template('missing_template').deliver
     end
@@ -472,18 +485,17 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "assets tags should use a Mailer's asset_host settings when available" do
-    begin
-      ActionMailer::Base.config.asset_host = "http://global.com"
-      ActionMailer::Base.config.assets_dir = "global/"
+    ActionMailer::Base.config.asset_host = "http://global.com"
+    ActionMailer::Base.config.assets_dir = "global/"
 
-      AssetMailer.asset_host = "http://local.com"
-
-      mail = AssetMailer.welcome
-
-      assert_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
-    ensure
-      AssetMailer.asset_host = ActionMailer::Base.config.asset_host
+    TempAssetMailer = Class.new(AssetMailer) do
+      self.mailer_name = "asset_mailer"
+      self.asset_host = "http://local.com"
     end
+
+    mail = TempAssetMailer.welcome
+
+    assert_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test 'the view is not rendered when mail was never called' do
@@ -511,57 +523,87 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "you can register an observer to the mail object that gets informed on email delivery" do
-    ActionMailer::Base.register_observer(MyObserver)
-    mail = BaseMailer.welcome
-    MyObserver.expects(:delivered_email).with(mail)
-    mail.deliver
+    mail_side_effects do
+      ActionMailer::Base.register_observer(MyObserver)
+      mail = BaseMailer.welcome
+      MyObserver.expects(:delivered_email).with(mail)
+      mail.deliver
+    end
   end
 
   test "you can register an observer using its stringified name to the mail object that gets informed on email delivery" do
-    ActionMailer::Base.register_observer("BaseTest::MyObserver")
-    mail = BaseMailer.welcome
-    MyObserver.expects(:delivered_email).with(mail)
-    mail.deliver
+    mail_side_effects do
+      ActionMailer::Base.register_observer("BaseTest::MyObserver")
+      mail = BaseMailer.welcome
+      MyObserver.expects(:delivered_email).with(mail)
+      mail.deliver
+    end
+  end
+
+  test "you can register an observer using its symbolized underscored name to the mail object that gets informed on email delivery" do
+    mail_side_effects do
+      ActionMailer::Base.register_observer(:"base_test/my_observer")
+      mail = BaseMailer.welcome
+      MyObserver.expects(:delivered_email).with(mail)
+      mail.deliver
+    end
   end
 
   test "you can register multiple observers to the mail object that both get informed on email delivery" do
-    ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
-    mail = BaseMailer.welcome
-    MyObserver.expects(:delivered_email).with(mail)
-    MySecondObserver.expects(:delivered_email).with(mail)
-    mail.deliver
+    mail_side_effects do
+      ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
+      mail = BaseMailer.welcome
+      MyObserver.expects(:delivered_email).with(mail)
+      MySecondObserver.expects(:delivered_email).with(mail)
+      mail.deliver
+    end
   end
 
   class MyInterceptor
-    def self.delivering_email(mail)
-    end
+    def self.delivering_email(mail); end
+    def self.previewing_email(mail); end
   end
 
   class MySecondInterceptor
-    def self.delivering_email(mail)
-    end
+    def self.delivering_email(mail); end
+    def self.previewing_email(mail); end
   end
 
   test "you can register an interceptor to the mail object that gets passed the mail object before delivery" do
-    ActionMailer::Base.register_interceptor(MyInterceptor)
-    mail = BaseMailer.welcome
-    MyInterceptor.expects(:delivering_email).with(mail)
-    mail.deliver
+    mail_side_effects do
+      ActionMailer::Base.register_interceptor(MyInterceptor)
+      mail = BaseMailer.welcome
+      MyInterceptor.expects(:delivering_email).with(mail)
+      mail.deliver
+    end
   end
 
   test "you can register an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
-    ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
-    mail = BaseMailer.welcome
-    MyInterceptor.expects(:delivering_email).with(mail)
-    mail.deliver
+    mail_side_effects do
+      ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
+      mail = BaseMailer.welcome
+      MyInterceptor.expects(:delivering_email).with(mail)
+      mail.deliver
+    end
+  end
+
+  test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before delivery" do
+    mail_side_effects do
+      ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
+      mail = BaseMailer.welcome
+      MyInterceptor.expects(:delivering_email).with(mail)
+      mail.deliver
+    end
   end
 
   test "you can register multiple interceptors to the mail object that both get passed the mail object before delivery" do
-    ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
-    mail = BaseMailer.welcome
-    MyInterceptor.expects(:delivering_email).with(mail)
-    MySecondInterceptor.expects(:delivering_email).with(mail)
-    mail.deliver
+    mail_side_effects do
+      ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
+      mail = BaseMailer.welcome
+      MyInterceptor.expects(:delivering_email).with(mail)
+      MySecondInterceptor.expects(:delivering_email).with(mail)
+      mail.deliver
+    end
   end
 
   test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do
@@ -570,6 +612,10 @@ class BaseTest < ActiveSupport::TestCase
     Time.stubs(:now).returns(yesterday)
     mail2 = ProcMailer.welcome['X-Proc-Method']
     assert(mail1.to_s.to_i > mail2.to_s.to_i)
+  end
+
+  test 'default values which have to_proc (e.g. symbols) should not be considered procs' do
+    assert(ProcMailer.welcome['x-has-to-proc'].to_s == 'symbol')
   end
 
   test "we can call other defined methods on the class as needed" do
@@ -661,6 +707,27 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal ["robert.pankowecki@gmail.com"], DefaultFromMailer.welcome.from
   end
 
+  test "mail() without arguments serves as getter for the current mail message" do
+    class MailerWithCallback < ActionMailer::Base
+      after_action :a_callback
+
+      def welcome
+        headers('X-Special-Header' => 'special indeed!')
+        mail subject: "subject", body: "hello world", to: ["joe@example.com"]
+      end
+
+      def a_callback
+        mail.to << "jane@example.com"
+      end
+    end
+
+    mail = MailerWithCallback.welcome
+    assert_equal "subject", mail.subject
+    assert_equal ["joe@example.com", "jane@example.com"], mail.to
+    assert_equal "hello world", mail.body.encoded.strip
+    assert_equal "special indeed!", mail["X-Special-Header"].to_s
+  end
+
   protected
 
     # Execute the block setting the given values and restoring old values after
@@ -685,4 +752,77 @@ class BaseTest < ActiveSupport::TestCase
     ensure
       klass.default_params = old
     end
+
+    # A simple hack to restore the observers and interceptors for Mail, as it
+    # does not have an unregister API yet.
+    def mail_side_effects
+      old_observers = Mail.class_variable_get(:@@delivery_notification_observers)
+      old_delivery_interceptors = Mail.class_variable_get(:@@delivery_interceptors)
+      yield
+    ensure
+      Mail.class_variable_set(:@@delivery_notification_observers, old_observers)
+      Mail.class_variable_set(:@@delivery_interceptors, old_delivery_interceptors)
+    end
+
+    def with_translation(locale, data)
+      I18n.backend.store_translations(locale, data)
+      yield
+    ensure
+      I18n.backend.reload!
+    end
+end
+
+class BasePreviewInterceptorsTest < ActiveSupport::TestCase
+  teardown do
+    ActionMailer::Base.preview_interceptors.clear
+  end
+
+  class BaseMailerPreview < ActionMailer::Preview
+    def welcome
+      BaseMailer.welcome
+    end
+  end
+
+  class MyInterceptor
+    def self.delivering_email(mail); end
+    def self.previewing_email(mail); end
+  end
+
+  class MySecondInterceptor
+    def self.delivering_email(mail); end
+    def self.previewing_email(mail); end
+  end
+
+  test "you can register a preview interceptor to the mail object that gets passed the mail object before previewing" do
+    ActionMailer::Base.register_preview_interceptor(MyInterceptor)
+    mail = BaseMailer.welcome
+    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
+    MyInterceptor.expects(:previewing_email).with(mail)
+    BaseMailerPreview.call(:welcome)
+  end
+
+  test "you can register a preview interceptor using its stringified name to the mail object that gets passed the mail object before previewing" do
+    ActionMailer::Base.register_preview_interceptor("BasePreviewInterceptorsTest::MyInterceptor")
+    mail = BaseMailer.welcome
+    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
+    MyInterceptor.expects(:previewing_email).with(mail)
+    BaseMailerPreview.call(:welcome)
+  end
+
+  test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before previewing" do
+    ActionMailer::Base.register_preview_interceptor(:"base_preview_interceptors_test/my_interceptor")
+    mail = BaseMailer.welcome
+    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
+    MyInterceptor.expects(:previewing_email).with(mail)
+    BaseMailerPreview.call(:welcome)
+  end
+
+  test "you can register multiple preview interceptors to the mail object that both get passed the mail object before previewing" do
+    ActionMailer::Base.register_preview_interceptors("BasePreviewInterceptorsTest::MyInterceptor", MySecondInterceptor)
+    mail = BaseMailer.welcome
+    BaseMailerPreview.any_instance.stubs(:welcome).returns(mail)
+    MyInterceptor.expects(:previewing_email).with(mail)
+    MySecondInterceptor.expects(:previewing_email).with(mail)
+    BaseMailerPreview.call(:welcome)
+  end
 end

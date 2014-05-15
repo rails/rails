@@ -11,7 +11,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - The id of the object you wish to reset a counter on.
-      # * +counters+ - One or more counter names to reset
+      # * +counters+ - One or more association counters to reset
       #
       # ==== Examples
       #
@@ -21,6 +21,7 @@ module ActiveRecord
         object = find(id)
         counters.each do |association|
           has_many_association = reflect_on_association(association.to_sym)
+          raise ArgumentError, "'#{self.name}' has no association called '#{association}'" unless has_many_association
 
           if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
             has_many_association = has_many_association.through_reflection
@@ -34,7 +35,7 @@ module ActiveRecord
 
           stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
             arel_table[counter_name] => object.send(association).count
-          })
+          }, primary_key)
           connection.update stmt
         end
         return true
@@ -49,7 +50,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - The id of the object you wish to update a counter on or an Array of ids.
-      # * +counters+ - An Array of Hashes containing the names of the fields
+      # * +counters+ - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
       #
       # ==== Examples
@@ -76,15 +77,15 @@ module ActiveRecord
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
 
-        where(primary_key => id).update_all updates.join(', ')
+        unscoped.where(primary_key => id).update_all updates.join(', ')
       end
 
       # Increment a numeric field by one, via a direct SQL update.
       #
-      # This method is used primarily for maintaining counter_cache columns used to
-      # store aggregate values. For example, a DiscussionBoard may cache posts_count
-      # and comments_count to avoid running an SQL query to calculate the number of
-      # posts and comments there are each time it is displayed.
+      # This method is used primarily for maintaining counter_cache columns that are
+      # used to store aggregate values. For example, a DiscussionBoard may cache
+      # posts_count and comments_count to avoid running an SQL query to calculate the
+      # number of posts and comments there are, each time it is displayed.
       #
       # ==== Parameters
       #
@@ -117,5 +118,54 @@ module ActiveRecord
         update_counters(id, counter_name => -1)
       end
     end
+
+    protected
+
+      def actually_destroyed?
+        @_actually_destroyed
+      end
+
+      def clear_destroy_state
+        @_actually_destroyed = nil
+      end
+
+    private
+
+      def _create_record(*)
+        id = super
+
+        each_counter_cached_associations do |association|
+          if send(association.reflection.name)
+            association.increment_counters
+            @_after_create_counter_called = true
+          end
+        end
+
+        id
+      end
+
+      def destroy_row
+        affected_rows = super
+
+        if affected_rows > 0
+          each_counter_cached_associations do |association|
+            foreign_key = association.reflection.foreign_key.to_sym
+            unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
+              if send(association.reflection.name)
+                association.decrement_counters
+              end
+            end
+          end
+        end
+
+        affected_rows
+      end
+
+      def each_counter_cached_associations
+        reflections.each do |name, reflection|
+          yield association(name) if reflection.belongs_to? && reflection.counter_cache_column
+        end
+      end
+
   end
 end

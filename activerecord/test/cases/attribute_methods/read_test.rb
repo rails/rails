@@ -15,13 +15,6 @@ module ActiveRecord
 
           include ActiveRecord::AttributeMethods
 
-          def self.define_attribute_methods
-            # Created in the inherited/included hook for "proper" ARs
-            @attribute_methods_mutex ||= Mutex.new
-
-            super
-          end
-
           def self.column_names
             %w{ one two three }
           end
@@ -56,9 +49,9 @@ module ActiveRecord
       end
 
       def test_attribute_methods_generated?
-        assert(!@klass.attribute_methods_generated?, 'attribute_methods_generated?')
+        assert_not @klass.method_defined?(:one)
         @klass.define_attribute_methods
-        assert(@klass.attribute_methods_generated?, 'attribute_methods_generated?')
+        assert @klass.method_defined?(:one)
       end
     end
   end

@@ -5,6 +5,10 @@ This guide covers how to setup an environment for Ruby on Rails core development
 
 After reading this guide, you will know:
 
+* How to set up your machine for Rails development
+* How to run specific groups of unit tests from the Rails test suite
+* How the ActiveRecord portion of the Rails test suite operates
+
 --------------------------------------------------------------------------------
 
 The Easy Way
@@ -21,10 +25,10 @@ In case you can't use the Rails development box, see section above, these are th
 
 Ruby on Rails uses Git for source code control. The [Git homepage](http://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
 
-* [Try Git course](http://try.github.com/) is an interactive course that will teach you the basics.
+* [Try Git course](http://try.github.io/) is an interactive course that will teach you the basics.
 * The [official Documentation](http://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git
-* [Everyday Git](http://schacon.github.com/git/everyday.html) will teach you just enough about Git to get by.
-* The [PeepCode screencast](https://peepcode.com/products/git) on Git ($9) is easier to follow.
+* [Everyday Git](http://schacon.github.io/git/everyday.html) will teach you just enough about Git to get by.
+* The [PeepCode screencast](https://peepcode.com/products/git) on Git is easier to follow.
 * [GitHub](http://help.github.com) offers links to a variety of Git resources.
 * [Pro Git](http://git-scm.com/book) is an entire book about Git with a Creative Commons license.
 
@@ -53,9 +57,24 @@ If you are on Fedora or CentOS, you can run
 $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 ```
 
-If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
+If you are running Arch Linux, you're done with:
 
-Also, SQLite3 and its development files for the `sqlite3-ruby` gem — in Ubuntu you're done with just
+```bash
+$ sudo pacman -S libxml2 libxslt
+```
+
+On FreeBSD, you just have to run:
+
+```bash
+# pkg_add -r libxml2 libxslt
+```
+
+Alternatively, you can install the `textproc/libxml2` and `textproc/libxslt`
+ports.
+
+If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
+
+Also, SQLite3 and its development files for the `sqlite3-ruby` gem - in Ubuntu you're done with just
 
 ```bash
 $ sudo apt-get install sqlite3 libsqlite3-dev
@@ -66,6 +85,20 @@ And if you are on Fedora or CentOS, you're done with
 ```bash
 $ sudo yum install sqlite3 sqlite3-devel
 ```
+
+If you are on Arch Linux, you will need to run:
+
+```bash
+$ sudo pacman -S sqlite
+```
+
+For FreeBSD users, you're done with:
+
+```bash
+# pkg_add -r sqlite3
+```
+
+Or compile the `databases/sqlite3` port.
 
 Get a recent version of [Bundler](http://gembundler.com/)
 
@@ -80,7 +113,29 @@ and run:
 $ bundle install --without db
 ```
 
-This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back to these soon. With dependencies installed, you can run the test suite with:
+This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back to these soon.
+
+NOTE: If you would like to run the tests that use memcached, you need to ensure that you have it installed and running.
+
+You can use [Homebrew](http://brew.sh/) to install memcached on OSX:
+
+```bash
+$ brew install memcached
+```
+
+On Ubuntu you can install it with apt-get:
+
+```bash
+$ sudo apt-get install memcached
+```
+
+Or use yum on Fedora or CentOS:
+
+```bash
+$ sudo yum install memcached
+```
+
+With the dependencies now installed, you can run the test suite with:
 
 ```bash
 $ bundle exec rake test
@@ -93,18 +148,25 @@ $ cd actionpack
 $ bundle exec rake test
 ```
 
-If you want to run the tests located in a specific directory use the `TEST_DIR` environment variable. For example, this will run the tests of the `railties/test/generators` directory only:
+If you want to run the tests located in a specific directory use the `TEST_DIR` environment variable. For example, this will run the tests in the `railties/test/generators` directory only:
 
 ```bash
 $ cd railties
 $ TEST_DIR=generators bundle exec rake test
 ```
 
-You can run any single test separately too:
+You can run the tests for a particular file by using:
 
 ```bash
 $ cd actionpack
 $ bundle exec ruby -Itest test/template/form_helper_test.rb
+```
+
+Or, you can run a single test in a particular file:
+
+```bash
+$ cd actionpack
+$ bundle exec ruby -Itest path/to/test.rb -n test_name
 ```
 
 ### Active Record Setup
@@ -133,14 +195,41 @@ $ sudo yum install mysql-server mysql-devel
 $ sudo yum install postgresql-server postgresql-devel
 ```
 
-After that run:
+If you are running Arch Linux, MySQL isn't supported anymore so you will need to
+use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mariadb-replaces-mysql-in-repositories/)):
+
+```bash
+$ sudo pacman -S mariadb libmariadbclient mariadb-clients
+$ sudo pacman -S postgresql postgresql-libs
+```
+
+FreeBSD users will have to run the following:
+
+```bash
+# pkg_add -r mysql56-client mysql56-server
+# pkg_add -r postgresql92-client postgresql92-server
+```
+
+You can use [Homebrew](http://brew.sh/) to install MySQL and PostgreSQL on OSX:
+
+```bash
+$ brew install mysql
+$ brew install postgresql
+```
+Follow instructions given by [Homebrew](http://brew.sh/) to start these.
+
+Or install them through ports (they are located under the `databases` folder).
+If you run into troubles during the installation of MySQL, please see
+[the MySQL documentation](http://dev.mysql.com/doc/refman/5.1/en/freebsd-installation.html).
+
+After that, run:
 
 ```bash
 $ rm .bundle/config
 $ bundle install
 ```
 
-We need first to delete `.bundle/config` because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
+First, we need to delete `.bundle/config` because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
 
 In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
 
@@ -152,6 +241,8 @@ mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
        to 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
        to 'rails'@'localhost';
+mysql> GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.*
+       to 'rails'@'localhost';
 ```
 
 and create the test databases:
@@ -162,9 +253,14 @@ $ bundle exec rake mysql:build_databases
 ```
 
 PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
+This is not needed when installed via [Homebrew](http://brew.sh).
 
 ```bash
 $ sudo -u postgres createuser --superuser $USER
+```
+And for OS X (when installed via [Homebrew](http://brew.sh))
+```bash
+$ createuser --superuser $USER
 ```
 
 and then create the test databases with
@@ -174,8 +270,22 @@ $ cd activerecord
 $ bundle exec rake postgresql:build_databases
 ```
 
+It is possible to build databases for both PostgreSQL and MySQL with
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:create
+```
+
+You can cleanup the databases using
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:drop
+```
+
 NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
-If you’re using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
+If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.

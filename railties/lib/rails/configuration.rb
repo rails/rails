@@ -1,4 +1,3 @@
-require 'active_support/deprecation'
 require 'active_support/ordered_options'
 require 'active_support/core_ext/object'
 require 'rails/paths'
@@ -27,11 +26,11 @@ module Rails
     #
     # Middlewares can also be completely swapped out and replaced with others:
     #
-    #     config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
+    #     config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
     #
     # And finally they can also be removed from the stack completely:
     #
-    #     config.middleware.delete ActionDispatch::BestStandardsSupport
+    #     config.middleware.delete ActionDispatch::Flash
     #
     class MiddlewareStackProxy
       def initialize
@@ -57,6 +56,10 @@ module Rails
       end
 
       def delete(*args, &block)
+        @operations << [__method__, args, block]
+      end
+
+      def unshift(*args, &block)
         @operations << [__method__, args, block]
       end
 

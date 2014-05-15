@@ -38,8 +38,13 @@ end
 
 ActiveSupport::Dependencies.hook!
 
+Thread.abort_on_exception = true
+
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
+
+# Disable available locale checks to avoid warnings running the test suite.
+I18n.enforce_available_locales = false
 
 # Register danish language for testing
 I18n.backend.store_translations 'da', {}
@@ -60,28 +65,6 @@ module RackTestUtils
     end
   end
   extend self
-end
-
-module RenderERBUtils
-  def view
-    @view ||= begin
-      path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
-      view_paths = ActionView::PathSet.new([path])
-      ActionView::Base.new(view_paths)
-    end
-  end
-
-  def render_erb(string)
-    @virtual_path = nil
-
-    template = ActionView::Template.new(
-      string.strip,
-      "test template",
-      ActionView::Template::Handlers::ERB,
-      {})
-
-    template.render(self, {}).strip
-  end
 end
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
@@ -288,15 +271,8 @@ module ActionController
   end
 end
 
-class ::ApplicationController < ActionController::Base
-end
 
-module ActionView
-  class TestCase
-    # Must repeat the setup because AV::TestCase is a duplication
-    # of AC::TestCase
-    include ActionDispatch::SharedRoutes
-  end
+class ::ApplicationController < ActionController::Base
 end
 
 class Workshop
@@ -330,7 +306,7 @@ end
 
 module ActionDispatch
   module RoutingVerbs
-    def get(uri_or_host, path = nil, port = nil)
+    def get(uri_or_host, path = nil)
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
@@ -344,8 +320,8 @@ module ActionDispatch
 end
 
 module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_recall => recall))
+  def url_for(set, options, recall = {})
+    set.url_for options.merge(:only_path => true, :_recall => recall)
   end
 end
 
@@ -358,7 +334,6 @@ class ThreadsController  < ResourcesController; end
 class MessagesController < ResourcesController; end
 class CommentsController < ResourcesController; end
 class ReviewsController < ResourcesController; end
-class AuthorsController < ResourcesController; end
 class LogosController < ResourcesController; end
 
 class AccountsController <  ResourcesController; end
@@ -369,12 +344,19 @@ class PreferencesController < ResourcesController; end
 
 module Backoffice
   class ProductsController < ResourcesController; end
-  class TagsController < ResourcesController; end
-  class ManufacturersController < ResourcesController; end
   class ImagesController < ResourcesController; end
 
   module Admin
     class ProductsController < ResourcesController; end
     class ImagesController < ResourcesController; end
   end
+end
+
+# Skips the current run on Rubinius using Minitest::Assertions#skip
+def rubinius_skip(message = '')
+  skip message if RUBY_ENGINE == 'rbx'
+end
+# Skips the current run on JRuby using Minitest::Assertions#skip
+def jruby_skip(message = '')
+  skip message if defined?(JRUBY_VERSION)
 end

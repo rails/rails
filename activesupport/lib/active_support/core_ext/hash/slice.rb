@@ -26,6 +26,8 @@ class Hash
     keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
     omit = slice(*self.keys - keys)
     hash = slice(*keys)
+    hash.default      = default
+    hash.default_proc = default_proc if default_proc
     replace(hash)
     omit
   end

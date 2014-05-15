@@ -43,10 +43,20 @@ module ActiveRecord
         assert_equal [], coder.load([])
       end
 
-      def test_load_swallows_yaml_exceptions
+      def test_load_doesnt_swallow_yaml_exceptions
         coder = YAMLColumn.new
         bad_yaml = '--- {'
-        assert_equal bad_yaml, coder.load(bad_yaml)
+        assert_raises(Psych::SyntaxError) do
+          coder.load(bad_yaml)
+        end
+      end
+
+      def test_load_doesnt_handle_undefined_class_or_module
+        coder = YAMLColumn.new
+        missing_class_yaml = '--- !ruby/object:DoesNotExistAndShouldntEver {}\n'
+        assert_raises(ArgumentError) do
+          coder.load(missing_class_yaml)
+        end
       end
     end
   end

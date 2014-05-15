@@ -11,8 +11,7 @@ module ActiveRecord
         @table_name = :testings
       end
 
-      def teardown
-        super
+      teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Base.primary_key_prefix_type = nil
       end
@@ -35,7 +34,7 @@ module ActiveRecord
           t.column :foo, :string
         end
 
-        assert_equal %w(foo id), connection.columns(:testings).map(&:name).sort
+        assert_equal %w(id foo), connection.columns(:testings).map(&:name)
       end
 
       def test_create_table_with_not_null_column
@@ -72,6 +71,29 @@ module ActiveRecord
         assert_equal false, three.default
         assert_equal 1, four.default
         assert_equal "hello", five.default unless mysql
+      end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_add_column_with_array
+          connection.create_table :testings
+          connection.add_column :testings, :foo, :string, :array => true
+
+          columns = connection.columns(:testings)
+          array_column = columns.detect { |c| c.name == "foo" }
+
+          assert array_column.array
+        end
+
+        def test_create_table_with_array_column
+          connection.create_table :testings do |t|
+            t.string :foo, :array => true
+          end
+
+          columns = connection.columns(:testings)
+          array_column = columns.detect { |c| c.name == "foo" }
+
+          assert array_column.array
+        end
       end
 
       def test_create_table_with_limits
@@ -119,7 +141,7 @@ module ActiveRecord
           t.column :foo, :string
         end
 
-        assert_equal %w(foo testing_id), connection.columns(:testings).map(&:name).sort
+        assert_equal %w(testing_id foo), connection.columns(:testings).map(&:name)
       end
 
       def test_create_table_with_primary_key_prefix_as_table_name
@@ -129,7 +151,7 @@ module ActiveRecord
           t.column :foo, :string
         end
 
-        assert_equal %w(foo testingid), connection.columns(:testings).map(&:name).sort
+        assert_equal %w(testingid foo), connection.columns(:testings).map(&:name)
       end
 
       def test_create_table_raises_when_redefining_primary_key_column
@@ -182,20 +204,18 @@ module ActiveRecord
         connection.create_table table_name
       end
 
-      def test_add_column_not_null_without_default
-        # Sybase, and SQLite3 will not allow you to add a NOT NULL
-        # column to a table without a default value.
-        if current_adapter?(:SybaseAdapter, :SQLite3Adapter)
-          skip "not supported on #{connection.class}"
-        end
+      # Sybase, and SQLite3 will not allow you to add a NOT NULL
+      # column to a table without a default value.
+      unless current_adapter?(:SybaseAdapter, :SQLite3Adapter)
+        def test_add_column_not_null_without_default
+          connection.create_table :testings do |t|
+            t.column :foo, :string
+          end
+          connection.add_column :testings, :bar, :string, :null => false
 
-        connection.create_table :testings do |t|
-          t.column :foo, :string
-        end
-        connection.add_column :testings, :bar, :string, :null => false
-
-        assert_raise(ActiveRecord::StatementInvalid) do
-          connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+          assert_raise(ActiveRecord::StatementInvalid) do
+            connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+          end
         end
       end
 
@@ -235,7 +255,7 @@ module ActiveRecord
         end
       end
 
-      def test_keeping_default_and_notnull_constaint_on_change
+      def test_keeping_default_and_notnull_constraints_on_change
         connection.create_table :testings do |t|
           t.column :title, :string
         end
@@ -285,6 +305,22 @@ module ActiveRecord
         assert_nil person_klass.columns_hash["money"].default
         assert_equal false, person_klass.columns_hash["money"].null
         assert_equal 2000, connection.select_values("SELECT money FROM testings").first.to_i
+      end
+
+      def test_change_column_null
+        testing_table_with_only_foo_attribute do
+          notnull_migration = Class.new(ActiveRecord::Migration) do
+            def change
+              change_column_null :testings, :foo, false
+            end
+          end
+          notnull_migration.new.suppress_messages do
+            notnull_migration.migrate(:up)
+            assert_equal false, connection.columns(:testings).find{ |c| c.name == "foo"}.null
+            notnull_migration.migrate(:down)
+            assert connection.columns(:testings).find{ |c| c.name == "foo"}.null
+          end
+        end
       end
 
       def test_column_exists

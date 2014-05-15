@@ -33,7 +33,7 @@ module ApplicationTests
       assert_equal false, ActionDispatch::Cookies::CookieJar.always_write_cookie
     end
 
-    test 'always_write_cookie can be overrided' do
+    test 'always_write_cookie can be overridden' do
       add_to_config <<-RUBY
         config.action_dispatch.always_write_cookie = false
       RUBY

@@ -1,39 +1,13 @@
-# encoding: utf-8
 require "cases/helper"
 require 'models/topic'
 require 'models/reply'
-require 'models/owner'
-require 'models/pet'
 require 'models/man'
 require 'models/interest'
 
 class AssociationValidationTest < ActiveRecord::TestCase
-  fixtures :topics, :owners
+  fixtures :topics
 
-  repair_validations(Topic, Reply, Owner)
-
-  def test_validates_size_of_association
-    assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
-    o = Owner.new('name' => 'nopets')
-    assert !o.save
-    assert o.errors[:pets].any?
-    o.pets.build('name' => 'apet')
-    assert o.valid?
-  end
-
-  def test_validates_size_of_association_using_within
-    assert_nothing_raised { Owner.validates_size_of :pets, :within => 1..2 }
-    o = Owner.new('name' => 'nopets')
-    assert !o.save
-    assert o.errors[:pets].any?
-
-    o.pets.build('name' => 'apet')
-    assert o.valid?
-
-    2.times { o.pets.build('name' => 'apet') }
-    assert !o.save
-    assert o.errors[:pets].any?
-  end
+  repair_validations(Topic, Reply)
 
   def test_validates_associated_many
     Topic.validates_associated(:replies)
@@ -90,15 +64,6 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert r.valid?
   end
 
-  def test_validates_size_of_association_utf8
-    assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
-    o = Owner.new('name' => 'あいうえおかきくけこ')
-    assert !o.save
-    assert o.errors[:pets].any?
-    o.pets.build('name' => 'あいうえおかきくけこ')
-    assert o.valid?
-  end
-
   def test_validates_presence_of_belongs_to_association__parent_is_new_record
     repair_validations(Interest) do
       # Note that Interest and Man have the :inverse_of option set
@@ -118,21 +83,4 @@ class AssociationValidationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_validates_associated_models_in_the_same_context
-    Topic.validates_presence_of :title, :on => :custom_context
-    Topic.validates_associated :replies
-    Reply.validates_presence_of :title, :on => :custom_context
-
-    t = Topic.new('title' => '')
-    r = t.replies.new('title' => '')
-
-    assert t.valid?
-    assert !t.valid?(:custom_context)
-
-    t.title = "Longer"
-    assert !t.valid?(:custom_context), "Should NOT be valid if the associated object is not valid in the same context."
-
-    r.title = "Longer"
-    assert t.valid?(:custom_context), "Should be valid if the associated object is not valid in the same context."
-  end
 end

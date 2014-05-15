@@ -5,14 +5,24 @@ module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
   end
 
+  class InvalidCrossOriginRequest < ActionControllerError #:nodoc:
+  end
+
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
   # by including a token in the rendered html for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
   # access. When a request reaches your application, \Rails verifies the received
   # token with the token in the session. Only HTML and JavaScript requests are checked,
   # so this will not protect your XML API (presumably you'll have a different
-  # authentication scheme there anyway). Also, GET requests are not protected as these
-  # should be idempotent.
+  # authentication scheme there anyway).
+  #
+  # GET requests are not protected since they don't have side effects like writing
+  # to the database and don't leak sensitive information. JavaScript requests are
+  # an exception: a third-party site can use a <script> tag to reference a JavaScript
+  # URL on your site. When your JavaScript response loads on their site, it executes.
+  # With carefully crafted JavaScript on their end, sensitive data in your JavaScript
+  # response may be extracted. To prevent this, only XmlHttpRequest (known as XHR or
+  # Ajax) requests are allowed to make GET requests for JavaScript responses.
   #
   # It's important to remember that XML or JSON requests are also affected and if
   # you're building an API you'll need something like:
@@ -50,9 +60,17 @@ module ActionController #:nodoc:
       config_accessor :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
 
+      # Holds the class which implements the request forgery protection.
+      config_accessor :forgery_protection_strategy
+      self.forgery_protection_strategy = nil
+
       # Controls whether request forgery protection is turned on or not. Turned off by default only in test mode.
       config_accessor :allow_forgery_protection
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
+
+      # Controls whether a CSRF failure logs a warning. On by default.
+      config_accessor :log_warning_on_csrf_failure
+      self.log_warning_on_csrf_failure = true
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
@@ -61,16 +79,15 @@ module ActionController #:nodoc:
     module ClassMethods
       # Turn on request forgery protection. Bear in mind that only non-GET, HTML/JavaScript requests are checked.
       #
+      #   class ApplicationController < ActionController::Base
+      #     protect_from_forgery
+      #   end
+      #
       #   class FooController < ApplicationController
       #     protect_from_forgery except: :index
       #
-      # You can disable csrf protection on controller-by-controller basis:
-      #
+      # You can disable CSRF protection on controller by skipping the verification before_action:
       #   skip_before_action :verify_authenticity_token
-      #
-      # It can also be disabled for specific controller actions:
-      #
-      #   skip_before_action :verify_authenticity_token, except: [:create]
       #
       # Valid Options:
       #
@@ -82,14 +99,15 @@ module ActionController #:nodoc:
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
       def protect_from_forgery(options = {})
-        include protection_method_module(options[:with] || :null_session)
+        self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
         prepend_before_action :verify_authenticity_token, options
+        append_after_action :verify_same_origin_request
       end
 
       private
 
-      def protection_method_module(name)
+      def protection_method_class(name)
         ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
       rescue NameError
         raise ArgumentError, 'Invalid request forgery protection method, use :null_session, :exception, or :reset_session'
@@ -97,22 +115,31 @@ module ActionController #:nodoc:
     end
 
     module ProtectionMethods
-      module NullSession
-        protected
+      class NullSession
+        def initialize(controller)
+          @controller = controller
+        end
 
         # This is the method that defines the application behavior when a request is found to be unverified.
         def handle_unverified_request
-          request.session = NullSessionHash.new
+          request = @controller.request
+          request.session = NullSessionHash.new(request.env)
           request.env['action_dispatch.request.flash_hash'] = nil
           request.env['rack.session.options'] = { skip: true }
           request.env['action_dispatch.cookies'] = NullCookieJar.build(request)
         end
 
+        protected
+
         class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
-          def initialize
-            super(nil, nil)
+          def initialize(env)
+            super(nil, env)
+            @data = {}
             @loaded = true
           end
+
+          # no-op
+          def destroy; end
 
           def exists?
             true
@@ -125,7 +152,7 @@ module ActionController #:nodoc:
             host          = request.host
             secure        = request.ssl?
 
-            new(key_generator, host, secure)
+            new(key_generator, host, secure, options_for_env({}))
           end
 
           def write(*)
@@ -134,16 +161,20 @@ module ActionController #:nodoc:
         end
       end
 
-      module ResetSession
-        protected
+      class ResetSession
+        def initialize(controller)
+          @controller = controller
+        end
 
         def handle_unverified_request
-          reset_session
+          @controller.reset_session
         end
       end
 
-      module Exception
-        protected
+      class Exception
+        def initialize(controller)
+          @controller = controller
+        end
 
         def handle_unverified_request
           raise ActionController::InvalidAuthenticityToken
@@ -152,22 +183,71 @@ module ActionController #:nodoc:
     end
 
     protected
-      # The actual before_action that is used. Modify this to change how you handle unverified requests.
+      # The actual before_action that is used to verify the CSRF token.
+      # Don't override this directly. Provide your own forgery protection
+      # strategy instead. If you override, you'll disable same-origin
+      # `<script>` verification.
+      #
+      # Lean on the protect_from_forgery declaration to mark which actions are
+      # due for same-origin request verification. If protect_from_forgery is
+      # enabled on an action, this before_action flags its after_action to
+      # verify that JavaScript responses are for XHR requests, ensuring they
+      # follow the browser's same-origin policy.
       def verify_authenticity_token
-        unless verified_request?
-          logger.warn "Can't verify CSRF token authenticity" if logger
+        mark_for_same_origin_verification!
+
+        if !verified_request?
+          if logger && log_warning_on_csrf_failure
+            logger.warn "Can't verify CSRF token authenticity"
+          end
           handle_unverified_request
         end
       end
 
+      def handle_unverified_request
+        forgery_protection_strategy.new(self).handle_unverified_request
+      end
+
+      CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
+        "<script> tag on another site requested protected JavaScript. " \
+        "If you know what you're doing, go ahead and disable forgery " \
+        "protection on this action to permit cross-origin JavaScript embedding."
+      private_constant :CROSS_ORIGIN_JAVASCRIPT_WARNING
+
+      # If `verify_authenticity_token` was run (indicating that we have
+      # forgery protection enabled for this request) then also verify that
+      # we aren't serving an unauthorized cross-origin response.
+      def verify_same_origin_request
+        if marked_for_same_origin_verification? && non_xhr_javascript_response?
+          logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING if logger
+          raise ActionController::InvalidCrossOriginRequest, CROSS_ORIGIN_JAVASCRIPT_WARNING
+        end
+      end
+
+      # GET requests are checked for cross-origin JavaScript after rendering.
+      def mark_for_same_origin_verification!
+        @marked_for_same_origin_verification = request.get?
+      end
+
+      # If the `verify_authenticity_token` before_action ran, verify that
+      # JavaScript responses are only served to same-origin GET requests.
+      def marked_for_same_origin_verification?
+        @marked_for_same_origin_verification ||= false
+      end
+
+      # Check for cross-origin JavaScript responses.
+      def non_xhr_javascript_response?
+        content_type =~ %r(\Atext/javascript) && !request.xhr?
+      end
+
       # Returns true or false if a request is verified. Checks:
       #
-      # * is it a GET request?  Gets should be safe and idempotent
+      # * is it a GET or HEAD request?  Gets should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
       # * Does the X-CSRF-Token header match the form_authenticity_token
       def verified_request?
-        !protect_against_forgery? || request.get? ||
-          form_authenticity_token == params[request_forgery_protection_token] ||
+        !protect_against_forgery? || request.get? || request.head? ||
+          form_authenticity_token == form_authenticity_param ||
           form_authenticity_token == request.headers['X-CSRF-Token']
       end
 
@@ -181,6 +261,7 @@ module ActionController #:nodoc:
         params[request_forgery_protection_token]
       end
 
+      # Checks if the controller allows forgery protection.
       def protect_against_forgery?
         allow_forgery_protection
       end

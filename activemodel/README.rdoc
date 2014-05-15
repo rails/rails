@@ -1,8 +1,8 @@
 = Active Model -- model interfaces for Rails
 
 Active Model provides a known set of interfaces for usage in model classes.
-They allow for Action Pack helpers to interact with non-ActiveRecord models,
-for example. Active Model also helps building custom ORMs for use outside of
+They allow for Action Pack helpers to interact with non-Active Record models,
+for example. Active Model also helps with building custom ORMs for use outside of
 the Rails framework.
 
 Prior to Rails 3.0, if a plugin or gem developer wanted to have an object
@@ -11,7 +11,7 @@ code from Rails, or monkey patch entire helpers to make them handle objects
 that did not exactly conform to the Active Record interface. This would result
 in code duplication and fragile applications that broke on upgrades. Active
 Model solves this by defining an explicit API. You can read more about the
-API in ActiveModel::Lint::Tests.
+API in <tt>ActiveModel::Lint::Tests</tt>.
 
 Active Model provides a default module that implements the basic API required
 to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
@@ -24,8 +24,8 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
     end
 
     person = Person.new(name: 'bob', age: '18')
-    person.name # => 'bob'
-    person.age # => '18'
+    person.name   # => 'bob'
+    person.age    # => '18'
     person.valid? # => true
 
 It includes model name introspections, conversions, translations and
@@ -49,7 +49,8 @@ behavior out of the box:
         send("#{attr}=", nil)
       end
     end
-
+  
+    person = Person.new
     person.clear_name
     person.clear_age
 
@@ -78,16 +79,31 @@ behavior out of the box:
     class Person
       include ActiveModel::Dirty
 
-      attr_accessor :name
+      define_attribute_methods :name
+
+      def name
+        @name
+      end
+
+      def name=(val)
+        name_will_change! unless val == @name
+        @name = val
+      end
+
+      def save
+        # do persistence work
+        changes_applied
+      end
     end
 
     person = Person.new
-    person.name # => nil
-    person.changed? # => false
+    person.name             # => nil
+    person.changed?         # => false
     person.name = 'bob'
-    person.changed? # => true
-    person.changed # => ['name']
-    person.changes # => { 'name' => [nil, 'bob'] }
+    person.changed?         # => true
+    person.changed          # => ['name']
+    person.changes          # => { 'name' => [nil, 'bob'] }
+    person.save
     person.name = 'robert'
     person.save
     person.previous_changes # => {'name' => ['bob, 'robert']}
@@ -109,16 +125,19 @@ behavior out of the box:
       attr_reader   :errors
 
       def validate!
-        errors.add(:name, "can not be nil") if name.nil?
+        errors.add(:name, "cannot be nil") if name.nil?
       end
 
       def self.human_attribute_name(attr, options = {})
         "Name"
       end
     end
-
+  
+    person = Person.new
+    person.name = nil
+    person.validate!
     person.errors.full_messages
-    # => ["Name can not be nil"]
+    # => ["Name cannot be nil"]
 
   {Learn more}[link:classes/ActiveModel/Errors.html]
 
@@ -180,41 +199,41 @@ behavior out of the box:
 
 * Validation support
 
-   class Person
-     include ActiveModel::Validations
+    class Person
+      include ActiveModel::Validations
 
-     attr_accessor :first_name, :last_name
+      attr_accessor :first_name, :last_name
 
-     validates_each :first_name, :last_name do |record, attr, value|
-       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
-     end
-   end
+      validates_each :first_name, :last_name do |record, attr, value|
+        record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+      end
+    end
 
-   person = Person.new
-   person.first_name = 'zoolander'
-   person.valid?  # => false
+    person = Person.new
+    person.first_name = 'zoolander'
+    person.valid?  # => false
 
   {Learn more}[link:classes/ActiveModel/Validations.html]
 
 * Custom validators
+  
+    class HasNameValidator < ActiveModel::Validator
+      def validate(record)
+        record.errors[:name] = "must exist" if record.name.blank?
+      end
+    end
 
-   class ValidatorPerson
-     include ActiveModel::Validations
-     validates_with HasNameValidator
-     attr_accessor :name
-   end
+    class ValidatorPerson
+      include ActiveModel::Validations
+      validates_with HasNameValidator
+      attr_accessor :name
+    end
 
-   class HasNameValidator < ActiveModel::Validator
-     def validate(record)
-       record.errors[:name] = "must exist" if record.name.blank?
-     end
-   end
-
-   p = ValidatorPerson.new
-   p.valid?                  # =>  false
-   p.errors.full_messages    # => ["Name must exist"]
-   p.name = "Bob"
-   p.valid?                  # =>  true
+    p = ValidatorPerson.new
+    p.valid?                  # =>  false
+    p.errors.full_messages    # => ["Name must exist"]
+    p.name = "Bob"
+    p.valid?                  # =>  true
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
 

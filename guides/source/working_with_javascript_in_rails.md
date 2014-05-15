@@ -51,7 +51,7 @@ with an id of `results`.
 
 Rails provides quite a bit of built-in support for building web pages with this
 technique. You rarely have to write this code yourself. The rest of this guide
-will show you how Rails can help you write web sites in this manner, but it's
+will show you how Rails can help you write websites in this way, but it's
 all built on top of this fairly simple technique.
 
 Unobtrusive JavaScript
@@ -111,7 +111,9 @@ paintIt = (element, backgroundColor, textColor) ->
     element.style.color = textColor
 
 $ ->
-  $("a[data-color]").click ->
+  $("a[data-background-color]").click (e) ->
+    e.preventDefault()
+
     backgroundColor = $(this).data("background-color")
     textColor = $(this).data("text-color")
     paintIt(this, backgroundColor, textColor)
@@ -169,7 +171,7 @@ This will generate the following HTML:
 </form>
 ```
 
-Note the `data-remote='true'`. Now, the form will be submitted by Ajax rather
+Note the `data-remote="true"`. Now, the form will be submitted by Ajax rather
 than by the browser's normal submit mechanism.
 
 You probably don't want to just sit there with a filled out `<form>`, though.
@@ -180,12 +182,12 @@ bind to the `ajax:success` event. On failure, use `ajax:error`. Check it out:
 $(document).ready ->
   $("#new_post").on("ajax:success", (e, data, status, xhr) ->
     $("#new_post").append xhr.responseText
-  ).bind "ajax:error", (e, xhr, status, error) ->
+  ).on "ajax:error", (e, xhr, status, error) ->
     $("#new_post").append "<p>ERROR</p>"
 ```
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
-start.
+start. You can see more about the events [in the jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
 ### form_tag
 
@@ -194,7 +196,17 @@ is very similar to `form_for`. It has a `:remote` option that you can use like
 this:
 
 ```erb
-<%= form_tag('/posts', remote: true) %>
+<%= form_tag('/posts', remote: true) do %>
+  ...
+<% end %>
+```
+
+This will generate the following HTML:
+
+```html
+<form accept-charset="UTF-8" action="/posts" data-remote="true" method="post">
+  ...
+</form>
 ```
 
 Everything else is the same as `form_for`. See its documentation for full
@@ -278,9 +290,7 @@ The index view (`app/views/users/index.html.erb`) contains:
 <b>Users</b>
 
 <ul id="users">
-<% @users.each do |user| %>
-  <%= render user %>
-<% end %>
+<%= render @users %>
 </ul>
 
 <br>
@@ -301,10 +311,10 @@ The `app/views/users/_user.html.erb` partial contains the following:
 The top portion of the index page displays the users. The bottom portion
 provides a form to create a new user.
 
-The bottom form will call the create action on the Users controller. Because
+The bottom form will call the `create` action on the `UsersController`. Because
 the form's remote option is set to true, the request will be posted to the
-users controller as an Ajax request, looking for JavaScript. In order to
-service that request, the create action of your controller would look like
+`UsersController` as an Ajax request, looking for JavaScript. In order to
+serve that request, the `create` action of your controller would look like
 this:
 
 ```ruby
@@ -394,3 +404,4 @@ Here are some helpful links to help you learn even more:
 * [jquery-ujs list of external articles](https://github.com/rails/jquery-ujs/wiki/External-articles)
 * [Rails 3 Remote Links and Forms: A Definitive Guide](http://www.alfajango.com/blog/rails-3-remote-links-and-forms/)
 * [Railscasts: Unobtrusive JavaScript](http://railscasts.com/episodes/205-unobtrusive-javascript)
+* [Railscasts: Turbolinks](http://railscasts.com/episodes/390-turbolinks)

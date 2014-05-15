@@ -35,7 +35,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   def test_response_body_encoding
-    body = ["hello".encode('utf-8')]
+    body = ["hello".encode(Encoding::UTF_8)]
     response = ActionDispatch::Response.new 200, {}, body
     assert_equal Encoding::UTF_8, response.body.encoding
   end
@@ -129,7 +129,7 @@ class ResponseTest < ActiveSupport::TestCase
 
     @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
     status, headers, body = @response.to_a
-    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", headers["Set-Cookie"]
+    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
 
     @response.delete_cookie("login")
@@ -210,6 +210,29 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal('Here is my phone number', resp.headers['X-XX-XXXX'])
     ensure
       ActionDispatch::Response.default_headers = nil
+    end
+  end
+
+  test "respond_to? accepts include_private" do
+    assert_not @response.respond_to?(:method_missing)
+    assert @response.respond_to?(:method_missing, true)
+  end
+
+  test "can be destructured into status, headers and an enumerable body" do
+    response = ActionDispatch::Response.new(404, { 'Content-Type' => 'text/plain' }, ['Not Found'])
+    status, headers, body = response
+
+    assert_equal 404, status
+    assert_equal({ 'Content-Type' => 'text/plain' }, headers)
+    assert_equal ['Not Found'], body.each.to_a
+  end
+
+  test "[response].flatten does not recurse infinitely" do
+    Timeout.timeout(1) do # use a timeout to prevent it stalling indefinitely
+      status, headers, body = [@response].flatten
+      assert_equal @response.status, status
+      assert_equal @response.headers, headers
+      assert_equal @response.body, body.each.to_a.join
     end
   end
 end

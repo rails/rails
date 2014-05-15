@@ -19,10 +19,10 @@ module ActiveSupport
   #   end
   #
   # By default it uses Marshal to serialize the message. If you want to use
-  # another serialization method, you can set the serializer attribute to
-  # something that responds to dump and load, e.g.:
+  # another serialization method, you can set the serializer in the options
+  # hash upon initialization:
   #
-  #   @verifier.serializer = YAML
+  #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
@@ -37,7 +37,12 @@ module ActiveSupport
 
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
-        @serializer.load(::Base64.decode64(data))
+        begin
+          @serializer.load(::Base64.strict_decode64(data))
+        rescue ArgumentError => argument_error
+          raise InvalidSignature if argument_error.message =~ %r{invalid base64}
+          raise
+        end
       else
         raise InvalidSignature
       end

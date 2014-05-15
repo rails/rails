@@ -1,42 +1,29 @@
 require 'rake/testtask'
-require 'rake/packagetask'
 require 'rubygems/package_task'
+
+test_files = Dir.glob('test/{abstract,controller,dispatch,assertions,journey,routing}/**/*_test.rb')
 
 desc "Default Task"
 task :default => :test
 
 # Run the unit tests
-
-desc "Run all unit tests"
-task :test => [:test_action_pack, :test_active_record_integration]
-
-Rake::TestTask.new(:test_action_pack) do |t|
+Rake::TestTask.new do |t|
   t.libs << 'test'
 
   # make sure we include the tests in alphabetical order as on some systems
   # this will not happen automatically and the tests (as a whole) will error
-  t.test_files = Dir.glob('test/{abstract,controller,dispatch,template,assertions,journey}/**/*_test.rb').sort
+  t.test_files = test_files.sort
 
   t.warning = true
   t.verbose = true
 end
 
 namespace :test do
-  Rake::TestTask.new(:isolated) do |t|
-    t.libs << 'test'
-    t.pattern = 'test/ts_isolated.rb'
+  task :isolated do
+    test_files.all? do |file|
+      sh(Gem.ruby, '-w', '-Ilib:test', file)
+    end or raise "Failures"
   end
-
-  Rake::TestTask.new(:template) do |t|
-    t.libs << 'test'
-    t.pattern = 'test/template/**/*.rb'
-  end
-end
-
-desc 'ActiveRecord Integration Tests'
-Rake::TestTask.new(:test_active_record_integration) do |t|
-  t.libs << 'test'
-  t.test_files = Dir.glob("test/activerecord/*_test.rb")
 end
 
 spec = eval(File.read('actionpack.gemspec'))
@@ -45,7 +32,7 @@ Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
-desc "Release to gemcutter"
+desc "Release to rubygems"
 task :release => :package do
   require 'rake/gemcutter'
   Rake::Gemcutter::Tasks.new(spec).define

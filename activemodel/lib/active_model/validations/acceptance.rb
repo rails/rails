@@ -3,7 +3,8 @@ module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator # :nodoc:
       def initialize(options)
-        super({ :allow_nil => true, :accept => "1" }.merge!(options))
+        super({ allow_nil: true, accept: "1" }.merge!(options))
+        setup!(options[:class])
       end
 
       def validate_each(record, attribute, value)
@@ -12,7 +13,8 @@ module ActiveModel
         end
       end
 
-      def setup(klass)
+      private
+      def setup!(klass)
         attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
         attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
         klass.send(:attr_reader, *attr_readers)
@@ -36,8 +38,6 @@ module ActiveModel
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "must be
       #   accepted").
-      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default
-      #   is +true+).
       # * <tt>:accept</tt> - Specifies value that is considered accepted.
       #   The default value is a string "1", which makes it easy to relate to
       #   an HTML checkbox. This should be set to +true+ if you are validating
@@ -45,8 +45,8 @@ module ActiveModel
       #   before validation.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+ and +:strict+.
-      # See <tt>ActiveModel::Validation#validates</tt> for more information
+      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # See <tt>ActiveModel::Validation#validates</tt> for more information.
       def validates_acceptance_of(*attr_names)
         validates_with AcceptanceValidator, _merge_attributes(attr_names)
       end

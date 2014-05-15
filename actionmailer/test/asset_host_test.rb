@@ -16,7 +16,6 @@ class AssetHostTest < ActiveSupport::TestCase
     ActionMailer::Base.deliveries.clear
     AssetHostMailer.configure do |c|
       c.asset_host = "http://www.example.com"
-      c.assets_dir = ''
     end
   end
 

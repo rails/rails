@@ -25,7 +25,7 @@ module ActiveSupport
         end
     end
 
-    # This DeprecatedObjectProxy transforms object to depracated object.
+    # This DeprecatedObjectProxy transforms object to deprecated object.
     #
     #   @old_object = DeprecatedObjectProxy.new(Object.new, "Don't use this object anymore!")
     #   @old_object = DeprecatedObjectProxy.new(Object.new, "Don't use this object anymore!", deprecator_instance)
@@ -52,7 +52,7 @@ module ActiveSupport
     end
 
     # This DeprecatedInstanceVariableProxy transforms instance variable to
-    # depracated instance variable.
+    # deprecated instance variable.
     #
     #   class Example
     #     def initialize(deprecator)
@@ -93,7 +93,7 @@ module ActiveSupport
         end
     end
 
-    # This DeprecatedConstantProxy transforms constant to depracated constant.
+    # This DeprecatedConstantProxy transforms constant to deprecated constant.
     #
     #   OLD_CONST = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('OLD_CONST', 'NEW_CONST')
     #   OLD_CONST = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('OLD_CONST', 'NEW_CONST', deprecator_instance)

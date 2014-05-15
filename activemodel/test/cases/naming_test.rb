@@ -29,6 +29,14 @@ class NamingTest < ActiveModel::TestCase
     assert_equal 'Track back', @model_name.human
   end
 
+  def test_route_key
+    assert_equal 'post_track_backs', @model_name.route_key
+  end
+
+  def test_param_key
+    assert_equal 'post_track_back', @model_name.param_key
+  end
+
   def test_i18n_key
     assert_equal :"post/track_back", @model_name.i18n_key
   end
@@ -237,7 +245,7 @@ class NamingHelpersTest < ActiveModel::TestCase
   end
 
   def test_uncountable
-    assert uncountable?(@uncountable), "Expected 'sheep' to be uncoutable"
+    assert uncountable?(@uncountable), "Expected 'sheep' to be uncountable"
     assert !uncountable?(@klass), "Expected 'contact' to be countable"
   end
 

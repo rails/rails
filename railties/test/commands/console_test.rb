@@ -19,14 +19,8 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert console.sandbox?
   end
 
-  def test_debugger_option
-    console = Rails::Console.new(app, parse_arguments(["--debugger"]))
-    assert console.debugger?
-  end
-
   def test_no_options
     console = Rails::Console.new(app, parse_arguments([]))
-    assert !console.debugger?
     assert !console.sandbox?
   end
 
@@ -34,13 +28,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     FakeConsole.expects(:start)
     start
     assert_match(/Loading \w+ environment \(Rails/, output)
-  end
-
-  def test_start_with_debugger
-    rails_console = Rails::Console.new(app, parse_arguments(["--debugger"]))
-    rails_console.expects(:require_debugger).returns(nil)
-
-    silence_stream(STDOUT) { rails_console.start }
   end
 
   def test_start_with_sandbox
@@ -52,16 +39,32 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match(/Loading \w+ environment in sandbox \(Rails/, output)
   end
 
+  if RUBY_VERSION < '2.0.0'
+    def test_debugger_option
+      console = Rails::Console.new(app, parse_arguments(["--debugger"]))
+      assert console.debugger?
+    end
+
+    def test_no_options_does_not_set_debugger_flag
+      console = Rails::Console.new(app, parse_arguments([]))
+      assert !console.debugger?
+    end
+
+    def test_start_with_debugger
+      rails_console = Rails::Console.new(app, parse_arguments(["--debugger"]))
+      rails_console.expects(:require_debugger).returns(nil)
+
+      silence_stream(STDOUT) { rails_console.start }
+    end
+  end
+
   def test_console_with_environment
     start ["-e production"]
     assert_match(/\sproduction\s/, output)
   end
 
   def test_console_defaults_to_IRB
-    config = mock("config", console: nil)
-    app = mock("app", config: config)
-    app.expects(:load_console).returns(nil)
-
+    app = build_app(console: nil)
     assert_equal IRB, Rails::Console.new(app).console
   end
 
@@ -117,9 +120,10 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match('dev', options[:environment])
   end
 
-  private
-
   attr_reader :output
+  private :output
+
+  private
 
   def start(argv = [])
     rails_console = Rails::Console.new(app, parse_arguments(argv))
@@ -127,13 +131,15 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def app
-    @app ||= begin
-      config = mock("config", console: FakeConsole)
-      app = mock("app", config: config)
-      app.stubs(:sandbox=).returns(nil)
-      app.expects(:load_console)
-      app
-    end
+    @app ||= build_app(console: FakeConsole)
+  end
+
+  def build_app(config)
+    config = mock("config", config)
+    app = mock("app", config: config)
+    app.stubs(:sandbox=).returns(nil)
+    app.expects(:load_console)
+    app
   end
 
   def parse_arguments(args)

@@ -81,6 +81,20 @@ module Notifications
     end
   end
 
+  class TestSubscriber
+    attr_reader :starts, :finishes, :publishes
+
+    def initialize
+      @starts    = []
+      @finishes  = []
+      @publishes = []
+    end
+
+    def start(*args);  @starts << args; end
+    def finish(*args); @finishes << args; end
+    def publish(*args); @publishes << args; end
+  end
+
   class SyncPubSubTest < TestCase
     def test_events_are_published_to_a_listener
       @notifier.publish :foo
@@ -99,7 +113,7 @@ module Notifications
       @notifier.publish :foo
       @notifier.publish :foo
 
-      @notifier.subscribe("not_existant") do |*args|
+      @notifier.subscribe("not_existent") do |*args|
         @events << ActiveSupport::Notifications::Event.new(*args)
       end
 
@@ -144,6 +158,14 @@ module Notifications
       assert_equal [[:foo]], @another
     end
 
+    def test_publish_with_subscriber
+      subscriber = TestSubscriber.new
+      @notifier.subscribe nil, subscriber
+      @notifier.publish :foo
+
+      assert_equal [[:foo]], subscriber.publishes
+    end
+
     private
       def event(*args)
         args
@@ -157,7 +179,7 @@ module Notifications
       assert_equal 2, instrument(:awesome) { 1 + 1 }
     end
 
-    def test_instrument_yields_the_paylod_for_further_modification
+    def test_instrument_yields_the_payload_for_further_modification
       assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
       assert_equal 1, @events.size
       assert_equal :awesome, @events.first.name

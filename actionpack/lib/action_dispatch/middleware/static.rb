@@ -6,13 +6,15 @@ module ActionDispatch
     def initialize(root, cache_control)
       @root          = root.chomp('/')
       @compiled_root = /^#{Regexp.escape(root)}/
-      @file_server   = ::Rack::File.new(@root, 'Cache-Control' => cache_control)
+      headers = cache_control && { 'Cache-Control' => cache_control }
+      @file_server   = ::Rack::File.new(@root, headers)
     end
 
     def match?(path)
-      path = path.dup
+      path = unescape_path(path)
+      return false unless path.valid_encoding?
 
-      full_path = path.empty? ? @root : File.join(@root, escape_glob_chars(unescape_path(path)))
+      full_path = path.empty? ? @root : File.join(@root, escape_glob_chars(path))
       paths = "#{full_path}#{ext}"
 
       matches = Dir[paths]
@@ -39,7 +41,6 @@ module ActionDispatch
     end
 
     def escape_glob_chars(path)
-      path.force_encoding('binary') if path.respond_to? :force_encoding
       path.gsub(/[*?{}\[\]]/, "\\\\\\&")
     end
   end

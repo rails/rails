@@ -129,6 +129,7 @@ body {
   font-family: Helvetica, Arial, Sans-Serif;
   text-decoration: none;
   vertical-align: middle;
+  cursor: pointer;
 }
 .red-button:active {
   border-top: none;
@@ -244,7 +245,7 @@ body {
 #subCol {
   position: absolute;
   z-index: 0;
-  top: 0;
+  top: 21px;
   right: 0;
   background: #FFF;
   padding: 1em 1.5em 1em 1.25em;
@@ -380,8 +381,11 @@ a, a:link, a:visited {
     font: inherit;
     padding-left: .75em;
     font-size: .95em;
-    background-position: 96% -65px;
+    background-position: 96% 16px;
     -webkit-appearance: none;
+  }
+  .guides-index-small .guides-index-item:hover{
+    background-position: 96% -65px;
   }
 }
 

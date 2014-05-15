@@ -1,11 +1,12 @@
 class Club < ActiveRecord::Base
   has_one :membership
-  has_many :memberships
+  has_many :memberships, :inverse_of => false
   has_many :members, :through => :memberships
-  has_many :current_memberships
   has_one :sponsor
   has_one :sponsored_member, :through => :sponsor, :source => :sponsorable, :source_type => "Member"
   belongs_to :category
+
+  has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
 
   private
 

@@ -40,3 +40,10 @@ fourth:
   type: Reply
   parent_id: 3
 
+fifth:
+  id: 5
+  title: The Fifth Topic of the day
+  author_name: Jason
+  written_on: 2013-07-13t12:11:00.0099+01:00
+  content: Omakase
+  approved: true

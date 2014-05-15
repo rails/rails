@@ -6,7 +6,7 @@ module ActiveRecord
       @records = []
     end
 
-    def pluck(_column_name)
+    def pluck(*column_names)
       []
     end
 
@@ -39,23 +39,25 @@ module ActiveRecord
     end
 
     def to_sql
-      @to_sql ||= ""
-    end
-
-    def where_values_hash
-      {}
+      ""
     end
 
     def count(*)
-      0
+      calculate :count, nil
     end
 
     def sum(*)
       0
     end
 
-    def calculate(_operation, _column_name, _options = {})
-      nil
+    def calculate(operation, _column_name, _options = {})
+      # TODO: Remove _options argument as soon we remove support to
+      # activerecord-deprecated_finders.
+      if operation == :count
+        group_values.any? ? Hash.new : 0
+      else
+        nil
+      end
     end
 
     def exists?(_id = false)

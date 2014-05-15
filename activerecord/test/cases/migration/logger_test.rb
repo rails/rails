@@ -7,6 +7,7 @@ module ActiveRecord
       self.use_transactional_fixtures = false
 
       Migration = Struct.new(:name, :version) do
+        def disable_ddl_transaction; false end
         def migrate direction
           # do nothing
         end
@@ -18,8 +19,7 @@ module ActiveRecord
         ActiveRecord::SchemaMigration.delete_all
       end
 
-      def teardown
-        super
+      teardown do
         ActiveRecord::SchemaMigration.drop_table
       end
 
@@ -34,4 +34,3 @@ module ActiveRecord
     end
   end
 end
-

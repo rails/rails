@@ -19,6 +19,10 @@ module ActionMailer
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
 
+      if Rails.env.development?
+        options.preview_path  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
+      end
+
       # make sure readers methods get compiled
       options.asset_host          ||= app.config.asset_host
       options.relative_url_root   ||= app.config.relative_url_root
@@ -38,6 +42,12 @@ module ActionMailer
     initializer "action_mailer.compile_config_methods" do
       ActiveSupport.on_load(:action_mailer) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
+      end
+    end
+
+    config.after_initialize do
+      if ActionMailer::Base.preview_path
+        ActiveSupport::Dependencies.autoload_paths << ActionMailer::Base.preview_path
       end
     end
   end

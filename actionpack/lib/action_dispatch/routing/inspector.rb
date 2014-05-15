@@ -1,4 +1,5 @@
 require 'delegate'
+require 'active_support/core_ext/string/strip'
 
 module ActionDispatch
   module Routing
@@ -34,6 +35,23 @@ module ActionDispatch
         super.to_s
       end
 
+      def regexp
+        __getobj__.path.to_regexp
+      end
+
+      def json_regexp
+        str = regexp.inspect.
+              sub('\\A' , '^').
+              sub('\\Z' , '$').
+              sub('\\z' , '$').
+              sub(/^\// , '').
+              sub(/\/[a-z]*$/ , '').
+              gsub(/\(\?#.+\)/ , '').
+              gsub(/\(\?-\w+:/ , '(').
+              gsub(/\s/ , '')
+        Regexp.new(str).source
+      end
+
       def reqs
         @reqs ||= begin
           reqs = endpoint
@@ -51,7 +69,7 @@ module ActionDispatch
       end
 
       def internal?
-        controller =~ %r{\Arails/(info|welcome)} || path =~ %r{\A#{Rails.application.config.assets.prefix}}
+        controller.to_s =~ %r{\Arails/(info|mailers|welcome)} || path =~ %r{\A#{Rails.application.config.assets.prefix}\z}
       end
 
       def engine?
@@ -73,10 +91,18 @@ module ActionDispatch
         routes_to_display = filter_routes(filter)
 
         routes = collect_routes(routes_to_display)
-        formatter.section :application, 'Application routes', routes
+
+        if routes.none?
+          formatter.no_routes
+          return formatter.result
+        end
+
+        formatter.header routes
+        formatter.section routes
 
         @engines.each do |name, engine_routes|
-          formatter.section :engine, "Routes for #{name}", engine_routes
+          formatter.section_title "Routes for #{name}"
+          formatter.section engine_routes
         end
 
         formatter.result
@@ -100,7 +126,11 @@ module ActionDispatch
         end.collect do |route|
           collect_engine_routes(route)
 
-          { name: route.name, verb: route.verb, path: route.path, reqs: route.reqs }
+          { name:   route.name,
+            verb:   route.verb,
+            path:   route.path,
+            reqs:   route.reqs,
+            regexp: route.json_regexp }
         end
       end
 
@@ -125,20 +155,48 @@ module ActionDispatch
         @buffer.join("\n")
       end
 
-      def section(type, title, routes)
-        @buffer << "\n#{title}:" unless type == :application
+      def section_title(title)
+        @buffer << "\n#{title}:"
+      end
+
+      def section(routes)
         @buffer << draw_section(routes)
+      end
+
+      def header(routes)
+        @buffer << draw_header(routes)
+      end
+
+      def no_routes
+        @buffer << <<-MESSAGE.strip_heredoc
+          You don't have any routes defined!
+
+          Please add some routes in config/routes.rb.
+
+          For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
+          MESSAGE
       end
 
       private
         def draw_section(routes)
-          name_width = routes.map { |r| r[:name].length }.max
-          verb_width = routes.map { |r| r[:verb].length }.max
-          path_width = routes.map { |r| r[:path].length }.max
+          header_lengths = ['Prefix', 'Verb', 'URI Pattern'].map(&:length)
+          name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
           routes.map do |r|
             "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
           end
+        end
+
+        def draw_header(routes)
+          name_width, verb_width, path_width = widths(routes)
+
+          "#{"Prefix".rjust(name_width)} #{"Verb".ljust(verb_width)} #{"URI Pattern".ljust(path_width)} Controller#Action"
+        end
+
+        def widths(routes)
+          [routes.map { |r| r[:name].length }.max || 0,
+           routes.map { |r| r[:verb].length }.max || 0,
+           routes.map { |r| r[:path].length }.max || 0]
         end
     end
 
@@ -148,9 +206,29 @@ module ActionDispatch
         @buffer = []
       end
 
-      def section(type, title, routes)
+      def section_title(title)
         @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+      end
+
+      def section(routes)
         @buffer << @view.render(partial: "routes/route", collection: routes)
+      end
+
+      # the header is part of the HTML page, so we don't construct it here.
+      def header(routes)
+      end
+
+      def no_routes
+        @buffer << <<-MESSAGE.strip_heredoc
+          <p>You don't have any routes defined!</p>
+          <ul>
+            <li>Please add some routes in <tt>config/routes.rb</tt>.</li>
+            <li>
+              For more information about routes, please see the Rails guide
+              <a href="http://guides.rubyonrails.org/routing.html">Rails Routing from the Outside In</a>.
+            </li>
+          </ul>
+          MESSAGE
       end
 
       def result

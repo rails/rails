@@ -20,7 +20,7 @@ module ActionDispatch
     #
     #   <%= link_to('Click here', controller: 'users',
     #           action: 'new', message: 'Welcome!') %>
-    #   # => "/users/new?message=Welcome%21"
+    #   # => <a href="/users/new?message=Welcome%21">Click here</a>
     #
     # link_to, and all other functions that require URL generation functionality,
     # actually use ActionController::UrlFor under the hood. And in particular,
@@ -155,8 +155,14 @@ module ActionDispatch
           _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
         when String
           options
+        when Symbol
+          HelperMethodBuilder.url.handle_string_call self, options
+        when Array
+          polymorphic_url(options, options.extract_options!)
+        when Class
+          HelperMethodBuilder.url.handle_class_call self, options
         else
-          polymorphic_url(options)
+          HelperMethodBuilder.url.handle_model_call self, options
         end
       end
 

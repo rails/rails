@@ -117,12 +117,11 @@ database only if the object is valid:
 * `save`
 * `save!`
 * `update`
-* `update`
 * `update!`
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
-The non-bang versions don't: `save` and `update` return `false`,
-`create` and `update` just return the objects.
+The non-bang versions don't, `save` and `update` return `false`,
+`create` just returns the object.
 
 ### Skipping Validations
 
@@ -163,8 +162,8 @@ Person.create(name: nil).valid? # => false
 ```
 
 After Active Record has performed validations, any errors found can be accessed
-through the `errors` instance method, which returns a collection of errors. By
-definition, an object is valid if this collection is empty after running
+through the `errors.messages` instance method, which returns a collection of errors.
+By definition, an object is valid if this collection is empty after running
 validations.
 
 Note that an object instantiated with `new` will not report errors even if it's
@@ -176,28 +175,28 @@ class Person < ActiveRecord::Base
 end
 
 >> p = Person.new
-#=> #<Person id: nil, name: nil>
->> p.errors
-#=> {}
+# => #<Person id: nil, name: nil>
+>> p.errors.messages
+# => {}
 
 >> p.valid?
-#=> false
->> p.errors
-#=> {name:["can't be blank"]}
+# => false
+>> p.errors.messages
+# => {name:["can't be blank"]}
 
 >> p = Person.create
-#=> #<Person id: nil, name: nil>
->> p.errors
-#=> {name:["can't be blank"]}
+# => #<Person id: nil, name: nil>
+>> p.errors.messages
+# => {name:["can't be blank"]}
 
 >> p.save
-#=> false
+# => false
 
 >> p.save!
-#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
 >> Person.create!
-#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 `invalid?` is simply the inverse of `valid?`. It triggers your validations,
@@ -244,7 +243,7 @@ line of code you can add the same kind of validation to several attributes.
 All of them accept the `:on` and `:message` options, which define when the
 validation should be run and what message should be added to the `errors`
 collection if it fails, respectively. The `:on` option takes one of the values
-`:save` (the default), `:create`  or `:update`. There is a default error
+`:create` or `:update`. There is a default error
 message for each one of the validation helpers. These messages are used when
 the `:message` option isn't specified. Let's take a look at each one of the
 available helpers.
@@ -338,7 +337,7 @@ set. In fact, this set can be any enumerable object.
 ```ruby
 class Account < ActiveRecord::Base
   validates :subdomain, exclusion: { in: %w(www us ca jp),
-    message: "Subdomain %{value} is reserved." }
+    message: "%{value} is reserved." }
 end
 ```
 
@@ -358,7 +357,7 @@ given regular expression, which is specified using the `:with` option.
 ```ruby
 class Product < ActiveRecord::Base
   validates :legacy_code, format: { with: /\A[a-zA-Z]+\z/,
-    message: "Only letters allowed" }
+    message: "only allows letters" }
 end
 ```
 
@@ -435,11 +434,9 @@ end
 
 Note that the default error messages are plural (e.g., "is too short (minimum
 is %{count} characters)"). For this reason, when `:minimum` is 1 you should
-provide a personalized message or use `validates_presence_of` instead. When
+provide a personalized message or use `presence: true` instead. When
 `:in` or `:within` have a lower limit of 1, you should either provide a
 personalized message or call `presence` prior to `length`.
-
-The `size` helper is an alias for `length`.
 
 ### `numericality`
 
@@ -529,7 +526,48 @@ If you validate the presence of an object associated via a `has_one` or
 Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use `validates :field_name, inclusion: { in: [true, false] }`.
 
-The default error message is _"can't be empty"_.
+The default error message is _"can't be blank"_.
+
+### `absence`
+
+This helper validates that the specified attributes are absent. It uses the
+`present?` method to check if the value is not either nil or a blank string, that
+is, a string that is either empty or consists of whitespace.
+
+```ruby
+class Person < ActiveRecord::Base
+  validates :name, :login, :email, absence: true
+end
+```
+
+If you want to be sure that an association is absent, you'll need to test
+whether the associated object itself is absent, and not the foreign key used
+to map the association.
+
+```ruby
+class LineItem < ActiveRecord::Base
+  belongs_to :order
+  validates :order, absence: true
+end
+```
+
+In order to validate associated records whose absence is required, you must
+specify the `:inverse_of` option for the association:
+
+```ruby
+class Order < ActiveRecord::Base
+  has_many :line_items, inverse_of: :order
+end
+```
+
+If you validate the absence of an object associated via a `has_one` or
+`has_many` relationship, it will check that the object is neither `present?` nor
+`marked_for_destruction?`.
+
+Since `false.present?` is false, if you want to validate the absence of a boolean
+field you should use `validates :field_name, exclusion: { in: [true, false] }`.
+
+The default error message is _"must be blank"_.
 
 ### `uniqueness`
 
@@ -537,7 +575,9 @@ This helper validates that the attribute's value is unique right before the
 object gets saved. It does not create a uniqueness constraint in the database,
 so it may happen that two different database connections create two records
 with the same value for a column that you intend to be unique. To avoid that,
-you must create a unique index in your database.
+you must create a unique index on both columns in your database. See
+[the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html)
+for more details about multiple column indexes.
 
 ```ruby
 class Account < ActiveRecord::Base
@@ -578,16 +618,16 @@ The default error message is _"has already been taken"_.
 This helper passes the record to a separate class for validation.
 
 ```ruby
-class Person < ActiveRecord::Base
-  validates_with GoodnessValidator
-end
-
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if record.first_name == "Evil"
       record.errors[:base] << "This person is evil"
     end
   end
+end
+
+class Person < ActiveRecord::Base
+  validates_with GoodnessValidator
 end
 ```
 
@@ -606,16 +646,45 @@ Like all other validations, `validates_with` takes the `:if`, `:unless` and
 validator class as `options`:
 
 ```ruby
-class Person < ActiveRecord::Base
-  validates_with GoodnessValidator, fields: [:first_name, :last_name]
-end
-
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
       record.errors[:base] << "This person is evil"
     end
   end
+end
+
+class Person < ActiveRecord::Base
+  validates_with GoodnessValidator, fields: [:first_name, :last_name]
+end
+```
+
+Note that the validator will be initialized *only once* for the whole application
+life cycle, and not on each validation run, so be careful about using instance
+variables inside it.
+
+If your validator is complex enough that you want instance variables, you can
+easily use a plain old Ruby object instead:
+
+```ruby
+class Person < ActiveRecord::Base
+  validate do |person|
+    GoodnessValidator.new(person).validate
+  end
+end
+
+class GoodnessValidator
+  def initialize(person)
+    @person = person
+  end
+
+  def validate
+    if some_complex_condition_involving_ivars_and_private_methods?
+      @person.errors[:base] << "This person is evil"
+    end
+  end
+
+  # ...
 end
 ```
 
@@ -667,8 +736,8 @@ class Topic < ActiveRecord::Base
   validates :title, length: { is: 5 }, allow_blank: true
 end
 
-Topic.create("title" => "").valid?  # => true
-Topic.create("title" => nil).valid? # => true
+Topic.create(title: "").valid?  # => true
+Topic.create(title: nil).valid? # => true
 ```
 
 ### `:message`
@@ -696,7 +765,7 @@ class Person < ActiveRecord::Base
   validates :age, numericality: true, on: :update
 
   # the default (validates on both create and update)
-  validates :name, presence: true, on: :save
+  validates :name, presence: true
 end
 ```
 
@@ -714,7 +783,7 @@ end
 Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
-There is also an ability to pass custom exception to `:strict` option
+There is also an ability to pass custom exception to `:strict` option.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -923,12 +992,12 @@ end
 
 person = Person.new
 person.valid? # => false
-person.errors
+person.errors.messages
  # => {:name=>["can't be blank", "is too short (minimum is 3 characters)"]}
 
 person = Person.new(name: "John Doe")
 person.valid? # => true
-person.errors # => []
+person.errors.messages # => {}
 ```
 
 ### `errors[]`

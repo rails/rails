@@ -22,45 +22,34 @@ module ActiveSupport
         extend Strategy::LocalCache
       end
 
+      # Deletes all items from the cache. In this case it deletes all the entries in the specified
+      # file store directory except for .gitkeep. Be careful which directory is specified in your
+      # config file when using +FileStore+ because everything in that directory will be deleted.
       def clear(options = nil)
         root_dirs = Dir.entries(cache_path).reject {|f| (EXCLUDED_DIRS + [".gitkeep"]).include?(f)}
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       end
 
+      # Preemptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
-        each_key(options) do |key|
+        search_dir(cache_path) do |fname|
+          key = file_path_key(fname)
           entry = read_entry(key, options)
           delete_entry(key, options) if entry && entry.expired?
         end
       end
 
+      # Increments an already existing integer value that is stored in the cache.
+      # If the key is not found nothing is done.
       def increment(name, amount = 1, options = nil)
-        file_name = key_file_path(namespaced_key(name, options))
-        lock_file(file_name) do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i + amount
-            write(name, num, options)
-            num
-          else
-            nil
-          end
-        end
+        modify_value(name, amount, options)
       end
 
+      # Decrements an already existing integer value that is stored in the cache.
+      # If the key is not found nothing is done.
       def decrement(name, amount = 1, options = nil)
-        file_name = key_file_path(namespaced_key(name, options))
-        lock_file(file_name) do
-          options = merged_options(options)
-          if num = read(name, options)
-            num = num.to_i - amount
-            write(name, num, options)
-            num
-          else
-            nil
-          end
-        end
+        modify_value(name, -amount, options)
       end
 
       def delete_matched(matcher, options = nil)
@@ -88,6 +77,7 @@ module ActiveSupport
 
         def write_entry(key, entry, options)
           file_name = key_file_path(key)
+          return false if options[:unless_exist] && File.exist?(file_name)
           ensure_cache_path(File.dirname(file_name))
           File.atomic_write(file_name, cache_path) {|f| Marshal.dump(entry, f)}
           true
@@ -150,9 +140,9 @@ module ActiveSupport
 
         # Delete empty directories in the cache.
         def delete_empty_directories(dir)
-          return if dir == cache_path
+          return if File.realpath(dir) == File.realpath(cache_path)
           if Dir.entries(dir).reject {|f| EXCLUDED_DIRS.include?(f)}.empty?
-            File.delete(dir) rescue nil
+            Dir.delete(dir) rescue nil
             delete_empty_directories(File.dirname(dir))
           end
         end
@@ -171,6 +161,22 @@ module ActiveSupport
               search_dir(name, &callback)
             else
               callback.call name
+            end
+          end
+        end
+
+        # Modifies the amount of an already existing integer value that is stored in the cache.
+        # If the key is not found nothing is done.
+        def modify_value(name, amount, options)
+          file_name = key_file_path(namespaced_key(name, options))
+
+          lock_file(file_name) do
+            options = merged_options(options)
+
+            if num = read(name, options)
+              num = num.to_i + amount
+              write(name, num, options)
+              num
             end
           end
         end

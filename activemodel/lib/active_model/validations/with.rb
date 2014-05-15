@@ -53,7 +53,7 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:on</tt> - Specifies when this validation is active
-      #   (<tt>:create</tt> or <tt>:update</tt>.
+      #   (<tt>:create</tt> or <tt>:update</tt>).
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>).
@@ -83,9 +83,10 @@ module ActiveModel
       #   end
       def validates_with(*args, &block)
         options = args.extract_options!
+        options[:class] = self
+
         args.each do |klass|
           validator = klass.new(options, &block)
-          validator.setup(self) if validator.respond_to?(:setup)
 
           if validator.respond_to?(:attributes) && !validator.attributes.empty?
             validator.attributes.each do |attribute|
@@ -138,6 +139,8 @@ module ActiveModel
     # class version of this method for more information.
     def validates_with(*args, &block)
       options = args.extract_options!
+      options[:class] = self.class
+
       args.each do |klass|
         validator = klass.new(options, &block)
         validator.validate(self)

@@ -95,6 +95,11 @@ module DateAndTimeBehavior
   end
 
   def test_next_week
+    #   M   |   T  | W | T | F | S | S #   M   | T |   W   | T |  F  | S | S #
+    #       | 22/2 |   |   |   |   |   # 28/2  |   |       |   |     |   |   # monday in next week `next_week`
+    #       | 22/2 |   |   |   |   |   #       |   |       |   | 4/3 |   |   # friday in next week `next_week(:friday)`
+    # 23/10 |      |   |   |   |   |   # 30/10 |   |       |   |     |   |   # monday in next week `next_week`
+    # 23/10 |      |   |   |   |   |   #       |   |  1/11 |   |     |   |   # wednesday in next week `next_week(:wednesday)`
     assert_equal date_time_init(2005,2,28,0,0,0),  date_time_init(2005,2,22,15,15,10).next_week
     assert_equal date_time_init(2005,3,4,0,0,0),   date_time_init(2005,2,22,15,15,10).next_week(:friday)
     assert_equal date_time_init(2006,10,30,0,0,0), date_time_init(2006,10,23,0,0,0).next_week

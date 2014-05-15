@@ -22,7 +22,7 @@ module Rails
   #
   # * creating initializers
   # * configuring a Rails framework for the application, like setting a generator
-  # * +adding config.*+ keys to the environment
+  # * adding <tt>config.*</tt> keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding rake tasks
   #
@@ -63,8 +63,8 @@ module Rails
   #     end
   #   end
   #
-  # Finally, you can also pass :before and :after as option to initializer, in case
-  # you want to couple it with a specific step in the initialization process.
+  # Finally, you can also pass <tt>:before</tt> and <tt>:after</tt> as option to initializer,
+  # in case you want to couple it with a specific step in the initialization process.
   #
   # == Configuration
   #
@@ -112,7 +112,6 @@ module Rails
   # Be sure to look at the documentation of those specific classes for more information.
   #
   class Railtie
-    autoload :Configurable,  "rails/railtie/configurable"
     autoload :Configuration, "rails/railtie/configuration"
 
     include Initializable
@@ -121,6 +120,7 @@ module Rails
 
     class << self
       private :new
+      delegate :config, to: :instance
 
       def subclasses
         @subclasses ||= []
@@ -128,7 +128,6 @@ module Rails
 
       def inherited(base)
         unless base.abstract_railtie?
-          base.send(:include, Railtie::Configurable)
           subclasses << base
         end
       end
@@ -166,13 +165,50 @@ module Rails
         @railtie_name ||= generate_railtie_name(self.name)
       end
 
+      # Since Rails::Railtie cannot be instantiated, any methods that call
+      # +instance+ are intended to be called only on subclasses of a Railtie.
+      def instance
+        @instance ||= new
+      end
+
+      def respond_to_missing?(*args)
+        instance.respond_to?(*args) || super
+      end
+
+      # Allows you to configure the railtie. This is the same method seen in
+      # Railtie::Configurable, but this module is no longer required for all
+      # subclasses of Railtie so we provide the class method here.
+      def configure(&block)
+        instance.configure(&block)
+      end
+
       protected
-        def generate_railtie_name(class_or_module)
-          ActiveSupport::Inflector.underscore(class_or_module).tr("/", "_")
+        def generate_railtie_name(string)
+          ActiveSupport::Inflector.underscore(string).tr("/", "_")
+        end
+
+        # If the class method does not have a method, then send the method call
+        # to the Railtie instance.
+        def method_missing(name, *args, &block)
+          if instance.respond_to?(name)
+            instance.public_send(name, *args, &block)
+          else
+            super
+          end
         end
     end
 
     delegate :railtie_name, to: :class
+
+    def initialize
+      if self.class.abstract_railtie?
+        raise "#{self.class.name} is abstract, you cannot instantiate it directly."
+      end
+    end
+
+    def configure(&block)
+      instance_eval(&block)
+    end
 
     def config
       @config ||= Railtie::Configuration.new
@@ -185,26 +221,28 @@ module Rails
     protected
 
     def run_console_blocks(app) #:nodoc:
-      self.class.console.each { |block| block.call(app) }
+      each_registered_block(:console) { |block| block.call(app) }
     end
 
     def run_generators_blocks(app) #:nodoc:
-      self.class.generators.each { |block| block.call(app) }
+      each_registered_block(:generators) { |block| block.call(app) }
     end
 
     def run_runner_blocks(app) #:nodoc:
-      self.class.runner.each { |block| block.call(app) }
+      each_registered_block(:runner) { |block| block.call(app) }
     end
 
     def run_tasks_blocks(app) #:nodoc:
       extend Rake::DSL
-      self.class.rake_tasks.each { |block| instance_exec(app, &block) }
+      each_registered_block(:rake_tasks) { |block| instance_exec(app, &block) }
+    end
 
-      # Load also tasks from all superclasses
-      klass = self.class.superclass
+    private
 
-      while klass.respond_to?(:rake_tasks)
-        klass.rake_tasks.each { |t| instance_exec(app, &t) }
+    def each_registered_block(type, &block)
+      klass = self.class
+      while klass.respond_to?(type)
+        klass.public_send(type).each(&block)
         klass = klass.superclass
       end
     end

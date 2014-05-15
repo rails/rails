@@ -8,8 +8,12 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       case req.path
       when "/not_found"
         raise AbstractController::ActionNotFound
+      when "/bad_params"
+        raise ActionDispatch::ParamsParser::ParseError.new("", StandardError.new)
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed
+      when "/unknown_http_method"
+        raise ActionController::UnknownHttpMethod
       when "/not_found_original_exception"
         raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
       else
@@ -33,12 +37,20 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 500
     assert_equal "500 error fixture\n", body
+    
+    get "/bad_params", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 400
+    assert_equal "400 error fixture\n", body
 
     get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404
     assert_equal "404 error fixture\n", body
 
     get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 405
+    assert_equal "", body
+
+    get "/unknown_http_method", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 405
     assert_equal "", body
   end

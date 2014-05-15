@@ -1,5 +1,20 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
+    @handlers = []
+
+    autoload :RelationHandler, 'active_record/relation/predicate_builder/relation_handler'
+    autoload :ArrayHandler, 'active_record/relation/predicate_builder/array_handler'
+
+    def self.resolve_column_aliases(klass, hash)
+      hash = hash.dup
+      hash.keys.grep(Symbol) do |key|
+        if klass.attribute_alias? key
+          hash[klass.attribute_alias(key)] = hash.delete key
+        end
+      end
+      hash
+    end
+
     def self.build_from_hash(klass, attributes, default_table)
       queries = []
 
@@ -7,12 +22,12 @@ module ActiveRecord
         table = default_table
 
         if value.is_a?(Hash)
-          table       = Arel::Table.new(column, default_table.engine)
-          association = klass.reflect_on_association(column.to_sym)
-
           if value.empty?
-            queries.concat ['1 = 2']
+            queries << '1=0'
           else
+            table       = Arel::Table.new(column, default_table.engine)
+            association = klass.reflect_on_association(column.to_sym)
+
             value.each do |k, v|
               queries.concat expand(association && association.klass, table, k, v)
             end
@@ -40,16 +55,28 @@ module ActiveRecord
       #
       # For polymorphic relationships, find the foreign key and type:
       # PriceEstimate.where(estimate_of: treasure)
-      if klass && value.class < Base && reflection = klass.reflect_on_association(column.to_sym)
-        if reflection.polymorphic?
-          queries << build(table[reflection.foreign_type], value.class.base_class)
+      if klass && reflection = klass.reflect_on_association(column.to_sym)
+        if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
+          queries << build(table[reflection.foreign_type], base_class)
         end
 
         column = reflection.foreign_key
       end
 
-      queries << build(table[column.to_sym], value)
+      queries << build(table[column], value)
       queries
+    end
+
+    def self.polymorphic_base_class_from_value(value)
+      case value
+      when Relation
+        value.klass.base_class
+      when Array
+        val = value.compact.first
+        val.class.base_class if val.is_a?(Base)
+      when Base
+        value.class.base_class
+      end
     end
 
     def self.references(attributes)
@@ -58,49 +85,42 @@ module ActiveRecord
           key
         else
           key = key.to_s
-          key.split('.').first.to_sym if key.include?('.')
+          key.split('.').first if key.include?('.')
         end
       end.compact
     end
 
-    private
-      def self.build(attribute, value)
-        case value
-        when Array, ActiveRecord::Associations::CollectionProxy
-          values = value.to_a.map {|x| x.is_a?(Base) ? x.id : x}
-          ranges, values = values.partition {|v| v.is_a?(Range)}
+    # Define how a class is converted to Arel nodes when passed to +where+.
+    # The handler can be any object that responds to +call+, and will be used
+    # for any value that +===+ the class given. For example:
+    #
+    #     MyCustomDateRange = Struct.new(:start, :end)
+    #     handler = proc do |column, range|
+    #       Arel::Nodes::Between.new(column,
+    #         Arel::Nodes::And.new([range.start, range.end])
+    #       )
+    #     end
+    #     ActiveRecord::PredicateBuilder.register_handler(MyCustomDateRange, handler)
+    def self.register_handler(klass, handler)
+      @handlers.unshift([klass, handler])
+    end
 
-          values_predicate = if values.include?(nil)
-            values = values.compact
+    register_handler(BasicObject, ->(attribute, value) { attribute.eq(value) })
+    # FIXME: I think we need to deprecate this behavior
+    register_handler(Class, ->(attribute, value) { attribute.eq(value.name) })
+    register_handler(Base, ->(attribute, value) { attribute.eq(value.id) })
+    register_handler(Range, ->(attribute, value) { attribute.in(value) })
+    register_handler(Relation, RelationHandler.new)
+    register_handler(Array, ArrayHandler.new)
 
-            case values.length
-            when 0
-              attribute.eq(nil)
-            when 1
-              attribute.eq(values.first).or(attribute.eq(nil))
-            else
-              attribute.in(values).or(attribute.eq(nil))
-            end
-          else
-            attribute.in(values)
-          end
+    def self.build(attribute, value)
+      handler_for(value).call(attribute, value)
+    end
+    private_class_method :build
 
-          array_predicates = ranges.map { |range| attribute.in(range) }
-          array_predicates << values_predicate
-          array_predicates.inject { |composite, predicate| composite.or(predicate) }
-        when ActiveRecord::Relation
-          value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
-          attribute.in(value.arel.ast)
-        when Range
-          attribute.in(value)
-        when ActiveRecord::Base
-          attribute.eq(value.id)
-        when Class
-          # FIXME: I think we need to deprecate this behavior
-          attribute.eq(value.name)
-        else
-          attribute.eq(value)
-        end
-      end
+    def self.handler_for(object)
+      @handlers.detect { |klass, _| klass === object }.last
+    end
+    private_class_method :handler_for
   end
 end

@@ -1,9 +1,9 @@
-## Rails 4.0.0 (unreleased) ##
+*   Updates the maintenance policy to match the latest versions of Rails
 
-*   Split Validations and Callbacks guide into two. *Steve Klabnik*
+    *Matias Korhonen*
 
-*   New guide _Working with JavaScript in Rails_. *Steve Klabnik*
+*   Switched the order of `Applying a default scope` and `Merging of scopes` subsections so default scopes are introduced first.
 
-*   Guides updated to reflect new test locations. *Mike Moore*
+    *Alex Riabov*
 
-*   Guides have a responsive design. *Joe Fiorini*
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/guides/CHANGELOG.md) for previous changes.

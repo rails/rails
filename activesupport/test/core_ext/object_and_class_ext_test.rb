@@ -3,31 +3,6 @@ require 'active_support/time'
 require 'active_support/core_ext/object'
 require 'active_support/core_ext/class/subclasses'
 
-class ClassA; end
-class ClassB < ClassA; end
-class ClassC < ClassB; end
-class ClassD < ClassA; end
-
-class ClassI; end
-class ClassJ < ClassI; end
-
-class ClassK
-end
-module Nested
-  class << self
-    def on_const_missing(&callback)
-      @on_const_missing = callback
-    end
-    private
-      def const_missing(mod_id)
-        @on_const_missing[mod_id] if @on_const_missing
-        super
-      end
-  end
-  class ClassL < ClassK
-  end
-end
-
 class ObjectTests < ActiveSupport::TestCase
   class DuckTime
     def acts_like_time?
@@ -118,6 +93,10 @@ class ObjectTryTest < ActiveSupport::TestCase
     method = :undefined_method
     assert !@string.respond_to?(method)
     assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
+  end
+
+  def test_try_only_block_bang
+    assert_equal @string.reverse, @string.try! { |s| s.reverse }
   end
 
   def test_valid_method

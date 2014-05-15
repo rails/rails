@@ -1,10 +1,8 @@
-module Rails
-  module VERSION #:nodoc:
-    MAJOR = 4
-    MINOR = 0
-    TINY  = 0
-    PRE   = "beta"
+require_relative 'gem_version'
 
-    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
+module Rails
+  # Returns the version of the currently loaded Rails as a string.
+  def self.version
+    VERSION::STRING
   end
 end

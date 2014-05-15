@@ -137,7 +137,7 @@ Creating a Rails 3.1 application
 --------------------------------
 
 ```bash
-# You should have the 'rails' rubygem installed
+# You should have the 'rails' RubyGem installed
 $ rails new myapp
 $ cd myapp
 ```
@@ -286,7 +286,7 @@ Action Pack
     end
     ```
 
-    You can restrict it to some actions by using `:only` or `:except`. Please read the docs at [`ActionController::Streaming`](http://api.rubyonrails.org/classes/ActionController/Streaming.html) for more information.
+    You can restrict it to some actions by using `:only` or `:except`. Please read the docs at [`ActionController::Streaming`](http://api.rubyonrails.org/v3.1.0/classes/ActionController/Streaming.html) for more information.
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
 

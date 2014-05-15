@@ -37,6 +37,11 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Strict-Transport-Security']
   end
 
+  def test_no_hsts_with_insecure_connection
+    get "http://example.org/"
+    assert_not response.headers['Strict-Transport-Security']
+  end
+
   def test_hsts_header
     self.app = ActionDispatch::SSL.new(default_app, :hsts => true)
     get "https://example.org/"
@@ -119,6 +124,49 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Set-Cookie'].split("\n")
   end
 
+
+  def test_flag_cookies_as_secure_with_has_not_spaces_before
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "problem=def; path=/;secure; HttpOnly"
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["problem=def; path=/;secure; HttpOnly"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
+  def test_flag_cookies_as_secure_with_has_not_spaces_after
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "problem=def; path=/; secure;HttpOnly"
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["problem=def; path=/; secure;HttpOnly"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
+  def test_flag_cookies_as_secure_with_ignore_case
+    self.app = ActionDispatch::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => "problem=def; path=/; Secure; HttpOnly"
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["problem=def; path=/; Secure; HttpOnly"],
+      response.headers['Set-Cookie'].split("\n")
+  end
+
   def test_no_cookies
     self.app = ActionDispatch::SSL.new(lambda { |env|
       [200, {'Content-Type' => "text/html"}, ["OK"]]
@@ -145,6 +193,13 @@ class SSLTest < ActionDispatch::IntegrationTest
     self.app = ActionDispatch::SSL.new(default_app, :host => "ssl.example.org", :port => 8443)
     get "http://example.org/path?key=value"
     assert_equal "https://ssl.example.org:8443/path?key=value",
+      response.headers['Location']
+  end
+
+  def test_redirect_to_host_with_port
+    self.app = ActionDispatch::SSL.new(default_app, :host => "ssl.example.org:443")
+    get "http://example.org/path?key=value"
+    assert_equal "https://ssl.example.org:443/path?key=value",
       response.headers['Location']
   end
 

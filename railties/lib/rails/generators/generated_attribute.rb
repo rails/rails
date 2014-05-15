@@ -94,6 +94,10 @@ module Rails
         name.sub(/_id$/, '').pluralize
       end
 
+      def singular_name
+        name.sub(/_id$/, '').singularize
+      end
+
       def human_name
         name.humanize
       end
@@ -128,6 +132,10 @@ module Rails
 
       def has_uniq_index?
         @has_uniq_index
+      end
+
+      def password_digest?
+        name == 'password' && type == :digest 
       end
 
       def inject_options

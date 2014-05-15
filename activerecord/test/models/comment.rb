@@ -26,19 +26,25 @@ class Comment < ActiveRecord::Base
     all
   end
   scope :all_as_scope, -> { all }
+
+  def to_s
+    body
+  end
 end
 
 class SpecialComment < Comment
-  def self.what_are_you
-    'a special comment...'
-  end
 end
 
 class SubSpecialComment < SpecialComment
 end
 
 class VerySpecialComment < Comment
-  def self.what_are_you
-    'a very special comment...'
+end
+
+class CommentThatAutomaticallyAltersPostBody < Comment
+  belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id
+
+  after_save do |comment|
+    comment.post.update_attributes(body: "Automatically altered")
   end
 end

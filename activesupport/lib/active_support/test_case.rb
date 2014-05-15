@@ -1,13 +1,13 @@
 gem 'minitest' # make sure we get the gem, not stdlib
-require 'minitest/unit'
+require 'minitest'
 require 'active_support/testing/tagged_logging'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
-require 'active_support/testing/pending'
 require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
+require 'active_support/testing/time_helpers'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/deprecation'
 
@@ -17,9 +17,10 @@ rescue LoadError
 end
 
 module ActiveSupport
-  class TestCase < ::MiniTest::Unit::TestCase
-    Assertion = MiniTest::Assertion
-    alias_method :method_name, :__name__
+  class TestCase < ::Minitest::Test
+    Assertion = Minitest::Assertion
+
+    alias_method :method_name, :name
 
     $tags = {}
     def self.for_tag(tag)
@@ -27,16 +28,14 @@ module ActiveSupport
     end
 
     # FIXME: we have tests that depend on run order, we should fix that and
-    # remove this method.
-    def self.test_order # :nodoc:
-      :sorted
-    end
+    # remove this method call.
+    self.i_suck_and_my_tests_are_order_dependent!
 
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
-    include ActiveSupport::Testing::Pending
+    include ActiveSupport::Testing::TimeHelpers
     extend ActiveSupport::Testing::Declarative
 
     # test/unit backwards compatibility methods

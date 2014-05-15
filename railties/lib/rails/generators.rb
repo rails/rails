@@ -1,6 +1,8 @@
 activesupport_path = File.expand_path('../../../../activesupport/lib', __FILE__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 
+require 'thor/group'
+
 require 'active_support'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/kernel/singleton_class'
@@ -9,12 +11,11 @@ require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
-require 'rails/generators/base'
-
 module Rails
   module Generators
     autoload :Actions,         'rails/generators/actions'
     autoload :ActiveModel,     'rails/generators/active_model'
+    autoload :Base,            'rails/generators/base'
     autoload :Migration,       'rails/generators/migration'
     autoload :NamedBase,       'rails/generators/named_base'
     autoload :ResourceHelpers, 'rails/generators/resource_helpers'
@@ -50,7 +51,6 @@ module Rails
         javascripts: true,
         javascript_engine: :js,
         orm: false,
-        performance_tool: nil,
         resource_controller: :controller,
         resource_route: true,
         scaffold_controller: :scaffold_controller,
@@ -179,7 +179,6 @@ module Rails
           "#{test}:model",
           "#{test}:scaffold",
           "#{test}:view",
-          "#{test}:performance",
           "#{template}:controller",
           "#{template}:scaffold",
           "#{template}:mailer",
@@ -227,7 +226,7 @@ module Rails
       rails = groups.delete("rails")
       rails.map! { |n| n.sub(/^rails:/, '') }
       rails.delete("app")
-      rails.delete("plugin_new")
+      rails.delete("plugin")
       print_list("rails", rails)
 
       hidden_namespaces.each { |n| groups.delete(n.to_s) }

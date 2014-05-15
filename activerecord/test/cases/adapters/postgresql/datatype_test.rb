@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/ddl_helper'
 
 class PostgresqlArray < ActiveRecord::Base
 end
@@ -27,9 +28,6 @@ end
 class PostgresqlTimestampWithZone < ActiveRecord::Base
 end
 
-class PostgresqlUUID < ActiveRecord::Base
-end
-
 class PostgresqlLtree < ActiveRecord::Base
 end
 
@@ -40,10 +38,8 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
     @connection.execute("set lc_monetary = 'C'")
 
-    @connection.execute("INSERT INTO postgresql_arrays (id, commission_by_quarter, nicknames) VALUES (1, '{35000,21000,18000,17000}', '{foo,bar,baz}')")
-    @first_array = PostgresqlArray.find(1)
-
     @connection.execute("INSERT INTO postgresql_tsvectors (id, text_vector) VALUES (1, ' ''text'' ''vector'' ')")
+
     @first_tsvector = PostgresqlTsvector.find(1)
 
     @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (1, '567.89'::money)")
@@ -52,7 +48,11 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @second_money = PostgresqlMoney.find(2)
 
     @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (1, 123.456, 123456.789)")
+    @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (2, '-Infinity', 'Infinity')")
+    @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (3, 123.456, 'NaN')")
     @first_number = PostgresqlNumber.find(1)
+    @second_number = PostgresqlNumber.find(2)
+    @third_number = PostgresqlNumber.find(3)
 
     @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
@@ -67,19 +67,11 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @first_oid = PostgresqlOid.find(1)
 
     @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
-
-    @connection.execute("INSERT INTO postgresql_uuids (id, guid, compact_guid) VALUES(1, 'd96c3da0-96c1-012f-1316-64ce8f32c6d8', 'f06c715096c1012f131764ce8f32c6d8')")
-    @first_uuid = PostgresqlUUID.find(1)
   end
 
-  def teardown
-    [PostgresqlArray, PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
-     PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone, PostgresqlUUID].each(&:delete_all)
-  end
-
-  def test_data_type_of_array_types
-    assert_equal :integer, @first_array.column_for_attribute(:commission_by_quarter).type
-    assert_equal :text, @first_array.column_for_attribute(:nicknames).type
+  teardown do
+    [PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
+     PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone].each(&:delete_all)
   end
 
   def test_data_type_of_tsvector_types
@@ -115,15 +107,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal :integer, @first_oid.column_for_attribute(:obj_id).type
   end
 
-  def test_data_type_of_uuid_types
-    assert_equal :uuid, @first_uuid.column_for_attribute(:guid).type
-  end
-
-  def test_array_values
-   assert_equal [35000,21000,18000,17000], @first_array.commission_by_quarter
-   assert_equal ['foo','bar','baz'], @first_array.nicknames
-  end
-
   def test_tsvector_values
     assert_equal "'text' 'vector'", @first_tsvector.text_vector
   end
@@ -133,20 +116,31 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal(-567.89, @second_money.wealth)
   end
 
+  def test_money_type_cast
+    column = PostgresqlMoney.columns_hash['wealth']
+    assert_equal(12345678.12, column.type_cast("$12,345,678.12"))
+    assert_equal(12345678.12, column.type_cast("$12.345.678,12"))
+    assert_equal(-1.15, column.type_cast("-$1.15"))
+    assert_equal(-2.25, column.type_cast("($2.25)"))
+  end
+
   def test_update_tsvector
     new_text_vector = "'new' 'text' 'vector'"
-    assert @first_tsvector.text_vector = new_text_vector
+    @first_tsvector.text_vector = new_text_vector
     assert @first_tsvector.save
     assert @first_tsvector.reload
-    assert @first_tsvector.text_vector = new_text_vector
+    @first_tsvector.text_vector = new_text_vector
     assert @first_tsvector.save
     assert @first_tsvector.reload
-    assert_equal @first_tsvector.text_vector, new_text_vector
+    assert_equal new_text_vector, @first_tsvector.text_vector
   end
 
   def test_number_values
     assert_equal 123.456, @first_number.single
     assert_equal 123456.789, @first_number.double
+    assert_equal(-::Float::INFINITY, @second_number.single)
+    assert_equal ::Float::INFINITY, @second_number.double
+    assert_same ::Float::NAN, @third_number.double
   end
 
   def test_time_values
@@ -163,11 +157,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal '01:23:45:67:89:0a', @first_network_address.mac_address
   end
 
-  def test_uuid_values
-    assert_equal 'd96c3da0-96c1-012f-1316-64ce8f32c6d8', @first_uuid.guid
-    assert_equal 'f06c7150-96c1-012f-1317-64ce8f32c6d8', @first_uuid.compact_guid
-  end
-
   def test_bit_string_values
     assert_equal '00010101', @first_bit_string.bit_string
     assert_equal '00010101', @first_bit_string.bit_string_varying
@@ -177,33 +166,9 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal 1234, @first_oid.obj_id
   end
 
-  def test_update_integer_array
-    new_value = [32800,95000,29350,17000]
-    assert @first_array.commission_by_quarter = new_value
-    assert @first_array.save
-    assert @first_array.reload
-    assert_equal @first_array.commission_by_quarter, new_value
-    assert @first_array.commission_by_quarter = new_value
-    assert @first_array.save
-    assert @first_array.reload
-    assert_equal @first_array.commission_by_quarter, new_value
-  end
-
-  def test_update_text_array
-    new_value = ['robby','robert','rob','robbie']
-    assert @first_array.nicknames = new_value
-    assert @first_array.save
-    assert @first_array.reload
-    assert_equal @first_array.nicknames, new_value
-    assert @first_array.nicknames = new_value
-    assert @first_array.save
-    assert @first_array.reload
-    assert_equal @first_array.nicknames, new_value
-  end
-
   def test_update_money
     new_value = BigDecimal.new('123.45')
-    assert @first_money.wealth = new_value
+    @first_money.wealth = new_value
     assert @first_money.save
     assert @first_money.reload
     assert_equal new_value, @first_money.wealth
@@ -212,28 +177,28 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def test_update_number
     new_single = 789.012
     new_double = 789012.345
-    assert @first_number.single = new_single
-    assert @first_number.double = new_double
+    @first_number.single = new_single
+    @first_number.double = new_double
     assert @first_number.save
     assert @first_number.reload
-    assert_equal @first_number.single, new_single
-    assert_equal @first_number.double, new_double
+    assert_equal new_single, @first_number.single
+    assert_equal new_double, @first_number.double
   end
 
   def test_update_time
-    assert @first_time.time_interval = '2 years 3 minutes'
+    @first_time.time_interval = '2 years 3 minutes'
     assert @first_time.save
     assert @first_time.reload
-    assert_equal @first_time.time_interval, '2 years 00:03:00'
+    assert_equal '2 years 00:03:00', @first_time.time_interval
   end
 
   def test_update_network_address
     new_inet_address = '10.1.2.3/32'
     new_cidr_address = '10.0.0.0/8'
     new_mac_address = 'bc:de:f0:12:34:56'
-    assert @first_network_address.cidr_address = new_cidr_address
-    assert @first_network_address.inet_address = new_inet_address
-    assert @first_network_address.mac_address = new_mac_address
+    @first_network_address.cidr_address = new_cidr_address
+    @first_network_address.inet_address = new_inet_address
+    @first_network_address.mac_address = new_mac_address
     assert @first_network_address.save
     assert @first_network_address.reload
     assert_equal @first_network_address.cidr_address, new_cidr_address
@@ -243,54 +208,88 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_update_bit_string
     new_bit_string = '11111111'
-    new_bit_string_varying = 'FF'
-    assert @first_bit_string.bit_string = new_bit_string
-    assert @first_bit_string.bit_string_varying = new_bit_string_varying
+    new_bit_string_varying = '0xFF'
+    @first_bit_string.bit_string = new_bit_string
+    @first_bit_string.bit_string_varying = new_bit_string_varying
     assert @first_bit_string.save
     assert @first_bit_string.reload
-    assert_equal @first_bit_string.bit_string, new_bit_string
+    assert_equal new_bit_string, @first_bit_string.bit_string
     assert_equal @first_bit_string.bit_string, @first_bit_string.bit_string_varying
+  end
+
+  def test_invalid_hex_string
+    new_bit_string = 'FF'
+    @first_bit_string.bit_string = new_bit_string
+    assert_raise(ActiveRecord::StatementInvalid) { assert @first_bit_string.save }
+  end
+
+  def test_invalid_network_address
+    @first_network_address.cidr_address = 'invalid addr'
+    assert_nil @first_network_address.cidr_address
+    assert_equal 'invalid addr', @first_network_address.cidr_address_before_type_cast
+    assert @first_network_address.save
+
+    @first_network_address.reload
+
+    @first_network_address.inet_address = 'invalid addr'
+    assert_nil @first_network_address.inet_address
+    assert_equal 'invalid addr', @first_network_address.inet_address_before_type_cast
+    assert @first_network_address.save
   end
 
   def test_update_oid
     new_value = 567890
-    assert @first_oid.obj_id = new_value
+    @first_oid.obj_id = new_value
     assert @first_oid.save
     assert @first_oid.reload
-    assert_equal @first_oid.obj_id, new_value
+    assert_equal new_value, @first_oid.obj_id
   end
 
   def test_timestamp_with_zone_values_with_rails_time_zone_support
-    old_tz         = ActiveRecord::Base.time_zone_aware_attributes
-    old_default_tz = ActiveRecord::Base.default_timezone
+    with_timezone_config default: :utc, aware_attributes: true do
+      @connection.reconnect!
 
-    ActiveRecord::Base.time_zone_aware_attributes = true
-    ActiveRecord::Base.default_timezone = :utc
-
-    @connection.reconnect!
-
-    @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
-    assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+      @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
+      assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+      assert_instance_of Time, @first_timestamp_with_zone.time
+    end
   ensure
-    ActiveRecord::Base.default_timezone = old_default_tz
-    ActiveRecord::Base.time_zone_aware_attributes = old_tz
     @connection.reconnect!
   end
 
   def test_timestamp_with_zone_values_without_rails_time_zone_support
-    old_tz         = ActiveRecord::Base.time_zone_aware_attributes
-    old_default_tz = ActiveRecord::Base.default_timezone
+    with_timezone_config default: :local, aware_attributes: false do
+      @connection.reconnect!
+      # make sure to use a non-UTC time zone
+      @connection.execute("SET time zone 'America/Jamaica'", 'SCHEMA')
 
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-
-    @connection.reconnect!
-
-    @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
-    assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+      @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
+      assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
+      assert_instance_of Time, @first_timestamp_with_zone.time
+    end
   ensure
-    ActiveRecord::Base.default_timezone = old_default_tz
-    ActiveRecord::Base.time_zone_aware_attributes = old_tz
     @connection.reconnect!
+  end
+end
+
+class PostgresqlInternalDataTypeTest < ActiveRecord::TestCase
+  include DdlHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+  end
+
+  def test_name_column_type
+    with_example_table @connection, 'ex', 'data name' do
+      column = @connection.columns('ex').find { |col| col.name == 'data' }
+      assert_equal :string, column.type
+    end
+  end
+
+  def test_char_column_type
+    with_example_table @connection, 'ex', 'data "char"' do
+      column = @connection.columns('ex').find { |col| col.name == 'data' }
+      assert_equal :string, column.type
+    end
   end
 end

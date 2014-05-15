@@ -23,7 +23,7 @@ unless current_adapter?(:SybaseAdapter, :DB2Adapter, :FirebirdAdapter)
 
       # Mysql adapter doesn't properly encode things, so we have to do it
       if current_adapter?(:MysqlAdapter)
-        name.force_encoding('UTF-8')
+        name.force_encoding(Encoding::UTF_8)
       end
       assert_equal 'いただきます！', name
     end

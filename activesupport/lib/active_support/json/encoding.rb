@@ -1,338 +1,172 @@
-require 'active_support/core_ext/object/to_json'
+require 'active_support/core_ext/object/json'
 require 'active_support/core_ext/module/delegation'
-require 'active_support/json/variable'
-
-require 'bigdecimal'
-require 'active_support/core_ext/big_decimal/conversions' # for #to_s
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/instance_variables'
-require 'time'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/core_ext/date_time/conversions'
-require 'active_support/core_ext/date/conversions'
-require 'set'
 
 module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
+      :time_precision, :time_precision=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
       :encode_big_decimal_as_string, :encode_big_decimal_as_string=,
+      :json_encoder, :json_encoder=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
 
   module JSON
-    # matches YAML-formatted dates
-    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
-
     # Dumps objects in JSON (JavaScript Object Notation).
     # See www.json.org for more info.
     #
     #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
     #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
     def self.encode(value, options = nil)
-      Encoding::Encoder.new(options).encode(value)
+      Encoding.json_encoder.new(options).encode(value)
     end
 
     module Encoding #:nodoc:
-      class CircularReferenceError < StandardError; end
-
-      class Encoder
+      class JSONGemEncoder #:nodoc:
         attr_reader :options
 
         def initialize(options = nil)
           @options = options || {}
-          @seen = Set.new
         end
 
-        def encode(value, use_options = true)
-          check_for_circular_references(value) do
-            jsonified = use_options ? value.as_json(options_for(value)) : value.as_json
-            jsonified.encode_json(self)
-          end
-        end
-
-        # like encode, but only calls as_json, without encoding to string.
-        def as_json(value, use_options = true)
-          check_for_circular_references(value) do
-            use_options ? value.as_json(options_for(value)) : value.as_json
-          end
-        end
-
-        def options_for(value)
-          if value.is_a?(Array) || value.is_a?(Hash)
-            # hashes and arrays need to get encoder in the options, so that
-            # they can detect circular references.
-            options.merge(:encoder => self)
-          else
-            options.dup
-          end
-        end
-
-        def escape(string)
-          Encoding.escape(string)
+        # Encode the given object into a JSON string
+        def encode(value)
+          stringify jsonify value.as_json(options.dup)
         end
 
         private
-          def check_for_circular_references(value)
-            unless @seen.add?(value.__id__)
-              raise CircularReferenceError, 'object references itself'
+          # Rails does more escaping than the JSON gem natively does (we
+          # escape \u2028 and \u2029 and optionally >, <, & to work around
+          # certain browser problems).
+          ESCAPED_CHARS = {
+            "\u2028" => '\u2028',
+            "\u2029" => '\u2029',
+            '>'      => '\u003e',
+            '<'      => '\u003c',
+            '&'      => '\u0026',
+            }
+
+          ESCAPE_REGEX_WITH_HTML_ENTITIES = /[\u2028\u2029><&]/u
+          ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
+
+          # This class wraps all the strings we see and does the extra escaping
+          class EscapedString < String #:nodoc:
+            def to_json(*)
+              if Encoding.escape_html_entities_in_json
+                super.gsub ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
+              else
+                super.gsub ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
+              end
             end
-            yield
-          ensure
-            @seen.delete(value.__id__)
+          end
+
+          # Mark these as private so we don't leak encoding-specific constructs
+          private_constant :ESCAPED_CHARS, :ESCAPE_REGEX_WITH_HTML_ENTITIES,
+            :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, :EscapedString
+
+          # Convert an object into a "JSON-ready" representation composed of
+          # primitives like Hash, Array, String, Numeric, and true/false/nil.
+          # Recursively calls #as_json to the object to recursively build a
+          # fully JSON-ready object.
+          #
+          # This allows developers to implement #as_json without having to
+          # worry about what base types of objects they are allowed to return
+          # or having to remember to call #as_json recursively.
+          #
+          # Note: the +options+ hash passed to +object.to_json+ is only passed
+          # to +object.as_json+, not any of this method's recursive +#as_json+
+          # calls.
+          def jsonify(value)
+            case value
+            when String
+              EscapedString.new(value)
+            when Numeric, NilClass, TrueClass, FalseClass
+              value
+            when Hash
+              Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
+            when Array
+              value.map { |v| jsonify(v) }
+            else
+              jsonify value.as_json
+            end
+          end
+
+          # Encode a "jsonified" Ruby data structure using the JSON gem
+          def stringify(jsonified)
+            ::JSON.generate(jsonified, quirks_mode: true, max_nesting: false)
           end
       end
-
-
-      ESCAPED_CHARS = {
-        "\x00" => '\u0000', "\x01" => '\u0001', "\x02" => '\u0002',
-        "\x03" => '\u0003', "\x04" => '\u0004', "\x05" => '\u0005',
-        "\x06" => '\u0006', "\x07" => '\u0007', "\x0B" => '\u000B',
-        "\x0E" => '\u000E', "\x0F" => '\u000F', "\x10" => '\u0010',
-        "\x11" => '\u0011', "\x12" => '\u0012', "\x13" => '\u0013',
-        "\x14" => '\u0014', "\x15" => '\u0015', "\x16" => '\u0016',
-        "\x17" => '\u0017', "\x18" => '\u0018', "\x19" => '\u0019',
-        "\x1A" => '\u001A', "\x1B" => '\u001B', "\x1C" => '\u001C',
-        "\x1D" => '\u001D', "\x1E" => '\u001E', "\x1F" => '\u001F',
-        "\010" =>  '\b',
-        "\f"   =>  '\f',
-        "\n"   =>  '\n',
-        "\r"   =>  '\r',
-        "\t"   =>  '\t',
-        '"'    =>  '\"',
-        '\\'   =>  '\\\\',
-        '>'    =>  '\u003E',
-        '<'    =>  '\u003C',
-        '&'    =>  '\u0026' }
 
       class << self
         # If true, use ISO 8601 format for dates and times. Otherwise, fall back
         # to the Active Support legacy format.
         attr_accessor :use_standard_json_time_format
 
-        # If false, serializes BigDecimal objects as numeric instead of wrapping
-        # them in a string.
-        attr_accessor :encode_big_decimal_as_string
+        # If true, encode >, <, & as escaped unicode sequences (e.g. > as \u003e)
+        # as a safety measure.
+        attr_accessor :escape_html_entities_in_json
 
-        attr_accessor :escape_regex
-        attr_reader :escape_html_entities_in_json
+        # Sets the precision of encoded time values.
+        # Defaults to 3 (equivalent to millisecond precision)
+        attr_accessor :time_precision
 
-        def escape_html_entities_in_json=(value)
-          self.escape_regex = \
-            if @escape_html_entities_in_json = value
-              /[\x00-\x1F"\\><&]/
-            else
-              /[\x00-\x1F"\\]/
-            end
+        # Sets the encoder used by Rails to encode Ruby objects into JSON strings
+        # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
+        attr_accessor :json_encoder
+
+        def encode_big_decimal_as_string=(as_string)
+          message = \
+            "The JSON encoder in Rails 4.1 no longer supports encoding BigDecimals as JSON numbers. Instead, " \
+            "the new encoder will always encode them as strings.\n\n" \
+            "You are seeing this error because you have 'active_support.encode_big_decimal_as_string' in " \
+            "your configuration file. If you have been setting this to true, you can safely remove it from " \
+            "your configuration. Otherwise, you should add the 'activesupport-json_encoder' gem to your " \
+            "Gemfile in order to restore this functionality."
+
+          raise NotImplementedError, message
         end
 
-        def escape(string)
-          string = string.encode(::Encoding::UTF_8, :undef => :replace).force_encoding(::Encoding::BINARY)
-          json = string.gsub(escape_regex) { |s| ESCAPED_CHARS[s] }
-          json = %("#{json}")
-          json.force_encoding(::Encoding::UTF_8)
-          json
+        def encode_big_decimal_as_string
+          message = \
+            "The JSON encoder in Rails 4.1 no longer supports encoding BigDecimals as JSON numbers. Instead, " \
+            "the new encoder will always encode them as strings.\n\n" \
+            "You are seeing this error because you are trying to check the value of the related configuration, " \
+            "'active_support.encode_big_decimal_as_string'. If your application depends on this option, you should " \
+            "add the 'activesupport-json_encoder' gem to your Gemfile. For now, this option will always be true. " \
+            "In the future, it will be removed from Rails, so you should stop checking its value."
+
+          ActiveSupport::Deprecation.warn message
+
+          true
+        end
+
+        # Deprecate CircularReferenceError
+        def const_missing(name)
+          if name == :CircularReferenceError
+            message = "The JSON encoder in Rails 4.1 no longer offers protection from circular references. " \
+                      "You are seeing this warning because you are rescuing from (or otherwise referencing) " \
+                      "ActiveSupport::Encoding::CircularReferenceError. In the future, this error will be " \
+                      "removed from Rails. You should remove these rescue blocks from your code and ensure " \
+                      "that your data structures are free of circular references so they can be properly " \
+                      "serialized into JSON.\n\n" \
+                      "For example, the following Hash contains a circular reference to itself:\n" \
+                      "   h = {}\n" \
+                      "   h['circular'] = h\n" \
+                      "In this case, calling h.to_json would not work properly."
+
+            ActiveSupport::Deprecation.warn message
+
+            SystemStackError
+          else
+            super
+          end
         end
       end
 
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = true
-      self.encode_big_decimal_as_string  = true
-    end
-  end
-end
-
-class Object
-  def as_json(options = nil) #:nodoc:
-    if respond_to?(:to_hash)
-      to_hash
-    else
-      instance_values
-    end
-  end
-end
-
-class Struct #:nodoc:
-  def as_json(options = nil)
-    Hash[members.zip(values)]
-  end
-end
-
-class TrueClass
-  def as_json(options = nil) #:nodoc:
-    self
-  end
-
-  def encode_json(encoder) #:nodoc:
-    to_s
-  end
-end
-
-class FalseClass
-  def as_json(options = nil) #:nodoc:
-    self
-  end
-
-  def encode_json(encoder) #:nodoc:
-    to_s
-  end
-end
-
-class NilClass
-  def as_json(options = nil) #:nodoc:
-    self
-  end
-
-  def encode_json(encoder) #:nodoc:
-    'null'
-  end
-end
-
-class String
-  def as_json(options = nil) #:nodoc:
-    self
-  end
-
-  def encode_json(encoder) #:nodoc:
-    encoder.escape(self)
-  end
-end
-
-class Symbol
-  def as_json(options = nil) #:nodoc:
-    to_s
-  end
-end
-
-class Numeric
-  def as_json(options = nil) #:nodoc:
-    self
-  end
-
-  def encode_json(encoder) #:nodoc:
-    to_s
-  end
-end
-
-class Float
-  # Encoding Infinity or NaN to JSON should return "null". The default returns
-  # "Infinity" or "NaN" which breaks parsing the JSON. E.g. JSON.parse('[NaN]').
-  def as_json(options = nil) #:nodoc:
-    finite? ? self : nil
-  end
-end
-
-class BigDecimal
-  # A BigDecimal would be naturally represented as a JSON number. Most libraries,
-  # however, parse non-integer JSON numbers directly as floats. Clients using
-  # those libraries would get in general a wrong number and no way to recover
-  # other than manually inspecting the string with the JSON code itself.
-  #
-  # That's why a JSON string is returned. The JSON literal is not numeric, but
-  # if the other end knows by contract that the data is supposed to be a
-  # BigDecimal, it still has the chance to post-process the string and get the
-  # real value.
-  #
-  # Use <tt>ActiveSupport.use_standard_json_big_decimal_format = true</tt> to
-  # override this behavior.
-  def as_json(options = nil) #:nodoc:
-    if finite?
-      ActiveSupport.encode_big_decimal_as_string ? to_s : self
-    else
-      nil
-    end
-  end
-end
-
-class Regexp
-  def as_json(options = nil) #:nodoc:
-    to_s
-  end
-end
-
-module Enumerable
-  def as_json(options = nil) #:nodoc:
-    to_a.as_json(options)
-  end
-end
-
-class Range
-  def as_json(options = nil) #:nodoc:
-    to_s
-  end
-end
-
-class Array
-  def as_json(options = nil) #:nodoc:
-    # use encoder as a proxy to call as_json on all elements, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    map { |v| encoder.as_json(v, options) }
-  end
-
-  def encode_json(encoder) #:nodoc:
-    # we assume here that the encoder has already run as_json on self and the elements, so we run encode_json directly
-    "[#{map { |v| v.encode_json(encoder) } * ','}]"
-  end
-end
-
-class Hash
-  def as_json(options = nil) #:nodoc:
-    # create a subset of the hash by applying :only or :except
-    subset = if options
-      if attrs = options[:only]
-        slice(*Array(attrs))
-      elsif attrs = options[:except]
-        except(*Array(attrs))
-      else
-        self
-      end
-    else
-      self
-    end
-
-    # use encoder as a proxy to call as_json on all values in the subset, to protect from circular references
-    encoder = options && options[:encoder] || ActiveSupport::JSON::Encoding::Encoder.new(options)
-    Hash[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
-  end
-
-  def encode_json(encoder) #:nodoc:
-    # values are encoded with use_options = false, because we don't want hash representations from ActiveModel to be
-    # processed once again with as_json with options, as this could cause unexpected results (i.e. missing fields);
-
-    # on the other hand, we need to run as_json on the elements, because the model representation may contain fields
-    # like Time/Date in their original (not jsonified) form, etc.
-
-    "{#{map { |k,v| "#{encoder.encode(k.to_s)}:#{encoder.encode(v, false)}" } * ','}}"
-  end
-end
-
-class Time
-  def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
-      xmlschema
-    else
-      %(#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
-    end
-  end
-end
-
-class Date
-  def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
-      strftime("%Y-%m-%d")
-    else
-      strftime("%Y/%m/%d")
-    end
-  end
-end
-
-class DateTime
-  def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
-      xmlschema
-    else
-      strftime('%Y/%m/%d %H:%M:%S %z')
+      self.json_encoder = JSONGemEncoder
+      self.time_precision = 3
     end
   end
 end

@@ -7,6 +7,8 @@ require 'active_record/connection_adapters/postgresql_adapter'
 class PostgresqlJSONTest < ActiveRecord::TestCase
   class JsonDataType < ActiveRecord::Base
     self.table_name = 'json_data_type'
+
+    store_accessor :settings, :resolution
   end
 
   def setup
@@ -15,33 +17,73 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
       @connection.transaction do
         @connection.create_table('json_data_type') do |t|
           t.json 'payload', :default => {}
+          t.json 'settings'
         end
       end
     rescue ActiveRecord::StatementInvalid
-      return skip "do not test on PG without json"
+      skip "do not test on PG without json"
     end
-    @column = JsonDataType.columns.find { |c| c.name == 'payload' }
+    @column = JsonDataType.columns_hash['payload']
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists json_data_type'
   end
 
   def test_column
-    assert_equal :json, @column.type
+    column = JsonDataType.columns_hash["payload"]
+    assert_equal :json, column.type
+    assert_equal "json", column.sql_type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+    assert_not column.array
+  end
+
+  def test_default
+    @connection.add_column 'json_data_type', 'permissions', :json, default: '{"users": "read", "posts": ["read", "write"]}'
+    JsonDataType.reset_column_information
+    column = JsonDataType.columns_hash["permissions"]
+
+    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, column.default)
+    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.new.permissions)
+  ensure
+    JsonDataType.reset_column_information
+  end
+
+  def test_change_table_supports_json
+    @connection.transaction do
+      @connection.change_table('json_data_type') do |t|
+        t.json 'users', default: '{}'
+      end
+      JsonDataType.reset_column_information
+      column = JsonDataType.columns_hash['users']
+      assert_equal :json, column.type
+
+      raise ActiveRecord::Rollback # reset the schema change
+    end
+  ensure
+    JsonDataType.reset_column_information
+  end
+
+  def test_cast_value_on_write
+    x = JsonDataType.new payload: {"string" => "foo", :symbol => :bar}
+    assert_equal({"string" => "foo", "symbol" => "bar"}, x.payload)
+    x.save
+    assert_equal({"string" => "foo", "symbol" => "bar"}, x.reload.payload)
   end
 
   def test_type_cast_json
-    assert @column
+    column = JsonDataType.columns_hash["payload"]
 
     data = "{\"a_key\":\"a_value\"}"
-    hash = @column.class.string_to_json data
+    hash = column.class.string_to_json data
     assert_equal({'a_key' => 'a_value'}, hash)
-    assert_equal({'a_key' => 'a_value'}, @column.type_cast(data))
+    assert_equal({'a_key' => 'a_value'}, column.type_cast(data))
 
-    assert_equal({}, @column.type_cast("{}"))
-    assert_equal({'key'=>nil}, @column.type_cast('{"key": null}'))
-    assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast(%q({"c":"}", "\"a\"":"b \"a b"})))
+    assert_equal({}, column.type_cast("{}"))
+    assert_equal({'key'=>nil}, column.type_cast('{"key": null}'))
+    assert_equal({'c'=>'}','"a"'=>'b "a b'}, column.type_cast(%q({"c":"}", "\"a\"":"b \"a b"})))
   end
 
   def test_rewrite
@@ -67,5 +109,43 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     @connection.execute %q|insert into json_data_type (payload) VALUES(null)|
     x = JsonDataType.first
     assert_equal(nil, x.payload)
+  end
+
+  def test_select_array_json_value
+    @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
+    x = JsonDataType.first
+    assert_equal(['v0', {'k1' => 'v1'}], x.payload)
+  end
+
+  def test_rewrite_array_json_value
+    @connection.execute %q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|
+    x = JsonDataType.first
+    x.payload = ['v1', {'k2' => 'v2'}, 'v3']
+    assert x.save!
+  end
+
+  def test_with_store_accessors
+    x = JsonDataType.new(resolution: "320×480")
+    assert_equal "320×480", x.resolution
+
+    x.save!
+    x = JsonDataType.first
+    assert_equal "320×480", x.resolution
+
+    x.resolution = "640×1136"
+    x.save!
+
+    x = JsonDataType.first
+    assert_equal "640×1136", x.resolution
+  end
+
+  def test_update_all
+    json = JsonDataType.create! payload: { "one" => "two" }
+
+    JsonDataType.update_all payload: { "three" => "four" }
+    assert_equal({ "three" => "four" }, json.reload.payload)
+
+    JsonDataType.update_all payload: { }
+    assert_equal({ }, json.reload.payload)
   end
 end

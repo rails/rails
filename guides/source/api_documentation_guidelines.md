@@ -25,7 +25,7 @@ Write in present tense: "Returns a hash that...", rather than "Returned a hash t
 Start comments in upper case. Follow regular punctuation rules:
 
 ```ruby
-# Declares an attribute reader backed by an internally-named 
+# Declares an attribute reader backed by an internally-named
 # instance variable.
 def attr_internal_reader(*attrs)
   ...
@@ -42,10 +42,32 @@ Spell names correctly: Arel, Test::Unit, RSpec, HTML, MySQL, JavaScript, ERB. Wh
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
+Prefer wordings that avoid "you"s and "your"s. For example, instead of
+
+```markdown
+If you need to use `return` statements in your callbacks, it is recommended that you explicitly define them as methods.
+```
+
+use this style:
+
+```markdown
+If `return` is needed it is recommended to explicitly define a method.
+```
+
+That said, when using pronouns in reference to a hypothetical person, such as "a
+user with a session cookie", gender neutral pronouns (they/their/them) should be
+used. Instead of:
+
+* he or she... use they.
+* him or her... use them.
+* his or her... use their.
+* his or hers... use theirs.
+* himself or herself... use themselves.
+
 English
 -------
 
-Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc).. See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
+Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Example Code
 ------------
@@ -57,7 +79,7 @@ Use two spaces to indent chunks of code--that is, for markup purposes, two space
 Short docs do not need an explicit "Examples" label to introduce snippets; they just follow paragraphs:
 
 ```ruby
-# Converts a collection of elements into a formatted string by 
+# Converts a collection of elements into a formatted string by
 # calling +to_s+ on all elements and joining them.
 #
 #   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
@@ -106,6 +128,53 @@ On the other hand, regular comments do not use an arrow:
 #   polymorphic_url(record)  # same as comment_url(record)
 ```
 
+Booleans
+--------
+
+In predicates and flags prefer documenting boolean semantics over exact values.
+
+When "true" or "false" are used as defined in Ruby use regular font. The
+singletons `true` and `false` need fixed-width font. Please avoid terms like
+"truthy", Ruby defines what is true and false in the language, and thus those
+words have a technical meaning and need no substitutes.
+
+As a rule of thumb, do not document singletons unless absolutely necessary. That
+prevents artificial constructs like `!!` or ternaries, allows refactors, and the
+code does not need to rely on the exact values returned by methods being called
+in the implementation.
+
+For example:
+
+```markdown
+`config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default
+```
+
+the user does not need to know which is the actual default value of the flag,
+and so we only document its boolean semantics.
+
+An example with a predicate:
+
+```ruby
+# Returns true if the collection is empty.
+#
+# If the collection has been loaded
+# it is equivalent to <tt>collection.size.zero?</tt>. If the
+# collection has not been loaded, it is equivalent to
+# <tt>collection.exists?</tt>. If the collection has not already been
+# loaded and you are going to fetch the records anyway it is better to
+# check <tt>collection.length.zero?</tt>.
+def empty?
+  if loaded?
+    size.zero?
+  else
+    @target.blank? && !scope.exists?
+  end
+end
+```
+
+The API is careful not to commit to any particular value, the method has
+predicate semantics, that's enough.
+
 Filenames
 ---------
 
@@ -141,7 +210,17 @@ class Array
 end
 ```
 
-WARNING: Using a pair of `+...+` for fixed-width font only works with **words**; that is: anything matching `\A\w+\z`. For anything else  use `<tt>...</tt>`, notably symbols, setters, inline snippets, etc.
+WARNING: Using `+...+` for fixed-width font only works with simple content like
+ordinary method names, symbols, paths (with forward slashes), etc. Please use
+`<tt>...</tt>` for everything else, notably class or module names with a
+namespace as in `<tt>ActiveRecord::Base</tt>`.
+
+You can quickly test the RDoc output with the following command:
+
+```
+$ echo "+:to_param+" | rdoc --pipe
+#=> <p><code>:to_param</code></p>
+```
 
 ### Regular Font
 
@@ -172,7 +251,7 @@ In lists of options, parameters, etc. use a hyphen between the item and its desc
 # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
 ```
 
-The description starts in upper case and ends with a full stop—it's standard English.
+The description starts in upper case and ends with a full stop-it's standard English.
 
 Dynamically Generated Methods
 -----------------------------

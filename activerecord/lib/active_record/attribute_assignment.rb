@@ -1,8 +1,8 @@
+require 'active_model/forbidden_attributes_protection'
 
 module ActiveRecord
   module AttributeAssignment
     extend ActiveSupport::Concern
-    include ActiveModel::DeprecatedMassAssignmentSecurity
     include ActiveModel::ForbiddenAttributesProtection
 
     # Allows you to set all the attributes by passing in a hash of attributes with
@@ -11,7 +11,19 @@ module ActiveRecord
     # If the passed hash responds to <tt>permitted?</tt> method and the return value
     # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
     # exception is raised.
+    #
+    #   cat = Cat.new(name: "Gorby", status: "yawning")
+    #   cat.attributes # =>  { "name" => "Gorby", "status" => "yawning" }
+    #   cat.assign_attributes(status: "sleeping")
+    #   cat.attributes # =>  { "name" => "Gorby", "status" => "sleeping" }
+    #
+    # New attributes will be persisted in the database when the object is saved.
+    #
+    # Aliased to <tt>attributes=</tt>.
     def assign_attributes(new_attributes)
+      if !new_attributes.respond_to?(:stringify_keys)
+        raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
+      end
       return if new_attributes.blank?
 
       attributes                  = new_attributes.stringify_keys
@@ -44,7 +56,7 @@ module ActiveRecord
       if respond_to?("#{k}=")
         raise
       else
-        raise UnknownAttributeError, "unknown attribute: #{k}"
+        raise UnknownAttributeError.new(self, k)
       end
     end
 
@@ -81,7 +93,7 @@ module ActiveRecord
     end
 
     def extract_callstack_for_multiparameter_attributes(pairs)
-      attributes = { }
+      attributes = {}
 
       pairs.each do |(multiparameter_name, value)|
         attribute_name = multiparameter_name.split("(").first
@@ -146,7 +158,7 @@ module ActiveRecord
           end
         else
           # else column is a timestamp, so if Date bits were not provided, error
-          validate_missing_parameters!([1,2,3])
+          validate_required_parameters!([1,2,3])
 
           # If Date bits were provided but blank, then return nil
           return if blank_date_parameter?
@@ -172,14 +184,14 @@ module ActiveRecord
       def read_other(klass)
         max_position = extract_max_param
         positions    = (1..max_position)
-        validate_missing_parameters!(positions)
+        validate_required_parameters!(positions)
 
         set_values = values.values_at(*positions)
         klass.new(*set_values)
       end
 
       # Checks whether some blank date parameter exists. Note that this is different
-      # than the validate_missing_parameters! method, since it just checks for blank
+      # than the validate_required_parameters! method, since it just checks for blank
       # positions instead of missing ones, and does not raise in case one blank position
       # exists. The caller is responsible to handle the case of this returning true.
       def blank_date_parameter?
@@ -187,7 +199,7 @@ module ActiveRecord
       end
 
       # If some position is not provided, it errors out a missing parameter exception.
-      def validate_missing_parameters!(positions)
+      def validate_required_parameters!(positions)
         if missing_parameter = positions.detect { |position| !values.key?(position) }
           raise ArgumentError.new("Missing Parameter - #{name}(#{missing_parameter})")
         end

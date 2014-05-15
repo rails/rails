@@ -18,6 +18,10 @@ class SerializationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_include_root_in_json_is_false_by_default
+    assert_equal false, ActiveRecord::Base.include_root_in_json, "include_root_in_json should be false by default but was not"
+  end
+
   def test_serialize_should_be_reversible
     FORMATS.each do |format|
       @serialized = Contact.new.send("to_#{format}")

@@ -23,6 +23,16 @@ class HashExtTest < ActiveSupport::TestCase
     end
   end
 
+  class HashByConversion
+    def initialize(hash)
+      @hash = hash
+    end
+
+    def to_hash
+      @hash
+    end
+  end
+
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @nested_strings = { 'a' => { 'b' => { 'c' => 3 } } }
@@ -54,6 +64,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
+    assert_respond_to h, :compact
+    assert_respond_to h, :compact!
   end
 
   def test_transform_keys
@@ -409,6 +421,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
   end
 
+  def test_update_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new
+    hash.update HashByConversion.new({ :a => 1 })
+    assert_equal hash['a'], 1
+  end
+
   def test_indifferent_merging
     hash = HashWithIndifferentAccess.new
     hash[:a] = 'failure'
@@ -428,11 +446,29 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 2, hash['b']
   end
 
+  def test_merge_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new
+    merged = hash.merge HashByConversion.new({ :a => 1 })
+    assert_equal merged['a'], 1
+  end
+
   def test_indifferent_replace
     hash = HashWithIndifferentAccess.new
     hash[:a] = 42
 
     replaced = hash.replace(b: 12)
+
+    assert hash.key?('b')
+    assert !hash.key?(:a)
+    assert_equal 12, hash[:b]
+    assert_same hash, replaced
+  end
+
+  def test_replace_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 42
+
+    replaced = hash.replace(HashByConversion.new(b: 12))
 
     assert hash.key?('b')
     assert !hash.key?(:a)
@@ -480,6 +516,42 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal hash.delete('a'), nil
   end
 
+  def test_indifferent_select
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| v == 1}
+
+    assert_equal({ 'a' => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_select_returns_a_hash_when_unchanged
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select {|k,v| true}
+
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_select_bang
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.select! {|k,v| v == 1}
+
+    assert_equal({ 'a' => 1 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
+  def test_indifferent_reject
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject {|k,v| v != 1}
+
+    assert_equal({ 'a' => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_reject_bang
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.reject! {|k,v| v != 1}
+
+    assert_equal({ 'a' => 1 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
   def test_indifferent_to_hash
     # Should convert to a Hash with String keys.
     assert_equal @strings, @mixed.with_indifferent_access.to_hash
@@ -490,6 +562,10 @@ class HashExtTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
+    new_to_hash = @nested_mixed.with_indifferent_access.to_hash
+    assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
+    assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
+    assert_not new_to_hash["a"]["b"].instance_of?(HashWithIndifferentAccess)
   end
 
   def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
@@ -499,9 +575,21 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal [1], hash[:a]
   end
 
+  def test_with_indifferent_access_has_no_side_effects_on_existing_hash
+    hash = {content: [{:foo => :bar, 'bar' => 'baz'}]}
+    hash.with_indifferent_access
+
+    assert_equal [:foo, "bar"], hash[:content].first.keys
+  end
+
   def test_indifferent_hash_with_array_of_hashes
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
+
+    hash = hash.to_hash
+    assert_not hash.instance_of?(HashWithIndifferentAccess)
+    assert_not hash["urls"].instance_of?(HashWithIndifferentAccess)
+    assert_not hash["urls"]["url"].first.instance_of?(HashWithIndifferentAccess)
   end
 
   def test_should_preserve_array_subclass_when_value_is_array
@@ -547,7 +635,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, h['first']
   end
 
-  def test_indifferent_subhashes
+  def test_indifferent_sub_hashes
     h = {'user' => {'id' => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
 
@@ -572,10 +660,15 @@ class HashExtTest < ActiveSupport::TestCase
       { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
 
-    assert_raise(ArgumentError, "Unknown key: failore") do
+    exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
+    end
+    assert_equal "Unknown key: :failore. Valid keys are: :failure, :funny", exception.message
+
+    exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
+    assert_equal "Unknown key: :failore. Valid keys are: :failure, :funny", exception.message
   end
 
   def test_assorted_keys_not_stringified
@@ -601,6 +694,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal(expected, hash_1.deep_merge(hash_2) { |k,o,n| [k, o, n] })
 
     hash_1.deep_merge!(hash_2) { |k,o,n| [k, o, n] }
+    assert_equal expected, hash_1
+  end
+
+  def test_deep_merge_with_falsey_values
+    hash_1 = { e: false }
+    hash_2 = { e: 'e' }
+    expected = { e: [:e, false, 'e'] }
+    assert_equal(expected, hash_1.deep_merge(hash_2) { |k, o, n| [k, o, n] })
+
+    hash_1.deep_merge!(hash_2) { |k, o, n| [k, o, n] }
     assert_equal expected, hash_1
   end
 
@@ -653,12 +756,6 @@ class HashExtTest < ActiveSupport::TestCase
     merged = options.dup
     assert_equal expected, merged.reverse_update(defaults)
     assert_equal expected, merged
-  end
-
-  def test_diff
-    assert_deprecated do
-      assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
-    end
   end
 
   def test_slice
@@ -735,6 +832,24 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 'bender', slice['login']
   end
 
+  def test_slice_bang_does_not_override_default
+    hash = Hash.new(0)
+    hash.update(a: 1, b: 2)
+
+    hash.slice!(:a)
+
+    assert_equal 0, hash[:c]
+  end
+
+  def test_slice_bang_does_not_override_default_proc
+    hash = Hash.new { |h, k| h[k] = [] }
+    hash.update(a: 1, b: 2)
+
+    hash.slice!(:a)
+
+    assert_equal [], hash[:c]
+  end
+
   def test_extract
     original = {:a => 1, :b => 2, :c => 3, :d => 4}
     expected = {:a => 1, :b => 2}
@@ -795,6 +910,38 @@ class HashExtTest < ActiveSupport::TestCase
     original = { :a => 'x', :b => 'y' }
     original.expects(:delete).never
     original.except(:a)
+  end
+
+  def test_compact
+    hash_contain_nil_value = @symbols.merge(z: nil)
+    hash_with_only_nil_values = { a: nil, b: nil }
+
+    h = hash_contain_nil_value.dup
+    assert_equal(@symbols, h.compact)
+    assert_equal(hash_contain_nil_value, h)
+
+    h = hash_with_only_nil_values.dup
+    assert_equal({}, h.compact)
+    assert_equal(hash_with_only_nil_values, h)
+  end
+
+  def test_compact!
+    hash_contain_nil_value = @symbols.merge(z: nil)
+    hash_with_only_nil_values = { a: nil, b: nil }
+
+    h = hash_contain_nil_value.dup
+    assert_equal(@symbols, h.compact!)
+    assert_equal(@symbols, h)
+
+    h = hash_with_only_nil_values.dup
+    assert_equal({}, h.compact!)
+    assert_equal({}, h)
+  end
+
+  def test_new_with_to_hash_conversion
+    hash = HashWithIndifferentAccess.new(HashByConversion.new(a: 1))
+    assert hash.key?('a')
+    assert_equal 1, hash[:a]
   end
 end
 

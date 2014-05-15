@@ -11,13 +11,6 @@ require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/string/indent'
 
-module Ace
-  module Base
-    class Case
-    end
-  end
-end
-
 class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
@@ -65,6 +58,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("blargles", "blargle".pluralize(2))
   end
 
+  test 'pluralize with count = 1 still returns new string' do
+    name = "Kuldeep"
+    assert_not_same name.pluralize(1), name
+  end
+
   def test_singularize
     SingularToPlural.each do |singular, plural|
       assert_equal(singular, plural.singularize)
@@ -85,6 +83,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_camelize_lower
     assert_equal('capital', 'Capital'.camelize(:lower))
+  end
+
+  def test_dasherize
+    UnderscoresToDashes.each do |underscored, dasherized|
+      assert_equal(dasherized, underscored.dasherize)
+    end
   end
 
   def test_underscore
@@ -156,59 +160,19 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_humanize_without_capitalize
+    UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
+      assert_equal(human, underscore.humanize(capitalize: false))
+    end
+  end
+
+  def test_humanize_with_html_escape
+    assert_equal 'Hello', ERB::Util.html_escape("hello").humanize
+  end
+
   def test_ord
     assert_equal 97, 'a'.ord
     assert_equal 97, 'abc'.ord
-  end
-
-  def test_access
-    s = "hello"
-    assert_equal "h", s.at(0)
-
-    assert_equal "llo", s.from(2)
-    assert_equal "hel", s.to(2)
-
-    assert_equal "h", s.first
-    assert_equal "he", s.first(2)
-    assert_equal "", s.first(0)
-
-    assert_equal "o", s.last
-    assert_equal "llo", s.last(3)
-    assert_equal "hello", s.last(10)
-    assert_equal "", s.last(0)
-
-    assert_equal 'x', 'x'.first
-    assert_equal 'x', 'x'.first(4)
-
-    assert_equal 'x', 'x'.last
-    assert_equal 'x', 'x'.last(4)
-  end
-
-  def test_access_returns_a_real_string
-    hash = {}
-    hash["h"] = true
-    hash["hello123".at(0)] = true
-    assert_equal %w(h), hash.keys
-
-    hash = {}
-    hash["llo"] = true
-    hash["hello".from(2)] = true
-    assert_equal %w(llo), hash.keys
-
-    hash = {}
-    hash["hel"] = true
-    hash["hello".to(2)] = true
-    assert_equal %w(hel), hash.keys
-
-    hash = {}
-    hash["hello"] = true
-    hash["123hello".last(5)] = true
-    assert_equal %w(hello), hash.keys
-
-    hash = {}
-    hash["hello"] = true
-    hash["hello123".first(5)] = true
-    assert_equal %w(hello), hash.keys
   end
 
   def test_starts_ends_with_alias
@@ -223,10 +187,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_string_squish
-    original = %{ A string with tabs(\t\t), newlines(\n\n), and
-                  many spaces(  ). }
+    original = %{\u180E\u180E A string surrounded by unicode mongolian vowel separators,
+      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u180E\u180E}
 
-    expected = "A string with tabs( ), newlines( ), and many spaces( )."
+    expected = "A string surrounded by unicode mongolian vowel separators, " +
+      "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
 
     # Make sure squish returns what we expect:
     assert_equal original.squish,  expected
@@ -263,12 +228,17 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_multibyte
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
-      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
+      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8).truncate(10)
   end
 
   def test_truncate_should_not_be_html_safe
     assert !"Hello World!".truncate(12).html_safe?
+  end
+
+  def test_remove
+    assert_equal "Summer", "Fast Summer".remove(/Fast /)
+    assert_equal "Summer", "Fast Summer".remove!(/Fast /)
   end
 
   def test_constantize
@@ -284,16 +254,254 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 end
 
+class StringAccessTest < ActiveSupport::TestCase
+  test "#at with Fixnum, returns a substring of one character at that position" do
+    assert_equal "h", "hello".at(0)
+  end
+
+  test "#at with Range, returns a substring containing characters at offsets" do
+    assert_equal "lo", "hello".at(-2..-1)
+  end
+
+  test "#at with Regex, returns the matching portion of the string" do
+    assert_equal "lo", "hello".at(/lo/)
+    assert_equal nil, "hello".at(/nonexisting/)
+  end
+
+  test "#from with positive Fixnum, returns substring from the given position to the end" do
+    assert_equal "llo", "hello".from(2)
+  end
+
+  test "#from with negative Fixnum, position is counted from the end" do
+    assert_equal "lo", "hello".from(-2)
+  end
+
+  test "#to with positive Fixnum, substring from the beginning to the given position" do
+    assert_equal "hel", "hello".to(2)
+  end
+
+  test "#to with negative Fixnum, position is counted from the end" do
+    assert_equal "hell", "hello".to(-2)
+  end
+
+  test "#from and #to can be combined" do
+    assert_equal "hello", "hello".from(0).to(-1)
+    assert_equal "ell", "hello".from(1).to(-2)
+  end
+
+  test "#first returns the first character" do
+    assert_equal "h", "hello".first
+    assert_equal 'x', 'x'.first
+  end
+
+  test "#first with Fixnum, returns a substring from the beginning to position" do
+    assert_equal "he", "hello".first(2)
+    assert_equal "", "hello".first(0)
+    assert_equal "hello", "hello".first(10)
+    assert_equal 'x', 'x'.first(4)
+  end
+
+  test "#first with Fixnum >= string length still returns a new string" do
+    string = "hello"
+    different_string = string.first(5)
+    assert_not_same different_string, string
+  end
+
+  test "#last returns the last character" do
+    assert_equal "o", "hello".last
+    assert_equal 'x', 'x'.last
+  end
+
+  test "#last with Fixnum, returns a substring from the end to position" do
+    assert_equal "llo", "hello".last(3)
+    assert_equal "hello", "hello".last(10)
+    assert_equal "", "hello".last(0)
+    assert_equal 'x', 'x'.last(4)
+  end
+
+  test "#last with Fixnum >= string length still returns a new string" do
+    string = "hello"
+    different_string = string.last(5)
+    assert_not_same different_string, string
+  end
+
+  test "access returns a real string" do
+    hash = {}
+    hash["h"] = true
+    hash["hello123".at(0)] = true
+    assert_equal %w(h), hash.keys
+
+    hash = {}
+    hash["llo"] = true
+    hash["hello".from(2)] = true
+    assert_equal %w(llo), hash.keys
+
+    hash = {}
+    hash["hel"] = true
+    hash["hello".to(2)] = true
+    assert_equal %w(hel), hash.keys
+
+    hash = {}
+    hash["hello"] = true
+    hash["123hello".last(5)] = true
+    assert_equal %w(hello), hash.keys
+
+    hash = {}
+    hash["hello"] = true
+    hash["hello123".first(5)] = true
+    assert_equal %w(hello), hash.keys
+  end
+end
+
 class StringConversionsTest < ActiveSupport::TestCase
   def test_string_to_time
-    assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
-    assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
-    assert_equal Time.utc(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time
-    assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:local)
-    assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
-    assert_equal Time.local(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:local)
-    assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time
-    assert_nil "".to_time
+    with_env_tz "Europe/Moscow" do
+      assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
+      assert_equal Time.utc(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time
+      assert_equal Time.utc(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:utc)
+      assert_equal Time.local(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
+      assert_equal Time.local(2011, 2, 27, 17, 50), "2011-02-27 13:50 -0100".to_time
+      assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time(:utc)
+      assert_equal Time.local(2005, 2, 27, 22, 50), "2005-02-27 14:50 -0500".to_time
+      assert_nil "".to_time
+    end
+  end
+
+  def test_string_to_time_utc_offset
+    with_env_tz "US/Eastern" do
+      assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+      assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+      assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+      assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
+    end
+  end
+
+  def test_partial_string_to_time
+    with_env_tz "Europe/Moscow" do
+      now = Time.now
+      assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
+      assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "23:50".to_time(:utc)
+      assert_equal Time.local(now.year, now.month, now.day, 18, 50), "13:50 -0100".to_time
+      assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "22:50 -0100".to_time(:utc)
+    end
+  end
+
+  def test_standard_time_string_to_time_when_current_time_is_standard_time
+    with_env_tz "US/Eastern" do
+      Time.stubs(:now).returns(Time.local(2012, 1, 1))
+      assert_equal Time.local(2012, 1, 1, 10, 0), "2012-01-01 10:00".to_time
+      assert_equal Time.utc(2012, 1, 1, 10, 0), "2012-01-01 10:00".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 13, 0), "2012-01-01 10:00 -0800".to_time
+      assert_equal Time.utc(2012, 1, 1, 18, 0), "2012-01-01 10:00 -0800".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 10, 0), "2012-01-01 10:00 -0500".to_time
+      assert_equal Time.utc(2012, 1, 1, 15, 0), "2012-01-01 10:00 -0500".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 5, 0), "2012-01-01 10:00 UTC".to_time
+      assert_equal Time.utc(2012, 1, 1, 10, 0), "2012-01-01 10:00 UTC".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 13, 0), "2012-01-01 10:00 PST".to_time
+      assert_equal Time.utc(2012, 1, 1, 18, 0), "2012-01-01 10:00 PST".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 10, 0), "2012-01-01 10:00 EST".to_time
+      assert_equal Time.utc(2012, 1, 1, 15, 0), "2012-01-01 10:00 EST".to_time(:utc)
+    end
+  end
+
+  def test_standard_time_string_to_time_when_current_time_is_daylight_savings
+    with_env_tz "US/Eastern" do
+      Time.stubs(:now).returns(Time.local(2012, 7, 1))
+      assert_equal Time.local(2012, 1, 1, 10, 0), "2012-01-01 10:00".to_time
+      assert_equal Time.utc(2012, 1, 1, 10, 0), "2012-01-01 10:00".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 13, 0), "2012-01-01 10:00 -0800".to_time
+      assert_equal Time.utc(2012, 1, 1, 18, 0), "2012-01-01 10:00 -0800".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 10, 0), "2012-01-01 10:00 -0500".to_time
+      assert_equal Time.utc(2012, 1, 1, 15, 0), "2012-01-01 10:00 -0500".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 5, 0), "2012-01-01 10:00 UTC".to_time
+      assert_equal Time.utc(2012, 1, 1, 10, 0), "2012-01-01 10:00 UTC".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 13, 0), "2012-01-01 10:00 PST".to_time
+      assert_equal Time.utc(2012, 1, 1, 18, 0), "2012-01-01 10:00 PST".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 10, 0), "2012-01-01 10:00 EST".to_time
+      assert_equal Time.utc(2012, 1, 1, 15, 0), "2012-01-01 10:00 EST".to_time(:utc)
+    end
+  end
+
+  def test_daylight_savings_string_to_time_when_current_time_is_standard_time
+    with_env_tz "US/Eastern" do
+      Time.stubs(:now).returns(Time.local(2012, 1, 1))
+      assert_equal Time.local(2012, 7, 1, 10, 0), "2012-07-01 10:00".to_time
+      assert_equal Time.utc(2012, 7, 1, 10, 0), "2012-07-01 10:00".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 13, 0), "2012-07-01 10:00 -0700".to_time
+      assert_equal Time.utc(2012, 7, 1, 17, 0), "2012-07-01 10:00 -0700".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 10, 0), "2012-07-01 10:00 -0400".to_time
+      assert_equal Time.utc(2012, 7, 1, 14, 0), "2012-07-01 10:00 -0400".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 6, 0), "2012-07-01 10:00 UTC".to_time
+      assert_equal Time.utc(2012, 7, 1, 10, 0), "2012-07-01 10:00 UTC".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 13, 0), "2012-07-01 10:00 PDT".to_time
+      assert_equal Time.utc(2012, 7, 1, 17, 0), "2012-07-01 10:00 PDT".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 10, 0), "2012-07-01 10:00 EDT".to_time
+      assert_equal Time.utc(2012, 7, 1, 14, 0), "2012-07-01 10:00 EDT".to_time(:utc)
+    end
+  end
+
+  def test_daylight_savings_string_to_time_when_current_time_is_daylight_savings
+    with_env_tz "US/Eastern" do
+      Time.stubs(:now).returns(Time.local(2012, 7, 1))
+      assert_equal Time.local(2012, 7, 1, 10, 0), "2012-07-01 10:00".to_time
+      assert_equal Time.utc(2012, 7, 1, 10, 0), "2012-07-01 10:00".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 13, 0), "2012-07-01 10:00 -0700".to_time
+      assert_equal Time.utc(2012, 7, 1, 17, 0), "2012-07-01 10:00 -0700".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 10, 0), "2012-07-01 10:00 -0400".to_time
+      assert_equal Time.utc(2012, 7, 1, 14, 0), "2012-07-01 10:00 -0400".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 6, 0), "2012-07-01 10:00 UTC".to_time
+      assert_equal Time.utc(2012, 7, 1, 10, 0), "2012-07-01 10:00 UTC".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 13, 0), "2012-07-01 10:00 PDT".to_time
+      assert_equal Time.utc(2012, 7, 1, 17, 0), "2012-07-01 10:00 PDT".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 10, 0), "2012-07-01 10:00 EDT".to_time
+      assert_equal Time.utc(2012, 7, 1, 14, 0), "2012-07-01 10:00 EDT".to_time(:utc)
+    end
+  end
+
+  def test_partial_string_to_time_when_current_time_is_standard_time
+    with_env_tz "US/Eastern" do
+      Time.stubs(:now).returns(Time.local(2012, 1, 1))
+      assert_equal Time.local(2012, 1, 1, 10, 0), "10:00".to_time
+      assert_equal Time.utc(2012, 1, 1, 10, 0),  "10:00".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 6, 0), "10:00 -0100".to_time
+      assert_equal Time.utc(2012, 1, 1, 11, 0), "10:00 -0100".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 10, 0), "10:00 -0500".to_time
+      assert_equal Time.utc(2012, 1, 1, 15, 0), "10:00 -0500".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 5, 0), "10:00 UTC".to_time
+      assert_equal Time.utc(2012, 1, 1, 10, 0), "10:00 UTC".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 13, 0), "10:00 PST".to_time
+      assert_equal Time.utc(2012, 1, 1, 18, 0), "10:00 PST".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 12, 0), "10:00 PDT".to_time
+      assert_equal Time.utc(2012, 1, 1, 17, 0), "10:00 PDT".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 10, 0), "10:00 EST".to_time
+      assert_equal Time.utc(2012, 1, 1, 15, 0), "10:00 EST".to_time(:utc)
+      assert_equal Time.local(2012, 1, 1, 9, 0), "10:00 EDT".to_time
+      assert_equal Time.utc(2012, 1, 1, 14, 0), "10:00 EDT".to_time(:utc)
+    end
+  end
+
+  def test_partial_string_to_time_when_current_time_is_daylight_savings
+    with_env_tz "US/Eastern" do
+      Time.stubs(:now).returns(Time.local(2012, 7, 1))
+      assert_equal Time.local(2012, 7, 1, 10, 0), "10:00".to_time
+      assert_equal Time.utc(2012, 7, 1, 10, 0), "10:00".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 7, 0), "10:00 -0100".to_time
+      assert_equal Time.utc(2012, 7, 1, 11, 0), "10:00 -0100".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 11, 0), "10:00 -0500".to_time
+      assert_equal Time.utc(2012, 7, 1, 15, 0), "10:00 -0500".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 6, 0), "10:00 UTC".to_time
+      assert_equal Time.utc(2012, 7, 1, 10, 0), "10:00 UTC".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 14, 0), "10:00 PST".to_time
+      assert_equal Time.utc(2012, 7, 1, 18, 0), "10:00 PST".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 13, 0), "10:00 PDT".to_time
+      assert_equal Time.utc(2012, 7, 1, 17, 0), "10:00 PDT".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 11, 0), "10:00 EST".to_time
+      assert_equal Time.utc(2012, 7, 1, 15, 0), "10:00 EST".to_time(:utc)
+      assert_equal Time.local(2012, 7, 1, 10, 0), "10:00 EDT".to_time
+      assert_equal Time.utc(2012, 7, 1, 14, 0), "10:00 EDT".to_time(:utc)
+    end
   end
 
   def test_string_to_datetime
@@ -304,11 +512,25 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_nil "".to_datetime
   end
 
+  def test_partial_string_to_datetime
+    now = DateTime.now
+    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50), "23:50".to_datetime
+    assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50, 0, "-04:00"), "23:50 -0400".to_datetime
+  end
+
   def test_string_to_date
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
     assert_nil "".to_date
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
   end
+
+  protected
+    def with_env_tz(new_tz = 'US/Eastern')
+      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
+      yield
+    ensure
+      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
+    end
 end
 
 class StringBehaviourTest < ActiveSupport::TestCase
@@ -318,22 +540,24 @@ class StringBehaviourTest < ActiveSupport::TestCase
 end
 
 class CoreExtStringMultibyteTest < ActiveSupport::TestCase
-  UNICODE_STRING = 'こにちわ'
-  ASCII_STRING = 'ohayo'
-  BYTE_STRING = "\270\236\010\210\245"
+  UTF8_STRING = 'こにちわ'
+  ASCII_STRING = 'ohayo'.encode('US-ASCII')
+  EUC_JP_STRING = 'さよなら'.encode('EUC-JP')
+  INVALID_UTF8_STRING = "\270\236\010\210\245"
 
   def test_core_ext_adds_mb_chars
-    assert_respond_to UNICODE_STRING, :mb_chars
+    assert_respond_to UTF8_STRING, :mb_chars
   end
 
   def test_string_should_recognize_utf8_strings
-    assert UNICODE_STRING.is_utf8?
+    assert UTF8_STRING.is_utf8?
     assert ASCII_STRING.is_utf8?
-    assert !BYTE_STRING.is_utf8?
+    assert !EUC_JP_STRING.is_utf8?
+    assert !INVALID_UTF8_STRING.is_utf8?
   end
 
   def test_mb_chars_returns_instance_of_proxy_class
-    assert_kind_of ActiveSupport::Multibyte.proxy_class, UNICODE_STRING.mb_chars
+    assert_kind_of ActiveSupport::Multibyte.proxy_class, UTF8_STRING.mb_chars
   end
 end
 
@@ -399,6 +623,29 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert @combination.html_safe?
     assert !@other_combination.html_safe?
+  end
+
+  test "Prepending safe onto unsafe yields unsafe" do
+    @string.prepend "other".html_safe
+    assert !@string.html_safe?
+    assert_equal @string, "otherhello"
+  end
+
+  test "Prepending unsafe onto safe yields escaped safe" do
+    other = "other".html_safe
+    other.prepend "<foo>"
+    assert other.html_safe?
+    assert_equal other, "&lt;foo&gt;other"
+  end
+
+  test "Deprecated #prepend! method is still present" do
+    other = "other".html_safe
+
+    assert_deprecated do
+      other.prepend! "<foo>"
+    end
+
+    assert_equal other, "&lt;foo&gt;other"
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
@@ -487,12 +734,6 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test 'emits normal string yaml' do
     assert_equal 'foo'.to_yaml, 'foo'.html_safe.to_yaml(:foo => 1)
-  end
-
-  test 'knows whether it is encoding aware' do
-    assert_deprecated do
-      assert 'ruby'.encoding_aware?
-    end
   end
 
   test "call to_param returns a normal string" do

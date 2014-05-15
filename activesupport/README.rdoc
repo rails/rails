@@ -12,7 +12,7 @@ The latest version of Active Support can be installed with RubyGems:
 
   % [sudo] gem install activesupport
 
-Source code can be downloaded as part of the Rails project on GitHub
+Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/master/activesupport
 
@@ -26,7 +26,7 @@ Active Support is released under the MIT license:
 
 == Support
 
-API documentation is at
+API documentation is at:
 
 * http://api.rubyonrails.org
 

@@ -52,21 +52,21 @@ module ActiveSupport
       # into a non-delimited single lowercase word when passed to +underscore+.
       #
       #   acronym 'HTML'
-      #   titleize 'html'     #=> 'HTML'
-      #   camelize 'html'     #=> 'HTML'
-      #   underscore 'MyHTML' #=> 'my_html'
+      #   titleize 'html'     # => 'HTML'
+      #   camelize 'html'     # => 'HTML'
+      #   underscore 'MyHTML' # => 'my_html'
       #
       # The acronym, however, must occur as a delimited unit and not be part of
       # another word for conversions to recognize it:
       #
       #   acronym 'HTTP'
-      #   camelize 'my_http_delimited' #=> 'MyHTTPDelimited'
-      #   camelize 'https'             #=> 'Https', not 'HTTPs'
-      #   underscore 'HTTPS'           #=> 'http_s', not 'https'
+      #   camelize 'my_http_delimited' # => 'MyHTTPDelimited'
+      #   camelize 'https'             # => 'Https', not 'HTTPs'
+      #   underscore 'HTTPS'           # => 'http_s', not 'https'
       #
       #   acronym 'HTTPS'
-      #   camelize 'https'   #=> 'HTTPS'
-      #   underscore 'HTTPS' #=> 'https'
+      #   camelize 'https'   # => 'HTTPS'
+      #   underscore 'HTTPS' # => 'https'
       #
       # Note: Acronyms that are passed to +pluralize+ will no longer be
       # recognized, since the acronym will not occur as a delimited unit in the
@@ -74,25 +74,25 @@ module ActiveSupport
       # form as an acronym as well:
       #
       #    acronym 'API'
-      #    camelize(pluralize('api')) #=> 'Apis'
+      #    camelize(pluralize('api')) # => 'Apis'
       #
       #    acronym 'APIs'
-      #    camelize(pluralize('api')) #=> 'APIs'
+      #    camelize(pluralize('api')) # => 'APIs'
       #
       # +acronym+ may be used to specify any word that contains an acronym or
       # otherwise needs to maintain a non-standard capitalization. The only
       # restriction is that the word must begin with a capital letter.
       #
       #   acronym 'RESTful'
-      #   underscore 'RESTful'           #=> 'restful'
-      #   underscore 'RESTfulController' #=> 'restful_controller'
-      #   titleize 'RESTfulController'   #=> 'RESTful Controller'
-      #   camelize 'restful'             #=> 'RESTful'
-      #   camelize 'restful_controller'  #=> 'RESTfulController'
+      #   underscore 'RESTful'           # => 'restful'
+      #   underscore 'RESTfulController' # => 'restful_controller'
+      #   titleize 'RESTfulController'   # => 'RESTful Controller'
+      #   camelize 'restful'             # => 'RESTful'
+      #   camelize 'restful_controller'  # => 'RESTfulController'
       #
       #   acronym 'McDonald'
-      #   underscore 'McDonald' #=> 'mcdonald'
-      #   camelize 'mcdonald'   #=> 'McDonald'
+      #   underscore 'McDonald' # => 'mcdonald'
+      #   camelize 'mcdonald'   # => 'McDonald'
       def acronym(word)
         @acronyms[word.downcase] = word
         @acronym_regex = /#{@acronyms.values.join("|")}/
@@ -128,17 +128,29 @@ module ActiveSupport
       def irregular(singular, plural)
         @uncountables.delete(singular)
         @uncountables.delete(plural)
-        if singular[0,1].upcase == plural[0,1].upcase
-          plural(Regexp.new("(#{singular[0,1]})#{singular[1..-1]}$", "i"), '\1' + plural[1..-1])
-          plural(Regexp.new("(#{plural[0,1]})#{plural[1..-1]}$", "i"), '\1' + plural[1..-1])
-          singular(Regexp.new("(#{plural[0,1]})#{plural[1..-1]}$", "i"), '\1' + singular[1..-1])
+
+        s0 = singular[0]
+        srest = singular[1..-1]
+
+        p0 = plural[0]
+        prest = plural[1..-1]
+
+        if s0.upcase == p0.upcase
+          plural(/(#{s0})#{srest}$/i, '\1' + prest)
+          plural(/(#{p0})#{prest}$/i, '\1' + prest)
+
+          singular(/(#{s0})#{srest}$/i, '\1' + srest)
+          singular(/(#{p0})#{prest}$/i, '\1' + srest)
         else
-          plural(Regexp.new("#{singular[0,1].upcase}(?i)#{singular[1..-1]}$"), plural[0,1].upcase + plural[1..-1])
-          plural(Regexp.new("#{singular[0,1].downcase}(?i)#{singular[1..-1]}$"), plural[0,1].downcase + plural[1..-1])
-          plural(Regexp.new("#{plural[0,1].upcase}(?i)#{plural[1..-1]}$"), plural[0,1].upcase + plural[1..-1])
-          plural(Regexp.new("#{plural[0,1].downcase}(?i)#{plural[1..-1]}$"), plural[0,1].downcase + plural[1..-1])
-          singular(Regexp.new("#{plural[0,1].upcase}(?i)#{plural[1..-1]}$"), singular[0,1].upcase + singular[1..-1])
-          singular(Regexp.new("#{plural[0,1].downcase}(?i)#{plural[1..-1]}$"), singular[0,1].downcase + singular[1..-1])
+          plural(/#{s0.upcase}(?i)#{srest}$/,   p0.upcase   + prest)
+          plural(/#{s0.downcase}(?i)#{srest}$/, p0.downcase + prest)
+          plural(/#{p0.upcase}(?i)#{prest}$/,   p0.upcase   + prest)
+          plural(/#{p0.downcase}(?i)#{prest}$/, p0.downcase + prest)
+
+          singular(/#{s0.upcase}(?i)#{srest}$/,   s0.upcase   + srest)
+          singular(/#{s0.downcase}(?i)#{srest}$/, s0.downcase + srest)
+          singular(/#{p0.upcase}(?i)#{prest}$/,   s0.upcase   + srest)
+          singular(/#{p0.downcase}(?i)#{prest}$/, s0.downcase + srest)
         end
       end
 

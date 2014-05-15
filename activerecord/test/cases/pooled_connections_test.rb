@@ -10,26 +10,10 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.remove_connection
   end
 
-  def teardown
+  teardown do
     ActiveRecord::Base.clear_all_connections!
     ActiveRecord::Base.establish_connection(@connection)
     @per_test_teardown.each {|td| td.call }
-  end
-
-  def checkout_connections
-    ActiveRecord::Base.establish_connection(@connection.merge({:pool => 2, :checkout_timeout => 0.3}))
-    @connections = []
-    @timed_out = 0
-
-    4.times do
-      Thread.new do
-        begin
-          @connections << ActiveRecord::Base.connection_pool.checkout
-        rescue ActiveRecord::ConnectionTimeoutError
-          @timed_out += 1
-        end
-      end.join
-    end
   end
 
   # Will deadlock due to lack of Monitor timeouts in 1.9

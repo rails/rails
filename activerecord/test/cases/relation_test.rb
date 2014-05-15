@@ -1,19 +1,29 @@
 require "cases/helper"
 require 'models/post'
 require 'models/comment'
+require 'models/author'
+require 'models/rating'
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    fixtures :posts, :comments
+    fixtures :posts, :comments, :authors
 
     class FakeKlass < Struct.new(:table_name, :name)
+      extend ActiveRecord::Delegation::DelegateCache
+
+      inherited self
+
+      def self.connection
+        Post.connection
+      end
+
+      def self.table_name
+        'fake_table'
+      end
     end
 
     def test_construction
-      relation = nil
-      assert_nothing_raised do
-        relation = Relation.new FakeKlass, :b
-      end
+      relation = Relation.new FakeKlass, :b
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
       assert !relation.loaded, 'relation is not loaded'
@@ -74,8 +84,8 @@ module ActiveRecord
     end
 
     def test_table_name_delegates_to_klass
-      relation = Relation.new FakeKlass.new('foo'), :b
-      assert_equal 'foo', relation.table_name
+      relation = Relation.new FakeKlass.new('posts'), :b
+      assert_equal 'posts', relation.table_name
     end
 
     def test_scope_for_create
@@ -107,6 +117,12 @@ module ActiveRecord
 
       relation.create_with_value = {:hello => 'world'}
       assert_equal({}, relation.scope_for_create)
+    end
+
+    def test_bad_constants_raise_errors
+      assert_raises(NameError) do
+        ActiveRecord::Relation::HelloWorld
+      end
     end
 
     def test_empty_eager_loading?
@@ -169,101 +185,55 @@ module ActiveRecord
     end
 
     test 'merging a hash interpolates conditions' do
-      klass = stub_everything
-      klass.stubs(:sanitize_sql).with(['foo = ?', 'bar']).returns('foo = bar')
+      klass = Class.new(FakeKlass) do
+        def self.sanitize_sql(args)
+          raise unless args == ['foo = ?', 'bar']
+          'foo = bar'
+        end
+      end
 
       relation = Relation.new(klass, :b)
       relation.merge!(where: ['foo = ?', 'bar'])
       assert_equal ['foo = bar'], relation.where_values
     end
-  end
 
-  class RelationMutationTest < ActiveSupport::TestCase
-    class FakeKlass < Struct.new(:table_name, :name)
+    def test_merging_readonly_false
+      relation = Relation.new FakeKlass, :b
+      readonly_false_relation = relation.readonly(false)
+      # test merging in both directions
+      assert_equal false, relation.merge(readonly_false_relation).readonly_value
+      assert_equal false, readonly_false_relation.merge(relation).readonly_value
     end
 
-    def relation
-      @relation ||= Relation.new FakeKlass, :b
+    def test_relation_merging_with_merged_joins_as_symbols
+      special_comments_with_ratings = SpecialComment.joins(:ratings)
+      posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
+      assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
 
-    (Relation::MULTI_VALUE_METHODS - [:references, :extending]).each do |method|
-      test "##{method}!" do
-        assert relation.public_send("#{method}!", :foo).equal?(relation)
-        assert_equal [:foo], relation.public_send("#{method}_values")
-      end
+    def test_relation_merging_with_joins_as_join_dependency_pick_proper_parent
+      post = Post.create!(title: "haha", body: "huhu")
+      comment = post.comments.create!(body: "hu")
+      3.times { comment.ratings.create! }
+
+      relation = Post.joins(:comments).merge Comment.joins(:ratings)
+
+      assert_equal 3, relation.where(id: post.id).pluck(:id).size
     end
 
-    test '#references!' do
-      assert relation.references!(:foo).equal?(relation)
-      assert relation.references_values.include?('foo')
+    def test_respond_to_for_non_selected_element
+      post = Post.select(:title).first
+      assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
+
+      silence_warnings { post = Post.select("'title' as post_title").first }
+      assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
     end
 
-    test 'extending!' do
-      mod, mod2 = Module.new, Module.new
-
-      assert relation.extending!(mod).equal?(relation)
-      assert_equal [mod], relation.extending_values
-      assert relation.is_a?(mod)
-
-      relation.extending!(mod2)
-      assert_equal [mod, mod2], relation.extending_values
-    end
-
-    test 'extending! with empty args' do
-      relation.extending!
-      assert_equal [], relation.extending_values
-    end
-
-    (Relation::SINGLE_VALUE_METHODS - [:from, :lock, :reordering, :reverse_order, :create_with]).each do |method|
-      test "##{method}!" do
-        assert relation.public_send("#{method}!", :foo).equal?(relation)
-        assert_equal :foo, relation.public_send("#{method}_value")
-      end
-    end
-
-    test '#from!' do
-      assert relation.from!('foo').equal?(relation)
-      assert_equal ['foo', nil], relation.from_value
-    end
-
-    test '#lock!' do
-      assert relation.lock!('foo').equal?(relation)
-      assert_equal 'foo', relation.lock_value
-    end
-
-    test '#reorder!' do
-      relation = self.relation.order('foo')
-
-      assert relation.reorder!('bar').equal?(relation)
-      assert_equal ['bar'], relation.order_values
-      assert relation.reordering_value
-    end
-
-    test 'reverse_order!' do
-      assert relation.reverse_order!.equal?(relation)
-      assert relation.reverse_order_value
-      relation.reverse_order!
-      assert !relation.reverse_order_value
-    end
-
-    test 'create_with!' do
-      assert relation.create_with!(foo: 'bar').equal?(relation)
-      assert_equal({foo: 'bar'}, relation.create_with_value)
-    end
-
-    test 'merge!' do
-      assert relation.merge!(where: :foo).equal?(relation)
-      assert_equal [:foo], relation.where_values
-    end
-
-    test 'merge with a proc' do
-      assert_equal [:foo], relation.merge(-> { where(:foo) }).where_values
-    end
-
-    test 'none!' do
-      assert relation.none!.equal?(relation)
-      assert_equal [NullRelation], relation.extending_values
-      assert relation.is_a?(NullRelation)
+    def test_relation_merging_with_merged_joins_as_strings
+      join_string = "LEFT OUTER JOIN #{Rating.quoted_table_name} ON #{SpecialComment.quoted_table_name}.id = #{Rating.quoted_table_name}.comment_id"
+      special_comments_with_ratings = SpecialComment.joins join_string
+      posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
+      assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
   end
 end

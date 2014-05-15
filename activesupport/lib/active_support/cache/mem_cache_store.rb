@@ -7,6 +7,7 @@ end
 
 require 'digest/md5'
 require 'active_support/core_ext/marshal'
+require 'active_support/core_ext/array/extract_options'
 
 module ActiveSupport
   module Cache
@@ -40,17 +41,15 @@ module ActiveSupport
       #
       # If no addresses are specified, then MemCacheStore will connect to
       # localhost port 11211 (the default memcached port).
-      #
-      # Instead of addresses one can pass in a MemCache-like object. For example:
-      #
-      #   require 'memcached' # gem install memcached; uses C bindings to libmemcached
-      #   ActiveSupport::Cache::MemCacheStore.new(Memcached::Rails.new("localhost:11211"))
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
         super(options)
 
-        if addresses.first.respond_to?(:get)
+        unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
+          raise ArgumentError, "First argument must be an empty array, an array of hosts or a Dalli::Client instance."
+        end
+        if addresses.first.is_a?(Dalli::Client)
           @data = addresses.first
         else
           mem_cache_options = options.dup
@@ -86,7 +85,7 @@ module ActiveSupport
         instrument(:increment, name, :amount => amount) do
           @data.incr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue Dalli::DalliError
+      rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
@@ -100,7 +99,7 @@ module ActiveSupport
         instrument(:decrement, name, :amount => amount) do
           @data.decr(escape_key(namespaced_key(name, options)), amount)
         end
-      rescue Dalli::DalliError
+      rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
@@ -158,7 +157,7 @@ module ActiveSupport
         # characters properly.
         def escape_key(key)
           key = key.to_s.dup
-          key = key.force_encoding("BINARY")
+          key = key.force_encoding(Encoding::ASCII_8BIT)
           key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
           key

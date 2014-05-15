@@ -11,6 +11,11 @@ class Company < AbstractCompany
   has_many :contracts
   has_many :developers, :through => :contracts
 
+  scope :of_first_firm, lambda {
+    joins(:account => :firm).
+    where('firms.id' => 1)
+  }
+
   def arbitrary_method
     "I am Jack's profound disappointment"
   end
@@ -35,17 +40,13 @@ module Namespaced
 end
 
 class Firm < Company
-  ActiveSupport::Deprecation.silence do
-    has_many :clients, -> { order "id" }, :dependent => :destroy, :counter_sql =>
-        "SELECT COUNT(*) FROM companies WHERE firm_id = 1 " +
-        "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )",
-        :before_remove => :log_before_remove,
-        :after_remove  => :log_after_remove
-  end
+  to_param :name
+
+  has_many :clients, -> { order "id" }, :dependent => :destroy, :before_remove => :log_before_remove, :after_remove  => :log_after_remove
   has_many :unsorted_clients, :class_name => "Client"
   has_many :unsorted_clients_with_symbol, :class_name => :Client
   has_many :clients_sorted_desc, -> { order "id DESC" }, :class_name => "Client"
-  has_many :clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client"
+  has_many :clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client", :inverse_of => :firm
   has_many :clients_ordered_by_name, -> { order "name" }, :class_name => "Client"
   has_many :unvalidated_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :validate => false
   has_many :dependent_clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client", :dependent => :destroy
@@ -54,21 +55,7 @@ class Firm < Company
   has_many :clients_with_interpolated_conditions, ->(firm) { where "rating > #{firm.rating}" }, :class_name => "Client"
   has_many :clients_like_ms, -> { where("name = 'Microsoft'").order("id") }, :class_name => "Client"
   has_many :clients_like_ms_with_hash_conditions, -> { where(:name => 'Microsoft').order("id") }, :class_name => "Client"
-  ActiveSupport::Deprecation.silence do
-    has_many :clients_using_sql, :class_name => "Client", :finder_sql => proc { "SELECT * FROM companies WHERE client_of = #{id}" }
-    has_many :clients_using_counter_sql, :class_name => "Client",
-             :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id} " },
-             :counter_sql => proc { "SELECT COUNT(*) FROM companies WHERE client_of = #{id}" }
-    has_many :clients_using_zero_counter_sql, :class_name => "Client",
-             :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id}" },
-             :counter_sql => proc { "SELECT 0 FROM companies WHERE client_of = #{id}" }
-    has_many :no_clients_using_counter_sql, :class_name => "Client",
-             :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
-             :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
-    has_many :clients_using_finder_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE 1=1'
-  end
   has_many :plain_clients, :class_name => 'Client'
-  has_many :readonly_clients, -> { readonly }, :class_name => 'Client'
   has_many :clients_using_primary_key, :class_name => 'Client',
            :primary_key => 'name', :foreign_key => 'firm_name'
   has_many :clients_using_primary_key_with_delete_all, :class_name => 'Client',
@@ -114,13 +101,6 @@ class DependentFirm < Company
   has_one :company, :foreign_key => 'client_of', :dependent => :nullify
 end
 
-class RestrictedFirm < Company
-  ActiveSupport::Deprecation.silence do
-    has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict
-    has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict
-  end
-end
-
 class RestrictedWithExceptionFirm < Company
   has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_exception
   has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_exception
@@ -141,8 +121,12 @@ class Client < Company
   belongs_to :firm_with_primary_key_symbols, :class_name => "Firm", :primary_key => :name, :foreign_key => :firm_name
   belongs_to :readonly_firm, -> { readonly }, :class_name => "Firm", :foreign_key => "firm_id"
   belongs_to :bob_firm, -> { where :name => "Bob" }, :class_name => "Firm", :foreign_key => "client_of"
-  has_many :accounts, :through => :firm
+  has_many :accounts, :through => :firm, :source => :accounts
   belongs_to :account
+
+  validate do
+    firm
+  end
 
   class RaisedOnSave < RuntimeError; end
   attr_accessor :raise_on_save
@@ -193,7 +177,6 @@ class ExclusivelyDependentFirm < Company
   has_one :account, :foreign_key => "firm_id", :dependent => :delete
   has_many :dependent_sanitized_conditional_clients_of_firm, -> { order("id").where("name = 'BigShot Inc.'") }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
   has_many :dependent_conditional_clients_of_firm, -> { order("id").where("name = ?", 'BigShot Inc.') }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
-  has_many :dependent_hash_conditional_clients_of_firm, -> { order("id").where(:name => 'BigShot Inc.') }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
 end
 
 class SpecialClient < Client
@@ -205,6 +188,8 @@ end
 class Account < ActiveRecord::Base
   belongs_to :firm, :class_name => 'Company'
   belongs_to :unautosaved_firm, :foreign_key => "firm_id", :class_name => "Firm", :autosave => false
+
+  alias_attribute :available_credit, :credit_limit
 
   def self.destroyed_account_ids
     @destroyed_account_ids ||= Hash.new { |h,k| h[k] = [] }

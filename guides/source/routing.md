@@ -36,7 +36,7 @@ the request is dispatched to the `patients` controller's `show` action with `{ i
 
 ### Generating Paths and URLs from Code
 
-You can also generate paths and URLs.  If the route above is modified to be:
+You can also generate paths and URLs. If the route above is modified to be:
 
 ```ruby
 get '/patients/:id', to: 'patients#show', as: 'patient'
@@ -89,15 +89,15 @@ resources :photos
 
 creates seven different routes in your application, all mapping to the `Photos` controller:
 
-| HTTP Verb | Path             | Action  | Used for                                     |
-| --------- | ---------------- | ------- | -------------------------------------------- |
-| GET       | /photos          | index   | display a list of all photos                 |
-| GET       | /photos/new      | new     | return an HTML form for creating a new photo |
-| POST      | /photos          | create  | create a new photo                           |
-| GET       | /photos/:id      | show    | display a specific photo                     |
-| GET       | /photos/:id/edit | edit    | return an HTML form for editing a photo      |
-| PATCH/PUT | /photos/:id      | update  | update a specific photo                      |
-| DELETE    | /photos/:id      | destroy | delete a specific photo                      |
+| HTTP Verb | Path             | Controller#Action | Used for                                     |
+| --------- | ---------------- | ----------------- | -------------------------------------------- |
+| GET       | /photos          | photos#index      | display a list of all photos                 |
+| GET       | /photos/new      | photos#new        | return an HTML form for creating a new photo |
+| POST      | /photos          | photos#create     | create a new photo                           |
+| GET       | /photos/:id      | photos#show       | display a specific photo                     |
+| GET       | /photos/:id/edit | photos#edit       | return an HTML form for editing a photo      |
+| PATCH/PUT | /photos/:id      | photos#update     | update a specific photo                      |
+| DELETE    | /photos/:id      | photos#destroy    | delete a specific photo                      |
 
 NOTE: Because the router uses the HTTP verb and URL to match inbound requests, four URLs map to seven different actions.
 
@@ -138,6 +138,12 @@ Sometimes, you have a resource that clients always look up without referencing a
 get 'profile', to: 'users#show'
 ```
 
+Passing a `String` to `get` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action:
+
+```ruby
+get 'profile', to: :show
+```
+
 This resourceful route:
 
 ```ruby
@@ -146,16 +152,16 @@ resource :geocoder
 
 creates six different routes in your application, all mapping to the `Geocoders` controller:
 
-| HTTP Verb | Path           | Action  | Used for                                      |
-| --------- | -------------- | ------- | --------------------------------------------- |
-| GET       | /geocoder/new  | new     | return an HTML form for creating the geocoder |
-| POST      | /geocoder      | create  | create the new geocoder                       |
-| GET       | /geocoder      | show    | display the one and only geocoder resource    |
-| GET       | /geocoder/edit | edit    | return an HTML form for editing the geocoder  |
-| PATCH/PUT | /geocoder      | update  | update the one and only geocoder resource     |
-| DELETE    | /geocoder      | destroy | delete the geocoder resource                  |
+| HTTP Verb | Path           | Controller#Action | Used for                                      |
+| --------- | -------------- | ----------------- | --------------------------------------------- |
+| GET       | /geocoder/new  | geocoders#new     | return an HTML form for creating the geocoder |
+| POST      | /geocoder      | geocoders#create  | create the new geocoder                       |
+| GET       | /geocoder      | geocoders#show    | display the one and only geocoder resource    |
+| GET       | /geocoder/edit | geocoders#edit    | return an HTML form for editing the geocoder  |
+| PATCH/PUT | /geocoder      | geocoders#update  | update the one and only geocoder resource     |
+| DELETE    | /geocoder      | geocoders#destroy | delete the geocoder resource                  |
 
-NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers.
+NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers. So that, for example, `resource :photo` and `resources :photos` creates both singular and plural routes that map to the same controller (`PhotosController`).
 
 A singular resourceful route generates these helpers:
 
@@ -164,6 +170,12 @@ A singular resourceful route generates these helpers:
 * `geocoder_path` returns `/geocoder`
 
 As with plural resources, the same helpers ending in `_url` will also include the host, port and path prefix.
+
+WARNING: A [long-standing bug](https://github.com/rails/rails/issues/1769) prevents `form_for` from working automatically with singular resources. As a workaround, specify the URL for the form directly, like so:
+
+```ruby
+form_for @geocoder, url: geocoder_path do |f|
+```
 
 ### Controller Namespaces and Routing
 
@@ -177,15 +189,15 @@ end
 
 This will create a number of routes for each of the `posts` and `comments` controller. For `Admin::PostsController`, Rails will create:
 
-| HTTP Verb | Path                  | Action  | Used for                  |
-| --------- | --------------------- | ------- | ------------------------- |
-| GET       | /admin/posts          | index   | admin_posts_path          |
-| GET       | /admin/posts/new      | new     | new_admin_post_path       |
-| POST      | /admin/posts          | create  | admin_posts_path          |
-| GET       | /admin/posts/:id      | show    | admin_post_path(:id)      |
-| GET       | /admin/posts/:id/edit | edit    | edit_admin_post_path(:id) |
-| PATCH/PUT | /admin/posts/:id      | update  | admin_post_path(:id)      |
-| DELETE    | /admin/posts/:id      | destroy | admin_post_path(:id)      |
+| HTTP Verb | Path                  | Controller#Action   | Named Helper              |
+| --------- | --------------------- | ------------------- | ------------------------- |
+| GET       | /admin/posts          | admin/posts#index   | admin_posts_path          |
+| GET       | /admin/posts/new      | admin/posts#new     | new_admin_post_path       |
+| POST      | /admin/posts          | admin/posts#create  | admin_posts_path          |
+| GET       | /admin/posts/:id      | admin/posts#show    | admin_post_path(:id)      |
+| GET       | /admin/posts/:id/edit | admin/posts#edit    | edit_admin_post_path(:id) |
+| PATCH/PUT | /admin/posts/:id      | admin/posts#update  | admin_post_path(:id)      |
+| DELETE    | /admin/posts/:id      | admin/posts#destroy | admin_post_path(:id)      |
 
 If you want to route `/posts` (without the prefix `/admin`) to `Admin::PostsController`, you could use:
 
@@ -217,15 +229,17 @@ resources :posts, path: '/admin/posts'
 
 In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `PostsController`:
 
-| HTTP Verb | Path                  | Action  | Named Helper        |
-| --------- | --------------------- | ------- | ------------------- |
-| GET       | /admin/posts          | index   | posts_path          |
-| GET       | /admin/posts/new      | new     | new_post_path       |
-| POST      | /admin/posts          | create  | posts_path          |
-| GET       | /admin/posts/:id      | show    | post_path(:id)      |
-| GET       | /admin/posts/:id/edit | edit    | edit_post_path(:id) |
-| PATCH/PUT | /admin/posts/:id      | update  | post_path(:id)      |
-| DELETE    | /admin/posts/:id      | destroy | post_path(:id)      |
+| HTTP Verb | Path                  | Controller#Action | Named Helper        |
+| --------- | --------------------- | ----------------- | ------------------- |
+| GET       | /admin/posts          | posts#index       | posts_path          |
+| GET       | /admin/posts/new      | posts#new         | new_post_path       |
+| POST      | /admin/posts          | posts#create      | posts_path          |
+| GET       | /admin/posts/:id      | posts#show        | post_path(:id)      |
+| GET       | /admin/posts/:id/edit | posts#edit        | edit_post_path(:id) |
+| PATCH/PUT | /admin/posts/:id      | posts#update      | post_path(:id)      |
+| DELETE    | /admin/posts/:id      | posts#destroy     | post_path(:id)      |
+
+TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo' => '/foo#index'`._
 
 ### Nested Resources
 
@@ -251,15 +265,15 @@ end
 
 In addition to the routes for magazines, this declaration will also route ads to an `AdsController`. The ad URLs require a magazine:
 
-| HTTP Verb | Path                                 | Action  | Used for                                                                   |
-| --------- | ------------------------------------ | ------- | -------------------------------------------------------------------------- |
-| GET       | /magazines/:magazine_id/ads          | index   | display a list of all ads for a specific magazine                          |
-| GET       | /magazines/:magazine_id/ads/new      | new     | return an HTML form for creating a new ad belonging to a specific magazine |
-| POST      | /magazines/:magazine_id/ads          | create  | create a new ad belonging to a specific magazine                           |
-| GET       | /magazines/:magazine_id/ads/:id      | show    | display a specific ad belonging to a specific magazine                     |
-| GET       | /magazines/:magazine_id/ads/:id/edit | edit    | return an HTML form for editing an ad belonging to a specific magazine     |
-| PATCH/PUT | /magazines/:magazine_id/ads/:id      | update  | update a specific ad belonging to a specific magazine                      |
-| DELETE    | /magazines/:magazine_id/ads/:id      | destroy | delete a specific ad belonging to a specific magazine                      |
+| HTTP Verb | Path                                 | Controller#Action | Used for                                                                   |
+| --------- | ------------------------------------ | ----------------- | -------------------------------------------------------------------------- |
+| GET       | /magazines/:magazine_id/ads          | ads#index         | display a list of all ads for a specific magazine                          |
+| GET       | /magazines/:magazine_id/ads/new      | ads#new           | return an HTML form for creating a new ad belonging to a specific magazine |
+| POST      | /magazines/:magazine_id/ads          | ads#create        | create a new ad belonging to a specific magazine                           |
+| GET       | /magazines/:magazine_id/ads/:id      | ads#show          | display a specific ad belonging to a specific magazine                     |
+| GET       | /magazines/:magazine_id/ads/:id/edit | ads#edit          | return an HTML form for editing an ad belonging to a specific magazine     |
+| PATCH/PUT | /magazines/:magazine_id/ads/:id      | ads#update        | update a specific ad belonging to a specific magazine                      |
+| DELETE    | /magazines/:magazine_id/ads/:id      | ads#destroy       | delete a specific ad belonging to a specific magazine                      |
 
 This will also create routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. These helpers take an instance of Magazine as the first parameter (`magazine_ads_url(@magazine)`).
 
@@ -326,7 +340,7 @@ shallow do
 end
 ```
 
-There exists two options for `scope` to customize shallow routes. `:shallow_path` prefixes member paths with the specified parameter:
+There exist two options for `scope` to customize shallow routes. `:shallow_path` prefixes member paths with the specified parameter:
 
 ```ruby
 scope shallow_path: "sekret" do
@@ -338,15 +352,15 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                   | Named Helper        |
-| --------- | -------------------------------------- | ------------------- |
-| GET       | /posts/:post_id/comments(.:format)     | post_comments       |
-| POST      | /posts/:post_id/comments(.:format)     | post_comments       |
-| GET       | /posts/:post_id/comments/new(.:format) | new_post_comment    |
-| GET       | /sekret/comments/:id/edit(.:format)    | edit_comment        |
-| GET       | /sekret/comments/:id(.:format)         | comment             |
-| PATCH/PUT | /sekret/comments/:id(.:format)         | comment             |
-| DELETE    | /sekret/comments/:id(.:format)         | comment             |
+| HTTP Verb | Path                                   | Controller#Action | Named Helper          |
+| --------- | -------------------------------------- | ----------------- | --------------------- |
+| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments_path    |
+| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments_path    |
+| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment_path |
+| GET       | /sekret/comments/:id/edit(.:format)    | comments#edit     | edit_comment_path     |
+| GET       | /sekret/comments/:id(.:format)         | comments#show     | comment_path          |
+| PATCH/PUT | /sekret/comments/:id(.:format)         | comments#update   | comment_path          |
+| DELETE    | /sekret/comments/:id(.:format)         | comments#destroy  | comment_path          |
 
 The `:shallow_prefix` option adds the specified parameter to the named helpers:
 
@@ -360,19 +374,19 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                   | Named Helper        |
-| --------- | -------------------------------------- | ------------------- |
-| GET       | /posts/:post_id/comments(.:format)     | post_comments       |
-| POST      | /posts/:post_id/comments(.:format)     | post_comments       |
-| GET       | /posts/:post_id/comments/new(.:format) | new_post_comment    |
-| GET       | /comments/:id/edit(.:format)           | edit_sekret_comment |
-| GET       | /comments/:id(.:format)                | sekret_comment      |
-| PATCH/PUT | /comments/:id(.:format)                | sekret_comment      |
-| DELETE    | /comments/:id(.:format)                | sekret_comment      |
+| HTTP Verb | Path                                   | Controller#Action | Named Helper             |
+| --------- | -------------------------------------- | ----------------- | ------------------------ |
+| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments_path       |
+| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments_path       |
+| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment_path    |
+| GET       | /comments/:id/edit(.:format)           | comments#edit     | edit_sekret_comment_path |
+| GET       | /comments/:id(.:format)                | comments#show     | sekret_comment_path      |
+| PATCH/PUT | /comments/:id(.:format)                | comments#update   | sekret_comment_path      |
+| DELETE    | /comments/:id(.:format)                | comments#destroy  | sekret_comment_path      |
 
 ### Routing concerns
 
-Routing Concerns allows you to declare common routes that can be reused inside others resources and routes. To define a concern:
+Routing Concerns allows you to declare common routes that can be reused inside other resources and routes. To define a concern:
 
 ```ruby
 concern :commentable do
@@ -473,7 +487,10 @@ end
 
 This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
-Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use `get`, `patch`, `put`, `post`, or `delete` here. If you don't have multiple `member` routes, you can also pass `:on` to a route, eliminating the block:
+Within the block of member routes, each route name specifies the HTTP verb
+will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
+. If you don't have multiple `member` routes, you can also pass `:on` to a
+route, eliminating the block:
 
 ```ruby
 resources :photos do
@@ -530,7 +547,7 @@ In particular, simple routing makes it very easy to map legacy URLs to new Rails
 
 ### Bound Parameters
 
-When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: `:controller` maps to the name of a controller in your application, and `:action` maps to the name of an action within that controller. For example, consider one of the default Rails routes:
+When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: `:controller` maps to the name of a controller in your application, and `:action` maps to the name of an action within that controller. For example, consider this route:
 
 ```ruby
 get ':controller(/:action(/:id))'
@@ -614,7 +631,7 @@ This will define a `user_path` method that will be available in controllers, hel
 
 ### HTTP Verb Constraints
 
-In general, you should use the `get`, `post`, `put` and `delete` methods to constrain a route to a particular verb. You can use the `match` method with the `:via` option to match multiple verbs at once:
+In general, you should use the `get`, `post`, `put`, `patch`  and `delete` methods to constrain a route to a particular verb. You can use the `match` method with the `:via` option to match multiple verbs at once:
 
 ```ruby
 match 'photos', to: 'photos#show', via: [:get, :post]
@@ -645,7 +662,7 @@ get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
 `:constraints` takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 ```ruby
-get '/:id', to: 'posts#show', constraints: {id: /^\d/}
+get '/:id', to: 'posts#show', constraints: { id: /^\d/ }
 ```
 
 However, note that you don't need to use anchors because all routes are anchored at the start.
@@ -659,12 +676,12 @@ get '/:username', to: 'users#show'
 
 ### Request-Based Constraints
 
-You can also constrain a route based on any method on the <a href="action_controller_overview.html#the-request-object">Request</a> object that returns a `String`.
+You can also constrain a route based on any method on the [Request object](action_controller_overview.html#the-request-object) that returns a `String`.
 
 You specify a request-based constraint the same way that you specify a segment constraint:
 
 ```ruby
-get 'photos', constraints: {subdomain: 'admin'}
+get 'photos', constraints: { subdomain: 'admin' }
 ```
 
 You can also specify constraints in a block form:
@@ -676,6 +693,8 @@ namespace :admin do
   end
 end
 ```
+
+NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then compare the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected, however using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
 
 ### Advanced Constraints
 
@@ -692,7 +711,7 @@ class BlacklistConstraint
   end
 end
 
-TwitterClone::Application.routes.draw do
+Rails.application.routes.draw do
   get '*path', to: 'blacklist#index',
     constraints: BlacklistConstraint.new
 end
@@ -701,7 +720,7 @@ end
 You can also specify constraints as a lambda:
 
 ```ruby
-TwitterClone::Application.routes.draw do
+Rails.application.routes.draw do
   get '*path', to: 'blacklist#index',
     constraints: lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
 end
@@ -761,11 +780,11 @@ You can also reuse dynamic segments from the match in the path to redirect to:
 get '/stories/:name', to: redirect('/posts/%{name}')
 ```
 
-You can also provide a block to redirect, which receives the params and the request object:
+You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
 
 ```ruby
-get '/stories/:name', to: redirect {|params, req| "/posts/#{params[:name].pluralize}" }
-get '/stories', to: redirect {|p, req| "/posts/#{req.subdomain}" }
+get '/stories/:name', to: redirect { |path_params, req| "/posts/#{path_params[:name].pluralize}" }
+get '/stories', to: redirect { |path_params, req| "/posts/#{req.subdomain}" }
 ```
 
 Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
@@ -774,7 +793,7 @@ In all of these cases, if you don't provide the leading host (`http://www.exampl
 
 ### Routing to Rack Applications
 
-Instead of a String like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher:
+Instead of a String like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
 
 ```ruby
 match '/application.js', to: Sprockets, via: :all
@@ -796,6 +815,16 @@ root 'pages#main' # shortcut for the above
 You should put the `root` route at the top of the file, because it is the most popular route and should be matched first.
 
 NOTE: The `root` route only routes `GET` requests to the action.
+
+You can also use root inside namespaces and scopes as well. For example:
+
+```ruby
+namespace :admin do
+  root to: "admin#index"
+end
+
+root to: "home#index"
+```
 
 ### Unicode character routes
 
@@ -820,24 +849,37 @@ resources :photos, controller: 'images'
 
 will recognize incoming paths beginning with `/photos` but route to the `Images` controller:
 
-| HTTP Verb | Path             | Action  | Named Helper         |
-| --------- | ---------------- | ------- | -------------------- |
-| GET       | /photos          | index   | photos_path          |
-| GET       | /photos/new      | new     | new_photo_path       |
-| POST      | /photos          | create  | photos_path          |
-| GET       | /photos/:id      | show    | photo_path(:id)      |
-| GET       | /photos/:id/edit | edit    | edit_photo_path(:id) |
-| PATCH/PUT | /photos/:id      | update  | photo_path(:id)      |
-| DELETE    | /photos/:id      | destroy | photo_path(:id)      |
+| HTTP Verb | Path             | Controller#Action | Named Helper         |
+| --------- | ---------------- | ----------------- | -------------------- |
+| GET       | /photos          | images#index      | photos_path          |
+| GET       | /photos/new      | images#new        | new_photo_path       |
+| POST      | /photos          | images#create     | photos_path          |
+| GET       | /photos/:id      | images#show       | photo_path(:id)      |
+| GET       | /photos/:id/edit | images#edit       | edit_photo_path(:id) |
+| PATCH/PUT | /photos/:id      | images#update     | photo_path(:id)      |
+| DELETE    | /photos/:id      | images#destroy    | photo_path(:id)      |
 
 NOTE: Use `photos_path`, `new_photo_path`, etc. to generate paths for this resource.
+
+For namespaced controllers you can use the directory notation. For example:
+
+```ruby
+resources :user_permissions, controller: 'admin/user_permissions'
+```
+
+This will route to the `Admin::UserPermissions` controller.
+
+NOTE: Only the directory notation is supported. Specifying the
+controller with Ruby constant notation (eg. `controller: 'Admin::UserPermissions'`)
+can lead to routing problems and results in
+a warning.
 
 ### Specifying Constraints
 
 You can use the `:constraints` option to specify a required format on the implicit `id`. For example:
 
 ```ruby
-resources :photos, constraints: {id: /[A-Z][A-Z][0-9]+/}
+resources :photos, constraints: { id: /[A-Z][A-Z][0-9]+/ }
 ```
 
 This declaration constrains the `:id` parameter to match the supplied regular expression. So, in this case, the router would no longer match `/photos/1` to this route. Instead, `/photos/RR27` would match.
@@ -865,19 +907,19 @@ resources :photos, as: 'images'
 
 will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the :as option to name the helpers.
 
-| HTTP Verb | Path             | Action  | Named Helper         |
-| --------- | ---------------- | ------- | -------------------- |
-| GET       | /photos          | index   | images_path          |
-| GET       | /photos/new      | new     | new_image_path       |
-| POST      | /photos          | create  | images_path          |
-| GET       | /photos/:id      | show    | image_path(:id)      |
-| GET       | /photos/:id/edit | edit    | edit_image_path(:id) |
-| PATCH/PUT | /photos/:id      | update  | image_path(:id)      |
-| DELETE    | /photos/:id      | destroy | image_path(:id)      |
+| HTTP Verb | Path             | Controller#Action | Named Helper         |
+| --------- | ---------------- | ----------------- | -------------------- |
+| GET       | /photos          | photos#index      | images_path          |
+| GET       | /photos/new      | photos#new        | new_image_path       |
+| POST      | /photos          | photos#create     | images_path          |
+| GET       | /photos/:id      | photos#show       | image_path(:id)      |
+| GET       | /photos/:id/edit | photos#edit       | edit_image_path(:id) |
+| PATCH/PUT | /photos/:id      | photos#update     | image_path(:id)      |
+| DELETE    | /photos/:id      | photos#destroy    | image_path(:id)      |
 
 ### Overriding the `new` and `edit` Segments
 
-The `:path_names` option lets you override the automatically-generated "new" and "edit" segments in paths:
+The `:path_names` option lets you override the automatically-generated `new` and `edit` segments in paths:
 
 ```ruby
 resources :photos, path_names: { new: 'make', edit: 'change' }
@@ -912,7 +954,7 @@ end
 resources :photos
 ```
 
-This will provide route helpers such as `admin_photos_path`, `new_admin_photo_path` etc.
+This will provide route helpers such as `admin_photos_path`, `new_admin_photo_path`, etc.
 
 To prefix a group of route helpers, use `:as` with `scope`:
 
@@ -940,7 +982,7 @@ This will provide you with URLs such as `/bob/posts/1` and will allow you to ref
 
 ### Restricting the Routes Created
 
-By default, Rails creates routes for the seven default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the `:only` and `:except` options to fine-tune this behavior. The `:only` option tells Rails to create only the specified routes:
+By default, Rails creates routes for the seven default actions (`index`, `show`, `new`, `create`, `edit`, `update`, and `destroy`) for every RESTful route in your application. You can use the `:only` and `:except` options to fine-tune this behavior. The `:only` option tells Rails to create only the specified routes:
 
 ```ruby
 resources :photos, only: [:index, :show]
@@ -970,15 +1012,15 @@ end
 
 Rails now creates routes to the `CategoriesController`.
 
-| HTTP Verb | Path                       | Action  | Used for                |
-| --------- | -------------------------- | ------- | ----------------------- |
-| GET       | /kategorien                | index   | categories_path         |
-| GET       | /kategorien/neu            | new     | new_category_path       |
-| POST      | /kategorien                | create  | categories_path         |
-| GET       | /kategorien/:id            | show    | category_path(:id)      |
-| GET       | /kategorien/:id/bearbeiten | edit    | edit_category_path(:id) |
-| PATCH/PUT | /kategorien/:id            | update  | category_path(:id)      |
-| DELETE    | /kategorien/:id            | destroy | category_path(:id)      |
+| HTTP Verb | Path                       | Controller#Action  | Named Helper            |
+| --------- | -------------------------- | ------------------ | ----------------------- |
+| GET       | /kategorien                | categories#index   | categories_path         |
+| GET       | /kategorien/neu            | categories#new     | new_category_path       |
+| POST      | /kategorien                | categories#create  | categories_path         |
+| GET       | /kategorien/:id            | categories#show    | category_path(:id)      |
+| GET       | /kategorien/:id/bearbeiten | categories#edit    | edit_category_path(:id) |
+| PATCH/PUT | /kategorien/:id            | categories#update  | category_path(:id)      |
+| DELETE    | /kategorien/:id            | categories#destroy | category_path(:id)      |
 
 ### Overriding the Singular Form
 

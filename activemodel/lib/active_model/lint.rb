@@ -13,7 +13,7 @@ module ActiveModel
     #
     # These tests do not attempt to determine the semantic correctness of the
     # returned values. For instance, you could implement <tt>valid?</tt> to
-    # always return true, and the tests would pass. It is up to you to ensure
+    # always return +true+, and the tests would pass. It is up to you to ensure
     # that the values are semantically meaningful.
     #
     # Objects you pass in are expected to return a compliant object from a call
@@ -98,7 +98,7 @@ module ActiveModel
 
       private
         def model
-          assert @model.respond_to?(:to_model), "The object should respond_to to_model"
+          assert @model.respond_to?(:to_model), "The object should respond to to_model"
           @model.to_model
         end
 

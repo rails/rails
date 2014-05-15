@@ -36,6 +36,7 @@ rule
     ;
   literal
     : LITERAL            { result = Literal.new(val.first) }
+    ;
   dot
     : DOT                { result = Dot.new(val.first) }
     ;

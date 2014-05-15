@@ -1,13 +1,24 @@
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLColumn < Column
+    module PostgreSQL
       module Cast
-        def string_to_time(string)
+        def point_to_string(point) # :nodoc:
+          "(#{point[0]},#{point[1]})"
+        end
+
+        def string_to_point(string) # :nodoc:
+          if string[0] == '(' && string[-1] == ')'
+            string = string[1...-1]
+          end
+          string.split(',').map{ |v| Float(v) }
+        end
+
+        def string_to_time(string) # :nodoc:
           return string unless String === string
 
           case string
-          when 'infinity'; 1.0 / 0.0
-          when '-infinity'; -1.0 / 0.0
+          when 'infinity'; Float::INFINITY
+          when '-infinity'; -Float::INFINITY
           when / BC$/
             super("-" + string.sub(/ BC$/, ""))
           else
@@ -15,39 +26,48 @@ module ActiveRecord
           end
         end
 
-        def hstore_to_string(object)
+        def string_to_bit(value) # :nodoc:
+          case value
+          when /^0x/i
+            value[2..-1].hex.to_s(2) # Hexadecimal notation
+          else
+            value                    # Bit-string notation
+          end
+        end
+
+        def hstore_to_string(object, array_member = false) # :nodoc:
           if Hash === object
-            object.map { |k,v|
-              "#{escape_hstore(k)}=>#{escape_hstore(v)}"
-            }.join ','
+            string = object.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(',')
+            string = escape_hstore(string) if array_member
+            string
           else
             object
           end
         end
 
-        def string_to_hstore(string)
+        def string_to_hstore(string) # :nodoc:
           if string.nil?
             nil
           elsif String === string
-            Hash[string.scan(HstorePair).map { |k,v|
-              v = v.upcase == 'NULL' ? nil : v.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
-              k = k.gsub(/^"(.*)"$/,'\1').gsub(/\\(.)/, '\1')
-              [k,v]
+            Hash[string.scan(HstorePair).map { |k, v|
+              v = v.upcase == 'NULL' ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
+              k = k.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
+              [k, v]
             }]
           else
             string
           end
         end
 
-        def json_to_string(object)
-          if Hash === object
+        def json_to_string(object) # :nodoc:
+          if Hash === object || Array === object
             ActiveSupport::JSON.encode(object)
           else
             object
           end
         end
 
-        def array_to_string(value, column, adapter, should_be_quoted = false)
+        def array_to_string(value, column, adapter) # :nodoc:
           casted_values = value.map do |val|
             if String === val
               if val == "NULL"
@@ -62,7 +82,13 @@ module ActiveRecord
           "{#{casted_values.join(',')}}"
         end
 
-        def string_to_json(string)
+        def range_to_string(object) # :nodoc:
+          from = object.begin.respond_to?(:infinite?) && object.begin.infinite? ? '' : object.begin
+          to   = object.end.respond_to?(:infinite?) && object.end.infinite? ? '' : object.end
+          "[#{from},#{to}#{object.exclude_end? ? ')' : ']'}"
+        end
+
+        def string_to_json(string) # :nodoc:
           if String === string
             ActiveSupport::JSON.decode(string)
           else
@@ -70,17 +96,21 @@ module ActiveRecord
           end
         end
 
-        def string_to_cidr(string)
+        def string_to_cidr(string) # :nodoc:
           if string.nil?
             nil
           elsif String === string
-            IPAddr.new(string)
+            begin
+              IPAddr.new(string)
+            rescue ArgumentError
+              nil
+            end
           else
             string
           end
         end
 
-        def cidr_to_string(object)
+        def cidr_to_string(object) # :nodoc:
           if IPAddr === object
             "#{object.to_s}/#{object.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
           else
@@ -88,38 +118,8 @@ module ActiveRecord
           end
         end
 
-        def string_to_array(string, oid)
-          parse_pg_array(string).map{|val| oid.type_cast val}
-        end
-
-        def string_to_intrange(string)
-          if string.nil?
-            nil
-          elsif "empty" == string
-            (nil..nil)
-          elsif String === string && (matches = /^(\(|\[)([0-9]+),(\s?)([0-9]+)(\)|\])$/i.match(string))
-            lower_bound = ("(" == matches[1] ? (matches[2].to_i + 1) : matches[2].to_i)
-            upper_bound = (")" == matches[5] ? (matches[4].to_i - 1) : matches[4].to_i)
-            (lower_bound..upper_bound)
-          else
-            string
-          end
-        end
-
-        def intrange_to_string(object)
-          if object.nil?
-            nil
-          elsif Range === object
-            if [object.first, object.last].all? { |el| Integer === el }
-              "[#{object.first.to_i},#{object.exclude_end? ? object.last.to_i : object.last.to_i + 1})"
-            elsif [object.first, object.last].all? { |el| NilClass === el }
-              "empty"
-            else
-              nil
-            end
-          else
-            object
-          end
+        def string_to_array(string, oid) # :nodoc:
+          parse_pg_array(string).map {|val| type_cast_array(oid, val)}
         end
 
         private
@@ -142,12 +142,24 @@ module ActiveRecord
             end
           end
 
+          ARRAY_ESCAPE = "\\" * 2 * 2 # escape the backslash twice for PG arrays
+
           def quote_and_escape(value)
             case value
-            when "NULL"
+            when "NULL", Numeric
               value
             else
-              "\"#{value.gsub(/"/,"\\\"")}\""
+              value = value.gsub(/\\/, ARRAY_ESCAPE)
+              value.gsub!(/"/,"\\\"")
+              "\"#{value}\""
+            end
+          end
+
+          def type_cast_array(oid, value)
+            if ::Array === value
+              value.map {|item| type_cast_array(oid, item)}
+            else
+              oid.type_cast value
             end
           end
       end

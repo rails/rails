@@ -29,9 +29,9 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_encrypting_twice_yields_differing_cipher_text
-    first_messqage = @encryptor.encrypt_and_sign(@data).split("--").first
+    first_message = @encryptor.encrypt_and_sign(@data).split("--").first
     second_message = @encryptor.encrypt_and_sign(@data).split("--").first
-    assert_not_equal first_messqage, second_message
+    assert_not_equal first_message, second_message
   end
 
   def test_messing_with_either_encrypted_values_causes_failure
@@ -56,9 +56,25 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_alternative_serialization_method
+    prev = ActiveSupport.use_standard_json_time_format
+    ActiveSupport.use_standard_json_time_format = true
     encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), SecureRandom.hex(64), :serializer => JSONSerializer.new)
     message = encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
-    assert_equal encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
+    exp = { "foo" => 123, "bar" => "2010-01-01T00:00:00.000Z" }
+    assert_equal exp, encryptor.decrypt_and_verify(message)
+  ensure
+    ActiveSupport.use_standard_json_time_format = prev
+  end
+
+  def test_message_obeys_strict_encoding
+    bad_encoding_characters = "\n!@#"
+    message, iv = @encryptor.encrypt_and_sign("This is a very \n\nhumble string"+bad_encoding_characters)
+
+    assert_not_decrypted("#{::Base64.encode64 message.to_s}--#{::Base64.encode64 iv.to_s}")
+    assert_not_verified("#{::Base64.encode64 message.to_s}--#{::Base64.encode64 iv.to_s}")
+
+    assert_not_decrypted([iv,  message] * bad_encoding_characters)
+    assert_not_verified([iv,  message] * bad_encoding_characters)
   end
 
   private
@@ -76,7 +92,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def munge(base64_string)
-    bits = ::Base64.decode64(base64_string)
+    bits = ::Base64.strict_decode64(base64_string)
     bits.reverse!
     ::Base64.strict_encode64(bits)
   end

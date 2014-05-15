@@ -1,7 +1,7 @@
 Layouts and Rendering in Rails
 ==============================
 
-This guide covers the basic layout features of Action Controller and Action View. By referring to this guide, you will be able to:
+This guide covers the basic layout features of Action Controller and Action View.
 
 After reading this guide, you will know:
 
@@ -88,7 +88,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <% end %>
 </table>
 
-<br />
+<br>
 
 <%= link_to "New book", new_book_path %>
 ```
@@ -122,8 +122,7 @@ X-Runtime: 0.014297
 Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
 Cache-Control: no-cache
 
-
- $
+$
 ```
 
 We see there is an empty response (no data after the `Cache-Control` line), but the request was successful because Rails has set the response to 200 OK. You can set the `:status` option on render to change this response. Rendering nothing can be useful for Ajax requests where all you want to send back to the browser is an acknowledgment that the request was completed.
@@ -137,7 +136,7 @@ If you want to render the view that corresponds to a different template within t
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render "edit"
@@ -152,7 +151,7 @@ If you prefer, you can use a symbol instead of a string to specify the action to
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render :edit
@@ -237,15 +236,34 @@ render inline: "xml.p {'Horrid coding practice!'}", type: :builder
 
 #### Rendering Text
 
-You can send plain text - with no markup at all - back to the browser by using the `:text` option to `render`:
+You can send plain text - with no markup at all - back to the browser by using
+the `:plain` option to `render`:
 
 ```ruby
-render text: "OK"
+render plain: "OK"
 ```
 
-TIP: Rendering pure text is most useful when you're responding to Ajax or web service requests that are expecting something other than proper HTML.
+TIP: Rendering pure text is most useful when you're responding to Ajax or web
+service requests that are expecting something other than proper HTML.
 
-NOTE: By default, if you use the `:text` option, the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the `layout: true` option.
+NOTE: By default, if you use the `:plain` option, the text is rendered without
+using the current layout. If you want Rails to put the text into the current
+layout, you need to add the `layout: true` option.
+
+#### Rendering HTML
+
+You can send a HTML string back to the browser by using the `:html` option to
+`render`:
+
+```ruby
+render html: "<strong>Not Found</strong>".html_safe
+```
+
+TIP: This is useful when you're rendering a small snippet of HTML code.
+However, you might want to consider moving it to a template file if the markup
+is complex.
+
+NOTE: This option will escape HTML entities if the string is not html safe.
 
 #### Rendering JSON
 
@@ -277,14 +295,30 @@ render js: "alert('Hello Rails');"
 
 This will send the supplied string to the browser with a MIME type of `text/javascript`.
 
+#### Rendering raw body
+
+You can send a raw content back to the browser, without setting any content
+type, by using the `:body` option to `render`:
+
+```ruby
+render body: "raw"
+```
+
+TIP: This option should be used only if you don't care about the content type of
+the response. Using `:plain` or `:html` might be more appropriate in most of the
+time.
+
+NOTE: Unless overriden, your response returned from this render option will be
+`text/html`, as that is the default content type of Action Dispatch response.
+
 #### Options for `render`
 
 Calls to the `render` method generally accept four options:
 
 * `:content_type`
 * `:layout`
-* `:status`
 * `:location`
+* `:status`
 
 ##### The `:content_type` Option
 
@@ -310,6 +344,14 @@ You can also tell Rails to render with no layout at all:
 render layout: false
 ```
 
+##### The `:location` Option
+
+You can use the `:location` option to set the HTTP `Location` header:
+
+```ruby
+render xml: photo, location: photo_url(photo)
+```
+
 ##### The `:status` Option
 
 Rails will automatically generate a response with the correct HTTP status code (in most cases, this is `200 OK`). You can use the `:status` option to change this:
@@ -319,15 +361,68 @@ render status: 500
 render status: :forbidden
 ```
 
-Rails understands both numeric and symbolic status codes.
+Rails understands both numeric status codes and the corresponding symbols shown below.
 
-##### The `:location` Option
-
-You can use the `:location` option to set the HTTP `Location` header:
-
-```ruby
-render xml: photo, location: photo_url(photo)
-```
+| Response Class      | HTTP Status Code | Symbol                           |
+| ------------------- | ---------------- | -------------------------------- |
+| **Informational**   | 100              | :continue                        |
+|                     | 101              | :switching_protocols             |
+|                     | 102              | :processing                      |
+| **Success**         | 200              | :ok                              |
+|                     | 201              | :created                         |
+|                     | 202              | :accepted                        |
+|                     | 203              | :non_authoritative_information   |
+|                     | 204              | :no_content                      |
+|                     | 205              | :reset_content                   |
+|                     | 206              | :partial_content                 |
+|                     | 207              | :multi_status                    |
+|                     | 208              | :already_reported                |
+|                     | 226              | :im_used                         |
+| **Redirection**     | 300              | :multiple_choices                |
+|                     | 301              | :moved_permanently               |
+|                     | 302              | :found                           |
+|                     | 303              | :see_other                       |
+|                     | 304              | :not_modified                    |
+|                     | 305              | :use_proxy                       |
+|                     | 306              | :reserved                        |
+|                     | 307              | :temporary_redirect              |
+|                     | 308              | :permanent_redirect              |
+| **Client Error**    | 400              | :bad_request                     |
+|                     | 401              | :unauthorized                    |
+|                     | 402              | :payment_required                |
+|                     | 403              | :forbidden                       |
+|                     | 404              | :not_found                       |
+|                     | 405              | :method_not_allowed              |
+|                     | 406              | :not_acceptable                  |
+|                     | 407              | :proxy_authentication_required   |
+|                     | 408              | :request_timeout                 |
+|                     | 409              | :conflict                        |
+|                     | 410              | :gone                            |
+|                     | 411              | :length_required                 |
+|                     | 412              | :precondition_failed             |
+|                     | 413              | :request_entity_too_large        |
+|                     | 414              | :request_uri_too_long            |
+|                     | 415              | :unsupported_media_type          |
+|                     | 416              | :requested_range_not_satisfiable |
+|                     | 417              | :expectation_failed              |
+|                     | 422              | :unprocessable_entity            |
+|                     | 423              | :locked                          |
+|                     | 424              | :failed_dependency               |
+|                     | 426              | :upgrade_required                |
+|                     | 428              | :precondition_required           |
+|                     | 429              | :too_many_requests               |
+|                     | 431              | :request_header_fields_too_large |
+| **Server Error**    | 500              | :internal_server_error           |
+|                     | 501              | :not_implemented                 |
+|                     | 502              | :bad_gateway                     |
+|                     | 503              | :service_unavailable             |
+|                     | 504              | :gateway_timeout                 |
+|                     | 505              | :http_version_not_supported      |
+|                     | 506              | :variant_also_negotiates         |
+|                     | 507              | :insufficient_storage            |
+|                     | 508              | :loop_detected                   |
+|                     | 510              | :not_extended                    |
+|                     | 511              | :network_authentication_required |
 
 #### Finding Layouts
 
@@ -344,7 +439,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-With this declaration, all of the views rendered by the products controller will use `app/views/layouts/inventory.html.erb` as their layout.
+With this declaration, all of the views rendered by the `ProductsController` will use `app/views/layouts/inventory.html.erb` as their layout.
 
 To assign a specific layout for the entire application, use a `layout` declaration in your `ApplicationController` class:
 
@@ -363,7 +458,7 @@ You can use a symbol to defer the choice of layout until a request is processed:
 
 ```ruby
 class ProductsController < ApplicationController
-  layout "products_layout"
+  layout :products_layout
 
   def show
     @product = Product.find(params[:id])
@@ -531,7 +626,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     render action: "index"
   end
@@ -546,7 +641,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     redirect_to action: :index
   end
@@ -565,10 +660,11 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     @books = Book.all
-    render "index", alert: "Your book was not found!"
+    flash.now[:alert] = "Your book was not found"
+    render "index"
   end
 end
 ```
@@ -577,7 +673,7 @@ This would detect that there are no books with the specified ID, populate the `@
 
 ### Using `head` To Build Header-Only Responses
 
-The `head` method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling `render :nothing`. The `head` method takes one parameter, which is interpreted as a hash of header names and values. For example, you can return only an error header:
+The `head` method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling `render :nothing`. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing a HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
 
 ```ruby
 head :bad_request
@@ -642,7 +738,7 @@ WARNING: The asset tag helpers do _not_ verify the existence of the assets at th
 
 #### Linking to Feeds with the `auto_discovery_link_tag`
 
-The `auto_discovery_link_tag` helper builds HTML that most browsers and newsreaders can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
+The `auto_discovery_link_tag` helper builds HTML that most browsers and feed readers can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
 ```erb
 <%= auto_discovery_link_tag(:rss, {action: "feed"},
@@ -653,7 +749,7 @@ There are three tag options available for the `auto_discovery_link_tag`:
 
 * `:rel` specifies the `rel` value in the link. The default value is "alternate".
 * `:type` specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
-* `:title` specifies the title of the link. The default value is the uppercased `:type` value, for example, "ATOM" or "RSS".
+* `:title` specifies the title of the link. The default value is the uppercase `:type` value, for example, "ATOM" or "RSS".
 
 #### Linking to JavaScript Files with the `javascript_include_tag`
 
@@ -695,72 +791,6 @@ To include `http://example.com/main.js`:
 <%= javascript_include_tag "http://example.com/main.js" %>
 ```
 
-If the application does not use the asset pipeline, the `:defaults` option loads jQuery by default:
-
-```erb
-<%= javascript_include_tag :defaults %>
-```
-
-Outputting `script` tags such as this:
-
-```html
-<script src="/javascripts/jquery.js"></script>
-<script src="/javascripts/jquery_ujs.js"></script>
-```
-
-These two files for jQuery, `jquery.js` and `jquery_ujs.js` must be placed inside `public/javascripts` if the application doesn't use the asset pipeline. These files can be downloaded from the [jquery-rails repository on GitHub](https://github.com/indirect/jquery-rails/tree/master/vendor/assets/javascripts)
-
-WARNING: If you are using the asset pipeline, this tag will render a `script` tag for an asset called `defaults.js`, which would not exist in your application unless you've explicitly created it.
-
-And you can in any case override the `:defaults` expansion in `config/application.rb`:
-
-```ruby
-config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
-```
-
-You can also define new defaults:
-
-```ruby
-config.action_view.javascript_expansions[:projects] = %w(projects.js tickets.js)
-```
-
-And use them by referencing them exactly like `:defaults`:
-
-```erb
-<%= javascript_include_tag :projects %>
-```
-
-When using `:defaults`, if an `application.js` file exists in `public/javascripts` it will be included as well at the end.
-
-Also, if the asset pipeline is disabled, the `:all` expansion loads every JavaScript file in `public/javascripts`:
-
-```erb
-<%= javascript_include_tag :all %>
-```
-
-Note that your defaults of choice will be included first, so they will be available to all subsequently included files.
-
-You can supply the `:recursive` option to load files in subfolders of `public/javascripts` as well:
-
-```erb
-<%= javascript_include_tag :all, recursive: true %>
-```
-
-If you're loading multiple JavaScript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify `cache: true` in your `javascript_include_tag`:
-
-```erb
-<%= javascript_include_tag "main", "columns", cache: true %>
-```
-
-By default, the combined file will be delivered as `javascripts/all.js`. You can specify a location for the cached asset file instead:
-
-```erb
-<%= javascript_include_tag "main", "columns",
-  cache: "cache/main/display" %>
-```
-
-You can even use dynamic paths such as `cache/#{current_site}/main/display`.
-
 #### Linking to CSS Files with the `stylesheet_link_tag`
 
 The `stylesheet_link_tag` helper returns an HTML `<link>` tag for each source provided.
@@ -796,33 +826,6 @@ By default, the `stylesheet_link_tag` creates links with `media="screen" rel="st
 ```erb
 <%= stylesheet_link_tag "main_print", media: "print" %>
 ```
-
-If the asset pipeline is disabled, the `all` option links every CSS file in `public/stylesheets`:
-
-```erb
-<%= stylesheet_link_tag :all %>
-```
-
-You can supply the `:recursive` option to link files in subfolders of `public/stylesheets` as well:
-
-```erb
-<%= stylesheet_link_tag :all, recursive: true %>
-```
-
-If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify `cache: true` in your `stylesheet_link_tag`:
-
-```erb
-<%= stylesheet_link_tag "main", "columns", cache: true %>
-```
-
-By default, the combined file will be delivered as `stylesheets/all.css`. You can specify a location for the cached asset file instead:
-
-```erb
-<%= stylesheet_link_tag "main", "columns",
-  cache: "cache/main/display" %>
-```
-
-You can even use dynamic paths such as `cache/#{current_site}/main/display`.
 
 #### Linking to Images with the `image_tag`
 
@@ -1040,7 +1043,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>New zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1048,7 +1050,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>Editing zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1057,7 +1058,7 @@ You can also pass local variables into partials, making them even more powerful 
     ```html+erb
     <%= form_for(zone) do |f| %>
       <p>
-        <b>Zone name</b><br />
+        <b>Zone name</b><br>
         <%= f.text_field :name %>
       </p>
       <p>
@@ -1153,11 +1154,11 @@ With this change, you can access an instance of the `@products` collection as th
 You can also pass in arbitrary local variables to any partial you are rendering with the `locals: {}` option:
 
 ```erb
-<%= render partial: "products", collection: @products,
+<%= render partial: "product", collection: @products,
            as: :item, locals: {title: "Products Page"} %>
 ```
 
-Would render a partial `_products.html.erb` once for each instance of `product` in the `@products` instance variable passing the instance to the partial as a local variable called `item` and to each partial, make the local variable `title` available with the value `Products Page`.
+In this case, the partial will have access to a local variable `title` with the value "Products Page".
 
 TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by `_counter`. For example, if you're rendering `@products`, within the partial you can refer to `product_counter` to tell you how many times the partial has been rendered. This does not work in conjunction with the `as: :value` option.
 

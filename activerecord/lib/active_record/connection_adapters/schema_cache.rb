@@ -1,7 +1,8 @@
+
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
-      attr_reader :primary_keys, :tables, :version
+      attr_reader :version
       attr_accessor :connection
 
       def initialize(conn)
@@ -12,6 +13,10 @@ module ActiveRecord
         @primary_keys = {}
         @tables       = {}
         prepare_default_proc
+      end
+
+      def primary_keys(table_name)
+        @primary_keys[table_name]
       end
 
       # A cached lookup for table existence.
@@ -30,23 +35,19 @@ module ActiveRecord
         end
       end
 
+      def tables(name)
+        @tables[name]
+      end
+
       # Get the columns for a table
-      def columns(table = nil)
-        if table
-          @columns[table]
-        else
-          @columns
-        end
+      def columns(table)
+        @columns[table]
       end
 
       # Get the columns for a table as a hash, key is the column name
       # value is the column object.
-      def columns_hash(table = nil)
-        if table
-          @columns_hash[table]
-        else
-          @columns_hash
-        end
+      def columns_hash(table)
+        @columns_hash[table]
       end
 
       # Clears out internal caches
@@ -56,6 +57,12 @@ module ActiveRecord
         @primary_keys.clear
         @tables.clear
         @version = nil
+      end
+
+      def size
+        [@columns, @columns_hash, @primary_keys, @tables].map { |x|
+          x.size
+        }.inject :+
       end
 
       # Clear out internal caches for table with +table_name+.
@@ -69,9 +76,9 @@ module ActiveRecord
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.
         @version = ActiveRecord::Migrator.current_version
-        [@version] + [:@columns, :@columns_hash, :@primary_keys, :@tables].map do |val|
-          self.instance_variable_get(val).inject({}) { |h, v| h[v[0]] = v[1]; h }
-        end
+        [@version] + [@columns, @columns_hash, @primary_keys, @tables].map { |val|
+          Hash[val]
+        }
       end
 
       def marshal_load(array)
@@ -87,7 +94,7 @@ module ActiveRecord
         end
 
         @columns_hash.default_proc = Proc.new do |h, table_name|
-          h[table_name] = Hash[columns[table_name].map { |col|
+          h[table_name] = Hash[columns(table_name).map { |col|
             [col.name, col]
           }]
         end

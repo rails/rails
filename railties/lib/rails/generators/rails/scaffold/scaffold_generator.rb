@@ -8,14 +8,12 @@ module Rails
 
       class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
-
-      class_option :html, type: :boolean, default: true,
-                          desc: "Generate a scaffold with HTML output"
+      class_option :assets, type: :boolean
+      class_option :resource_route, type: :boolean
 
       def handle_skip
-        if !options[:html] || !options[:stylesheets]
-          @options = @options.merge(stylesheet_engine: false)
-        end
+        @options = @options.merge(stylesheets: false) unless options[:assets]
+        @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets]
       end
 
       hook_for :scaffold_controller, required: true

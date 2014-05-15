@@ -52,7 +52,9 @@ class Hash
   # This method is also aliased as +to_query+.
   def to_param(namespace = nil)
     collect do |key, value|
-      value.to_query(namespace ? "#{namespace}[#{key}]" : key)
-    end.sort * '&'
+      unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
+        value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+      end
+    end.compact.sort! * '&'
   end
 end

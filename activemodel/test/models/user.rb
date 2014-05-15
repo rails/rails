@@ -7,5 +7,5 @@ class User
 
   has_secure_password
 
-  attr_accessor :password_digest, :password_salt
+  attr_accessor :password_digest
 end

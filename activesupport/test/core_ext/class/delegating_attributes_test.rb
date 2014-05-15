@@ -6,14 +6,18 @@ module DelegatingFixtures
   end
 
   class Child < Parent
-    superclass_delegating_accessor :some_attribute
+    ActiveSupport::Deprecation.silence do
+      superclass_delegating_accessor :some_attribute
+    end
   end
 
   class Mokopuna < Child
   end
 
   class PercysMom
-    superclass_delegating_accessor :superpower
+    ActiveSupport::Deprecation.silence do
+      superclass_delegating_accessor :superpower
+    end
   end
 
   class Percy < PercysMom
@@ -29,7 +33,10 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
   end
 
   def test_simple_accessor_declaration
-    single_class.superclass_delegating_accessor :both
+    assert_deprecated do
+      single_class.superclass_delegating_accessor :both
+    end
+
     # Class should have accessor and mutator
     # the instance should have an accessor only
     assert_respond_to single_class, :both
@@ -39,14 +46,23 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
   end
 
   def test_simple_accessor_declaration_with_instance_reader_false
-    single_class.superclass_delegating_accessor :no_instance_reader, :instance_reader => false
+    _instance_methods = single_class.public_instance_methods
+
+    assert_deprecated do
+      single_class.superclass_delegating_accessor :no_instance_reader, :instance_reader => false
+    end
+
     assert_respond_to single_class, :no_instance_reader
     assert_respond_to single_class, :no_instance_reader=
-    assert !single_class.public_instance_methods.map(&:to_s).include?("no_instance_reader")
+    assert !_instance_methods.include?(:no_instance_reader)
+    assert !_instance_methods.include?(:no_instance_reader?)
+    assert !_instance_methods.include?(:_no_instance_reader)
   end
 
   def test_working_with_simple_attributes
-    single_class.superclass_delegating_accessor :both
+    assert_deprecated do
+      single_class.superclass_delegating_accessor :both
+    end
 
     single_class.both = "HMMM"
 
@@ -62,7 +78,11 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
 
   def test_child_class_delegates_to_parent_but_can_be_overridden
     parent = Class.new
-    parent.superclass_delegating_accessor :both
+
+    assert_deprecated do
+      parent.superclass_delegating_accessor :both
+    end
+
     child = Class.new(parent)
     parent.both = "1"
     assert_equal "1", child.both
@@ -94,4 +114,9 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
     Child.some_attribute=nil
   end
 
+  def test_deprecation_warning
+    assert_deprecated(/superclass_delegating_accessor is deprecated/) do
+      single_class.superclass_delegating_accessor :test_attribute
+    end
+  end
 end

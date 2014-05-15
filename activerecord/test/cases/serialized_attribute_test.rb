@@ -1,6 +1,8 @@
 require 'cases/helper'
 require 'models/topic'
+require 'models/reply'
 require 'models/person'
+require 'models/traffic_light'
 require 'bcrypt'
 
 class SerializedAttributeTest < ActiveRecord::TestCase
@@ -8,19 +10,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   MyObject = Struct.new :attribute1, :attribute2
 
-  def teardown
-    super
+  teardown do
     Topic.serialize("content")
   end
 
   def test_list_of_serialized_attributes
     assert_equal %w(content), Topic.serialized_attributes.keys
-  end
-
-  def test_serialized_attributes_are_class_level_settings
-    topic = Topic.new
-    assert_raise(NoMethodError) { topic.serialized_attributes = [] }
-    assert_deprecated { topic.serialized_attributes }
   end
 
   def test_serialized_attribute
@@ -215,16 +210,15 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialize_attribute_via_select_method_when_time_zone_available
-    ActiveRecord::Base.time_zone_aware_attributes = true
-    Topic.serialize(:content, MyObject)
+    with_timezone_config aware_attributes: true do
+      Topic.serialize(:content, MyObject)
 
-    myobj = MyObject.new('value1', 'value2')
-    topic = Topic.create(content: myobj)
+      myobj = MyObject.new('value1', 'value2')
+      topic = Topic.create(content: myobj)
 
-    assert_equal(myobj, Topic.select(:content).find(topic.id).content)
-    assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
-  ensure
-    ActiveRecord::Base.time_zone_aware_attributes = false
+      assert_equal(myobj, Topic.select(:content).find(topic.id).content)
+      assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
+    end
   end
 
   def test_serialize_attribute_can_be_serialized_in_an_integer_column
@@ -233,5 +227,21 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert person.save
     person = person.reload
     assert_equal(insures, person.insures)
+  end
+
+  def test_regression_serialized_default_on_text_column_with_null_false
+    light = TrafficLight.new
+    assert_equal [], light.state
+    assert_equal [], light.long_state
+  end
+
+  def test_serialized_column_should_not_be_wrapped_twice
+    Topic.serialize(:content, MyObject)
+
+    myobj = MyObject.new('value1', 'value2')
+    Topic.create(content: myobj)
+    Topic.create(content: myobj)
+    type = Topic.column_types["content"]
+    assert !type.instance_variable_get("@column").is_a?(ActiveRecord::AttributeMethods::Serialization::Type)
   end
 end

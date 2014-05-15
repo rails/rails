@@ -1,7 +1,12 @@
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/hash/slice'
+
 module ActionDispatch
   module Http
     module URL
-      IP_HOST_REGEXP = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+      IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+      HOST_REGEXP     = /(^.*:\/\/)?([^:]+)(?::(\d+$))?/
+      PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
       mattr_accessor :tld_length
       self.tld_length = 1
@@ -24,20 +29,31 @@ module ActionDispatch
           extract_subdomains(host, tld_length).join('.')
         end
 
-        def url_for(options = {})
-          path  = options.delete(:script_name).to_s.chomp("/")
-          path << options.delete(:path).to_s
-
-          params = options[:params].is_a?(Hash) ? options[:params] : options.slice(:params)
-          params.reject! { |_,v| v.to_param.nil? }
+        def url_for(options)
+          path  = options[:script_name].to_s.chomp("/")
+          path << options[:path].to_s
 
           result = build_host_url(options)
-          if options[:trailing_slash] && !path.ends_with?('/')
-            result << path.sub(/(\?|\z)/) { "/" + $& }
+
+          if options[:trailing_slash]
+            if path.include?('?')
+              result << path.sub(/\?/, '/\&')
+            else
+              result << path.sub(/[^\/]\z|\A\z/, '\&/')
+            end
           else
             result << path
           end
-          result << "?#{params.to_query}" unless params.empty?
+
+          if options.key? :params
+            params = options[:params].is_a?(Hash) ?
+                                 options[:params] :
+                                 { params: options[:params] }
+
+            params.reject! { |_,v| v.to_param.nil? }
+            result << "?#{params.to_query}" unless params.empty?
+          end
+
           result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
           result
         end
@@ -45,27 +61,37 @@ module ActionDispatch
         private
 
         def build_host_url(options)
-          if options[:host].blank? && options[:only_path].blank?
+          unless options[:host] || options[:only_path]
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
           result = ""
 
           unless options[:only_path]
-            unless options[:protocol] == false
-              result << (options[:protocol] || "http")
-              result << ":" unless result.match(%r{:|//})
+            if match = options[:host].match(HOST_REGEXP)
+              options[:protocol] ||= match[1] unless options[:protocol] == false
+              options[:host]       = match[2]
+              options[:port]       = match[3] unless options.key?(:port)
             end
-            result << "//" unless result.match("//")
+
+            options[:protocol] = normalize_protocol(options)
+            options[:host]     = normalize_host(options)
+            options[:port]     = normalize_port(options)
+
+            result << options[:protocol]
             result << rewrite_authentication(options)
-            result << host_or_subdomain_and_domain(options)
-            result << ":#{options.delete(:port)}" if options[:port]
+            result << options[:host]
+            result << ":#{options[:port]}" if options[:port]
           end
           result
         end
 
         def named_host?(host)
           host && IP_HOST_REGEXP !~ host
+        end
+
+        def same_host?(options)
+          (options[:subdomain] == true || !options.key?(:subdomain)) && options[:domain].nil?
         end
 
         def rewrite_authentication(options)
@@ -76,18 +102,46 @@ module ActionDispatch
           end
         end
 
-        def host_or_subdomain_and_domain(options)
-          return options[:host] if !named_host?(options[:host]) || (options[:subdomain].nil? && options[:domain].nil?)
+        def normalize_protocol(options)
+          case options[:protocol]
+          when nil
+            "http://"
+          when false, "//"
+            "//"
+          when PROTOCOL_REGEXP
+            "#{$1}://"
+          else
+            raise ArgumentError, "Invalid :protocol option: #{options[:protocol].inspect}"
+          end
+        end
+
+        def normalize_host(options)
+          return options[:host] if !named_host?(options[:host]) || same_host?(options)
 
           tld_length = options[:tld_length] || @@tld_length
 
           host = ""
-          unless options[:subdomain] == false
-            host << (options[:subdomain] || extract_subdomain(options[:host], tld_length)).to_param
-            host << "."
+          if options[:subdomain] == true || !options.key?(:subdomain)
+            host << extract_subdomain(options[:host], tld_length).to_param
+          elsif options[:subdomain].present?
+            host << options[:subdomain].to_param
           end
+          host << "." unless host.empty?
           host << (options[:domain] || extract_domain(options[:host], tld_length))
           host
+        end
+
+        def normalize_port(options)
+          return nil if options[:port].nil? || options[:port] == false
+
+          case options[:protocol]
+          when "//"
+            options[:port]
+          when "https://"
+            options[:port].to_i == 443 ? nil : options[:port]
+          else
+            options[:port].to_i == 80 ? nil : options[:port]
+          end
         end
       end
 

@@ -79,6 +79,8 @@ class DirtyTest < ActiveRecord::TestCase
       assert pirate.created_on_changed?
       assert_kind_of ActiveSupport::TimeWithZone, pirate.created_on_was
       assert_equal old_created_on, pirate.created_on_was
+      pirate.created_on = old_created_on
+      assert !pirate.created_on_changed?
     end
   end
 
@@ -123,30 +125,30 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_time_attributes_changes_without_time_zone
-    target = Class.new(ActiveRecord::Base)
-    target.table_name = 'pirates'
+    with_timezone_config aware_attributes: false do
+      target = Class.new(ActiveRecord::Base)
+      target.table_name = 'pirates'
 
-    target.time_zone_aware_attributes = false
+      # New record - no changes.
+      pirate = target.new
+      assert !pirate.created_on_changed?
+      assert_nil pirate.created_on_change
 
-    # New record - no changes.
-    pirate = target.new
-    assert !pirate.created_on_changed?
-    assert_nil pirate.created_on_change
+      # Saved - no changes.
+      pirate.catchphrase = 'arrrr, time zone!!'
+      pirate.save!
+      assert !pirate.created_on_changed?
+      assert_nil pirate.created_on_change
 
-    # Saved - no changes.
-    pirate.catchphrase = 'arrrr, time zone!!'
-    pirate.save!
-    assert !pirate.created_on_changed?
-    assert_nil pirate.created_on_change
-
-    # Change created_on.
-    old_created_on = pirate.created_on
-    pirate.created_on = Time.now + 1.day
-    assert pirate.created_on_changed?
-    # kind_of does not work because
-    # ActiveSupport::TimeWithZone.name == 'Time'
-    assert_instance_of Time, pirate.created_on_was
-    assert_equal old_created_on, pirate.created_on_was
+      # Change created_on.
+      old_created_on = pirate.created_on
+      pirate.created_on = Time.now + 1.day
+      assert pirate.created_on_changed?
+      # kind_of does not work because
+      # ActiveSupport::TimeWithZone.name == 'Time'
+      assert_instance_of Time, pirate.created_on_was
+      assert_equal old_created_on, pirate.created_on_was
+    end
   end
 
 
@@ -211,9 +213,11 @@ class DirtyTest < ActiveRecord::TestCase
       topic = target.create
       assert_nil topic.written_on
 
-      topic.written_on = ""
-      assert_nil topic.written_on
-      assert !topic.written_on_changed?
+      ["", nil].each do |value|
+        topic.written_on = value
+        assert_nil topic.written_on
+        assert !topic.written_on_changed?
+      end
     end
   end
 
@@ -241,6 +245,21 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.changed?
   end
 
+  def test_float_zero_to_string_zero_not_marked_as_changed
+    data = NumericData.new :temperature => 0.0
+    data.save!
+
+    assert_not data.changed?
+
+    data.temperature = '0'
+    assert_empty data.changes
+
+    data.temperature = '0.0'
+    assert_empty data.changes
+
+    data.temperature = '0.00'
+    assert_empty data.changes
+  end
 
   def test_zero_to_blank_marked_as_changed
     pirate = Pirate.new
@@ -551,19 +570,26 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_setting_time_attributes_with_time_zone_field_to_same_time_should_not_be_marked_as_a_change
+  def test_datetime_attribute_can_be_updated_with_fractional_seconds
     in_time_zone 'Paris' do
       target = Class.new(ActiveRecord::Base)
-      target.table_name = 'pirates'
+      target.table_name = 'topics'
 
-      created_on = Time.now
+      written_on = Time.utc(2012, 12, 1, 12, 0, 0).in_time_zone('Paris')
 
-      pirate = target.create(:created_on => created_on)
-      pirate.reload # Here mysql truncate the usec value to 0
+      topic = target.create(:written_on => written_on)
+      topic.written_on += 0.3
 
-      pirate.created_on = created_on
-      assert !pirate.created_on_changed?
+      assert topic.written_on_changed?, 'Fractional second update not detected'
     end
+  end
+
+  def test_datetime_attribute_doesnt_change_if_zone_is_modified_in_string
+    time_in_paris = Time.utc(2014, 1, 1, 12, 0, 0).in_time_zone('Paris')
+    pirate = Pirate.create!(:catchphrase => 'rrrr', :created_on => time_in_paris)
+
+    pirate.created_on = pirate.created_on.in_time_zone('Tokyo').to_s
+    assert !pirate.created_on_changed?
   end
 
   test "partial insert" do
@@ -588,20 +614,6 @@ class DirtyTest < ActiveRecord::TestCase
       a.reload
       assert_not_nil a.id
     end
-  end
-
-  test "partial_updates config attribute is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-
-    assert klass.partial_writes?
-    assert_deprecated { assert klass.partial_updates? }
-    assert_deprecated { assert klass.partial_updates  }
-
-    assert_deprecated { klass.partial_updates = false }
-
-    assert !klass.partial_writes?
-    assert_deprecated { assert !klass.partial_updates? }
-    assert_deprecated { assert !klass.partial_updates  }
   end
 
   private

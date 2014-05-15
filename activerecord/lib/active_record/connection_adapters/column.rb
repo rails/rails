@@ -13,7 +13,7 @@ module ActiveRecord
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
       end
 
-      attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
+      attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale, :default_function
       attr_accessor :primary, :coder
 
       alias :encoded? :coder
@@ -27,16 +27,17 @@ module ActiveRecord
       # It will be mapped to one of the standard Rails SQL types in the <tt>type</tt> attribute.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
-        @name      = name
-        @sql_type  = sql_type
-        @null      = null
-        @limit     = extract_limit(sql_type)
-        @precision = extract_precision(sql_type)
-        @scale     = extract_scale(sql_type)
-        @type      = simplified_type(sql_type)
-        @default   = extract_default(default)
-        @primary   = nil
-        @coder     = nil
+        @name             = name
+        @sql_type         = sql_type
+        @null             = null
+        @limit            = extract_limit(sql_type)
+        @precision        = extract_precision(sql_type)
+        @scale            = extract_scale(sql_type)
+        @type             = simplified_type(sql_type)
+        @default          = extract_default(default)
+        @default_function = nil
+        @primary          = nil
+        @coder            = nil
       end
 
       # Returns +true+ if the column is either of type string or text.
@@ -71,21 +72,24 @@ module ActiveRecord
       end
 
       # Casts a Ruby value to something appropriate for writing to the database.
+      # Numeric columns will typecast boolean and string to appropriate numeric
+      # values.
       def type_cast_for_write(value)
         return value unless number?
 
-        if value == false
+        case value
+        when FalseClass
           0
-        elsif value == true
+        when TrueClass
           1
-        elsif value.is_a?(String) && value.blank?
-          nil
+        when String
+          value.presence
         else
           value
         end
       end
 
-      # Casts value (which is a String) to an appropriate instance.
+      # Casts value to an appropriate instance.
       def type_cast(value)
         return nil if value.nil?
         return coder.load(value) if encoded?
@@ -93,7 +97,13 @@ module ActiveRecord
         klass = self.class
 
         case type
-        when :string, :text        then value
+        when :string, :text
+          case value
+          when TrueClass; "1"
+          when FalseClass; "0"
+          else
+            value.to_s
+          end
         when :integer              then klass.value_to_integer(value)
         when :float                then value.to_f
         when :decimal              then klass.value_to_decimal(value)
@@ -103,31 +113,6 @@ module ActiveRecord
         when :binary               then klass.binary_to_string(value)
         when :boolean              then klass.value_to_boolean(value)
         else value
-        end
-      end
-
-      def type_cast_code(var_name)
-        message = "Column#type_cast_code is deprecated in favor of using Column#type_cast only, " \
-                  "and it is going to be removed in future Rails versions."
-        ActiveSupport::Deprecation.warn message
-
-        klass = self.class.name
-
-        case type
-        when :string, :text        then var_name
-        when :integer              then "#{klass}.value_to_integer(#{var_name})"
-        when :float                then "#{var_name}.to_f"
-        when :decimal              then "#{klass}.value_to_decimal(#{var_name})"
-        when :datetime, :timestamp then "#{klass}.string_to_time(#{var_name})"
-        when :time                 then "#{klass}.string_to_dummy_time(#{var_name})"
-        when :date                 then "#{klass}.value_to_date(#{var_name})"
-        when :binary               then "#{klass}.binary_to_string(#{var_name})"
-        when :boolean              then "#{klass}.value_to_boolean(#{var_name})"
-        when :hstore               then "#{klass}.string_to_hstore(#{var_name})"
-        when :inet, :cidr          then "#{klass}.string_to_cidr(#{var_name})"
-        when :json                 then "#{klass}.string_to_json(#{var_name})"
-        when :intrange             then "#{klass}.string_to_intrange(#{var_name})"
-        else var_name
         end
       end
 
@@ -143,17 +128,7 @@ module ActiveRecord
         type_cast(default)
       end
 
-      # Used to convert from Strings to BLOBs
-      def string_to_binary(value)
-        self.class.string_to_binary(value)
-      end
-
       class << self
-        # Used to convert from Strings to BLOBs
-        def string_to_binary(value)
-          value
-        end
-
         # Used to convert from BLOBs to Strings
         def binary_to_string(value)
           value
@@ -161,7 +136,7 @@ module ActiveRecord
 
         def value_to_date(value)
           if value.is_a?(String)
-            return nil if value.blank?
+            return nil if value.empty?
             fast_string_to_date(value) || fallback_string_to_date(value)
           elsif value.respond_to?(:to_date)
             value.to_date
@@ -172,14 +147,14 @@ module ActiveRecord
 
         def string_to_time(string)
           return string unless string.is_a?(String)
-          return nil if string.blank?
+          return nil if string.empty?
 
           fast_string_to_time(string) || fallback_string_to_time(string)
         end
 
         def string_to_dummy_time(string)
           return string unless string.is_a?(String)
-          return nil if string.blank?
+          return nil if string.empty?
 
           dummy_time_string = "2000-01-01 #{string}"
 
@@ -192,7 +167,7 @@ module ActiveRecord
 
         # convert something to a boolean
         def value_to_boolean(value)
-          if value.is_a?(String) && value.blank?
+          if value.is_a?(String) && value.empty?
             nil
           else
             TRUE_VALUES.include?(value)
@@ -237,11 +212,19 @@ module ActiveRecord
             end
           end
 
-          def new_time(year, mon, mday, hour, min, sec, microsec)
+          def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
             # Treat 0000-00-00 00:00:00 as nil.
             return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
 
-            Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+            if offset
+              time = Time.utc(year, mon, mday, hour, min, sec, microsec) rescue nil
+              return nil unless time
+
+              time -= offset
+              Base.default_timezone == :utc ? time : time.getlocal
+            else
+              Time.public_send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+            end
           end
 
           def fast_string_to_date(string)
@@ -266,7 +249,7 @@ module ActiveRecord
             time_hash = Date._parse(string)
             time_hash[:sec_fraction] = microseconds(time_hash)
 
-            new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction))
+            new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :offset))
           end
       end
 
@@ -306,7 +289,7 @@ module ActiveRecord
             :text
           when /blob/i, /binary/i
             :binary
-          when /char/i, /string/i
+          when /char/i
             :string
           when /boolean/i
             :boolean

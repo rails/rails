@@ -57,24 +57,21 @@ module ActiveRecord
   class RecordNotDestroyed < ActiveRecordError
   end
 
-  # Raised when SQL statement cannot be executed by the database (for example, it's often the case for
-  # MySQL when Ruby driver used is too old).
+  # Superclass for all database execution errors.
+  #
+  # Wraps the underlying database error as +original_exception+.
   class StatementInvalid < ActiveRecordError
-  end
-
-  # Raised when SQL statement is invalid and the application gets a blank result.
-  class ThrowResult < ActiveRecordError
-  end
-
-  # Parent class for all specific exceptions which wrap database driver exceptions
-  # provides access to the original exception also.
-  class WrappedDatabaseException < StatementInvalid
     attr_reader :original_exception
 
-    def initialize(message, original_exception)
+    def initialize(message, original_exception = nil)
       super(message)
       @original_exception = original_exception
     end
+  end
+
+  # Defunct wrapper class kept for compatibility.
+  # +StatementInvalid+ wraps the original exception now.
+  class WrappedDatabaseException < StatementInvalid
   end
 
   # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
@@ -95,6 +92,10 @@ module ActiveRecord
   #
   # two placeholders are given but only one variable to fill them.
   class PreparedStatementInvalid < ActiveRecordError
+  end
+
+  # Raised when a given database does not exist
+  class NoDatabaseError < StatementInvalid
   end
 
   # Raised on attempt to save stale record. Record is stale when it's being saved in another query after
@@ -158,6 +159,15 @@ module ActiveRecord
 
   # Raised when unknown attributes are supplied via mass assignment.
   class UnknownAttributeError < NoMethodError
+
+    attr_reader :record, :attribute
+
+    def initialize(record, attribute)
+      @record = record
+      @attribute = attribute.to_s
+      super("unknown attribute: #{attribute}")
+    end
+
   end
 
   # Raised when an error occurred while doing a mass assignment to an attribute through the
@@ -182,7 +192,7 @@ module ActiveRecord
     end
   end
 
-  # Raised when a primary key is needed, but there is not one specified in the schema or model.
+  # Raised when a primary key is needed, but not specified in the schema or model.
   class UnknownPrimaryKey < ActiveRecordError
     attr_reader :model
 

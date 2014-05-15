@@ -73,8 +73,8 @@ module ActiveRecord
       [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column_default, :add_reference, :remove_reference, :transaction,
-        :drop_join_table, :drop_table, :execute_block,
-        :change_column, :execute, :remove_columns, # irreversible methods need to be here too
+        :drop_join_table, :drop_table, :execute_block, :enable_extension,
+        :change_column, :execute, :remove_columns, :change_column_null # irreversible methods need to be here too
       ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)          # def create_table(*args, &block)
@@ -86,7 +86,7 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       def change_table(table_name, options = {})
-        yield ConnectionAdapters::Table.new(table_name, self)
+        yield delegate.update_table_definition(table_name, self)
       end
 
       private
@@ -100,6 +100,7 @@ module ActiveRecord
           add_column:        :remove_column,
           add_timestamps:    :remove_timestamps,
           add_reference:     :remove_reference,
+          enable_extension:  :disable_extension
         }.each do |cmd, inv|
           [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
             class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -139,12 +140,20 @@ module ActiveRecord
 
       def invert_add_index(args)
         table, columns, options = *args
-        [:remove_index, [table, (options || {}).merge(column: columns)]]
+        options ||= {}
+
+        index_name = options[:name]
+        options_hash = index_name ? { name: index_name } : { column: columns }
+
+        [:remove_index, [table, options_hash]]
       end
 
       def invert_remove_index(args)
         table, options = *args
-        raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option." unless options && options[:column]
+
+        unless options && options.is_a?(Hash) && options[:column]
+          raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option."
+        end
 
         options = options.dup
         [:add_index, [table, options.delete(:column), options]]
@@ -153,11 +162,18 @@ module ActiveRecord
       alias :invert_add_belongs_to :invert_add_reference
       alias :invert_remove_belongs_to :invert_remove_reference
 
+      def invert_change_column_null(args)
+        args[2] = !args[2]
+        [:change_column_null, args]
+      end
+
       # Forwards any missing method call to the \target.
       def method_missing(method, *args, &block)
-        @delegate.send(method, *args, &block)
-      rescue NoMethodError => e
-        raise e, e.message.sub(/ for #<.*$/, " via proxy for #{@delegate}")
+        if @delegate.respond_to?(method)
+          @delegate.send(method, *args, &block)
+        else
+          super
+        end
       end
     end
   end

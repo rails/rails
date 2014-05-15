@@ -42,7 +42,6 @@ INFO
           logger = ActiveSupport::Logger.new f
           logger.formatter = config.log_formatter
           logger = ActiveSupport::TaggedLogging.new(logger)
-          logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
           logger
         rescue StandardError
           logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
@@ -53,6 +52,8 @@ INFO
           )
           logger
         end
+
+        Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
       end
 
       # Initialize cache early in the stack so railties can make use of it.

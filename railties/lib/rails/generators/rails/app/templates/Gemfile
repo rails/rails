@@ -1,27 +1,37 @@
 source 'https://rubygems.org'
 
-<%= rails_gemfile_entry -%>
+<% max_width = gemfile_entries.map { |g| g.name.length }.max -%>
+<% gemfile_entries.each do |gem| -%>
+<% if gem.comment -%>
 
-<%= database_gemfile_entry -%>
+# <%= gem.comment %>
+<% end -%>
+<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<%= %(, '#{gem.version}') if gem.version -%>
+<% if gem.options.any? -%>
+,<%= gem.padding(max_width) %><%= gem.options.map { |k,v|
+  "#{k}: #{v.inspect}" }.join(', ') %>
+<% end -%>
+<% end -%>
 
-<%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
-
-<%= assets_gemfile_entry %>
-<%= javascript_gemfile_entry -%>
-
-# To use ActiveModel has_secure_password
-# gem 'bcrypt-ruby', '~> 3.0.0'
-
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-# gem 'jbuilder'
+# Use ActiveModel has_secure_password
+# gem 'bcrypt', '~> 3.1.7'
 
 # Use unicorn as the app server
 # gem 'unicorn'
 
-# Deploy with Capistrano
-# gem 'capistrano', group: :development
+# Use Capistrano for deployment
+# gem 'capistrano-rails', group: :development
 
 <% unless defined?(JRUBY_VERSION) -%>
-# To use debugger
-# gem 'debugger'
+# To use a debugger
+  <%- if RUBY_VERSION < '2.0.0' -%>
+# gem 'debugger', group: [:development, :test]
+  <%- else -%>
+# gem 'byebug', group: [:development, :test]
+  <%- end -%>
+<% end -%>
+
+<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince/) -%>
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw]
 <% end -%>

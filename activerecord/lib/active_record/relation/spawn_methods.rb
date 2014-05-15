@@ -58,14 +58,16 @@ module ActiveRecord
     #   Post.order('id asc').only(:where)         # discards the order condition
     #   Post.order('id asc').only(:where, :order) # uses the specified order
     def only(*onlies)
+      if onlies.any? { |o| o == :where }
+        onlies << :bind
+      end
       relation_with values.slice(*onlies)
     end
 
     private
 
       def relation_with(values) # :nodoc:
-        result = Relation.new(klass, table, values)
-        result.default_scoped = default_scoped
+        result = Relation.create(klass, table, values)
         result.extend(*extending_values) if extending_values.any?
         result
       end

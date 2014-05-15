@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/keys'
+
 module ActionDispatch
   class Request < Rack::Request
     # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
@@ -50,13 +52,14 @@ module ActionDispatch
       end
 
       def []=(k, v)
+        k = k.to_s
         @flash[k] = v
         @flash.discard(k)
         v
       end
 
       def [](k)
-        @flash[k]
+        @flash[k.to_s]
       end
 
       # Convenience accessor for <tt>flash.now[:alert]=</tt>.
@@ -92,8 +95,8 @@ module ActionDispatch
       end
 
       def initialize(flashes = {}, discard = []) #:nodoc:
-        @discard = Set.new(discard)
-        @flashes = flashes
+        @discard = Set.new(stringify_array(discard))
+        @flashes = flashes.stringify_keys
         @now     = nil
       end
 
@@ -106,17 +109,18 @@ module ActionDispatch
       end
 
       def []=(k, v)
+        k = k.to_s
         @discard.delete k
         @flashes[k] = v
       end
 
       def [](k)
-        @flashes[k]
+        @flashes[k.to_s]
       end
 
       def update(h) #:nodoc:
-        @discard.subtract h.keys
-        @flashes.update h
+        @discard.subtract stringify_array(h.keys)
+        @flashes.update h.stringify_keys
         self
       end
 
@@ -129,6 +133,7 @@ module ActionDispatch
       end
 
       def delete(key)
+        key = key.to_s
         @discard.delete key
         @flashes.delete key
         self
@@ -155,7 +160,7 @@ module ActionDispatch
 
       def replace(h) #:nodoc:
         @discard.clear
-        @flashes.replace h
+        @flashes.replace h.stringify_keys
         self
       end
 
@@ -186,6 +191,7 @@ module ActionDispatch
       #    flash.keep            # keeps the entire flash
       #    flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k = nil)
+        k = k.to_s if k
         @discard.subtract Array(k || keys)
         k ? self[k] : self
       end
@@ -195,6 +201,7 @@ module ActionDispatch
       #     flash.discard              # discard the entire flash at the end of the current action
       #     flash.discard(:warning)    # discard only the "warning" entry at the end of the current action
       def discard(k = nil)
+        k = k.to_s if k
         @discard.merge Array(k || keys)
         k ? self[k] : self
       end
@@ -231,6 +238,12 @@ module ActionDispatch
       def now_is_loaded?
         @now
       end
+
+      def stringify_array(array)
+        array.map do |item|
+          item.kind_of?(Symbol) ? item.to_s : item
+        end
+      end
     end
 
     def initialize(app)
@@ -243,19 +256,13 @@ module ActionDispatch
       session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
-      if flash_hash
-        if !flash_hash.empty? || session.key?('flash')
-          session["flash"] = flash_hash.to_session_value
-          new_hash = flash_hash.dup
-        else
-          new_hash = flash_hash
-        end
-
-        env[KEY] = new_hash
+      if flash_hash && (flash_hash.present? || session.key?('flash'))
+        session["flash"] = flash_hash.to_session_value
+        env[KEY] = flash_hash.dup
       end
 
       if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
-         session.key?('flash') && session['flash'].nil?
+        session.key?('flash') && session['flash'].nil?
         session.delete('flash')
       end
     end

@@ -13,7 +13,7 @@ module ActiveModel
       #   validates :terms, acceptance: true
       #   validates :password, confirmation: true
       #   validates :username, exclusion: { in: %w(admin superuser) }
-      #   validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, on: :create }
+      #   validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i, on: :create }
       #   validates :age, inclusion: { in: 0..9 }
       #   validates :first_name, length: { maximum: 30 }
       #   validates :age, numericality: true
@@ -83,7 +83,9 @@ module ActiveModel
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a +true+ or
       #   +false+ value.
-      # * <tt>:strict</tt> - if the <tt>:strict</tt> option is set to true
+      # * <tt>:allow_nil</tt> - Skip validation if the attribute is +nil+.
+      # * <tt>:allow_blank</tt> - Skip validation if the attribute is blank.
+      # * <tt>:strict</tt> - If the <tt>:strict</tt> option is set to true
       #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
       #   <tt>:strict</tt> option can also be set to any other exception.
       #
@@ -159,9 +161,9 @@ module ActiveModel
         when Hash
           options
         when Range, Array
-          { :in => options }
+          { in: options }
         else
-          { :with => options }
+          { with: options }
         end
       end
     end

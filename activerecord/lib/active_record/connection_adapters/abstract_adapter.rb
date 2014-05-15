@@ -4,7 +4,10 @@ require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/abstract/schema_dumper'
+require 'active_record/connection_adapters/abstract/schema_creation'
 require 'monitor'
+require 'arel/collectors/bind'
+require 'arel/collectors/sql_string'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -16,8 +19,10 @@ module ActiveRecord
     autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
       autoload :IndexDefinition
       autoload :ColumnDefinition
+      autoload :ChangeColumnDefinition
       autoload :TableDefinition
       autoload :Table
+      autoload :AlterTable
     end
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
@@ -32,12 +37,14 @@ module ActiveRecord
       autoload :Quoting
       autoload :ConnectionPool
       autoload :QueryCache
+      autoload :Savepoints
     end
 
     autoload_at 'active_record/connection_adapters/abstract/transaction' do
       autoload :ClosedTransaction
       autoload :RealTransaction
       autoload :SavepointTransaction
+      autoload :TransactionState
     end
 
     # Active Record supports multiple database systems. AbstractAdapter and
@@ -61,32 +68,77 @@ module ActiveRecord
       include MonitorMixin
       include ColumnDumper
 
+      SIMPLE_INT = /\A\d+\z/
+
       define_callbacks :checkout, :checkin
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :last_use, :in_use, :logger
-      alias :in_use? :in_use
+      attr_reader :schema_cache, :owner, :logger
+      alias :in_use? :owner
+
+      def self.type_cast_config_to_integer(config)
+        if config =~ SIMPLE_INT
+          config.to_i
+        else
+          config
+        end
+      end
+
+      def self.type_cast_config_to_boolean(config)
+        if config == "false"
+          false
+        else
+          config
+        end
+      end
+
+      attr_reader :prepared_statements
 
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
         super()
 
         @connection          = connection
-        @in_use              = false
+        @owner               = nil
         @instrumenter        = ActiveSupport::Notifications.instrumenter
-        @last_use            = false
         @logger              = logger
         @pool                = pool
-        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
-        @query_cache_enabled = false
         @schema_cache        = SchemaCache.new self
         @visitor             = nil
+        @prepared_statements = false
+      end
+
+      class BindCollector < Arel::Collectors::Bind
+        def compile(bvs, conn)
+          super(bvs.map { |bv| conn.quote(*bv.reverse) })
+        end
+      end
+
+      class SQLString < Arel::Collectors::SQLString
+        def compile(bvs, conn)
+          super(bvs)
+        end
+      end
+
+      def collector
+        if prepared_statements
+          SQLString.new
+        else
+          BindCollector.new
+        end
+      end
+
+      def valid_type?(type)
+        true
+      end
+
+      def schema_creation
+        SchemaCreation.new self
       end
 
       def lease
         synchronize do
-          unless in_use
-            @in_use   = true
-            @last_use = Time.now
+          unless in_use?
+            @owner = Thread.current
           end
         end
       end
@@ -97,7 +149,14 @@ module ActiveRecord
       end
 
       def expire
-        @in_use = false
+        @owner = nil
+      end
+
+      def unprepared_statement
+        old_prepared_statements, @prepared_statements = @prepared_statements, false
+        yield
+      ensure
+        @prepared_statements = old_prepared_statements
       end
 
       # Returns the human-readable name of the adapter. Use mixed case - one
@@ -106,28 +165,19 @@ module ActiveRecord
         'Abstract'
       end
 
-      # Does this adapter support migrations? Backend specific, as the
-      # abstract adapter always returns +false+.
+      # Does this adapter support migrations?
       def supports_migrations?
         false
       end
 
       # Can this adapter determine the primary key for tables not attached
-      # to an Active Record class, such as join tables? Backend specific, as
-      # the abstract adapter always returns +false+.
+      # to an Active Record class, such as join tables?
       def supports_primary_key?
         false
       end
 
-      # Does this adapter support using DISTINCT within COUNT? This is +true+
-      # for all adapters except sqlite.
-      def supports_count_distinct?
-        true
-      end
-
       # Does this adapter support DDL rollbacks in transactions? That is, would
-      # CREATE TABLE or ALTER TABLE get rolled back by a transaction? PostgreSQL,
-      # SQL Server, and others support this. MySQL and others do not.
+      # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
       def supports_ddl_transactions?
         false
       end
@@ -136,8 +186,7 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support savepoints? PostgreSQL and MySQL do,
-      # SQLite < 3.6.8 does not.
+      # Does this adapter support savepoints?
       def supports_savepoints?
         false
       end
@@ -145,7 +194,6 @@ module ActiveRecord
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
-      # This is false for all adapters but Firebird.
       def prefetch_primary_key?(table_name = nil)
         false
       end
@@ -160,8 +208,7 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support explain? As of this writing sqlite3,
-      # mysql2, and postgresql are the only ones that do.
+      # Does this adapter support explain?
       def supports_explain?
         false
       end
@@ -171,10 +218,39 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support database extensions?
+      def supports_extensions?
+        false
+      end
+
+      # Does this adapter support creating indexes in the same statement as
+      # creating the table?
+      def supports_indexes_in_create?
+        false
+      end
+
+      # This is meant to be implemented by the adapters that support extensions
+      def disable_extension(name)
+      end
+
+      # This is meant to be implemented by the adapters that support extensions
+      def enable_extension(name)
+      end
+
+      # A list of extensions, to be filled in by adapters that support them.
+      def extensions
+        []
+      end
+
+      # A list of index algorithms, to be filled by adapters that support them.
+      def index_algorithms
+        {}
+      end
+
       # QUOTING ==================================================
 
-      # Returns a bind substitution value given a +column+ and list of current
-      # +binds+
+      # Returns a bind substitution value given a bind +index+ and +column+
+      # NOTE: The column param is currently being used by the sqlserver-adapter
       def substitute_at(column, index)
         Arel::Nodes::BindParam.new '?'
       end
@@ -227,7 +303,6 @@ module ActiveRecord
       end
 
       # Returns true if its required to reload the connection between requests for development mode.
-      # This is not the case for Ruby/MySQL and it's not necessary for any adapters except SQLite.
       def requires_reloading?
         false
       end
@@ -253,31 +328,23 @@ module ActiveRecord
         @transaction.number
       end
 
-      def increment_open_transactions
-        ActiveSupport::Deprecation.warn "#increment_open_transactions is deprecated and has no effect"
+      def create_savepoint(name = nil)
       end
 
-      def decrement_open_transactions
-        ActiveSupport::Deprecation.warn "#decrement_open_transactions is deprecated and has no effect"
+      def rollback_to_savepoint(name = nil)
       end
 
-      def transaction_joinable=(joinable)
-        message = "#transaction_joinable= is deprecated. Please pass the :joinable option to #begin_transaction instead."
-        ActiveSupport::Deprecation.warn message
-        @transaction.joinable = joinable
+      def release_savepoint(name = nil)
       end
 
-      def create_savepoint
-      end
-
-      def rollback_to_savepoint
-      end
-
-      def release_savepoint
-      end
-
-      def case_sensitive_modifier(node)
+      def case_sensitive_modifier(node, table_attribute)
         node
+      end
+
+      def case_sensitive_comparison(table, attribute, column, value)
+        table_attr = table[attribute]
+        value = case_sensitive_modifier(value, table_attr) unless value.nil?
+        table_attr.eq(value)
       end
 
       def case_insensitive_comparison(table, attribute, column, value)
@@ -295,24 +362,39 @@ module ActiveRecord
 
       protected
 
-      def log(sql, name = "SQL", binds = [])
-        @instrumenter.instrument(
-          "sql.active_record",
-          :sql           => sql,
-          :name          => name,
-          :connection_id => object_id,
-          :binds         => binds) { yield }
-      rescue => e
+      def translate_exception_class(e, sql)
         message = "#{e.class.name}: #{e.message}: #{sql}"
         @logger.error message if @logger
         exception = translate_exception(e, message)
         exception.set_backtrace e.backtrace
-        raise exception
+        exception
+      end
+
+      def log(sql, name = "SQL", binds = [], statement_name = nil)
+        @instrumenter.instrument(
+          "sql.active_record",
+          :sql            => sql,
+          :name           => name,
+          :connection_id  => object_id,
+          :statement_name => statement_name,
+          :binds          => binds) { yield }
+      rescue => e
+        raise translate_exception_class(e, sql)
       end
 
       def translate_exception(exception, message)
         # override in derived class
-        ActiveRecord::StatementInvalid.new(message)
+        ActiveRecord::StatementInvalid.new(message, exception)
+      end
+
+      def without_prepared_statement?(binds)
+        !prepared_statements || binds.empty?
+      end
+
+      def column_for(table_name, column_name) # :nodoc:
+        column_name = column_name.to_s
+        columns(table_name).detect { |c| c.name == column_name } ||
+          raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
       end
     end
   end

@@ -32,12 +32,14 @@ module ActionDispatch
 
     private
       def redirect_to_https(request)
-        url        = URI(request.url)
-        url.scheme = "https"
-        url.host   = @host if @host
-        url.port   = @port if @port
-        headers    = hsts_headers.merge('Content-Type' => 'text/html',
-                                        'Location'     => url.to_s)
+        host = @host || request.host
+        port = @port || request.port
+
+        location = "https://#{host}"
+        location << ":#{port}" if port != 80
+        location << request.fullpath
+
+        headers = { 'Content-Type' => 'text/html', 'Location' => location }
 
         [301, headers, []]
       end
@@ -58,7 +60,7 @@ module ActionDispatch
           cookies = cookies.split("\n")
 
           headers['Set-Cookie'] = cookies.map { |cookie|
-            if cookie !~ /;\s+secure(;|$)/
+            if cookie !~ /;\s*secure\s*(;|$)/i
               "#{cookie}; secure"
             else
               cookie

@@ -17,7 +17,7 @@ After reading this guide, you will know:
 Introduction to instrumentation
 -------------------------------
 
-The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the Rails framework, as described below in <TODO: link to section detailing each hook point>. With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
+The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the Rails framework, as described below in (TODO: link to section detailing each hook point). With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
 
 For example, there is a hook provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
 
@@ -39,7 +39,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -51,7 +51,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -63,7 +63,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -75,7 +75,7 @@ Action Controller
 
 ```ruby
 {
-  key: 'posts/1-dasboard-view'
+  key: 'posts/1-dashboard-view'
 }
 ```
 
@@ -273,7 +273,7 @@ Action Mailer
   to: ["users@rails.com", "ddh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
-  mail: "..." # ommitted for beverity
+  mail: "..." # omitted for brevity
 }
 ```
 
@@ -299,7 +299,7 @@ Action Mailer
   to: ["users@rails.com", "ddh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
-  mail: "..." # ommitted for beverity
+  mail: "..." # omitted for brevity
 }
 ```
 
@@ -396,6 +396,15 @@ INFO. Cache stores my add their own keys
 }
 ```
 
+Railties
+--------
+
+### load_config_initializer.railties
+
+| Key            | Value                                                 |
+| -------------- | ----------------------------------------------------- |
+| `:initializer` | Path to loaded initializer from `config/initializers` |
+
 Rails
 -----
 
@@ -428,7 +437,7 @@ end
 ```
 
 Defining all those block arguments each time can be tedious. You can easily create an `ActiveSupport::Notifications::Event`
-from block args like this:
+from block arguments like this:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
@@ -442,15 +451,16 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 end
 ```
 
-Most times you only care about the data itself. Here is a shortuct to just get the data.
+Most times you only care about the data itself. Here is a shortcut to just get the data.
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
   data = args.extract_options!
   data # { extra: :information }
+end
 ```
 
-You may also subscribe to events matching a regular expresssion. This enables you to subscribe to
+You may also subscribe to events matching a regular expression. This enables you to subscribe to
 multiple events at once. Here's you could subscribe to everything from `ActionController`.
 
 ```ruby
@@ -465,7 +475,7 @@ Creating custom events
 Adding your own events is easy as well. `ActiveSupport::Notifications` will take care of
 all the heavy lifting for you. Simply call `instrument` with a `name`, `payload` and a block.
 The notification will be sent after the block returns. `ActiveSupport` will generate the start and end times
-as well as the unique ID. All data passed into the `insturment` call will make it into the payload.
+as well as the unique ID. All data passed into the `instrument` call will make it into the payload.
 
 Here's an example:
 

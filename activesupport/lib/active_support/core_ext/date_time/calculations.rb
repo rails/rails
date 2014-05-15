@@ -1,30 +1,13 @@
-require 'active_support/deprecation'
+require 'date'
 
 class DateTime
   class << self
-    # *DEPRECATED*: Use +DateTime.civil_from_format+ directly.
-    def local_offset
-      ActiveSupport::Deprecation.warn 'DateTime.local_offset is deprecated. Use DateTime.civil_from_format directly.'
-
-      ::Time.local(2012).utc_offset.to_r / 86400
-    end
-
     # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or
     # <tt>config.time_zone</tt> are set, otherwise returns
     # <tt>Time.now.to_datetime</tt>.
     def current
       ::Time.zone ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
     end
-  end
-
-  # Tells whether the DateTime object's datetime lies in the past.
-  def past?
-    self < ::DateTime.current
-  end
-
-  # Tells whether the DateTime object's datetime lies in the future.
-  def future?
-    self > ::DateTime.current
   end
 
   # Seconds since midnight: DateTime.now.seconds_since_midnight.
@@ -43,7 +26,7 @@ class DateTime
 
   # Returns a new DateTime where one or more of the elements have been changed
   # according to the +options+ parameter. The time options (<tt>:hour</tt>,
-  # <tt>:minute</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
+  # <tt>:min</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
   # passed, then minute and sec is set to 0. If the hour and minute is passed,
   # then sec is set to 0. The +options+ parameter takes a hash with any of these
   # keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>,
@@ -59,7 +42,7 @@ class DateTime
       options.fetch(:day, day),
       options.fetch(:hour, hour),
       options.fetch(:min, options[:hour] ? 0 : min),
-      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec),
+      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec + sec_fraction),
       options.fetch(:offset, offset),
       options.fetch(:start, start)
     )
@@ -106,6 +89,16 @@ class DateTime
   alias :at_midnight :beginning_of_day
   alias :at_beginning_of_day :beginning_of_day
 
+  # Returns a new DateTime representing the middle of the day (12:00)
+  def middle_of_day
+    change(:hour => 12)
+  end
+  alias :midday :middle_of_day
+  alias :noon :middle_of_day
+  alias :at_midday :middle_of_day
+  alias :at_noon :middle_of_day
+  alias :at_middle_of_day :middle_of_day
+
   # Returns a new DateTime representing the end of the day (23:59:59).
   def end_of_day
     change(:hour => 23, :min => 59, :sec => 59)
@@ -123,6 +116,18 @@ class DateTime
     change(:min => 59, :sec => 59)
   end
   alias :at_end_of_hour :end_of_hour
+
+  # Returns a new DateTime representing the start of the minute (hh:mm:00).
+  def beginning_of_minute
+    change(:sec => 0)
+  end
+  alias :at_beginning_of_minute :beginning_of_minute
+
+  # Returns a new DateTime representing the end of the minute (hh:mm:59).
+  def end_of_minute
+    change(:sec => 59)
+  end
+  alias :at_end_of_minute :end_of_minute
 
   # Adjusts DateTime to UTC by adding its offset value; offset is set to 0.
   #
@@ -142,4 +147,15 @@ class DateTime
   def utc_offset
     (offset * 86400).to_i
   end
+
+  # Layers additional behavior on DateTime#<=> so that Time and
+  # ActiveSupport::TimeWithZone instances can be compared with a DateTime.
+  def <=>(other)
+    if other.respond_to? :to_datetime
+      super other.to_datetime
+    else
+      nil
+    end
+  end
+
 end
