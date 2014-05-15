@@ -505,7 +505,6 @@ module ActiveRecord
           table, schema = name.scan(/[^".\s]+|"[^"]*"/)[0..1].collect{|m| m.gsub(/(^"|"$)/,'') }.reverse
           [schema, table]
         end
-
       end
     end
   end

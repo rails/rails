@@ -44,7 +44,6 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-
     # The PostgreSQL adapter works with the native C (https://bitbucket.org/ged/ruby-pg) driver.
     #
     # Options:
@@ -73,7 +72,6 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
-
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
         attr_accessor :array
       end
