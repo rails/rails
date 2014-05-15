@@ -296,6 +296,9 @@ module ActionDispatch # :nodoc:
       cookies
     end
 
+    def _status_code
+      @status
+    end
   private
 
     def before_committed
