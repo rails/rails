@@ -328,7 +328,7 @@ module ActiveRecord
         begin
           status = yield
         rescue ActiveRecord::Rollback
-          @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+          clear_transaction_record_state
           status = nil
         end
 
