@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapter < AbstractAdapter
+    module PostgreSQL
       module ReferentialIntegrity
         def supports_disable_referential_integrity? #:nodoc:
           true

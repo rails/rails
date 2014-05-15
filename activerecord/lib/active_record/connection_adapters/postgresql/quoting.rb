@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapter < AbstractAdapter
+    module PostgreSQL
       module Quoting
         # Escapes binary strings for bytea input to the database.
         def escape_bytea(value)
