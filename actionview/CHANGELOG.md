@@ -1,3 +1,8 @@
+*   Allow custom `:host` option to be passed to `asset_url` helper that
+    overwrites `config.action_controller.asset_host` for particular asset.
+
+    *Hubert Łępicki*
+
 *   Deprecate `AbstractController::Base.parent_prefixes`.
     Override `AbstractController::Base.local_prefixes` when you want to change
     where to find views.
@@ -94,6 +99,5 @@
     regular (required) arguments is deprecated and will be removed in Rails 5.0 or later.
 
     *Piotr Chmolowski, Łukasz Strzałkowski*
-
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionview/CHANGELOG.md) for previous changes.
