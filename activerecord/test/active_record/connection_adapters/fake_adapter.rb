@@ -29,8 +29,10 @@ module ActiveRecord
         @columns[table_name] << ActiveRecord::ConnectionAdapters::Column.new(
           name.to_s,
           options[:default],
+          type_map.lookup(sql_type),
           sql_type.to_s,
-          options[:null])
+          options[:null],
+        )
       end
 
       def columns(table_name)

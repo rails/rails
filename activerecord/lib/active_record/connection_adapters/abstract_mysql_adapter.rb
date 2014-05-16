@@ -56,11 +56,11 @@ module ActiveRecord
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation, :strict, :extra
 
-        def initialize(name, default, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
+        def initialize(name, default, cast_type, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
           @strict    = strict
           @collation = collation
           @extra     = extra
-          super(name, default, sql_type, null)
+          super(name, default, cast_type, sql_type, null)
         end
 
         def extract_default(default)
@@ -86,30 +86,13 @@ module ActiveRecord
           sql_type =~ /blob/i || type == :text
         end
 
-        # Must return the relevant concrete adapter
-        def adapter
-          raise NotImplementedError
-        end
-
         def case_sensitive?
           collation && !collation.match(/_ci$/)
         end
 
         private
 
-        def simplified_type(field_type)
-          return :boolean if adapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
-
-          case field_type
-          when /enum/i, /set/i then :string
-          when /year/i         then :integer
-          when /bit/i          then :binary
-          else
-            super
-          end
-        end
-
-        def extract_limit(sql_type)
+        def extract_limit
           case sql_type
           when /^enum\((.+)\)/i
             $1.split(',').map{|enum| enum.strip.length - 2}.max
@@ -262,9 +245,8 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      # Overridden by the adapters to instantiate their specific Column type.
       def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        Column.new(field, default, type, null, collation, extra)
+        Column.new(field, default, type_map.lookup(type), type, null, collation, strict_mode?, extra)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
@@ -643,6 +625,15 @@ module ActiveRecord
       end
 
       protected
+
+      def initialize_type_map(mapping)
+        super
+        mapping.alias_type(/tinyint\(1\)/i, 'boolean') if emulate_booleans
+        mapping.alias_type(/enum/i,         'varchar')
+        mapping.alias_type(/set/i,          'varchar')
+        mapping.alias_type(/year/i,         'integer')
+        mapping.alias_type(/bit/i,          'binary')
+      end
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
       # to give it some prompting in the form of a subsubquery. Ugh!

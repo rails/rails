@@ -516,7 +516,7 @@ module ActiveRecord
 
     # Determines if a hash contains a truthy _destroy key.
     def has_destroy_flag?(hash)
-      ConnectionAdapters::Column.value_to_boolean(hash['_destroy'])
+      ConnectionAdapters::Type::Boolean.new.type_cast(hash['_destroy'])
     end
 
     # Determines if a new record should be rejected by checking

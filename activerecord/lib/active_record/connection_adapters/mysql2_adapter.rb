@@ -30,12 +30,6 @@ module ActiveRecord
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
 
-      class Column < AbstractMysqlAdapter::Column # :nodoc:
-        def adapter
-          Mysql2Adapter
-        end
-      end
-
       ADAPTER_NAME = 'Mysql2'
 
       def initialize(connection, logger, connection_options, config)
@@ -67,10 +61,6 @@ module ActiveRecord
         else
           to_enum(:each_hash, result)
         end
-      end
-
-      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?, extra)
       end
 
       def error_number(exception)
@@ -113,6 +103,11 @@ module ActiveRecord
           @connection.close
           @connection = nil
         end
+      end
+
+      def clear_cache!
+        super
+        reload_type_map
       end
 
       # DATABASE STATEMENTS ======================================

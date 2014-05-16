@@ -5,28 +5,20 @@ module ActiveRecord
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
       attr_accessor :array
+      delegate :accessor, to: :cast_type
 
-      def initialize(name, default, oid_type, sql_type = nil, null = true)
-        @oid_type = oid_type
+      def initialize(name, default, cast_type, sql_type = nil, null = true)
         default_value     = self.class.extract_value_from_default(default)
 
         if sql_type =~ /\[\]$/
           @array = true
-          super(name, default_value, sql_type[0..sql_type.length - 3], null)
+          super(name, default_value, cast_type, sql_type[0..sql_type.length - 3], null)
         else
           @array = false
-          super(name, default_value, sql_type, null)
+          super(name, default_value, cast_type, sql_type, null)
         end
 
         @default_function = default if has_default_function?(default_value, default)
-      end
-
-      def number?
-        !array && super
-      end
-
-      def text?
-        !array && super
       end
 
       # :stopdoc:
@@ -112,35 +104,13 @@ module ActiveRecord
         end
       end
 
-      # Casts a Ruby value to something appropriate for writing to PostgreSQL.
-      # see ActiveRecord::ConnectionAdapters::Class#type_cast_for_write
-      # see ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::Type
-      def type_cast_for_write(value)
-        if @oid_type.respond_to?(:type_cast_for_write)
-          @oid_type.type_cast_for_write(value)
-        else
-          super
-        end
-      end
-
-      def type_cast(value)
-        return if value.nil?
-        return super if encoded?
-
-        @oid_type.type_cast value
-      end
-
-      def accessor
-        @oid_type.accessor
-      end
-
       private
 
         def has_default_function?(default_value, default)
           !default_value && (%r{\w+\(.*\)} === default)
         end
 
-        def extract_limit(sql_type)
+        def extract_limit
           case sql_type
           when /^bigint/i;    8
           when /^smallint/i;  2
@@ -150,13 +120,13 @@ module ActiveRecord
         end
 
         # Extracts the scale from PostgreSQL-specific data types.
-        def extract_scale(sql_type)
+        def extract_scale
           # Money type has a fixed scale of 2.
           sql_type =~ /^money/ ? 2 : super
         end
 
         # Extracts the precision from PostgreSQL-specific data types.
-        def extract_precision(sql_type)
+        def extract_precision
           if sql_type == 'money'
             self.class.money_precision
           elsif sql_type =~ /timestamp/i
@@ -166,10 +136,6 @@ module ActiveRecord
           end
         end
 
-        # Maps PostgreSQL-specific data types to logical Rails types.
-        def simplified_type(field_type)
-          @oid_type.simplified_type(field_type) || super
-        end
     end
   end
 end

@@ -1,3 +1,8 @@
+*   Refactor typecasting behavior of ActiveRecord columns, to allow new types to
+    be injected in the future.
+
+    *Sean Griffin*
+
 *   Floats with limit >= 25 that get turned into doubles in MySQL no longer have
     their limit dropped from the schema.
 
