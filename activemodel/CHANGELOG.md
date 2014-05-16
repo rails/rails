@@ -1,4 +1,4 @@
-*   Add plural and singular form for length validator's default messages
+*   Add plural and singular form for length validator's default messages.
 
     *Abd ar-Rahman Hamid*
 

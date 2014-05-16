@@ -46,13 +46,13 @@
 *   Fix `PostgreSQLAdapter::OID::Float#type_cast` to convert Infinity and
     NaN PostgreSQL values into a native Ruby `Float::INFINITY` and `Float::NAN`
 
-    Example:
+    Before:
 
-        # Before
         Point.create(value: 1.0/0)
         Point.last.value # => 0.0
 
-        # After
+    After:
+
         Point.create(value: 1.0/0)
         Point.last.value # => Infinity
 
@@ -78,7 +78,7 @@
     HABTM should fall back to using the normal CollectionAssociation's size
     calculation if the collection is not cached or loaded.
 
-    Fixes #14913 and #14914.
+    Fixes #14913, #14914.
 
     *Fred Wu*
 
@@ -280,7 +280,7 @@
 
 *   Auto-generate stable fixture UUIDs on PostgreSQL.
 
-    Fixes: #11524
+    Fixes #11524.
 
     *Roderick van Domburg*
 

@@ -7,7 +7,7 @@
     convert a value that is an `ActiveSupport::SafeBuffer` introduced
     in 2da9d67.
 
-    For more info see #15064.
+    See #15064.
 
     *Mark J. Titorenko*
 

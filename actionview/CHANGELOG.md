@@ -26,9 +26,11 @@
 
 *   Change `asset_path` to use File.join to create proper paths:
 
+    Before:
+
         https://some.host.com//assets/some.js
 
-    becomes
+    After:
 
         https://some.host.com/assets/some.js
 
