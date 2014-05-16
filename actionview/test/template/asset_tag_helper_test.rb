@@ -596,6 +596,10 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_equal "gopher://www.example.com", compute_asset_host("foo", :protocol => :request)
   end
 
+  def test_should_return_custom_host_if_passed_in_options
+    assert_equal "http://custom.example.com", compute_asset_host("foo", :host => "http://custom.example.com")
+  end
+
   def test_should_ignore_relative_root_path_on_complete_url
     assert_dom_equal(%(http://www.example.com/images/xml.png), image_path("http://www.example.com/images/xml.png"))
   end
@@ -758,5 +762,16 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
 
     assert @module.config.asset_host
     assert_equal "http://www.example.com/foo", @module.asset_url("foo")
+  end
+
+  def test_asset_url_with_custom_asset_host
+    @module.instance_eval do
+      def config
+        Struct.new(:asset_host).new("http://www.example.com")
+      end
+    end
+
+    assert @module.config.asset_host
+    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", :host => "http://custom.example.com")
   end
 end
