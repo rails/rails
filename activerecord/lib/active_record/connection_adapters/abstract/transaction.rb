@@ -13,7 +13,7 @@ module ActiveRecord
       end
     end
 
-    class TransactionState
+    class TransactionState #:nodoc:
       attr_accessor :parent
 
       VALID_STATES = Set.new([:committed, :rolledback, nil])
