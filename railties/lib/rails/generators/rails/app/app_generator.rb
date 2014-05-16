@@ -87,10 +87,13 @@ module Rails
     end
 
     def config_when_updating
-      foo = File.exist?('config/initializers/cookies_serializer.rb')
+      cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
+
       config
 
-      gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal' unless foo
+      unless cookie_serializer_config_exist
+        gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
+      end
     end
 
     def database_yml
