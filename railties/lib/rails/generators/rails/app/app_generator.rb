@@ -86,6 +86,13 @@ module Rails
       end
     end
 
+    def config_when_updating
+      foo = File.exist?('config/initializers/cookies_serializer.rb')
+      config
+
+      gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal' unless foo
+    end
+
     def database_yml
       template "config/databases/#{options[:database]}.yml", "config/database.yml"
     end
@@ -186,6 +193,10 @@ module Rails
 
       def create_config_files
         build(:config)
+      end
+
+      def update_config_files
+        build(:config_when_updating)
       end
 
       def create_boot_file
