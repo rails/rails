@@ -295,7 +295,7 @@ module ActiveRecord
     def committed! #:nodoc:
       run_callbacks :commit if destroyed? || persisted?
     ensure
-      clear_transaction_record_state(true)
+      force_clear_transaction_record_state
     end
 
     # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record
@@ -353,11 +353,14 @@ module ActiveRecord
     end
 
     # Clear the new record state and id of a record.
-    def clear_transaction_record_state(force = false) #:nodoc:
+    def clear_transaction_record_state #:nodoc:
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-      if force || @_start_transaction_state[:level] < 1
-        @_start_transaction_state.clear
-      end
+      @_start_transaction_state.clear @_start_transaction_state[:level] < 1
+    end
+
+    # Force to clear the teansaction record state.
+    def force_clear_transaction_record_state #:nodoc:
+      @_start_transaction_state.clear
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
