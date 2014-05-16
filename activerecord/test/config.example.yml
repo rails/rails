@@ -51,28 +51,6 @@ connections:
       password: arunit
       database: arunit2
 
-  firebird:
-    arunit:
-      host: localhost
-      username: rails
-      password: rails
-      charset: UTF8
-    arunit2:
-      host: localhost
-      username: rails
-      password: rails
-      charset: UTF8
-
-  frontbase:
-    arunit:
-      host: localhost
-      username: rails
-      session_name: unittest-<%= $$ %>
-    arunit2:
-      host: localhost
-      username: rails
-      session_name: unittest-<%= $$ %>
-
   mysql:
     arunit:
       username: rails
@@ -130,11 +108,3 @@ connections:
     arunit2:
       adapter: sqlite3
       database: ':memory:'
-
-  sybase:
-    arunit:
-      host: database_ASE
-      username: sa
-    arunit2:
-      host: database_ASE
-      username: sa
