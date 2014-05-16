@@ -26,7 +26,7 @@ module ActiveRecord::Associations::Builder
             model_name = name.to_s.camelize.singularize
 
             if parent_name = lhs_class.parent_name
-              model_name = model_name.prepend("#{parent_name}::")
+              model_name.prepend("#{parent_name}::")
             end
 
             model_name
