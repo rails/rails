@@ -355,7 +355,7 @@ module ActiveRecord
     # Clear the new record state and id of a record.
     def clear_transaction_record_state #:nodoc:
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-      @_start_transaction_state.clear @_start_transaction_state[:level] < 1
+      @_start_transaction_state.clear if @_start_transaction_state[:level] < 1
     end
 
     # Force to clear the teansaction record state.
