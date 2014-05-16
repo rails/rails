@@ -9,14 +9,6 @@ ActiveRecord::Schema.define do
 
   #put adapter specific setup here
   case adapter_name
-    # For Firebird, set the sequence values 10000 when create_table is called;
-    # this prevents primary key collisions between "normally" created records
-    # and fixture-based (YAML) records.
-  when "Firebird"
-    def create_table(*args, &block)
-      ActiveRecord::Base.connection.create_table(*args, &block)
-      ActiveRecord::Base.connection.execute "SET GENERATOR #{args.first}_seq TO 10000"
-    end
   when "PostgreSQL"
     enable_uuid_ossp!(ActiveRecord::Base.connection)
     create_table :uuid_parents, id: :uuid, force: true do |t|

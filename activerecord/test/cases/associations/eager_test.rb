@@ -534,21 +534,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions
-    if current_adapter?(:OpenBaseAdapter)
-      posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "FETCHBLOB(posts.body) = 'hello'", :order => "posts.id").to_a
-    else
-      posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "posts.body = 'hello'", :order => "posts.id").to_a
-    end
+    posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "posts.body = 'hello'", :order => "posts.id").to_a
     assert_equal 2, posts.size
     assert_equal [4,5], posts.collect { |p| p.id }
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array
-    if current_adapter?(:OpenBaseAdapter)
-      posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "FETCHBLOB(posts.body) = ?", 'hello' ], :order => "posts.id").to_a
-    else
-      posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "posts.body = ?", 'hello' ], :order => "posts.id").to_a
-    end
+    posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "posts.body = ?", 'hello' ], :order => "posts.id").to_a
     assert_equal 2, posts.size
     assert_equal [4,5], posts.collect { |p| p.id }
   end
@@ -940,13 +932,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_count_with_include
-    if current_adapter?(:SybaseAdapter)
-      assert_equal 3, authors(:david).posts_with_comments.where("len(comments.body) > 15").references(:comments).count
-    elsif current_adapter?(:OpenBaseAdapter)
-      assert_equal 3, authors(:david).posts_with_comments.where("length(FETCHBLOB(comments.body)) > 15").references(:comments).count
-    else
-      assert_equal 3, authors(:david).posts_with_comments.where("length(comments.body) > 15").references(:comments).count
-    end
+    assert_equal 3, authors(:david).posts_with_comments.where("length(comments.body) > 15").references(:comments).count
   end
 
   def test_load_with_sti_sharing_association

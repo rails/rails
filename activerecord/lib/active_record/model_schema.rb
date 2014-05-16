@@ -198,7 +198,7 @@ module ActiveRecord
       # given block. This is required for Oracle and is useful for any
       # database which relies on sequences for primary key generation.
       #
-      # If a sequence name is not explicitly set when using Oracle or Firebird,
+      # If a sequence name is not explicitly set when using Oracle,
       # it will default to the commonly used pattern of: #{table_name}_seq
       #
       # If a sequence name is not explicitly set when using PostgreSQL, it
