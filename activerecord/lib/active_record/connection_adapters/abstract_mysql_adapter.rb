@@ -56,7 +56,8 @@ module ActiveRecord
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation, :strict, :extra
 
-        def initialize(name, default, cast_type, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
+        def initialize(adapter, name, default, cast_type, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
+          @adapter   = adapter
           @strict    = strict
           @collation = collation
           @extra     = extra
@@ -86,9 +87,8 @@ module ActiveRecord
           sql_type =~ /blob/i || type == :text
         end
 
-        # Must return the relevant concrete adapter
         def adapter
-          raise NotImplementedError
+          @adapter
         end
 
         def case_sensitive?
@@ -251,7 +251,7 @@ module ActiveRecord
       end
 
       def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        column_class.new(field, default, type_map.lookup(type), type, null, collation, strict_mode?, extra)
+        Column.new(self, field, default, type_map.lookup(type), type, null, collation, strict_mode?, extra)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
@@ -748,11 +748,6 @@ module ActiveRecord
       end
 
       private
-
-      # Overridden by the adapters to instantiate their specific Column type.
-      def column_class
-        Column
-      end
 
       def supports_views?
         version[0] >= 5

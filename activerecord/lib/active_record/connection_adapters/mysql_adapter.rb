@@ -67,12 +67,6 @@ module ActiveRecord
     #
     class MysqlAdapter < AbstractMysqlAdapter
 
-      class Column < AbstractMysqlAdapter::Column #:nodoc:
-        def adapter
-          MysqlAdapter
-        end
-      end
-
       ADAPTER_NAME = 'MySQL'
 
       class StatementPool < ConnectionAdapters::StatementPool
@@ -409,10 +403,6 @@ module ActiveRecord
       end
 
       private
-
-      def column_class
-        Column
-      end
 
       def exec_stmt(sql, name, binds)
         cache = {}

@@ -30,12 +30,6 @@ module ActiveRecord
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
 
-      class Column < AbstractMysqlAdapter::Column # :nodoc:
-        def adapter
-          Mysql2Adapter
-        end
-      end
-
       ADAPTER_NAME = 'Mysql2'
 
       def initialize(connection, logger, connection_options, config)
@@ -270,10 +264,6 @@ module ActiveRecord
       end
 
       private
-
-      def column_class
-        Column
-      end
 
       def connect
         @connection = Mysql2::Client.new(@config)
