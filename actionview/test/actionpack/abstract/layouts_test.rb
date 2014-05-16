@@ -39,6 +39,11 @@ module AbstractControllerTests
         render :template => ActionView::Template::Text.new("Hello string!")
       end
 
+      def action_has_layout_false
+        self.action_has_layout = false
+        render :template => ActionView::Template::Text.new("Hello string!")
+      end
+
       def overwrite_default
         render :template => ActionView::Template::Text.new("Hello string!"), :layout => :default
       end
@@ -74,6 +79,17 @@ module AbstractControllerTests
       layout nil
     end
 
+    class AbstractWithString < Base
+      layout "hello"
+      abstract!
+    end
+
+    class AbstractWithStringChild < AbstractWithString
+      def index
+        render :template => ActionView::Template::Text.new("Hello abstract child!")
+      end
+    end
+
     class WithProc < Base
       layout proc { "overwrite" }
 
@@ -82,11 +98,19 @@ module AbstractControllerTests
       end
     end
 
-    class WithProcReturningNil < Base
+    class WithProcReturningNil < WithString
       layout proc { nil }
 
       def index
         render template: ActionView::Template::Text.new("Hello nil!")
+      end
+    end
+
+    class WithProcReturningFalse < WithString
+      layout proc { false }
+
+      def index
+        render template: ActionView::Template::Text.new("Hello false!")
       end
     end
 
@@ -264,10 +288,16 @@ module AbstractControllerTests
         assert_equal "Overwrite Hello proc!", controller.response_body
       end
 
-      test "when layout is specified as a proc and the proc returns nil, don't use a layout" do
+      test "when layout is specified as a proc and the proc returns nil, use inherited layout" do
         controller = WithProcReturningNil.new
         controller.process(:index)
-        assert_equal "Hello nil!", controller.response_body
+        assert_equal "With String Hello nil!", controller.response_body
+      end
+
+      test "when layout is specified as a proc and the proc returns false, use no layout instead of inherited layout" do
+        controller = WithProcReturningFalse.new
+        controller.process(:index)
+        assert_equal "Hello false!", controller.response_body
       end
 
       test "when layout is specified as a proc without parameters it works just the same" do
@@ -334,6 +364,12 @@ module AbstractControllerTests
           assert_equal "With Grand Child Hello string!", controller.response_body
       end
 
+      test "a child inherits layout from abstract controller" do
+          controller = AbstractWithStringChild.new
+          controller.process(:index)
+          assert_equal "With String Hello abstract child!", controller.response_body
+      end
+
       test "raises an exception when specifying layout true" do
         assert_raises ArgumentError do
           Object.class_eval do
@@ -378,6 +414,12 @@ module AbstractControllerTests
         controller = klass.new
         controller.process(:index)
         assert_equal "With String index", controller.response_body
+      end
+
+      test "when layout is disabled with action_has_layout=false, render no layout" do
+        controller = WithString.new
+        controller.process(:action_has_layout_false)
+        assert_equal "Hello string!", controller.response_body
       end
     end
   end
