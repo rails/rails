@@ -68,7 +68,7 @@ module ActionView
       #   distance_of_time_in_words(from_time, to_time, include_seconds: true)                        # => about 6 years
       #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                        # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
-      def distance_of_time_in_words(from_time, to_time = 0, options = {})
+      def distance_of_time_in_words(from_time, to_time = Time.now, options = {})
         options = {
           scope: :'datetime.distance_in_words'
         }.merge!(options)
