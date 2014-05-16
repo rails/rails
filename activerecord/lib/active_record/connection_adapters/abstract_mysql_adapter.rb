@@ -56,8 +56,7 @@ module ActiveRecord
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation, :strict, :extra
 
-        def initialize(adapter, name, default, cast_type, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
-          @adapter   = adapter
+        def initialize(name, default, cast_type, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
           @strict    = strict
           @collation = collation
           @extra     = extra
@@ -85,10 +84,6 @@ module ActiveRecord
 
         def blob_or_text_column?
           sql_type =~ /blob/i || type == :text
-        end
-
-        def adapter
-          @adapter
         end
 
         def case_sensitive?
@@ -251,7 +246,7 @@ module ActiveRecord
       end
 
       def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        Column.new(self, field, default, type_map.lookup(type), type, null, collation, strict_mode?, extra)
+        Column.new(field, default, type_map.lookup(type), type, null, collation, strict_mode?, extra)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
