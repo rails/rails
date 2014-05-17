@@ -175,8 +175,8 @@ end
 The API is careful not to commit to any particular value, the method has
 predicate semantics, that's enough.
 
-Filenames
----------
+File Names
+----------
 
 As a rule of thumb, use filenames relative to the application root:
 
