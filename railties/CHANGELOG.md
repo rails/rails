@@ -1,3 +1,7 @@
+*   Default `config.assets.digest` to `true` in development.
+
+    *Dan Kang*
+
 *   Load database configuration from the first
     database.yml available in paths.
 
