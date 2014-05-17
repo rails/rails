@@ -12,10 +12,10 @@ module ActiveRecord
 
         if sql_type =~ /\[\]$/
           @array = true
-          super(name, default_value, sql_type[0..sql_type.length - 3], null)
+          super(name, default_value, oid_type, sql_type[0..sql_type.length - 3], null)
         else
           @array = false
-          super(name, default_value, sql_type, null)
+          super(name, default_value, oid_type, sql_type, null)
         end
 
         @default_function = default if has_default_function?(default_value, default)
