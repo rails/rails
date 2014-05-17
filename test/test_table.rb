@@ -67,6 +67,22 @@ module Arel
       end
     end
 
+    describe 'update_manager' do
+      it 'should return an update manager' do
+        um = @relation.update_manager
+        assert_kind_of Arel::UpdateManager, um
+        assert_equal um.engine, @relation.engine
+      end
+    end
+
+    describe 'delete_manager' do
+      it 'should return a delete manager' do
+        dm = @relation.delete_manager
+        assert_kind_of Arel::DeleteManager, dm
+        assert_equal dm.engine, @relation.engine
+      end
+    end
+
     describe 'having' do
       it 'adds a having clause' do
         mgr = @relation.having @relation[:id].eq(10)

@@ -104,6 +104,14 @@ primary_key (#{caller.first}) is deprecated and will be removed in Arel 4.0.0
       InsertManager.new(@engine)
     end
 
+    def update_manager
+      UpdateManager.new(@engine)
+    end
+
+    def delete_manager
+      DeleteManager.new(@engine)
+    end
+
     def hash
       # Perf note: aliases, table alias and engine is excluded from the hash
       #  aliases can have a loop back to this table breaking hashes in parent
