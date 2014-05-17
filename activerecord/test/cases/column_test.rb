@@ -35,6 +35,13 @@ module ActiveRecord
         assert_equal false, column.type_cast('SOMETHING RANDOM')
       end
 
+      def test_type_cast_string
+        column = Column.new("field", nil, "varchar")
+        assert_equal "1", column.type_cast(true)
+        assert_equal "0", column.type_cast(false)
+        assert_equal "123", column.type_cast(123)
+      end
+
       def test_type_cast_integer
         column = Column.new("field", nil, "integer")
         assert_equal 1, column.type_cast(1)
@@ -70,6 +77,25 @@ module ActiveRecord
         column = Column.new("field", nil, "integer")
         assert_nil column.type_cast(Float::NAN)
         assert_nil column.type_cast(1.0/0.0)
+      end
+
+      def test_type_cast_float
+        column = Column.new("field", nil, "float")
+        assert_equal 1.0, column.type_cast("1")
+      end
+
+      def test_type_cast_decimal
+        column = Column.new("field", nil, "decimal")
+        assert_equal BigDecimal.new("0"), column.type_cast(BigDecimal.new("0"))
+        assert_equal BigDecimal.new("123"), column.type_cast(123.0)
+        assert_equal BigDecimal.new("1"), column.type_cast(:"1")
+      end
+
+      def test_type_cast_binary
+        column = Column.new("field", nil, "binary")
+        assert_equal nil, column.type_cast(nil)
+        assert_equal "1", column.type_cast("1")
+        assert_equal 1, column.type_cast(1)
       end
 
       def test_type_cast_time
@@ -116,6 +142,16 @@ module ActiveRecord
           with_timezone_config default: zone do
             assert_equal Time.utc(2013, 9, 4, 0, 0, 0), Column.string_to_time("Wed, 04 Sep 2013 03:00:00 EAT")
           end
+        end
+      end
+
+      if current_adapter?(:SQLite3Adapter)
+        def test_binary_encoding
+          column = SQLite3Column.new("field", nil, "binary")
+          utf8_string = "a string".encode(Encoding::UTF_8)
+          type_cast = column.type_cast(utf8_string)
+
+          assert_equal Encoding::ASCII_8BIT, type_cast.encoding
         end
       end
     end
