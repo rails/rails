@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class TypeMap
+      class TypeMap # :nodoc:
         def initialize
           @mapping = {}
           @default_value = Value.new

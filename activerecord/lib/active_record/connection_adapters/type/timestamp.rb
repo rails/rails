@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Timestamp < Value
+      class Timestamp < Value # :nodoc:
         def type
           :timestamp
         end

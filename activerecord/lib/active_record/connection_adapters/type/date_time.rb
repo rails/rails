@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class DateTime < Timestamp
+      class DateTime < Timestamp # :nodoc:
         def type
           :datetime
         end

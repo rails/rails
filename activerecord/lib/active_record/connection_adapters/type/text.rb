@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Text < String
+      class Text < String # :nodoc:
         def type
           :text
         end

@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Boolean < Value
+      class Boolean < Value # :nodoc:
         def type
           :boolean
         end
