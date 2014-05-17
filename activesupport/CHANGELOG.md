@@ -1,3 +1,8 @@
+*   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
+    when a subscriber method is redefined.
+
+    *Dennis Schön*
+
 *   Fixed an issue when using
     `ActiveSupport::NumberHelper::NumberToDelimitedConverter` to
     convert a value that is an `ActiveSupport::SafeBuffer` introduced
