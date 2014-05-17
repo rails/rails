@@ -125,8 +125,8 @@ class TestController < ApplicationController
     render :action => "hello_world"
   end
 
-  def render_action_upcased_hello_world
-    render :action => "Hello_world"
+  def render_action_upcased_hello_universe
+    render action: 'Hello_universe'
   end
 
   def render_action_hello_world_as_string
@@ -739,7 +739,7 @@ class RenderTest < ActionController::TestCase
 
   def test_render_action_upcased
     assert_raise ActionView::MissingTemplate do
-      get :render_action_upcased_hello_world
+      get :render_action_upcased_hello_universe
     end
   end
 
