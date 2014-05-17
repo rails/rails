@@ -515,8 +515,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      raise NameError,
-            "uninitialized constant #{qualified_name}",
+      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
+      raise name_error,
+            name_error.message,
             caller.reject { |l| l.starts_with? __FILE__ }
     end
 

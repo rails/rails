@@ -367,9 +367,11 @@ class DependenciesTest < ActiveSupport::TestCase
     with_autoloading_fixtures do
       e = assert_raise(NameError) { A::DoesNotExist.nil? }
       assert_equal "uninitialized constant A::DoesNotExist", e.message
+      assert_equal :DoesNotExist, e.name
 
       e = assert_raise(NameError) { A::B::DoesNotExist.nil? }
       assert_equal "uninitialized constant A::B::DoesNotExist", e.message
+      assert_equal :DoesNotExist, e.name
     end
   end
 
