@@ -223,6 +223,7 @@ module ActiveRecord
 
       # Clears the prepared statements cache.
       def clear_cache!
+        super
         @statements.clear
       end
 
