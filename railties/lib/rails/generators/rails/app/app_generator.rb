@@ -194,10 +194,6 @@ module Rails
         build(:bin)
       end
 
-      def create_config_files
-        build(:config)
-      end
-
       def update_config_files
         build(:config_when_updating)
       end
