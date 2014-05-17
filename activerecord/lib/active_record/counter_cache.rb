@@ -11,7 +11,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +id+ - The id of the object you wish to reset a counter on.
-      # * +counters+ - One or more association counters to reset
+      # * +counters+ - One or more association counters to reset. Association name or counter name can be given.
       #
       # ==== Examples
       #
@@ -19,9 +19,14 @@ module ActiveRecord
       #   Post.reset_counters(1, :comments)
       def reset_counters(id, *counters)
         object = find(id)
-        counters.each do |association|
-          has_many_association = reflect_on_association(association.to_sym)
-          raise ArgumentError, "'#{self.name}' has no association called '#{association}'" unless has_many_association
+        counters.each do |counter_association|
+          has_many_association = reflect_on_association(counter_association.to_sym)
+          unless has_many_association
+            has_many = reflect_on_all_associations(:has_many)
+            has_many_association = has_many.find { |association| association.counter_cache_column && association.counter_cache_column.to_sym == counter_association.to_sym }
+            counter_association = has_many_association.plural_name if has_many_association
+          end
+          raise ArgumentError, "'#{self.name}' has no association called '#{counter_association}'" unless has_many_association
 
           if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
             has_many_association = has_many_association.through_reflection
@@ -34,7 +39,7 @@ module ActiveRecord
           counter_name = reflection.counter_cache_column
 
           stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
-            arel_table[counter_name] => object.send(association).count
+            arel_table[counter_name] => object.send(counter_association).count
           }, primary_key)
           connection.update stmt
         end
