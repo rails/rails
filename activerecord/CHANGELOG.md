@@ -1,8 +1,10 @@
 *   Restrict deletion of record when using `delete_all` with `uniq`, `group`, `having`
     or `offset`.
 
-    I these cases the generated query ignores them and that causes unintended
+    In these cases the generated query ignored them and that caused unintended
     records to be deleted.
+
+    Fixes #11985.
 
     *Leandro Facchinetti*
 
