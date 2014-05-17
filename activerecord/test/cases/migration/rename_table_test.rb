@@ -42,12 +42,7 @@ module ActiveRecord
       def test_rename_table
         rename_table :test_models, :octopi
 
-        # Using explicit id in insert for compatibility across all databases
-        connection.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
-
         connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
-
-        connection.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
       end
@@ -57,10 +52,7 @@ module ActiveRecord
 
         rename_table :test_models, :octopi
 
-        # Using explicit id in insert for compatibility across all databases
-        connection.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
         connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
-        connection.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
         index = connection.indexes(:octopi).first

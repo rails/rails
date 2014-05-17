@@ -46,9 +46,7 @@ module ActiveRecord
         @connection.add_index :accounts, :firm_id, :name => idx_name
         indexes = @connection.indexes("accounts")
         assert_equal "accounts", indexes.first.table
-        # OpenBase does not have the concept of a named index
-        # Indexes are merely properties of columns.
-        assert_equal idx_name, indexes.first.name unless current_adapter?(:OpenBaseAdapter)
+        assert_equal idx_name, indexes.first.name
         assert !indexes.first.unique
         assert_equal ["firm_id"], indexes.first.columns
       else
@@ -127,14 +125,12 @@ module ActiveRecord
         assert_equal 1, Movie.create(:name => 'fight club').id
       end
 
-      if ActiveRecord::Base.connection.adapter_name != "FrontBase"
-        def test_reset_table_with_non_integer_pk
-          Subscriber.delete_all
-          Subscriber.connection.reset_pk_sequence! 'subscribers'
-          sub = Subscriber.new(:name => 'robert drake')
-          sub.id = 'bob drake'
-          assert_nothing_raised { sub.save! }
-        end
+      def test_reset_table_with_non_integer_pk
+        Subscriber.delete_all
+        Subscriber.connection.reset_pk_sequence! 'subscribers'
+        sub = Subscriber.new(:name => 'robert drake')
+        sub.id = 'bob drake'
+        assert_nothing_raised { sub.save! }
       end
     end
 
@@ -144,7 +140,7 @@ module ActiveRecord
         @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       end
     end
-    
+
     unless current_adapter?(:SQLite3Adapter)
       def test_foreign_key_violations_are_translated_to_specific_exception
         assert_raises(ActiveRecord::InvalidForeignKey) do
@@ -157,7 +153,7 @@ module ActiveRecord
           end
         end
       end
- 
+
       def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
         klass_has_fk = Class.new(ActiveRecord::Base) do
           self.table_name = 'fk_test_has_fk'

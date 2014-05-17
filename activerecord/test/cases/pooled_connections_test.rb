@@ -48,4 +48,4 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   def add_record(name)
     ActiveRecord::Base.connection_pool.with_connection { Project.create! :name => name }
   end
-end unless current_adapter?(:FrontBase) || in_memory_db?
+end unless in_memory_db?

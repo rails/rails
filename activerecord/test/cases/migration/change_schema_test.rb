@@ -204,9 +204,9 @@ module ActiveRecord
         connection.create_table table_name
       end
 
-      # Sybase, and SQLite3 will not allow you to add a NOT NULL
+      # SQLite3 will not allow you to add a NOT NULL
       # column to a table without a default value.
-      unless current_adapter?(:SybaseAdapter, :SQLite3Adapter)
+      unless current_adapter?(:SQLite3Adapter)
         def test_add_column_not_null_without_default
           connection.create_table :testings do |t|
             t.column :foo, :string
@@ -225,18 +225,11 @@ module ActiveRecord
         end
 
         con = connection
-        connection.enable_identity_insert("testings", true) if current_adapter?(:SybaseAdapter)
         connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
-        connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
         assert_nothing_raised {connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
         assert_raises(ActiveRecord::StatementInvalid) do
-          unless current_adapter?(:OpenBaseAdapter)
-            connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
-          else
-            connection.insert("INSERT INTO testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) VALUES (2, 'hello', NULL)",
-                                     "Testing Insert","id",2)
-          end
+          connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
         end
       end
 

@@ -62,7 +62,7 @@ module ActiveRecord
         # Do a manual insertion
         if current_adapter?(:OracleAdapter)
           connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
-        elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
+        elsif current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003 #before mysql 5.0.3 decimals stored as strings
           connection.execute "insert into test_models (wealth) values ('12345678901234567890.0123456789')"
         elsif current_adapter?(:PostgreSQLAdapter)
           connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
@@ -160,8 +160,8 @@ module ActiveRecord
         assert_equal Fixnum, bob.age.class
         assert_equal Time, bob.birthday.class
 
-        if current_adapter?(:OracleAdapter, :SybaseAdapter)
-          # Sybase, and Oracle don't differentiate between date/time
+        if current_adapter?(:OracleAdapter)
+          # Oracle doesn't differentiate between date/time
           assert_equal Time, bob.favorite_day.class
         else
           assert_equal Date, bob.favorite_day.class

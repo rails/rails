@@ -226,7 +226,6 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     xml = REXML::Document.new(topics(:first).to_xml(:indent => 0))
     bonus_time_in_current_timezone = topics(:first).bonus_time.xmlschema
     written_on_in_current_timezone = topics(:first).written_on.xmlschema
-    last_read_in_current_timezone = topics(:first).last_read.xmlschema
 
     assert_equal "topic", xml.root.name
     assert_equal "The First Topic" , xml.elements["//title"].text
@@ -248,14 +247,9 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     assert_equal "integer", xml.elements["//parent-id"].attributes['type']
     assert_equal "true", xml.elements["//parent-id"].attributes['nil']
 
-    if current_adapter?(:SybaseAdapter)
-      assert_equal last_read_in_current_timezone, xml.elements["//last-read"].text
-      assert_equal "dateTime" , xml.elements["//last-read"].attributes['type']
-    else
-      # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
-      assert_equal "2004-04-15", xml.elements["//last-read"].text
-      assert_equal "date" , xml.elements["//last-read"].attributes['type']
-    end
+    # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
+    assert_equal "2004-04-15", xml.elements["//last-read"].text
+    assert_equal "date" , xml.elements["//last-read"].attributes['type']
 
     # Oracle and DB2 don't have true boolean or time-only fields
     unless current_adapter?(:OracleAdapter, :DB2Adapter)

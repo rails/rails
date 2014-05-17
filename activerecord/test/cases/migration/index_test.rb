@@ -26,28 +26,25 @@ module ActiveRecord
         ActiveRecord::Base.primary_key_prefix_type = nil
       end
 
-      unless current_adapter?(:OpenBaseAdapter)
-        def test_rename_index
-          # keep the names short to make Oracle and similar behave
-          connection.add_index(table_name, [:foo], :name => 'old_idx')
-          connection.rename_index(table_name, 'old_idx', 'new_idx')
+      def test_rename_index
+        # keep the names short to make Oracle and similar behave
+        connection.add_index(table_name, [:foo], :name => 'old_idx')
+        connection.rename_index(table_name, 'old_idx', 'new_idx')
 
-          # if the adapter doesn't support the indexes call, pick defaults that let the test pass
-          assert_not connection.index_name_exists?(table_name, 'old_idx', false)
-          assert connection.index_name_exists?(table_name, 'new_idx', true)
-        end
+        # if the adapter doesn't support the indexes call, pick defaults that let the test pass
+        assert_not connection.index_name_exists?(table_name, 'old_idx', false)
+        assert connection.index_name_exists?(table_name, 'new_idx', true)
+      end
 
-        def test_double_add_index
+      def test_double_add_index
+        connection.add_index(table_name, [:foo], :name => 'some_idx')
+        assert_raises(ArgumentError) {
           connection.add_index(table_name, [:foo], :name => 'some_idx')
-          assert_raises(ArgumentError) {
-            connection.add_index(table_name, [:foo], :name => 'some_idx')
-          }
-        end
+        }
+      end
 
-        def test_remove_nonexistent_index
-          # we do this by name, so OpenBase is a wash as noted above
-          assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
-        end
+      def test_remove_nonexistent_index
+        assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
       end
 
       def test_add_index_works_with_long_index_names
@@ -126,50 +123,37 @@ module ActiveRecord
         connection.add_index("testings", "last_name")
         connection.remove_index("testings", "last_name")
 
-        # Orcl nds shrt indx nms.  Sybs 2.
-        # OpenBase does not have named indexes.  You must specify a single column name
-        unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
+        connection.add_index("testings", ["last_name", "first_name"])
+        connection.remove_index("testings", :column => ["last_name", "first_name"])
+
+        # Oracle adapter cannot have specified index name larger than 30 characters
+        # Oracle adapter is shortening index name when just column list is given
+        unless current_adapter?(:OracleAdapter)
           connection.add_index("testings", ["last_name", "first_name"])
-          connection.remove_index("testings", :column => ["last_name", "first_name"])
-
-          # Oracle adapter cannot have specified index name larger than 30 characters
-          # Oracle adapter is shortening index name when just column list is given
-          unless current_adapter?(:OracleAdapter)
-            connection.add_index("testings", ["last_name", "first_name"])
-            connection.remove_index("testings", :name => :index_testings_on_last_name_and_first_name)
-            connection.add_index("testings", ["last_name", "first_name"])
-            connection.remove_index("testings", "last_name_and_first_name")
-          end
+          connection.remove_index("testings", :name => :index_testings_on_last_name_and_first_name)
           connection.add_index("testings", ["last_name", "first_name"])
-          connection.remove_index("testings", ["last_name", "first_name"])
-
-          connection.add_index("testings", ["last_name"], :length => 10)
-          connection.remove_index("testings", "last_name")
-
-          connection.add_index("testings", ["last_name"], :length => {:last_name => 10})
-          connection.remove_index("testings", ["last_name"])
-
-          connection.add_index("testings", ["last_name", "first_name"], :length => 10)
-          connection.remove_index("testings", ["last_name", "first_name"])
-
-          connection.add_index("testings", ["last_name", "first_name"], :length => {:last_name => 10, :first_name => 20})
-          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.remove_index("testings", "last_name_and_first_name")
         end
+        connection.add_index("testings", ["last_name", "first_name"])
+        connection.remove_index("testings", ["last_name", "first_name"])
 
-        # quoting
-        # Note: changed index name from "key" to "key_idx" since "key" is a Firebird reserved word
-        # OpenBase does not have named indexes.  You must specify a single column name
-        unless current_adapter?(:OpenBaseAdapter)
-          connection.add_index("testings", ["key"], :name => "key_idx", :unique => true)
-          connection.remove_index("testings", :name => "key_idx", :unique => true)
-        end
+        connection.add_index("testings", ["last_name"], :length => 10)
+        connection.remove_index("testings", "last_name")
 
-        # Sybase adapter does not support indexes on :boolean columns
-        # OpenBase does not have named indexes.  You must specify a single column
-        unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter)
-          connection.add_index("testings", %w(last_name first_name administrator), :name => "named_admin")
-          connection.remove_index("testings", :name => "named_admin")
-        end
+        connection.add_index("testings", ["last_name"], :length => {:last_name => 10})
+        connection.remove_index("testings", ["last_name"])
+
+        connection.add_index("testings", ["last_name", "first_name"], :length => 10)
+        connection.remove_index("testings", ["last_name", "first_name"])
+
+        connection.add_index("testings", ["last_name", "first_name"], :length => {:last_name => 10, :first_name => 20})
+        connection.remove_index("testings", ["last_name", "first_name"])
+
+        connection.add_index("testings", ["key"], :name => "key_idx", :unique => true)
+        connection.remove_index("testings", :name => "key_idx", :unique => true)
+
+        connection.add_index("testings", %w(last_name first_name administrator), :name => "named_admin")
+        connection.remove_index("testings", :name => "named_admin")
 
         # Selected adapters support index sort order
         if current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
