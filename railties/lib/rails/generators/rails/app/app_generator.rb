@@ -194,9 +194,14 @@ module Rails
         build(:bin)
       end
 
+      def create_config_files
+        build(:config)
+      end
+
       def update_config_files
         build(:config_when_updating)
       end
+      remove_task :update_config_files
 
       def create_boot_file
         template "config/boot.rb"

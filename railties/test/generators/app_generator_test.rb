@@ -138,6 +138,42 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
   end
 
+  def test_new_application_use_json_serialzier
+    run_generator
+
+    assert_file("config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
+  end
+
+  def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+    generator.send(:app_const)
+    quietly { generator.send(:update_config_files) }
+    assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
+  end
+
+  def test_rails_update_set_the_cookie_serializer_to_marchal_if_it_is_not_already_configured
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    FileUtils.rm("#{app_root}/config/initializers/cookies_serializer.rb")
+
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+    generator.send(:app_const)
+    quietly { generator.send(:update_config_files) }
+    assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :marshal/)
+  end
+
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
