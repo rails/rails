@@ -97,18 +97,6 @@ module ActiveRecord
 
         private
 
-        def simplified_type(field_type)
-          return :boolean if adapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
-
-          case field_type
-          when /enum/i, /set/i then :string
-          when /year/i         then :integer
-          when /bit/i          then :binary
-          else
-            super
-          end
-        end
-
         def extract_limit(sql_type)
           case sql_type
           when /^enum\((.+)\)/i
@@ -317,6 +305,11 @@ module ActiveRecord
       end
 
       # DATABASE STATEMENTS ======================================
+
+      def clear_cache!
+        super
+        reload_type_map
+      end
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
@@ -644,6 +637,15 @@ module ActiveRecord
       end
 
       protected
+
+      def initialize_type_map(m)
+        super
+        m.alias_type %r(tinyint\(1\))i,  'boolean' if emulate_booleans
+        m.alias_type %r(enum)i,          'varchar'
+        m.alias_type %r(set)i,           'varchar'
+        m.alias_type %r(year)i,          'integer'
+        m.alias_type %r(bit)i,           'binary'
+      end
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
       # to give it some prompting in the form of a subsubquery. Ugh!

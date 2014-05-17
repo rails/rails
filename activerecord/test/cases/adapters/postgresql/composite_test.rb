@@ -85,7 +85,6 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
 
   class FullAddressType
     def type; :full_address end
-    def simplified_type(sql_type); type end
 
     def type_cast(value)
       if value =~ /\("?([^",]*)"?,"?([^",]*)"?\)/
