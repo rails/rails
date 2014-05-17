@@ -1,3 +1,5 @@
+require 'active_record/connection_adapters/type/timestamp'
+
 module ActiveRecord
   module ConnectionAdapters
     module Type
