@@ -1,3 +1,11 @@
+*   Restrict deletion of record when using `delete_all` with `uniq`, `group`, `having`
+    or `offset`.
+
+    I these cases the generated query ignores them and that causes unintended
+    records to be deleted.
+
+    *Leandro Facchinetti*
+
 *   Floats with limit >= 25 that get turned into doubles in MySQL no longer have
     their limit dropped from the schema.
 
