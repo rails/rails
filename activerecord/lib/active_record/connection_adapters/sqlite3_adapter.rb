@@ -394,7 +394,9 @@ module ActiveRecord
             field["dflt_value"] = $1.gsub('""', '"')
           end
 
-          SQLite3Column.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)
+          sql_type = field['type']
+          cast_type = lookup_cast_type(sql_type)
+          SQLite3Column.new(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
         end
       end
 

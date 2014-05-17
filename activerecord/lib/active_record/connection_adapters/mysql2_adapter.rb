@@ -69,8 +69,9 @@ module ActiveRecord
         end
       end
 
-      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?, extra)
+      def new_column(field, default, sql_type, null, collation, extra = "") # :nodoc:
+        cast_type = lookup_cast_type(sql_type)
+        Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
       def error_number(exception)

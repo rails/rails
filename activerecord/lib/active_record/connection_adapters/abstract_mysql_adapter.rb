@@ -56,11 +56,11 @@ module ActiveRecord
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation, :strict, :extra
 
-        def initialize(name, default, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
+        def initialize(name, default, cast_type, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
           @strict    = strict
           @collation = collation
           @extra     = extra
-          super(name, default, sql_type, null)
+          super(name, default, cast_type, sql_type, null)
         end
 
         def extract_default(default)
@@ -263,8 +263,9 @@ module ActiveRecord
       end
 
       # Overridden by the adapters to instantiate their specific Column type.
-      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        Column.new(field, default, type, null, collation, extra)
+      def new_column(field, default, sql_type, null, collation, extra = "") # :nodoc:
+        cast_type = lookup_cast_type(sql_type)
+        Column.new(field, default, cast_type, sql_type, null, collation, extra)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an

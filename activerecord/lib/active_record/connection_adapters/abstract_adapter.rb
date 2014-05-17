@@ -3,6 +3,7 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
+require 'active_record/connection_adapters/type'
 require 'active_record/connection_adapters/abstract/schema_dumper'
 require 'active_record/connection_adapters/abstract/schema_creation'
 require 'monitor'
@@ -361,6 +362,10 @@ module ActiveRecord
       end
 
       protected
+
+      def lookup_cast_type(sql_type) # :nodoc:
+        Type::Value.new
+      end
 
       def translate_exception_class(e, sql)
         message = "#{e.class.name}: #{e.message}: #{sql}"
