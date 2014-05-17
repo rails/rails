@@ -37,9 +37,9 @@ module ActiveModel
       #   user.save                                                       # => false, confirmation doesn't match
       #   user.password_confirmation = 'mUc3m00RsqyRe'
       #   user.save                                                       # => true
-      #   user.authenticate('notright')                                   # => false
+      #   user.authenticate('notright')                                   # => nil
       #   user.authenticate('mUc3m00RsqyRe')                              # => user
-      #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
+      #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => nil
       #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
       def has_secure_password(options = {})
         # Load bcrypt gem only when has_secure_password is used.
@@ -77,7 +77,7 @@ module ActiveModel
     end
 
     module InstanceMethodsOnActivation
-      # Returns +self+ if the password is correct, otherwise +false+.
+      # Returns +self+ if the password is correct, otherwise +nil+.
       #
       #   class User < ActiveRecord::Base
       #     has_secure_password validations: false
@@ -85,10 +85,10 @@ module ActiveModel
       #
       #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
       #   user.save
-      #   user.authenticate('notright')      # => false
+      #   user.authenticate('notright')      # => nil
       #   user.authenticate('mUc3m00RsqyRe') # => user
       def authenticate(unencrypted_password)
-        BCrypt::Password.new(password_digest) == unencrypted_password && self
+        BCrypt::Password.new(password_digest) == unencrypted_password ? self : nil
       end
 
       # Encrypts the password into the +password_digest+ attribute, only if the
