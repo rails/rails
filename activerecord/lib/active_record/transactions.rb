@@ -356,7 +356,7 @@ module ActiveRecord
       force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
     end
 
-    # Force to clear the teansaction record state.
+    # Force to clear the transaction record state.
     def force_clear_transaction_record_state #:nodoc:
       @_start_transaction_state.clear
     end
