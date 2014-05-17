@@ -2,13 +2,21 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID
-        class Identity < Type::Value
+        class Type < Type::Value
+          def infinity(options = {})
+            ::Float::INFINITY * (options[:negative] ? -1 : 1)
+          end
+        end
+
+        class Identity < Type
           def type_cast(value)
             value
           end
         end
 
-        class String < Type::String
+        class String < Type
+          def type; :string end
+
           def type_cast(value)
             return if value.nil?
 
@@ -28,7 +36,9 @@ module ActiveRecord
           def type; :text end
         end
 
-        class Bit < Type::String
+        class Bit < Type
+          def type; :string end
+
           def type_cast(value)
             if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_bit value
@@ -38,14 +48,18 @@ module ActiveRecord
           end
         end
 
-        class Bytea < Type::Binary
+        class Bytea < Type
+          def type; :binary end
+
           def type_cast(value)
             return if value.nil?
             PGconn.unescape_bytea value
           end
         end
 
-        class Money < Type::Decimal
+        class Money < Type
+          def type; :decimal end
+
           def type_cast(value)
             return if value.nil?
             return value unless ::String === value
@@ -70,7 +84,7 @@ module ActiveRecord
           end
         end
 
-        class Vector < Type::Value
+        class Vector < Type
           attr_reader :delim, :subtype
 
           # +delim+ corresponds to the `typdelim` column in the pg_types
@@ -89,7 +103,9 @@ module ActiveRecord
           end
         end
 
-        class Point < Type::String
+        class Point < Type
+          def type; :string end
+
           def type_cast(value)
             if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_point value
@@ -99,7 +115,7 @@ module ActiveRecord
           end
         end
 
-        class Array < Type::Value
+        class Array < Type
           def type; @subtype.type end
 
           attr_reader :subtype
@@ -116,12 +132,12 @@ module ActiveRecord
           end
         end
 
-        class Range < Type::Value
+        class Range < Type
           attr_reader :subtype, :type
 
           def initialize(subtype, type)
             @subtype = subtype
-            @type = type.to_sym
+            @type = type
           end
 
           def extract_bounds(value)
@@ -165,7 +181,9 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Integer < Type::Integer
+        class Integer < Type
+          def type; :integer end
+
           def type_cast(value)
             return if value.nil?
 
@@ -173,7 +191,9 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Boolean < Type::Boolean
+        class Boolean < Type
+          def type; :boolean end
+
           def type_cast(value)
             return if value.nil?
 
@@ -181,7 +201,9 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Timestamp < Type::DateTime
+        class Timestamp < Type
+          def type; :datetime; end
+
           def type_cast(value)
             return if value.nil?
 
@@ -191,7 +213,9 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Date < Type::Date
+        class Date < Type
+          def type; :date; end
+
           def type_cast(value)
             return if value.nil?
 
@@ -201,7 +225,9 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Time < Type::Time
+        class Time < Type
+          def type; :time end
+
           def type_cast(value)
             return if value.nil?
 
@@ -211,7 +237,9 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Float < Type::Float
+        class Float < Type
+          def type; :float end
+
           def type_cast(value)
             case value
               when nil;         nil
@@ -224,7 +252,9 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Decimal < Type::Decimal
+        class Decimal < Type
+          def type; :decimal end
+
           def type_cast(value)
             return if value.nil?
 
@@ -236,7 +266,7 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Enum < Type::Value
+        class Enum < Type
           def type; :enum end
 
           def type_cast(value)
@@ -244,7 +274,7 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Hstore < Type::Value
+        class Hstore < Type
           def type; :hstore end
 
           def type_cast_for_write(value)
@@ -262,7 +292,7 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Cidr < Type::Value
+        class Cidr < Type
           def type; :cidr end
           def type_cast(value)
             return if value.nil?
@@ -270,12 +300,11 @@ This is not reliable and will be removed in the future.
             ConnectionAdapters::PostgreSQLColumn.string_to_cidr value
           end
         end
-
         class Inet < Cidr
           def type; :inet end
         end
 
-        class Json < Type::Value
+        class Json < Type
           def type; :json end
 
           def type_cast_for_write(value)
@@ -293,7 +322,7 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Uuid < Type::Value
+        class Uuid < Type
           def type; :uuid end
           def type_cast(value)
             value.presence
@@ -380,7 +409,7 @@ This is not reliable and will be removed in the future.
 
           def register_range_type(row)
             if subtype = @store[row['rngsubtype'].to_i]
-              register row['oid'], OID::Range.new(subtype, row['typname'])
+              register row['oid'], OID::Range.new(subtype, row['typname'].to_sym)
             end
           end
 
