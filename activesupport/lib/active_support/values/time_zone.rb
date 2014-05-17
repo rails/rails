@@ -188,16 +188,72 @@ module ActiveSupport
 
     @lazy_zones_map = ThreadSafe::Cache.new
 
-    # Assumes self represents an offset from UTC in seconds (as returned from
-    # Time#utc_offset) and turns this into an +HH:MM formatted string.
-    #
-    #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
-    def self.seconds_to_utc_offset(seconds, colon = true)
-      format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
-      sign = (seconds < 0 ? '-' : '+')
-      hours = seconds.abs / 3600
-      minutes = (seconds.abs % 3600) / 60
-      format % [sign, hours, minutes]
+    class << self
+      # Assumes self represents an offset from UTC in seconds (as returned from
+      # Time#utc_offset) and turns this into an +HH:MM formatted string.
+      #
+      #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
+      def seconds_to_utc_offset(seconds, colon = true)
+        format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
+        sign = (seconds < 0 ? '-' : '+')
+        hours = seconds.abs / 3600
+        minutes = (seconds.abs % 3600) / 60
+        format % [sign, hours, minutes]
+      end
+
+      def find_tzinfo(name)
+        TZInfo::TimezoneProxy.new(MAPPING[name] || name)
+      end
+
+      alias_method :create, :new
+
+      # Returns a TimeZone instance with the given name, or +nil+ if no
+      # such TimeZone instance exists. (This exists to support the use of
+      # this class with the +composed_of+ macro.)
+      def new(name)
+        self[name]
+      end
+
+      # Returns an array of all TimeZone objects. There are multiple
+      # TimeZone objects per time zone, in many cases, to make it easier
+      # for users to find their own time zone.
+      def all
+        @zones ||= zones_map.values.sort
+      end
+
+      def zones_map
+        @zones_map ||= begin
+          MAPPING.each_key {|place| self[place]} # load all the zones
+          @lazy_zones_map
+        end
+      end
+
+      # Locate a specific time zone object. If the argument is a string, it
+      # is interpreted to mean the name of the timezone to locate. If it is a
+      # numeric value it is either the hour offset, or the second offset, of the
+      # timezone to find. (The first one with that offset will be returned.)
+      # Returns +nil+ if no such time zone is known to the system.
+      def [](arg)
+        case arg
+          when String
+          begin
+            @lazy_zones_map[arg] ||= create(arg).tap { |tz| tz.utc_offset }
+          rescue TZInfo::InvalidTimezoneIdentifier
+            nil
+          end
+          when Numeric, ActiveSupport::Duration
+            arg *= 3600 if arg.abs <= 13
+            all.find { |z| z.utc_offset == arg.to_i }
+          else
+            raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
+        end
+      end
+
+      # A convenience method for returning a collection of TimeZone objects
+      # for time zones in the USA.
+      def us_zones
+        @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
+      end
     end
 
     include Comparable
@@ -361,66 +417,9 @@ module ActiveSupport
       tzinfo.periods_for_local(time)
     end
 
-    def self.find_tzinfo(name)
-      TZInfo::TimezoneProxy.new(MAPPING[name] || name)
-    end
-
-    class << self
-      alias_method :create, :new
-
-      # Returns a TimeZone instance with the given name, or +nil+ if no
-      # such TimeZone instance exists. (This exists to support the use of
-      # this class with the +composed_of+ macro.)
-      def new(name)
-        self[name]
-      end
-
-      # Returns an array of all TimeZone objects. There are multiple
-      # TimeZone objects per time zone, in many cases, to make it easier
-      # for users to find their own time zone.
-      def all
-        @zones ||= zones_map.values.sort
-      end
-
-      def zones_map
-        @zones_map ||= begin
-          MAPPING.each_key {|place| self[place]} # load all the zones
-          @lazy_zones_map
-        end
-      end
-
-      # Locate a specific time zone object. If the argument is a string, it
-      # is interpreted to mean the name of the timezone to locate. If it is a
-      # numeric value it is either the hour offset, or the second offset, of the
-      # timezone to find. (The first one with that offset will be returned.)
-      # Returns +nil+ if no such time zone is known to the system.
-      def [](arg)
-        case arg
-          when String
-          begin
-            @lazy_zones_map[arg] ||= create(arg).tap { |tz| tz.utc_offset }
-          rescue TZInfo::InvalidTimezoneIdentifier
-            nil
-          end
-          when Numeric, ActiveSupport::Duration
-            arg *= 3600 if arg.abs <= 13
-            all.find { |z| z.utc_offset == arg.to_i }
-          else
-            raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
-        end
-      end
-
-      # A convenience method for returning a collection of TimeZone objects
-      # for time zones in the USA.
-      def us_zones
-        @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
-      end
-    end
-
     private
-
-    def time_now
-      Time.now
-    end
+      def time_now
+        Time.now
+      end
   end
 end
