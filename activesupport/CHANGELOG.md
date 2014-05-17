@@ -1,3 +1,8 @@
+*   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
+    when a subscriber method is redefined.
+
+    *Dennis Schön*
+
 *   Remove deprecated string based terminators for `ActiveSupport::Callbacks`.
 
     *Eileen M. Uchitelle*
