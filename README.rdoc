@@ -11,6 +11,21 @@ one of the most common jobs in a modern web application: Sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it.
 
 
+== Supported queueing systems
+
+We currently have adapters for:
+
+* Resque 1.x
+* Sidekiq
+* Sucker Punch
+
+We would like to have adapters for:
+
+* Delayed Job
+* beanstalkd
+* rabbitmq
+
+
 == Under development as a gem, targeted for Rails inclusion
 
 Active Job is currently being developed in a separate repository until it's
