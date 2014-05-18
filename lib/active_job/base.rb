@@ -1,5 +1,7 @@
 require 'active_job/queue_adapters/inline_adapter'
 require 'active_job/queue_adapters/resque_adapter'
+require 'active_job/queue_adapters/sidekiq_adapter'
+require 'active_job/queue_adapters/sucker_punch_adapter'
 
 module ActiveJob
   class Base

@@ -22,12 +22,12 @@ task :default => :test
 
 desc 'Run all adapter tests'
 task :test do
-  tasks = %w(test_inline test_resque)
+  tasks = %w(test_inline test_resque test_sidekiq test_sucker_punch)
   run_without_aborting(*tasks)
 end
 
 
-%w( inline resque ).each do |adapter|
+%w( inline resque sidekiq sucker_punch).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") do |t|
     t.libs << 'test'
     t.test_files = FileList['test/cases/**/*_test.rb']
