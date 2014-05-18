@@ -2,6 +2,8 @@ module ActiveRecord
   module ConnectionAdapters
     module Type
       class TypeMap # :nodoc:
+        delegate :key?, to: :@mapping
+
         def initialize
           @mapping = {}
           @default_value = Value.new
@@ -42,6 +44,10 @@ module ActiveRecord
 
         def clear
           @mapping.clear
+        end
+
+        def fetch(key, &block)
+          @mapping.fetch(key, block).call(key)
         end
       end
     end

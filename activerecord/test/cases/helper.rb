@@ -181,6 +181,10 @@ class SQLSubscriber
   end
 
   def finish(name, id, payload); end
+
+  def payload_with_sql(sql)
+    payloads.find { |p| p[:sql] == sql }
+  end
 end
 
 module InTimeZone

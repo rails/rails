@@ -95,6 +95,24 @@ module ActiveRecord
             mapping.register_type(/only key/i)
           end
         end
+
+        def test_fetch_with_key
+          string = String.new
+          mapping = TypeMap.new
+
+          mapping.register_type(0, string)
+
+          assert_equal mapping.fetch(0), string
+        end
+
+        def test_fetch_with_missing
+          mapping = TypeMap.new
+
+          result = mapping.fetch(0) do |key|
+            "block called with #{key}"
+          end
+          assert_equal result, "block called with 0"
+        end
       end
     end
   end
