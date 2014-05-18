@@ -643,6 +643,8 @@ class RespondWithControllerTest < ActionController::TestCase
     get :index, format: 'csv'
     assert_equal Mime::CSV, @response.content_type
     assert_equal "c,s,v", @response.body
+  ensure
+    ActionController::Renderers.remove :csv
   end
 
   def test_raises_missing_renderer_if_an_api_behavior_with_no_renderer
@@ -650,6 +652,23 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_raise ActionController::MissingRenderer do
       get :index, format: 'csv'
     end
+  end
+
+  def test_removing_renderers
+    ActionController::Renderers.add :csv do |obj, options|
+      send_data obj.to_csv, type: Mime::CSV
+    end
+    @controller = CsvRespondWithController.new
+    @request.accept = "text/csv"
+    get :index, format: 'csv'
+    assert_equal Mime::CSV, @response.content_type
+
+    ActionController::Renderers.remove :csv
+    assert_raise ActionController::MissingRenderer do
+      get :index, format: 'csv'
+    end
+  ensure
+    ActionController::Renderers.remove :csv
   end
 
   def test_error_is_raised_if_no_respond_to_is_declared_and_respond_with_is_called

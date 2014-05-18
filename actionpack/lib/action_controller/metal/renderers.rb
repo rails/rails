@@ -6,6 +6,11 @@ module ActionController
     Renderers.add(key, &block)
   end
 
+  # See <tt>Renderers.remove</tt>
+  def self.remove_renderer(key)
+    Renderers.remove(key)
+  end
+
   class MissingRenderer < LoadError
     def initialize(format)
       super "No renderer defined for format: #{format}"
@@ -81,6 +86,17 @@ module ActionController
     def self.add(key, &block)
       define_method("_render_option_#{key}", &block)
       RENDERERS << key.to_sym
+    end
+
+    # This method is the opposite of add method.
+    #
+    # Usage:
+    #
+    #   ActionController::Renderers.remove(:csv)
+    def self.remove(key)
+      RENDERERS.delete(key.to_sym)
+      method = "_render_option_#{key}"
+      remove_method(method) if method_defined?(method)
     end
 
     module All
