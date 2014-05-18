@@ -204,11 +204,8 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Timestamp < Type
-          def type; :timestamp; end
-          def simplified_type(sql_type)
-            :datetime
-          end
+        class DateTime < Type
+          def type; :datetime; end
 
           def type_cast(value)
             return if value.nil?
@@ -483,7 +480,7 @@ This is not reliable and will be removed in the future.
         register_type 'bool', OID::Boolean.new
         register_type 'bit', OID::Bit.new
         alias_type 'varbit', 'bit'
-        register_type 'timestamp', OID::Timestamp.new
+        register_type 'timestamp', OID::DateTime.new
         alias_type 'timestamptz', 'timestamp'
         register_type 'date', OID::Date.new
         register_type 'time', OID::Time.new
