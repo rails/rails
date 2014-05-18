@@ -1,9 +1,11 @@
+require 'resque'
+
 module ActiveJob
   module QueueAdapters
-    class InlineQueue
+    class ResqueAdapter
       class << self
         def queue(job, *args)
-          job.perform *args
+          Resque.enqueue(job, *args)
         end
       end
     end

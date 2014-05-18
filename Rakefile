@@ -2,13 +2,44 @@ dir = File.dirname(__FILE__)
 
 require 'rake/testtask'
 
+def run_without_aborting(*tasks)
+  errors = []
+
+  tasks.each do |task|
+    begin
+      Rake::Task[task].invoke
+    rescue Exception
+      errors << task
+    end
+  end
+
+  abort "Errors running #{errors.join(', ')}" if errors.any?
+end
+
+
+
 task :default => :test
 
-Rake::TestTask.new do |t|
-  t.libs << "test"
-  t.test_files = Dir.glob("#{dir}/test/cases/**/*_test.rb").sort
-  t.warning = true
-  t.verbose = true
+desc 'Run all adapter tests'
+task :test do
+  tasks = %w(test_inline test_resque)
+  run_without_aborting(*tasks)
+end
+
+
+%w( inline resque ).each do |adapter|
+  Rake::TestTask.new("test_#{adapter}") do |t|
+    t.libs << 'test'
+    t.test_files = FileList['test/cases/**/*_test.rb']
+    t.verbose = true
+  end
+
+  namespace adapter do
+    task :test => "test_#{adapter}"
+    task(:env) { ENV['AJADAPTER'] = adapter }
+  end
+
+  task "test_#{adapter}" => "#{adapter}:env"
 end
 
 require 'rubygems/package_task'
