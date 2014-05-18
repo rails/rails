@@ -1,3 +1,5 @@
+require 'active_support/dependencies/autoload'
+
 module ActiveSupport
   module NumberHelper
     extend ActiveSupport::Autoload
