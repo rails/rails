@@ -1,0 +1,1 @@
+ActiveJob::Base.adapter = :inline

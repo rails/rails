@@ -1,2 +1,2 @@
-ActiveJob::Base.queue_adapter = ActiveJob::QueueAdapters::ResqueAdapter
+ActiveJob::Base.adapter = :resque
 Resque.inline = true
