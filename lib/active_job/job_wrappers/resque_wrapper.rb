@@ -13,14 +13,8 @@ module ActiveJob
           [ new(job), *args.prepend(job) ]
         end
 
-        def perform(*args)
-          unwrapped_job = args.first.constantize
-          
-          if args.many?
-            unwrapped_job.perform *args.from(1)
-          else
-            unwrapped_job.perform
-          end
+        def perform(job_name, *args)
+          job_name.constantize.perform(*args)
         end
       end
 
