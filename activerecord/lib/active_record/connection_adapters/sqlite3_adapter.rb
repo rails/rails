@@ -41,14 +41,14 @@ module ActiveRecord
   end
 
   module ConnectionAdapters #:nodoc:
-    class SQLite3Column < Column #:nodoc:
-      class <<  self
-        def binary_to_string(value)
-          if value.encoding != Encoding::ASCII_8BIT
-            value = value.force_encoding(Encoding::ASCII_8BIT)
-          end
-          value
+    class SQLite3Binary < Type::Binary #:nodoc:
+      private
+
+      def cast_value(value)
+        if value.encoding != Encoding::ASCII_8BIT
+          value = value.force_encoding(Encoding::ASCII_8BIT)
         end
+        value
       end
     end
 
@@ -396,7 +396,7 @@ module ActiveRecord
 
           sql_type = field['type']
           cast_type = lookup_cast_type(sql_type)
-          SQLite3Column.new(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
+          Column.new(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
         end
       end
 
@@ -503,6 +503,12 @@ module ActiveRecord
       end
 
       protected
+
+        def initialize_type_map(mapping) # :nodoc:
+          super
+          mapping.register_type(/binary/i, SQLite3Binary.new)
+        end
+
         def select(sql, name = nil, binds = []) #:nodoc:
           exec_query(sql, name, binds)
         end

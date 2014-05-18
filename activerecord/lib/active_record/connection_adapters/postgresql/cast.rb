@@ -13,19 +13,6 @@ module ActiveRecord
           string.split(',').map{ |v| Float(v) }
         end
 
-        def string_to_time(string) # :nodoc:
-          return string unless String === string
-
-          case string
-          when 'infinity'; Float::INFINITY
-          when '-infinity'; -Float::INFINITY
-          when / BC$/
-            super("-" + string.sub(/ BC$/, ""))
-          else
-            super
-          end
-        end
-
         def string_to_bit(value) # :nodoc:
           case value
           when /^0x/i

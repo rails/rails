@@ -66,35 +66,6 @@ module ActiveRecord
     # * <tt>:sslcipher</tt> - Necessary to use MySQL with an SSL connection.
     #
     class MysqlAdapter < AbstractMysqlAdapter
-
-      class Column < AbstractMysqlAdapter::Column #:nodoc:
-        def self.string_to_time(value)
-          return super unless Mysql::Time === value
-          new_time(
-            value.year,
-            value.month,
-            value.day,
-            value.hour,
-            value.minute,
-            value.second,
-            value.second_part)
-        end
-
-        def self.string_to_dummy_time(v)
-          return super unless Mysql::Time === v
-          new_time(2000, 01, 01, v.hour, v.minute, v.second, v.second_part)
-        end
-
-        def self.string_to_date(v)
-          return super unless Mysql::Time === v
-          new_date(v.year, v.month, v.day)
-        end
-
-        def adapter
-          MysqlAdapter
-        end
-      end
-
       ADAPTER_NAME = 'MySQL'
 
       class StatementPool < ConnectionAdapters::StatementPool
@@ -154,11 +125,6 @@ module ActiveRecord
         else
           to_enum(:each_hash, result)
         end
-      end
-
-      def new_column(field, default, sql_type, null, collation, extra = "") # :nodoc:
-        cast_type = lookup_cast_type(sql_type)
-        Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
       def error_number(exception) # :nodoc:
@@ -297,85 +263,35 @@ module ActiveRecord
       end
 
       module Fields
-        class Type
-          def type; end
+        class DateTime < Type::DateTime
+          private
 
-          def type_cast_for_write(value)
-            value
+          def cast_value(value)
+            return super unless Mysql::Time === value
+            new_time(
+              value.year,
+              value.month,
+              value.day,
+              value.hour,
+              value.minute,
+              value.second,
+              value.second_part)
           end
         end
 
-        class Identity < Type
-          def type_cast(value); value; end
-        end
+        class Time < Type::Time
+          private
 
-        class Integer < Type
-          def type_cast(value)
-            return if value.nil?
-
-            value.to_i rescue value ? 1 : 0
-          end
-        end
-
-        class Date < Type
-          def type; :date; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is mysql
-            # specific
-            ConnectionAdapters::Column.value_to_date value
-          end
-        end
-
-        class DateTime < Type
-          def type; :datetime; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is mysql
-            # specific
-            ConnectionAdapters::Column.string_to_time value
-          end
-        end
-
-        class Time < Type
-          def type; :time; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is mysql
-            # specific
-            ConnectionAdapters::Column.string_to_dummy_time value
-          end
-        end
-
-        class Float < Type
-          def type; :float; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            value.to_f
-          end
-        end
-
-        class Decimal < Type
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_decimal value
-          end
-        end
-
-        class Boolean < Type
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_boolean value
+          def cast_value(value)
+            return super unless Mysql::Time === value
+            new_time(
+              2000,
+              01,
+              01,
+              value.hour,
+              value.minute,
+              value.second,
+              value.second_part)
           end
         end
 
@@ -395,27 +311,33 @@ module ActiveRecord
           if field.type == Mysql::Field::TYPE_TINY && field.length > 1
             TYPES[Mysql::Field::TYPE_LONG]
           else
-            TYPES.fetch(field.type) { Fields::Identity.new }
+            TYPES.fetch(field.type) { Type::Value.new }
           end
         end
 
-        register_type Mysql::Field::TYPE_TINY,    Fields::Boolean.new
-        register_type Mysql::Field::TYPE_LONG,    Fields::Integer.new
+        register_type Mysql::Field::TYPE_TINY,    Type::Boolean.new
+        register_type Mysql::Field::TYPE_LONG,    Type::Integer.new
         alias_type Mysql::Field::TYPE_LONGLONG,   Mysql::Field::TYPE_LONG
         alias_type Mysql::Field::TYPE_NEWDECIMAL, Mysql::Field::TYPE_LONG
 
-        register_type Mysql::Field::TYPE_VAR_STRING, Fields::Identity.new
-        register_type Mysql::Field::TYPE_BLOB, Fields::Identity.new
-        register_type Mysql::Field::TYPE_DATE, Fields::Date.new
+        register_type Mysql::Field::TYPE_VAR_STRING, Type::Value.new
+        register_type Mysql::Field::TYPE_BLOB, Type::Value.new
+        register_type Mysql::Field::TYPE_DATE, Type::Date.new
         register_type Mysql::Field::TYPE_DATETIME, Fields::DateTime.new
         register_type Mysql::Field::TYPE_TIME, Fields::Time.new
-        register_type Mysql::Field::TYPE_FLOAT, Fields::Float.new
+        register_type Mysql::Field::TYPE_FLOAT, Type::Float.new
 
         Mysql::Field.constants.grep(/TYPE/).map { |class_name|
           Mysql::Field.const_get class_name
         }.reject { |const| TYPES.key? const }.each do |const|
-          register_type const, Fields::Identity.new
+          register_type const, Type::Value.new
         end
+      end
+
+      def initialize_type_map(mapping) # :nodoc:
+        super
+        mapping.register_type(/time/i, Fields::Time.new)
+        mapping.register_type(/datetime/i, Fields::DateTime.new)
       end
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:
@@ -433,7 +355,7 @@ module ActiveRecord
               fields << field_name
 
               if field.decimals > 0
-                types[field_name] = Fields::Decimal.new
+                types[field_name] = Type::Decimal.new
               else
                 types[field_name] = Fields.find_type field
               end
