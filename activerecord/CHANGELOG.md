@@ -1,3 +1,7 @@
+*   Implemented ActiveRecord::Base#pretty_print to work with PP.
+
+    *Ethan*
+
 *   Keep PostgreSQL `hstore` and `json` attributes as `Hash` in `@attributes`.
     Fixes duplication in combination with `store_accessor`.
 
