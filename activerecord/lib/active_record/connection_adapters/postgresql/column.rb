@@ -6,16 +6,15 @@ module ActiveRecord
     class PostgreSQLColumn < Column #:nodoc:
       attr_accessor :array
 
-      def initialize(name, default, oid_type, sql_type = nil, null = true)
-        @oid_type = oid_type
+      def initialize(name, default, cast_type, sql_type = nil, null = true)
         default_value     = self.class.extract_value_from_default(default)
 
         if sql_type =~ /\[\]$/
           @array = true
-          super(name, default_value, oid_type, sql_type[0..sql_type.length - 3], null)
+          super(name, default_value, cast_type, sql_type[0..sql_type.length - 3], null)
         else
           @array = false
-          super(name, default_value, oid_type, sql_type, null)
+          super(name, default_value, cast_type, sql_type, null)
         end
 
         @default_function = default if has_default_function?(default_value, default)
@@ -116,22 +115,15 @@ module ActiveRecord
       # see ActiveRecord::ConnectionAdapters::Class#type_cast_for_write
       # see ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::Type
       def type_cast_for_write(value)
-        if @oid_type.respond_to?(:type_cast_for_write)
-          @oid_type.type_cast_for_write(value)
+        if cast_type.respond_to?(:type_cast_for_write)
+          cast_type.type_cast_for_write(value)
         else
           super
         end
       end
 
-      def type_cast(value)
-        return if value.nil?
-        return super if encoded?
-
-        @oid_type.type_cast value
-      end
-
       def accessor
-        @oid_type.accessor
+        cast_type.accessor
       end
 
       private
@@ -164,11 +156,6 @@ module ActiveRecord
           else
             super
           end
-        end
-
-        # Maps PostgreSQL-specific data types to logical Rails types.
-        def simplified_type(field_type)
-          @oid_type.simplified_type(field_type) || super
         end
     end
   end

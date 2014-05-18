@@ -1,18 +1,15 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Value # :nodoc:
-        def type; end
-
-        def type_cast(value)
-          return nil if value.nil?
-          cast_value(value)
+      class Float < Value # :nodoc:
+        def type
+          :float
         end
 
         private
 
         def cast_value(value)
-          value
+          value.to_f
         end
       end
     end

@@ -97,18 +97,6 @@ module ActiveRecord
 
         private
 
-        def simplified_type(field_type)
-          return :boolean if adapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
-
-          case field_type
-          when /enum/i, /set/i then :string
-          when /year/i         then :integer
-          when /bit/i          then :binary
-          else
-            super
-          end
-        end
-
         def extract_limit(sql_type)
           case sql_type
           when /^enum\((.+)\)/i
@@ -262,10 +250,9 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      # Overridden by the adapters to instantiate their specific Column type.
       def new_column(field, default, sql_type, null, collation, extra = "") # :nodoc:
         cast_type = lookup_cast_type(sql_type)
-        Column.new(field, default, cast_type, sql_type, null, collation, extra)
+        Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
@@ -317,6 +304,11 @@ module ActiveRecord
       end
 
       # DATABASE STATEMENTS ======================================
+
+      def clear_cache!
+        super
+        reload_type_map
+      end
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
@@ -644,6 +636,15 @@ module ActiveRecord
       end
 
       protected
+
+      def initialize_type_map(mapping)
+        super
+        mapping.alias_type(/tinyint\(1\)/i, 'boolean') if emulate_booleans
+        mapping.alias_type(/enum/i, 'varchar')
+        mapping.alias_type(/set/i, 'varchar')
+        mapping.alias_type(/year/i, 'integer')
+        mapping.alias_type(/bit/i, 'binary')
+      end
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
       # to give it some prompting in the form of a subsubquery. Ugh!
