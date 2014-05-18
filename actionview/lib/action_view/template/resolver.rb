@@ -196,7 +196,7 @@ module ActionView
       }
     end
 
-    if File.const_defined? :FNM_EXTGLOB
+    if RUBY_VERSION >= '2.2.0'
       def find_template_paths(query)
         Dir[query].reject { |filename|
           File.directory?(filename) ||
