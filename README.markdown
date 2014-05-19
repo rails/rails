@@ -206,7 +206,7 @@ users.
 When your query is too complex for `Arel`, you can use `Arel::SqlLiteral`:
 
 ```ruby
-photo_clicks =Arel::Nodes::SqlLiteral.new(<<-SQL
+photo_clicks = Arel::Nodes::SqlLiteral.new(<<-SQL
     CASE WHEN condition1 THEN calculation1
     WHEN condition2 THEN calculation2
     WHEN condition3 THEN calculation3
