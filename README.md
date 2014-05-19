@@ -47,7 +47,7 @@ you then have to manually deserialize. Before, jobs would look like this:
 
 ```ruby
 class TrashableCleanupJob
-  def perfom(trashable_class, trashable_id, depth)
+  def perform(trashable_class, trashable_id, depth)
     trashable = trashable_class.constantize.find(trashable_id)
     trashable.cleanup(depth)
   end
@@ -58,7 +58,7 @@ Now you can simply do:
 
 ```ruby
 class TrashableCleanupJob
-  def perfom(trashable, depth)
+  def perform(trashable, depth)
     trashable.cleanup(depth)
   end
 end
