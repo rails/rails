@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
 
+require 'active_record/connection_adapters/postgresql/utils'
 require 'active_record/connection_adapters/postgresql/column'
 require 'active_record/connection_adapters/postgresql/oid'
 require 'active_record/connection_adapters/postgresql/quoting'

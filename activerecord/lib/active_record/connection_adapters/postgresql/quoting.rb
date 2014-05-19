@@ -150,13 +150,11 @@ module ActiveRecord
         # - "schema.name".table_name
         # - "schema.name"."table.name"
         def quote_table_name(name)
-          schema, name_part = extract_pg_identifier_from_name(name.to_s)
-
-          unless name_part
-            quote_column_name(schema)
+          schema, table = Utils.extract_schema_and_table(name.to_s)
+          if schema
+            "#{quote_column_name(schema)}.#{quote_column_name(table)}"
           else
-            table_name, name_part = extract_pg_identifier_from_name(name_part)
-            "#{quote_column_name(schema)}.#{quote_column_name(table_name)}"
+            quote_column_name(table)
           end
         end
 
