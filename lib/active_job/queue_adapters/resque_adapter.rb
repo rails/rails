@@ -7,16 +7,12 @@ module ActiveJob
     class ResqueAdapter
       class << self
         def queue(job, *args)
-          Resque.enqueue *JobWrapper.wrap(job, args)
+          Resque.enqueue JobWrapper.new(job), job, *args
         end
       end
 
       class JobWrapper
         class << self
-          def wrap(job, args)
-            [ new(job), *args.prepend(job) ]
-          end
-
           def perform(job_name, *args)
             job_name.constantize.new.perform *Parameters.deserialize(args)
           end
@@ -27,7 +23,7 @@ module ActiveJob
         end
 
         def to_s
-          self.class.to_s
+          self.class.name
         end
       end
     end
