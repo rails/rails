@@ -86,8 +86,8 @@ We currently have adapters for:
 
 We would like to have adapters for:
 
-* beanstalkd
-* rabbitmq
+* QueueClassic
+* Sneakers
 
 
 ## Under development as a gem, targeted for Rails inclusion
