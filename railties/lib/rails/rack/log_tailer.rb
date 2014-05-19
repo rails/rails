@@ -1,3 +1,5 @@
+require 'rack/body_proxy'
+
 module Rails
   module Rack
     class LogTailer
@@ -14,9 +16,8 @@ module Rails
       end
 
       def call(env)
-        response = @app.call(env)
-        tail!
-        response
+        status, headers, body = @app.call(env)
+        [status, headers, ::Rack::BodyProxy.new(body) { tail! }]
       end
 
       def tail!
