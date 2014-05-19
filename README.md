@@ -1,4 +1,4 @@
-= Active Job -- Make work happen later
+# Active Job -- Make work happen later
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queueing backends. These jobs can be everything from regularly scheduled
@@ -11,7 +11,7 @@ one of the most common jobs in a modern web application: Sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it.
 
 
-== GlobalID support
+## GlobalID support
 
 Active Job supports GlobalID serialization for parameters. This makes it possible
 to pass live Active Record objects to your job instead of class/id pairs, which
@@ -40,7 +40,7 @@ This works with any class that mixes in ActiveModel::GlobalIdentification, which
 by default has been mixed into Active Record classes.
 
 
-== Supported queueing systems
+## Supported queueing systems
 
 We currently have adapters for:
 
@@ -55,7 +55,7 @@ We would like to have adapters for:
 * rabbitmq
 
 
-== Under development as a gem, targeted for Rails inclusion
+## Under development as a gem, targeted for Rails inclusion
 
 Active Job is currently being developed in a separate repository until it's
 ready to be merged in with Rails. The current plan is to have Active Job
@@ -63,18 +63,7 @@ be part of the Rails 4.2 release, but plans may change depending on when
 this framework stabilizes and feels ready.
 
 
-== Download and installation
-
-The latest version of Active Job can be installed with RubyGems:
-
-  % [sudo] gem install activejob
-
-Source code can be downloaded as part of the Rails project on GitHub
-
-* https://github.com/rails/activejob
-
-
-== License
+## License
 
 Active Job is released under the MIT license:
 
