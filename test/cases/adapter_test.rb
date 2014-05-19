@@ -25,6 +25,11 @@ class AdapterTest < ActiveSupport::TestCase
     assert_equal ActiveJob::QueueAdapters::SuckerPunchAdapter, ActiveJob::Base.queue_adapter
   end
 
+  test 'should load delayed_job adapter' do
+    ActiveJob::Base.adapter = :delayed_job
+    assert_equal ActiveJob::QueueAdapters::DelayedJobAdapter, ActiveJob::Base.queue_adapter
+  end
+
   def teardown
     ActiveJob::Base.queue_adapter = @old_adapter
   end
