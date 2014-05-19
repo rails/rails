@@ -14,6 +14,6 @@ class Person
   end
   
   def ==(other_person)
-    other_person.is_a?(Person) && id = other_person.id
+    other_person.is_a?(Person) && id == other_person.id
   end
 end
