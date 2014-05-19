@@ -361,10 +361,46 @@ module ActiveRecord
         pool.checkin self
       end
 
+      def type_map # :nodoc:
+        @type_map ||= Type::TypeMap.new.tap do |mapping|
+          initialize_type_map(mapping)
+        end
+      end
+
       protected
 
       def lookup_cast_type(sql_type) # :nodoc:
-        Type::Value.new
+        type_map.lookup(sql_type)
+      end
+
+      def initialize_type_map(m) # :nodoc:
+        m.register_type %r(boolean)i,    Type::Boolean.new
+        m.register_type %r(char)i,       Type::String.new
+        m.register_type %r(binary)i,     Type::Binary.new
+        m.alias_type    %r(blob)i,       'binary'
+        m.register_type %r(text)i,       Type::Text.new
+        m.alias_type    %r(clob)i,       'text'
+        m.register_type %r(date)i,       Type::Date.new
+        m.register_type %r(time)i,       Type::Time.new
+        m.register_type %r(timestamp)i,  Type::Timestamp.new
+        m.register_type %r(datetime)i,   Type::DateTime.new
+        m.alias_type    %r(numeric)i,    'decimal'
+        m.alias_type    %r(number)i,     'decimal'
+        m.register_type %r(float)i,      Type::Float.new
+        m.alias_type    %r(double)i,     'float'
+        m.register_type %r(int)i,        Type::Integer.new
+        m.register_type(%r(decimal)i) do |sql_type|
+          if Type.extract_scale(sql_type) == 0
+            Type::Integer.new
+          else
+            Type::Decimal.new
+          end
+        end
+      end
+
+      def reload_type_map # :nodoc:
+        type_map.clear
+        initialize_type_map(type_map)
       end
 
       def translate_exception_class(e, sql)

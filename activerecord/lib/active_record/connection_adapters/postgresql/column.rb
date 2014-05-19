@@ -165,11 +165,6 @@ module ActiveRecord
             super
           end
         end
-
-        # Maps PostgreSQL-specific data types to logical Rails types.
-        def simplified_type(field_type)
-          @oid_type.simplified_type(field_type) || super
-        end
     end
   end
 end

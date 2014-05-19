@@ -2,10 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Type
-          def type; end
-          def simplified_type(sql_type); type end
-
+        class Type < Type::Value
           def infinity(options = {})
             ::Float::INFINITY * (options[:negative] ? -1 : 1)
           end
@@ -136,11 +133,11 @@ module ActiveRecord
         end
 
         class Range < Type
-          attr_reader :subtype
-          def simplified_type(sql_type); sql_type.to_sym end
+          attr_reader :subtype, :type
 
-          def initialize(subtype)
+          def initialize(subtype, type)
             @subtype = subtype
+            @type = type
           end
 
           def extract_bounds(value)
@@ -412,7 +409,7 @@ This is not reliable and will be removed in the future.
 
           def register_range_type(row)
             if subtype = @store[row['rngsubtype'].to_i]
-              register row['oid'], OID::Range.new(subtype)
+              register row['oid'], OID::Range.new(subtype, row['typname'].to_sym)
             end
           end
 

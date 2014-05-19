@@ -47,13 +47,13 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          c = Column.new(nil, 1, Type::Value.new, 'int')
+          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 't', @conn.type_cast(true, nil)
           assert_equal 1, @conn.type_cast(true, c)
         end
 
         def test_type_cast_false
-          c = Column.new(nil, 1, Type::Value.new, 'int')
+          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 'f', @conn.type_cast(false, nil)
           assert_equal 0, @conn.type_cast(false, c)
         end
@@ -61,16 +61,16 @@ module ActiveRecord
         def test_type_cast_string
           assert_equal '10', @conn.type_cast('10', nil)
 
-          c = Column.new(nil, 1, Type::Value.new, 'int')
+          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 10, @conn.type_cast('10', c)
 
-          c = Column.new(nil, 1, Type::Value.new, 'float')
+          c = Column.new(nil, 1, Type::Float.new)
           assert_equal 10.1, @conn.type_cast('10.1', c)
 
-          c = Column.new(nil, 1, Type::Value.new, 'binary')
+          c = Column.new(nil, 1, Type::Binary.new)
           assert_equal '10.1', @conn.type_cast('10.1', c)
 
-          c = Column.new(nil, 1, Type::Value.new, 'date')
+          c = Column.new(nil, 1, Type::Date.new)
           assert_equal '10.1', @conn.type_cast('10.1', c)
         end
 

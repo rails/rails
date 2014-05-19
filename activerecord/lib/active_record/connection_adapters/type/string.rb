@@ -1,8 +1,10 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Value # :nodoc:
-        def type; end
+      class String < Value # :nodoc:
+        def type
+          :string
+        end
       end
     end
   end

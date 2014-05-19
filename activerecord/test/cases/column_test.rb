@@ -5,7 +5,7 @@ module ActiveRecord
   module ConnectionAdapters
     class ColumnTest < ActiveRecord::TestCase
       def test_type_cast_boolean
-        column = Column.new("field", nil, Type::Value.new, "boolean")
+        column = Column.new("field", nil, Type::Boolean.new)
         assert column.type_cast('').nil?
         assert column.type_cast(nil).nil?
 
@@ -36,14 +36,14 @@ module ActiveRecord
       end
 
       def test_type_cast_string
-        column = Column.new("field", nil, Type::Value.new, "varchar")
+        column = Column.new("field", nil, Type::String.new)
         assert_equal "1", column.type_cast(true)
         assert_equal "0", column.type_cast(false)
         assert_equal "123", column.type_cast(123)
       end
 
       def test_type_cast_integer
-        column = Column.new("field", nil, Type::Value.new, "integer")
+        column = Column.new("field", nil, Type::Integer.new)
         assert_equal 1, column.type_cast(1)
         assert_equal 1, column.type_cast('1')
         assert_equal 1, column.type_cast('1ignore')
@@ -56,50 +56,50 @@ module ActiveRecord
       end
 
       def test_type_cast_non_integer_to_integer
-        column = Column.new("field", nil, Type::Value.new, "integer")
+        column = Column.new("field", nil, Type::Integer.new)
         assert_nil column.type_cast([1,2])
         assert_nil column.type_cast({1 => 2})
         assert_nil column.type_cast((1..2))
       end
 
       def test_type_cast_activerecord_to_integer
-        column = Column.new("field", nil, Type::Value.new, "integer")
+        column = Column.new("field", nil, Type::Integer.new)
         firm = Firm.create(:name => 'Apple')
         assert_nil column.type_cast(firm)
       end
 
       def test_type_cast_object_without_to_i_to_integer
-        column = Column.new("field", nil, Type::Value.new, "integer")
+        column = Column.new("field", nil, Type::Integer.new)
         assert_nil column.type_cast(Object.new)
       end
 
       def test_type_cast_nan_and_infinity_to_integer
-        column = Column.new("field", nil, Type::Value.new, "integer")
+        column = Column.new("field", nil, Type::Integer.new)
         assert_nil column.type_cast(Float::NAN)
         assert_nil column.type_cast(1.0/0.0)
       end
 
       def test_type_cast_float
-        column = Column.new("field", nil, Type::Value.new, "float")
+        column = Column.new("field", nil, Type::Float.new)
         assert_equal 1.0, column.type_cast("1")
       end
 
       def test_type_cast_decimal
-        column = Column.new("field", nil, Type::Value.new, "decimal")
+        column = Column.new("field", nil, Type::Decimal.new)
         assert_equal BigDecimal.new("0"), column.type_cast(BigDecimal.new("0"))
         assert_equal BigDecimal.new("123"), column.type_cast(123.0)
         assert_equal BigDecimal.new("1"), column.type_cast(:"1")
       end
 
       def test_type_cast_binary
-        column = Column.new("field", nil, Type::Value.new, "binary")
+        column = Column.new("field", nil, Type::Binary.new)
         assert_equal nil, column.type_cast(nil)
         assert_equal "1", column.type_cast("1")
         assert_equal 1, column.type_cast(1)
       end
 
       def test_type_cast_time
-        column = Column.new("field", nil, Type::Value.new, "time")
+        column = Column.new("field", nil, Type::Time.new)
         assert_equal nil, column.type_cast(nil)
         assert_equal nil, column.type_cast('')
         assert_equal nil, column.type_cast('ABC')
@@ -109,7 +109,11 @@ module ActiveRecord
       end
 
       def test_type_cast_datetime_and_timestamp
-        [Column.new("field", nil, Type::Value.new, "datetime"), Column.new("field", nil, Type::Value.new, "timestamp")].each do |column|
+        columns = [
+          Column.new("field", nil, Type::DateTime.new),
+          Column.new("field", nil, Type::Timestamp.new),
+        ]
+        columns.each do |column|
           assert_equal nil, column.type_cast(nil)
           assert_equal nil, column.type_cast('')
           assert_equal nil, column.type_cast('  ')
@@ -121,7 +125,7 @@ module ActiveRecord
       end
 
       def test_type_cast_date
-        column = Column.new("field", nil, Type::Value.new, "date")
+        column = Column.new("field", nil, Type::Date.new)
         assert_equal nil, column.type_cast(nil)
         assert_equal nil, column.type_cast('')
         assert_equal nil, column.type_cast(' ')
@@ -132,7 +136,7 @@ module ActiveRecord
       end
 
       def test_type_cast_duration_to_integer
-        column = Column.new("field", nil, Type::Value.new, "integer")
+        column = Column.new("field", nil, Type::Integer.new)
         assert_equal 1800, column.type_cast(30.minutes)
         assert_equal 7200, column.type_cast(2.hours)
       end
@@ -147,7 +151,7 @@ module ActiveRecord
 
       if current_adapter?(:SQLite3Adapter)
         def test_binary_encoding
-          column = SQLite3Column.new("field", nil, Type::Value.new, "binary")
+          column = SQLite3Column.new("field", nil, Type::Binary.new)
           utf8_string = "a string".encode(Encoding::UTF_8)
           type_cast = column.type_cast(utf8_string)
 
