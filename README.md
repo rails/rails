@@ -20,6 +20,13 @@ switch between them without having to rewrite your jobs.
 
 ## Usage
 
+Set the queue adapter for Active Job:
+
+``` ruby
+ActiveJob::Base.queue_adapter = :inline # default queue adapter
+# Adapters currently supported: :resque, :sidekiq, :sucker_punch, :delayed_job
+```
+
 Declare a job like so:
 
 ```ruby
