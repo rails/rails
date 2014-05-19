@@ -244,6 +244,7 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
+        return if records.empty?
         _options = records.extract_options!
         dependent = _options[:dependent] || options[:dependent]
 
@@ -257,6 +258,7 @@ module ActiveRecord
       # Note that this method removes records from the database ignoring the
       # +:dependent+ option.
       def destroy(*records)
+        return if records.empty?
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
       end
