@@ -12,7 +12,7 @@ gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'arel', github: 'rails/arel', branch: 'master'
-gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: '2-1-stable'
+gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
 gem 'i18n', github: 'svenfuchs/i18n', branch: 'master'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.

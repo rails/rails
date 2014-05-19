@@ -198,12 +198,9 @@ will result in your assets being included more than once.
 
 WARNING: When using asset precompilation, you will need to ensure that your
 controller assets will be precompiled when loading them on a per page basis. By
-default .coffee and .scss files will not be precompiled on their own. This will
-result in false positives during development as these files will work just fine
-since assets are compiled on the fly in development mode. When running in
-production, however, you will see 500 errors since live compilation is turned
-off by default. See [Precompiling Assets](#precompiling-assets) for more
-information on how precompiling works.
+default .coffee and .scss files will not be precompiled on their own. See
+[Precompiling Assets](#precompiling-assets) for more information on how
+precompiling works.
 
 NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript.
 If you are using Mac OS X or Windows, you have a JavaScript runtime installed in
@@ -581,8 +578,21 @@ runtime. To disable this behavior you can set:
 config.assets.raise_runtime_errors = false
 ```
 
-When this option is true asset pipeline will check if all the assets loaded in your application
-are included in the `config.assets.precompile` list.
+When this option is true, the asset pipeline will check if all the assets loaded
+in your application are included in the `config.assets.precompile` list.
+If `config.assets.digests` is also true, the asset pipeline will require that
+all requests for assets include digests.
+
+### Turning Digests Off
+
+You can turn off digests by updating `config/environments/development.rb` to
+include:
+
+```ruby
+config.assets.digests = false
+```
+
+When this option is true, digests will be generated for asset URLs.
 
 ### Turning Debugging Off
 

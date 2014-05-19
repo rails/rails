@@ -34,6 +34,7 @@ module RailtiesTest
 
     test "serving sprocket's assets" do
       @plugin.write "app/assets/javascripts/engine.js.erb", "<%= :alert %>();"
+      add_to_env_config "development", "config.assets.digest = false"
 
       boot_rails
       require 'rack/test'
@@ -1080,6 +1081,7 @@ YAML
       RUBY
 
       add_to_config("config.railties_order = [:all, :main_app, Blog::Engine]")
+      add_to_env_config "development", "config.assets.digest = false"
 
       boot_rails
 
