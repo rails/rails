@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      module Cast
+      module Cast # :nodoc:
         def point_to_string(point) # :nodoc:
           "(#{point[0]},#{point[1]})"
         end

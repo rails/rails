@@ -740,7 +740,7 @@ module ActiveRecord
         # Query implementation notes:
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
-        def column_definitions(table_name) #:nodoc:
+        def column_definitions(table_name) # :nodoc:
           exec_query(<<-end_sql, 'SCHEMA').rows
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
@@ -752,7 +752,7 @@ module ActiveRecord
           end_sql
         end
 
-        def extract_pg_identifier_from_name(name)
+        def extract_pg_identifier_from_name(name) # :nodoc:
           match_data = name.start_with?('"') ? name.match(/\"([^\"]+)\"/) : name.match(/([^\.]+)/)
 
           if match_data
@@ -762,12 +762,12 @@ module ActiveRecord
           end
         end
 
-        def extract_table_ref_from_insert_sql(sql)
+        def extract_table_ref_from_insert_sql(sql) # :nodoc:
           sql[/into\s+([^\(]*).*values\s*\(/im]
           $1.strip if $1
         end
 
-        def create_table_definition(name, temporary, options, as = nil)
+        def create_table_definition(name, temporary, options, as = nil) # :nodoc:
           TableDefinition.new native_database_types, name, temporary, options, as
         end
     end

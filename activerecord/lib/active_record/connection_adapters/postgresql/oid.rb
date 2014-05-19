@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      module OID
+      module OID # :nodoc:
         class Type
           def type; end
           def simplified_type(sql_type); type end

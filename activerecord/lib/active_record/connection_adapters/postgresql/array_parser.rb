@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      module ArrayParser
+      module ArrayParser # :nodoc:
 
         DOUBLE_QUOTE = '"'
         BACKSLASH = "\\"

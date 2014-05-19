@@ -1,12 +1,12 @@
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      module ReferentialIntegrity
-        def supports_disable_referential_integrity? #:nodoc:
+      module ReferentialIntegrity # :nodoc:
+        def supports_disable_referential_integrity? # :nodoc:
           true
         end
 
-        def disable_referential_integrity #:nodoc:
+        def disable_referential_integrity # :nodoc:
           if supports_disable_referential_integrity?
             begin
               execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
