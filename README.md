@@ -84,9 +84,6 @@ We currently have adapters for:
 * Sucker Punch
 * Delayed Job
 * QueueClassic
-
-We would like to have adapters for:
-
 * Sneakers
 
 
