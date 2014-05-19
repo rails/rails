@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/try'
 
 module ActiveJob
   class Parameters
-    TYPE_WHITELIST = [NilClass, Fixnum, Float, String, TrueClass, FalseClass, Hash, Array]
+    TYPE_WHITELIST = [NilClass, Fixnum, Float, String, TrueClass, FalseClass, Hash, Array, Bignum]
 
     def self.serialize(params)
       params.collect do |param|

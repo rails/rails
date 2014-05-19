@@ -8,6 +8,16 @@ class ParameterSerializationTest < ActiveSupport::TestCase
   end
 
   test 'should not allow complex objects' do
+    assert_equal [ nil ], ActiveJob::Parameters.serialize([ nil ])
+    assert_equal [ 1 ], ActiveJob::Parameters.serialize([ 1 ])
+    assert_equal [ 1.0 ], ActiveJob::Parameters.serialize([ 1.0 ])
+    assert_equal [ 'a' ], ActiveJob::Parameters.serialize([ 'a' ])
+    assert_equal [ true ], ActiveJob::Parameters.serialize([ true ])
+    assert_equal [ false ], ActiveJob::Parameters.serialize([ false ])
+    assert_equal [ { a: 1 } ], ActiveJob::Parameters.serialize([ { a: 1 } ])
+    assert_equal [ [ 1 ] ], ActiveJob::Parameters.serialize([ [ 1 ] ])
+    assert_equal [ 1_000_000_000_000_000_000_000 ], ActiveJob::Parameters.serialize([ 1_000_000_000_000_000_000_000 ])
+
     err = assert_raises RuntimeError do
       ActiveJob::Parameters.serialize([ 1, self ])
     end
