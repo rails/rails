@@ -3,13 +3,6 @@ Active Record and PostgreSQL
 
 This guide covers PostgreSQL specific usage of Active Record.
 
-In order to use the PostgreSQL adapter you need to have at least version 8.2
-installed. Older versions are not supported.
-
-To get started with PostgreSQL have a look at the
-[configuring Rails guide](configuring.html#configuring-a-postgresql-database).
-It describes how to properly setup Active Record for PostgreSQL.
-
 After reading this guide, you will know:
 
 * How to use PostgreSQL's datatypes.
@@ -17,6 +10,13 @@ After reading this guide, you will know:
 * How to implement full text search with PostgreSQL.
 
 --------------------------------------------------------------------------------
+
+In order to use the PostgreSQL adapter you need to have at least version 8.2
+installed. Older versions are not supported.
+
+To get started with PostgreSQL have a look at the
+[configuring Rails guide](configuring.html#configuring-a-postgresql-database).
+It describes how to properly setup Active Record for PostgreSQL.
 
 Datatypes
 ---------
