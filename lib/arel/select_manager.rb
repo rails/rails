@@ -148,6 +148,7 @@ module Arel
       else
         @ctx.set_quantifier = nil
       end
+      self
     end
 
     def order *expr
