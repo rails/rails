@@ -69,7 +69,6 @@ module ActiveRecord
         float:        { name: "float" },
         decimal:      { name: "decimal" },
         datetime:     { name: "datetime" },
-        timestamp:    { name: "datetime" },
         time:         { name: "time" },
         date:         { name: "date" },
         binary:       { name: "blob" },

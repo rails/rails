@@ -21,7 +21,7 @@ module ActiveRecord
 
         def test_overriding_registered_types
           time = Time.new
-          timestamp = Timestamp.new
+          timestamp = DateTime.new
           mapping = TypeMap.new
 
           mapping.register_type(/time/i, time)
@@ -51,7 +51,7 @@ module ActiveRecord
 
         def test_changing_type_changes_aliases
           time = Time.new
-          timestamp = Timestamp.new
+          timestamp = DateTime.new
           mapping = TypeMap.new
 
           mapping.register_type(/timestamp/i, time)

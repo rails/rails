@@ -233,6 +233,23 @@ module ActiveRecord
         end
       end
 
+      def test_add_column_with_timestamp_type
+        connection.create_table :testings do |t|
+          t.column :foo, :timestamp
+        end
+
+        klass = Class.new(ActiveRecord::Base)
+        klass.table_name = 'testings'
+
+        assert_equal :datetime, klass.columns_hash['foo'].type
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal 'timestamp without time zone', klass.columns_hash['foo'].sql_type
+        else
+          assert_equal klass.connection.type_to_sql('datetime'), klass.columns_hash['foo'].sql_type
+        end
+      end
+
       def test_change_column_quotes_column_names
         connection.create_table :testings do |t|
           t.column :select, :string

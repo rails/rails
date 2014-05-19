@@ -109,19 +109,14 @@ module ActiveRecord
       end
 
       def test_type_cast_datetime_and_timestamp
-        columns = [
-          Column.new("field", nil, Type::DateTime.new),
-          Column.new("field", nil, Type::Timestamp.new),
-        ]
-        columns.each do |column|
-          assert_equal nil, column.type_cast(nil)
-          assert_equal nil, column.type_cast('')
-          assert_equal nil, column.type_cast('  ')
-          assert_equal nil, column.type_cast('ABC')
+        column = Column.new("field", nil, Type::DateTime.new)
+        assert_equal nil, column.type_cast(nil)
+        assert_equal nil, column.type_cast('')
+        assert_equal nil, column.type_cast('  ')
+        assert_equal nil, column.type_cast('ABC')
 
-          datetime_string = Time.now.utc.strftime("%FT%T")
-          assert_equal datetime_string, column.type_cast(datetime_string).strftime("%FT%T")
-        end
+        datetime_string = Time.now.utc.strftime("%FT%T")
+        assert_equal datetime_string, column.type_cast(datetime_string).strftime("%FT%T")
       end
 
       def test_type_cast_date

@@ -262,6 +262,7 @@ module ActiveRecord
       alias :belongs_to :references
 
       def new_column_definition(name, type, options) # :nodoc:
+        type = aliased_types[type] || type
         column = create_column_definition name, type
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
@@ -291,6 +292,12 @@ module ActiveRecord
 
       def native
         @native
+      end
+
+      def aliased_types
+        HashWithIndifferentAccess.new(
+          timestamp: :datetime,
+        )
       end
     end
 

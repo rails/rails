@@ -1,3 +1,9 @@
+*   Remove unused `:timestamp` type. Transparently alias it to `:datetime`
+    in all cases. Fixes inconsistencies when column types are sent outside of
+    `ActiveRecord`, such as for XML Serialization.
+
+    *Sean Griffin*
+
 *   Fix bug that added `table_name_prefix` and `table_name_suffix` to
     extension names in PostgreSQL when migrating.
 

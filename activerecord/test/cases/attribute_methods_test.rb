@@ -516,7 +516,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_only_time_related_columns_are_meant_to_be_cached_by_default
-    expected = %w(datetime timestamp time date).sort
+    expected = %w(datetime time date).sort
     assert_equal expected, ActiveRecord::Base.attribute_types_cached_by_default.map(&:to_s).sort
   end
 

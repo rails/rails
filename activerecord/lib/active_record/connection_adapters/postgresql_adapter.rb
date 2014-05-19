@@ -216,7 +216,6 @@ module ActiveRecord
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "timestamp" },
-        timestamp:   { name: "timestamp" },
         time:        { name: "time" },
         date:        { name: "date" },
         daterange:   { name: "daterange" },

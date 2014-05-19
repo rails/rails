@@ -382,7 +382,7 @@ module ActiveRecord
         m.alias_type    %r(clob)i,       'text'
         m.register_type %r(date)i,       Type::Date.new
         m.register_type %r(time)i,       Type::Time.new
-        m.register_type %r(timestamp)i,  Type::Timestamp.new
+        m.alias_type    %r(timestamp)i,  'datetime'
         m.register_type %r(datetime)i,   Type::DateTime.new
         m.alias_type    %r(numeric)i,    'decimal'
         m.alias_type    %r(number)i,     'decimal'
