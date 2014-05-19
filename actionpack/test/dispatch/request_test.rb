@@ -892,6 +892,14 @@ class RequestParameters < BaseRequestTest
     assert_equal({"bar" => 2}, request.query_parameters)
   end
 
+  test "deep merge query parameters onto request parameters" do
+    request = stub_request
+    request.expects(:request_parameters).at_least_once.returns("baz" => { "foo" => 1, "bar" => 3 })
+    request.expects(:query_parameters).at_least_once.returns("baz" => { "bar" => 2 })
+
+    assert_equal({"baz" => {"foo" => 1, "bar" => 2}}, request.parameters)
+  end
+
   test "parameters still accessible after rack parse error" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
 
