@@ -3,7 +3,7 @@ module ActiveJob
     class InlineAdapter
       class << self
         def queue(job, *args)
-          job.perform(*args)
+          job.perform(*ActiveJob::Parameters.deserialize(args))
         end
       end
     end

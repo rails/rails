@@ -3,8 +3,6 @@ require 'resque'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/access'
 
-
-
 module ActiveJob
   module JobWrappers
     class ResqueWrapper
@@ -14,7 +12,7 @@ module ActiveJob
         end
 
         def perform(job_name, *args)
-          job_name.constantize.perform(*args)
+          job_name.constantize.perform(*ActiveJob::Parameters.deserialize(args))
         end
       end
 

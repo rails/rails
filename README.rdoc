@@ -11,6 +11,35 @@ one of the most common jobs in a modern web application: Sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it.
 
 
+== GlobalID support
+
+Active Job supports GlobalID serialization for parameters. This makes it possible
+to pass live Active Record objects to your job instead of class/id pairs, which
+you then have to manually deserialize. Before, jobs would look like this:
+
+```ruby
+class TrashableCleanupJob
+  def self.perfom(trashable_class, trashable_id, depth)
+    trashable = trashable_class.constantize.find(trashable_id)
+    trashable.cleanup(depth)
+  end
+end
+```
+
+Now you can simply do:
+
+```ruby
+class TrashableCleanupJob
+  def self.perfom(trashable, depth)
+    trashable.cleanup(depth)
+  end
+end
+```
+
+This works with any class that mixes in ActiveModel::GlobalIdentification, which
+by default has been mixed into Active Record classes.
+
+
 == Supported queueing systems
 
 We currently have adapters for:

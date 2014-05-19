@@ -4,7 +4,7 @@ module ActiveJob
       include SuckerPunch::Job
 
       def perform(job_name, *args)
-        job_name.perform(*args)
+        job_name.perform(*ActiveJob::Parameters.deserialize(args))
       end
     end
   end
