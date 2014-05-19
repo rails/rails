@@ -34,6 +34,7 @@ GEM
     rack (1.5.2)
     rack-protection (1.5.2)
       rack
+    rake (10.3.2)
     redis (3.0.7)
     redis-namespace (1.4.1)
       redis (~> 3.0.4)
@@ -69,6 +70,7 @@ PLATFORMS
 DEPENDENCIES
   activejob!
   delayed_job
+  rake
   resque
   sidekiq
   sucker_punch
