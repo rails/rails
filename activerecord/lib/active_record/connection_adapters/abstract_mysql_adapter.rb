@@ -525,6 +525,7 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
+        ColumnDefinition.check_invalid_options!(options)
         execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_sql(table_name, column_name, type, options)}")
       end
 
