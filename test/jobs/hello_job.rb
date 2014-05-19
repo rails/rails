@@ -1,5 +1,5 @@
 class HelloJob < ActiveJob::Base
-  def self.perform(greeter = "David")
+  def perform(greeter = "David")
     $BUFFER << "#{greeter} says hello"
   end
 end

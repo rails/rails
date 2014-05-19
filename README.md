@@ -11,6 +11,27 @@ one of the most common jobs in a modern web application: Sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it.
 
 
+## Usage
+
+Declare a job like so:
+
+```ruby
+class MyJob < ActiveJob::Base
+  def perform(record)
+    record.do_work
+  end
+end
+```
+
+Enqueue a job like so:
+
+```ruby
+MyJob.enqueue record
+```
+
+That's it!
+
+
 ## GlobalID support
 
 Active Job supports GlobalID serialization for parameters. This makes it possible
@@ -19,7 +40,7 @@ you then have to manually deserialize. Before, jobs would look like this:
 
 ```ruby
 class TrashableCleanupJob
-  def self.perfom(trashable_class, trashable_id, depth)
+  def perfom(trashable_class, trashable_id, depth)
     trashable = trashable_class.constantize.find(trashable_id)
     trashable.cleanup(depth)
   end
@@ -30,7 +51,7 @@ Now you can simply do:
 
 ```ruby
 class TrashableCleanupJob
-  def self.perfom(trashable, depth)
+  def perfom(trashable, depth)
     trashable.cleanup(depth)
   end
 end

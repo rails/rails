@@ -11,7 +11,7 @@ module ActiveJob
       
       class JobWrapper
         def perform(job, *args)
-          job.perform *Parameters.deserialize(args)
+          job.new.perform *Parameters.deserialize(args)
         end
       end
     end

@@ -1,5 +1,5 @@
 class GidJob < ActiveJob::Base
-  def self.perform(person)
+  def perform(person)
     $BUFFER << "Person with ID: #{person.id}"
   end
 end
