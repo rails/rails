@@ -16,8 +16,6 @@ def run_without_aborting(*tasks)
   abort "Errors running #{errors.join(', ')}" if errors.any?
 end
 
-
-
 task :default => :test
 
 desc 'Run all adapter tests'
@@ -26,8 +24,7 @@ task :test do
   run_without_aborting(*tasks)
 end
 
-
-%w( inline resque sidekiq sucker_punch delayed_job).each do |adapter|
+%w(inline resque sidekiq sucker_punch delayed_job).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") do |t|
     t.libs << 'test'
     t.test_files = FileList['test/cases/**/*_test.rb']
