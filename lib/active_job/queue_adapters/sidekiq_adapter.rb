@@ -5,7 +5,7 @@ module ActiveJob
     class SidekiqAdapter
       class << self
         def queue(job, *args)
-          JobWrapper.perform_async(job, *args)
+          JobWrapper.client_push('class' => JobWrapper, 'queue' => job.queue_name, 'args' => [job, *args])
         end
       end
 
