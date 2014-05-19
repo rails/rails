@@ -1,12 +1,19 @@
 require 'sucker_punch'
-require 'active_job/job_wrappers/sucker_punch_wrapper'
 
 module ActiveJob
   module QueueAdapters
     class SuckerPunchAdapter
       class << self
         def queue(job, *args)
-          JobWrappers::SuckerPunchWrapper.new.async.perform(job, *args)
+          JobWrapper.new.async.perform(job, *args)
+        end
+      end
+
+      class JobWrapper
+        include SuckerPunch::Job
+
+        def perform(job_name, *args)
+          job_name.perform(*ActiveJob::Parameters.deserialize(args))
         end
       end
     end
