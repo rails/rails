@@ -11,6 +11,26 @@ module AbstractController
         W.default_url_options.clear
       end
 
+      def test_nested_optional
+        klass = Class.new {
+          include ActionDispatch::Routing::RouteSet.new.tap { |r|
+            r.draw {
+              get "/foo/(:bar/(:baz))/:zot", :as         => 'fun',
+                                             :controller => :articles,
+                                             :action     => :index
+            }
+          }.url_helpers
+          self.default_url_options[:host] = 'example.com'
+        }
+
+        path = klass.new.fun_path({:controller => :articles,
+                                   :baz        => "baz",
+                                   :zot        => "zot",
+                                   :only_path  => true })
+        # :bar key isn't provided
+        assert_equal '/foo/zot', path
+      end
+
       def add_host!
         W.default_url_options[:host] = 'www.basecamphq.com'
       end
