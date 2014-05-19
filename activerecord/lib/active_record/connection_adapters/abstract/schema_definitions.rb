@@ -99,6 +99,8 @@ module ActiveRecord
       #   Specifies the precision for a <tt>:decimal</tt> column.
       # * <tt>:scale</tt> -
       #   Specifies the scale for a <tt>:decimal</tt> column.
+      # * <tt>:index</tt> -
+      #   Create an index for the column. Can be either <tt>true</tt> or an options hash.
       #
       # For clarity's sake: the precision is the number of significant digits,
       # while the scale is the number of digits that can be stored following
@@ -163,18 +165,21 @@ module ActiveRecord
       # What can be written like this with the regular calls to column:
       #
       #   create_table :products do |t|
-      #     t.column :shop_id,    :integer
-      #     t.column :creator_id, :integer
-      #     t.column :name,       :string, default: "Untitled"
-      #     t.column :value,      :string, default: "Untitled"
-      #     t.column :created_at, :datetime
-      #     t.column :updated_at, :datetime
+      #     t.column :shop_id,     :integer
+      #     t.column :creator_id,  :integer
+      #     t.column :item_number, :string
+      #     t.column :name,        :string, default: "Untitled"
+      #     t.column :value,       :string, default: "Untitled"
+      #     t.column :created_at,  :datetime
+      #     t.column :updated_at,  :datetime
       #   end
+      #   add_index :products, :item_number
       #
       # can also be written as follows using the short-hand:
       #
       #   create_table :products do |t|
       #     t.integer :shop_id, :creator_id
+      #     t.string  :item_number, index: true
       #     t.string  :name, :value, default: "Untitled"
       #     t.timestamps
       #   end
@@ -210,6 +215,8 @@ module ActiveRecord
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
+        index_options = options.delete(:index)
+        index(name, index_options.is_a?(Hash) ? index_options : {}) if index_options
         @columns_hash[name] = new_column_definition(name, type, options)
         self
       end
