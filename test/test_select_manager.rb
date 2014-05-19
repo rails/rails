@@ -579,6 +579,28 @@ module Arel
       end
     end
 
+    describe 'outer join' do
+      it 'responds to join' do
+        left      = Table.new :users
+        right     = left.alias
+        predicate = left[:id].eq(right[:id])
+        manager   = Arel::SelectManager.new Table.engine
+
+        manager.from left
+        manager.outer_join(right).on(predicate)
+        manager.to_sql.must_be_like %{
+           SELECT FROM "users"
+             LEFT OUTER JOIN "users" "users_2"
+               ON "users"."id" = "users_2"."id"
+        }
+      end
+
+      it 'noops on nil' do
+        manager   = Arel::SelectManager.new Table.engine
+        manager.outer_join(nil).must_equal manager
+      end
+    end
+
     describe 'joins' do
       it 'returns join sql' do
         table   = Table.new :users

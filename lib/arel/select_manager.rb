@@ -114,6 +114,10 @@ module Arel
       self
     end
 
+    def outer_join relation
+      join(relation, Nodes::OuterJoin)
+    end
+
     def having *exprs
       @ctx.having = Nodes::Having.new(collapse(exprs, @ctx.having))
       self
