@@ -774,8 +774,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("c", duped_topic.title)
   end
 
+  DeveloperSalary = Struct.new(:amount)
   def test_dup_with_aggregate_of_same_name_as_attribute
-    dev = DeveloperWithAggregate.find(1)
+    developer_with_aggregate = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers'
+      composed_of :salary, :class_name => 'BasicsTest::DeveloperSalary', :mapping => [%w(salary amount)]
+    end
+
+    dev = developer_with_aggregate.find(1)
     assert_kind_of DeveloperSalary, dev.salary
 
     dup = nil
