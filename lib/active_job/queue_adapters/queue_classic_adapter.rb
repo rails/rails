@@ -8,6 +8,10 @@ module ActiveJob
           qc_queue = QC::Queue.new(job.queue_name)
           qc_queue.enqueue("ActiveJob::QueueAdapters::QueueClassicAdapter::JobWrapper.perform", job, *args)
         end
+
+        def queue_at(job, timestamp, *args)
+          raise NotImplementedError
+        end
       end
 
       class JobWrapper
