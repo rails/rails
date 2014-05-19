@@ -89,7 +89,20 @@ module ActiveModel
       #   user.authenticate('notright')      # => false
       #   user.authenticate('mUc3m00RsqyRe') # => user
       def authenticate(unencrypted_password)
-        BCrypt::Password.new(password_digest) == unencrypted_password && self
+        authenticated?(unencrypted_password) && self
+      end
+
+      # Returns +true+ if the password matches the digest.
+      #
+      #   class User < ActiveRecord::Base
+      #     has_secure_password validations: false
+      #   end
+      #
+      #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
+      #   user.save
+      #   user.authenticated?('mUc3m00RsqyRe')
+      def authenticated?(unencrypted_password)
+        BCrypt::Password.new(password_digest) == unencrypted_password
       end
 
       # Encrypts the password into the +password_digest+ attribute, only if the
