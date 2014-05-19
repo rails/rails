@@ -31,6 +31,9 @@ GEM
     minitest (5.3.4)
     mono_logger (1.1.0)
     multi_json (1.9.3)
+    pg (0.17.1)
+    queue_classic (2.2.3)
+      pg (~> 0.17.0)
     rack (1.5.2)
     rack-protection (1.5.2)
       rack
@@ -70,6 +73,7 @@ PLATFORMS
 DEPENDENCIES
   activejob!
   delayed_job
+  queue_classic
   rake
   resque
   sidekiq
