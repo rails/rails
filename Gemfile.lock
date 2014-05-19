@@ -1,15 +1,8 @@
-GIT
-  remote: git://github.com/rails/activemodel-globalid.git
-  revision: c9d4cfa80e9234d178617338b22728e7c08498d1
-  specs:
-    activemodel-globalid (0.1.0)
-      activemodel (>= 4.1.0)
-      activesupport (>= 4.1.0)
-
 PATH
   remote: .
   specs:
     activejob (4.2.0.alpha)
+      activemodel-globalid
       activesupport (>= 4.1.0)
 
 GEM
@@ -18,6 +11,9 @@ GEM
     activemodel (4.1.1)
       activesupport (= 4.1.1)
       builder (~> 3.1)
+    activemodel-globalid (0.1.0)
+      activemodel (>= 4.1.0)
+      activesupport (>= 4.1.0)
     activesupport (4.1.1)
       i18n (~> 0.6, >= 0.6.9)
       json (~> 1.7, >= 1.7.7)
@@ -72,7 +68,6 @@ PLATFORMS
 
 DEPENDENCIES
   activejob!
-  activemodel-globalid!
   delayed_job
   resque
   sidekiq
