@@ -640,7 +640,7 @@ module ActiveRecord
 
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
-          unless arguments.empty? || method == :execute
+          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
             arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
           end

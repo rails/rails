@@ -1,3 +1,8 @@
+*   Fix bug that added `table_name_prefix` and `table_name_suffix` to
+    extension names in PostgreSQL when migrating.
+
+    *Joao Carlos*
+
 *   The `:index` option in migrations, which previously was only available for
     `references`, now works with any column types.
 
