@@ -1,3 +1,8 @@
+*   Fix bug that added `table_name_prefix` and `table_name_suffix` to
+    extension names in PostgreSQL when migrating.
+
+    *Joao Carlos*
+
 *   Floats with limit >= 25 that get turned into doubles in MySQL no longer have
     their limit dropped from the schema.
 
