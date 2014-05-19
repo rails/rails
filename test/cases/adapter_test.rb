@@ -26,7 +26,7 @@ class AdapterTest < ActiveSupport::TestCase
   end
 
   test 'should load delayed_job adapter' do
-    ActiveJob::Base.adapter = :delayed_job
+    ActiveJob::Base.queue_adapter = :delayed_job
     assert_equal ActiveJob::QueueAdapters::DelayedJobAdapter, ActiveJob::Base.queue_adapter
   end
 
