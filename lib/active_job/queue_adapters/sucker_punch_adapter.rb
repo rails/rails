@@ -27,7 +27,7 @@ module ActiveJob
         end
 
         def later(sec, job_name, *args)
-          after(sec) { p args; perform(job_name, *args) }
+          after(sec) { perform(job_name, *args) }
         end
       end
     end
