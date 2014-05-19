@@ -18,10 +18,10 @@ We currently have adapters for:
 * Resque 1.x
 * Sidekiq
 * Sucker Punch
+* Delayed Job
 
 We would like to have adapters for:
 
-* Delayed Job
 * beanstalkd
 * rabbitmq
 
