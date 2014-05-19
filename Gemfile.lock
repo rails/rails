@@ -16,6 +16,8 @@ GEM
     celluloid (0.15.2)
       timers (~> 1.1.0)
     connection_pool (2.0.0)
+    delayed_job (4.0.1)
+      activesupport (>= 3.0, < 4.2)
     i18n (0.6.9)
     json (1.8.1)
     minitest (5.3.4)
@@ -58,6 +60,7 @@ PLATFORMS
 
 DEPENDENCIES
   activejob!
+  delayed_job
   resque
   sidekiq
   sucker_punch
