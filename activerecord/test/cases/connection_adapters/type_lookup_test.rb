@@ -45,14 +45,11 @@ module ActiveRecord
         assert_lookup_type :time, 'TIME'
       end
 
-      def test_timestamp_types
-        assert_lookup_type :timestamp, 'timestamp'
-        assert_lookup_type :timestamp, 'TIMESTAMP'
-      end
-
       def test_datetime_types
         assert_lookup_type :datetime, 'datetime'
         assert_lookup_type :datetime, 'DATETIME'
+        assert_lookup_type :datetime, 'timestamp'
+        assert_lookup_type :datetime, 'TIMESTAMP'
       end
 
       def test_decimal_types

@@ -28,7 +28,7 @@ module ActiveRecord
 
       module ClassMethods
         protected
-        # Defined for all +datetime+ and +timestamp+ attributes when +time_zone_aware_attributes+ are enabled.
+        # Defined for all +datetime+ attributes when +time_zone_aware_attributes+ are enabled.
         # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
         def define_method_attribute=(attr_name)
           if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
@@ -51,7 +51,7 @@ module ActiveRecord
         def create_time_zone_conversion_attribute?(name, column)
           time_zone_aware_attributes &&
             !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) &&
-            (:datetime == column.type || :timestamp == column.type)
+            (:datetime == column.type)
         end
       end
     end

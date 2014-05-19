@@ -149,7 +149,7 @@ module ActiveRecord
       end
 
       def read_time
-        # If column is a :time (and not :date or :timestamp) there is no need to validate if
+        # If column is a :time (and not :date or :datetime) there is no need to validate if
         # there are year/month/day fields
         if column.type == :time
           # if the column is a time set the values to their defaults as January 1, 1970, but only if they're nil

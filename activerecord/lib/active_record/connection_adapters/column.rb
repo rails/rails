@@ -63,7 +63,7 @@ module ActiveRecord
         when :integer                     then Fixnum
         when :float                       then Float
         when :decimal                     then BigDecimal
-        when :datetime, :timestamp, :time then Time
+        when :datetime, :time             then Time
         when :date                        then Date
         when :text, :string, :binary      then String
         when :boolean                     then Object
@@ -110,7 +110,7 @@ module ActiveRecord
         when :integer              then klass.value_to_integer(value)
         when :float                then value.to_f
         when :decimal              then klass.value_to_decimal(value)
-        when :datetime, :timestamp then klass.string_to_time(value)
+        when :datetime             then klass.string_to_time(value)
         when :time                 then klass.string_to_dummy_time(value)
         when :date                 then klass.value_to_date(value)
         when :binary               then klass.binary_to_string(value)

@@ -35,7 +35,7 @@ module ActiveRecord
 
       extend ActiveSupport::Concern
 
-      ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
+      ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :time, :date]
 
       included do
         class_attribute :attribute_types_cached_by_default, instance_writer: false
@@ -52,7 +52,7 @@ module ActiveRecord
         end
 
         # Returns the attributes which are cached. By default time related columns
-        # with datatype <tt>:datetime, :timestamp, :time, :date</tt> are cached.
+        # with datatype <tt>:datetime, :time, :date</tt> are cached.
         def cached_attributes
           @cached_attributes ||= columns.select { |c| cacheable_column?(c) }.map { |col| col.name }.to_set
         end
