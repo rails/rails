@@ -144,12 +144,18 @@ module ActionDispatch
             node.children.map { |c| visit(c) }.join
           end
 
+          def visit_STAR(node)
+            if value = options[node.left.to_sym]
+              escape_path(value)
+            end
+          end
+
           def visit_SYMBOL(node)
             key = node.to_sym
 
             if value = options[key]
               consumed[key] = value
-              Router::Utils.escape_path(value)
+              key == :controller ? escape_path(value) : escape_segment(value)
             else
               "\0"
             end
