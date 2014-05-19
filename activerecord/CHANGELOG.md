@@ -1,3 +1,8 @@
+*   Fix bug that added `table_name_prefix` and `table_name_suffix` to
+    extension names in PostgreSQL when migrating.
+
+    *Joao Carlos*
+
 *   `ActiveRecord::Relation::Merger#filter_binds` now compares equivalent symbols and
     strings in column names as equal.
 
