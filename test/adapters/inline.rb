@@ -1,1 +1,1 @@
-ActiveJob::Base.adapter = :inline
+ActiveJob::Base.queue_adapter = :inline

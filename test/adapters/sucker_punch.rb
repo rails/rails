@@ -1,2 +1,2 @@
 require 'sucker_punch/testing/inline'
-ActiveJob::Base.adapter = :sucker_punch
+ActiveJob::Base.queue_adapter = :sucker_punch
