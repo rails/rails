@@ -177,63 +177,6 @@ module ActionDispatch
           end
       end
 
-      # Used for formatting urls (url_for)
-      class Formatter < Visitor # :nodoc:
-        attr_reader :options, :consumed
-
-        def initialize(options)
-          @options  = options
-          @consumed = {}
-        end
-
-        private
-          def escape_path(value)
-            Router::Utils.escape_path(value)
-          end
-
-          def escape_segment(value)
-            Router::Utils.escape_segment(value)
-          end
-
-          def visit_GROUP(node)
-            if consumed == options
-              nil
-            else
-              route = visit(node.left)
-              route.include?("\0") ? nil : route
-            end
-          end
-
-          def terminal(node)
-            node.left
-          end
-
-          def binary(node)
-            [visit(node.left), visit(node.right)].join
-          end
-
-          def nary(node)
-            node.children.map { |c| visit(c) }.join
-          end
-
-          def visit_STAR(node)
-            if value = options[node.left.to_sym]
-              escape_path(value)
-            end
-          end
-
-          def visit_SYMBOL(node)
-            key = node.to_sym
-
-            if value = options[key]
-              consumed[key] = value
-              key == :controller ? escape_path(value) : escape_segment(value)
-            else
-              "\0"
-            end
-          end
-      end
-
       class Dot < Visitor # :nodoc:
         def initialize
           @nodes = []
