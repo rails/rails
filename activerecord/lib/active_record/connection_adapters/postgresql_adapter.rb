@@ -139,6 +139,10 @@ module ActiveRecord
           column(name, 'json', options)
         end
 
+        def jsonb(name, options = {})
+          column(name, 'jsonb', options)
+        end
+
         def citext(name, options = {})
           column(name, 'citext', options)
         end
@@ -234,6 +238,7 @@ module ActiveRecord
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
         json:        { name: "json" },
+        jsonb:       { name: "jsonb" },
         ltree:       { name: "ltree" },
         citext:      { name: "citext" }
       }

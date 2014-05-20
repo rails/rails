@@ -325,6 +325,24 @@ This is not reliable and will be removed in the future.
           end
         end
 
+        class Jsonb < Type
+          def type; :jsonb end
+
+          def type_cast_for_write(value)
+            ConnectionAdapters::PostgreSQLColumn.json_to_string value
+          end
+
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::PostgreSQLColumn.string_to_json value
+          end
+
+          def accessor
+            ActiveRecord::Store::StringKeyedHashAccessor
+          end
+        end
+
         class Uuid < Type
           def type; :uuid end
           def type_cast(value)
