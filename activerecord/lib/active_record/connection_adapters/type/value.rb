@@ -8,6 +8,10 @@ module ActiveRecord
           cast_value(value) unless value.nil?
         end
 
+        def type_cast_for_write(value)
+          value
+        end
+
         def text?
           false
         end

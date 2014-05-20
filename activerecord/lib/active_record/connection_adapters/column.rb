@@ -18,7 +18,7 @@ module ActiveRecord
 
       alias :encoded? :coder
 
-      delegate :type, :text?, :number?, :binary?, to: :cast_type
+      delegate :type, :text?, :number?, :binary?, :type_cast_for_write, to: :cast_type
 
       # Instantiates a new column in the table.
       #
@@ -57,24 +57,6 @@ module ActiveRecord
         when :date                        then Date
         when :text, :string, :binary      then String
         when :boolean                     then Object
-        end
-      end
-
-      # Casts a Ruby value to something appropriate for writing to the database.
-      # Numeric columns will typecast boolean and string to appropriate numeric
-      # values.
-      def type_cast_for_write(value)
-        return value unless number?
-
-        case value
-        when FalseClass
-          0
-        when TrueClass
-          1
-        when String
-          value.presence
-        else
-          value
         end
       end
 
