@@ -1,4 +1,7 @@
-*   Fixed the inferred table name of a HABTM auxiliar table inside a schema.
+## Rails 4.1.2 (unreleased) ##
+
+*   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
+    table inside a schema.
 
     Fixes #14824
 
@@ -16,7 +19,7 @@
 
     *Aaron Nelson*
 
-*   Fix how to calculate associated class name when using namespaced `has_and_belongs_to_many`
+*   Fix how to calculate associated class name when using namespaced has_and_belongs_to_many
     association.
 
     Fixes #14709.
@@ -60,16 +63,16 @@
 
     *Innokenty Mikhailov*
 
-*   Allow the PostgreSQL adapter to handle bigserial pk types again.
+*   Allow the PostgreSQL adapter to handle bigserial primary key types again.
 
     Fixes #10410.
 
     *Patrick Robertson*
 
-*   Fixed HABTM's CollectionAssociation size calculation.
+*   Fixed has_and_belongs_to_many's CollectionAssociation size calculation.
 
-    HABTM should fall back to using the normal CollectionAssociation's size
-    calculation if the collection is not cached or loaded.
+    has_and_belongs_to_many should fall back to using the normal CollectionAssociation's
+    size calculation if the collection is not cached or loaded.
 
     Fixes #14913 and #14914.
 
@@ -94,18 +97,18 @@
 
     *James Coleman*
 
-*   Stringify all variables keys of mysql connection configuration.
+*   Stringify all variables keys of MySQL connection configuration.
 
-    When `sql_mode` variable for mysql adapters set in configuration as `String`
+    When `sql_mode` variable for MySQL adapters set in configuration as `String`
     was ignored and overwritten by strict mode option.
 
-    Fixes #14895
+    Fixes #14895.
 
     *Paul Nikitochkin*
 
 *   Ensure SQLite3 statements are closed on errors.
 
-    Fixes: #13631
+    Fixes #13631/
 
     *Timur Alperovich*
 

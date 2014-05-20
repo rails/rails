@@ -1,5 +1,6 @@
-*   Load database configuration from the first
-    database.yml available in paths.
+## Rails 4.1.2 (unreleased) ##
+
+*   Load database configuration from the first `database.yml` available in paths.
 
     *Pier-Olivier Thibault*
 

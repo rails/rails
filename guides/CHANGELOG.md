@@ -1,4 +1,6 @@
-*   Updates the maintenance policy to match the latest versions of Rails
+## Rails 4.1.2 (unreleased) ##
+
+*   Updates the maintenance policy to match the latest versions of Rails.
 
     *Matias Korhonen*
 

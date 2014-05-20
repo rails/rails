@@ -1,3 +1,5 @@
+## Rails 4.1.2 (unreleased) ##
+
 *   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
     when a subscriber method is redefined.
 

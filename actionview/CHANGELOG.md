@@ -1,4 +1,6 @@
-*   Change `asset_path` to use File.join to create proper paths (#14932):
+## Rails 4.1.2 (unreleased) ##
+
+*   Change `asset_path` to use File.join to create proper paths.
 
         https://some.host.com//assets/some.js
 
