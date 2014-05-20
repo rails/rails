@@ -2,7 +2,7 @@ require 'active_job/parameters'
 
 module ActiveJob
   module Enqueuing
-    ##
+    #
     # Push a job onto the queue.  The arguments must be legal JSON types
     # (string, int, float, nil, true, false, hash or array) or
     # ActiveModel::GlobalIdentication instances.  Arbitrary Ruby objects
@@ -11,11 +11,12 @@ module ActiveJob
     # The return value is adapter-specific and may change in a future
     # ActiveJob release.
     def enqueue(*args)
-      ActiveSupport::Notifications.instrument "enqueue.active_job", adapter: queue_adapter, job: self, params: args
-      queue_adapter.queue self, *Parameters.serialize(args)
+      serialized_args = Parameters.serialize(args)
+      ActiveSupport::Notifications.instrument "enqueue.active_job", adapter: queue_adapter, job: self, args: serialized_args
+      queue_adapter.queue self, *serialized_args
     end
 
-    ##
+    #
     # Enqueue a job to be performed at +interval+ from now.
     #
     #   enqueue_in(1.week, "mike")
@@ -25,7 +26,7 @@ module ActiveJob
       enqueue_at(interval.from_now, *args)
     end
 
-    ##
+    #
     # Enqueue a job to be performed at an explicit point in time.
     #
     #   enqueue_at(Date.tomorrow.midnight, "mike")
@@ -33,12 +34,8 @@ module ActiveJob
     # Returns truthy if a job was scheduled.
     def enqueue_at(timestamp, *args)
       ts = timestamp.to_f
-      ActiveSupport::Notifications.instrument "enqueue_at.active_job", adapter: queue_adapter, timestamp: ts, job: self, params: args
-      if Time.now.to_f > ts
-        queue_adapter.queue self, *Parameters.serialize(args)
-      else
-        queue_adapter.queue_at self, ts, *Parameters.serialize(args)
-      end
+      ActiveSupport::Notifications.instrument "enqueue_at.active_job", adapter: queue_adapter, timestamp: ts, job: self, args: args
+      queue_adapter.queue_at self, ts, *Parameters.serialize(args)
     end
   end
 end

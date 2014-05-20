@@ -1,31 +1,22 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveJob
   class LogSubscriber < ActiveSupport::LogSubscriber
     def enqueue(event)
-      payload = event.payload
-      params  = payload[:params]
-      adapter = payload[:adapter]
-      job     = payload[:job]
+      queue_name = event.payload[:adapter].name.demodulize.remove('Adapter')
+      job_name   = event.payload[:job].name
+      args       = event.payload[:args].any? ? ": #{event.payload[:args].inspect}" : ""
 
-      info "ActiveJob enqueued to #{adapter.name.demodulize} job #{job.name}: #{params.inspect}"
+      info "Enqueued #{job_name} to #{queue_name}" + args
     end
 
     def enqueue_at(event)
-      payload = event.payload
-      params  = payload[:params]
-      adapter = payload[:adapter]
-      job     = payload[:job]
-      time    = payload[:timestamp]
+      queue_name = event.payload[:adapter].name.demodulize.remove('Adapter')
+      job_name   = event.payload[:job].name
+      args       = event.payload[:args].any? ? ": #{event.payload[:args].inspect}" : ""
+      time       = event.payload[:timestamp]
 
-      info "ActiveJob enqueued at #{time} to #{adapter.name.demodulize} job #{job.name}: #{params.inspect}"
-    end
-
-    def perform_error(event)
-      payload = event.payload
-      params  = payload[:params]
-      job     = payload[:job]
-      error   = payload[:error]
-
-      warn "ActiveJob caught error executing #{job} with #{params.inspect}: #{error.message}"
+      info "Enqueued #{job_name} to #{queue_name} at #{time}" + args
     end
 
     def logger

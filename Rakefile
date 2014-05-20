@@ -20,11 +20,11 @@ task :default => :test
 
 desc 'Run all adapter tests'
 task :test do
-  tasks = %w(test_inline test_delayed_job test_que test_queue_classic test_resque test_sidekiq test_sneakers test_sucker_punch)
+  tasks = %w(test_inline test_delayed_job test_que test_queue_classic test_resque test_sidekiq test_sneakers test_sucker_punch test_backburner)
   run_without_aborting(*tasks)
 end
 
-%w(inline delayed_job que queue_classic resque sidekiq sneakers sucker_punch).each do |adapter|
+%w(inline delayed_job que queue_classic resque sidekiq sneakers sucker_punch backburner).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") do |t|
     t.libs << 'test'
     t.test_files = FileList['test/cases/**/*_test.rb']

@@ -21,12 +21,17 @@ GEM
       thread_safe (~> 0.1)
       tzinfo (~> 1.1)
     amq-protocol (1.9.2)
+    backburner (0.4.5)
+      beaneater (~> 0.3.1)
+      dante (~> 0.1.5)
+    beaneater (0.3.2)
     builder (3.2.2)
     bunny (1.1.9)
       amq-protocol (>= 1.9.2)
     celluloid (0.15.2)
       timers (~> 1.1.0)
     connection_pool (2.0.0)
+    dante (0.1.5)
     delayed_job (4.0.1)
       activesupport (>= 3.0, < 4.2)
     i18n (0.6.9)
@@ -92,6 +97,7 @@ PLATFORMS
 
 DEPENDENCIES
   activejob!
+  backburner
   delayed_job
   que
   queue_classic

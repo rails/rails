@@ -5,12 +5,20 @@ module ActiveJob
     class SidekiqAdapter
       class << self
         def queue(job, *args)
-          JobWrapper.client_push class: JobWrapper, queue: job.queue_name, args: [ job, *args ]
+          Sidekiq::Client.push \
+            'class' => JobWrapper,
+            'queue' => job.queue_name,
+            'args'  => [ job, *args ],
+            'retry' => true
         end
 
         def queue_at(job, timestamp, *args)
-          job = { class: JobWrapper, queue: job.queue_name, args: [ job, *args ], at: timestamp }
-          JobWrapper.client_push(job)
+          Sidekiq::Client.push \
+            'class' => JobWrapper,
+            'queue' => job.queue_name,
+            'args'  => [ job, *args ],
+            'at'    => timestamp,
+            'retry' => true
         end
       end
 

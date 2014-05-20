@@ -14,7 +14,7 @@ module ActiveJob
               sleep(interval) if interval > 0
               job.new.perform *Parameters.deserialize(args)
             rescue => ex
-              ActiveSupport::Notifications.instrument "perform_error.active_job", adapter: self, job: job, params: args, error: ex
+              ActiveJob::Base.logger "Error performing #{job}: #{ex.message}"
             end
           end
         end
