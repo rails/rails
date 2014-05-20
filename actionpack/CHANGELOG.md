@@ -1,3 +1,10 @@
+*   `http_basic_authenticate_with` only check the autentication if the schema is
+    `Basic`.
+
+    Fixes #10257.
+
+    *tomykaira*
+
 *   Fix 'Stack level too deep' when rendering `head :ok` in an action method
     called 'status' in a controller.
 
