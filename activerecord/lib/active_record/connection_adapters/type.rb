@@ -1,3 +1,4 @@
+require 'active_record/connection_adapters/type/numeric'
 require 'active_record/connection_adapters/type/time_value'
 require 'active_record/connection_adapters/type/value'
 
