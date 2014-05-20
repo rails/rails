@@ -5,7 +5,11 @@ module ActiveJob
     class SidekiqAdapter
       class << self
         def queue(job, *args)
-          JobWrapper.client_push class: JobWrapper, queue: job.queue_name, args: [ job, *args ]
+          item = { 'class' => JobWrapper,
+                   'queue' => job.queue_name,
+                   'args' => [job, *args],
+                   'retry' => true }
+          Sidekiq::Client.push(item)
         end
       end
 
@@ -13,7 +17,8 @@ module ActiveJob
         include Sidekiq::Worker
 
         def perform(job_name, *args)
-          job_name.constantize.new.perform *Parameters.deserialize(args)
+          instance = job_name.constantize.new
+          instance.perform *Parameters.deserialize(args)
         end
       end
     end
