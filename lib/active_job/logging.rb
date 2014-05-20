@@ -10,7 +10,7 @@ module ActiveJob
       end
 
       def enqueue_at(event)
-        info "Enqueued #{event.payload[:job].name} to #{queue_name(event)} at #{event.payload[:timestamp]}" + args_info(event)
+        info "Enqueued #{event.payload[:job].name} to #{queue_name(event)} at #{enqueud_at(event)}" + args_info(event)
       end
 
       private
@@ -20,6 +20,10 @@ module ActiveJob
 
         def args_info(event)
           event.payload[:args].any? ? ": #{event.payload[:args].inspect}" : ""
+        end
+        
+        def enqueud_at(event)
+          Time.at(event.payload[:timestamp]).utc
         end
 
         def logger
