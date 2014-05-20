@@ -2,6 +2,52 @@
 
 module ActionDispatch
   module Journey # :nodoc:
+    class Format
+      ESCAPE_PATH    = ->(value) { Router::Utils.escape_path(value) }
+      ESCAPE_SEGMENT = ->(value) { Router::Utils.escape_segment(value) }
+
+      class Parameter < Struct.new(:name, :escaper)
+        def escape(value); escaper.call value; end
+      end
+
+      def self.required_path(symbol)
+        Parameter.new symbol, ESCAPE_PATH
+      end
+
+      def self.required_segment(symbol)
+        Parameter.new symbol, ESCAPE_SEGMENT
+      end
+
+      def initialize(parts)
+        @parts      = parts
+        @children   = []
+        @parameters = []
+
+        parts.each_with_index do |object,i|
+          case object
+          when Journey::Format
+            @children << i
+          when Parameter
+            @parameters << i
+          end
+        end
+      end
+
+      def evaluate(hash)
+        parts = @parts.dup
+
+        @parameters.each do |index|
+          param = parts[index]
+          value = hash.fetch(param.name) { return ''.freeze }
+          parts[index] = param.escape value
+        end
+
+        @children.each { |index| parts[index] = parts[index].evaluate(hash) }
+
+        parts.join
+      end
+    end
+
     module Visitors # :nodoc:
       class Visitor # :nodoc:
         DISPATCH_CACHE = {}
@@ -43,6 +89,30 @@ module ActionDispatch
             next unless pim =~ /^visit_(.*)$/
             DISPATCH_CACHE[$1.to_sym] = pim
           end
+      end
+
+      class FormatBuilder < Visitor # :nodoc:
+        def accept(node); Journey::Format.new(super); end
+        def terminal(node); [node.left]; end
+
+        def binary(node)
+          visit(node.left) + visit(node.right)
+        end
+
+        def visit_GROUP(n); [Journey::Format.new(unary(n))]; end
+
+        def visit_STAR(n)
+          [Journey::Format.required_path(n.left.to_sym)]
+        end
+
+        def visit_SYMBOL(n)
+          symbol = n.to_sym
+          if symbol == :controller
+            [Journey::Format.required_path(symbol)]
+          else
+            [Journey::Format.required_segment(symbol)]
+          end
+        end
       end
 
       # Loop through the requirements AST

@@ -76,7 +76,8 @@ module ActionDispatch
           value.to_s == defaults[key].to_s && !required_parts.include?(key)
         end
 
-        Visitors::Formatter.new(path_options).accept(path.spec)
+        format = Visitors::FormatBuilder.new.accept(path.spec)
+        format.evaluate path_options
       end
 
       def optimized_path
