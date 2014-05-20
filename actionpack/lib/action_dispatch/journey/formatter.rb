@@ -12,7 +12,7 @@ module ActionDispatch
         @cache  = nil
       end
 
-      def generate(type, name, options, recall = {}, parameterize = nil)
+      def generate(name, options, recall = {}, parameterize = nil)
         constraints = recall.merge(options)
         missing_keys = []
 

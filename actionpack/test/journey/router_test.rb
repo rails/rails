@@ -160,7 +160,7 @@ module ActionDispatch
         ]
 
         assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(:path_info, nil, { :id => '10' }, { })
+          @formatter.generate(nil, { :id => '10' }, { })
         end
       end
 
@@ -169,11 +169,11 @@ module ActionDispatch
           Router::Strexp.new("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
         ]
 
-        path, _ = @formatter.generate(:path_info, nil, { :id => '10' }, { })
+        path, _ = @formatter.generate(nil, { :id => '10' }, { })
         assert_equal '/foo/10', path
 
         assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(:path_info, nil, { :id => 'aa' }, { })
+          @formatter.generate(nil, { :id => 'aa' }, { })
         end
       end
 
@@ -182,13 +182,13 @@ module ActionDispatch
           Router::Strexp.new("/foo(/:id)", {:id => /\d/}, ['/', '.', '?'], false)
         ]
 
-        path, _ = @formatter.generate(:path_info, nil, { :id => '10' }, { })
+        path, _ = @formatter.generate(nil, { :id => '10' }, { })
         assert_equal '/foo/10', path
 
-        path, _ = @formatter.generate(:path_info, nil, { }, { })
+        path, _ = @formatter.generate(nil, { }, { })
         assert_equal '/foo', path
 
-        path, _ = @formatter.generate(:path_info, nil, { :id => 'aa' }, { })
+        path, _ = @formatter.generate(nil, { :id => 'aa' }, { })
         assert_equal '/foo/aa', path
       end
 
@@ -199,7 +199,7 @@ module ActionDispatch
         @router.routes.add_route nil, path, {}, {}, route_name
 
         error = assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(:path_info, route_name, { }, { })
+          @formatter.generate(route_name, { }, { })
         end
 
         assert_match(/missing required keys: \[:id\]/, error.message)
@@ -287,14 +287,14 @@ module ActionDispatch
       def test_required_part_in_recall
         add_routes @router, [ "/messages/:a/:b" ]
 
-        path, _ = @formatter.generate(:path_info, nil, { :a => 'a' }, { :b => 'b' })
+        path, _ = @formatter.generate(nil, { :a => 'a' }, { :b => 'b' })
         assert_equal "/messages/a/b", path
       end
 
       def test_splat_in_recall
         add_routes @router, [ "/*path" ]
 
-        path, _ = @formatter.generate(:path_info, nil, { }, { :path => 'b' })
+        path, _ = @formatter.generate(nil, { }, { :path => 'b' })
         assert_equal "/b", path
       end
 
@@ -304,7 +304,7 @@ module ActionDispatch
           "/messages/:id(.:format)"
         ]
 
-        path, _ = @formatter.generate(:path_info, nil, { :id => 10 }, { :action => 'index' })
+        path, _ = @formatter.generate(nil, { :id => 10 }, { :action => 'index' })
         assert_equal "/messages/index/10", path
       end
 
@@ -315,7 +315,7 @@ module ActionDispatch
         params = { :controller => "tasks", :format => nil }
         extras = { :action => 'lol' }
 
-        path, _ = @formatter.generate(:path_info, nil, params, extras)
+        path, _ = @formatter.generate(nil, params, extras)
         assert_equal '/tasks', path
       end
 
@@ -327,7 +327,7 @@ module ActionDispatch
 
         @router.routes.add_route @app, path, {}, {}, {}
 
-        path, _ = @formatter.generate(:path_info, nil, Hash[params], {})
+        path, _ = @formatter.generate(nil, Hash[params], {})
         assert_equal '/', path
       end
 
@@ -340,7 +340,6 @@ module ActionDispatch
                    [:action, "show"] ]
 
         @formatter.generate(
-          :path_info,
           nil,
           Hash[params],
           {},
@@ -354,7 +353,7 @@ module ActionDispatch
         @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(
-          :path_info, nil, {:id=>1, :controller=>"tasks", :action=>"show"}, {})
+          nil, {:id=>1, :controller=>"tasks", :action=>"show"}, {})
         assert_equal '/tasks/show', path
         assert_equal({:id => 1}, params)
       end
@@ -363,8 +362,8 @@ module ActionDispatch
         path  = Path::Pattern.new '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
-        path, _ = @formatter.generate(:path_info,
-          nil, { :controller        => "tasks",
+        path, _ = @formatter.generate(nil,
+          { :controller        => "tasks",
                  :action            => "a/b c+d",
         }, {})
         assert_equal '/tasks/a%2Fb%20c+d', path
@@ -374,7 +373,7 @@ module ActionDispatch
         path  = Path::Pattern.new '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
-        path, _ = @formatter.generate(:path_info,
+        path, _ = @formatter.generate(
           nil, { :controller        => "admin/tasks",
                  :action            => "a/b c+d",
         }, {})
@@ -385,7 +384,7 @@ module ActionDispatch
         path  = Path::Pattern.new '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
-        path, params = @formatter.generate(:path_info,
+        path, params = @formatter.generate(
           nil, { :id                => 1,
                  :controller        => "tasks",
                  :action            => "show",
@@ -399,7 +398,7 @@ module ActionDispatch
         path  = Path::Pattern.new '/:controller(/:action(/:id))'
         @router.routes.add_route @app, path, {}, {}, {}
 
-        path, params = @formatter.generate(:path_info,
+        path, params = @formatter.generate(
           nil,
           {:controller =>"tasks", :id => 10},
           {:action     =>"index"})
@@ -411,7 +410,7 @@ module ActionDispatch
         path  = Path::Pattern.new '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
-        path, params = @formatter.generate(:path_info,
+        path, params = @formatter.generate(
           "tasks",
           {:controller=>"tasks"},
           {:controller=>"tasks", :action=>"index"})

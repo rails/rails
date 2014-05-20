@@ -600,7 +600,7 @@ module ActionDispatch
         # Generates a path from routes, returns [path, params].
         # If no route is generated the formatter will raise ActionController::UrlGenerationError
         def generate
-          @set.formatter.generate(:path_info, named_route, options, recall, PARAMETERIZE)
+          @set.formatter.generate(named_route, options, recall, PARAMETERIZE)
         end
 
         def different_controller?
