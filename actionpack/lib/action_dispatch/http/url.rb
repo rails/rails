@@ -37,7 +37,11 @@ module ActionDispatch
           path  = options[:script_name].to_s.chomp("/")
           path << options[:path].to_s
 
-          result = build_host_url(options)
+          if options[:only_path]
+            result = ''
+          else
+            result = build_host_url(options)
+          end
 
           if options[:trailing_slash]
             if path.include?('?')
@@ -65,28 +69,25 @@ module ActionDispatch
         private
 
         def build_host_url(options)
-          result = ""
-
-          unless options[:only_path]
-            if match = options[:host].match(HOST_REGEXP)
-              options[:protocol] ||= match[1] unless options[:protocol] == false
-              options[:host]       = match[2]
-              options[:port]       = match[3] unless options.key?(:port)
-            end
-
-            options[:protocol] = normalize_protocol(options)
-            options[:host]     = normalize_host(options)
-            options[:port]     = normalize_port(options)
-
-            result << options[:protocol]
-
-            if options[:user] && options[:password]
-              result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
-            end
-
-            result << options[:host]
-            result << ":#{options[:port]}" if options[:port]
+          if match = options[:host].match(HOST_REGEXP)
+            options[:protocol] ||= match[1] unless options[:protocol] == false
+            options[:host]       = match[2]
+            options[:port]       = match[3] unless options.key?(:port)
           end
+
+          options[:protocol] = normalize_protocol(options)
+          options[:host]     = normalize_host(options)
+          options[:port]     = normalize_port(options)
+
+          result = options[:protocol]
+
+          if options[:user] && options[:password]
+            result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
+          end
+
+          result << options[:host]
+          result << ":#{options[:port]}" if options[:port]
+
           result
         end
 
