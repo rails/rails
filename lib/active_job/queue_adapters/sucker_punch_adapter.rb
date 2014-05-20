@@ -9,12 +9,7 @@ module ActiveJob
         end
 
         def queue_at(job, timestamp, *args)
-          delay = Time.now.to_f - timestamp
-          if delay > 0
-            JobWrapper.new.async.later(delay, job, *args)
-          else
-            JobWrapper.new.async.perform(job, *args)
-          end
+          JobWrapper.new.async.later(timestamp, job, *args)
         end
       end
 
@@ -26,7 +21,8 @@ module ActiveJob
         end
 
         def later(sec, job_name, *args)
-          after(sec) { perform(job_name, *args) }
+          delay = Time.now.to_f - sec
+          after(delay > 0 ? delay : 0) { perform(job_name, *args) }
         end
       end
     end
