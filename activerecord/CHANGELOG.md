@@ -434,12 +434,6 @@
 
     *Cody Cutrer*, *Steve Rice*, *Rafael Mendonça Franca*
 
-*   Save `has_one` association even if the record doesn't changed.
-
-    Fixes #14407.
-
-    *Rafael Mendonça França*
-
 *   Use singular table name in generated migrations when
     `ActiveRecord::Base.pluralize_table_names` is `false`.
 
@@ -517,6 +511,12 @@
     values without needing to wrap in UPPER/LOWER sql functions.
 
     *Troy Kruthoff*, *Lachlan Sylvester*
+
+*   Only save has_one associations if record has changes.
+    Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
+    object did not get saved to the db.
+
+    *Alan Kennedy*
 
 *   Allow strings to specify the `#order` value.
 
