@@ -226,21 +226,23 @@ module ActionDispatch
           end
 
           def call(t, args)
-            options = t.url_options.merge @options
-            hash = handle_positional_args(t, args, options, @segment_keys)
+            controller_options = t.url_options
+            options = controller_options.merge @options
+            hash = handle_positional_args(controller_options, args, options, @segment_keys)
             t._routes.url_for(hash)
           end
 
-          def handle_positional_args(t, args, result, keys)
+          def handle_positional_args(controller_options, args, result, path_params)
             inner_options = args.extract_options!
 
             if args.size > 0
-              if args.size < keys.size - 1 # take format into account
-                keys -= t.url_options.keys
-                keys -= result.keys
+              if args.size < path_params.size - 1 # take format into account
+                path_params -= controller_options.keys
+                path_params -= result.keys
               end
-              keys -= inner_options.keys
-              result.merge!(Hash[keys.zip(args)])
+              path_params.each { |param|
+                result[param] = inner_options[param] || args.shift
+              }
             end
 
             result.merge!(inner_options)
