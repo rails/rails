@@ -2,43 +2,21 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Type < Type::Value
+        module Infinity
           def infinity(options = {})
-            ::Float::INFINITY * (options[:negative] ? -1 : 1)
+            options[:negative] ? -::Float::INFINITY : ::Float::INFINITY
           end
         end
 
-        class Identity < Type
-          def type_cast(value)
-            value
-          end
-        end
-
-        class String < Type
-          def type; :string end
-
-          def type_cast(value)
-            return if value.nil?
-
-            value.to_s
-          end
-        end
-
-        class SpecializedString < OID::String
-          def type; @type end
+        class SpecializedString < Type::String
+          attr_reader :type
 
           def initialize(type)
             @type = type
           end
         end
 
-        class Text < OID::String
-          def type; :text end
-        end
-
-        class Bit < Type
-          def type; :string end
-
+        class Bit < Type::String
           def type_cast(value)
             if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_bit value
@@ -48,20 +26,16 @@ module ActiveRecord
           end
         end
 
-        class Bytea < Type
-          def type; :binary end
-
-          def type_cast(value)
-            return if value.nil?
+        class Bytea < Type::Binary
+          def cast_value(value)
             PGconn.unescape_bytea value
           end
         end
 
-        class Money < Type
-          def type; :decimal end
+        class Money < Type::Decimal
+          include Infinity
 
-          def type_cast(value)
-            return if value.nil?
+          def cast_value(value)
             return value unless ::String === value
 
             # Because money output is formatted according to the locale, there are two
@@ -80,11 +54,11 @@ module ActiveRecord
               value.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
             end
 
-            ConnectionAdapters::Column.value_to_decimal value
+            super(value)
           end
         end
 
-        class Vector < Type
+        class Vector < Type::Value
           attr_reader :delim, :subtype
 
           # +delim+ corresponds to the `typdelim` column in the pg_types
@@ -103,9 +77,7 @@ module ActiveRecord
           end
         end
 
-        class Point < Type
-          def type; :string end
-
+        class Point < Type::String
           def type_cast(value)
             if ::String === value
               ConnectionAdapters::PostgreSQLColumn.string_to_point value
@@ -115,10 +87,10 @@ module ActiveRecord
           end
         end
 
-        class Array < Type
-          def type; @subtype.type end
-
+        class Array < Type::Value
           attr_reader :subtype
+          delegate :type, to: :subtype
+
           def initialize(subtype)
             @subtype = subtype
           end
@@ -132,7 +104,7 @@ module ActiveRecord
           end
         end
 
-        class Range < Type
+        class Range < Type::Value
           attr_reader :subtype, :type
 
           def initialize(subtype, type)
@@ -158,8 +130,8 @@ module ActiveRecord
             infinity?(value) ? value : @subtype.type_cast(value)
           end
 
-          def type_cast(value)
-            return if value.nil? || value == 'empty'
+          def cast_value(value)
+            return if value == 'empty'
             return value if value.is_a?(::Range)
 
             extracted = extract_bounds(value)
@@ -181,109 +153,77 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Integer < Type
-          def type; :integer end
-
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_integer value
-          end
+        class Integer < Type::Integer
+          include Infinity
         end
 
-        class Boolean < Type
-          def type; :boolean end
+        class DateTime < Type::DateTime
+          include Infinity
 
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_boolean value
-          end
-        end
-
-        class DateTime < Type
-          def type; :datetime; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is PG
-            # specific
-            ConnectionAdapters::PostgreSQLColumn.string_to_time value
-          end
-        end
-
-        class Date < Type
-          def type; :date; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is PG
-            # specific
-            ConnectionAdapters::Column.value_to_date value
-          end
-        end
-
-        class Time < Type
-          def type; :time end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is PG
-            # specific
-            ConnectionAdapters::Column.string_to_dummy_time value
-          end
-        end
-
-        class Float < Type
-          def type; :float end
-
-          def type_cast(value)
-            case value
-              when nil;         nil
-              when 'Infinity';  ::Float::INFINITY
-              when '-Infinity'; -::Float::INFINITY
-              when 'NaN';       ::Float::NAN
+          def cast_value(value)
+            if value.is_a?(::String)
+              case value
+              when 'infinity' then ::Float::INFINITY
+              when '-infinity' then -::Float::INFINITY
+              when / BC$/
+                super("-" + value.sub(/ BC$/, ""))
+              else
+                super
+              end
             else
-              value.to_f
+              value
             end
           end
         end
 
-        class Decimal < Type
-          def type; :decimal end
+        class Date < Type::Date
+          include Infinity
+        end
+
+        class Time < Type::Time
+          include Infinity
+        end
+
+        class Float < Type::Float
+          include Infinity
 
           def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_decimal value
+            case value
+            when nil then         nil
+            when 'Infinity' then  ::Float::INFINITY
+            when '-Infinity' then -::Float::INFINITY
+            when 'NaN' then       ::Float::NAN
+            else                  value.to_f
+            end
           end
+        end
 
+        class Decimal < Type::Decimal
           def infinity(options = {})
             BigDecimal.new("Infinity") * (options[:negative] ? -1 : 1)
           end
         end
 
-        class Enum < Type
-          def type; :enum end
+        class Enum < Type::Value
+          def type
+            :enum
+          end
 
           def type_cast(value)
             value.to_s
           end
         end
 
-        class Hstore < Type
-          def type; :hstore end
+        class Hstore < Type::Value
+          def type
+            :hstore
+          end
 
           def type_cast_for_write(value)
             ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
           end
 
-          def type_cast(value)
-            return if value.nil?
-
+          def cast_value(value)
             ConnectionAdapters::PostgreSQLColumn.string_to_hstore value
           end
 
@@ -292,28 +232,32 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Cidr < Type
-          def type; :cidr end
-          def type_cast(value)
-            return if value.nil?
+        class Cidr < Type::Value
+          def type
+            :cidr
+          end
 
+          def cast_value(value)
             ConnectionAdapters::PostgreSQLColumn.string_to_cidr value
           end
         end
+
         class Inet < Cidr
-          def type; :inet end
+          def type
+            :inet
+          end
         end
 
-        class Json < Type
-          def type; :json end
+        class Json < Type::Value
+          def type
+            :json
+          end
 
           def type_cast_for_write(value)
             ConnectionAdapters::PostgreSQLColumn.json_to_string value
           end
 
-          def type_cast(value)
-            return if value.nil?
-
+          def cast_value(value)
             ConnectionAdapters::PostgreSQLColumn.string_to_json value
           end
 
@@ -322,8 +266,11 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class Uuid < Type
-          def type; :uuid end
+        class Uuid < Type::Value
+          def type
+            :uuid
+          end
+
           def type_cast(value)
             value.presence
           end
@@ -442,7 +389,7 @@ This is not reliable and will be removed in the future.
         # type_map is then dynamically built with oids as the key and type
         # objects as values.
         NAMES = Hash.new { |h,k| # :nodoc:
-          h[k] = OID::Identity.new
+          h[k] = Type::Value.new
         }
 
         # Register an OID type named +name+ with a typecasting object in
@@ -469,12 +416,12 @@ This is not reliable and will be removed in the future.
         register_type 'numeric', OID::Decimal.new
         register_type 'float4', OID::Float.new
         alias_type 'float8', 'float4'
-        register_type 'text', OID::Text.new
-        register_type 'varchar', OID::String.new
+        register_type 'text', Type::Text.new
+        register_type 'varchar', Type::String.new
         alias_type 'char', 'varchar'
         alias_type 'name', 'varchar'
         alias_type 'bpchar', 'varchar'
-        register_type 'bool', OID::Boolean.new
+        register_type 'bool', Type::Boolean.new
         register_type 'bit', OID::Bit.new
         alias_type 'varbit', 'bit'
         register_type 'timestamp', OID::DateTime.new

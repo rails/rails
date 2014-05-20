@@ -10,13 +10,13 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          c = PostgreSQLColumn.new(nil, 1, OID::Boolean.new, 'boolean')
+          c = PostgreSQLColumn.new(nil, 1, Type::Boolean.new, 'boolean')
           assert_equal 't', @conn.type_cast(true, nil)
           assert_equal 't', @conn.type_cast(true, c)
         end
 
         def test_type_cast_false
-          c = PostgreSQLColumn.new(nil, 1, OID::Boolean.new, 'boolean')
+          c = PostgreSQLColumn.new(nil, 1, Type::Boolean.new, 'boolean')
           assert_equal 'f', @conn.type_cast(false, nil)
           assert_equal 'f', @conn.type_cast(false, c)
         end
@@ -47,9 +47,9 @@ module ActiveRecord
 
         def test_quote_cast_numeric
           fixnum = 666
-          c = PostgreSQLColumn.new(nil, nil, OID::String.new, 'varchar')
+          c = PostgreSQLColumn.new(nil, nil, Type::String.new, 'varchar')
           assert_equal "'666'", @conn.quote(fixnum, c)
-          c = PostgreSQLColumn.new(nil, nil, OID::Text.new, 'text')
+          c = PostgreSQLColumn.new(nil, nil, Type::Text.new, 'text')
           assert_equal "'666'", @conn.quote(fixnum, c)
         end
 
