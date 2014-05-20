@@ -2,6 +2,10 @@ require 'abstract_unit'
 require 'controller/fake_models'
 
 class RespondWithController < ActionController::Base
+  class CustomerWithJson < Customer
+    def to_json; super; end
+  end
+
   respond_to :html, :json, :touch
   respond_to :xml, :except => :using_resource_with_block
   respond_to :js,  :only => [ :using_resource_with_block, :using_resource, 'using_hash_resource' ]
@@ -36,6 +40,10 @@ class RespondWithController < ActionController::Base
 
   def using_resource_with_status_and_location
     respond_with(resource, :location => "http://test.host/", :status => :created)
+  end
+
+  def using_resource_with_json
+    respond_with(CustomerWithJson.new("david", request.delete? ? nil : 13))
   end
 
   def using_invalid_resource_with_template
@@ -380,9 +388,8 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_using_resource_for_put_with_json_yields_no_content_on_success
-    Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
     @request.accept = "application/json"
-    put :using_resource
+    put :using_resource_with_json
     assert_equal "application/json", @response.content_type
     assert_equal 204, @response.status
     assert_equal "", @response.body
@@ -431,10 +438,9 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_using_resource_for_delete_with_json_yields_no_content_on_success
-    Customer.any_instance.stubs(:to_json).returns('{"name": "David"}')
     Customer.any_instance.stubs(:destroyed?).returns(true)
     @request.accept = "application/json"
-    delete :using_resource
+    delete :using_resource_with_json
     assert_equal "application/json", @response.content_type
     assert_equal 204, @response.status
     assert_equal "", @response.body
