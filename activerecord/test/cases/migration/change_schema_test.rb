@@ -14,6 +14,7 @@ module ActiveRecord
       teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Base.primary_key_prefix_type = nil
+        ActiveRecord::Base.clear_cache!
       end
 
       def test_create_table_without_id
