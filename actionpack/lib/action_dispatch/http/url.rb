@@ -30,6 +30,10 @@ module ActionDispatch
         end
 
         def url_for(options)
+          unless options[:host] || options[:only_path]
+            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
+          end
+
           path  = options[:script_name].to_s.chomp("/")
           path << options[:path].to_s
 
@@ -61,10 +65,6 @@ module ActionDispatch
         private
 
         def build_host_url(options)
-          unless options[:host] || options[:only_path]
-            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
-          end
-
           result = ""
 
           unless options[:only_path]
