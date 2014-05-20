@@ -1,3 +1,7 @@
+*   Add `bin/setup` script to bootstrap an application.
+
+    *Yves Senn*
+
 *   Replace double quotes with single quotes while adding an entry into Gemfile.
 
     *Alexander Belaev*

@@ -21,6 +21,7 @@ DEFAULT_APP_FILES = %w(
   bin/bundle
   bin/rails
   bin/rake
+  bin/setup
   config/environments
   config/initializers
   config/locales
