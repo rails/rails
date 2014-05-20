@@ -43,4 +43,9 @@ class AdapterTest < ActiveSupport::TestCase
     ActiveJob::Base.queue_adapter = :sneakers
     assert_equal ActiveJob::QueueAdapters::SneakersAdapter, ActiveJob::Base.queue_adapter
   end
+
+  test 'should load Backburner adapter' do
+    ActiveJob::Base.queue_adapter = :backburner
+    assert_equal ActiveJob::QueueAdapters::BackburnerAdapter, ActiveJob::Base.queue_adapter
+  end
 end
