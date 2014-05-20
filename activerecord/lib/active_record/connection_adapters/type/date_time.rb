@@ -5,6 +5,12 @@ module ActiveRecord
         def type
           :datetime
         end
+
+        private
+
+        def cast_value(string)
+          Column.string_to_time(string)
+        end
       end
     end
   end

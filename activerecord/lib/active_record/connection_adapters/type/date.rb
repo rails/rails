@@ -5,6 +5,12 @@ module ActiveRecord
         def type
           :date
         end
+
+        private
+
+        def cast_value(value)
+          Column.value_to_date(value)
+        end
       end
     end
   end
