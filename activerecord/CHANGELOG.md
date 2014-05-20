@@ -1,3 +1,9 @@
+*   Fixed the inferred table name of a HABTM auxiliar table inside a schema.
+
+    Fixes #14824
+
+    *Eric Chahin*
+
 *   Remove unused `:timestamp` type. Transparently alias it to `:datetime`
     in all cases. Fixes inconsistencies when column types are sent outside of
     `ActiveRecord`, such as for XML Serialization.

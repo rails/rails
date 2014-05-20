@@ -50,6 +50,16 @@ class SchemaTest < ActiveRecord::TestCase
     self.table_name = 'things'
   end
 
+  class Song < ActiveRecord::Base
+    self.table_name = "music.songs"
+    has_and_belongs_to_many :albums
+  end
+
+  class Album < ActiveRecord::Base
+    self.table_name = "music.albums"
+    has_and_belongs_to_many :songs
+  end
+
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
@@ -107,6 +117,22 @@ class SchemaTest < ActiveRecord::TestCase
       @connection.drop_schema "test_schema3"
     end
     assert !@connection.schema_names.include?("test_schema3")
+  end
+
+  def test_habtm_table_name_with_schema
+    ActiveRecord::Base.connection.execute <<-SQL
+      DROP SCHEMA IF EXISTS music CASCADE;
+      CREATE SCHEMA music;
+      CREATE TABLE music.albums (id serial primary key);
+      CREATE TABLE music.songs (id serial primary key);
+      CREATE TABLE music.albums_songs (album_id integer, song_id integer);
+    SQL
+
+    song = Song.create
+    album = Album.create
+    assert_equal song, Song.includes(:albums).references(:albums).first
+  ensure
+    ActiveRecord::Base.connection.execute "DROP SCHEMA music CASCADE;"
   end
 
   def test_raise_drop_schema_with_nonexisting_schema
