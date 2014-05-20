@@ -249,10 +249,9 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      # Overridden by the adapters to instantiate their specific Column type.
       def new_column(field, default, sql_type, null, collation, extra = "") # :nodoc:
         cast_type = lookup_cast_type(sql_type)
-        Column.new(field, default, cast_type, sql_type, null, collation, extra)
+        Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
       # Must return the Mysql error number from the exception, if the exception has an
