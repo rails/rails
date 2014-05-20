@@ -41,16 +41,6 @@ module ActiveRecord
   end
 
   module ConnectionAdapters #:nodoc:
-    class SQLite3Column < Column #:nodoc:
-      def type_cast(value)
-        if encoded?
-          super
-        else
-          cast_type.type_cast(value)
-        end
-      end
-    end
-
     class SQLite3Binary < Type::Binary # :nodoc:
       def cast_value(value)
         if value.encoding != Encoding::ASCII_8BIT
@@ -403,7 +393,7 @@ module ActiveRecord
 
           sql_type = field['type']
           cast_type = lookup_cast_type(sql_type)
-          SQLite3Column.new(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
+          Column.new(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
         end
       end
 

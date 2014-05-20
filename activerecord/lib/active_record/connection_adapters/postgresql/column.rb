@@ -123,13 +123,6 @@ module ActiveRecord
         end
       end
 
-      def type_cast(value)
-        return if value.nil?
-        return super if encoded?
-
-        @oid_type.type_cast value
-      end
-
       def accessor
         @oid_type.accessor
       end

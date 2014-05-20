@@ -94,28 +94,10 @@ module ActiveRecord
 
       # Casts value to an appropriate instance.
       def type_cast(value)
-        return nil if value.nil?
-        return coder.load(value) if encoded?
-
-        klass = self.class
-
-        case type
-        when :string, :text
-          case value
-          when TrueClass; "1"
-          when FalseClass; "0"
-          else
-            value.to_s
-          end
-        when :integer              then klass.value_to_integer(value)
-        when :float                then value.to_f
-        when :decimal              then klass.value_to_decimal(value)
-        when :datetime             then klass.string_to_time(value)
-        when :time                 then klass.string_to_dummy_time(value)
-        when :date                 then klass.value_to_date(value)
-        when :binary               then klass.binary_to_string(value)
-        when :boolean              then klass.value_to_boolean(value)
-        else value
+        if encoded?
+          coder.load(value)
+        else
+          cast_type.type_cast(value)
         end
       end
 

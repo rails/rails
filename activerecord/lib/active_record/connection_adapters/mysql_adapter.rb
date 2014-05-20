@@ -66,21 +66,6 @@ module ActiveRecord
     # * <tt>:sslcipher</tt> - Necessary to use MySQL with an SSL connection.
     #
     class MysqlAdapter < AbstractMysqlAdapter
-
-      class Column < AbstractMysqlAdapter::Column #:nodoc:
-        def type_cast(value)
-          if encoded?
-            super
-          else
-            cast_type.type_cast(value)
-          end
-        end
-
-        def adapter
-          MysqlAdapter
-        end
-      end
-
       ADAPTER_NAME = 'MySQL'
 
       class StatementPool < ConnectionAdapters::StatementPool
@@ -140,11 +125,6 @@ module ActiveRecord
         else
           to_enum(:each_hash, result)
         end
-      end
-
-      def new_column(field, default, sql_type, null, collation, extra = "") # :nodoc:
-        cast_type = lookup_cast_type(sql_type)
-        Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
       def error_number(exception) # :nodoc:
