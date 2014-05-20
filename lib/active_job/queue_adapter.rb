@@ -6,14 +6,13 @@ module ActiveJob
     mattr_reader(:queue_adapter) { ActiveJob::QueueAdapters::InlineAdapter }
 
     def queue_adapter=(name_or_adapter)
-      case name_or_adapter
-      when Symbol, String
-        adapter = load_adapter(name_or_adapter)
-      else
-        adapter = name_or_adapter
-      end
-
-      @@queue_adapter = adapter
+      @@queue_adapter = \
+        case name_or_adapter
+        when Symbol, String
+          load_adapter(name_or_adapter)
+        else
+          name_or_adapter
+        end
     end
 
     private
