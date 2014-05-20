@@ -95,6 +95,19 @@ module ActiveRecord
             mapping.register_type(/only key/i)
           end
         end
+
+        def test_lookup_non_strings
+          mapping = HashLookupTypeMap.new
+
+          mapping.register_type(1, 'string')
+          mapping.register_type(2, 'int')
+          mapping.alias_type(3, 1)
+
+          assert_equal mapping.lookup(1), 'string'
+          assert_equal mapping.lookup(2), 'int'
+          assert_equal mapping.lookup(3), 'string'
+          assert_kind_of Type::Value, mapping.lookup(4)
+        end
       end
     end
   end
