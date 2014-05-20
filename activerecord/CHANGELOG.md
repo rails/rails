@@ -1,4 +1,7 @@
-*   Fixed the inferred table name of a HABTM auxiliar table inside a schema.
+## Rails 4.0.6 (unreleased) ##
+
+*   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
+    table inside a schema.
 
     Fixes #14824
 
@@ -51,32 +54,32 @@
 
     *Yves Senn*
 
-*   Fixed HABTM's CollectionAssociation size calculation.
+*   Fixed has_and_belongs_to_many's CollectionAssociation size calculation.
 
-    HABTM should not include new records as part of #count_records as new
-    records are already counted.
+    has_and_belongs_to_many should not include new records as part of
+    `#count_records` as new records are already counted.
 
     Fixes #14914.
 
     *Fred Wu*
 
-*   Stringify all variables keys of mysql connection configuration.
+*   Stringify all variables keys of MySQL connection configuration.
 
-    When `sql_mode` variable for mysql adapters set in configuration as `String`
+    When `sql_mode` variable for MySQL adapters set in configuration as `String`
     was ignored and overwritten by strict mode option.
 
-    Fixes #14895
+    Fixes #14895.
 
     *Paul Nikitochkin*
 
 *   Ensure SQLite3 statements are closed on errors.
 
-    Fixes: #13631
+    Fixes: #13631.
 
     *Timur Alperovich*
 
 *   When joining tables with a default scope, ensure the generated table name
-    in the ON conditions from the default scope is correctly aliased .
+    in the `ON` conditions from the default scope is correctly aliased.
 
     Backports #14154.
 
@@ -143,7 +146,7 @@
 
 *   `to_sql` on an association now matches the query that is actually executed, where it
     could previously have incorrectly accrued additional conditions (e.g. as a result of
-    a previous query). CollectionProxy now always defers to the association scope's
+    a previous query). `CollectionProxy` now always defers to the association scope's
     `arel` method so the (incorrect) inherited one should be entirely concealed.
 
     Fixes #14003.
@@ -166,7 +169,7 @@
 
     *Tieg Zaharia*
 
-*   Fixed error where .persisted? throws SystemStackError for an unsaved model with a
+*   Fixed error where `#persisted?` throws `SystemStackError` for an unsaved model with a
     custom primary key that didn't save due to validation error.
 
     Fixes #14393.
@@ -180,7 +183,7 @@
 
     *Yves Senn*
 
-*   Fix counter cache when association uses a class_name.
+*   Fix counter cache when association uses a `class_name`.
 
     Fixes #14369.
 

@@ -1,3 +1,5 @@
+## Rails 4.0.6 (unreleased) ##
+
 *   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
     given. In particular `#update`, `#merge`, `#replace` all accept objects
     which respond to `#to_hash`, even if those objects are not Hashes directly.

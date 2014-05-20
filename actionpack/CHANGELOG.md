@@ -1,4 +1,6 @@
-*   Fix 'Stack level too deep' when rendering `head :ok` in an action method
+## Rails 4.0.6 (unreleased) ##
+
+*   Fix `'Stack level too deep'` when rendering `head :ok` in an action method
     called 'status' in a controller.
 
     Fixes #13905.
@@ -11,7 +13,7 @@
 
     *Guilherme Cavalcanti*, *Andrew White*
 
-*   Change `asset_path` to use File.join to create proper paths (#14932):
+*   Change `asset_path` to use File.join to create proper paths.
 
         https://some.host.com//assets/some.js
 
@@ -44,16 +46,16 @@
 
     *Izumi Wong-Horiuchi*
 
-*   Swapped the parameters of assert_equal in `assert_select` so that the
-    proper values were printed correctly
+*   Swapped the parameters of `assert_equal` in `assert_select` so that the
+    proper values were printed correctly.
 
     Fixes #14422.
 
     *Vishal Lal*
 
 *   The method `shallow?` returns false if the parent resource is a singleton so
-    we need to check if we're not inside a nested scope before copying the :path
-    and :as options to their shallow equivalents.
+    we need to check if we're not inside a nested scope before copying the `:path`
+    and `:as` options to their shallow equivalents.
 
     Fixes #14388.
 
