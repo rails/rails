@@ -52,8 +52,6 @@ module ActiveModel
           raise
         end
 
-        attr_reader :password
-
         include InstanceMethodsOnActivation
 
         if options.fetch(:validations, true)
@@ -91,6 +89,8 @@ module ActiveModel
       def authenticate(unencrypted_password)
         BCrypt::Password.new(password_digest) == unencrypted_password && self
       end
+
+      attr_reader :password
 
       # Encrypts the password into the +password_digest+ attribute, only if the
       # new password is not blank.
