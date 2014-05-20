@@ -1,4 +1,6 @@
+require 'active_record/connection_adapters/type/time_value'
 require 'active_record/connection_adapters/type/value'
+
 require 'active_record/connection_adapters/type/binary'
 require 'active_record/connection_adapters/type/boolean'
 require 'active_record/connection_adapters/type/date'
