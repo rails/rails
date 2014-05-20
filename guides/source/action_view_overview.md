@@ -28,7 +28,7 @@ For each controller there is an associated directory in the `app/views` director
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
 ```bash
-$ rails generate scaffold post
+$ bin/rails generate scaffold post
       [...]
       invoke  scaffold_controller
       create    app/controllers/posts_controller.rb

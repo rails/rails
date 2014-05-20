@@ -686,7 +686,7 @@ information on compiling locally.
 The rake task is:
 
 ```bash
-$ RAILS_ENV=production bundle exec rake assets:precompile
+$ RAILS_ENV=production bin/rake assets:precompile
 ```
 
 Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment.

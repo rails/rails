@@ -122,7 +122,7 @@ To verify that you have everything installed correctly, you should be able to
 run the following:
 
 ```bash
-$ rails --version
+$ bin/rails --version
 ```
 
 If it says something like "Rails 4.1.0", you are ready to continue.
@@ -190,7 +190,7 @@ start a web server on your development machine. You can do this by running the
 following in the `blog` directory:
 
 ```bash
-$ rails server
+$ bin/rails server
 ```
 
 TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the
@@ -243,7 +243,7 @@ tell it you want a controller called "welcome" with an action called "index",
 just like this:
 
 ```bash
-$ rails generate controller welcome index
+$ bin/rails generate controller welcome index
 ```
 
 Rails will create several files and a route for you.
@@ -359,7 +359,7 @@ will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
 
 ```bash
-$ rake routes
+$ bin/rake routes
       Prefix Verb   URI Pattern                  Controller#Action
     articles GET    /articles(.:format)          articles#index
              POST   /articles(.:format)          articles#create
@@ -397,7 +397,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ rails g controller articles
+$ bin/rails g controller articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -556,7 +556,7 @@ To see what Rails will do with this, we look back at the output of
 `rake routes`:
 
 ```bash
-$ rake routes
+$ bin/rake routes
       Prefix Verb   URI Pattern                  Controller#Action
     articles GET    /articles(.:format)          articles#index
              POST   /articles(.:format)          articles#create
@@ -642,7 +642,7 @@ Rails developers tend to use when creating new models. To create the new model,
 run this command in your terminal:
 
 ```bash
-$ rails generate model Article title:string text:text
+$ bin/rails generate model Article title:string text:text
 ```
 
 With that command we told Rails that we want a `Article` model, together
@@ -697,7 +697,7 @@ TIP: For more information about migrations, refer to [Rails Database Migrations]
 At this point, you can use a rake command to run the migration:
 
 ```bash
-$ rake db:migrate
+$ bin/rake db:migrate
 ```
 
 Rails will execute this migration command and tell you it created the Articles
@@ -1502,7 +1502,7 @@ the `Article` model. This time we'll create a `Comment` model to hold
 reference of article comments. Run this command in your terminal:
 
 ```bash
-$ rails generate model Comment commenter:string body:text article:references
+$ bin/rails generate model Comment commenter:string body:text article:references
 ```
 
 This command will generate four files:
@@ -1550,7 +1550,7 @@ the two models. An index for this association is also created on this column.
 Go ahead and run the migration:
 
 ```bash
-$ rake db:migrate
+$ bin/rake db:migrate
 ```
 
 Rails is smart enough to only execute the migrations that have not already been
@@ -1626,7 +1626,7 @@ With the model in hand, you can turn your attention to creating a matching
 controller. Again, we'll use the same generator we used before:
 
 ```bash
-$ rails generate controller Comments
+$ bin/rails generate controller Comments
 ```
 
 This creates six files and one empty directory:

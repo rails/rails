@@ -121,7 +121,7 @@ Of course, calculating timestamps is no fun, so Active Record provides a
 generator to handle making it for you:
 
 ```bash
-$ rails generate migration AddPartNumberToProducts
+$ bin/rails generate migration AddPartNumberToProducts
 ```
 
 This will create an empty but appropriately named migration:
@@ -138,7 +138,7 @@ followed by a list of column names and types then a migration containing the
 appropriate `add_column` and `remove_column` statements will be created.
 
 ```bash
-$ rails generate migration AddPartNumberToProducts part_number:string
+$ bin/rails generate migration AddPartNumberToProducts part_number:string
 ```
 
 will generate
@@ -154,7 +154,7 @@ end
 If you'd like to add an index on the new column, you can do that as well:
 
 ```bash
-$ rails generate migration AddPartNumberToProducts part_number:string:index
+$ bin/rails generate migration AddPartNumberToProducts part_number:string:index
 ```
 
 will generate
@@ -172,7 +172,7 @@ end
 Similarly, you can generate a migration to remove a column from the command line:
 
 ```bash
-$ rails generate migration RemovePartNumberFromProducts part_number:string
+$ bin/rails generate migration RemovePartNumberFromProducts part_number:string
 ```
 
 generates
@@ -188,7 +188,7 @@ end
 You are not limited to one magically generated column. For example:
 
 ```bash
-$ rails generate migration AddDetailsToProducts part_number:string price:decimal
+$ bin/rails generate migration AddDetailsToProducts part_number:string price:decimal
 ```
 
 generates
@@ -207,7 +207,7 @@ followed by a list of column names and types then a migration creating the table
 XXX with the columns listed will be generated. For example:
 
 ```bash
-$ rails generate migration CreateProducts name:string part_number:string
+$ bin/rails generate migration CreateProducts name:string part_number:string
 ```
 
 generates
@@ -231,7 +231,7 @@ Also, the generator accepts column type as `references`(also available as
 `belongs_to`). For instance:
 
 ```bash
-$ rails generate migration AddUserRefToProducts user:references
+$ bin/rails generate migration AddUserRefToProducts user:references
 ```
 
 generates
@@ -249,7 +249,7 @@ This migration will create a `user_id` column and appropriate index.
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
 ```bash
-rails g migration CreateJoinTableCustomerProduct customer product
+$ bin/rails g migration CreateJoinTableCustomerProduct customer product
 ```
 
 will produce the following migration:
@@ -273,7 +273,7 @@ relevant table. If you tell Rails what columns you want, then statements for
 adding these columns will also be created. For example, running:
 
 ```bash
-$ rails generate model Product name:string description:text
+$ bin/rails generate model Product name:string description:text
 ```
 
 will create a migration that looks like this
@@ -307,7 +307,7 @@ braces. You can use the following modifiers:
 For instance, running:
 
 ```bash
-$ rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplier:references{polymorphic}
+$ bin/rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplier:references{polymorphic}
 ```
 
 will produce a migration that looks like this
@@ -653,7 +653,7 @@ is the numerical prefix on the migration's filename. For example, to migrate
 to version 20080906120000 run:
 
 ```bash
-$ rake db:migrate VERSION=20080906120000
+$ bin/rake db:migrate VERSION=20080906120000
 ```
 
 If version 20080906120000 is greater than the current version (i.e., it is
@@ -670,7 +670,7 @@ mistake in it and wish to correct it. Rather than tracking down the version
 number associated with the previous migration you can run:
 
 ```bash
-$ rake db:rollback
+$ bin/rake db:rollback
 ```
 
 This will rollback the latest migration, either by reverting the `change`
@@ -678,7 +678,7 @@ method or by running the `down` method. If you need to undo
 several migrations you can provide a `STEP` parameter:
 
 ```bash
-$ rake db:rollback STEP=3
+$ bin/rake db:rollback STEP=3
 ```
 
 will revert the last 3 migrations.
@@ -688,7 +688,7 @@ back up again. As with the `db:rollback` task, you can use the `STEP` parameter
 if you need to go more than one version back, for example:
 
 ```bash
-$ rake db:migrate:redo STEP=3
+$ bin/rake db:migrate:redo STEP=3
 ```
 
 Neither of these Rake tasks do anything you could not do with `db:migrate`. They
@@ -718,7 +718,7 @@ the corresponding migration will have its `change`, `up` or `down` method
 invoked, for example:
 
 ```bash
-$ rake db:migrate:up VERSION=20080906120000
+$ bin/rake db:migrate:up VERSION=20080906120000
 ```
 
 will run the 20080906120000 migration by running the `change` method (or the
@@ -734,7 +734,7 @@ To run migrations against another environment you can specify it using the
 migrations against the `test` environment you could run:
 
 ```bash
-$ rake db:migrate RAILS_ENV=test
+$ bin/rake db:migrate RAILS_ENV=test
 ```
 
 ### Changing the Output of Running Migrations
