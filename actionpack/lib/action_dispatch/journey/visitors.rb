@@ -52,8 +52,8 @@ module ActionDispatch
         end
 
         def visit(node)
-          super
           block.call(node)
+          super
         end
       end
 
