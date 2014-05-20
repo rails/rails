@@ -10,8 +10,6 @@ module ActiveJob
 
         def queue_at(job, timestamp, *args)
           job = { class: JobWrapper, queue: job.queue_name, args: [ job, *args ], at: timestamp }
-          # Optimization to enqueue something now that is scheduled to go out now or in the past
-          job.delete(:at) if timestamp <= Time.now.to_f
           JobWrapper.client_push(job)
         end
       end

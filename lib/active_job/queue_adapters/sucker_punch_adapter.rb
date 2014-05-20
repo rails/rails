@@ -9,13 +9,7 @@ module ActiveJob
         end
 
         def queue_at(job, timestamp, *args)
-          secs = Time.now.to_f - timestamp
-          if secs < 1
-            # Optimization to enqueue something now that is scheduled to go out now or in the past
-            JobWrapper.new.async.perform(job, *args)
-          else
-            JobWrapper.new.async.later(secs, job, *args)
-          end
+          JobWrapper.new.async.later(secs, job, *args)
         end
       end
 

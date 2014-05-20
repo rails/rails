@@ -32,7 +32,11 @@ module ActiveJob
     #
     # Returns truthy if a job was scheduled.
     def enqueue_at(timestamp, *args)
-      queue_adapter.queue_at self, timestamp.to_f, *Parameters.serialize(args)
+      if Time.now.to_f > timestamp
+        queue.adapter.queue self, *Parameters.serialize(args)
+      else
+        queue_adapter.queue_at self, timestamp.to_f, *Parameters.serialize(args)
+      end
     end
   end
 end
