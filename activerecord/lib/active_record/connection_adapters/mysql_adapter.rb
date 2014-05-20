@@ -297,23 +297,17 @@ module ActiveRecord
           end
         end
 
-        TYPES = {}
+        class << self
+          TYPES = ConnectionAdapters::Type::HashLookupTypeMap.new # :nodoc:
 
-        # Register an MySQL +type_id+ with a typecasting object in
-        # +type+.
-        def self.register_type(type_id, type)
-          TYPES[type_id] = type
-        end
+          delegate :register_type, :alias_type, to: :TYPES
 
-        def self.alias_type(new, old)
-          TYPES[new] = TYPES[old]
-        end
-
-        def self.find_type(field)
-          if field.type == Mysql::Field::TYPE_TINY && field.length > 1
-            TYPES[Mysql::Field::TYPE_LONG]
-          else
-            TYPES.fetch(field.type) { Type::Value.new }
+          def find_type(field)
+            if field.type == Mysql::Field::TYPE_TINY && field.length > 1
+              TYPES.lookup(Mysql::Field::TYPE_LONG)
+            else
+              TYPES.lookup(field.type)
+            end
           end
         end
 
@@ -322,18 +316,10 @@ module ActiveRecord
         alias_type Mysql::Field::TYPE_LONGLONG,   Mysql::Field::TYPE_LONG
         alias_type Mysql::Field::TYPE_NEWDECIMAL, Mysql::Field::TYPE_LONG
 
-        register_type Mysql::Field::TYPE_VAR_STRING, Type::Value.new
-        register_type Mysql::Field::TYPE_BLOB, Type::Value.new
         register_type Mysql::Field::TYPE_DATE, Type::Date.new
         register_type Mysql::Field::TYPE_DATETIME, Fields::DateTime.new
         register_type Mysql::Field::TYPE_TIME, Fields::Time.new
         register_type Mysql::Field::TYPE_FLOAT, Type::Float.new
-
-        Mysql::Field.constants.grep(/TYPE/).map { |class_name|
-          Mysql::Field.const_get class_name
-        }.reject { |const| TYPES.key? const }.each do |const|
-          register_type const, Type::Value.new
-        end
       end
 
       def initialize_type_map(m) # :nodoc:

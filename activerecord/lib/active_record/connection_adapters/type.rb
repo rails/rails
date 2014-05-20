@@ -11,7 +11,9 @@ require 'active_record/connection_adapters/type/integer'
 require 'active_record/connection_adapters/type/string'
 require 'active_record/connection_adapters/type/text'
 require 'active_record/connection_adapters/type/time'
+
 require 'active_record/connection_adapters/type/type_map'
+require 'active_record/connection_adapters/type/hash_lookup_type_map'
 
 module ActiveRecord
   module ConnectionAdapters
