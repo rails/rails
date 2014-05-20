@@ -45,13 +45,13 @@ module ActionDispatch
 
           if options[:trailing_slash]
             if path.include?('?')
-              result << path.sub(/\?/, '/\&')
+              path.sub!(/\?/, '/\&')
             else
-              result << path.sub(/[^\/]\z|\A\z/, '\&/')
+              path.sub!(/[^\/]\z|\A\z/, '\&/')
             end
-          else
-            result << path
           end
+
+          result << path
 
           if options.key? :params
             params = options[:params].is_a?(Hash) ?
