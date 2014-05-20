@@ -274,11 +274,17 @@ This is not reliable and will be removed in the future.
           end
         end
 
+        class Jsonb < Json
+          def type
+            :jsonb
+          end
+        end
+
         class Uuid < Type::Value
           def type
             :uuid
           end
-
+        
           def type_cast(value)
             value.presence
           end
