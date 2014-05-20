@@ -283,39 +283,7 @@ module ActiveRecord
       end
 
       module Fields
-        class Type
-          def type; end
-
-          def type_cast_for_write(value)
-            value
-          end
-        end
-
-        class Identity < Type
-          def type_cast(value); value; end
-        end
-
-        class Integer < Type
-          def type_cast(value)
-            return if value.nil?
-
-            value.to_i rescue value ? 1 : 0
-          end
-        end
-
-        class Date < Type
-          def type; :date; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is mysql
-            # specific
-            ConnectionAdapters::Column.value_to_date value
-          end
-        end
-
-        class DateTime < ConnectionAdapters::Type::DateTime
+        class DateTime < Type::DateTime
           def cast_value(value)
             if Mysql::Time === value
               new_time(
@@ -332,7 +300,7 @@ module ActiveRecord
           end
         end
 
-        class Time < ConnectionAdapters::Type::Time
+        class Time < Type::Time
           def cast_value(value)
             if Mysql::Time === value
               new_time(
@@ -346,32 +314,6 @@ module ActiveRecord
             else
               super
             end
-          end
-        end
-
-        class Float < Type
-          def type; :float; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            value.to_f
-          end
-        end
-
-        class Decimal < Type
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_decimal value
-          end
-        end
-
-        class Boolean < Type
-          def type_cast(value)
-            return if value.nil?
-
-            ConnectionAdapters::Column.value_to_boolean value
           end
         end
 
@@ -391,26 +333,26 @@ module ActiveRecord
           if field.type == Mysql::Field::TYPE_TINY && field.length > 1
             TYPES[Mysql::Field::TYPE_LONG]
           else
-            TYPES.fetch(field.type) { Fields::Identity.new }
+            TYPES.fetch(field.type) { Type::Value.new }
           end
         end
 
-        register_type Mysql::Field::TYPE_TINY,    Fields::Boolean.new
-        register_type Mysql::Field::TYPE_LONG,    Fields::Integer.new
+        register_type Mysql::Field::TYPE_TINY,    Type::Boolean.new
+        register_type Mysql::Field::TYPE_LONG,    Type::Integer.new
         alias_type Mysql::Field::TYPE_LONGLONG,   Mysql::Field::TYPE_LONG
         alias_type Mysql::Field::TYPE_NEWDECIMAL, Mysql::Field::TYPE_LONG
 
-        register_type Mysql::Field::TYPE_VAR_STRING, Fields::Identity.new
-        register_type Mysql::Field::TYPE_BLOB, Fields::Identity.new
-        register_type Mysql::Field::TYPE_DATE, Fields::Date.new
+        register_type Mysql::Field::TYPE_VAR_STRING, Type::Value.new
+        register_type Mysql::Field::TYPE_BLOB, Type::Value.new
+        register_type Mysql::Field::TYPE_DATE, Type::Date.new
         register_type Mysql::Field::TYPE_DATETIME, Fields::DateTime.new
         register_type Mysql::Field::TYPE_TIME, Fields::Time.new
-        register_type Mysql::Field::TYPE_FLOAT, Fields::Float.new
+        register_type Mysql::Field::TYPE_FLOAT, Type::Float.new
 
         Mysql::Field.constants.grep(/TYPE/).map { |class_name|
           Mysql::Field.const_get class_name
         }.reject { |const| TYPES.key? const }.each do |const|
-          register_type const, Fields::Identity.new
+          register_type const, Type::Value.new
         end
       end
 
@@ -435,7 +377,7 @@ module ActiveRecord
               fields << field_name
 
               if field.decimals > 0
-                types[field_name] = Fields::Decimal.new
+                types[field_name] = Type::Decimal.new
               else
                 types[field_name] = Fields.find_type field
               end
