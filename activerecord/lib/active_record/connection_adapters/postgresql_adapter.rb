@@ -369,7 +369,7 @@ module ActiveRecord
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
-        @type_map = OID::TypeMap.new
+        @type_map = Type::HashLookupTypeMap.new
         initialize_type_map(type_map)
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
@@ -543,10 +543,27 @@ module ActiveRecord
             initialize_type_map(type_map, [oid])
           end
 
-          type_map.fetch(oid, fmod) {
+          type_map.fetch(normalize_oid_type(oid, fmod)) {
             warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
-            type_map[oid] = Type::Value.new
+            Type::Value.new.tap do |cast_type|
+              type_map.register_type(oid, cast_type)
+            end
           }
+        end
+
+        def normalize_oid_type(ftype, fmod)
+          # The type for the numeric depends on the width of the field,
+          # so we'll do something special here.
+          #
+          # When dealing with decimal columns:
+          #
+          # places after decimal  = fmod - 4 & 0xffff
+          # places before decimal = (fmod - 4) >> 16 & 0xffff
+          if ftype == 1700 && (fmod - 4 & 0xffff).zero?
+            23
+          else
+            ftype
+          end
         end
 
         def initialize_type_map(type_map, oids = nil)

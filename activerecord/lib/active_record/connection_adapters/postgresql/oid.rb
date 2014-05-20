@@ -280,43 +280,6 @@ This is not reliable and will be removed in the future.
           end
         end
 
-        class TypeMap
-          def initialize
-            @mapping = {}
-          end
-
-          def []=(oid, type)
-            @mapping[oid] = type
-          end
-
-          def [](oid)
-            @mapping[oid]
-          end
-
-          def clear
-            @mapping.clear
-          end
-
-          def key?(oid)
-            @mapping.key? oid
-          end
-
-          def fetch(ftype, fmod)
-            # The type for the numeric depends on the width of the field,
-            # so we'll do something special here.
-            #
-            # When dealing with decimal columns:
-            #
-            # places after decimal  = fmod - 4 & 0xffff
-            # places before decimal = (fmod - 4) >> 16 & 0xffff
-            if ftype == 1700 && (fmod - 4 & 0xffff).zero?
-              ftype = 23
-            end
-
-            @mapping.fetch(ftype) { |oid| yield oid, fmod }
-          end
-        end
-
         # This class uses the data from PostgreSQL pg_type table to build
         # the OID -> Type mapping.
         #   - OID is and integer representing the type.
@@ -353,19 +316,19 @@ This is not reliable and will be removed in the future.
           end
 
           def register_array_type(row)
-            if subtype = @store[row['typelem'].to_i]
+            if subtype = @store.lookup(row['typelem'].to_i)
               register row['oid'], OID::Array.new(subtype)
             end
           end
 
           def register_range_type(row)
-            if subtype = @store[row['rngsubtype'].to_i]
+            if subtype = @store.lookup(row['rngsubtype'].to_i)
               register row['oid'], OID::Range.new(subtype, row['typname'].to_sym)
             end
           end
 
           def register_domain_type(row)
-            if base_type = @store[row["typbasetype"].to_i]
+            if base_type = @store.lookup(row["typbasetype"].to_i)
               register row['oid'], base_type
             else
               warn "unknown base type (OID: #{row["typbasetype"]}) for domain #{row["typname"]}."
@@ -373,7 +336,7 @@ This is not reliable and will be removed in the future.
           end
 
           def register_composite_type(row)
-            if subtype = @store[row['typelem'].to_i]
+            if subtype = @store.lookup(row['typelem'].to_i)
               register row['oid'], OID::Vector.new(row['typdelim'], subtype)
             end
           end
@@ -384,7 +347,7 @@ This is not reliable and will be removed in the future.
             raise ArgumentError, "can't register nil type for OID #{oid}" if oid_type.nil?
             return if @store.key?(oid)
 
-            @store[oid] = oid_type
+            @store.register_type(oid, oid_type)
           end
         end
 
