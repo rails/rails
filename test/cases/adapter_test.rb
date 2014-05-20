@@ -1,9 +1,8 @@
 require 'helper'
 
 class AdapterTest < ActiveSupport::TestCase
-  def setup
-    @old_adapter = ActiveJob::Base.queue_adapter
-  end
+  setup    { @old_adapter = ActiveJob::Base.queue_adapter }
+  teardown { ActiveJob::Base.queue_adapter = @old_adapter }
 
   test 'should load inline adapter' do
     ActiveJob::Base.queue_adapter = :inline
@@ -40,7 +39,8 @@ class AdapterTest < ActiveSupport::TestCase
     assert_equal ActiveJob::QueueAdapters::SuckerPunchAdapter, ActiveJob::Base.queue_adapter
   end
 
-  def teardown
-    ActiveJob::Base.queue_adapter = @old_adapter
+  test 'should load Sneakers adapter' do
+    ActiveJob::Base.queue_adapter = :sneakers
+    assert_equal ActiveJob::QueueAdapters::SneakersAdapter, ActiveJob::Base.queue_adapter
   end
 end
