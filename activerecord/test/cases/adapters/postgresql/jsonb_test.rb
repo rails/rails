@@ -148,4 +148,10 @@ class PostgresqlJSONBTest < ActiveRecord::TestCase
     JsonbDataType.update_all payload: { }
     assert_equal({ }, jsonb.reload.payload)
   end
+
+  def test_where
+    jsonb = JsonbDataType.create! payload: { "one" => "two" }
+    x = JsonbDataType.where("payload->>'one' = 'two'").first
+    assert_equal({ "one" => "two" }, x.payload)
+  end
 end
