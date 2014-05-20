@@ -4,8 +4,10 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
+      class_attribute :_reflections
       class_attribute :reflections
       class_attribute :aggregate_reflections
+      self._reflections = {}
       self.reflections = {}
       self.aggregate_reflections = {}
     end
@@ -22,6 +24,7 @@ module ActiveRecord
     end
 
     def self.add_reflection(ar, name, reflection)
+      ar._reflections = ar._reflections.merge(name => reflection)
       ar.reflections = ar.reflections.merge(name => reflection)
     end
 
@@ -62,7 +65,7 @@ module ActiveRecord
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
       def reflect_on_all_associations(macro = nil)
-        association_reflections = reflections.values
+        association_reflections = :has_and_belongs_to_many == macro ? reflections.values : _reflections.values
         macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
       end
 
@@ -77,7 +80,7 @@ module ActiveRecord
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
       def reflect_on_all_autosave_associations
-        reflections.values.select { |reflection| reflection.options[:autosave] }
+        _reflections.values.select { |reflection| reflection.options[:autosave] }
       end
     end
 
