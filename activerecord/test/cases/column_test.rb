@@ -139,7 +139,8 @@ module ActiveRecord
       def test_string_to_time_with_timezone
         [:utc, :local].each do |zone|
           with_timezone_config default: zone do
-            assert_equal Time.utc(2013, 9, 4, 0, 0, 0), Column.string_to_time("Wed, 04 Sep 2013 03:00:00 EAT")
+            column = Column.new("field", nil, Type::DateTime.new)
+            assert_equal Time.utc(2013, 9, 4, 0, 0, 0), column.type_cast("Wed, 04 Sep 2013 03:00:00 EAT")
           end
         end
       end

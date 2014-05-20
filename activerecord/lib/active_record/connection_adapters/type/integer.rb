@@ -11,7 +11,11 @@ module ActiveRecord
         private
 
         def cast_value(value)
-          Column.value_to_integer(value)
+          case value
+          when true then 1
+          when false then 0
+          else value.to_i rescue nil
+          end
         end
       end
     end
