@@ -355,7 +355,8 @@ To get the full backtrace for running rake task you can pass the option
 ```bash
 $ bin/rake --tasks
 rake about              # List versions of all Rails frameworks and the environment
-rake assets:clean       # Remove compiled assets
+rake assets:clean       # Remove old compiled assets
+rake assets:clobber     # Remove compiled assets
 rake assets:precompile  # Compile all the assets named in config.assets.precompile
 rake db:create          # Create the database from config/database.yml for the current Rails.env
 ...
@@ -393,7 +394,12 @@ Database schema version   20110805173523
 
 ### `assets`
 
-You can precompile the assets in `app/assets` using `rake assets:precompile` and remove those compiled assets using `rake assets:clean`.
+You can precompile the assets in `app/assets` using `rake assets:precompile`,
+and remove older compiled assets using `rake assets:clean`. The `assets:clean`
+task allows for rolling deploys that may still be linking to an old asset while
+the new assets are being built.
+
+If you want to clear `public/assets` completely, you can use `rake assets:clobber`.
 
 ### `db`
 
