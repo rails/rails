@@ -14,5 +14,25 @@ module ActiveJob
       ActiveSupport::Notifications.instrument "enqueue.active_job", adapter: queue_adapter, job: self, args: serialized_args
       queue_adapter.queue self, *serialized_args
     end
+
+    # Enqueue a job to be performed at +interval+ from now.
+    #
+    #   enqueue_in(1.week, "mike")
+    #
+    # Returns truthy if a job was scheduled.
+    def enqueue_in(interval, *args)
+      enqueue_at(interval.from_now, *args)
+    end
+
+    # Enqueue a job to be performed at an explicit point in time.
+    #
+    #   enqueue_at(Date.tomorrow.midnight, "mike")
+    #
+    # Returns truthy if a job was scheduled.
+    def enqueue_at(timestamp, *args)
+      timestamp = timestamp.to_f
+      ActiveSupport::Notifications.instrument "enqueue_at.active_job", adapter: queue_adapter, timestamp: timestamp, job: self, args: args
+      queue_adapter.queue_at self, timestamp, *Parameters.serialize(args)
+    end
   end
 end

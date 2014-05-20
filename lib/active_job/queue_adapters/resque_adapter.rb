@@ -1,6 +1,7 @@
 require 'resque'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/access'
+require 'resque_scheduler'
 
 module ActiveJob
   module QueueAdapters
@@ -8,6 +9,10 @@ module ActiveJob
       class << self
         def queue(job, *args)
           Resque.enqueue JobWrapper.new(job), job, *args
+        end
+
+        def queue_at(job, timestamp, *args)
+          Resque.enqueue_at timestamp, JobWrapper.new(job), job, *args
         end
       end
 

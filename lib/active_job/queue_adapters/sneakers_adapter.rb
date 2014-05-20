@@ -13,6 +13,10 @@ module ActiveJob
             JobWrapper.enqueue [ job, *args ]
           end
         end
+
+        def queue_at(job, timestamp, *args)
+          raise NotImplementedError
+        end
       end
 
       class JobWrapper

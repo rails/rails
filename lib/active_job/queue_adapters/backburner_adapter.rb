@@ -7,7 +7,11 @@ module ActiveJob
         def queue(job, *args)
           Backburner::Worker.enqueue JobWrapper, [ job.name, *args ], queue: job.queue_name
         end
-      end
+
+        def queue_at(job, timestamp, *args)
+          raise NotImplementedError
+        end
+     end
 
       class JobWrapper
         class << self

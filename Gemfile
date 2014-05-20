@@ -4,6 +4,7 @@ gemspec
 
 gem 'rake'
 gem 'resque'
+gem 'resque-scheduler'
 gem 'sidekiq'
 gem 'sucker_punch'
 gem 'delayed_job'

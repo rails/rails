@@ -11,6 +11,15 @@ module ActiveJob
             'args'  => [ job, *args ],
             'retry' => true
         end
+
+        def queue_at(job, timestamp, *args)
+          Sidekiq::Client.push \
+            'class' => JobWrapper,
+            'queue' => job.queue_name,
+            'args'  => [ job, *args ],
+            'at'    => timestamp,
+            'retry' => true
+        end
       end
 
       class JobWrapper
