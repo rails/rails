@@ -112,13 +112,14 @@ module ActiveRecord
       end
 
       def preloaders_for_hash(association, records, scope)
-        parent, child = association.to_a.first # hash should only be of length 1
+        association.flat_map { |parent, child|
+          loaders = preloaders_for_one parent, records, scope
 
-        loaders = preloaders_for_one parent, records, scope
-
-        recs = loaders.flat_map(&:preloaded_records).uniq
-        loaders.concat Array.wrap(child).flat_map { |assoc|
-          preloaders_on assoc, recs, scope
+          recs = loaders.flat_map(&:preloaded_records).uniq
+          loaders.concat Array.wrap(child).flat_map { |assoc|
+            preloaders_on assoc, recs, scope
+          }
+          loaders
         }
       end
 
