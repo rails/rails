@@ -12,7 +12,6 @@ module ActiveJob
         end
 
         def queue_at(job, timestamp, *args)
-          # requires resque-scheduler
           Resque.enqueue_at timestamp, JobWrapper.new(job), job, *args
         end
       end
