@@ -4,11 +4,11 @@ module ActiveJob
   module QueueAdapters
     class QueAdapter
       class << self
-        def queue(job, *args)
+        def enqueue(job, *args)
           JobWrapper.enqueue job, *args, queue: job.queue_name
         end
 
-        def queue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp, *args)
           raise NotImplementedError
         end
       end

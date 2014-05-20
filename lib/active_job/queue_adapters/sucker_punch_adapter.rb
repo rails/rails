@@ -4,11 +4,11 @@ module ActiveJob
   module QueueAdapters
     class SuckerPunchAdapter
       class << self
-        def queue(job, *args)
+        def enqueue(job, *args)
           JobWrapper.new.async.perform job, *args
         end
 
-        def queue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp, *args)
           raise NotImplementedError
         end
       end

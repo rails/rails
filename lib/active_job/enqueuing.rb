@@ -12,7 +12,7 @@ module ActiveJob
     def enqueue(*args)
       serialized_args = Parameters.serialize(args)
       ActiveSupport::Notifications.instrument "enqueue.active_job", adapter: queue_adapter, job: self, args: serialized_args
-      queue_adapter.queue self, *serialized_args
+      queue_adapter.enqueue self, *serialized_args
     end
 
     # Enqueue a job to be performed at +interval+ from now.
@@ -33,7 +33,7 @@ module ActiveJob
       timestamp       = timestamp.to_f
       serialized_args = Parameters.serialize(args)
       ActiveSupport::Notifications.instrument "enqueue_at.active_job", adapter: queue_adapter, job: self, args: serialized_args, timestamp: timestamp
-      queue_adapter.queue_at self, timestamp, *serialized_args
+      queue_adapter.enqueue_at self, timestamp, *serialized_args
     end
   end
 end

@@ -2,11 +2,11 @@ module ActiveJob
   module QueueAdapters
     class InlineAdapter
       class << self
-        def queue(job, *args)
+        def enqueue(job, *args)
           job.new.perform_with_deserialization *args
         end
 
-        def queue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp, *args)
           Thread.new do
             begin
               interval = Time.now.to_f - timestamp

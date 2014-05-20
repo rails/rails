@@ -7,11 +7,11 @@ module ActiveJob
   module QueueAdapters
     class ResqueAdapter
       class << self
-        def queue(job, *args)
+        def enqueue(job, *args)
           Resque.enqueue JobWrapper.new(job), job, *args
         end
 
-        def queue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp, *args)
           Resque.enqueue_at timestamp, JobWrapper.new(job), job, *args
         end
       end

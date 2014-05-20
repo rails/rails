@@ -4,11 +4,11 @@ module ActiveJob
   module QueueAdapters
     class QueueClassicAdapter
       class << self
-        def queue(job, *args)
+        def enqueue(job, *args)
           QC::Queue.new(job.queue_name).enqueue("#{JobWrapper.name}.perform", job, *args)
         end
 
-        def queue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp, *args)
           raise NotImplementedError
         end
       end
