@@ -1,6 +1,5 @@
 module ActiveJob
   class LogSubscriber < ActiveSupport::LogSubscriber
-
     def enqueue(event)
       payload = event.payload
       params  = payload[:params]
