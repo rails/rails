@@ -11,8 +11,9 @@ module ActiveJob
     # The return value is adapter-specific and may change in a future
     # ActiveJob release.
     def enqueue(*args)
-      ActiveSupport::Notifications.instrument "enqueue.active_job", adapter: queue_adapter, job: self, params: args
-      queue_adapter.queue self, *Parameters.serialize(args)
+      serialized_args = Parameters.serialize(args)
+      ActiveSupport::Notifications.instrument "enqueue.active_job", adapter: queue_adapter, job: self, args: serialized_args
+      queue_adapter.queue self, *serialized_args
     end
   end
 end
