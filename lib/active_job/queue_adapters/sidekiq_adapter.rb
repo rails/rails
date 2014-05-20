@@ -17,8 +17,8 @@ module ActiveJob
             'class' => JobWrapper,
             'queue' => job.queue_name,
             'args'  => [ job, *args ],
-            'at'    => timestamp,
-            'retry' => true
+            'retry' => true,
+            'at'    => timestamp
         end
       end
 
