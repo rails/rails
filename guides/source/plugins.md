@@ -39,13 +39,13 @@ to run integration tests using a dummy Rails application. Create your
 plugin with the command:
 
 ```bash
-$ rails plugin new yaffle
+$ bin/rails plugin new yaffle
 ```
 
 See usage and options by asking for help:
 
 ```bash
-$ rails plugin --help
+$ bin/rails plugin --help
 ```
 
 Testing Your Newly Generated Plugin
@@ -124,7 +124,7 @@ To test that your method does what it says it does, run the unit tests with `rak
 To see this in action, change to the test/dummy directory, fire up a console and start squawking:
 
 ```bash
-$ rails console
+$ bin/rails console
 >> "Hello World".to_squawk
 => "squawk! Hello World"
 ```
@@ -214,8 +214,8 @@ test/dummy directory:
 
 ```bash
 $ cd test/dummy
-$ rails generate model Hickwall last_squawk:string
-$ rails generate model Wickwall last_squawk:string last_tweet:string
+$ bin/rails generate model Hickwall last_squawk:string
+$ bin/rails generate model Wickwall last_squawk:string last_tweet:string
 ```
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
@@ -223,7 +223,7 @@ and migrating the database. First, run:
 
 ```bash
 $ cd test/dummy
-$ rake db:migrate
+$ bin/rake db:migrate
 ```
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act
@@ -433,7 +433,7 @@ Once your README is solid, go through and add rdoc comments to all of the method
 Once your comments are good to go, navigate to your plugin directory and run:
 
 ```bash
-$ rake rdoc
+$ bin/rake rdoc
 ```
 
 ### References

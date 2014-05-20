@@ -141,7 +141,7 @@ NOTE: For more information on Rails <i>scaffolding</i>, refer to [Getting Starte
 When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/models` folder:
 
 ```bash
-$ rails generate scaffold post title:string body:text
+$ bin/rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
 create  test/models/post_test.rb
@@ -220,7 +220,7 @@ In order to run your tests, your test database will need to have the current str
 Running a test is as simple as invoking the file containing the test cases through `rake test` command.
 
 ```bash
-$ rake test test/models/post_test.rb
+$ bin/rake test test/models/post_test.rb
 .
 
 Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
@@ -231,7 +231,7 @@ Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
 You can also run a particular test method from the test case by running the test and providing the `test method name`.
 
 ```bash
-$ rake test test/models/post_test.rb test_the_truth
+$ bin/rake test test/models/post_test.rb test_the_truth
 .
 
 Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
@@ -255,7 +255,7 @@ end
 Let us run this newly added test.
 
 ```bash
-$ rake test test/models/post_test.rb test_should_not_save_post_without_title
+$ bin/rake test test/models/post_test.rb test_should_not_save_post_without_title
 F
 
 Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
@@ -295,7 +295,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ rake test test/models/post_test.rb test_should_not_save_post_without_title
+$ bin/rake test test/models/post_test.rb test_should_not_save_post_without_title
 .
 
 Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
@@ -320,7 +320,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ rake test test/models/post_test.rb test_should_report_error
+$ bin/rake test test/models/post_test.rb test_should_report_error
 E
 
 Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.
@@ -345,7 +345,7 @@ backtrace. simply set the `BACKTRACE` environment variable to enable this
 behavior:
 
 ```bash
-$ BACKTRACE=1 rake test test/models/post_test.rb
+$ BACKTRACE=1 bin/rake test test/models/post_test.rb
 ```
 
 ### What to Include in Your Unit Tests
@@ -653,7 +653,7 @@ Integration tests are used to test the interaction among any number of controlle
 Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' folder within your application. Rails provides a generator to create an integration test skeleton for you.
 
 ```bash
-$ rails generate integration_test user_flows
+$ bin/rails generate integration_test user_flows
       exists  test/integration/
       create  test/integration/user_flows_test.rb
 ```
@@ -1011,7 +1011,7 @@ located under the `test/helpers` directory. Rails provides a generator which
 generates both the helper and the test file:
 
 ```bash
-$ rails generate helper User
+$ bin/rails generate helper User
       create  app/helpers/user_helper.rb
       invoke  test_unit
       create    test/helpers/user_helper_test.rb
