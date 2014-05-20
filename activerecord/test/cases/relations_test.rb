@@ -508,6 +508,13 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_deep_preload
+    post = Post.preload(author: :posts, comments: :post).first
+
+    assert_predicate post.author.association(:posts), :loaded?
+    assert_predicate post.comments.first.association(:post), :loaded?
+  end
+
   def test_preload_applies_to_all_chained_preloaded_scopes
     assert_queries(3) do
       post = Post.with_comments.with_tags.first
