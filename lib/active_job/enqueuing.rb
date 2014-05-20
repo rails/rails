@@ -32,6 +32,7 @@ module ActiveJob
     #
     # Returns truthy if a job was scheduled.
     def enqueue_at(timestamp, *args)
+      ActiveSupport::Notifications.instrument "enqueue_at.active_job", adapter: queue_adapter, timestamp: timestamp, job: self, params: args
       if Time.now.to_f > timestamp
         queue.adapter.queue self, *Parameters.serialize(args)
       else
