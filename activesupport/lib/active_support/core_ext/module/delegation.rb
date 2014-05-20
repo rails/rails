@@ -170,38 +170,26 @@ class Module
       # methods still accept two arguments.
       definition = (method =~ /[^\]]=$/) ? 'arg' : '*args, &block'
 
-      # The following generated methods call the target exactly once, storing
+      # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
       #
       # Reason is twofold: On one hand doing less calls is in general better.
       # On the other hand it could be that the target has side-effects,
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
-      if allow_nil
-        method_def = [
-          "def #{method_prefix}#{method}(#{definition})",  # def customer_name(*args, &block)
-          "_ = #{to}",                                     #   _ = client
-          "if !_.nil? || nil.respond_to?(:#{method})",     #   if !_.nil? || nil.respond_to?(:name)
-          "  _.#{method}(#{definition})",                  #     _.name(*args, &block)
-          "end",                                           #   end
-        "end"                                              # end
-        ].join ';'
-      else
-        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
-        method_def = [
-          "def #{method_prefix}#{method}(#{definition})",  # def customer_name(*args, &block)
-          " _ = #{to}",                                    #   _ = client
-          "  _.#{method}(#{definition})",                  #   _.name(*args, &block)
-          "rescue NoMethodError => e",                     # rescue NoMethodError => e
-          "  if _.nil? && e.name == :#{method}",           #   if _.nil? && e.name == :name
-          "    #{exception}",                              #     # add helpful message to the exception
-          "  else",                                        #   else
-          "    raise",                                     #     raise
-          "  end",                                         #   end
-          "end"                                            # end
-        ].join ';'
-      end
+      exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+
+      method_def = [
+        "def #{method_prefix}#{method}(#{definition})",
+        "  _ = #{to}",
+        "  if !_.nil? || nil.respond_to?(:#{method})",
+        "    _.#{method}(#{definition})",
+        "  else",
+        "    #{exception unless allow_nil}",
+        "  end",
+        "end"
+      ].join ';'
 
       module_eval(method_def, file, line)
     end

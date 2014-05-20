@@ -1,3 +1,9 @@
+*   Fixed confusing `DelegationError` in `Module#delegate`.
+
+    See #15186.
+
+    *Vladimir Yarotsky*
+
 *   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
     when a subscriber method is redefined.
 
