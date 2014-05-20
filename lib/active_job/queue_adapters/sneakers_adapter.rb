@@ -14,9 +14,8 @@ module ActiveJob
 
         self.from_queue("queue", {})
 
-        def work(*args)
-          job_name = args.shift
-          job_name.new.perform *Parameters.deserialize(args)
+        def work(job, *args)
+          job.new.perform *Parameters.deserialize(args)
         end
       end
     end
