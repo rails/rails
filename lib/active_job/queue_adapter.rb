@@ -10,7 +10,7 @@ module ActiveJob
         case name_or_adapter
         when Symbol, String
           load_adapter(name_or_adapter)
-        else
+        when Class
           name_or_adapter
         end
     end
