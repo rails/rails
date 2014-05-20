@@ -60,7 +60,7 @@ With no further work, `rails server` will run our new shiny Rails app:
 
 ```bash
 $ cd commandsapp
-$ rails server
+$ bin/rails server
 => Booting WEBrick
 => Rails 4.0.0 application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
@@ -77,7 +77,7 @@ INFO: You can also use the alias "s" to start the server: `rails s`.
 The server can be run on a different port using the `-p` option. The default development environment can be changed using `-e`.
 
 ```bash
-$ rails server -e production -p 4000
+$ bin/rails server -e production -p 4000
 ```
 
 The `-b` option binds Rails to the specified IP, by default it is 0.0.0.0. You can run a server as a daemon by passing a `-d` option.
@@ -89,7 +89,7 @@ The `rails generate` command uses templates to create a whole lot of things. Run
 INFO: You can also use the alias "g" to invoke the generator command: `rails g`.
 
 ```bash
-$ rails generate
+$ bin/rails generate
 Usage: rails generate GENERATOR [args] [options]
 
 ...
@@ -114,7 +114,7 @@ Let's make our own controller with the controller generator. But what command sh
 INFO: All Rails console utilities have help text. As with most *nix utilities, you can try adding `--help` or `-h` to the end, for example `rails server --help`.
 
 ```bash
-$ rails generate controller
+$ bin/rails generate controller
 Usage: rails generate controller NAME [action action] [options]
 
 ...
@@ -141,7 +141,7 @@ Example:
 The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of **hello**, which will say something nice to us.
 
 ```bash
-$ rails generate controller Greetings hello
+$ bin/rails generate controller Greetings hello
      create  app/controllers/greetings_controller.rb
       route  get "greetings/hello"
      invoke  erb
@@ -182,7 +182,7 @@ Then the view, to display our message (in `app/views/greetings/hello.html.erb`):
 Fire up your server using `rails server`.
 
 ```bash
-$ rails server
+$ bin/rails server
 => Booting WEBrick...
 ```
 
@@ -193,7 +193,7 @@ INFO: With a normal, plain-old Rails application, your URLs will generally follo
 Rails comes with a generator for data models too.
 
 ```bash
-$ rails generate model
+$ bin/rails generate model
 Usage:
   rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
 
@@ -216,7 +216,7 @@ But instead of generating a model directly (which we'll be doing later), let's s
 We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
 ```bash
-$ rails generate scaffold HighScore game:string score:integer
+$ bin/rails generate scaffold HighScore game:string score:integer
     invoke  active_record
     create    db/migrate/20130717151933_create_high_scores.rb
     create    app/models/high_score.rb
@@ -257,7 +257,7 @@ The generator checks that there exist the directories for models, controllers, h
 The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `rake db:migrate` command. We'll talk more about Rake in-depth in a little while.
 
 ```bash
-$ rake db:migrate
+$ bin/rake db:migrate
 ==  CreateHighScores: migrating ===============================================
 -- create_table(:high_scores)
    -> 0.0017s
@@ -269,7 +269,7 @@ INFO: Let's talk about unit tests. Unit tests are code that tests and makes asse
 Let's see the interface Rails created for us.
 
 ```bash
-$ rails server
+$ bin/rails server
 ```
 
 Go to your browser and open [http://localhost:3000/high_scores](http://localhost:3000/high_scores), now we can create new high scores (55,160 on Space Invaders!)
@@ -283,13 +283,13 @@ INFO: You can also use the alias "c" to invoke the console: `rails c`.
 You can specify the environment in which the `console` command should operate.
 
 ```bash
-$ rails console staging
+$ bin/rails console staging
 ```
 
 If you wish to test out some code without changing any data, you can do that by invoking `rails console --sandbox`.
 
 ```bash
-$ rails console --sandbox
+$ bin/rails console --sandbox
 Loading development environment in sandbox (Rails 4.0.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
@@ -306,7 +306,7 @@ INFO: You can also use the alias "db" to invoke the dbconsole: `rails db`.
 `runner` runs Ruby code in the context of Rails non-interactively. For instance:
 
 ```bash
-$ rails runner "Model.long_running_method"
+$ bin/rails runner "Model.long_running_method"
 ```
 
 INFO: You can also use the alias "r" to invoke the runner: `rails r`.
@@ -314,7 +314,7 @@ INFO: You can also use the alias "r" to invoke the runner: `rails r`.
 You can specify the environment in which the `runner` command should operate using the `-e` switch.
 
 ```bash
-$ rails runner -e staging "Model.long_running_method"
+$ bin/rails runner -e staging "Model.long_running_method"
 ```
 
 ### `rails destroy`
@@ -324,7 +324,7 @@ Think of `destroy` as the opposite of `generate`. It'll figure out what generate
 INFO: You can also use the alias "d" to invoke the destroy command: `rails d`.
 
 ```bash
-$ rails generate model Oops
+$ bin/rails generate model Oops
       invoke  active_record
       create    db/migrate/20120528062523_create_oops.rb
       create    app/models/oops.rb
@@ -333,7 +333,7 @@ $ rails generate model Oops
       create      test/fixtures/oops.yml
 ```
 ```bash
-$ rails destroy model Oops
+$ bin/rails destroy model Oops
       invoke  active_record
       remove    db/migrate/20120528062523_create_oops.rb
       remove    app/models/oops.rb
@@ -353,7 +353,7 @@ To get the full backtrace for running rake task you can pass the option
 ```--trace``` to command line, for example ```rake db:create --trace```.
 
 ```bash
-$ rake --tasks
+$ bin/rake --tasks
 rake about              # List versions of all Rails frameworks and the environment
 rake assets:clean       # Remove compiled assets
 rake assets:precompile  # Compile all the assets named in config.assets.precompile
@@ -372,7 +372,7 @@ INFO: You can also use ```rake -T```  to get the list of tasks.
 `rake about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
 ```bash
-$ rake about
+$ bin/rake about
 About your application's environment
 Ruby version              1.9.3 (x86_64-linux)
 RubyGems version          1.3.6
@@ -414,7 +414,7 @@ The `doc:` namespace has the tools to generate documentation for your app, API d
 `rake notes` will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is done in files with extension `.builder`, `.rb`, `.rake`, `.yml`, `.yaml`, `.ruby`, `.css`, `.js` and `.erb` for both default and custom annotations.
 
 ```bash
-$ rake notes
+$ bin/rake notes
 (in /home/foobar/commandsapp)
 app/controllers/admin/users_controller.rb:
   * [ 20] [TODO] any other way to do this?
@@ -434,7 +434,7 @@ config.annotations.register_extensions("scss", "sass", "less") { |annotation| /\
 If you are looking for a specific annotation, say FIXME, you can use `rake notes:fixme`. Note that you have to lower case the annotation's name.
 
 ```bash
-$ rake notes:fixme
+$ bin/rake notes:fixme
 (in /home/foobar/commandsapp)
 app/controllers/admin/users_controller.rb:
   * [132] high priority for next deploy
@@ -446,7 +446,7 @@ app/models/school.rb:
 You can also use custom annotations in your code and list them using `rake notes:custom` by specifying the annotation using an environment variable `ANNOTATION`.
 
 ```bash
-$ rake notes:custom ANNOTATION=BUG
+$ bin/rake notes:custom ANNOTATION=BUG
 (in /home/foobar/commandsapp)
 app/models/post.rb:
   * [ 23] Have to fix this one before pushing!
@@ -458,7 +458,7 @@ By default, `rake notes` will look in the `app`, `config`, `lib`, `bin` and `tes
 
 ```bash
 $ export SOURCE_ANNOTATION_DIRECTORIES='spec,vendor'
-$ rake notes
+$ bin/rake notes
 (in /home/foobar/commandsapp)
 app/models/user.rb:
   * [ 35] [FIXME] User should have a subscription at this point
@@ -530,9 +530,9 @@ end
 Invocation of the tasks will look like:
 
 ```bash
-rake task_name
-rake "task_name[value 1]" # entire argument string should be quoted
-rake db:nothing
+$ bin/rake task_name
+$ bin/rake "task_name[value 1]" # entire argument string should be quoted
+$ bin/rake db:nothing
 ```
 
 NOTE: If your need to interact with your application models, perform database queries and so on, your task should depend on the `environment` task, which will load your application code.

@@ -1072,7 +1072,7 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 You may restrict the listing to the routes that map to a particular controller setting the `CONTROLLER` environment variable:
 
 ```bash
-$ CONTROLLER=users rake routes
+$ CONTROLLER=users bin/rake routes
 ```
 
 TIP: You'll find that the output from `rake routes` is much more readable if you widen your terminal window until the output lines don't wrap.

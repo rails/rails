@@ -891,7 +891,7 @@ AppName::Application.config.session_store :cookie_store, key: 'SOMETHINGNEW'
 or
 
 ```bash
-$ rake db:sessions:clear
+$ bin/rake db:sessions:clear
 ```
 
 ### Remove :cache and :concat options in asset helpers references in views
