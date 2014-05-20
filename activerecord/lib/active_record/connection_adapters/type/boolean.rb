@@ -9,7 +9,11 @@ module ActiveRecord
         private
 
         def cast_value(value)
-          Column.value_to_boolean(value)
+          if value == ''
+            nil
+          else
+            Column::TRUE_VALUES.include?(value)
+          end
         end
       end
     end

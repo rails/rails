@@ -18,6 +18,14 @@ module ActiveRecord
             ::Time.public_send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end
         end
+
+        # Doesn't handle time zones.
+        def fast_string_to_time(string)
+          if string =~ Column::Format::ISO_DATETIME
+            microsec = ($7.to_r * 1_000_000).to_i
+            new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
+          end
+        end
       end
     end
   end
