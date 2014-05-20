@@ -673,15 +673,18 @@ module ActionDispatch
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
         path, params = generate(path_options, recall)
-        params.merge!(options[:params] || {})
 
-        ActionDispatch::Http::URL.url_for(options.merge!({
-          :path => path,
-          :script_name => script_name,
-          :params => params,
-          :user => user,
-          :password => password
-        }))
+        if options.key? :params
+          params.merge! options[:params]
+        end
+
+        options[:path]        = path
+        options[:script_name] = script_name
+        options[:params]      = params
+        options[:user]        = user
+        options[:password]    = password
+
+        ActionDispatch::Http::URL.url_for(options)
       end
 
       def call(env)
