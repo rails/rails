@@ -68,26 +68,12 @@ module ActiveRecord
     class MysqlAdapter < AbstractMysqlAdapter
 
       class Column < AbstractMysqlAdapter::Column #:nodoc:
-        def self.string_to_time(value)
-          return super unless Mysql::Time === value
-          new_time(
-            value.year,
-            value.month,
-            value.day,
-            value.hour,
-            value.minute,
-            value.second,
-            value.second_part)
-        end
-
-        def self.string_to_dummy_time(v)
-          return super unless Mysql::Time === v
-          new_time(2000, 01, 01, v.hour, v.minute, v.second, v.second_part)
-        end
-
-        def self.string_to_date(v)
-          return super unless Mysql::Time === v
-          new_date(v.year, v.month, v.day)
+        def type_cast(value)
+          if encoded?
+            super
+          else
+            cast_type.type_cast(value)
+          end
         end
 
         def adapter
@@ -329,27 +315,37 @@ module ActiveRecord
           end
         end
 
-        class DateTime < Type
-          def type; :datetime; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is mysql
-            # specific
-            ConnectionAdapters::Column.string_to_time value
+        class DateTime < ConnectionAdapters::Type::DateTime
+          def cast_value(value)
+            if Mysql::Time === value
+              new_time(
+                value.year,
+                value.month,
+                value.day,
+                value.hour,
+                value.minute,
+                value.second,
+                value.second_part)
+            else
+              super
+            end
           end
         end
 
-        class Time < Type
-          def type; :time; end
-
-          def type_cast(value)
-            return if value.nil?
-
-            # FIXME: probably we can improve this since we know it is mysql
-            # specific
-            ConnectionAdapters::Column.string_to_dummy_time value
+        class Time < ConnectionAdapters::Type::Time
+          def cast_value(value)
+            if Mysql::Time === value
+              new_time(
+                2000,
+                01,
+                01,
+                value.hour,
+                value.minute,
+                value.second,
+                value.second_part)
+            else
+              super
+            end
           end
         end
 
@@ -416,6 +412,12 @@ module ActiveRecord
         }.reject { |const| TYPES.key? const }.each do |const|
           register_type const, Fields::Identity.new
         end
+      end
+
+      def initialize_type_map(m) # :nodoc:
+        super
+        m.register_type %r(datetime)i, Fields::DateTime.new
+        m.register_type %r(time)i,     Fields::Time.new
       end
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:

@@ -132,6 +132,8 @@ module ActiveRecord
       end
 
       class << self
+        include Type::TimeValue
+
         # Used to convert from BLOBs to Strings
         def binary_to_string(value)
           value
@@ -212,21 +214,6 @@ module ActiveRecord
           def new_date(year, mon, mday)
             if year && year != 0
               Date.new(year, mon, mday) rescue nil
-            end
-          end
-
-          def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
-            # Treat 0000-00-00 00:00:00 as nil.
-            return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
-
-            if offset
-              time = Time.utc(year, mon, mday, hour, min, sec, microsec) rescue nil
-              return nil unless time
-
-              time -= offset
-              Base.default_timezone == :utc ? time : time.getlocal
-            else
-              Time.public_send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
             end
           end
 
