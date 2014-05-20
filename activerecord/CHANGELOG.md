@@ -1,3 +1,9 @@
+*   Fixed the inferred table name of a HABTM auxiliar table inside a schema.
+
+    Fixes #14824
+
+    *Eric Chahin*
+
 *   Fix bug that added `table_name_prefix` and `table_name_suffix` to
     extension names in PostgreSQL when migrating.
 

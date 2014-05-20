@@ -384,7 +384,7 @@ module ActiveRecord
         end
 
         def derive_join_table
-          [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+          [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*[._])(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
         end
 
         def primary_key(klass)
