@@ -6,14 +6,14 @@ module ActiveJob
           job.new.perform *Parameters.deserialize(args)
         end
 
-        def queue_at(job, ts, *args)
+        def queue_at(job, timestamp, *args)
           Thread.new do
             begin
-              interval = Time.now.to_f - ts
+              interval = Time.now.to_f - timestamp
               sleep(interval) if interval > 0
               job.new.perform *Parameters.deserialize(args)
-            rescue => ex
-              ActiveJob::Base.logger.info "Error performing #{job}: #{ex.message}"
+            rescue => e
+              ActiveJob::Base.logger.info "Error performing #{job}: #{e.message}"
             end
           end
         end
