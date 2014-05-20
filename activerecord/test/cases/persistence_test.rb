@@ -843,4 +843,15 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_equal "Wright Glider", Aircraft.last.name
   end
+
+  def test_instantiate_creates_a_new_instance
+    post = Post.instantiate("title" => "appropriate documentation", "type" => "SpecialPost")
+    assert_equal "appropriate documentation", post.title
+    assert_instance_of SpecialPost, post
+
+    # body was not initialized
+    assert_raises ActiveModel::MissingAttributeError do
+      post.body
+    end
+  end
 end
