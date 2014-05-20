@@ -21,7 +21,7 @@ class QueuingTest < ActiveSupport::TestCase
   test 'run queued job later' do
     begin
       result = HelloJob.enqueue_at 1.second.ago, "Jamie"
-      assert_not_nil result
+      assert result
     rescue NotImplementedError
     end
   end
