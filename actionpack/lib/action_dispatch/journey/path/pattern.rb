@@ -28,6 +28,11 @@ module ActionDispatch
           @required_names = nil
           @re             = nil
           @offsets        = nil
+          @format         = Visitors::FormatBuilder.new.accept(spec)
+        end
+
+        def format_path(path_options)
+          @format.evaluate path_options
         end
 
         def ast
