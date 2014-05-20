@@ -1,12 +1,8 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Binary < Value # :nodoc:
-        def type
-          :binary
-        end
-
-        def binary?
+      module Numeric # :nodoc:
+        def number?
           true
         end
       end

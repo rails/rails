@@ -6,6 +6,10 @@ module ActiveRecord
           :string
         end
 
+        def text?
+          true
+        end
+
         private
 
         def cast_value(value)

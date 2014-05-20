@@ -14,6 +14,10 @@ module ActiveRecord
           def initialize(type)
             @type = type
           end
+
+          def text?
+            false
+          end
         end
 
         class Bit < Type::String

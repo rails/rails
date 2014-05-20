@@ -21,14 +21,6 @@ module ActiveRecord
         @default_function = default if has_default_function?(default_value, default)
       end
 
-      def number?
-        !array && super
-      end
-
-      def text?
-        !array && super
-      end
-
       # :stopdoc:
       class << self
         include PostgreSQL::Cast

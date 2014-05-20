@@ -18,7 +18,7 @@ module ActiveRecord
 
       alias :encoded? :coder
 
-      delegate :type, to: :cast_type
+      delegate :type, :text?, :number?, :binary?, to: :cast_type
 
       # Instantiates a new column in the table.
       #
@@ -43,16 +43,6 @@ module ActiveRecord
         @coder            = nil
       end
 
-      # Returns +true+ if the column is either of type string or text.
-      def text?
-        type == :string || type == :text
-      end
-
-      # Returns +true+ if the column is either of type integer, float or decimal.
-      def number?
-        type == :integer || type == :float || type == :decimal
-      end
-
       def has_default?
         !default.nil?
       end
@@ -68,10 +58,6 @@ module ActiveRecord
         when :text, :string, :binary      then String
         when :boolean                     then Object
         end
-      end
-
-      def binary?
-        type == :binary
       end
 
       # Casts a Ruby value to something appropriate for writing to the database.

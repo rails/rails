@@ -8,6 +8,18 @@ module ActiveRecord
           cast_value(value) unless value.nil?
         end
 
+        def text?
+          false
+        end
+
+        def number?
+          false
+        end
+
+        def binary?
+          false
+        end
+
         private
 
         def cast_value(value)
