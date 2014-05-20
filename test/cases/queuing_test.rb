@@ -23,6 +23,7 @@ class QueuingTest < ActiveSupport::TestCase
       result = HelloJob.enqueue_at 1.second.ago, "Jamie"
       assert result
     rescue NotImplementedError
+      skip
     end
   end
 end
