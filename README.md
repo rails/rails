@@ -82,6 +82,7 @@ by default has been mixed into Active Record classes.
 
 We currently have adapters for:
 
+* [Backburner](https://github.com/nesquena/backburner)
 * [Delayed Job](https://github.com/collectiveidea/delayed_job)
 * [Que](https://github.com/chanks/que)
 * [QueueClassic](https://github.com/ryandotsmith/queue_classic)
