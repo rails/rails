@@ -7,3 +7,5 @@ require 'active_job'
 require "adapters/#{ENV['AJADAPTER'] || 'inline'}"
 
 require 'active_support/testing/autorun'
+
+ActiveJob::Logging.logger.level = Logger::ERROR
