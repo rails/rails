@@ -5,8 +5,7 @@ module ActiveJob
     class QueueClassicAdapter
       class << self
         def queue(job, *args)
-          qc_queue = QC::Queue.new(job.queue_name)
-          qc_queue.enqueue("ActiveJob::QueueAdapters::QueueClassicAdapter::JobWrapper.perform", job, *args)
+          QC::Queue.new(job.queue_name).enqueue("#{JobWrapper.name}.perform", job, *args)
         end
       end
 
