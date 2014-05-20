@@ -37,12 +37,6 @@ module ActionDispatch
           path  = options[:script_name].to_s.chomp("/")
           path << options[:path].to_s
 
-          if options[:only_path]
-            result = ''
-          else
-            result = build_host_url(options)
-          end
-
           if options[:trailing_slash]
             if path.include?('?')
               path.sub!(/\?/, '/\&')
@@ -51,7 +45,11 @@ module ActionDispatch
             end
           end
 
-          result << path
+          result = path
+
+          unless options[:only_path]
+            result.prepend build_host_url(options)
+          end
 
           if options.key? :params
             params = options[:params].is_a?(Hash) ?
