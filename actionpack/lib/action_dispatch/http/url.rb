@@ -79,7 +79,11 @@ module ActionDispatch
             options[:port]     = normalize_port(options)
 
             result << options[:protocol]
-            result << rewrite_authentication(options)
+
+            if options[:user] && options[:password]
+              result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
+            end
+
             result << options[:host]
             result << ":#{options[:port]}" if options[:port]
           end
@@ -92,14 +96,6 @@ module ActionDispatch
 
         def same_host?(options)
           (options[:subdomain] == true || !options.key?(:subdomain)) && options[:domain].nil?
-        end
-
-        def rewrite_authentication(options)
-          if options[:user] && options[:password]
-            "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
-          else
-            ""
-          end
         end
 
         def normalize_protocol(options)
