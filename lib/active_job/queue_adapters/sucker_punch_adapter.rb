@@ -5,7 +5,7 @@ module ActiveJob
     class SuckerPunchAdapter
       class << self
         def queue(job, *args)
-          JobWrapper.new.async.perform(job, *args)
+          JobWrapper.new.async.perform job, *args
         end
 
         def queue_at(job, timestamp, *args)
