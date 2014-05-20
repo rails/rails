@@ -26,7 +26,7 @@ module ActiveJob
         include Sidekiq::Worker
 
         def perform(job_name, *args)
-          job_name.constantize.new.perform *Parameters.deserialize(args)
+          job_name.constantize.new.perform_with_deserialization *args
         end
       end
     end

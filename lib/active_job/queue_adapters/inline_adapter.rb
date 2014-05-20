@@ -3,7 +3,7 @@ module ActiveJob
     class InlineAdapter
       class << self
         def queue(job, *args)
-          job.new.perform *Parameters.deserialize(args)
+          job.new.perform_with_deserialization *args
         end
 
         def queue_at(job, timestamp, *args)
@@ -11,7 +11,7 @@ module ActiveJob
             begin
               interval = Time.now.to_f - timestamp
               sleep(interval) if interval > 0
-              job.new.perform *Parameters.deserialize(args)
+              job.new.perform_with_deserialization *args
             rescue => e
               ActiveJob::Base.logger.info "Error performing #{job}: #{e.message}"
             end

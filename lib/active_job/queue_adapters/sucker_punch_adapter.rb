@@ -17,7 +17,7 @@ module ActiveJob
         include SuckerPunch::Job
 
         def perform(job, *args)
-          job.new.perform *Parameters.deserialize(args)
+          job.new.perform_with_deserialization *args
         end
       end
     end

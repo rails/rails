@@ -11,12 +11,12 @@ module ActiveJob
         def queue_at(job, timestamp, *args)
           raise NotImplementedError
         end
-     end
+      end
 
       class JobWrapper
         class << self
           def perform(job_name, *args)
-            job_name.constantize.new.perform *Parameters.deserialize(args)
+            job_name.constantize.new.perform_with_deserialization *args
           end
         end
       end

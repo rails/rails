@@ -15,7 +15,7 @@ module ActiveJob
 
       class JobWrapper < Que::Job
         def run(job, *args)
-          job.new.perform *Parameters.deserialize(args)
+          job.new.perform_with_deserialization *args
         end
       end
     end
