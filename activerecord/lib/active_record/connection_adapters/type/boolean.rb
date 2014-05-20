@@ -5,6 +5,12 @@ module ActiveRecord
         def type
           :boolean
         end
+
+        private
+
+        def cast_value(value)
+          Column.value_to_boolean(value)
+        end
       end
     end
   end
