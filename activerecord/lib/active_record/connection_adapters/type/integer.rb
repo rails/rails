@@ -8,6 +8,10 @@ module ActiveRecord
           :integer
         end
 
+        def klass
+          ::Fixnum
+        end
+
         private
 
         def cast_value(value)

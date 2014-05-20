@@ -8,6 +8,10 @@ module ActiveRecord
           :float
         end
 
+        def klass
+          ::Float
+        end
+
         private
 
         def cast_value(value)

@@ -8,6 +8,10 @@ module ActiveRecord
           :decimal
         end
 
+        def klass
+          ::BigDecimal
+        end
+
         private
 
         def cast_value(value)

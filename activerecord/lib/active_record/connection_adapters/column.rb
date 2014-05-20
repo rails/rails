@@ -18,7 +18,7 @@ module ActiveRecord
 
       alias :encoded? :coder
 
-      delegate :type, :text?, :number?, :binary?, :type_cast_for_write, to: :cast_type
+      delegate :type, :klass, :text?, :number?, :binary?, :type_cast_for_write, to: :cast_type
 
       # Instantiates a new column in the table.
       #
@@ -45,19 +45,6 @@ module ActiveRecord
 
       def has_default?
         !default.nil?
-      end
-
-      # Returns the Ruby class that corresponds to the abstract data type.
-      def klass
-        case type
-        when :integer                     then Fixnum
-        when :float                       then Float
-        when :decimal                     then BigDecimal
-        when :datetime, :time             then Time
-        when :date                        then Date
-        when :text, :string, :binary      then String
-        when :boolean                     then Object
-        end
       end
 
       # Casts value to an appropriate instance.
