@@ -22,8 +22,8 @@ module ActiveJob
       class JobWrapper
         include SuckerPunch::Job
 
-        def perform(job_name, *args)
-          job_name.new.perform *Parameters.deserialize(args)
+        def perform(job, *args)
+          job.new.perform *Parameters.deserialize(args)
         end
 
         def later(sec, job_name, *args)
