@@ -1,3 +1,10 @@
+*   Refactor the typecasting behavior of columns to an API built around
+    dependency injection and composition, rather than case statements on the SQL
+    type string. Testing the columns becomes much easier, as does adding new
+    types or overriding behavior in the future.
+
+    *Sean Griffin*
+
 *   Fixed serialized fields returning serialized data after being updated with
     `update_column`.
 
