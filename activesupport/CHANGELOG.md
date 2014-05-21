@@ -1,5 +1,12 @@
 ## Rails 4.0.6 (unreleased) ##
 
+*   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
+    in nested arrays.  This change also applies to `Hash#deep_stringify_keys`,
+    `Hash#deep_stringify_keys!`, `Hash#deep_symbolize_keys` and
+    `Hash#deep_symbolize_keys!`.
+
+    *OZAWA Sakuro*
+
 *   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
     given. In particular `#update`, `#merge`, `#replace` all accept objects
     which respond to `#to_hash`, even if those objects are not Hashes directly.
