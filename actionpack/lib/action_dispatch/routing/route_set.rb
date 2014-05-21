@@ -184,7 +184,7 @@ module ActionDispatch
             private
 
             def optimized_helper(args)
-              params = Hash[parameterize_args(args)]
+              params = parameterize_args(args)
               missing_keys = missing_keys(params)
 
               unless missing_keys.empty?
@@ -203,7 +203,9 @@ module ActionDispatch
             end
 
             def parameterize_args(args)
-              @required_parts.zip(args.map(&:to_param))
+              params = {}
+              @required_parts.zip(args.map(&:to_param)) { |k,v| params[k] = v }
+              params
             end
 
             def missing_keys(args)
