@@ -31,7 +31,7 @@ module ActionDispatch
         @parts             = nil
         @decorated_ast     = nil
         @precedence        = 0
-        @formatter         = @path.build_formatter
+        @path_formatter    = @path.build_formatter
       end
 
       def ast
@@ -73,7 +73,7 @@ module ActionDispatch
       alias :segment_keys :parts
 
       def format(path_options)
-        @formatter.evaluate path_options
+        @path_formatter.evaluate path_options
       end
 
       def optimized_path
