@@ -73,10 +73,6 @@ module ActionDispatch
       alias :segment_keys :parts
 
       def format(path_options)
-        path_options.delete_if do |key, value|
-          value.to_s == defaults[key].to_s && !required_parts.include?(key)
-        end
-
         @formatter.evaluate path_options
       end
 

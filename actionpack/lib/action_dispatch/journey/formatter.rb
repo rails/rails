@@ -30,6 +30,12 @@ module ActionDispatch
             parameterized_parts.key?(key) || route.defaults.key?(key)
           end
 
+          defaults       = route.defaults
+          required_parts = route.required_parts
+          parameterized_parts.delete_if do |key, value|
+            value.to_s == defaults[key].to_s && !required_parts.include?(key)
+          end
+
           return [route.format(parameterized_parts), params]
         end
 
