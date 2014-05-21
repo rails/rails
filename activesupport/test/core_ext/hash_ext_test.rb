@@ -590,6 +590,20 @@ class HashExtTest < ActiveSupport::TestCase
     assert_not new_to_hash["a"]["b"].instance_of?(HashWithIndifferentAccess)
   end
 
+  def test_indifferent_to_struct
+    assert_raise NoMethodError do
+      @mixed.to_struct
+    end
+
+    new_struct = @mixed.with_indifferent_access.to_struct
+    assert new_struct.is_a?(Struct)
+    assert_equal new_struct.a, 1
+
+    struct_with_nested_hash = @nested_mixed.with_indifferent_access.to_struct
+    assert struct_with_nested_hash.is_a?(Struct)
+    assert struct_with_nested_hash.a.is_a?(Hash)
+  end
+
   def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
     hash = HashWithIndifferentAccess.new {|h, k| h[k] = []}
     hash[:a] << 1

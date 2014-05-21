@@ -245,6 +245,12 @@ module ActiveSupport
       Hash.new(default).merge!(_new_hash)
     end
 
+    # Convert to a Struct
+    def to_struct
+      hash = self.symbolize_keys
+      Struct.new(*(k = hash.keys)).new(*hash.values_at(*k))
+    end
+
     protected
       def convert_key(key)
         key.kind_of?(Symbol) ? key.to_s : key
