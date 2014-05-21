@@ -753,13 +753,13 @@ Post.find(10).comments.reorder('name')
 The SQL that would be executed:
 
 ```sql
-SELECT * FROM posts WHERE id = 10 ORDER BY name
+SELECT * FROM comments WHERE post_id = 10 ORDER BY name
 ```
 
 In case the `reorder` clause is not used, the SQL executed would be:
 
 ```sql
-SELECT * FROM posts WHERE id = 10 ORDER BY posted_at DESC
+SELECT * FROM comments WHERE post_id = 10 ORDER BY posted_at DESC
 ```
 
 ### `reverse_order`
