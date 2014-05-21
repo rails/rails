@@ -136,11 +136,11 @@ module ActionDispatch
 
           routes.map! { |r|
             match_data  = r.path.match(req.path_info)
-            match_names = match_data.names.map { |n| n.to_sym }
-            match_values = match_data.captures.map { |v| v && Utils.unescape_uri(v) }
-            info = Hash[match_names.zip(match_values).find_all { |_, y| y }]
-
-            [match_data, r.defaults.merge(info), r]
+            path_parameters = {}
+            match_data.names.zip(match_data.captures) { |name,val|
+              path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
+            }
+            [match_data, r.defaults.merge(path_parameters), r]
           }
         end
 
