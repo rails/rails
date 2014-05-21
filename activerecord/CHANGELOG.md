@@ -1,3 +1,14 @@
+*   Changed scoped blocks to be executed with `instance_eval`
+
+    Named scopes (i.e. using STI) were previously cached according to
+    base class so scoped queries made by classes with a common ancestor would
+    leak. Changed the way scope blocks were called so inheritance rules are
+    followed during the call and scopes are cached correctly.
+
+    Fixes #13466.
+
+    *Jefferson Lai*
+
 *   Change belongs_to touch to be consistent with timestamp updates
 
     If a model is set up with a belongs_to: touch relatinoship the parent
