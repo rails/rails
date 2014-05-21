@@ -5,6 +5,7 @@ module ActiveRecord
 
     included do
       class_attribute :_reflections
+      # @api public
       class_attribute :reflections
       class_attribute :aggregate_reflections
       self._reflections = {}
