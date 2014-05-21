@@ -22,8 +22,8 @@ module ActiveRecord
       class << self
         def extract_scale(sql_type)
           case sql_type
-            when /^(numeric|decimal|number)\((\d+)\)/i then 0
-            when /^(numeric|decimal|number)\((\d+)(,(\d+))\)/i then $4.to_i
+            when /\((\d+)\)/ then 0
+            when /\((\d+)(,(\d+))\)/ then $3.to_i
           end
         end
       end
