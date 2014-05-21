@@ -6,16 +6,15 @@ module ActiveRecord
     class PostgreSQLColumn < Column #:nodoc:
       attr_accessor :array
 
-      def initialize(name, default, oid_type, sql_type = nil, null = true)
-        @oid_type = oid_type
+      def initialize(name, default, cast_type, sql_type = nil, null = true)
         default_value     = self.class.extract_value_from_default(default)
 
         if sql_type =~ /\[\]$/
           @array = true
-          super(name, default_value, oid_type, sql_type[0..sql_type.length - 3], null)
+          super(name, default_value, cast_type, sql_type[0..sql_type.length - 3], null)
         else
           @array = false
-          super(name, default_value, oid_type, sql_type, null)
+          super(name, default_value, cast_type, sql_type, null)
         end
 
         @default_function = default if has_default_function?(default_value, default)
@@ -105,7 +104,7 @@ module ActiveRecord
       end
 
       def accessor
-        @oid_type.accessor
+        cast_type.accessor
       end
 
       private
