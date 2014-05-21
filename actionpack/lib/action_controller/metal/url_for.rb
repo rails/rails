@@ -23,12 +23,12 @@ module ActionController
     include AbstractController::UrlFor
 
     def url_options
-      @_url_options ||= super.reverse_merge(
+      @_url_options ||= {
         :host => request.host,
         :port => request.optional_port,
         :protocol => request.protocol,
         :_recall => request.symbolized_path_parameters
-      ).freeze
+      }.merge(super).freeze
 
       if (same_origin = _routes.equal?(env["action_dispatch.routes".freeze])) ||
          (script_name = env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]) ||
