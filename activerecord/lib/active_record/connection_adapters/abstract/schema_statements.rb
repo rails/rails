@@ -360,11 +360,18 @@ module ActiveRecord
 
       # Drops a table from the database.
       #
-      # Although this command ignores +options+ and the block if one is given, it can be helpful
-      # to provide these in a migration's +change+ method so it can be reverted.
+      # [<tt>:force<tt>]
+      #   Set this to true to ignore a non-existent table.
+      #
+      #   Defaults to false.
+      #
+      # Although this command ignores most +options+ and the block if one is given,
+      # it can be helpful to provide these in a migration's +change+ method so it
+      # can be reverted.
       # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
-        execute "DROP TABLE #{quote_table_name(table_name)}"
+        return if options[:force] && !table_exists?(table_name)
+        execute "DROP TABLE #{options[:drop_options]} #{quote_table_name(table_name)}"
       end
 
       # Adds a new column to the named table.

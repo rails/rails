@@ -378,6 +378,15 @@ module ActiveRecord
           rename_table_indexes(table_name, new_name)
         end
 
+        def drop_table(table_name, options)
+          if options[:force]
+            options = options.dup
+            options[:drop_options] = "IF EXISTS"
+            options.delete(:force)
+          end
+          super
+        end
+
         # Adds a new column to the named table.
         # See TableDefinition#column for details of the options you can use.
         def add_column(table_name, column_name, type, options = {})
