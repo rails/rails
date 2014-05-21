@@ -165,7 +165,6 @@ module ActionDispatch
 
             def initialize(route, options)
               super
-              @klass          = Journey::Router::Utils
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
             end
