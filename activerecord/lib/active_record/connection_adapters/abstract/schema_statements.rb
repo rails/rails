@@ -539,6 +539,9 @@ module ActiveRecord
 
       # Removes the given index from the table.
       #
+      # If the index does not exist, an exception will be raised unless you pass
+      # <tt>:force</tt> as an option.
+      #
       # Removes the +index_accounts_on_column+ in the +accounts+ table.
       #
       #   remove_index :accounts, :column
@@ -556,7 +559,23 @@ module ActiveRecord
       #   remove_index :accounts, name: :by_branch_party
       #
       def remove_index(table_name, options = {})
-        remove_index!(table_name, index_name_for_remove(table_name, options))
+        if options.is_a?(Hash) && options[:force]
+          index_name = index_name(table_name, options)
+          if respond_to?(:indexes)
+            return unless index_name_exists?(table_name, index_name, true)
+            remove_index!(table_name, index_name)
+          else
+            # can't pre-determine if the index exists, so we have to
+            # swallow the error if it doesn't
+            begin
+              remove_index!(table_name, index_name)
+            rescue StatementInvalid
+              # ignore the error about it not existing
+            end
+          end
+        else
+          remove_index!(table_name, index_name_for_remove(table_name, options))
+        end
       end
 
       def remove_index!(table_name, index_name) #:nodoc:

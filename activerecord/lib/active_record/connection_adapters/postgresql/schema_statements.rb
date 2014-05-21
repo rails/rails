@@ -440,6 +440,14 @@ module ActiveRecord
           execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}"
         end
 
+        def remove_index(table_name, options)
+          if options.is_a?(Hash) && options[:force]
+            execute "DROP INDEX IF EXISTS #{quote_table_name(index_name(table_name, options))}"
+          else
+            super
+          end
+        end
+
         def remove_index!(table_name, index_name) #:nodoc:
           execute "DROP INDEX #{quote_table_name(index_name)}"
         end

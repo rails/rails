@@ -47,6 +47,18 @@ module ActiveRecord
         assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
       end
 
+      def test_force_remove_nonexistent_index
+        assert_nothing_raised { connection.remove_index(table_name, :name => "no_such_index", :force => true) }
+      end
+
+      def test_force_remove_existing_index
+        connection.add_index(table_name, "foo", name: good_index_name)
+        assert connection.index_name_exists?(table_name, good_index_name, true)
+
+        connection.remove_index(table_name, name: good_index_name, :force => true)
+        assert_not connection.index_name_exists?(table_name, good_index_name, false)
+      end
+
       def test_add_index_works_with_long_index_names
         connection.add_index(table_name, "foo", name: good_index_name)
 

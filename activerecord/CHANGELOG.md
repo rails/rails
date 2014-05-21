@@ -1,3 +1,7 @@
+*   Added `force` option to `remove_index` for ignoring a missing index.
+
+    *Cody Cutrer*
+
 *   PostgreSQL support default values for enum types. Fixes #7814.
 
     *Yves Senn*
