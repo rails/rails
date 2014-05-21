@@ -343,7 +343,7 @@ module ActiveRecord
               fields << field_name
 
               if field.decimals > 0
-                types[field_name] = Type::Decimal.new
+                types[field_name] = Type::Decimal.new(field.decimals)
               else
                 types[field_name] = Fields.find_type field
               end

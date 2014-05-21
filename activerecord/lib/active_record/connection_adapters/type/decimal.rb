@@ -4,6 +4,12 @@ module ActiveRecord
       class Decimal < Value # :nodoc:
         include Numeric
 
+        attr_reader :scale
+
+        def initialize(scale)
+          @scale = scale
+        end
+
         def type
           :decimal
         end

@@ -39,7 +39,9 @@ module ActiveRecord
         class Money < Type::Decimal
           include Infinity
 
-          def extract_scale(sql_type)
+          def initialize; end
+
+          def scale
             2
           end
 
@@ -284,6 +286,12 @@ This is not reliable and will be removed in the future.
           end
         end
 
+        class TypeMap < Type::HashLookupTypeMap
+          def fetch(oid, type = '', &block)
+            @mapping.fetch(oid, block).call(type)
+          end
+        end
+
         # This class uses the data from PostgreSQL pg_type table to build
         # the OID -> Type mapping.
         #   - OID is and integer representing the type.
@@ -351,7 +359,11 @@ This is not reliable and will be removed in the future.
             raise ArgumentError, "can't register nil type for OID #{oid}" if oid_type.nil?
             return if @store.key?(oid)
 
-            @store.register_type(oid, oid_type)
+            if Proc === oid_type
+              @store.register_type(oid, &oid_type)
+            else
+              @store.register_type(oid, oid_type)
+            end
           end
         end
 
@@ -384,7 +396,7 @@ This is not reliable and will be removed in the future.
         alias_type 'int4', 'int2'
         alias_type 'int8', 'int2'
         alias_type 'oid', 'int2'
-        register_type 'numeric', OID::Decimal.new
+        register_type 'numeric', ->(type) { OID::Decimal.new(Type.extract_scale(type)) }
         register_type 'float4', OID::Float.new
         alias_type 'float8', 'float4'
         register_type 'text', Type::Text.new

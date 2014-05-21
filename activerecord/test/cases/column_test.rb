@@ -85,7 +85,7 @@ module ActiveRecord
       end
 
       def test_type_cast_decimal
-        column = Column.new("field", nil, Type::Decimal.new)
+        column = Column.new("field", nil, Type::Decimal.new(0))
         assert_equal BigDecimal.new("0"), column.type_cast(BigDecimal.new("0"))
         assert_equal BigDecimal.new("123"), column.type_cast(123.0)
         assert_equal BigDecimal.new("1"), column.type_cast(:"1")
