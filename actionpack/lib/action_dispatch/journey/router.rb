@@ -90,7 +90,7 @@ module ActionDispatch
             req.env['PATH_INFO']   = match.post_match.sub(/^([^\/])/, '/\1')
           end
 
-          yield(route, nil, parameters)
+          yield(route, parameters)
         end
       end
 

@@ -48,7 +48,7 @@ module ActionDispatch
 
         env = rails_env 'PATH_INFO' => '/foo-bar-baz'
         called = false
-        router.recognize(env) do |r, _, params|
+        router.recognize(env) do |r, params|
           called = true
         end
         assert called
@@ -65,7 +65,7 @@ module ActionDispatch
 
         env = rails_env 'PATH_INFO' => '/%E3%81%BB%E3%81%92'
         called = false
-        router.recognize(env) do |r, _, params|
+        router.recognize(env) do |r, params|
           called = true
         end
         assert called
@@ -83,7 +83,7 @@ module ActionDispatch
         routes.add_route nil, path, requirements, {:id => nil}, {}
 
         env = rails_env 'PATH_INFO' => '/foo/10'
-        router.recognize(env) do |r, _, params|
+        router.recognize(env) do |r, params|
           assert_equal({:id => '10'}, params)
         end
 
@@ -103,7 +103,7 @@ module ActionDispatch
         router.routes.add_route nil, path, requirements, {:id => nil}, {}
 
         env = rails_env 'PATH_INFO' => '/foo/10'
-        router.recognize(env) do |r, _, params|
+        router.recognize(env) do |r, params|
           flunk 'route should not be found'
         end
 
@@ -128,7 +128,7 @@ module ActionDispatch
         env = rails_env 'PATH_INFO' => '/foo', 'custom.path_info' => '/bar'
 
         recognized = false
-        router.recognize(env) do |r, _, params|
+        router.recognize(env) do |r, params|
           recognized = true
         end
 
@@ -144,7 +144,7 @@ module ActionDispatch
         env = rails_env 'PATH_INFO' => '/whois/example.com'
 
         list = []
-        @router.recognize(env) do |r, _, params|
+        @router.recognize(env) do |r, params|
           list << r
         end
         assert_equal 2, list.length
@@ -230,12 +230,12 @@ module ActionDispatch
         @router.routes.add_route nil, path, {}, {:id => nil}, {}
 
         env = rails_env 'PATH_INFO' => '/foo/10'
-        @router.recognize(env) do |r, _, params|
+        @router.recognize(env) do |r, params|
           assert_equal({:id => '10'}, params)
         end
 
         env = rails_env 'PATH_INFO' => '/foo'
-        @router.recognize(env) do |r, _, params|
+        @router.recognize(env) do |r, params|
           assert_equal({:id => nil}, params)
         end
       end
@@ -431,7 +431,7 @@ module ActionDispatch
           env = rails_env 'PATH_INFO' => request_path
           called   = false
 
-          @router.recognize(env) do |r, _, params|
+          @router.recognize(env) do |r, params|
             assert_equal route, r
             assert_equal(expected, params)
             called = true
@@ -453,7 +453,7 @@ module ActionDispatch
           env = rails_env 'PATH_INFO' => request_path
           called   = false
 
-          @router.recognize(env) do |r, _, params|
+          @router.recognize(env) do |r, params|
             assert_equal route, r
             assert_equal(expected, params)
             called = true
@@ -481,7 +481,7 @@ module ActionDispatch
           :id         => '10'
         }
 
-        @router.recognize(env) do |r, _, params|
+        @router.recognize(env) do |r, params|
           assert_equal route, r
           assert_equal(expected, params)
           called = true
@@ -497,7 +497,7 @@ module ActionDispatch
         env    = rails_env 'PATH_INFO' => '/books/list.rss'
         expected = { :controller => 'books', :action => 'list', :format => 'rss' }
         called = false
-        @router.recognize(env) do |r, _, params|
+        @router.recognize(env) do |r, params|
           assert_equal route, r
           assert_equal(expected, params)
           called = true
@@ -518,7 +518,7 @@ module ActionDispatch
                         "REQUEST_METHOD"    => "HEAD"
 
         called = false
-        @router.recognize(env) do |r, _, params|
+        @router.recognize(env) do |r, params|
           called = true
         end
 
@@ -542,7 +542,7 @@ module ActionDispatch
                         "REQUEST_METHOD"    => "POST"
 
         called = false
-        @router.recognize(env) do |r, _, params|
+        @router.recognize(env) do |r, params|
           assert_equal post, r
           called = true
         end
