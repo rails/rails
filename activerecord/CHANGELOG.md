@@ -1,5 +1,11 @@
 ## Rails 4.1.2 (unreleased) ##
 
+*   Fixed polymorphic eager loading when using a String as foreign key.
+
+    Fixes #14734.
+
+    *Lauro Caetano*
+
 *   Changed scoped blocks to be executed with `instance_eval`
 
     Named scopes (i.e. using STI) were previously cached according to

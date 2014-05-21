@@ -57,9 +57,15 @@ module ActiveRecord
         end
 
         def owners_by_key
-          @owners_by_key ||= owners.group_by do |owner|
-            owner[owner_key_name]
-          end
+          @owners_by_key ||= if key_conversion_required?
+                               owners.group_by do |owner|
+                                 owner[owner_key_name].to_s
+                               end
+                             else
+                               owners.group_by do |owner|
+                                 owner[owner_key_name]
+                               end
+                             end
         end
 
         def options
@@ -93,13 +99,28 @@ module ActiveRecord
           records_by_owner
         end
 
+        def key_conversion_required?
+          association_key_type != owner_key_type
+        end
+
+        def association_key_type
+          @klass.column_types[association_key_name.to_s].type
+        end
+
+        def owner_key_type
+          @model.column_types[owner_key_name.to_s].type
+        end
+
         def load_slices(slices)
           @preloaded_records = slices.flat_map { |slice|
             records_for(slice)
           }
 
           @preloaded_records.map { |record|
-            [record, record[association_key_name]]
+            key = record[association_key_name]
+            key = key.to_s if key_conversion_required?
+
+            [record, key]
           }
         end
 

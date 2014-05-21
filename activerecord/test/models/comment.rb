@@ -7,6 +7,9 @@ class Comment < ActiveRecord::Base
   scope :created, -> { all }
 
   belongs_to :post, :counter_cache => true
+  belongs_to :author,   polymorphic: true
+  belongs_to :resource, polymorphic: true
+
   has_many :ratings
 
   belongs_to :first_post, :foreign_key => :post_id
