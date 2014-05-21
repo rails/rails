@@ -364,7 +364,7 @@ INFO. Options passed to fetch will be merged with the payload.
 | ------ | --------------------- |
 | `:key` | Key used in the store |
 
-INFO. Cache stores my add their own keys
+INFO. Cache stores may add their own keys
 
 ```ruby
 {
