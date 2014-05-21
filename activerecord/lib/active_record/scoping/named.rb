@@ -160,7 +160,12 @@ module ActiveRecord
 
           singleton_class.send(:define_method, name) do |*args|
             if body.respond_to?(:call)
-              scope = all.scoping { body.call(*args) }
+              if body.respond_to?(:to_proc)
+                scope = all.scoping { instance_exec(*args, &body) }
+              else
+                # Body is given as an object instead of a block, so invoke call()
+                scope = all.scoping { body.call(*args) }
+              end
               scope = scope.extending(extension) if extension
             else
               scope = body
