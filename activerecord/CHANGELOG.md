@@ -1,3 +1,8 @@
+*   Fixed serialized fields returning serialized data after being updated with
+    `update_column`.
+
+    *Simon Hørup Eskildsen*
+
 *   Fixed polymorphic eager loading when using a String as foreign key.
 
     Fixes #14734.
