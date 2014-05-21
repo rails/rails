@@ -64,6 +64,7 @@ module ActiveRecord
       #   Account.reflect_on_all_associations             # returns an array of all associations
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
+      #   @api public
       def reflect_on_all_associations(macro = nil)
         association_reflections = reflections.values
         macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
@@ -74,13 +75,21 @@ module ActiveRecord
       #   Account.reflect_on_association(:owner)             # returns the owner AssociationReflection
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
+      #   @api public
       def reflect_on_association(association)
         reflections[association]
       end
 
+      #   @api private
+      def _reflect_on_association(association) #:nodoc:
+        _reflections[association]
+      end
+
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
+      #
+      #   @api public
       def reflect_on_all_autosave_associations
-        _reflections.values.select { |reflection| reflection.options[:autosave] }
+        reflections.values.select { |reflection| reflection.options[:autosave] }
       end
     end
 
@@ -197,7 +206,7 @@ module ActiveRecord
 
       def initialize(macro, name, scope, options, active_record)
         super
-        @collection = :has_many == macro
+        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
         @automatic_inverse_of = nil
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
@@ -300,12 +309,12 @@ module ActiveRecord
       def inverse_of
         return unless inverse_name
 
-        @inverse_of ||= klass.reflect_on_association inverse_name
+        @inverse_of ||= klass._reflect_on_association inverse_name
       end
 
       def polymorphic_inverse_of(associated_class)
         if has_inverse?
-          if inverse_relationship = associated_class.reflect_on_association(options[:inverse_of])
+          if inverse_relationship = associated_class._reflect_on_association(options[:inverse_of])
             inverse_relationship
           else
             raise InverseOfAssociationNotFoundError.new(self, associated_class)
@@ -406,7 +415,7 @@ module ActiveRecord
             inverse_name = ActiveSupport::Inflector.underscore(active_record.name).to_sym
 
             begin
-              reflection = klass.reflect_on_association(inverse_name)
+              reflection = klass._reflect_on_association(inverse_name)
             rescue NameError
               # Give up: we couldn't compute the klass type so we won't be able
               # to find any associations either.
@@ -505,7 +514,7 @@ module ActiveRecord
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
-        through_reflection.klass.reflect_on_association(source_reflection_name)
+        through_reflection.klass._reflect_on_association(source_reflection_name)
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option
@@ -521,7 +530,7 @@ module ActiveRecord
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @active_record=Post, @plural_name="taggings">
       #
       def through_reflection
-        active_record.reflect_on_association(options[:through])
+        active_record._reflect_on_association(options[:through])
       end
 
       # Returns an array of reflections which are involved in this association. Each item in the
@@ -628,7 +637,7 @@ module ActiveRecord
 
         names = [name.to_s.singularize, name].collect { |n| n.to_sym }.uniq
         names = names.find_all { |n|
-          through_reflection.klass.reflect_on_association(n)
+          through_reflection.klass._reflect_on_association(n)
         }
 
         if names.length > 1

@@ -20,7 +20,7 @@ module ActiveRecord
       def reset_counters(id, *counters)
         object = find(id)
         counters.each do |association|
-          has_many_association = reflect_on_association(association.to_sym)
+          has_many_association = _reflect_on_association(association.to_sym)
           raise ArgumentError, "'#{self.name}' has no association called '#{association}'" unless has_many_association
 
           if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
