@@ -2,6 +2,10 @@ module ActiveRecord
   module ConnectionAdapters
     module Type
       module TimeValue # :nodoc:
+        def klass
+          ::Time
+        end
+
         private
 
         def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)

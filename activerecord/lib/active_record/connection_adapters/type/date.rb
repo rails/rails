@@ -6,6 +6,10 @@ module ActiveRecord
           :date
         end
 
+        def klass
+          ::Date
+        end
+
         private
 
         def cast_value(value)

@@ -9,6 +9,10 @@ module ActiveRecord
         def binary?
           true
         end
+
+        def klass
+          ::String
+        end
       end
     end
   end

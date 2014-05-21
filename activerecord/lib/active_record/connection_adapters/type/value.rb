@@ -24,6 +24,10 @@ module ActiveRecord
           false
         end
 
+        def klass
+          ::Object
+        end
+
         private
 
         def cast_value(value)
