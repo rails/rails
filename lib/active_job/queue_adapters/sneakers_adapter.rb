@@ -7,14 +7,14 @@ module ActiveJob
       @mutex = Mutex.new
         
       class << self
-        def queue(job, *args)
+        def enqueue(job, *args)
           @mutex.synchronize do
             JobWrapper.from_queue job.queue_name
             JobWrapper.enqueue [ job, *args ]
           end
         end
 
-        def queue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp, *args)
           raise NotImplementedError
         end
       end
@@ -23,7 +23,7 @@ module ActiveJob
         include Sneakers::Worker
 
         def work(job, *args)
-          job.new.perform *Parameters.deserialize(args)
+          job.new.perform_with_deserialization *args
         end
       end
     end
