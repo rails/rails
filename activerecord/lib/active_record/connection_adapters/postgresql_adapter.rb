@@ -369,7 +369,7 @@ module ActiveRecord
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
 
-        @type_map = Type::HashLookupTypeMap.new
+        @type_map = OID::TypeMap.new
         initialize_type_map(type_map)
         @local_tz = execute('SHOW TIME ZONE', 'SCHEMA').first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
@@ -538,12 +538,12 @@ module ActiveRecord
 
       private
 
-        def get_oid_type(oid, fmod, column_name)
+        def get_oid_type(oid, fmod, column_name, type = '')
           if !type_map.key?(oid)
             initialize_type_map(type_map, [oid])
           end
 
-          type_map.fetch(normalize_oid_type(oid, fmod)) {
+          type_map.fetch(normalize_oid_type(oid, fmod), type) {
             warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
             Type::Value.new.tap do |cast_type|
               type_map.register_type(oid, cast_type)
