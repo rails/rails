@@ -262,7 +262,7 @@ module ActiveRecord
         @connection.insert_id
       end
 
-      module Fields
+      module Fields # :nodoc:
         class DateTime < Type::DateTime
           def cast_value(value)
             if Mysql::Time === value
@@ -359,7 +359,7 @@ module ActiveRecord
         end
       end
 
-      def execute_and_free(sql, name = nil)
+      def execute_and_free(sql, name = nil) # :nodoc:
         result = execute(sql, name)
         ret = yield result
         result.free
@@ -372,7 +372,7 @@ module ActiveRecord
       end
       alias :create :insert_sql
 
-      def exec_delete(sql, name, binds)
+      def exec_delete(sql, name, binds) # :nodoc:
         affected_rows = 0
 
         exec_query(sql, name, binds) do |n|
