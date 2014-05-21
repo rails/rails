@@ -89,16 +89,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   def test_type_cast_array
-    data = '{1,2,3}'
-    oid_type  = @column.instance_variable_get('@oid_type').subtype
-    # we are getting the instance variable in this test, but in the
-    # normal use of string_to_array, it's called from the OID::Array
-    # class and will have the OID instance that will provide the type
-    # casting
-    array = @column.class.string_to_array data, oid_type
-    assert_equal(['1', '2', '3'], array)
-    assert_equal(['1', '2', '3'], @column.type_cast(data))
-
+    assert_equal(['1', '2', '3'], @column.type_cast('{1,2,3}'))
     assert_equal([], @column.type_cast('{}'))
     assert_equal([nil], @column.type_cast('{NULL}'))
   end
