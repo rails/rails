@@ -1013,8 +1013,13 @@ module ActionView
       #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-05-12" />
       #
       # You can create values for the "min" and "max" attributes by passing
-      # instances of Date, Time, or String formatted as an ISO8601 date to the
-      # options hash.
+      # instances of Date or Time to the options hash.
+      #
+      #   date_field("user", "born_on", min: Date.today)
+      #   # => <input id="user_born_on" name="user[born_on]" type="date" min="2014-05-20" />
+      #
+      # Alternatively, you can pass a String formatted as an ISO8601 date as the
+      # values for "min" and "max."
       #
       #   date_field("user", "born_on", min: "2014-05-20")
       #   # => <input id="user_born_on" name="user[born_on]" type="date" min="2014-05-20" />
@@ -1037,8 +1042,13 @@ module ActionView
       #   # => <input id="task_started_at" name="task[started_at]" type="time" />
       #
       # You can create values for the "min" and "max" attributes by passing
-      # instances of Date, Time, or String formatted as an ISO8601 time to the
-      # options hash.
+      # instances of Date or Time to the options hash.
+      #
+      #   time_field("task", "started_at", min: Time.now)
+      #   # => <input id="task_started_at" name="task[started_at]" type="time" min="01:00:00.000" />
+      #
+      # Alternatively, you can pass a String formatted as an ISO8601 time as the
+      # values for "min" and "max."
       #
       #   time_field("task", "started_at", min: "01:00:00")
       #   # => <input id="task_started_at" name="task[started_at]" type="time" min="01:00:00.000" />
@@ -1061,10 +1071,15 @@ module ActionView
       #   # => <input id="user_born_on" name="user[born_on]" type="datetime" value="1984-01-12T00:00:00.000+0000" />
       #
       # You can create values for the "min" and "max" attributes by passing
-      # instances of Date, Time, or String formatted as an ISO8601 datetime with
-      # timezone offset to the options hash.
+      # instances of Date or Time to the options hash.
       #
-      #   datetime_field("user", "born_on", min: "2014-05-20T00:00:00.000+0000")
+      #   datetime_field("user", "born_on", min: Date.today)
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime" min="2014-05-20T00:00:00.000+0000" />
+      #
+      # Alternatively, you can pass a String formatted as an ISO8601 datetime
+      # with UTC offset as the values for "min" and "max."
+      #
+      #   datetime_field("user", "born_on", min: "2014-05-20T00:00:00+0000")
       #   # => <input id="user_born_on" name="user[born_on]" type="datetime" min="2014-05-20T00:00:00.000+0000" />
       #
       def datetime_field(object_name, method, options = {})
@@ -1085,11 +1100,16 @@ module ActionView
       #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" value="1984-01-12T00:00:00" />
       #
       # You can create values for the "min" and "max" attributes by passing
-      # instances of Date, Time, or String formatted as an ISO8601 datetime to
-      # the options hash.
+      # instances of Date or Time to the options hash.
+      #
+      #   datetime_local_field("user", "born_on", min: Date.today)
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000" />
+      #
+      # Alternatively, you can pass a String formatted as an ISO8601 datetime as
+      # the values for "min" and "max."
       #
       #   datetime_local_field("user", "born_on", min: "2014-05-20T00:00:00")
-      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000" />
       #
       def datetime_local_field(object_name, method, options = {})
         Tags::DatetimeLocalField.new(object_name, method, self, options).render

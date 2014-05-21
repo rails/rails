@@ -13,13 +13,14 @@ module ActionView
 
         private
 
-        def format_date(value)
-          value.try(:strftime, "%Y-%m-%dT%T.%L%z")
-        end
+          def format_date(value)
+            value.try(:strftime, "%Y-%m-%dT%T.%L%z")
+          end
 
-        def datetime_value(value)
-          DateTime.parse(value) rescue value
-        end
+          def datetime_value(value)
+            return value unless value.is_a? String
+            DateTime.parse(value) rescue nil
+          end
       end
     end
   end
