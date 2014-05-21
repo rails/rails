@@ -9,5 +9,7 @@ module ActiveJob
     extend QueueName
     extend Enqueuing
     extend Logging
+
+    ActiveSupport.run_load_hooks(:active_job, self)
   end
 end
