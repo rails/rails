@@ -1,5 +1,12 @@
 ## Rails 4.1.2 (unreleased) ##
 
+*   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
+    in nested arrays.  This change also applies to `Hash#deep_stringify_keys`,
+    `Hash#deep_stringify_keys!`, `Hash#deep_symbolize_keys` and
+    `Hash#deep_symbolize_keys!`.
+
+    *OZAWA Sakuro*
+
 *   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
     when a subscriber method is redefined.
 
