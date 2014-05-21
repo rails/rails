@@ -25,8 +25,8 @@ module ActionDispatch
 
       def path_parameters=(parameters) #:nodoc:
         @symbolized_path_params = nil
-        @env.delete("action_dispatch.request.parameters")
-        @env["action_dispatch.request.path_parameters"] = parameters
+        @env.delete(Routing::RouteSet::PARAMETERS_KEY)
+        @env[Routing::RouteSet::PARAMETERS_KEY] = parameters
       end
 
       # The same as <tt>path_parameters</tt> with explicitly symbolized keys.
@@ -41,7 +41,7 @@ module ActionDispatch
       #
       # See <tt>symbolized_path_parameters</tt> for symbolized keys.
       def path_parameters
-        @env["action_dispatch.request.path_parameters"] ||= {}
+        @env[Routing::RouteSet::PARAMETERS_KEY] ||= {}
       end
 
       def reset_parameters #:nodoc:
