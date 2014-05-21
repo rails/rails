@@ -7,9 +7,6 @@ end
 class PostgresqlTsvector < ActiveRecord::Base
 end
 
-class PostgresqlMoney < ActiveRecord::Base
-end
-
 class PostgresqlNumber < ActiveRecord::Base
 end
 
@@ -36,16 +33,10 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    @connection.execute("set lc_monetary = 'C'")
 
     @connection.execute("INSERT INTO postgresql_tsvectors (id, text_vector) VALUES (1, ' ''text'' ''vector'' ')")
 
     @first_tsvector = PostgresqlTsvector.find(1)
-
-    @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (1, '567.89'::money)")
-    @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (2, '-567.89'::money)")
-    @first_money = PostgresqlMoney.find(1)
-    @second_money = PostgresqlMoney.find(2)
 
     @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (1, 123.456, 123456.789)")
     @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (2, '-Infinity', 'Infinity')")
@@ -70,16 +61,12 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   teardown do
-    [PostgresqlTsvector, PostgresqlMoney, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
+    [PostgresqlTsvector, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
      PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone].each(&:delete_all)
   end
 
   def test_data_type_of_tsvector_types
     assert_equal :tsvector, @first_tsvector.column_for_attribute(:text_vector).type
-  end
-
-  def test_data_type_of_money_types
-    assert_equal :decimal, @first_money.column_for_attribute(:wealth).type
   end
 
   def test_data_type_of_number_types
@@ -109,19 +96,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_tsvector_values
     assert_equal "'text' 'vector'", @first_tsvector.text_vector
-  end
-
-  def test_money_values
-    assert_equal 567.89, @first_money.wealth
-    assert_equal(-567.89, @second_money.wealth)
-  end
-
-  def test_money_type_cast
-    column = PostgresqlMoney.columns_hash['wealth']
-    assert_equal(12345678.12, column.type_cast("$12,345,678.12"))
-    assert_equal(12345678.12, column.type_cast("$12.345.678,12"))
-    assert_equal(-1.15, column.type_cast("-$1.15"))
-    assert_equal(-2.25, column.type_cast("($2.25)"))
   end
 
   def test_update_tsvector
@@ -164,14 +138,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_oid_values
     assert_equal 1234, @first_oid.obj_id
-  end
-
-  def test_update_money
-    new_value = BigDecimal.new('123.45')
-    @first_money.wealth = new_value
-    assert @first_money.save
-    assert @first_money.reload
-    assert_equal new_value, @first_money.wealth
   end
 
   def test_update_number
