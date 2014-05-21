@@ -168,7 +168,6 @@ module ActionDispatch
               @klass          = Journey::Router::Utils
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
-              @optimized_path = @route.optimized_path
             end
 
             def call(t, args)
@@ -191,11 +190,7 @@ module ActionDispatch
                 raise_generation_error(params, missing_keys)
               end
 
-              @optimized_path.map{ |segment| replace_segment(params, segment) }.join
-            end
-
-            def replace_segment(params, segment)
-              Symbol === segment ? @klass.escape_segment(params[segment]) : segment
+              @route.format params
             end
 
             def optimize_routes_generation?(t)

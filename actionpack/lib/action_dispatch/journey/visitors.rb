@@ -38,7 +38,8 @@ module ActionDispatch
 
         @parameters.each do |index|
           param = parts[index]
-          value = hash.fetch(param.name) { return ''.freeze }
+          value = hash[param.name]
+          return ''.freeze unless value
           parts[index] = param.escape value
         end
 
@@ -147,34 +148,6 @@ module ActionDispatch
         def visit_GROUP(node)
           "(#{visit(node.left)})"
         end
-      end
-
-      class OptimizedPath < Visitor # :nodoc:
-        def accept(node)
-          Array(visit(node))
-        end
-
-        private
-
-          def visit_CAT(node)
-            [visit(node.left), visit(node.right)].flatten
-          end
-
-          def visit_SYMBOL(node)
-            node.left[1..-1].to_sym
-          end
-
-          def visit_STAR(node)
-            visit(node.left)
-          end
-
-          def visit_GROUP(node)
-            []
-          end
-
-          %w{ LITERAL SLASH DOT }.each do |t|
-            class_eval %{ def visit_#{t}(n); n.left; end }, __FILE__, __LINE__
-          end
       end
 
       class Dot < Visitor # :nodoc:
