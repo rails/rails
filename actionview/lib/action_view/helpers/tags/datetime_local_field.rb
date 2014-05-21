@@ -10,9 +10,9 @@ module ActionView
 
         private
 
-          def format_date(value)
-            value.try(:strftime, "%Y-%m-%dT%T")
-          end
+        def format_date(value)
+          value.try(:strftime, "%Y-%m-%dT%T")
+        end
       end
     end
   end

@@ -4,9 +4,9 @@ module ActionView
       class DateField < DatetimeField # :nodoc:
         private
 
-          def format_date(value)
-            value.try(:strftime, "%Y-%m-%d")
-          end
+        def format_date(value)
+          value.try(:strftime, "%Y-%m-%d")
+        end
       end
     end
   end
