@@ -459,6 +459,7 @@ module ActiveRecord
       end
 
       def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
+        return if options[:force] && !column_exists?(table_name, column_name)
         alter_table(table_name) do |definition|
           definition.remove_column column_name
         end

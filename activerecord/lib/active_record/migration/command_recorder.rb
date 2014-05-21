@@ -126,7 +126,7 @@ module ActiveRecord
       end
 
       def invert_remove_column(args)
-        raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
+        raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2 || args[2].nil?
         super
       end
 

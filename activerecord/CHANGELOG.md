@@ -1,3 +1,7 @@
+*   Added `force` option to `remove_column` for ignoring a missing column.
+
+    *Cody Cutrer*
+
 *   Fixed serialized fields returning serialized data after being updated with
     `update_column`.
 
