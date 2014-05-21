@@ -1,3 +1,11 @@
+*   Change belongs_to touch to be consistent with timestamp updates
+
+    If a model is set up with a belongs_to: touch relatinoship the parent
+    record will only be touched if the record was modified. This makes it
+    consistent with timestamp updating on the record itself.
+
+    *Brock Trappitt*
+
 *   Fixed the inferred table name of a HABTM auxiliar table inside a schema.
 
     Fixes #14824
