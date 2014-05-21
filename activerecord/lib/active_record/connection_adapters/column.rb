@@ -69,7 +69,7 @@ module ActiveRecord
       end
 
       private
-        delegate :extract_scale, to: Type
+        delegate :extract_scale, to: :cast_type
 
         def extract_limit(sql_type)
           $1.to_i if sql_type =~ /\((.*)\)/

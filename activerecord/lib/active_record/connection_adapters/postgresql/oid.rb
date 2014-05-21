@@ -39,6 +39,10 @@ module ActiveRecord
         class Money < Type::Decimal
           include Infinity
 
+          def extract_scale(sql_type)
+            2
+          end
+
           def cast_value(value)
             return value unless ::String === value
 

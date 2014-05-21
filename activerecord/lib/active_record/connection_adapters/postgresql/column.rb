@@ -123,12 +123,6 @@ module ActiveRecord
           end
         end
 
-        # Extracts the scale from PostgreSQL-specific data types.
-        def extract_scale(sql_type)
-          # Money type has a fixed scale of 2.
-          sql_type =~ /^money/ ? 2 : super
-        end
-
         # Extracts the precision from PostgreSQL-specific data types.
         def extract_precision(sql_type)
           if sql_type == 'money'
