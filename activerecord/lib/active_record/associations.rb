@@ -50,7 +50,7 @@ module ActiveRecord
     def initialize(reflection)
       through_reflection      = reflection.through_reflection
       source_reflection_names = reflection.source_reflection_names
-      source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
+      source_associations     = reflection.through_reflection.klass.reflections.keys.map(&:to_s)
       super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
     end
   end

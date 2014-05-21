@@ -65,7 +65,7 @@ module ActiveRecord
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
       def reflect_on_all_associations(macro = nil)
-        association_reflections = :has_and_belongs_to_many == macro ? reflections.values : _reflections.values
+        association_reflections = reflections.values
         macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
       end
 

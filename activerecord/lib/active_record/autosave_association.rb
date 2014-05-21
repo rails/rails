@@ -273,9 +273,11 @@ module ActiveRecord
       # go through nested autosave associations that are loaded in memory (without loading
       # any new ones), and return true if is changed for autosave
       def nested_records_changed_for_autosave?
-        self.class.reflect_on_all_autosave_associations.any? do |reflection|
-          association = association_instance_get(reflection.name)
-          association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+        self.class._reflections.values.any? do |reflection|
+          if reflection.options[:autosave]
+            association = association_instance_get(reflection.name)
+            association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+          end
         end
       end
 
