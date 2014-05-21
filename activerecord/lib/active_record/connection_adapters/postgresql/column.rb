@@ -94,6 +94,9 @@ module ActiveRecord
           # JSON/JSONB
           when /\A'(.*)'::jsonb?\z/
             $1
+          # JSONB
+          when /\A'(.*)'::jsonb\z/
+            $1
           # Object identifier types
           when /\A-?\d+\z/
             $1
