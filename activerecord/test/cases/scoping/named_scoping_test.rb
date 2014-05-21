@@ -2,13 +2,12 @@ require "cases/helper"
 require 'models/post'
 require 'models/topic'
 require 'models/comment'
-require 'models/rating'
 require 'models/reply'
 require 'models/author'
 require 'models/developer'
 
 class NamedScopingTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :topics, :comments, :author_addresses, :ratings
+  fixtures :posts, :authors, :topics, :comments, :author_addresses
 
   def test_implements_enumerable
     assert !Topic.all.empty?
@@ -114,10 +113,6 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scope_with_STI
     assert_equal 3,Post.containing_the_letter_a.count
     assert_equal 1,SpecialPost.containing_the_letter_a.count
-  end
-
-  def test_scope_subquery_with_STI
-    assert_nothing_raised { VerySpecialComment.special_parent(SpecialRating.first).count }
   end
 
   def test_has_many_through_associations_have_access_to_scopes
