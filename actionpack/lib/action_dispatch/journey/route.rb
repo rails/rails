@@ -31,6 +31,7 @@ module ActionDispatch
         @parts             = nil
         @decorated_ast     = nil
         @precedence        = 0
+        @formatter         = @path.build_formatter
       end
 
       def ast
@@ -76,7 +77,7 @@ module ActionDispatch
           value.to_s == defaults[key].to_s && !required_parts.include?(key)
         end
 
-        path.format_path path_options
+        @formatter.evaluate path_options
       end
 
       def optimized_path
