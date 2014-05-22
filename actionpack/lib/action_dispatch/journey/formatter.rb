@@ -80,7 +80,7 @@ module ActionDispatch
           if named_routes.key?(name)
             yield named_routes[name]
           else
-            routes = non_recursive(cache, options.to_a)
+            routes = non_recursive(cache, options)
 
             hash = routes.group_by { |_, r| r.score(options) }
 
