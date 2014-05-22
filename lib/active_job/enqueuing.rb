@@ -11,7 +11,7 @@ module ActiveJob
     # ActiveJob release.
     def enqueue(*args)
       serialized_args = Parameters.serialize(args)
-      ActiveSupport::Notifications.instrument "enqueue.active_job", adapter: queue_adapter, job: self, args: serialized_args
+      instrument_enqueuing :enqueue, args: serialized_args
       queue_adapter.enqueue self, *serialized_args
     end
 
@@ -30,10 +30,14 @@ module ActiveJob
     #
     # Returns truthy if a job was scheduled.
     def enqueue_at(timestamp, *args)
-      timestamp       = timestamp.to_f
       serialized_args = Parameters.serialize(args)
-      ActiveSupport::Notifications.instrument "enqueue_at.active_job", adapter: queue_adapter, job: self, args: serialized_args, timestamp: timestamp
-      queue_adapter.enqueue_at self, timestamp, *serialized_args
+      instrument_enqueuing :enqueue_at, args: serialized_args, timestamp: timestamp
+      queue_adapter.enqueue_at self, timestamp.to_f, *serialized_args
     end
+    
+    private
+      def instrument_enqueuing(method_name, options = {})
+        ActiveSupport::Notifications.instrument "#{method_name}.active_job", options.merge(adapter: queue_adapter, job: self)
+      end
   end
 end
