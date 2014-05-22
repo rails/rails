@@ -1,8 +1,6 @@
 require "cases/helper"
 require 'support/ddl_helper'
 
-class PostgresqlTsvector < ActiveRecord::Base
-end
 
 class PostgresqlNumber < ActiveRecord::Base
 end
@@ -25,10 +23,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
 
-    @connection.execute("INSERT INTO postgresql_tsvectors (id, text_vector) VALUES (1, ' ''text'' ''vector'' ')")
-
-    @first_tsvector = PostgresqlTsvector.find(1)
-
     @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (1, 123.456, 123456.789)")
     @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (2, '-Infinity', 'Infinity')")
     @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (3, 123.456, 'NaN')")
@@ -47,12 +41,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   teardown do
-    [PostgresqlTsvector, PostgresqlNumber, PostgresqlTime,
-     PostgresqlBitString, PostgresqlOid].each(&:delete_all)
-  end
-
-  def test_data_type_of_tsvector_types
-    assert_equal :tsvector, @first_tsvector.column_for_attribute(:text_vector).type
+    [PostgresqlNumber, PostgresqlTime, PostgresqlBitString, PostgresqlOid].each(&:delete_all)
   end
 
   def test_data_type_of_number_types
@@ -72,21 +61,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_data_type_of_oid_types
     assert_equal :integer, @first_oid.column_for_attribute(:obj_id).type
-  end
-
-  def test_tsvector_values
-    assert_equal "'text' 'vector'", @first_tsvector.text_vector
-  end
-
-  def test_update_tsvector
-    new_text_vector = "'new' 'text' 'vector'"
-    @first_tsvector.text_vector = new_text_vector
-    assert @first_tsvector.save
-    assert @first_tsvector.reload
-    @first_tsvector.text_vector = new_text_vector
-    assert @first_tsvector.save
-    assert @first_tsvector.reload
-    assert_equal new_text_vector, @first_tsvector.text_vector
   end
 
   def test_number_values
