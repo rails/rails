@@ -496,7 +496,8 @@ module ActiveRecord
       end
 
       def drop_table(table_name, options = {})
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE #{quote_table_name(table_name)}"
+        options = options.merge(:drop_options => "TEMPORARY") if options[:temporary]
+        super(table_name, options)
       end
 
       def rename_index(table_name, old_name, new_name)

@@ -1,3 +1,7 @@
+*   Added `force` option to `drop_table` for ignoring a missing table.
+
+    *Cody Cutrer*
+
 *   Fixed serialized fields returning serialized data after being updated with
     `update_column`.
 
