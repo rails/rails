@@ -4,11 +4,11 @@ require 'thread'
 module ActiveJob
   module QueueAdapters
     class SneakersAdapter
-      @mutex = Mutex.new
-        
+      @monitor = Monitor.new
+
       class << self
         def enqueue(job, *args)
-          @mutex.synchronize do
+          @monitor.synchronize do
             JobWrapper.from_queue job.queue_name
             JobWrapper.enqueue [ job, *args ]
           end
