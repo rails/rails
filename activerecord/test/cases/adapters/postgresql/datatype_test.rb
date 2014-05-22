@@ -10,9 +10,6 @@ end
 class PostgresqlTime < ActiveRecord::Base
 end
 
-class PostgresqlNetworkAddress < ActiveRecord::Base
-end
-
 class PostgresqlBitString < ActiveRecord::Base
 end
 
@@ -45,9 +42,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
 
-    @connection.execute("INSERT INTO postgresql_network_addresses (id, cidr_address, inet_address, mac_address) VALUES(1, '192.168.0/24', '172.16.1.254/32', '01:23:45:67:89:0a')")
-    @first_network_address = PostgresqlNetworkAddress.find(1)
-
     @connection.execute("INSERT INTO postgresql_bit_strings (id, bit_string, bit_string_varying) VALUES (1, B'00010101', X'15')")
     @first_bit_string = PostgresqlBitString.find(1)
 
@@ -58,7 +52,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   teardown do
-    [PostgresqlTsvector, PostgresqlNumber, PostgresqlTime, PostgresqlNetworkAddress,
+    [PostgresqlTsvector, PostgresqlNumber, PostgresqlTime,
      PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone].each(&:delete_all)
   end
 
@@ -74,12 +68,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def test_data_type_of_time_types
     assert_equal :string, @first_time.column_for_attribute(:time_interval).type
     assert_equal :string, @first_time.column_for_attribute(:scaled_time_interval).type
-  end
-
-  def test_data_type_of_network_address_types
-    assert_equal :cidr, @first_network_address.column_for_attribute(:cidr_address).type
-    assert_equal :inet, @first_network_address.column_for_attribute(:inet_address).type
-    assert_equal :macaddr, @first_network_address.column_for_attribute(:mac_address).type
   end
 
   def test_data_type_of_bit_string_types
@@ -119,15 +107,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal '-21 days', @first_time.scaled_time_interval
   end
 
-  def test_network_address_values_ipaddr
-    cidr_address = IPAddr.new '192.168.0.0/24'
-    inet_address = IPAddr.new '172.16.1.254'
-
-    assert_equal cidr_address, @first_network_address.cidr_address
-    assert_equal inet_address, @first_network_address.inet_address
-    assert_equal '01:23:45:67:89:0a', @first_network_address.mac_address
-  end
-
   def test_bit_string_values
     assert_equal '00010101', @first_bit_string.bit_string
     assert_equal '00010101', @first_bit_string.bit_string_varying
@@ -155,20 +134,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal '2 years 00:03:00', @first_time.time_interval
   end
 
-  def test_update_network_address
-    new_inet_address = '10.1.2.3/32'
-    new_cidr_address = '10.0.0.0/8'
-    new_mac_address = 'bc:de:f0:12:34:56'
-    @first_network_address.cidr_address = new_cidr_address
-    @first_network_address.inet_address = new_inet_address
-    @first_network_address.mac_address = new_mac_address
-    assert @first_network_address.save
-    assert @first_network_address.reload
-    assert_equal @first_network_address.cidr_address, new_cidr_address
-    assert_equal @first_network_address.inet_address, new_inet_address
-    assert_equal @first_network_address.mac_address, new_mac_address
-  end
-
   def test_update_bit_string
     new_bit_string = '11111111'
     new_bit_string_varying = '0xFF'
@@ -184,20 +149,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     new_bit_string = 'FF'
     @first_bit_string.bit_string = new_bit_string
     assert_raise(ActiveRecord::StatementInvalid) { assert @first_bit_string.save }
-  end
-
-  def test_invalid_network_address
-    @first_network_address.cidr_address = 'invalid addr'
-    assert_nil @first_network_address.cidr_address
-    assert_equal 'invalid addr', @first_network_address.cidr_address_before_type_cast
-    assert @first_network_address.save
-
-    @first_network_address.reload
-
-    @first_network_address.inet_address = 'invalid addr'
-    assert_nil @first_network_address.inet_address
-    assert_equal 'invalid addr', @first_network_address.inet_address_before_type_cast
-    assert @first_network_address.save
   end
 
   def test_update_oid

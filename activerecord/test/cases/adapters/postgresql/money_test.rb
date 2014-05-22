@@ -4,7 +4,7 @@ require "cases/helper"
 require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
-class PostgresqlByteaTest < ActiveRecord::TestCase
+class PostgresqlMoneyTest < ActiveRecord::TestCase
   class PostgresqlMoney < ActiveRecord::Base; end
 
   setup do
