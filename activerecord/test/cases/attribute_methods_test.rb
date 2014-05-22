@@ -843,6 +843,52 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal !real_topic.title?, klass.find(real_topic.id).title?
   end
 
+  def test_calling_super_when_parent_does_not_define_method_raises_error
+    klass = new_topic_like_ar_class do
+      def some_method_that_is_not_on_super
+        super
+      end
+    end
+
+    assert_raise(NoMethodError) do
+      klass.new.some_method_that_is_not_on_super
+    end
+  end
+
+  def test_race_condition_does_not_cause_no_method_error
+    klass = new_topic_like_ar_class do
+      def title?
+        super
+      end
+    end
+    klass.generated_attribute_methods.lock
+    topic = klass.new
+    t1 = Thread.new do
+      topic.title?
+    end
+    t2 = Thread.new do
+      topic.title?
+    end
+    t1.run
+    t2.run
+    sleep(0.1) while t1.status == "run" || t2.status == "run"
+    klass.generated_attribute_methods.unlock
+    t1.join
+    t2.join
+  end
+
+  def test_undefine_attribute_method_clears_the_thread_ids_that_know_the_methods_were_defined
+    klass = new_topic_like_ar_class do
+      def title?
+        super
+      end
+    end
+    klass.new.title?
+    assert klass.current_thread_retried_method_invocation?
+    klass.undefine_attribute_methods
+    assert !klass.current_thread_retried_method_invocation?
+  end
+
   private
 
   def new_topic_like_ar_class(&block)

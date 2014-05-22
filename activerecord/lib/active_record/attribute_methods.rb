@@ -60,6 +60,7 @@ module ActiveRecord
       def initialize_generated_modules # :nodoc:
         @generated_attribute_methods = Module.new { extend Mutex_m }
         @attribute_methods_generated = false
+        @thread_registry = ThreadSafe::Cache.new
         include @generated_attribute_methods
       end
 
@@ -81,6 +82,16 @@ module ActiveRecord
         generated_attribute_methods.synchronize do
           super if @attribute_methods_generated
           @attribute_methods_generated = false
+          @thread_registry.clear
+        end
+      end
+
+      def current_thread_retried_method_invocation?
+        if @thread_registry[Thread.current.object_id]
+          return true
+        else
+          @thread_registry[Thread.current.object_id] = true
+          return false
         end
       end
 
@@ -193,7 +204,7 @@ module ActiveRecord
     # see if we've created the method we're looking for.
     def method_missing(method, *args, &block) # :nodoc:
       self.class.define_attribute_methods
-      if respond_to_without_attributes?(method)
+      if !self.class.current_thread_retried_method_invocation? && respond_to_without_attributes?(method)
         # make sure to invoke the correct attribute method, as we might have gotten here via a `super`
         # call in a overwritten attribute method
         if attribute_method = self.class.find_generated_attribute_method(method)
