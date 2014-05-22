@@ -1,5 +1,10 @@
 ## Rails 4.1.2 (unreleased) ##
 
+*   When a `group` is set, `sum`, `size`, `average`, `minimum` and `maximum`
+    on a NullRelation should return a Hash.
+
+    *Kuldeep Aggarwal*
+
 *   Fixed polymorphic eager loading when using a String as foreign key.
 
     Fixes #14734.
