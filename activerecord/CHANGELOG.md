@@ -1,3 +1,9 @@
+*   Fixed serialization for records with an attribute named `format`.
+
+    Fixes #15188.
+
+    *Godfrey Chan*
+
 *   When a `group` is set, `sum`, `size`, `average`, `minimum` and `maximum`
     on a NullRelation should return a Hash.
 

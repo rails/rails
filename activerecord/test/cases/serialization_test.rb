@@ -1,8 +1,11 @@
 require "cases/helper"
 require 'models/contact'
 require 'models/topic'
+require 'models/book'
 
 class SerializationTest < ActiveRecord::TestCase
+  fixtures :books
+
   FORMATS = [ :xml, :json ]
 
   def setup
@@ -64,5 +67,21 @@ class SerializationTest < ActiveRecord::TestCase
     assert !klazz.new.include_root_in_json
   ensure
     ActiveRecord::Base.include_root_in_json = original_root_in_json
+  end
+
+  def test_read_attribute_for_serialization_with_format_after_init
+    klazz = Class.new(ActiveRecord::Base)
+    klazz.table_name = 'books'
+
+    book = klazz.new(format: 'paperback')
+    assert_equal 'paperback', book.read_attribute_for_serialization(:format)
+  end
+
+  def test_read_attribute_for_serialization_with_format_after_find
+    klazz = Class.new(ActiveRecord::Base)
+    klazz.table_name = 'books'
+
+    book = klazz.find(books(:awdr).id)
+    assert_equal 'paperback', book.read_attribute_for_serialization(:format)
   end
 end
