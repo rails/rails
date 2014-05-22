@@ -88,6 +88,23 @@ module ActiveRecord
           assert_equal mapping.lookup('varchar'), binary
         end
 
+        def test_additional_lookup_args
+          mapping = TypeMap.new
+
+          mapping.register_type(/varchar/i) do |type, limit|
+            if limit > 255
+              'text'
+            else
+              'string'
+            end
+          end
+          mapping.alias_type(/string/i, 'varchar')
+
+          assert_equal mapping.lookup('varchar', 200), 'string'
+          assert_equal mapping.lookup('varchar', 400), 'text'
+          assert_equal mapping.lookup('string', 400), 'text'
+        end
+
         def test_requires_value_or_block
           mapping = TypeMap.new
 
