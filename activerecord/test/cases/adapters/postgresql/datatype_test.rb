@@ -16,9 +16,6 @@ end
 class PostgresqlOid < ActiveRecord::Base
 end
 
-class PostgresqlTimestampWithZone < ActiveRecord::Base
-end
-
 class PostgresqlLtree < ActiveRecord::Base
 end
 
@@ -47,13 +44,11 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
     @connection.execute("INSERT INTO postgresql_oids (id, obj_id) VALUES (1, 1234)")
     @first_oid = PostgresqlOid.find(1)
-
-    @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
   end
 
   teardown do
     [PostgresqlTsvector, PostgresqlNumber, PostgresqlTime,
-     PostgresqlBitString, PostgresqlOid, PostgresqlTimestampWithZone].each(&:delete_all)
+     PostgresqlBitString, PostgresqlOid].each(&:delete_all)
   end
 
   def test_data_type_of_tsvector_types
@@ -157,32 +152,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert @first_oid.save
     assert @first_oid.reload
     assert_equal new_value, @first_oid.obj_id
-  end
-
-  def test_timestamp_with_zone_values_with_rails_time_zone_support
-    with_timezone_config default: :utc, aware_attributes: true do
-      @connection.reconnect!
-
-      @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
-      assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
-      assert_instance_of Time, @first_timestamp_with_zone.time
-    end
-  ensure
-    @connection.reconnect!
-  end
-
-  def test_timestamp_with_zone_values_without_rails_time_zone_support
-    with_timezone_config default: :local, aware_attributes: false do
-      @connection.reconnect!
-      # make sure to use a non-UTC time zone
-      @connection.execute("SET time zone 'America/Jamaica'", 'SCHEMA')
-
-      @first_timestamp_with_zone = PostgresqlTimestampWithZone.find(1)
-      assert_equal Time.utc(2010,1,1, 11,0,0), @first_timestamp_with_zone.time
-      assert_instance_of Time, @first_timestamp_with_zone.time
-    end
-  ensure
-    @connection.reconnect!
   end
 end
 
