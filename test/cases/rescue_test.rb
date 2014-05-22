@@ -10,7 +10,7 @@ class RescueTest < ActiveSupport::TestCase
   
   test 'rescue perform exception with retry' do
     job = RescueJob.new
-    job.perform_with_hooks("david")
+    job.execute("david")
     assert_equal [ "rescued from StandardError", "performed beautifully" ], $BUFFER
   end
 end

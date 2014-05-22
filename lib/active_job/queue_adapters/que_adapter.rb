@@ -15,7 +15,7 @@ module ActiveJob
 
       class JobWrapper < Que::Job
         def run(job, *args)
-          job.new.perform_with_hooks *args
+          job.new.execute *args
         end
       end
     end

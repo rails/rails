@@ -1,7 +1,7 @@
 require 'active_job/queue_adapter'
 require 'active_job/queue_name'
 require 'active_job/enqueuing'
-require 'active_job/performing'
+require 'active_job/execution'
 require 'active_job/logging'
 require 'active_job/callbacks'
 
@@ -11,7 +11,7 @@ module ActiveJob
     extend QueueName
 
     include Enqueuing
-    include Performing
+    include Execution
     include Callbacks
     include Logging
 

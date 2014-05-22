@@ -2,14 +2,14 @@ require 'active_support/rescuable'
 require 'active_job/arguments'
 
 module ActiveJob
-  module Performing
+  module Execution
     extend ActiveSupport::Concern
     
     included do
       include ActiveSupport::Rescuable
     end
 
-    def perform_with_hooks(*serialized_args)
+    def execute(*serialized_args)
       self.arguments = Arguments.deserialize(serialized_args)
 
       run_callbacks :perform do
