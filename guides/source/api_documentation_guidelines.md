@@ -110,14 +110,14 @@ The results of expressions follow them and are introduced by "# => ", vertically
 If a line is too long, the comment may be placed on the next line:
 
 ```ruby
-#   label(:post, :title)
-#   # => <label for="post_title">Title</label>
+#   label(:article, :title)
+#   # => <label for="article_title">Title</label>
 #
-#   label(:post, :title, "A short title")
-#   # => <label for="post_title">A short title</label>
+#   label(:article, :title, "A short title")
+#   # => <label for="article_title">A short title</label>
 #
-#   label(:post, :title, "A short title", class: "title_label")
-#   # => <label for="post_title" class="title_label">A short title</label>
+#   label(:article, :title, "A short title", class: "title_label")
+#   # => <label for="article_title" class="title_label">A short title</label>
 ```
 
 Avoid using any printing methods like `puts` or `p` for that purpose.

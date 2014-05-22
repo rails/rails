@@ -361,9 +361,9 @@ it should not be necessary to visit a webpage to check the history.
 Description can have multiple paragraphs and you can use code examples
 inside, just indent it with 4 spaces:
 
-    class PostsController
+    class ArticlesController
       def index
-        respond_with Post.limit(10)
+        respond_with Article.limit(10)
       end
     end
 

@@ -279,10 +279,10 @@ end
 and see it in action when invoking the generator:
 
 ```bash
-$ bin/rails generate scaffold Post body:text
+$ bin/rails generate scaffold Article body:text
       [...]
       invoke    my_helper
-      create      app/helpers/posts_helper.rb
+      create      app/helpers/articles_helper.rb
 ```
 
 We can notice on the output that our new helper was invoked instead of the Rails default. However one thing is missing, which is tests for our new generator and to do that, we are going to reuse old helpers test generators.
