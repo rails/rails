@@ -34,7 +34,7 @@ module ActiveRecord
       # Avoid column definitions in create table statements like:
       # `title` varchar(255) DEFAULT NULL
       def test_should_not_include_default_clause_when_default_is_null
-        column = Column.new("title", nil, Type::String.new, "varchar(20)")
+        column = Column.new("title", nil, Type::String.new(limit: 20))
         column_def = ColumnDefinition.new(
           column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
@@ -42,7 +42,7 @@ module ActiveRecord
       end
 
       def test_should_include_default_clause_when_default_is_present
-        column = Column.new("title", "Hello", Type::String.new, "varchar(20)")
+        column = Column.new("title", "Hello", Type::String.new(limit: 20))
         column_def = ColumnDefinition.new(
           column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)
@@ -50,7 +50,7 @@ module ActiveRecord
       end
 
       def test_should_specify_not_null_if_null_option_is_false
-        column = Column.new("title", "Hello", Type::String.new, "varchar(20)", false)
+        column = Column.new("title", "Hello", Type::String.new(limit: 20), "varchar(20)", false)
         column_def = ColumnDefinition.new(
           column.name, "string",
           column.limit, column.precision, column.scale, column.default, column.null)

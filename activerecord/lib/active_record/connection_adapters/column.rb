@@ -13,12 +13,12 @@ module ActiveRecord
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
       end
 
-      attr_reader :name, :default, :cast_type, :limit, :null, :sql_type, :default_function
+      attr_reader :name, :default, :cast_type, :null, :sql_type, :default_function
       attr_accessor :primary, :coder
 
       alias :encoded? :coder
 
-      delegate :type, :precision, :scale, :klass, :text?, :number?, :binary?, :type_cast_for_write, to: :cast_type
+      delegate :type, :precision, :scale, :limit, :klass, :text?, :number?, :binary?, :type_cast_for_write, to: :cast_type
 
       # Instantiates a new column in the table.
       #
@@ -34,7 +34,6 @@ module ActiveRecord
         @cast_type        = cast_type
         @sql_type         = sql_type
         @null             = null
-        @limit            = extract_limit(sql_type)
         @default          = extract_default(default)
         @default_function = nil
         @primary          = nil
@@ -65,11 +64,6 @@ module ActiveRecord
       def extract_default(default)
         type_cast(default)
       end
-
-      private
-        def extract_limit(sql_type)
-          $1.to_i if sql_type =~ /\((.*)\)/
-        end
     end
   end
   # :startdoc:

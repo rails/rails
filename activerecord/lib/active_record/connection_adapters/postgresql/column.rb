@@ -110,15 +110,6 @@ module ActiveRecord
         def has_default_function?(default_value, default)
           !default_value && (%r{\w+\(.*\)} === default)
         end
-
-        def extract_limit(sql_type)
-          case sql_type
-          when /^bigint/i;    8
-          when /^smallint/i;  2
-          when /^timestamp/i; nil
-          else super
-          end
-        end
     end
   end
 end

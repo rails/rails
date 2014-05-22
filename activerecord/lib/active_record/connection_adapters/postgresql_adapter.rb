@@ -569,14 +569,14 @@ module ActiveRecord
         end
 
         def initialize_type_map(m)
-          m.register_type 'int2', OID::Integer.new
+          register_class_with_limit m, 'int2', OID::Integer
           m.alias_type 'int4', 'int2'
           m.alias_type 'int8', 'int2'
           m.alias_type 'oid', 'int2'
           m.register_type 'float4', OID::Float.new
           m.alias_type 'float8', 'float4'
           m.register_type 'text', Type::Text.new
-          m.register_type 'varchar', Type::String.new
+          register_class_with_limit m, 'varchar', Type::String
           m.alias_type 'char', 'varchar'
           m.alias_type 'name', 'varchar'
           m.alias_type 'bpchar', 'varchar'
@@ -627,6 +627,14 @@ module ActiveRecord
           end
 
           load_additional_types(m)
+        end
+
+        def extract_limit(sql_type) # :nodoc:
+          case sql_type
+          when /^bigint/i;    8
+          when /^smallint/i;  2
+          else super
+          end
         end
 
         def load_additional_types(type_map, oids = nil)
