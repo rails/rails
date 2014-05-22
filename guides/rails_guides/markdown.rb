@@ -47,8 +47,7 @@ module RailsGuides
       end
 
       def dom_id_text(text)
-        text.downcase.gsub(/\?/, '-questionmark').gsub(/!/, '-bang').gsub(/[^a-z0-9]+/, ' ')
-          .strip.gsub(/\s+/, '-')
+        text.downcase.gsub(/\?/, '-questionmark').gsub(/!/, '-bang').gsub(/\s+/, '-')
       end
 
       def engine
