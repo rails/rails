@@ -11,5 +11,7 @@ module ActiveJob
     extend Enqueuing
     include Performing
     extend Logging
+
+    ActiveSupport.run_load_hooks(:active_job, self)
   end
 end
