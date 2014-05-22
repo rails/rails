@@ -56,7 +56,9 @@ module ActionDispatch
       def call(env)
         env['PATH_INFO'] = Utils.normalize_path(env['PATH_INFO'])
 
-        find_routes(env).each do |match, parameters, route|
+        req = request_class.new(env)
+
+        find_routes(env, req).each do |match, parameters, route|
           script_name, path_info, set_params = env.values_at('SCRIPT_NAME',
                                                              'PATH_INFO',
                                                              @params_key)
@@ -84,7 +86,9 @@ module ActionDispatch
       end
 
       def recognize(req)
-        find_routes(req.env).each do |match, parameters, route|
+        rails_req = request_class.new(req.env)
+
+        find_routes(req.env, rails_req).each do |match, parameters, route|
           unless route.path.anchored
             req.env['SCRIPT_NAME'] = match.to_s
             req.env['PATH_INFO']   = match.post_match.sub(/^([^\/])/, '/\1')
@@ -124,9 +128,7 @@ module ActionDispatch
           simulator.memos(path) { [] }
         end
 
-        def find_routes env
-          req = request_class.new(env)
-
+        def find_routes env, req
           routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
             r.path.match(req.path_info)
           }
