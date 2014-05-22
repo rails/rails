@@ -96,14 +96,14 @@ module ActionDispatch
 
         def non_recursive(cache, options)
           routes = []
-          stack  = [cache]
+          queue  = [cache]
 
-          while stack.any?
-            c = stack.shift
+          while queue.any?
+            c = queue.shift
             routes.concat(c[:___routes]) if c.key?(:___routes)
 
             options.each do |pair|
-              stack << c[pair] if c.key?(pair)
+              queue << c[pair] if c.key?(pair)
             end
           end
 
