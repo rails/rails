@@ -454,7 +454,7 @@ You can also use custom annotations in your code and list them using `rake notes
 ```bash
 $ bin/rake notes:custom ANNOTATION=BUG
 (in /home/foobar/commandsapp)
-app/models/post.rb:
+app/models/article.rb:
   * [ 23] Have to fix this one before pushing!
 ```
 

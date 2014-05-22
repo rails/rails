@@ -82,13 +82,13 @@ by underscores. Examples:
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
 `BookClub`).
 
-| Model / Class | Table / Schema |
-| ------------- | -------------- |
-| `Post`        | `posts`        |
-| `LineItem`    | `line_items`   |
-| `Deer`        | `deers`        |
-| `Mouse`       | `mice`         |
-| `Person`      | `people`       |
+| Model / Class    | Table / Schema |
+| ---------------- | -------------- |
+| `Article`        | `articles`     |
+| `LineItem`       | `line_items`   |
+| `Deer`           | `deers`        |
+| `Mouse`          | `mice`         |
+| `Person`         | `people`       |
 
 
 ### Schema Conventions
@@ -120,9 +120,9 @@ to Active Record instances:
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
-  associations. For example, a `comments_count` column in a `Post` class that
+  associations. For example, a `comments_count` column in a `Articles` class that
   has many instances of `Comment` will cache the number of existent comments
-  for each post.
+  for each article.
 
 NOTE: While these column names are optional, they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, `type` is a reserved keyword used to designate a table using Single Table Inheritance (STI). If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
 

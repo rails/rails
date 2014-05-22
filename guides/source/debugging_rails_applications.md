@@ -26,17 +26,17 @@ One common task is to inspect the contents of a variable. In Rails, you can do t
 The `debug` helper will return a \<pre> tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:
 
 ```html+erb
-<%= debug @post %>
+<%= debug @article %>
 <p>
   <b>Title:</b>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 ```
 
 You'll see something like this:
 
 ```yaml
---- !ruby/object:Post
+--- !ruby/object Article
 attributes:
   updated_at: 2008-09-05 22:55:47
   body: It's a very helpful guide for debugging your Rails app.
@@ -55,10 +55,10 @@ Title: Rails debugging guide
 Displaying an instance variable, or any other object or method, in YAML format can be achieved this way:
 
 ```html+erb
-<%= simple_format @post.to_yaml %>
+<%= simple_format @article.to_yaml %>
 <p>
   <b>Title:</b>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 ```
 
@@ -67,7 +67,7 @@ The `to_yaml` method converts the method to YAML format leaving it more readable
 As a result of this, you will have something like this in your view:
 
 ```yaml
---- !ruby/object:Post
+--- !ruby/object Article
 attributes:
 updated_at: 2008-09-05 22:55:47
 body: It's a very helpful guide for debugging your Rails app.
@@ -88,7 +88,7 @@ Another useful method for displaying object values is `inspect`, especially when
 <%= [1, 2, 3, 4, 5].inspect %>
 <p>
   <b>Title:</b>
-  <%= @post.title %>
+  <%= @article.title %>
 </p>
 ```
 
@@ -153,18 +153,18 @@ logger.fatal "Terminating application, raised unrecoverable error!!!"
 Here's an example of a method instrumented with extra logging:
 
 ```ruby
-class PostsController < ApplicationController
+class ArticlesController < ApplicationController
   # ...
 
   def create
-    @post = Post.new(params[:post])
-    logger.debug "New post: #{@post.attributes.inspect}"
-    logger.debug "Post should be valid: #{@post.valid?}"
+    @article = Article.new(params[:article])
+    logger.debug "New article: #{@article.attributes.inspect}"
+    logger.debug  Article should be valid: #{@article.valid?}"
 
-    if @post.save
-      flash[:notice] = 'Post was successfully created.'
-      logger.debug "The post was saved and now the user is going to be redirected..."
-      redirect_to(@post)
+    if @article.save
+      flash[:notice] =  Article was successfully created.'
+      logger.debug "The article was saved and now the user is going to be redirected..."
+      redirect_to(@article)
     else
       render action: "new"
     end
@@ -177,21 +177,20 @@ end
 Here's an example of the log generated when this controller action is executed:
 
 ```
-Processing PostsController#create (for 127.0.0.1 at 2008-09-08 11:52:54) [POST]
+Processing ArticlesController#create (for 127.0.0.1 at 2008-09-08 11:52:54) [POST]
   Session ID: BAh7BzoMY3NyZl9pZCIlMDY5MWU1M2I1ZDRjODBlMzkyMWI1OTg2NWQyNzViZjYiCmZsYXNoSUM6J0FjdGl
 vbkNvbnRyb2xsZXI6OkZsYXNoOjpGbGFzaEhhc2h7AAY6CkB1c2VkewA=--b18cd92fba90eacf8137e5f6b3b06c4d724596a4
-  Parameters: {"commit"=>"Create", "post"=>{"title"=>"Debugging Rails",
+  Parameters: {"commit"=>"Create", "article"=>{"title"=>"Debugging Rails",
  "body"=>"I'm learning how to print in logs!!!", "published"=>"0"},
- "authenticity_token"=>"2059c1286e93402e389127b1153204e0d1e275dd", "action"=>"create", "controller"=>"posts"}
-New post: {"updated_at"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!",
- "published"=>false, "created_at"=>nil}
-Post should be valid: true
-  Post Create (0.000443)   INSERT INTO "posts" ("updated_at", "title", "body", "published",
+ "authenticity_token"=>"2059c1286e93402e389127b1153204e0d1e275dd", "action"=>"create", "controller"=>"articles"}
+New article: {"updated_at"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!",
+ "published"=>false, "created_at"=>nil} Article should be valid: true
+  Article Create (0.000443)   INSERT INTO "articles" ("updated_at", "title", "body", "published",
  "created_at") VALUES('2008-09-08 14:52:54', 'Debugging Rails',
  'I''m learning how to print in logs!!!', 'f', '2008-09-08 14:52:54')
-The post was saved and now the user is going to be redirected...
-Redirected to #<Post:0x20af760>
-Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/posts]
+The article was saved and now the user is going to be redirected...
+Redirected to # Article:0x20af760>
+Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/articles]
 ```
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels to avoid filling your production logs with useless trivia.
@@ -286,17 +285,17 @@ Before the prompt, the code around the line that is about to be run will be
 displayed and the current line will be marked by '=>'. Like this:
 
 ```
-[1, 10] in /PathTo/project/app/controllers/posts_controller.rb
+[1, 10] in /PathTo/project/app/controllers/articles_controller.rb
     3:
-    4:   # GET /posts
-    5:   # GET /posts.json
+    4:   # GET /articles
+    5:   # GET /articles.json
     6:   def index
     7:     byebug
-=>  8:     @posts = Post.find_recent
+=>  8:     @articles = Article.find_recent
     9:
    10:     respond_to do |format|
    11:       format.html # index.html.erb
-   12:       format.json { render json: @posts }
+   12:       format.json { render json: @articles }
 
 (byebug)
 ```
@@ -320,19 +319,19 @@ For example:
 
 Started GET "/" for 127.0.0.1 at 2014-04-11 13:11:48 +0200
   ActiveRecord::SchemaMigration Load (0.2ms)  SELECT "schema_migrations".* FROM "schema_migrations"
-Processing by PostsController#index as HTML
+Processing by ArticlesController#index as HTML
 
-[3, 12] in /PathTo/project/app/controllers/posts_controller.rb
+[3, 12] in /PathTo/project/app/controllers/articles_controller.rb
     3:
-    4:   # GET /posts
-    5:   # GET /posts.json
+    4:   # GET /articles
+    5:   # GET /articles.json
     6:   def index
     7:     byebug
-=>  8:     @posts = Post.find_recent
+=>  8:     @articles = Article.find_recent
     9:
    10:     respond_to do |format|
    11:       format.html # index.html.erb
-   12:       format.json { render json: @posts }
+   12:       format.json { render json: @articles }
 
 (byebug)
 ```
@@ -365,15 +364,15 @@ To see the previous ten lines you should type `list-` (or `l-`)
 ```
 (byebug) l-
 
-[1, 10] in /PathTo/project/app/controllers/posts_controller.rb
-   1  class PostsController < ApplicationController
-   2    before_action :set_post, only: [:show, :edit, :update, :destroy]
+[1, 10] in /PathTo/project/app/controllers/articles_controller.rb
+   1  class ArticlesController < ApplicationController
+   2    before_action :set_article, only: [:show, :edit, :update, :destroy]
    3
-   4    # GET /posts
-   5    # GET /posts.json
+   4    # GET /articles
+   5    # GET /articles.json
    6    def index
    7      byebug
-   8      @posts = Post.find_recent
+   8      @articles = Article.find_recent
    9
    10      respond_to do |format|
 
@@ -386,17 +385,17 @@ the code again you can type `list=`
 ```
 (byebug) list=
 
-[3, 12] in /PathTo/project/app/controllers/posts_controller.rb
+[3, 12] in /PathTo/project/app/controllers/articles_controller.rb
     3:
-    4:   # GET /posts
-    5:   # GET /posts.json
+    4:   # GET /articles
+    5:   # GET /articles.json
     6:   def index
     7:     byebug
-=>  8:     @posts = Post.find_recent
+=>  8:     @articles = Article.find_recent
     9:
    10:     respond_to do |format|
    11:       format.html # index.html.erb
-   12:       format.json { render json: @posts }
+   12:       format.json { render json: @articles }
 
 (byebug)
 ```
@@ -419,8 +418,8 @@ then `backtrace` will supply the answer.
 
 ```
 (byebug) where
---> #0  PostsController.index
-      at /PathTo/project/test_app/app/controllers/posts_controller.rb:8
+--> #0  ArticlesController.index
+      at /PathTo/project/test_app/app/controllers/articles_controller.rb:8
     #1  ActionController::ImplicitRender.send_action(method#String, *args#Array)
       at /PathToGems/actionpack-4.1.0/lib/action_controller/metal/implicit_render.rb:4
     #2  AbstractController::Base.process_action(action#NilClass, *args#Array)
@@ -487,17 +486,17 @@ This example shows how you can print the instance variables defined within the
 current context:
 
 ```
-[3, 12] in /PathTo/project/app/controllers/posts_controller.rb
+[3, 12] in /PathTo/project/app/controllers/articles_controller.rb
     3:
-    4:   # GET /posts
-    5:   # GET /posts.json
+    4:   # GET /articles
+    5:   # GET /articles.json
     6:   def index
     7:     byebug
-=>  8:     @posts = Post.find_recent
+=>  8:     @articles = Article.find_recent
     9:
    10:     respond_to do |format|
    11:       format.html # index.html.erb
-   12:       format.json { render json: @posts }
+   12:       format.json { render json: @articles }
 
 (byebug) instance_variables
 [:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
@@ -512,15 +511,15 @@ command later in this guide).
 
 ```
 (byebug) next
-[5, 14] in /PathTo/project/app/controllers/posts_controller.rb
-   5     # GET /posts.json
+[5, 14] in /PathTo/project/app/controllers/articles_controller.rb
+   5     # GET /articles.json
    6     def index
    7       byebug
-   8       @posts = Post.find_recent
+   8       @articles = Article.find_recent
    9
 => 10       respond_to do |format|
    11         format.html # index.html.erb
-   12        format.json { render json: @posts }
+   12        format.json { render json: @articles }
    13      end
    14    end
    15
@@ -530,11 +529,11 @@ command later in this guide).
 And then ask again for the instance_variables:
 
 ```
-(byebug) instance_variables.include? "@posts"
+(byebug) instance_variables.include? "@articles"
 true
 ```
 
-Now `@posts` is included in the instance variables, because the line defining it
+Now `@articles` is included in the instance variables, because the line defining it
 was executed.
 
 TIP: You can also step into **irb** mode with the command `irb` (of course!).
@@ -564,7 +563,7 @@ example, to check that we have no local variables currently defined.
 You can also inspect for an object method this way:
 
 ```
-(byebug) var instance Post.new
+(byebug) var instance Article.new
 @_start_transaction_state = {}
 @aggregation_cache = {}
 @association_cache = {}
@@ -581,8 +580,8 @@ You can use also `display` to start watching variables. This is a good way of
 tracking the values of a variable while the execution goes on.
 
 ```
-(byebug) display @posts
-1: @posts = nil
+(byebug) display @articles
+1: @articles = nil
 ```
 
 The variables inside the displaying list will be printed with their values after
@@ -611,10 +610,10 @@ For example, consider the following situation:
 
 ```ruby
 Started GET "/" for 127.0.0.1 at 2014-04-11 13:39:23 +0200
-Processing by PostsController#index as HTML
+Processing by ArticlesController#index as HTML
 
-[1, 8] in /home/davidr/Proyectos/test_app/app/models/post.rb
-   1: class Post < ActiveRecord::Base
+[1, 8] in /home/davidr/Proyectos/test_app/app/models/article.rb
+   1: class Article < ActiveRecord::Base
    2:
    3:   def self.find_recent(limit = 10)
    4:     byebug
@@ -634,15 +633,15 @@ the method, so `byebug` will jump to next next line of the previous frame.
 (byebug) next
 Next went up a frame because previous frame finished
 
-[4, 13] in /PathTo/project/test_app/app/controllers/posts_controller.rb
-    4:   # GET /posts
-    5:   # GET /posts.json
+[4, 13] in /PathTo/project/test_app/app/controllers/articles_controller.rb
+    4:   # GET /articles
+    5:   # GET /articles.json
     6:   def index
-    7:     @posts = Post.find_recent
+    7:     @articles = Article.find_recent
     8:
 =>  9:     respond_to do |format|
    10:       format.html # index.html.erb
-   11:       format.json { render json: @posts }
+   11:       format.json { render json: @articles }
    12:     end
    13:   end
 
@@ -693,20 +692,20 @@ _expression_ works the same way as with file:line.
 For example, in the previous situation
 
 ```
-[4, 13] in /PathTo/project/app/controllers/posts_controller.rb
-    4:   # GET /posts
-    5:   # GET /posts.json
+[4, 13] in /PathTo/project/app/controllers/articles_controller.rb
+    4:   # GET /articles
+    5:   # GET /articles.json
     6:   def index
-    7:     @posts = Post.find_recent
+    7:     @articles = Article.find_recent
     8:
 =>  9:     respond_to do |format|
    10:       format.html # index.html.erb
-   11:       format.json { render json: @posts }
+   11:       format.json { render json: @articles }
    12:     end
    13:   end
 
 (byebug) break 11
-Created breakpoint 1 at /PathTo/project/app/controllers/posts_controller.rb:11
+Created breakpoint 1 at /PathTo/project/app/controllers/articles_controller.rb:11
 
 ```
 
@@ -716,7 +715,7 @@ supply a number, it lists that breakpoint. Otherwise it lists all breakpoints.
 ```
 (byebug) info breakpoints
 Num Enb What
-1   y   at /PathTo/project/app/controllers/posts_controller.rb:11
+1   y   at /PathTo/project/app/controllers/articles_controller.rb:11
 ```
 
 To delete breakpoints: use the command `delete _n_` to remove the breakpoint
