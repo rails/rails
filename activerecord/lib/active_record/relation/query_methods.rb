@@ -950,7 +950,6 @@ WARNING
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
         bv_len = bind_values.length
         tmp_opts, bind_values = create_binds(opts, bv_len)
