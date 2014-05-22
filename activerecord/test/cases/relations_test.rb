@@ -366,6 +366,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal({ 'salary' => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
   end
 
+  def test_null_relation_sum
+    ac = Aircraft.new
+    assert_equal Hash.new, ac.engines.group(:id).sum(:id)
+    assert_equal        0, ac.engines.count
+    ac.save
+    assert_equal Hash.new, ac.engines.group(:id).sum(:id)
+    assert_equal        0, ac.engines.count
+  end
 
   def test_null_relation_count
     ac = Aircraft.new
@@ -374,6 +382,42 @@ class RelationTest < ActiveRecord::TestCase
     ac.save
     assert_equal Hash.new, ac.engines.group(:id).count
     assert_equal        0, ac.engines.count
+  end
+
+  def test_null_relation_size
+    ac = Aircraft.new
+    assert_equal Hash.new, ac.engines.group(:id).size
+    assert_equal        0, ac.engines.size
+    ac.save
+    assert_equal Hash.new, ac.engines.group(:id).size
+    assert_equal        0, ac.engines.size
+  end
+
+  def test_null_relation_average
+    ac = Aircraft.new
+    assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
+    assert_equal        nil, ac.engines.average(:id)
+    ac.save
+    assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
+    assert_equal        nil, ac.engines.average(:id)
+  end
+
+  def test_null_relation_minimum
+    ac = Aircraft.new
+    assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
+    assert_equal        nil, ac.engines.minimum(:id)
+    ac.save
+    assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
+    assert_equal        nil, ac.engines.minimum(:id)
+  end
+
+  def test_null_relation_maximum
+    ac = Aircraft.new
+    assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
+    assert_equal        nil, ac.engines.maximum(:id)
+    ac.save
+    assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
+    assert_equal        nil, ac.engines.maximum(:id)
   end
 
   def test_joins_with_nil_argument

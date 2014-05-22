@@ -1,3 +1,8 @@
+*   When a `group` is set, `sum`, `size`, `average`, `minimum` and `maximum`
+    on a NullRelation should return a Hash.
+
+    *Kuldeep Aggarwal*
+
 *   Fixed serialized fields returning serialized data after being updated with
     `update_column`.
 
