@@ -374,21 +374,23 @@ module ActiveRecord
       end
 
       def initialize_type_map(m) # :nodoc:
-        m.register_type %r(boolean)i,    Type::Boolean.new
-        m.register_type %r(char)i,       Type::String.new
-        m.register_type %r(binary)i,     Type::Binary.new
-        m.alias_type    %r(blob)i,       'binary'
-        m.register_type %r(text)i,       Type::Text.new
-        m.alias_type    %r(clob)i,       'text'
-        m.register_type %r(date)i,       Type::Date.new
-        m.register_type %r(time)i,       Type::Time.new
-        m.alias_type    %r(timestamp)i,  'datetime'
-        m.register_type %r(datetime)i,   Type::DateTime.new
-        m.alias_type    %r(numeric)i,    'decimal'
-        m.alias_type    %r(number)i,     'decimal'
-        m.register_type %r(float)i,      Type::Float.new
-        m.alias_type    %r(double)i,     'float'
-        m.register_type %r(int)i,        Type::Integer.new
+        register_class_with_limit m, %r(boolean)i,   Type::Boolean
+        register_class_with_limit m, %r(char)i,      Type::String
+        register_class_with_limit m, %r(binary)i,    Type::Binary
+        register_class_with_limit m, %r(text)i,      Type::Text
+        register_class_with_limit m, %r(date)i,      Type::Date
+        register_class_with_limit m, %r(time)i,      Type::Time
+        register_class_with_limit m, %r(datetime)i,  Type::DateTime
+        register_class_with_limit m, %r(float)i,     Type::Float
+        register_class_with_limit m, %r(int)i,       Type::Integer
+
+        m.alias_type %r(blob)i,      'binary'
+        m.alias_type %r(clob)i,      'text'
+        m.alias_type %r(timestamp)i, 'datetime'
+        m.alias_type %r(numeric)i,   'decimal'
+        m.alias_type %r(number)i,    'decimal'
+        m.alias_type %r(double)i,    'float'
+
         m.register_type(%r(decimal)i) do |sql_type|
           scale = extract_scale(sql_type)
           precision = extract_precision(sql_type)
@@ -406,6 +408,13 @@ module ActiveRecord
         initialize_type_map(type_map)
       end
 
+      def register_class_with_limit(mapping, key, klass) # :nodoc:
+        mapping.register_type(key) do |*args|
+          limit = extract_limit(args.last)
+          klass.new(limit: limit)
+        end
+      end
+
       def extract_scale(sql_type) # :nodoc:
         case sql_type
           when /\((\d+)\)/ then 0
@@ -415,6 +424,10 @@ module ActiveRecord
 
       def extract_precision(sql_type) # :nodoc:
         $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
+      end
+
+      def extract_limit(sql_type) # :nodoc:
+        $1.to_i if sql_type =~ /\((.*)\)/
       end
 
       def translate_exception_class(e, sql)

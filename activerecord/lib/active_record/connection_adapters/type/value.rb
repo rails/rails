@@ -2,12 +2,13 @@ module ActiveRecord
   module ConnectionAdapters
     module Type
       class Value # :nodoc:
-        attr_reader :precision, :scale
+        attr_reader :precision, :scale, :limit
 
         def initialize(options = {})
-          options.assert_valid_keys(:precision, :scale)
+          options.assert_valid_keys(:precision, :scale, :limit)
           @precision = options[:precision]
           @scale = options[:scale]
+          @limit = options[:limit]
         end
 
         def type; end
