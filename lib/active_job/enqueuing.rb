@@ -21,7 +21,7 @@ module ActiveJob
     #
     # Returns truthy if a job was scheduled.
     def enqueue_in(interval, *args)
-      enqueue_at(interval.from_now, *args)
+      enqueue_at(interval.seconds.from_now, *args)
     end
 
     # Enqueue a job to be performed at an explicit point in time.
