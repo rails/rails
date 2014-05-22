@@ -1,0 +1,30 @@
+script: ci/travis.rb
+before_install:
+- travis_retry gem install bundler
+rvm:
+- 1.9.3
+- 2.0.0
+- 2.1
+- ruby-head
+- rbx-2
+- jruby
+matrix:
+  allow_failures:
+  - rvm: rbx-2
+  - rvm: jruby
+  - rvm: ruby-head
+  fast_finish: true
+notifications:
+  email: false
+  irc:
+    on_success: change
+    on_failure: always
+    channels:
+    - irc.freenode.org#rails-contrib
+  campfire:
+    on_success: change
+    on_failure: always
+    rooms:
+      - secure: AgZwJA+9VdnWAw7QN9Z5s6RpQIzsEB0q7V+p3pCzXY45156WocL8iNQx+KnyOQ8jbRUt4L/XIOiZl5xHf4pHjXytHWHNhetAlVQP/hPeDcCSk/h0g5gqgf6QABdp38tBNaUq866bXHgCOZYPwwP9bypcmuv2SLyfIO+b/PBgqN0=
+services:
+- redis
