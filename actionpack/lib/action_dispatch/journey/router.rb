@@ -22,8 +22,10 @@ module ActionDispatch
 
       class NullReq # :nodoc:
         attr_reader :env
+        attr_accessor :path_parameters
         def initialize(env)
           @env = env
+          @path_parameters = {}
         end
 
         def request_method
@@ -48,7 +50,6 @@ module ActionDispatch
 
       def initialize(routes, options)
         @options       = options
-        @params_key    = options[:parameters_key]
         @request_class = options[:request_class] || NullReq
         @routes        = routes
       end
@@ -59,23 +60,22 @@ module ActionDispatch
         req = request_class.new(env)
 
         find_routes(env, req).each do |match, parameters, route|
-          script_name, path_info, set_params = env.values_at('SCRIPT_NAME',
-                                                             'PATH_INFO',
-                                                             @params_key)
+          set_params = req.path_parameters
+          script_name, path_info = env.values_at('SCRIPT_NAME', 'PATH_INFO')
 
           unless route.path.anchored
             env['SCRIPT_NAME'] = (script_name.to_s + match.to_s).chomp('/')
             env['PATH_INFO']   = match.post_match
           end
 
-          env[@params_key] = (set_params || {}).merge parameters
+          req.path_parameters = set_params.merge parameters
 
           status, headers, body = route.app.call(env)
 
           if 'pass' == headers['X-Cascade']
             env['SCRIPT_NAME'] = script_name
             env['PATH_INFO']   = path_info
-            env[@params_key]   = set_params
+            req.path_parameters = set_params
             next
           end
 

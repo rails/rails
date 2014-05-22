@@ -303,7 +303,6 @@ module ActionDispatch
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new(@set, {
-          :parameters_key => PARAMETERS_KEY,
           :request_class  => request_class})
         @formatter = Journey::Formatter.new @set
       end
