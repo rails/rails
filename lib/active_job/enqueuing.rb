@@ -1,4 +1,4 @@
-require 'active_job/parameters'
+require 'active_job/arguments'
 
 module ActiveJob
   module Enqueuing
@@ -15,7 +15,7 @@ module ActiveJob
       def enqueue(*args)
         new(args).tap do |job|
           job.run_callbacks :enqueue do
-            queue_adapter.enqueue self, *Parameters.serialize(args)
+            queue_adapter.enqueue self, *Arguments.serialize(args)
           end
         end
       end
@@ -41,7 +41,7 @@ module ActiveJob
           job.enqueued_at = timestamp
 
           job.run_callbacks :enqueue do
-            queue_adapter.enqueue_at self, timestamp.to_f, *Parameters.serialize(args)
+            queue_adapter.enqueue_at self, timestamp.to_f, *Arguments.serialize(args)
           end
         end
       end

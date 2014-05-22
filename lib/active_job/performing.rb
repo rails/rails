@@ -1,9 +1,9 @@
-require 'active_job/parameters'
+require 'active_job/arguments'
 
 module ActiveJob
   module Performing
     def perform_with_hooks(*serialized_args)
-      self.arguments = Parameters.deserialize(serialized_args)
+      self.arguments = Arguments.deserialize(serialized_args)
 
       run_callbacks :perform do
         perform *arguments

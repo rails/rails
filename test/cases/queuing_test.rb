@@ -13,7 +13,7 @@ class QueuingTest < ActiveSupport::TestCase
     assert_equal "David says hello", $BUFFER.pop
   end
 
-  test 'run queued job with parameters' do
+  test 'run queued job with arguments' do
     HelloJob.enqueue "Jamie"
     assert_equal "Jamie says hello", $BUFFER.pop
   end
