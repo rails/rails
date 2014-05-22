@@ -8,6 +8,10 @@ module ActiveRecord
           :datetime
         end
 
+        def extract_precision(sql_type)
+          $1.to_i if sql_type =~ /\((\d+)\)/
+        end
+
         private
 
         def cast_value(string)
