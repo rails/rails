@@ -4,11 +4,9 @@ module ActiveJob
   module Logging
     extend ActiveSupport::Concern
     
-    module ClassMethods
-      mattr_accessor(:logger) { ActiveSupport::Logger.new(STDOUT) }
-    end
-    
     included do
+      cattr_accessor(:logger) { ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT)) }
+
       before_enqueue do |job|
         if job.enqueued_at
           ActiveSupport::Notifications.instrument "enqueue_at.active_job", 
@@ -24,8 +22,7 @@ module ActiveJob
           adapter: job.class.queue_adapter, job: job.class, args: job.arguments
       end
     end
-
-
+    
     class LogSubscriber < ActiveSupport::LogSubscriber
       def enqueue(event)
         info "Enqueued #{event.payload[:job].name} to #{queue_name(event)}" + args_info(event)
