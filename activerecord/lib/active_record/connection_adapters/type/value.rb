@@ -2,16 +2,15 @@ module ActiveRecord
   module ConnectionAdapters
     module Type
       class Value # :nodoc:
-        attr_reader :scale
+        attr_reader :precision, :scale
 
         def initialize(options = {})
-          options.assert_valid_keys(:scale)
+          options.assert_valid_keys(:precision, :scale)
+          @precision = options[:precision]
           @scale = options[:scale]
         end
 
         def type; end
-
-        def extract_precision(sql_type); end
 
         def type_cast(value)
           cast_value(value) unless value.nil?

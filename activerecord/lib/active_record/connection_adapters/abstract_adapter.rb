@@ -391,11 +391,12 @@ module ActiveRecord
         m.register_type %r(int)i,        Type::Integer.new
         m.register_type(%r(decimal)i) do |sql_type|
           scale = extract_scale(sql_type)
+          precision = extract_precision(sql_type)
 
           if scale == 0
-            Type::Integer.new
+            Type::Integer.new(precision: precision)
           else
-            Type::Decimal.new(scale: scale)
+            Type::Decimal.new(precision: precision, scale: scale)
           end
         end
       end
@@ -410,6 +411,10 @@ module ActiveRecord
           when /\((\d+)\)/ then 0
           when /\((\d+)(,(\d+))\)/ then $3.to_i
         end
+      end
+
+      def extract_precision(sql_type) # :nodoc:
+        $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
       end
 
       def translate_exception_class(e, sql)

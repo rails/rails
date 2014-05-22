@@ -551,6 +551,8 @@ module ActiveRecord
           }
         end
 
+        OID_FOR_DECIMAL_TREATED_AS_INT = 23 # :nodoc:
+
         def normalize_oid_type(ftype, fmod)
           # The type for the numeric depends on the width of the field,
           # so we'll do something special here.
@@ -560,7 +562,7 @@ module ActiveRecord
           # places after decimal  = fmod - 4 & 0xffff
           # places before decimal = (fmod - 4) >> 16 & 0xffff
           if ftype == 1700 && (fmod - 4 & 0xffff).zero?
-            23
+            OID_FOR_DECIMAL_TREATED_AS_INT
           else
             ftype
           end
@@ -581,7 +583,6 @@ module ActiveRecord
           m.register_type 'bool', Type::Boolean.new
           m.register_type 'bit', OID::Bit.new
           m.alias_type 'varbit', 'bit'
-          m.register_type 'timestamp', OID::DateTime.new
           m.alias_type 'timestamptz', 'timestamp'
           m.register_type 'date', OID::Date.new
           m.register_type 'time', OID::Time.new
@@ -609,9 +610,20 @@ module ActiveRecord
           m.alias_type 'lseg', 'varchar'
           m.alias_type 'box', 'varchar'
 
+          m.register_type 'timestamp' do |_, sql_type|
+            precision = extract_precision(sql_type)
+            OID::DateTime.new(precision: precision)
+          end
+
           m.register_type 'numeric' do |_, sql_type|
+            precision = extract_precision(sql_type)
             scale = extract_scale(sql_type)
-            OID::Decimal.new(scale: scale)
+            OID::Decimal.new(precision: precision, scale: scale)
+          end
+
+          m.register_type OID_FOR_DECIMAL_TREATED_AS_INT do |_, sql_type|
+            precision = extract_precision(sql_type)
+            OID::Integer.new(precision: precision)
           end
 
           load_additional_types(m)
