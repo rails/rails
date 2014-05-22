@@ -23,7 +23,7 @@ module ActiveJob
         include Sneakers::Worker
 
         def work(job, *args)
-          job.new.perform_with_deserialization *args
+          job.new.perform_with_hooks *args
         end
       end
     end

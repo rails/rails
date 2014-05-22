@@ -26,4 +26,19 @@ class QueuingTest < ActiveSupport::TestCase
       skip
     end
   end
+  
+  test 'job returned by enqueue has the arguments available' do
+    job = HelloJob.enqueue "Jamie"
+    assert_equal [ "Jamie" ], job.arguments
+  end
+
+  
+  test 'job returned by enqueue_at has the timestamp available' do
+    begin
+      job = HelloJob.enqueue_at Time.utc(2014, 1, 1)
+      assert_equal Time.utc(2014, 1, 1), job.enqueued_at
+    rescue NotImplementedError
+      skip
+    end
+  end
 end

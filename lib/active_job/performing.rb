@@ -2,18 +2,16 @@ require 'active_job/parameters'
 
 module ActiveJob
   module Performing
-    def perform_with_deserialization(*serialized_args)
-      instrument_performing serialized_args
-      perform *Parameters.deserialize(serialized_args)
+    def perform_with_hooks(*serialized_args)
+      self.arguments = Parameters.deserialize(serialized_args)
+
+      run_callbacks :perform do
+        perform *arguments
+      end
     end
 
     def perform(*)
       raise NotImplementedError
     end
-    
-    private
-      def instrument_performing(args)
-        ActiveSupport::Notifications.instrument "perform.active_job", adapter: self.class.queue_adapter, job: self.class, args: args
-      end
   end
 end

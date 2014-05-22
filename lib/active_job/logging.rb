@@ -2,7 +2,29 @@ require 'active_support/core_ext/string/filters'
 
 module ActiveJob
   module Logging
-    mattr_accessor(:logger) { ActiveSupport::Logger.new(STDOUT) }
+    extend ActiveSupport::Concern
+    
+    module ClassMethods
+      mattr_accessor(:logger) { ActiveSupport::Logger.new(STDOUT) }
+    end
+    
+    included do
+      before_enqueue do |job|
+        if job.enqueued_at
+          ActiveSupport::Notifications.instrument "enqueue_at.active_job", 
+            adapter: job.class.queue_adapter, job: job.class, args: job.arguments, timestamp: job.enqueued_at
+        else
+          ActiveSupport::Notifications.instrument "enqueue.active_job",
+            adapter: job.class.queue_adapter, job: job.class, args: job.arguments
+        end
+      end
+      
+      before_perform do |job|
+        ActiveSupport::Notifications.instrument "perform.active_job",
+          adapter: job.class.queue_adapter, job: job.class, args: job.arguments
+      end
+    end
+
 
     class LogSubscriber < ActiveSupport::LogSubscriber
       def enqueue(event)
@@ -16,6 +38,7 @@ module ActiveJob
       def perform(event)
         info "Performed #{event.payload[:job].name} from #{queue_name(event)}" + args_info(event)
       end
+
 
       private
         def queue_name(event)
