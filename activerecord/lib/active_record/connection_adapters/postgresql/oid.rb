@@ -274,11 +274,17 @@ This is not reliable and will be removed in the future.
           end
         end
 
+        class Jsonb < Json
+          def type
+            :jsonb
+          end
+        end
+
         class Uuid < Type::Value
           def type
             :uuid
           end
-
+        
           def type_cast(value)
             value.presence
           end
@@ -405,6 +411,7 @@ This is not reliable and will be removed in the future.
         register_type 'point', OID::Point.new
         register_type 'hstore', OID::Hstore.new
         register_type 'json', OID::Json.new
+        register_type 'jsonb', OID::Jsonb.new
         register_type 'cidr', OID::Cidr.new
         register_type 'inet', OID::Inet.new
         register_type 'uuid', OID::Uuid.new
