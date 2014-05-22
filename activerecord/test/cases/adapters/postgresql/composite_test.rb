@@ -102,15 +102,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
   def setup
     super
 
-    @registration = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID
-    @registration.register_type "full_address", FullAddressType.new
-  end
-
-  def teardown
-    super
-
-    # there is currently no clean way to unregister a OID::Type
-    @registration::NAMES.delete("full_address")
+    @connection.type_map.register_type "full_address", FullAddressType.new
   end
 
   def test_column

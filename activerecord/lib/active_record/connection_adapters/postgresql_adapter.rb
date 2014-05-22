@@ -540,7 +540,7 @@ module ActiveRecord
 
         def get_oid_type(oid, fmod, column_name, sql_type = '')
           if !type_map.key?(oid)
-            initialize_type_map(type_map, [oid])
+            load_additional_types(type_map, [oid])
           end
 
           type_map.fetch(normalize_oid_type(oid, fmod), sql_type) {
@@ -566,7 +566,54 @@ module ActiveRecord
           end
         end
 
-        def initialize_type_map(type_map, oids = nil)
+        def initialize_type_map(m)
+          m.register_type 'int2', OID::Integer.new
+          m.alias_type 'int4', 'int2'
+          m.alias_type 'int8', 'int2'
+          m.alias_type 'oid', 'int2'
+          m.register_type 'numeric', OID::Decimal.new
+          m.register_type 'float4', OID::Float.new
+          m.alias_type 'float8', 'float4'
+          m.register_type 'text', Type::Text.new
+          m.register_type 'varchar', Type::String.new
+          m.alias_type 'char', 'varchar'
+          m.alias_type 'name', 'varchar'
+          m.alias_type 'bpchar', 'varchar'
+          m.register_type 'bool', Type::Boolean.new
+          m.register_type 'bit', OID::Bit.new
+          m.alias_type 'varbit', 'bit'
+          m.register_type 'timestamp', OID::DateTime.new
+          m.alias_type 'timestamptz', 'timestamp'
+          m.register_type 'date', OID::Date.new
+          m.register_type 'time', OID::Time.new
+
+          m.register_type 'money', OID::Money.new
+          m.register_type 'bytea', OID::Bytea.new
+          m.register_type 'point', OID::Point.new
+          m.register_type 'hstore', OID::Hstore.new
+          m.register_type 'json', OID::Json.new
+          m.register_type 'cidr', OID::Cidr.new
+          m.register_type 'inet', OID::Inet.new
+          m.register_type 'uuid', OID::Uuid.new
+          m.register_type 'xml', OID::SpecializedString.new(:xml)
+          m.register_type 'tsvector', OID::SpecializedString.new(:tsvector)
+          m.register_type 'macaddr', OID::SpecializedString.new(:macaddr)
+          m.register_type 'citext', OID::SpecializedString.new(:citext)
+          m.register_type 'ltree', OID::SpecializedString.new(:ltree)
+
+          # FIXME: why are we keeping these types as strings?
+          m.alias_type 'interval', 'varchar'
+          m.alias_type 'path', 'varchar'
+          m.alias_type 'line', 'varchar'
+          m.alias_type 'polygon', 'varchar'
+          m.alias_type 'circle', 'varchar'
+          m.alias_type 'lseg', 'varchar'
+          m.alias_type 'box', 'varchar'
+
+          load_additional_types(m)
+        end
+
+        def load_additional_types(type_map, oids = nil)
           if supports_ranges?
             query = <<-SQL
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype

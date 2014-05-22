@@ -13,7 +13,8 @@ module ActiveRecord
           end
 
           def run(records)
-            mapped, nodes = records.partition { |row| OID.registered_type? row['typname'] }
+            nodes = records.reject { |row| @store.key? row['oid'].to_i }
+            mapped, nodes = nodes.partition { |row| @store.key? row['typname'] }
             ranges, nodes = nodes.partition { |row| row['typtype'] == 'r' }
             enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
             domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
@@ -30,7 +31,7 @@ module ActiveRecord
 
           private
           def register_mapped_type(row)
-            register row['oid'], OID::NAMES[row['typname']]
+            alias_type row['oid'], row['typname']
           end
 
           def register_enum_type(row)
@@ -64,12 +65,18 @@ module ActiveRecord
           end
 
           def register(oid, oid_type)
-            oid = oid.to_i
-
-            raise ArgumentError, "can't register nil type for OID #{oid}" if oid_type.nil?
-            return if @store.key?(oid)
-
+            oid = assert_valid_registration(oid, oid_type)
             @store.register_type(oid, oid_type)
+          end
+
+          def alias_type(oid, target)
+            oid = assert_valid_registration(oid, target)
+            @store.alias_type(oid, target)
+          end
+
+          def assert_valid_registration(oid, oid_type)
+            raise ArgumentError, "can't register nil type for OID #{oid}" if oid_type.nil?
+            oid.to_i
           end
         end
       end
