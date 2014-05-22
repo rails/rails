@@ -55,5 +55,17 @@ module ActiveJob
     def initialize(arguments = nil)
       @arguments = arguments
     end
+    
+    def retry_now
+      self.class.enqueue *arguments
+    end
+    
+    def retry_in(interval)
+      self.class.enqueue_in interval, *arguments
+    end
+
+    def retry_at(timestamp)
+      self.class.enqueue_at timestamp, *arguments
+    end
   end
 end

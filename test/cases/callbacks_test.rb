@@ -1,5 +1,4 @@
 require 'helper'
-require 'active_job/arguments'
 require 'jobs/callback_job'
 
 require 'active_support/core_ext/object/inclusion'
