@@ -1,9 +1,6 @@
 require "cases/helper"
 require 'support/ddl_helper'
 
-class PostgresqlArray < ActiveRecord::Base
-end
-
 class PostgresqlTsvector < ActiveRecord::Base
 end
 
