@@ -206,25 +206,19 @@ module ActiveRecord
 
           yield
         else
-          within_new_transaction(options) { yield }
+          within_transaction(begin_transaction(options)) { yield }
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
       end
 
-      def within_new_transaction(options = {}) #:nodoc:
-        transaction = begin_transaction(options)
+      def within_transaction(transaction) #:nodoc:
         yield
       rescue Exception => error
-        rollback_transaction if transaction
+        rollback_transaction
         raise
       ensure
-        begin
-          commit_transaction unless error
-        rescue Exception
-          rollback_transaction
-          raise
-        end
+        finalize_transaction unless error
       end
 
       def current_transaction #:nodoc:
@@ -245,6 +239,13 @@ module ActiveRecord
 
       def rollback_transaction #:nodoc:
         @transaction = @transaction.rollback
+      end
+
+      def finalize_transaction #:nodoc:
+        commit_transaction
+      rescue Exception
+        rollback_transaction
+        raise
       end
 
       def reset_transaction #:nodoc:
