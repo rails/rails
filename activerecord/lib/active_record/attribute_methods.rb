@@ -66,6 +66,7 @@ module ActiveRecord
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods # :nodoc:
+        return false if @attribute_methods_generated
         # Use a mutex; we don't want two thread simultaneously trying to define
         # attribute methods.
         generated_attribute_methods.synchronize do
