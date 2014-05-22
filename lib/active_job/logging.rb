@@ -14,7 +14,7 @@ module ActiveJob
       end
 
       def perform(event)
-        info "Performed #{event.payload[:job].name} to #{queue_name(event)}" + args_info(event)
+        info "Performed #{event.payload[:job].name} from #{queue_name(event)}" + args_info(event)
       end
 
       private

@@ -30,7 +30,7 @@ class AdapterTest < ActiveSupport::TestCase
 
   def test_perform_job_logging
     HelloJob.enqueue "Cristian"
-    assert_match(/Performed HelloJob to .*?:.*Cristian/, @logger.logged(:info).join)
+    assert_match(/Performed HelloJob from .*?:.*Cristian/, @logger.logged(:info).join)
   end
 
   def test_enqueue_at_job_logging
