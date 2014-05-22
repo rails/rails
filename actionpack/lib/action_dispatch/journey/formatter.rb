@@ -85,7 +85,7 @@ module ActionDispatch
             hash = routes.group_by { |_, r| r.score(options) }
 
             hash.keys.sort.reverse_each do |score|
-              next if score < 0
+              break if score < 0
 
               hash[score].sort_by { |i, _| i }.each do |_, route|
                 yield route
