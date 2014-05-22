@@ -385,6 +385,14 @@ module ActiveRecord
           super
         end
 
+        def remove_column(table_name, column_name, type = nil, options = {})
+          if options[:force]
+            execute "ALTER TABLE #{quote_table_name(table_name)} DROP IF EXISTS #{quote_column_name(column_name)}"
+          else
+            super
+          end
+        end
+
         # Changes the column of a table.
         def change_column(table_name, column_name, type, options = {})
           clear_cache!

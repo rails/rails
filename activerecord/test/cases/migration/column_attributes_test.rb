@@ -35,6 +35,23 @@ module ActiveRecord
         assert_no_column TestModel, :last_name
       end
 
+      def test_force_remove_nonexistent_column
+        assert_no_column TestModel, :last_name
+
+        assert_nothing_raised { remove_column :test_models, :last_name, :string, :force => true }
+        assert_no_column TestModel, :last_name
+      end
+
+      def test_force_remove_existing_column
+        assert_no_column TestModel, :last_name
+
+        add_column :test_models, :last_name, :string
+        assert_column TestModel, :last_name
+
+        remove_column :test_models, :last_name, :string, :force => true
+        assert_no_column TestModel, :last_name
+      end
+
       def test_add_column_without_limit
         # TODO: limit: nil should work with all adapters.
         skip "MySQL wrongly enforces a limit of 255" if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
