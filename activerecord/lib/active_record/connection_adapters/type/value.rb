@@ -3,10 +3,7 @@ module ActiveRecord
     module Type
       class Value # :nodoc:
         def type; end
-
-        def extract_scale(sql_type)
-          Type.extract_scale(sql_type)
-        end
+        def extract_scale(sql_type); end
 
         def type_cast(value)
           cast_value(value) unless value.nil?

@@ -4,6 +4,8 @@ module ActiveRecord
       class Decimal < Value # :nodoc:
         include Numeric
 
+        delegate :extract_scale, to: Type
+
         def type
           :decimal
         end
