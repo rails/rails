@@ -25,7 +25,7 @@ module ActionDispatch
 
       def path_parameters=(parameters) #:nodoc:
         @symbolized_path_params = nil
-        @env.delete(Routing::RouteSet::PARAMETERS_KEY)
+        @env.delete('action_dispatch.request.parameters')
         @env[Routing::RouteSet::PARAMETERS_KEY] = parameters
       end
 
