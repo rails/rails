@@ -2,9 +2,14 @@ module ActiveRecord
   module ConnectionAdapters
     module Type
       class Value # :nodoc:
-        def type; end
+        attr_reader :scale
 
-        def extract_scale(sql_type); end
+        def initialize(options = {})
+          options.assert_valid_keys(:scale)
+          @scale = options[:scale]
+        end
+
+        def type; end
 
         def extract_precision(sql_type); end
 

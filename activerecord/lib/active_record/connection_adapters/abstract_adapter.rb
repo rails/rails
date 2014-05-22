@@ -390,10 +390,12 @@ module ActiveRecord
         m.alias_type    %r(double)i,     'float'
         m.register_type %r(int)i,        Type::Integer.new
         m.register_type(%r(decimal)i) do |sql_type|
-          if Type.extract_scale(sql_type) == 0
+          scale = extract_scale(sql_type)
+
+          if scale == 0
             Type::Integer.new
           else
-            Type::Decimal.new
+            Type::Decimal.new(scale: scale)
           end
         end
       end
@@ -401,6 +403,13 @@ module ActiveRecord
       def reload_type_map # :nodoc:
         type_map.clear
         initialize_type_map(type_map)
+      end
+
+      def extract_scale(sql_type) # :nodoc:
+        case sql_type
+          when /\((\d+)\)/ then 0
+          when /\((\d+)(,(\d+))\)/ then $3.to_i
+        end
       end
 
       def translate_exception_class(e, sql)

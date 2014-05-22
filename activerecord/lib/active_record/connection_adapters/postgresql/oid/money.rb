@@ -7,7 +7,7 @@ module ActiveRecord
 
           class_attribute :precision
 
-          def extract_scale(sql_type)
+          def scale
             2
           end
 

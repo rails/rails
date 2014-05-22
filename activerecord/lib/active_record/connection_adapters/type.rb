@@ -19,14 +19,6 @@ require 'active_record/connection_adapters/type/hash_lookup_type_map'
 module ActiveRecord
   module ConnectionAdapters
     module Type # :nodoc:
-      class << self
-        def extract_scale(sql_type)
-          case sql_type
-            when /\((\d+)\)/ then 0
-            when /\((\d+)(,(\d+))\)/ then $3.to_i
-          end
-        end
-      end
     end
   end
 end

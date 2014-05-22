@@ -571,7 +571,6 @@ module ActiveRecord
           m.alias_type 'int4', 'int2'
           m.alias_type 'int8', 'int2'
           m.alias_type 'oid', 'int2'
-          m.register_type 'numeric', OID::Decimal.new
           m.register_type 'float4', OID::Float.new
           m.alias_type 'float8', 'float4'
           m.register_type 'text', Type::Text.new
@@ -609,6 +608,11 @@ module ActiveRecord
           m.alias_type 'circle', 'varchar'
           m.alias_type 'lseg', 'varchar'
           m.alias_type 'box', 'varchar'
+
+          m.register_type 'numeric' do |_, sql_type|
+            scale = extract_scale(sql_type)
+            OID::Decimal.new(scale: scale)
+          end
 
           load_additional_types(m)
         end
