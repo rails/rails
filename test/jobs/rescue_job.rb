@@ -1,13 +1,18 @@
 class RescueJob < ActiveJob::Base
-  rescue_from(StandardError) do
-    $BUFFER << "rescued from StandardError"
+  class OtherError < StandardError; end
+
+  rescue_from(ArgumentError) do
+    $BUFFER << "rescued from ArgumentError"
     arguments[0] = "DIFFERENT!"
     retry_now
   end
 
   def perform(person = "david")
-    if person == "david"
-      raise "Hair too good"
+    case person
+    when "david"
+      raise ArgumentError, "Hair too good"
+    when "other"
+      raise OtherError
     else
       $BUFFER << "performed beautifully"
     end
