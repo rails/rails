@@ -200,6 +200,7 @@ module ActiveRecord
           # this is probably horribly slow, but should only happen at most once for a given AR class
           attribute_method.bind(self).call(*args, &block)
         else
+          return super unless respond_to_missing?(method, true)
           send(method, *args, &block)
         end
       else
