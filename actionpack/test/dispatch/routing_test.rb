@@ -1723,7 +1723,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "whatever/:controller(/:action(/:id))"
     end
 
-    get 'whatever/foo/bar'
+    get '/whatever/foo/bar'
     assert_equal 'foo#bar', @response.body
 
     assert_equal 'http://www.example.com/whatever/foo/bar/1',
@@ -1735,10 +1735,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "whatever/:controller(/:action(/:id))", :id => /\d+/
     end
 
-    get 'whatever/foo/bar/show'
+    get '/whatever/foo/bar/show'
     assert_equal 'foo/bar#show', @response.body
 
-    get 'whatever/foo/bar/show/1'
+    get '/whatever/foo/bar/show/1'
     assert_equal 'foo/bar#show', @response.body
 
     assert_equal 'http://www.example.com/whatever/foo/bar/show',
@@ -2287,12 +2287,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "(/user/:username)/photos" => "photos#index"
     end
 
-    get 'user/bob/photos'
+    get '/user/bob/photos'
     assert_equal 'photos#index', @response.body
     assert_equal 'http://www.example.com/user/bob/photos',
       url_for(:controller => "photos", :action => "index", :username => "bob")
 
-    get 'photos'
+    get '/photos'
     assert_equal 'photos#index', @response.body
     assert_equal 'http://www.example.com/photos',
       url_for(:controller => "photos", :action => "index", :username => nil)
@@ -3492,7 +3492,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
       resources :storage_files, :controller => 'admin/storage_files'
     end
 
-    get 'storage_files'
+    get '/storage_files'
     assert_equal "admin/storage_files#index", @response.body
   end
 
