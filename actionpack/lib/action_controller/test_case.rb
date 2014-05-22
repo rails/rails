@@ -199,7 +199,7 @@ module ActionController
           value = value.dup
         end
 
-        if extra_keys.include?(key.to_sym)
+        if extra_keys.include?(key)
           non_path_parameters[key] = value
         else
           if value.is_a?(Array)
@@ -208,7 +208,7 @@ module ActionController
             value = value.to_param
           end
 
-          path_parameters[key.to_s] = value
+          path_parameters[key] = value
         end
       end
 
@@ -583,6 +583,7 @@ module ActionController
         end
 
         parameters, session, flash = args
+        parameters ||= {}
 
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
@@ -601,7 +602,6 @@ module ActionController
 
         @request.env['REQUEST_METHOD'] = http_method
 
-        parameters ||= {}
         controller_class_name = @controller.class.anonymous? ?
           "anonymous" :
           @controller.class.controller_path
@@ -695,7 +695,7 @@ module ActionController
             :only_path => true,
             :action => action,
             :relative_url_root => nil,
-            :_recall => @request.symbolized_path_parameters)
+            :_recall => @request.path_parameters)
 
           url, query_string = @routes.url_for(options).split("?", 2)
 
@@ -706,7 +706,7 @@ module ActionController
       end
 
       def html_format?(parameters)
-        return true unless parameters.is_a?(Hash)
+        return true unless parameters.key?(:format)
         Mime.fetch(parameters[:format]) { Mime['html'] }.html?
       end
     end

@@ -19,13 +19,13 @@ module ActionDispatch
 
         # If any of the path parameters has an invalid encoding then
         # raise since it's likely to trigger errors further on.
-        req.symbolized_path_parameters.each do |key, value|
+        req.path_parameters.each do |key, value|
           unless value.valid_encoding?
             raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
           end
         end
 
-        uri = URI.parse(path(req.symbolized_path_parameters, req))
+        uri = URI.parse(path(req.path_parameters, req))
         
         unless uri.host
           if relative_path?(uri.path)

@@ -27,7 +27,7 @@ module ActionController
         :host => request.host,
         :port => request.optional_port,
         :protocol => request.protocol,
-        :_recall => request.symbolized_path_parameters
+        :_recall => request.path_parameters
       }.merge(super).freeze
 
       if (same_origin = _routes.equal?(env["action_dispatch.routes".freeze])) ||

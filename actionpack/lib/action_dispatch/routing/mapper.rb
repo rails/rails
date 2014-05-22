@@ -47,7 +47,7 @@ module ActionDispatch
 
         private
           def constraint_args(constraint, request)
-            constraint.arity == 1 ? [request] : [request.symbolized_path_parameters, request]
+            constraint.arity == 1 ? [request] : [request.path_parameters, request]
           end
       end
 
