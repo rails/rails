@@ -35,8 +35,6 @@ module ActiveRecord
           require 'active_record/connection_adapters/postgresql/array_parser'
           include PostgreSQL::ArrayParser
         end
-
-        attr_accessor :money_precision
       end
       # :startdoc:
 
@@ -119,17 +117,6 @@ module ActiveRecord
           when /^smallint/i;  2
           when /^timestamp/i; nil
           else super
-          end
-        end
-
-        # Extracts the precision from PostgreSQL-specific data types.
-        def extract_precision(sql_type)
-          if sql_type == 'money'
-            self.class.money_precision
-          elsif sql_type =~ /timestamp/i
-            $1.to_i if sql_type =~ /\((\d+)\)/
-          else
-            super
           end
         end
     end

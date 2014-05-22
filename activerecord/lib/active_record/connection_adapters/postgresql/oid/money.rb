@@ -5,6 +5,8 @@ module ActiveRecord
         class Money < Type::Decimal
           include Infinity
 
+          class_attribute :precision
+
           def extract_scale(sql_type)
             2
           end
