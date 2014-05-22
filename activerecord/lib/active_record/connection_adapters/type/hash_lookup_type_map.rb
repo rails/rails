@@ -4,16 +4,16 @@ module ActiveRecord
       class HashLookupTypeMap < TypeMap # :nodoc:
         delegate :key?, to: :@mapping
 
-        def lookup(type)
-          @mapping.fetch(type, proc { default_value }).call(type)
+        def lookup(type, *args)
+          @mapping.fetch(type, proc { default_value }).call(type, *args)
         end
 
-        def fetch(type, &block)
-          @mapping.fetch(type, block).call(type)
+        def fetch(type, *args, &block)
+          @mapping.fetch(type, block).call(type, *args)
         end
 
         def alias_type(type, alias_type)
-          register_type(type) { lookup(alias_type) }
+          register_type(type) { |_, *args| lookup(alias_type, *args) }
         end
       end
     end

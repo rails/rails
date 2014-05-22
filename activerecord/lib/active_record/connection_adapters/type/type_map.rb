@@ -6,13 +6,13 @@ module ActiveRecord
           @mapping = {}
         end
 
-        def lookup(lookup_key)
+        def lookup(lookup_key, *args)
           matching_pair = @mapping.reverse_each.detect do |key, _|
             key === lookup_key
           end
 
           if matching_pair
-            matching_pair.last.call(lookup_key)
+            matching_pair.last.call(lookup_key, *args)
           else
             default_value
           end
@@ -29,9 +29,9 @@ module ActiveRecord
         end
 
         def alias_type(key, target_key)
-          register_type(key) do |sql_type|
+          register_type(key) do |sql_type, *args|
             metadata = sql_type[/\(.*\)/, 0]
-            lookup("#{target_key}#{metadata}")
+            lookup("#{target_key}#{metadata}", *args)
           end
         end
 
