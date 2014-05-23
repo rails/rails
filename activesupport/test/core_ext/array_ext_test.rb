@@ -10,6 +10,8 @@ class ArrayExtAccessTests < ActiveSupport::TestCase
     assert_equal %w( a b c d ), %w( a b c d ).from(0)
     assert_equal %w( c d ), %w( a b c d ).from(2)
     assert_equal %w(), %w( a b c d ).from(10)
+    assert_equal %w( d e ), %w( a b c d e ).from(-2)
+    assert_equal %w(), %w( a b c d e ).from(-10)
   end
 
   def test_to
