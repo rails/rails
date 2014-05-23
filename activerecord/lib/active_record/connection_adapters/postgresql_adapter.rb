@@ -637,6 +637,77 @@ module ActiveRecord
           end
         end
 
+        # Extracts the value from a PostgreSQL column default definition.
+        def extract_value_from_default(default)
+          # This is a performance optimization for Ruby 1.9.2 in development.
+          # If the value is nil, we return nil straight away without checking
+          # the regular expressions. If we check each regular expression,
+          # Regexp#=== will call NilClass#to_str, which will trigger
+          # method_missing (defined by whiny nil in ActiveSupport) which
+          # makes this method very very slow.
+          return default unless default
+
+          case default
+            when /\A'(.*)'::(num|date|tstz|ts|int4|int8)range\z/m
+              $1
+            # Numeric types
+            when /\A\(?(-?\d+(\.\d*)?\)?(::bigint)?)\z/
+              $1
+            # Character types
+            when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
+              $1.gsub(/''/, "'")
+            # Binary data types
+            when /\A'(.*)'::bytea\z/m
+              $1
+            # Date/time types
+            when /\A'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)\z/
+              $1
+            when /\A'(.*)'::interval\z/
+              $1
+            # Boolean type
+            when 'true'
+              true
+            when 'false'
+              false
+            # Geometric types
+            when /\A'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)\z/
+              $1
+            # Network address types
+            when /\A'(.*)'::(?:cidr|inet|macaddr)\z/
+              $1
+            # Bit string types
+            when /\AB'(.*)'::"?bit(?: varying)?"?\z/
+              $1
+            # XML type
+            when /\A'(.*)'::xml\z/m
+              $1
+            # Arrays
+            when /\A'(.*)'::"?\D+"?\[\]\z/
+              $1
+            # Hstore
+            when /\A'(.*)'::hstore\z/
+              $1
+            # JSON
+            when /\A'(.*)'::json\z/
+              $1
+            # Object identifier types
+            when /\A-?\d+\z/
+              $1
+            else
+              # Anything else is blank, some user type, or some function
+              # and we can't know the value of that, so return nil.
+              nil
+          end
+        end
+
+        def extract_default_function(default_value, default)
+          default if has_default_function?(default_value, default)
+        end
+
+        def has_default_function?(default_value, default)
+          !default_value && (%r{\w+\(.*\)} === default)
+        end
+
         def load_additional_types(type_map, oids = nil)
           if supports_ranges?
             query = <<-SQL
