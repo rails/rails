@@ -16,7 +16,7 @@ def run_without_aborting(*tasks)
   abort "Errors running #{errors.join(', ')}" if errors.any?
 end
 
-task :default => :test
+task default: :test
 
 desc 'Run all adapter tests'
 task :test do
@@ -32,7 +32,7 @@ end
   end
 
   namespace adapter do
-    task :test => "test_#{adapter}"
+    task test: "test_#{adapter}"
     task(:env) { ENV['AJADAPTER'] = adapter }
   end
 
