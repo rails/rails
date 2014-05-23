@@ -132,11 +132,6 @@ module ActionDispatch
           }
         end
 
-        # Returns +true+ if no missing keys are present, otherwise +false+.
-        def verify_required_parts!(route, parts)
-          missing_keys(route, parts).empty?
-        end
-
         def build_cache
           root = { ___routes: [] }
           routes.each_with_index do |route, i|
