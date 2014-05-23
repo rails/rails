@@ -60,7 +60,6 @@ class CopyTableTest < ActiveRecord::TestCase
       assert_equal original_id.type, copied_id.type
       assert_equal original_id.sql_type, copied_id.sql_type
       assert_equal original_id.limit, copied_id.limit
-      assert_equal original_id.primary, copied_id.primary
     end
   end
 

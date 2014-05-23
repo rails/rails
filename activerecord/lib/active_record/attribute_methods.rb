@@ -457,7 +457,7 @@ module ActiveRecord
     end
 
     def pk_attribute?(name)
-      column_for_attribute(name).primary
+      name == self.class.primary_key
     end
 
     def typecasted_attribute_value(name)
