@@ -66,8 +66,8 @@ module ActionDispatch
 
         find_routes(rails_req).each do |match, parameters, route|
           unless route.path.anchored
-            req.env['SCRIPT_NAME'] = match.to_s
-            req.env['PATH_INFO']   = match.post_match.sub(/^([^\/])/, '/\1')
+            rails_req.script_name = match.to_s
+            rails_req.path_info   = match.post_match.sub(/^([^\/])/, '/\1')
           end
 
           yield(route, parameters)
