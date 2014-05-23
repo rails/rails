@@ -31,9 +31,11 @@ module ActionDispatch
 
       def call(env)
         req = request_class.new(env)
-
         req.path_info = Utils.normalize_path(req.path_info)
+        serve req
+      end
 
+      def serve(req)
         find_routes(req).each do |match, parameters, route|
           set_params  = req.path_parameters
           path_info   = req.path_info
@@ -46,7 +48,7 @@ module ActionDispatch
 
           req.path_parameters = set_params.merge parameters
 
-          status, headers, body = route.app.call(env)
+          status, headers, body = route.app.call(req.env)
 
           if 'pass' == headers['X-Cascade']
             req.script_name     = script_name
