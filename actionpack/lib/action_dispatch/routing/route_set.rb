@@ -699,7 +699,7 @@ module ActionDispatch
           raise ActionController::RoutingError, e.message
         end
 
-        req = @request_class.new(env)
+        req = request_class.new(env)
         @router.recognize(req) do |route, params|
           params.merge!(extras)
           params.each do |key, value|

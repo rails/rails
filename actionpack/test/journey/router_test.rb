@@ -75,7 +75,7 @@ module ActionDispatch
 
       def test_request_class_and_requirements_success
         klass  = FakeRequestFeeler.new nil
-        router = Router.new(routes, {:request_class => klass })
+        router = Router.new(routes, {})
 
         requirements = { :hello => /world/ }
 
@@ -84,7 +84,7 @@ module ActionDispatch
 
         routes.add_route nil, path, requirements, {:id => nil}, {}
 
-        env = rails_env 'PATH_INFO' => '/foo/10'
+        env = rails_env({'PATH_INFO' => '/foo/10'}, klass)
         router.recognize(env) do |r, params|
           assert_equal({:id => '10'}, params)
         end
@@ -95,7 +95,7 @@ module ActionDispatch
 
       def test_request_class_and_requirements_fail
         klass  = FakeRequestFeeler.new nil
-        router = Router.new(routes, {:request_class => klass })
+        router = Router.new(routes, {})
 
         requirements = { :hello => /mom/ }
 
@@ -104,7 +104,7 @@ module ActionDispatch
 
         router.routes.add_route nil, path, requirements, {:id => nil}, {}
 
-        env = rails_env 'PATH_INFO' => '/foo/10'
+        env = rails_env({'PATH_INFO' => '/foo/10'}, klass)
         router.recognize(env) do |r, params|
           flunk 'route should not be found'
         end
@@ -131,7 +131,8 @@ module ActionDispatch
 
         routes.add_route nil, path, {}, {}, {}
 
-        env = rails_env 'PATH_INFO' => '/foo', 'custom.path_info' => '/bar'
+        env = rails_env({'PATH_INFO' => '/foo',
+                         'custom.path_info' => '/bar'}, CustomPathRequest)
 
         recognized = false
         router.recognize(env) do |r, params|
@@ -213,7 +214,7 @@ module ActionDispatch
 
       def test_X_Cascade
         add_routes @router, [ "/messages(.:format)" ]
-        resp = @router.serve(make_req({ 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/lol' }))
+        resp = @router.serve(rails_env({ 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/lol' }))
         assert_equal ['Not Found'], resp.last
         assert_equal 'pass', resp[1]['X-Cascade']
         assert_equal 404, resp.first
@@ -226,7 +227,7 @@ module ActionDispatch
         @router.routes.add_route(app, path, {}, {}, {})
 
         env  = rack_env('SCRIPT_NAME' => '', 'PATH_INFO' => '/weblog')
-        resp = @router.serve make_req env
+        resp = @router.serve rails_env env
         assert_equal ['success!'], resp.last
         assert_equal '', env['SCRIPT_NAME']
       end
@@ -567,12 +568,8 @@ module ActionDispatch
 
       RailsEnv = Struct.new(:env)
 
-      def rails_env env
-        RailsEnv.new rack_env env
-      end
-
-      def make_req env
-        ActionDispatch::Request.new env
+      def rails_env env, klass = ActionDispatch::Request
+        klass.new env
       end
 
       def rack_env env

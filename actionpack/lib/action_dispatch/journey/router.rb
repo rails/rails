@@ -57,9 +57,7 @@ module ActionDispatch
         return [404, {'X-Cascade' => 'pass'}, ['Not Found']]
       end
 
-      def recognize(req)
-        rails_req = request_class.new(req.env)
-
+      def recognize(rails_req)
         find_routes(rails_req).each do |match, parameters, route|
           unless route.path.anchored
             rails_req.script_name = match.to_s
