@@ -286,6 +286,8 @@ module ActiveRecord
 
       @new_record = false
 
+      self.class.define_attribute_methods
+
       run_callbacks :find
       run_callbacks :initialize
 
