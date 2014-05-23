@@ -1519,7 +1519,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_ids_on_loaded_association_with_custom_primary_key
     david = authors(:david)
-    david.essays
+    david.essays.to_a
     assert_equal Essay.where(writer_id: "David").pluck(:id), david.essay_ids
   end
 
