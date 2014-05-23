@@ -99,7 +99,7 @@ module ActiveRecord
       assert_bound_ast value, Post.arel_table[@name], Arel::Nodes::NotEqual
       assert_equal 'ruby on rails', bind.last
     end
-    
+
     def test_rewhere_with_one_condition
       relation = Post.where(title: 'hello').where(title: 'world').rewhere(title: 'alone')
 
