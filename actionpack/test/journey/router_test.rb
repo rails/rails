@@ -12,7 +12,9 @@ module ActionDispatch
       def setup
         @app       = StubDispatcher.new
         @routes    = Routes.new
-        @router    = Router.new(@routes, {})
+        @router    = Router.new(@routes, {
+          :request_class => ActionDispatch::Request
+        })
         @formatter = Formatter.new(@routes)
       end
 

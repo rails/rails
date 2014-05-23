@@ -55,17 +55,18 @@ module ActionDispatch
       end
 
       def call(env)
-        env['PATH_INFO'] = Utils.normalize_path(env['PATH_INFO'])
-
         req = request_class.new(env)
 
+        req.path_info = Utils.normalize_path(req.path_info)
+
         find_routes(env, req).each do |match, parameters, route|
-          set_params = req.path_parameters
-          script_name, path_info = env.values_at('SCRIPT_NAME', 'PATH_INFO')
+          set_params  = req.path_parameters
+          path_info   = req.path_info
+          script_name = req.script_name
 
           unless route.path.anchored
-            env['SCRIPT_NAME'] = (script_name.to_s + match.to_s).chomp('/')
-            env['PATH_INFO']   = match.post_match
+            req.script_name = (script_name.to_s + match.to_s).chomp('/')
+            req.path_info = match.post_match
           end
 
           req.path_parameters = set_params.merge parameters
@@ -73,8 +74,8 @@ module ActionDispatch
           status, headers, body = route.app.call(env)
 
           if 'pass' == headers['X-Cascade']
-            env['SCRIPT_NAME'] = script_name
-            env['PATH_INFO']   = path_info
+            req.script_name     = script_name
+            req.path_info       = path_info
             req.path_parameters = set_params
             next
           end

@@ -3368,15 +3368,13 @@ end
 
 class TestAltApp < ActionDispatch::IntegrationTest
   class AltRequest
-    attr_accessor :path_parameters
+    attr_accessor :path_parameters, :path_info, :script_name
 
     def initialize(env)
       @path_parameters = {}
       @env = env
-    end
-
-    def path_info
-      "/"
+      @path_info = "/"
+      @script_name = ""
     end
 
     def request_method
