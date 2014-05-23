@@ -5,7 +5,10 @@ module ActiveRecord
         class Point < Type::String
           def type_cast(value)
             if ::String === value
-              ConnectionAdapters::PostgreSQLColumn.string_to_point value
+              if value[0] == '(' && value[-1] == ')'
+                value = value[1...-1]
+              end
+              value.split(',').map{ |v| Float(v) }
             else
               value
             end
