@@ -16,7 +16,7 @@ module ActionDispatch
                        :shallow, :blocks, :defaults, :options]
 
       class Constraints #:nodoc:
-        def self.new(app, constraints, request = Rack::Request)
+        def self.new(app, constraints, request)
           if constraints.any?
             super(app, constraints, request)
           else
