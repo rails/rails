@@ -21,9 +21,8 @@ module ActionDispatch
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       class Dispatcher #:nodoc:
-        def initialize(options={})
-          @defaults = options[:defaults]
-          @glob_param = options.delete(:glob)
+        def initialize(defaults)
+          @defaults = defaults
           @controller_class_names = ThreadSafe::Cache.new
         end
 
@@ -53,7 +52,6 @@ module ActionDispatch
         def prepare_params!(params)
           normalize_controller!(params)
           merge_default_action!(params)
-          split_glob_param!(params) if @glob_param
         end
 
         # If this is a default_controller (i.e. a controller specified by the user)
@@ -88,10 +86,6 @@ module ActionDispatch
 
         def merge_default_action!(params)
           params[:action] ||= 'index'
-        end
-
-        def split_glob_param!(params)
-          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.parser.unescape(v) }
         end
       end
 

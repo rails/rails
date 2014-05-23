@@ -301,7 +301,7 @@ module ActionDispatch
           end
 
           def dispatcher
-            Routing::RouteSet::Dispatcher.new(:defaults => defaults)
+            Routing::RouteSet::Dispatcher.new(defaults)
           end
 
           def to

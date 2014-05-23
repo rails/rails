@@ -5,7 +5,11 @@ module ActionDispatch
   module Journey
     class TestRouter < ActiveSupport::TestCase
       # TODO : clean up routing tests so we don't need this hack
-      class StubDispatcher < Routing::RouteSet::Dispatcher; end
+      class StubDispatcher < Routing::RouteSet::Dispatcher
+        def initialize
+          super({})
+        end
+      end
 
       attr_reader :routes
 
