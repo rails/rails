@@ -48,7 +48,11 @@ module ActiveRecord
       end
 
       private
-      def method_body; raise NotImplementedError; end
+
+      # Override this method in the subclasses for method body.
+      def method_body(method_name, const_name)
+        raise NotImplementedError, "Subclasses must implement a method_body(method_name, const_name) method."
+      end
     end
 
     module ClassMethods
