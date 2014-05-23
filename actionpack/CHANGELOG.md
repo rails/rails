@@ -3,7 +3,7 @@
 
     *Guo Xiang Tan*
 
-*   Fix 'Stack level too deep' when rendering `head :ok` in an action method
+*   Fix `'Stack level too deep'` when rendering `head :ok` in an action method
     called 'status' in a controller.
 
     Fixes #13905.
@@ -71,7 +71,7 @@
     4. Use `escape_segment` rather than `escape_path` in URL generation
 
     For point 4 there are two exceptions. Firstly, when a route uses wildcard segments
-    (e.g. *foo) then we use `escape_path` as the value may contain '/' characters. This
+    (e.g. `*foo`) then we use `escape_path` as the value may contain '/' characters. This
     means that wildcard routes can't be optimized. Secondly, if a `:controller` segment
     is used in the path then this uses `escape_path` as the controller may be namespaced.
 
@@ -101,7 +101,7 @@
 
     *Andrew White*, *James Coglan*
 
-*   Append link to bad code to backtrace when exception is SyntaxError.
+*   Append link to bad code to backtrace when exception is `SyntaxError`.
 
     *Boris Kuznetsov*
 
