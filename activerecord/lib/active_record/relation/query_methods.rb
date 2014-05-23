@@ -573,15 +573,11 @@ WARNING
       end
     end
 
-    def where!(opts = :chain, *rest) # :nodoc:
-      if opts == :chain
-        WhereChain.new(self)
-      else
-        references!(PredicateBuilder.references(opts)) if Hash === opts
+    def where!(opts, *rest) # :nodoc:
+      references!(PredicateBuilder.references(opts)) if Hash === opts
 
-        self.where_values += build_where(opts, rest)
-        self
-      end
+      self.where_values += build_where(opts, rest)
+      self
     end
 
     # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
