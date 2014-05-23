@@ -29,12 +29,6 @@ module ActionDispatch
         @routes        = routes
       end
 
-      def call(env)
-        req = request_class.new(env)
-        req.path_info = Utils.normalize_path(req.path_info)
-        serve req
-      end
-
       def serve(req)
         find_routes(req).each do |match, parameters, route|
           set_params  = req.path_parameters

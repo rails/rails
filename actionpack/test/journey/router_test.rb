@@ -213,7 +213,7 @@ module ActionDispatch
 
       def test_X_Cascade
         add_routes @router, [ "/messages(.:format)" ]
-        resp = @router.call({ 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/lol' })
+        resp = @router.serve(make_req({ 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/lol' }))
         assert_equal ['Not Found'], resp.last
         assert_equal 'pass', resp[1]['X-Cascade']
         assert_equal 404, resp.first
@@ -226,7 +226,7 @@ module ActionDispatch
         @router.routes.add_route(app, path, {}, {}, {})
 
         env  = rack_env('SCRIPT_NAME' => '', 'PATH_INFO' => '/weblog')
-        resp = @router.call(env)
+        resp = @router.serve make_req env
         assert_equal ['success!'], resp.last
         assert_equal '', env['SCRIPT_NAME']
       end
@@ -569,6 +569,10 @@ module ActionDispatch
 
       def rails_env env
         RailsEnv.new rack_env env
+      end
+
+      def make_req env
+        ActionDispatch::Request.new env
       end
 
       def rack_env env
