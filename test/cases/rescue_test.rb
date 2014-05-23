@@ -11,6 +11,13 @@ class RescueTest < ActiveSupport::TestCase
   test 'rescue perform exception with retry' do
     job = RescueJob.new
     job.execute("david")
-    assert_equal [ "rescued from StandardError", "performed beautifully" ], $BUFFER
+    assert_equal [ "rescued from ArgumentError", "performed beautifully" ], $BUFFER
+  end
+
+  test 'let through unhandled perform exception' do
+    job = RescueJob.new
+    assert_raises(RescueJob::OtherError) do
+      job.execute("other")
+    end
   end
 end
