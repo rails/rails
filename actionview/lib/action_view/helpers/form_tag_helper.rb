@@ -109,8 +109,8 @@ module ActionView
       #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
       #   #    <option>Out</option></select>
       #
-      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, multiple: true, class: 'form_input'
-      #   # => <select class="form_input" id="access" multiple="multiple" name="access[]"><option>Read</option>
+      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, multiple: true, class: 'form_input', id: 'unique_id'
+      #   # => <select class="form_input" id="unique_id" multiple="multiple" name="access[]"><option>Read</option>
       #   #    <option>Write</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: true
