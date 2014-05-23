@@ -2,8 +2,7 @@
 
     *Dan Kang*
 
-*   Load database configuration from the first
-    database.yml available in paths.
+*   Load database configuration from the first `database.yml` available in paths.
 
     *Pier-Olivier Thibault*
 
