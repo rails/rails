@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Integer < Value # :nodoc:
+      class Integer < Value
         include Numeric
 
         def type

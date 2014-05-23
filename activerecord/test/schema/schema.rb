@@ -855,6 +855,12 @@ ActiveRecord::Schema.define do
 
     execute "ALTER TABLE lessons_students ADD CONSTRAINT student_id_fk FOREIGN KEY (#{quote_column_name 'student_id'}) REFERENCES #{quote_table_name 'students'} (#{quote_column_name 'id'})"
   end
+
+  create_table :overloaded_types, force: true do |t|
+    t.float :overloaded_float, default: 500
+    t.float :unoverloaded_float
+    t.string :overloaded_string_with_limit, limit: 255
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

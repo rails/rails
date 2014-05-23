@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class DateTime < Value # :nodoc:
+      class DateTime < Value
         include TimeValue
 
         def type

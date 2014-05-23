@@ -217,16 +217,6 @@ module ActiveRecord
         connection.schema_cache.table_exists?(table_name)
       end
 
-      # Returns an array of column objects for the table associated with this class.
-      def columns
-        connection.schema_cache.columns(table_name)
-      end
-
-      # Returns a hash of column objects for the table associated with this class.
-      def columns_hash
-        connection.schema_cache.columns_hash(table_name)
-      end
-
       def column_types # :nodoc:
         @column_types ||= decorate_columns(columns_hash.dup)
       end
