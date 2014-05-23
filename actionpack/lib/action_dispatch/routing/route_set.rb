@@ -683,7 +683,9 @@ module ActionDispatch
       end
 
       def call(env)
-        @router.call(env)
+        req = request_class.new(env)
+        req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
+        @router.serve(req)
       end
 
       def recognize_path(path, environment = {})
