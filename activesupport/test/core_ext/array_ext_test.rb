@@ -18,6 +18,8 @@ class ArrayExtAccessTests < ActiveSupport::TestCase
     assert_equal %w( a ), %w( a b c d ).to(0)
     assert_equal %w( a b c ), %w( a b c d ).to(2)
     assert_equal %w( a b c d ), %w( a b c d ).to(10)
+    assert_equal %w( a b c ), %w( a b c d ).to(-2)
+    assert_equal %w(), %w( a b c ).to(-10)
   end
 
   def test_second_through_tenth

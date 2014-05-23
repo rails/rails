@@ -17,8 +17,10 @@ class Array
   #   %w( a b c d ).to(2)  # => ["a", "b", "c"]
   #   %w( a b c d ).to(10) # => ["a", "b", "c", "d"]
   #   %w().to(0)           # => []
+  #   %w( a b c d ).to(-2) # => ["a", "b", "c"]
+  #   %w( a b c ).to(-10)  # => []
   def to(position)
-    first position + 1
+    self[0..position]
   end
 
   # Equal to <tt>self[1]</tt>.
