@@ -16,14 +16,6 @@ module ActionDispatch
                        :shallow, :blocks, :defaults, :options]
 
       class Constraints #:nodoc:
-        def self.new(app, constraints, request)
-          if constraints.any?
-            super(app, constraints, request)
-          else
-            app
-          end
-        end
-
         attr_reader :app, :constraints
 
         def initialize(app, constraints, request)
@@ -215,7 +207,11 @@ module ActionDispatch
           end
 
           def app
-            Constraints.new(endpoint, blocks, @set.request_class)
+            if blocks.any?
+              Constraints.new(endpoint, blocks, @set.request_class)
+            else
+              endpoint
+            end
           end
 
           def default_controller_and_action
