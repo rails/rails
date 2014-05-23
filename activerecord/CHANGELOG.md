@@ -130,7 +130,7 @@
 
 *   Ensure SQLite3 statements are closed on errors.
 
-    Fixes #13631/
+    Fixes #13631.
 
     *Timur Alperovich*
 
