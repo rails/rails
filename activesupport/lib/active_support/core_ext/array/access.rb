@@ -5,6 +5,8 @@ class Array
   #   %w( a b c d ).from(2)  # => ["c", "d"]
   #   %w( a b c d ).from(10) # => []
   #   %w().from(0)           # => []
+  #   %w( a b c d ).from(-2) # => ["c", "d"]
+  #   %w( a b c ).from(-10)  # => []
   def from(position)
     self[position, length] || []
   end
