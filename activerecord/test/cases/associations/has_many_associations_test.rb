@@ -807,6 +807,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_calling_empty_with_counter_cache
+    post = posts(:welcome)
+    assert_queries(0) do
+      assert_not post.comments.empty?
+    end
+  end
+
   def test_custom_named_counter_cache
     topic = topics(:first)
 

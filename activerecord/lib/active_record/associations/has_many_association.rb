@@ -41,6 +41,14 @@ module ActiveRecord
         end
       end
 
+      def empty?
+        if has_cached_counter?
+          size.zero?
+        else
+          super
+        end
+      end
+
       private
 
         # Returns the number of records in this collection.
