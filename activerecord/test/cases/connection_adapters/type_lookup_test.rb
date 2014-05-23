@@ -77,12 +77,16 @@ module ActiveRecord
         assert_lookup_type :integer, 'tinyint'
         assert_lookup_type :integer, 'smallint'
         assert_lookup_type :integer, 'bigint'
-        assert_lookup_type :integer, 'decimal(2)'
-        assert_lookup_type :integer, 'decimal(2,0)'
-        assert_lookup_type :integer, 'numeric(2)'
-        assert_lookup_type :integer, 'numeric(2,0)'
-        assert_lookup_type :integer, 'number(2)'
-        assert_lookup_type :integer, 'number(2,0)'
+      end
+
+      def test_decimal_without_scale
+        types = %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0) number(2) number(2,0)}
+        types.each do |type|
+          cast_type = @connection.type_map.lookup(type)
+
+          assert_equal :decimal, cast_type.type
+          assert_equal 2, cast_type.type_cast(2.1)
+        end
       end
 
       private

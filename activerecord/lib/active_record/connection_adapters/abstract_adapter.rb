@@ -396,7 +396,7 @@ module ActiveRecord
           precision = extract_precision(sql_type)
 
           if scale == 0
-            Type::Integer.new(precision: precision)
+            Type::DecimalWithoutScale.new(precision: precision)
           else
             Type::Decimal.new(precision: precision, scale: scale)
           end
