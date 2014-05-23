@@ -1509,10 +1509,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_custom_primary_key
     david = authors(:david)
-    expected_essays = Essay.where(writer_id: "David")
-    assert_equal expected_essays.map(&:id), david.essay_ids
-    assert_equal expected_essays, david.essays
-    assert_equal expected_essays.map(&:id), david.essay_ids
+    assert_equal Essay.where(writer_id: "David"), david.essays
+  end
+
+  def test_ids_on_unloaded_association_with_custom_primary_key
+    david = authors(:david)
+    assert_equal Essay.where(writer_id: "David").pluck(:id), david.essay_ids
+  end
+
+  def test_ids_on_loaded_association_with_custom_primary_key
+    david = authors(:david)
+    david.essays
+    assert_equal Essay.where(writer_id: "David").pluck(:id), david.essay_ids
   end
 
   def test_has_many_assignment_with_custom_primary_key
