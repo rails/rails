@@ -6,13 +6,6 @@ module ActiveRecord
           "(#{point[0]},#{point[1]})"
         end
 
-        def string_to_point(string) # :nodoc:
-          if string[0] == '(' && string[-1] == ')'
-            string = string[1...-1]
-          end
-          string.split(',').map{ |v| Float(v) }
-        end
-
         def string_to_bit(value) # :nodoc:
           case value
           when /^0x/i
