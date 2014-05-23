@@ -1,5 +1,11 @@
 ## Rails 4.1.2 (unreleased) ##
 
+*   Fixed serialization for records with an attribute named `format`.
+
+    Fixes #15188.
+
+    *Godfrey Chan*
+
 *   Fixed serialized fields returning serialized data after being updated with
     `update_column`.
 
