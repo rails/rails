@@ -30,10 +30,8 @@ module ActionController
       end
     end
 
-    def build(action, app=nil, &block)
-      app  ||= block
+    def build(action, app = Proc.new)
       action = action.to_s
-      raise "MiddlewareStack#build requires an app" unless app
 
       middlewares.reverse.inject(app) do |a, middleware|
         middleware.valid?(action) ? middleware.build(a) : a
