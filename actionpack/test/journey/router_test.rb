@@ -41,7 +41,7 @@ module ActionDispatch
       end
 
       def test_dashes
-        router = Router.new(routes, {})
+        router = Router.new(routes, { :request_class => ActionDispatch::Request })
 
         exp = Router::Strexp.new '/foo-bar-baz', {}, ['/.?']
         path  = Path::Pattern.new exp
@@ -57,7 +57,7 @@ module ActionDispatch
       end
 
       def test_unicode
-        router = Router.new(routes, {})
+        router = Router.new(routes, { :request_class => ActionDispatch::Request })
 
         #match the escaped version of /ほげ
         exp = Router::Strexp.new '/%E3%81%BB%E3%81%92', {}, ['/.?']
@@ -113,9 +113,13 @@ module ActionDispatch
         assert_equal env.env, klass.env
       end
 
-      class CustomPathRequest < Router::NullReq
+      class CustomPathRequest < ActionDispatch::Request
         def path_info
           env['custom.path_info']
+        end
+
+        def path_info=(x)
+          env['custom.path_info'] = x
         end
       end
 

@@ -20,37 +20,12 @@ module ActionDispatch
       # :nodoc:
       VERSION = '2.0.0'
 
-      class NullReq # :nodoc:
-        attr_reader :env
-        attr_accessor :path_parameters
-        def initialize(env)
-          @env = env
-          @path_parameters = {}
-        end
-
-        def request_method
-          env['REQUEST_METHOD']
-        end
-
-        def path_info
-          env['PATH_INFO']
-        end
-
-        def ip
-          env['REMOTE_ADDR']
-        end
-
-        def [](k)
-          env[k]
-        end
-      end
-
       attr_reader :request_class, :formatter
       attr_accessor :routes
 
       def initialize(routes, options)
         @options       = options
-        @request_class = options[:request_class] || NullReq
+        @request_class = options[:request_class]
         @routes        = routes
       end
 
