@@ -9,7 +9,7 @@ require 'models/topic'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors
+    fixtures :posts, :edges, :authors, :comments
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -178,6 +178,11 @@ module ActiveRecord
       [[], {}, nil, ""].each do |blank|
         assert_equal 4, Edge.where(blank).order("sink_id").to_a.size
       end
+    end
+
+    def test_remove_duplicated_binds_on_adding_subquery
+      comments = Post.first.comments
+      assert_equal 2, comments.where(id: comments).count
     end
   end
 end
