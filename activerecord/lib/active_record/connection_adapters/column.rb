@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       attr_reader :name, :default, :cast_type, :null, :sql_type, :default_function
-      attr_accessor :primary, :coder
+      attr_accessor :coder
 
       alias :encoded? :coder
 
@@ -36,7 +36,6 @@ module ActiveRecord
         @null             = null
         @default          = extract_default(default)
         @default_function = nil
-        @primary          = nil
         @coder            = nil
       end
 

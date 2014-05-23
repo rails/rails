@@ -149,38 +149,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
-  def test_two_models_with_same_table_but_different_primary_key
-    k1 = Class.new(ActiveRecord::Base)
-    k1.table_name = 'posts'
-    k1.primary_key = 'id'
-
-    k2 = Class.new(ActiveRecord::Base)
-    k2.table_name = 'posts'
-    k2.primary_key = 'title'
-
-    assert k1.columns.find { |c| c.name == 'id' }.primary
-    assert !k1.columns.find { |c| c.name == 'title' }.primary
-    assert k1.columns_hash['id'].primary
-    assert !k1.columns_hash['title'].primary
-
-    assert !k2.columns.find { |c| c.name == 'id' }.primary
-    assert k2.columns.find { |c| c.name == 'title' }.primary
-    assert !k2.columns_hash['id'].primary
-    assert k2.columns_hash['title'].primary
-  end
-
-  def test_models_with_same_table_have_different_columns
-    k1 = Class.new(ActiveRecord::Base)
-    k1.table_name = 'posts'
-
-    k2 = Class.new(ActiveRecord::Base)
-    k2.table_name = 'posts'
-
-    k1.columns.zip(k2.columns).each do |col1, col2|
-      assert !col1.equal?(col2)
-    end
-  end
-
   def test_auto_detect_primary_key_from_schema
     MixedCaseMonkey.reset_primary_key
     assert_equal "monkeyID", MixedCaseMonkey.primary_key

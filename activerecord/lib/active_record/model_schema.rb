@@ -219,16 +219,12 @@ module ActiveRecord
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        @columns ||= connection.schema_cache.columns(table_name).map do |col|
-          col = col.dup
-          col.primary = (col.name == primary_key)
-          col
-        end
+        connection.schema_cache.columns(table_name)
       end
 
       # Returns a hash of column objects for the table associated with this class.
       def columns_hash
-        @columns_hash ||= Hash[columns.map { |c| [c.name, c] }]
+        connection.schema_cache.columns_hash(table_name)
       end
 
       def column_types # :nodoc:
@@ -271,7 +267,7 @@ module ActiveRecord
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
       # and columns used for single table inheritance have been removed.
       def content_columns
-        @content_columns ||= columns.reject { |c| c.primary || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
+        @content_columns ||= columns.reject { |c| c.name == primary_key || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
       end
 
       # Resets all the cached information about columns, which will cause them
@@ -308,8 +304,6 @@ module ActiveRecord
         @arel_engine             = nil
         @column_defaults         = nil
         @column_names            = nil
-        @columns                 = nil
-        @columns_hash            = nil
         @column_types            = nil
         @content_columns         = nil
         @dynamic_methods_hash    = nil
