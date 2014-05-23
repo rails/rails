@@ -1,10 +1,8 @@
 require "cases/helper"
 
 class SchemaDumperTest < ActiveRecord::TestCase
-  def setup
-    super
+  setup do
     ActiveRecord::SchemaMigration.create_table
-    @stream = StringIO.new
   end
 
   def standard_dump
@@ -25,7 +23,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_magic_comment
-    assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
+    output = standard_dump
+    assert_match "# encoding: #{@stream.external_encoding.name}", output
   end
 
   def test_schema_dump
