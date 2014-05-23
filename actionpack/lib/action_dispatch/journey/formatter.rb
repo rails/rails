@@ -58,9 +58,9 @@ module ActionDispatch
             !options.key?(part) || (options[part] || recall[part]).nil?
           } | route.required_parts
 
-          (parameterized_parts.keys - keys_to_keep).each do |bad_key|
-            parameterized_parts.delete(bad_key)
-          end
+          # Don't use `Hash#slice!` here because it's way slower than `Hash#slice`.
+          # See the commit message for details.
+          parameterized_parts = parameterized_parts.slice(*keys_to_keep)
 
           if parameterize
             parameterized_parts.each do |k, v|
