@@ -57,12 +57,18 @@ module ActionDispatch
         WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
         attr_reader :scope, :path, :options, :requirements, :conditions, :defaults
+        attr_reader :to, :default_controller, :default_action
 
         def initialize(set, scope, path, options)
-          @set, @scope, @path, @options = set, scope, path, options
+          @set, @scope, @path = set, scope, path
           @requirements, @conditions, @defaults = {}, {}, {}
 
-          normalize_options!
+          options = scope[:options].merge(options) if scope[:options]
+          @to                 = options[:to]
+          @default_controller = options[:controller] || scope[:controller]
+          @default_action     = options[:action] || scope[:action]
+
+          @options = normalize_options!(options)
           normalize_path!
           normalize_requirements!
           normalize_conditions!
@@ -94,14 +100,13 @@ module ActionDispatch
             options[:format] != false && !path.include?(':format') && !path.end_with?('/')
           end
 
-          def normalize_options!
-            @options.reverse_merge!(scope[:options]) if scope[:options]
+          def normalize_options!(options)
             path_without_format = path.sub(/\(\.:format\)$/, '')
 
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
-            if path_without_format.match(WILDCARD_PATH) && @options[:format] != false
-              @options[$1.to_sym] ||= /.+?/
+            if path_without_format.match(WILDCARD_PATH) && options[:format] != false
+              options[$1.to_sym] ||= /.+?/
             end
 
             if path_without_format.match(':controller')
@@ -111,10 +116,10 @@ module ActionDispatch
               # controllers with default routes like :controller/:action/:id(.:format), e.g:
               # GET /admin/products/show/1
               # => { controller: 'admin/products', action: 'show', id: '1' }
-              @options[:controller] ||= /.+?/
+              options[:controller] ||= /.+?/
             end
 
-            @options.merge!(default_controller_and_action)
+            options.merge!(default_controller_and_action)
           end
 
           def normalize_requirements!
@@ -302,18 +307,6 @@ module ActionDispatch
 
           def dispatcher
             Routing::RouteSet::Dispatcher.new(defaults)
-          end
-
-          def to
-            options[:to]
-          end
-
-          def default_controller
-            options[:controller] || scope[:controller]
-          end
-
-          def default_action
-            options[:action] || scope[:action]
           end
       end
 
