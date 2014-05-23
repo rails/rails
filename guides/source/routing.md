@@ -189,7 +189,7 @@ end
 
 This will create a number of routes for each of the `articles` and `comments` controller. For `Admin::ArticlesController`, Rails will create:
 
-| HTTP Verb | Path                     | Controller#Action      | Named Helper              |
+| HTTP Verb | Path                     | Controller#Action      | Named Helper                 |
 | --------- | ------------------------ | ---------------------- | ---------------------------- |
 | GET       | /admin/articles          | admin/articles#index   | admin_articles_path          |
 | GET       | /admin/articles/new      | admin/articles#new     | new_admin_article_path       |

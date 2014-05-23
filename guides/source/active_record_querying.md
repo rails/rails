@@ -753,13 +753,13 @@ Article.find(10).comments.reorder('name')
 The SQL that would be executed:
 
 ```sql
-SELECT * FROM articles WHERE id = 10 ORDER BY name
+SELECT * FROM comments WHERE article_id = 10 ORDER BY name
 ```
 
 In case the `reorder` clause is not used, the SQL executed would be:
 
 ```sql
-SELECT * FROM articles WHERE id = 10 ORDER BY posted_at DESC
+SELECT * FROM comments WHERE article_id = 10 ORDER BY posted_at DESC
 ```
 
 ### `reverse_order`
@@ -1701,12 +1701,12 @@ may yield
 
 ```
 EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `articles` ON `articles`.`user_id` = `users`.`id` WHERE `users`.`id` = 1
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-| id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-|  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
++----+-------------+----------+-------+---------------+---------+---------+-------+------+-------------+
+| id | select_type | table    | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
++----+-------------+----------+-------+---------------+---------+---------+-------+------+-------------+
+|  1 | SIMPLE      | users    | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
 |  1 | SIMPLE      | articles | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
-+----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
++----+-------------+----------+-------+---------------+---------+---------+-------+------+-------------+
 2 rows in set (0.00 sec)
 ```
 
@@ -1748,11 +1748,11 @@ EXPLAIN for: SELECT `users`.* FROM `users`  WHERE `users`.`id` = 1
 1 row in set (0.00 sec)
 
 EXPLAIN for: SELECT `articles`.* FROM `articles`  WHERE `articles`.`user_id` IN (1)
-+----+-------------+-------+------+---------------+------+---------+------+------+-------------+
-| id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | Extra       |
-+----+-------------+-------+------+---------------+------+---------+------+------+-------------+
++----+-------------+----------+------+---------------+------+---------+------+------+-------------+
+| id | select_type | table    | type | possible_keys | key  | key_len | ref  | rows | Extra       |
++----+-------------+----------+------+---------------+------+---------+------+------+-------------+
 |  1 | SIMPLE      | articles | ALL  | NULL          | NULL | NULL    | NULL |    1 | Using where |
-+----+-------------+-------+------+---------------+------+---------+------+------+-------------+
++----+-------------+----------+------+---------------+------+---------+------+------+-------------+
 1 row in set (0.00 sec)
 ```
 
