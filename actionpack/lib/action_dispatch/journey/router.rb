@@ -20,7 +20,6 @@ module ActionDispatch
       # :nodoc:
       VERSION = '2.0.0'
 
-      attr_reader :formatter
       attr_accessor :routes
 
       def initialize(routes)
