@@ -302,8 +302,7 @@ module ActionDispatch
         @finalized                  = false
 
         @set    = Journey::Routes.new
-        @router = Journey::Router.new(@set, {
-          :request_class  => request_class})
+        @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new @set
       end
 

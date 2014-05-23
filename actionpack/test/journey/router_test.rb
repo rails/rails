@@ -12,16 +12,8 @@ module ActionDispatch
       def setup
         @app       = StubDispatcher.new
         @routes    = Routes.new
-        @router    = Router.new(@routes, {
-          :request_class => ActionDispatch::Request
-        })
+        @router    = Router.new(@routes)
         @formatter = Formatter.new(@routes)
-      end
-
-      def test_request_class_reader
-        klass = Object.new
-        router = Router.new(routes, :request_class => klass)
-        assert_equal klass, router.request_class
       end
 
       class FakeRequestFeeler < Struct.new(:env, :called)
@@ -41,7 +33,7 @@ module ActionDispatch
       end
 
       def test_dashes
-        router = Router.new(routes, { :request_class => ActionDispatch::Request })
+        router = Router.new(routes)
 
         exp = Router::Strexp.new '/foo-bar-baz', {}, ['/.?']
         path  = Path::Pattern.new exp
@@ -57,7 +49,7 @@ module ActionDispatch
       end
 
       def test_unicode
-        router = Router.new(routes, { :request_class => ActionDispatch::Request })
+        router = Router.new(routes)
 
         #match the escaped version of /ほげ
         exp = Router::Strexp.new '/%E3%81%BB%E3%81%92', {}, ['/.?']
@@ -75,7 +67,7 @@ module ActionDispatch
 
       def test_request_class_and_requirements_success
         klass  = FakeRequestFeeler.new nil
-        router = Router.new(routes, {})
+        router = Router.new(routes)
 
         requirements = { :hello => /world/ }
 
@@ -95,7 +87,7 @@ module ActionDispatch
 
       def test_request_class_and_requirements_fail
         klass  = FakeRequestFeeler.new nil
-        router = Router.new(routes, {})
+        router = Router.new(routes)
 
         requirements = { :hello => /mom/ }
 
@@ -124,7 +116,7 @@ module ActionDispatch
       end
 
       def test_request_class_overrides_path_info
-        router = Router.new(routes, {:request_class => CustomPathRequest })
+        router = Router.new(routes)
 
         exp = Router::Strexp.new '/bar', {}, ['/.?']
         path = Path::Pattern.new exp

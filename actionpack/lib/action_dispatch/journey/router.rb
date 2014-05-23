@@ -20,13 +20,11 @@ module ActionDispatch
       # :nodoc:
       VERSION = '2.0.0'
 
-      attr_reader :request_class, :formatter
+      attr_reader :formatter
       attr_accessor :routes
 
-      def initialize(routes, options)
-        @options       = options
-        @request_class = options[:request_class]
-        @routes        = routes
+      def initialize(routes)
+        @routes = routes
       end
 
       def serve(req)
