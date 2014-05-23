@@ -137,6 +137,11 @@ module ActionView
           define_method("#{meth_name}=") { |value| imp.("#{meth_name}=") }
         end
 
+        # A class to vendor out the full, link and white list sanitizers
+        # Can be set to either HTML::Scanner or HTML::Sanitizer
+        mattr_accessor :sanitizer_vendor
+        self.sanitizer_vendor = HTML::Scanner
+
         def sanitized_allowed_tags
           HTML::WhiteListSanitizer.allowed_tags
         end
@@ -153,7 +158,7 @@ module ActionView
         #   end
         #
         def full_sanitizer
-          @full_sanitizer ||= Rails::Html::FullSanitizer.new
+          @full_sanitizer ||= sanitizer_vendor.full_sanitizer.new
         end
 
         # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
@@ -164,7 +169,7 @@ module ActionView
         #   end
         #
         def link_sanitizer
-          @link_sanitizer ||= Rails::Html::LinkSanitizer.new
+          @link_sanitizer ||= sanitizer_vendor.link_sanitizer.new
         end
 
         # Gets the Rails::Html::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
@@ -175,7 +180,7 @@ module ActionView
         #   end
         #
         def white_list_sanitizer
-          @white_list_sanitizer ||= Rails::Html::WhiteListSanitizer.new
+          @white_list_sanitizer ||= sanitizer_vendor.white_list_sanitizer.new
         end
 
         # Replaces the allowed tags for the +sanitize+ helper.
