@@ -10,6 +10,7 @@ class TestSubscriber < ActiveSupport::Subscriber
     @@events = []
   end
 
+  remove_possible_method :open_party
   def open_party(event)
     events << event
   end
@@ -23,6 +24,7 @@ end
 
 # Monkey patch subscriber to test that only one subscriber per method is added.
 class TestSubscriber
+  remove_possible_method :open_party
   def open_party(event)
     events << event
   end
