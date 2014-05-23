@@ -3,6 +3,20 @@ require 'cgi'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module HTML
+  module Scanner
+    def full_sanitizer
+      HTML::FullSanitizer
+    end
+
+    def link_sanitizer
+      HTML::LinkSanitizer
+    end
+
+    def white_list_sanitizer
+      HTML::WhiteListSanitizer
+    end
+  end
+
   class Sanitizer
     def sanitize(text, options = {})
       validate_options(options)
