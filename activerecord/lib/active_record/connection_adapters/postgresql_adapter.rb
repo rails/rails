@@ -543,29 +543,12 @@ module ActiveRecord
             load_additional_types(type_map, [oid])
           end
 
-          type_map.fetch(normalize_oid_type(oid, fmod), sql_type) {
+          type_map.fetch(oid, fmod, sql_type) {
             warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
             Type::Value.new.tap do |cast_type|
               type_map.register_type(oid, cast_type)
             end
           }
-        end
-
-        OID_FOR_DECIMAL_TREATED_AS_INT = 23 # :nodoc:
-
-        def normalize_oid_type(ftype, fmod)
-          # The type for the numeric depends on the width of the field,
-          # so we'll do something special here.
-          #
-          # When dealing with decimal columns:
-          #
-          # places after decimal  = fmod - 4 & 0xffff
-          # places before decimal = (fmod - 4) >> 16 & 0xffff
-          if ftype == 1700 && (fmod - 4 & 0xffff).zero?
-            OID_FOR_DECIMAL_TREATED_AS_INT
-          else
-            ftype
-          end
         end
 
         def initialize_type_map(m)
@@ -610,20 +593,27 @@ module ActiveRecord
           m.alias_type 'lseg', 'varchar'
           m.alias_type 'box', 'varchar'
 
-          m.register_type 'timestamp' do |_, sql_type|
+          m.register_type 'timestamp' do |_, _, sql_type|
             precision = extract_precision(sql_type)
             OID::DateTime.new(precision: precision)
           end
 
-          m.register_type 'numeric' do |_, sql_type|
+          m.register_type 'numeric' do |_, fmod, sql_type|
             precision = extract_precision(sql_type)
             scale = extract_scale(sql_type)
-            OID::Decimal.new(precision: precision, scale: scale)
-          end
 
-          m.register_type OID_FOR_DECIMAL_TREATED_AS_INT do |_, sql_type|
-            precision = extract_precision(sql_type)
-            OID::Integer.new(precision: precision)
+            # The type for the numeric depends on the width of the field,
+            # so we'll do something special here.
+            #
+            # When dealing with decimal columns:
+            #
+            # places after decimal  = fmod - 4 & 0xffff
+            # places before decimal = (fmod - 4) >> 16 & 0xffff
+            if fmod && (fmod - 4 & 0xffff).zero?
+              Type::DecimalWithoutScale.new(precision: precision)
+            else
+              OID::Decimal.new(precision: precision, scale: scale)
+            end
           end
 
           load_additional_types(m)
