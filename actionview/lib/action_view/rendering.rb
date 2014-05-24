@@ -62,8 +62,8 @@ module ActionView
     #
     # The view class must have the following methods:
     # View.new[lookup_context, assigns, controller]
-    #   Create a new ActionView instance for a controller
-    # View#render[options]
+    #   Create a new ActionView instance for a controller and we can also pass the arguments.
+    # View#render(option)
     #   Returns String with the rendered template
     #
     # Override this method in a module to change the default behavior.
