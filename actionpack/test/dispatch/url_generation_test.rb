@@ -15,6 +15,8 @@ module TestUrlGeneration
     Routes.draw do
       get "/foo", :to => "my_route_generating#index", :as => :foo
 
+      resources :bars
+
       mount MyRouteGeneratingController.action(:index), at: '/bar'
     end
 
@@ -109,6 +111,22 @@ module TestUrlGeneration
     test "omit subdomain when key is blank" do
       assert_equal "http://example.com/foo", foo_url(subdomain: "")
     end
+
+    test "generating URLs with trailing slashes" do
+      assert_equal "/bars.json", bars_path(
+        trailing_slash: true,
+        format: 'json'
+      )
+    end
+
+    test "generating URLS with querystring and trailing slashes" do
+      assert_equal "/bars.json?a=b", bars_path(
+        trailing_slash: true,
+        a: 'b',
+        format: 'json'
+      )
+    end
+
   end
 end
 

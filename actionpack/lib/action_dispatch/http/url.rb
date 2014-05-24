@@ -37,13 +37,7 @@ module ActionDispatch
           path  = options[:script_name].to_s.chomp("/")
           path << options[:path].to_s
 
-          if options[:trailing_slash]
-            if path.include?('?')
-              path.sub!(/\?/, '/\&')
-            else
-              path.sub!(/[^\/]\z|\A\z/, '\&/')
-            end
-          end
+          add_trailing_slash(path) if options[:trailing_slash]
 
           result = path
 
@@ -65,6 +59,18 @@ module ActionDispatch
         end
 
         private
+
+        def add_trailing_slash(path)
+          # includes querysting
+          if path.include?('?')
+            path.sub!(/\?/, '/\&')
+          # does not have a .format
+          elsif !path.include?(".")
+            path.sub!(/[^\/]\z|\A\z/, '\&/')
+          end
+
+          path
+        end
 
         def build_host_url(options)
           if match = options[:host].match(HOST_REGEXP)

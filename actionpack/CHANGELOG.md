@@ -1,3 +1,8 @@
+*   Fix URL generation with `:trailing_slash` such that it does not add
+    a trailing slash after `.:format`
+
+    *Dan Langevin*
+
 *   Build full URI as string when processing path in integration tests for
     performance reasons.
 
@@ -130,5 +135,6 @@
     `default_url_options` methods.
 
     *Tony Wooster*
+
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionpack/CHANGELOG.md) for previous changes.
