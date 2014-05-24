@@ -7,11 +7,8 @@ module ActiveRecord
 
     included do
       class_attribute :_reflections
-      # @api public
-      class_attribute :reflections
       class_attribute :aggregate_reflections
       self._reflections = {}
-      self.reflections = {}
       self.aggregate_reflections = {}
     end
 
@@ -28,7 +25,6 @@ module ActiveRecord
 
     def self.add_reflection(ar, name, reflection)
       ar._reflections = ar._reflections.merge(name.to_s => reflection)
-      ar.reflections = ar.reflections.merge(name.to_s => reflection)
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)
@@ -55,6 +51,24 @@ module ActiveRecord
       #
       def reflect_on_aggregation(aggregation)
         aggregate_reflections[aggregation.to_s]
+      end
+
+      # Returns a Hash of name of the reflection as the key and a AssociationReflection as the value.
+      #
+      #   Account.reflections # => {balance: AggregateReflection}
+      #
+      # @api public
+      def reflections
+        ref = {}
+        _reflections.each do |name, reflection|
+          parent_name, parent_reflection = reflection.parent_reflection
+          if parent_name
+            ref[parent_name] = parent_reflection
+          else
+            ref[name] = reflection
+          end
+        end
+        ref
       end
 
       # Returns an array of AssociationReflection objects for all the
@@ -142,6 +156,10 @@ module ActiveRecord
       def autosave=(autosave)
         @automatic_inverse_of = false
         @options[:autosave] = autosave
+        _, parent_reflection = self.parent_reflection
+        if parent_reflection
+          parent_reflection.autosave = autosave
+        end
       end
 
       # Returns the class for the macro.
@@ -206,6 +224,7 @@ module ActiveRecord
       end
 
       attr_reader :type, :foreign_type
+      attr_accessor :parent_reflection # [:name, Reflection]
 
       def initialize(macro, name, scope, options, active_record)
         super
