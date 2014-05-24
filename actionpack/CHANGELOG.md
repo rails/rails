@@ -1,5 +1,10 @@
 ## Rails 4.1.2 (unreleased) ##
 
+*   Fix URL generation with `:trailing_slash` such that it does not add
+    a trailing slash after `.:format`
+
+    *Dan Langevin*
+
 *   Fixed an issue with migrating legacy json cookies.
 
     Previously, the `VerifyAndUpgradeLegacySignedMessage` assumes all incoming
