@@ -1,5 +1,9 @@
 ## Rails 4.1.2 (unreleased) ##
 
+* Update all Rails 4.1.0 references to 4.1.1 within the guides and code.
+
+    *John Kelly Ferguson*
+
 *   Updates the maintenance policy to match the latest versions of Rails.
 
     *Matias Korhonen*
