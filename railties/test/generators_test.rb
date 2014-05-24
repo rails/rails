@@ -21,8 +21,10 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_invoke_when_generator_is_not_found
-    output = capture(:stdout){ Rails::Generators.invoke :unknown }
-    assert_equal "Could not find generator unknown.\n", output
+    name = :unknown
+    output = capture(:stdout){ Rails::Generators.invoke name }
+    assert_match "Could not find generator '#{name}'", output
+    assert_match "scaffold", output
   end
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
