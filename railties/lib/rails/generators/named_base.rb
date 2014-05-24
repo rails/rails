@@ -30,7 +30,10 @@ module Rails
 
       protected
         attr_reader :file_name
-        alias :singular_name :file_name
+
+        def singular_name
+          file_name
+        end
 
         # Wrap block with namespace of current application
         # if namespace exists and is not skipped
