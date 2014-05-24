@@ -156,8 +156,7 @@ module Rails
         args << "--help" if args.empty? && klass.arguments.any? { |a| a.required? }
         klass.start(args, config)
       else
-        puts "Could not find generator #{namespace.inspect}."
-        print_generators
+        puts "Could not find generator #{namespace}."
       end
     end
 
@@ -200,6 +199,17 @@ module Rails
 
     # Show help message with available generators.
     def self.help(command = 'generate')
+      lookup!
+
+      namespaces = subclasses.map{ |k| k.namespace }
+      namespaces.sort!
+
+      groups = Hash.new { |h,k| h[k] = [] }
+      namespaces.each do |namespace|
+        base = namespace.split(':').first
+        groups[base] << namespace
+      end
+
       puts "Usage: rails #{command} GENERATOR [args] [options]"
       puts
       puts "General options:"
@@ -212,20 +222,6 @@ module Rails
       puts "Please choose a generator below."
       puts
 
-      print_generators
-    end
-
-    def self.print_generators
-      lookup!
-
-      namespaces = subclasses.map{ |k| k.namespace }
-      namespaces.sort!
-
-      groups = Hash.new { |h,k| h[k] = [] }
-      namespaces.each do |namespace|
-        base = namespace.split(':').first
-        groups[base] << namespace
-      end
       # Print Rails defaults first.
       rails = groups.delete("rails")
       rails.map! { |n| n.sub(/^rails:/, '') }
