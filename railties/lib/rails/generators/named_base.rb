@@ -31,6 +31,8 @@ module Rails
       protected
         attr_reader :file_name
 
+        # FIXME: We are avoiding to use alias because a bug on thor that make
+        # this method public and add it to the task list.
         def singular_name
           file_name
         end
