@@ -1,3 +1,8 @@
+* Split up rows in the Explain Queries table of the ActiveRecord Querying section
+in order to improve readability.
+
+    * John Kelly Ferguson *
+
 *   Change all non-HTTP method 'post' references to 'article'.
 
     *John Kelly Ferguson*
