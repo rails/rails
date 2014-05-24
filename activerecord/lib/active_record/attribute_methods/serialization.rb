@@ -65,6 +65,8 @@ module ActiveRecord
       end
 
       class Type # :nodoc:
+        delegate :type, :type_cast_for_database, to: :@column
+
         def initialize(column)
           @column = column
         end
@@ -75,10 +77,6 @@ module ActiveRecord
           else
             value.unserialized_value
           end
-        end
-
-        def type
-          @column.type
         end
 
         def accessor

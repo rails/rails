@@ -21,6 +21,10 @@ module ActiveRecord
           value
         end
 
+        def type_cast_for_database(value)
+          type_cast_for_write(value)
+        end
+
         def text?
           false
         end

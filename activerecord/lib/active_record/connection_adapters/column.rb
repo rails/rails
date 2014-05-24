@@ -18,7 +18,8 @@ module ActiveRecord
 
       alias :encoded? :coder
 
-      delegate :type, :precision, :scale, :limit, :klass, :text?, :number?, :binary?, :type_cast_for_write, to: :cast_type
+      delegate :type, :precision, :scale, :limit, :klass, :text?, :number?, :binary?,
+        :type_cast_for_write, :type_cast_for_database, to: :cast_type
 
       # Instantiates a new column in the table.
       #
