@@ -1,3 +1,7 @@
+* Update all Rails 4.1.0 references to 4.1.1 within the guides and code.
+
+    * John Kelly Ferguson*
+
 * Split up rows in the Explain Queries table of the ActiveRecord Querying section
 in order to improve readability.
 
