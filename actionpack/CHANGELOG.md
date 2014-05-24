@@ -1,5 +1,10 @@
 ## Rails 4.0.6 (unreleased) ##
 
+*   Fix URL generation with `:trailing_slash` such that it does not add
+    a trailing slash after `.:format`
+
+    *Dan Langevin*
+
 *   Fix `'Stack level too deep'` when rendering `head :ok` in an action method
     called 'status' in a controller.
 
