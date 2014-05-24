@@ -729,13 +729,47 @@ Rails will now prepend "/app1" when generating links.
 
 #### Using Passenger
 
-Passenger makes it easy to run your application in a subdirectory. You can find
-the relevant configuration in the
-[passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
+Passenger makes it easy to run your application in a subdirectory. You can find the relevant configuration in the [passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
 
 #### Using a Reverse Proxy
 
-TODO
+Deploying your application using a reverse proxy has definite advantages over traditional deploys. They allow you to have more control over your server by layering the components required by your application.
+
+Many modern web servers can be used as a proxy server to balance third-party elements such as caching servers or application servers.
+
+One such application server you can use is [Unicorn](http://unicorn.bogomips.org/) to run behind a reverse proxy.
+
+In this case, you would need to configure the proxy server (nginx, apache, etc) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
+
+You can find more information in the [Unicorn readme](http://unicorn.bogomips.org/README.html) and understand the [philosophy](http://unicorn.bogomips.org/PHILOSOPHY.html) behind it.
+
+Once you've configured the application server, you must proxy requests to it by configuring your web server appropriately. For example your nginx config may include:
+
+```
+upstream application_server {
+  server 0.0.0.0:8080
+}
+
+server {
+  listen 80;
+  server_name localhost;
+
+  root /root/path/to/your_app/public;
+
+  try_files $uri/index.html $uri.html @app;
+
+  location @app {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_redirect off;
+    proxy_pass http://application_server;
+  }
+
+  # some other configuration
+}
+```
+
+Be sure to read the [nginx documentation](http://nginx.org/en/docs/) for the most up-to-date information.
 
 #### Considerations when deploying to a subdirectory
 
