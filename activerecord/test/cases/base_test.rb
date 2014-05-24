@@ -984,6 +984,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
+
+    property :world_population, Type::Integer.new
+    property :my_house_population, Type::Integer.new
+    property :atoms_in_universe, Type::Integer.new
   end
 
   def test_big_decimal_conditions
