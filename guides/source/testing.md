@@ -699,8 +699,6 @@ A simple integration test that exercises multiple controllers:
 require 'test_helper'
 
 class UserFlowsTest < ActionDispatch::IntegrationTest
-  fixtures :users
-
   test "login and browse site" do
     # login via https
     https!
@@ -727,10 +725,7 @@ Here's an example of multiple sessions and custom DSL in an integration test
 require 'test_helper'
 
 class UserFlowsTest < ActionDispatch::IntegrationTest
-  fixtures :users
-
   test "login and browse site" do
-
     # User david logs in
     david = login(:david)
     # User guest logs in
