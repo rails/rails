@@ -649,7 +649,7 @@ module ActiveRecord
               model_class
             end
 
-          reflection_class.reflect_on_all_associations.each do |association|
+          reflection_class._reflections.values.each do |association|
             case association.macro
             when :belongs_to
               # Do not replace association name with association foreign key if they are named the same

@@ -66,13 +66,13 @@ module ActiveRecord::Associations::Builder
 
         def self.add_left_association(name, options)
           belongs_to name, options
-          self.left_reflection = reflect_on_association(name)
+          self.left_reflection = _reflect_on_association(name)
         end
 
         def self.add_right_association(name, options)
           rhs_name = name.to_s.singularize.to_sym
           belongs_to rhs_name, options
-          self.right_reflection = reflect_on_association(rhs_name)
+          self.right_reflection = _reflect_on_association(rhs_name)
         end
 
       }

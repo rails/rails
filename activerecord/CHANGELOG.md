@@ -1,3 +1,11 @@
+*   Fix has_and_belongs_to_many public reflection.
+    When defining a has_and_belongs_to_many, internally we convert that to two has_many.
+    But as `reflections` is a public API, people expect to see the right macro.
+
+    Fixes #14682.
+
+    *arthurnn*
+
 *   Fixed serialization for records with an attribute named `format`.
 
     Fixes #15188.

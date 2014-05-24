@@ -47,7 +47,7 @@ module ActiveRecord
       end
 
       def build_relation(klass, table, attribute, value) #:nodoc:
-        if reflection = klass.reflect_on_association(attribute)
+        if reflection = klass._reflect_on_association(attribute)
           attribute = reflection.foreign_key
           value = value.attributes[reflection.primary_key_column.name] unless value.nil?
         end
@@ -74,7 +74,7 @@ module ActiveRecord
 
       def scope_relation(record, table, relation)
         Array(options[:scope]).each do |scope_item|
-          if reflection = record.class.reflect_on_association(scope_item)
+          if reflection = record.class._reflect_on_association(scope_item)
             scope_value = record.send(reflection.foreign_key)
             scope_item  = reflection.foreign_key
           else
