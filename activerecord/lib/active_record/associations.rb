@@ -1612,7 +1612,7 @@ module ActiveRecord
         has_many name, scope, hm_options, &extension
 
         reflection = ActiveRecord::Reflection::AssociationReflection.new(:has_and_belongs_to_many, name, scope, options, self)
-        self.reflections = self.reflections.except(middle_reflection.name).merge!(name => reflection)
+        self.reflections = self.reflections.except(middle_reflection.name).merge!(name.to_s => reflection)
       end
     end
   end

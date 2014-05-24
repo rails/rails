@@ -85,7 +85,7 @@ module ActiveRecord
 
       #   @api private
       def _reflect_on_association(association) #:nodoc:
-        _reflections[association]
+        _reflections[association.to_s]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
