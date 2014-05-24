@@ -6,6 +6,7 @@ require 'active_record/connection_adapters/postgresql/column'
 require 'active_record/connection_adapters/postgresql/oid'
 require 'active_record/connection_adapters/postgresql/quoting'
 require 'active_record/connection_adapters/postgresql/referential_integrity'
+require 'active_record/connection_adapters/postgresql/schema_definitions'
 require 'active_record/connection_adapters/postgresql/schema_statements'
 require 'active_record/connection_adapters/postgresql/database_statements'
 
@@ -73,139 +74,6 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
-      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
-        attr_accessor :array
-      end
-
-      module ColumnMethods
-        def xml(*args)
-          options = args.extract_options!
-          column(args[0], 'xml', options)
-        end
-
-        def tsvector(*args)
-          options = args.extract_options!
-          column(args[0], 'tsvector', options)
-        end
-
-        def int4range(name, options = {})
-          column(name, 'int4range', options)
-        end
-
-        def int8range(name, options = {})
-          column(name, 'int8range', options)
-        end
-
-        def tsrange(name, options = {})
-          column(name, 'tsrange', options)
-        end
-
-        def tstzrange(name, options = {})
-          column(name, 'tstzrange', options)
-        end
-
-        def numrange(name, options = {})
-          column(name, 'numrange', options)
-        end
-
-        def daterange(name, options = {})
-          column(name, 'daterange', options)
-        end
-
-        def hstore(name, options = {})
-          column(name, 'hstore', options)
-        end
-
-        def ltree(name, options = {})
-          column(name, 'ltree', options)
-        end
-
-        def inet(name, options = {})
-          column(name, 'inet', options)
-        end
-
-        def cidr(name, options = {})
-          column(name, 'cidr', options)
-        end
-
-        def macaddr(name, options = {})
-          column(name, 'macaddr', options)
-        end
-
-        def uuid(name, options = {})
-          column(name, 'uuid', options)
-        end
-
-        def json(name, options = {})
-          column(name, 'json', options)
-        end
-
-        def citext(name, options = {})
-          column(name, 'citext', options)
-        end
-      end
-
-      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
-        include ColumnMethods
-
-        # Defines the primary key field.
-        # Use of the native PostgreSQL UUID type is supported, and can be used
-        # by defining your tables as such:
-        #
-        #   create_table :stuffs, id: :uuid do |t|
-        #     t.string :content
-        #     t.timestamps
-        #   end
-        #
-        # By default, this will use the +uuid_generate_v4()+ function from the
-        # +uuid-ossp+ extension, which MUST be enabled on your database. To enable
-        # the +uuid-ossp+ extension, you can use the +enable_extension+ method in your
-        # migrations. To use a UUID primary key without +uuid-ossp+ enabled, you can
-        # set the +:default+ option to +nil+:
-        #
-        #   create_table :stuffs, id: false do |t|
-        #     t.primary_key :id, :uuid, default: nil
-        #     t.uuid :foo_id
-        #     t.timestamps
-        #   end
-        #
-        # You may also pass a different UUID generation function from +uuid-ossp+
-        # or another library.
-        #
-        # Note that setting the UUID primary key default value to +nil+ will
-        # require you to assure that you always provide a UUID value before saving
-        # a record (as primary keys cannot be +nil+). This might be done via the
-        # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
-        def primary_key(name, type = :primary_key, options = {})
-          return super unless type == :uuid
-          options[:default] = options.fetch(:default, 'uuid_generate_v4()')
-          options[:primary_key] = true
-          column name, type, options
-        end
-
-        def citext(name, options = {})
-          column(name, 'citext', options)
-        end
-
-        def column(name, type = nil, options = {})
-          super
-          column = self[name]
-          column.array = options[:array]
-
-          self
-        end
-
-        private
-
-          def create_column_definition(name, type)
-            ColumnDefinition.new name, type
-          end
-      end
-
-      class Table < ActiveRecord::ConnectionAdapters::Table
-        include ColumnMethods
-      end
-
       ADAPTER_NAME = 'PostgreSQL'
 
       NATIVE_DATABASE_TYPES = {
@@ -509,7 +377,7 @@ module ActiveRecord
       end
 
       def update_table_definition(table_name, base) #:nodoc:
-        Table.new(table_name, base)
+        PostgreSQL::Table.new(table_name, base)
       end
 
       protected
@@ -908,7 +776,7 @@ module ActiveRecord
         end
 
         def create_table_definition(name, temporary, options, as = nil) # :nodoc:
-          TableDefinition.new native_database_types, name, temporary, options, as
+          PostgreSQL::TableDefinition.new native_database_types, name, temporary, options, as
         end
     end
   end
