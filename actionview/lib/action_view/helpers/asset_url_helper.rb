@@ -118,8 +118,8 @@ module ActionView
       #   asset_path "application", type: :stylesheet     # => /stylesheets/application.css
       #   asset_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
       def asset_path(source, options = {})
-        source = source.to_s
         return "" unless source.present?
+        source = source.to_s
         return source if source =~ URI_REGEXP
 
         tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, '')
