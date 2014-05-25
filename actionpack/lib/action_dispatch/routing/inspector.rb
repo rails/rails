@@ -14,10 +14,10 @@ module ActionDispatch
 
       def rack_app(app = self.app)
         @rack_app ||= begin
+          app = app.app
           class_name = app.class.name.to_s
-          if class_name == "ActionDispatch::Routing::Mapper::Constraints"
-            app.app
-          elsif ActionDispatch::Routing::Redirect === app || class_name !~ /^ActionDispatch::Routing/
+
+          if ActionDispatch::Routing::Redirect === app || class_name !~ /^ActionDispatch::Routing/
             app
           end
         end

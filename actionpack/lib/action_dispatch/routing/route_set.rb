@@ -704,7 +704,7 @@ module ActionDispatch
           old_params = req.path_parameters
           req.path_parameters = old_params.merge params
           dispatcher = route.app
-          if dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env)
+          if dispatcher.matches?(env)
             dispatcher = dispatcher.app
           end
 

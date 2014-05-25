@@ -216,10 +216,12 @@ module ActionDispatch
           end
 
           def app
+            endpoint = to.respond_to?(:call) ? to : dispatcher
+
             if blocks.any?
               Constraints.new(endpoint, blocks, @set.request_class)
             else
-              endpoint
+              Constraints.new(endpoint, blocks, @set.request_class)
             end
           end
 
@@ -304,10 +306,6 @@ module ActionDispatch
 
           def strexp
             Journey::Router::Strexp.compile(path, requirements, SEPARATORS)
-          end
-
-          def endpoint
-            to.respond_to?(:call) ? to : dispatcher
           end
 
           def dispatcher
