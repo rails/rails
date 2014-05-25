@@ -419,7 +419,7 @@ module ActiveRecord
       # If the record is new or it has changed, returns true.
       def record_changed?(reflection, record, key)
         record.new_record? ||
-          (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
+          (!reflection.through_reflection && record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
           record.attribute_changed?(reflection.foreign_key)
       end
 

@@ -21,6 +21,9 @@ require 'models/treasure'
 require 'models/eye'
 require 'models/electron'
 require 'models/molecule'
+require 'models/minivan'
+require 'models/speedometer'
+require 'models/dashboard'
 require 'models/member'
 require 'models/member_detail'
 require 'models/organization'
@@ -80,6 +83,18 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
       model.instance_variable_get(ivar)
     end
+  end
+end
+
+class TestDefaultAutosaveAssociationonAHasOneThroughAssociation < ActiveRecord::TestCase
+  fixtures :minivans, :speedometers, :dashboards
+
+  def test_parent_not_resaved_when_unchanged
+    minivan = minivans(:cool_first)
+    minivan.dashboard.expects(:save).never
+
+    minivan.name += '-changed'
+    assert_nothing_raised { minivan.save! }
   end
 end
 
