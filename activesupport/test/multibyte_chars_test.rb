@@ -449,6 +449,11 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal 'Abc', 'abc'.mb_chars.capitalize
   end
 
+  def test_upcase_first_char_should_work_on_ascii_characters
+    assert_equal '', ''.mb_chars.upcase_first_char
+    assert_equal 'Abc AJAX', 'abc AJAX'.mb_chars.upcase_first_char
+  end
+
   def test_titleize_should_work_on_ascii_characters
     assert_equal '', ''.mb_chars.titleize
     assert_equal 'Abc Abc', 'abc abc'.mb_chars.titleize
@@ -502,6 +507,15 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       'АБВГ АБВГ' => 'Абвг абвг',
       '' => '' }.each do |f,t|
         assert_equal t, chars(f).capitalize
+    end
+  end
+
+  def test_upcase_first_char_should_be_unicode_aware
+    { 'аБвг аБвг' => 'АБвг аБвг',
+      'аБвг АБВГ' => 'АБвг АБВГ',
+      'АБВГ АБВГ' => 'АБВГ АБВГ',
+      '' => '' }.each do |f,t|
+        assert_equal t, chars(f).upcase_first_char
     end
   end
 

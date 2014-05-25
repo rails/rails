@@ -1,3 +1,15 @@
+*   Added `#upcase_first_char` method to ActiveSupport::Multibyte::Chars.
+    This method converts the first character to uppercase leaving the remainder
+    untouched.
+    This is similar to #capitalize but is very useful when a string contains
+    names or acronyms, for example:
+
+        "my name is Aldo and I like BBQ".mb_chars.upcase_first_char.to_s
+        # => "My name is Aldo and I like BBQ"
+        # (#capitalize would return "My name is aldo and i bbq")
+
+    *Aldo "xoen" Giambelluca*
+
 *   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
     in nested arrays.  This change also applies to `Hash#deep_stringify_keys`,
     `Hash#deep_stringify_keys!`, `Hash#deep_symbolize_keys` and
