@@ -99,7 +99,10 @@ module ActionDispatch
           routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
             r.path.match(req.path_info)
           }
-          routes.concat get_routes_as_head(routes)
+
+          if req.env["REQUEST_METHOD"] === "HEAD"
+            routes.concat get_routes_as_head(routes)
+          end
 
           routes.sort_by!(&:precedence).select! { |r| r.matches?(req) }
 
