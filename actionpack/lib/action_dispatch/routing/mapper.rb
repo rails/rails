@@ -35,19 +35,18 @@ module ActionDispatch
 
         def dispatcher?; @dispatcher; end
 
-        def matches?(env)
-          req = @request.new(env)
-
+        def matches?(req)
           @constraints.all? do |constraint|
             (constraint.respond_to?(:matches?) && constraint.matches?(req)) ||
               (constraint.respond_to?(:call) && constraint.call(*constraint_args(constraint, req)))
           end
-        ensure
-          req.reset_parameters
         end
 
         def call(env)
-          matches?(env) ? @app.call(env) : [ 404, {'X-Cascade' => 'pass'}, [] ]
+          req = @request.new(env)
+          matches?(req) ? @app.call(env) : [ 404, {'X-Cascade' => 'pass'}, [] ]
+        ensure
+          req.reset_parameters
         end
 
         private
