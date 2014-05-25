@@ -12,7 +12,7 @@ module ActionDispatch
         requirements.except(:controller, :action)
       end
 
-      def rack_app(app = self.app)
+      def rack_app
         @rack_app ||= begin
           endpoint = app.app
 
