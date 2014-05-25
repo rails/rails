@@ -14,11 +14,10 @@ module ActionDispatch
 
       def rack_app(app = self.app)
         @rack_app ||= begin
-          app = app.app
-          class_name = app.class.name.to_s
+          endpoint = app.app
 
-          if ActionDispatch::Routing::Redirect === app || class_name !~ /^ActionDispatch::Routing/
-            app
+          if ActionDispatch::Routing::Redirect === endpoint || !app.dispatcher?
+            endpoint
           end
         end
       end
