@@ -266,7 +266,7 @@ module ActiveRecord
       end
 
       def join_table
-        @join_table ||= options[:join_table] || derive_join_table
+        active_record._reflect_on_association(name).join_table
       end
 
       def foreign_key
@@ -533,10 +533,6 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
           end
         end
 
-        def derive_join_table
-          [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
-        end
-
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
@@ -756,6 +752,15 @@ directive on your declaration like:
 
         check_validity_of_inverse!
       end
+
+      def join_table
+         @join_table ||= options[:join_table] || derive_join_table
+      end
+
+      def derive_join_table
+        through_reflection.klass.table_name
+      end
+
 
       protected
 

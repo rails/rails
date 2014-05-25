@@ -1577,8 +1577,6 @@ module ActiveRecord
           scope   = nil
         end
 
-        habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(:has_and_belongs_to_many, name, scope, options, self)
-
         builder = Builder::HasAndBelongsToMany.new name, self, options
 
         join_model = builder.through_model
@@ -1592,7 +1590,6 @@ module ActiveRecord
 
         Builder::HasMany.define_callbacks self, middle_reflection
         Reflection.add_reflection self, middle_reflection.name, middle_reflection
-        middle_reflection.parent_reflection = [name.to_s, habtm_reflection]
 
         include Module.new {
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -1613,7 +1610,12 @@ module ActiveRecord
         end
 
         has_many name, scope, hm_options, &extension
-        self._reflections[name.to_s].parent_reflection = [name.to_s, habtm_reflection]
+
+        hm_reflection = _reflect_on_association(name)
+        habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(:has_and_belongs_to_many, name, scope, options, self)
+
+        hm_reflection.parent_reflection = [name.to_s, habtm_reflection]
+        middle_reflection.parent_reflection = [name.to_s, habtm_reflection]
       end
     end
   end

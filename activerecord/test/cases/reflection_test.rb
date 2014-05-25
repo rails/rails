@@ -24,6 +24,10 @@ require 'models/department'
 require 'models/cake_designer'
 require 'models/drink_designer'
 
+class Part < ActiveRecord::Base; end
+class Product < ActiveRecord::Base; end
+class Page < ActiveRecord::Base; end
+
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
 
@@ -374,56 +378,87 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
 
-  def test_join_table
-    category = Struct.new(:table_name, :pluralize_table_names).new('categories', true)
-    product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
+  class ReflectionJoinTableTest < ActiveRecord::TestCase
+    include ActiveRecord::Reflection
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, nil, {}, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'categories_products', reflection.join_table
+    def setup
+      @part_model = build_anonymous_model(Part)
+      @product_model = build_anonymous_model(Product)
+      @page_model = build_anonymous_model(Page)
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, {}, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'categories_products', reflection.join_table
-  end
+      @part_table_name = Part.table_name
+      @product_table_name = Product.table_name
+      @page_table_name = Page.table_name
+    end
 
-  def test_join_table_with_common_prefix
-    category = Struct.new(:table_name, :pluralize_table_names).new('catalog_categories', true)
-    product = Struct.new(:table_name, :pluralize_table_names).new('catalog_products', true)
+    def teardown
+      Part.table_name = @part_table_name
+      Product.table_name = @product_table_name
+      Page.table_name = @page_table_name
+    end
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, nil, {}, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'catalog_categories_products', reflection.join_table
+    def test_join_table
+      @part_model.has_and_belongs_to_many :products
+      @product_model.has_and_belongs_to_many :parts
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, {}, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'catalog_categories_products', reflection.join_table
-  end
+      reflection = @part_model.reflect_on_association(:products)
+      assert_equal 'parts_products', reflection.join_table
 
-  def test_join_table_with_different_prefix
-    category = Struct.new(:table_name, :pluralize_table_names).new('catalog_categories', true)
-    page = Struct.new(:table_name, :pluralize_table_names).new('content_pages', true)
+      reflection = @product_model.reflect_on_association(:parts)
+      assert_equal 'parts_products', reflection.join_table
+    end
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, nil, {}, page)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'catalog_categories_content_pages', reflection.join_table
+    def test_join_table_with_common_prefix
+      Part.table_name = @part_model.table_name = 'catalog_parts'
+      Product.table_name = @product_model.table_name = 'catalog_products'
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :pages, nil, {}, category)
-    reflection.stubs(:klass).returns(page)
-    assert_equal 'catalog_categories_content_pages', reflection.join_table
-  end
+      @part_model.has_and_belongs_to_many :products
+      @product_model.has_and_belongs_to_many :parts
 
-  def test_join_table_can_be_overridden
-    category = Struct.new(:table_name, :pluralize_table_names).new('categories', true)
-    product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
+      reflection = @part_model.reflect_on_association(:products)
+      assert_equal 'catalog_parts_products', reflection.join_table
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, nil, { :join_table => 'product_categories' }, product)
-    reflection.stubs(:klass).returns(category)
-    assert_equal 'product_categories', reflection.join_table
+      reflection = @product_model.reflect_on_association(:parts)
+      assert_equal 'catalog_parts_products', reflection.join_table
+    end
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, { :join_table => 'product_categories' }, category)
-    reflection.stubs(:klass).returns(product)
-    assert_equal 'product_categories', reflection.join_table
+    def test_join_table_with_different_prefix
+      Part.table_name = @part_model.table_name = 'catalog_parts'
+      Page.table_name = @page_model.table_name = 'content_pages'
+
+      @part_model.has_and_belongs_to_many :pages
+      @page_model.has_and_belongs_to_many :parts
+
+      reflection = @part_model.reflect_on_association(:pages)
+      assert_equal 'catalog_parts_content_pages', reflection.join_table
+
+      reflection = @page_model.reflect_on_association(:parts)
+      assert_equal 'catalog_parts_content_pages', reflection.join_table
+    end
+
+    def test_join_table_can_be_overridden
+      @part_model.has_and_belongs_to_many :products, join_table: 'product_parts'
+      @product_model.has_and_belongs_to_many :parts, join_table: 'product_parts'
+
+      reflection = @part_model.reflect_on_association(:products)
+      assert_equal 'product_parts', reflection.join_table
+
+      reflection = @product_model.reflect_on_association(:parts)
+      assert_equal 'product_parts', reflection.join_table
+    end
+
+  private
+
+    def build_anonymous_model(parent)
+      Class.new(parent) do
+        @name = parent.name
+
+        def self.name
+          @name
+        end
+      end
+    end
+
   end
 
   private
