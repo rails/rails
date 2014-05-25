@@ -3,14 +3,6 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class QuotingTest < ActiveRecord::TestCase
-      class FakeColumn < ActiveRecord::ConnectionAdapters::Column
-        attr_accessor :type
-
-        def initialize type
-          @type = type
-        end
-      end
-
       def setup
         @quoter = Class.new { include Quoting }.new
       end
@@ -101,12 +93,12 @@ module ActiveRecord
 
       def test_quote_true
         assert_equal @quoter.quoted_true, @quoter.quote(true, nil)
-        assert_equal '1', @quoter.quote(true, Struct.new(:type).new(:integer))
+        assert_equal '1', @quoter.quote(true, Type::Integer.new)
       end
 
       def test_quote_false
         assert_equal @quoter.quoted_false, @quoter.quote(false, nil)
-        assert_equal '0', @quoter.quote(false, Struct.new(:type).new(:integer))
+        assert_equal '0', @quoter.quote(false, Type::Integer.new)
       end
 
       def test_quote_float
@@ -166,26 +158,26 @@ module ActiveRecord
       end
 
       def test_quote_string_int_column
-        assert_equal "1", @quoter.quote('1', FakeColumn.new(:integer))
-        assert_equal "1", @quoter.quote('1.2', FakeColumn.new(:integer))
+        assert_equal "1", @quoter.quote('1', Type::Integer.new)
+        assert_equal "1", @quoter.quote('1.2', Type::Integer.new)
       end
 
       def test_quote_string_float_column
-        assert_equal "1.0", @quoter.quote('1', FakeColumn.new(:float))
-        assert_equal "1.2", @quoter.quote('1.2', FakeColumn.new(:float))
+        assert_equal "1.0", @quoter.quote('1', Type::Float.new)
+        assert_equal "1.2", @quoter.quote('1.2', Type::Float.new)
       end
 
       def test_quote_as_mb_chars_binary_column
         string = ActiveSupport::Multibyte::Chars.new('lo\l')
-        assert_equal "'lo\\\\l'", @quoter.quote(string, FakeColumn.new(:binary))
+        assert_equal "'lo\\\\l'", @quoter.quote(string, Type::Binary.new)
       end
 
       def test_quote_binary_without_string_to_binary
-        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', FakeColumn.new(:binary))
+        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', Type::Binary.new)
       end
 
       def test_string_with_crazy_column
-        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', FakeColumn.new(:foo))
+        assert_equal "'lo\\\\l'", @quoter.quote('lo\l')
       end
 
       def test_quote_duration
@@ -193,7 +185,7 @@ module ActiveRecord
       end
 
       def test_quote_duration_int_column
-        assert_equal "7200", @quoter.quote(2.hours, FakeColumn.new(:integer))
+        assert_equal "7200", @quoter.quote(2.hours, Type::Integer.new)
       end
     end
   end
