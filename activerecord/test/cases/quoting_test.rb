@@ -101,12 +101,10 @@ module ActiveRecord
 
       def test_quote_true
         assert_equal @quoter.quoted_true, @quoter.quote(true, nil)
-        assert_equal '1', @quoter.quote(true, Struct.new(:type).new(:integer))
       end
 
       def test_quote_false
         assert_equal @quoter.quoted_false, @quoter.quote(false, nil)
-        assert_equal '0', @quoter.quote(false, Struct.new(:type).new(:integer))
       end
 
       def test_quote_float
@@ -163,16 +161,6 @@ module ActiveRecord
       def test_quote_as_mb_chars_no_column
         string = ActiveSupport::Multibyte::Chars.new('lo\l')
         assert_equal "'lo\\\\l'", @quoter.quote(string, nil)
-      end
-
-      def test_quote_string_int_column
-        assert_equal "1", @quoter.quote('1', FakeColumn.new(:integer))
-        assert_equal "1", @quoter.quote('1.2', FakeColumn.new(:integer))
-      end
-
-      def test_quote_string_float_column
-        assert_equal "1.0", @quoter.quote('1', FakeColumn.new(:float))
-        assert_equal "1.2", @quoter.quote('1.2', FakeColumn.new(:float))
       end
 
       def test_quote_as_mb_chars_binary_column
