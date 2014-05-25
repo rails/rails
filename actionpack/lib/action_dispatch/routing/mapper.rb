@@ -19,6 +19,15 @@ module ActionDispatch
         attr_reader :app, :constraints
 
         def initialize(app, constraints, request)
+          # Unwrap Constraints objects.  I don't actually think it's possible
+          # to pass a Constraints object to this constructor, but there were
+          # multiple places that kept testing children of this object.  I
+          # *think* they were just being defensive, but I have no idea.
+          while app.is_a?(self.class)
+            constraints += app.constraints
+            app = app.app
+          end
+
           @app, @constraints, @request = app, constraints, request
         end
 

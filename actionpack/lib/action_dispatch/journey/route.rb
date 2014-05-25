@@ -19,7 +19,7 @@ module ActionDispatch
         # Unwrap any constraints so we can see what's inside for route generation.
         # This allows the formatter to skip over any mounted applications or redirects
         # that shouldn't be matched when using a url_for without a route name.
-        while app.is_a?(Routing::Mapper::Constraints) do
+        if app.is_a?(Routing::Mapper::Constraints)
           app = app.app
         end
         @dispatcher  = app.is_a?(Routing::RouteSet::Dispatcher)
