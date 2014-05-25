@@ -42,9 +42,8 @@ module ActionDispatch
           end
         end
 
-        def call(env)
-          req = @request.new(env)
-          matches?(req) ? @app.call(env) : [ 404, {'X-Cascade' => 'pass'}, [] ]
+        def serve(req)
+          matches?(req) ? @app.call(req.env) : [ 404, {'X-Cascade' => 'pass'}, [] ]
         ensure
           req.reset_parameters
         end

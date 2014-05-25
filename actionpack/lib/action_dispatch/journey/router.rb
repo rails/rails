@@ -39,7 +39,7 @@ module ActionDispatch
 
           req.path_parameters = set_params.merge parameters
 
-          status, headers, body = route.app.call(req.env)
+          status, headers, body = route.app.serve(req)
 
           if 'pass' == headers['X-Cascade']
             req.script_name     = script_name
