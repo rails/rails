@@ -23,7 +23,7 @@ module ActionDispatch
           # to pass a Constraints object to this constructor, but there were
           # multiple places that kept testing children of this object.  I
           # *think* they were just being defensive, but I have no idea.
-          while app.is_a?(self.class)
+          if app.is_a?(self.class)
             constraints += app.constraints
             app = app.app
           end
