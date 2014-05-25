@@ -28,8 +28,15 @@ module ActionDispatch
             app = app.app
           end
 
+          # Unwrap any constraints so we can see what's inside for route generation.
+          # This allows the formatter to skip over any mounted applications or redirects
+          # that shouldn't be matched when using a url_for without a route name.
+          @dispatcher  = app.is_a?(Routing::RouteSet::Dispatcher)
+
           @app, @constraints, @request = app, constraints, request
         end
+
+        def dispatcher?; @dispatcher; end
 
         def matches?(env)
           req = @request.new(env)

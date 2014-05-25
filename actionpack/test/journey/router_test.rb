@@ -9,6 +9,7 @@ module ActionDispatch
         def initialize
           super({})
         end
+        def dispatcher?; true; end
       end
 
       attr_reader :routes

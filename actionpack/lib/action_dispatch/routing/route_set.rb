@@ -703,12 +703,10 @@ module ActionDispatch
           end
           old_params = req.path_parameters
           req.path_parameters = old_params.merge params
-          dispatcher = route.app
-          if dispatcher.matches?(env)
-            dispatcher = dispatcher.app
-          end
+          app = route.app
+          if app.matches?(env) && app.dispatcher?
+            dispatcher = app.app
 
-          if dispatcher.is_a?(Dispatcher)
             if dispatcher.controller(params, false)
               dispatcher.prepare_params!(params)
               return params
