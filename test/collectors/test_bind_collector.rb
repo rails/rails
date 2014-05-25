@@ -49,7 +49,7 @@ module Arel
 
         offsets = values.map.with_index { |v,i|
           [v,i]
-        }.find_all { |(v,i)| Nodes::BindParam === v }.map(&:last)
+        }.find_all { |(v,_)| Nodes::BindParam === v }.map(&:last)
 
         list = collector.substitute_binds ["hello", "world"]
         assert_equal "hello", list[offsets[0]]
