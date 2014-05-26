@@ -129,7 +129,7 @@ class SchemaTest < ActiveRecord::TestCase
     SQL
 
     song = Song.create
-    album = Album.create
+    Album.create
     assert_equal song, Song.includes(:albums).references(:albums).first
   ensure
     ActiveRecord::Base.connection.execute "DROP SCHEMA music CASCADE;"
