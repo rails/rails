@@ -20,8 +20,10 @@ module ActiveRecord
           case value
           when true then 1
           when false then 0
-          else value.to_i rescue nil
+          else value.to_i
           end
+        rescue
+          raise UnableToTypeCast.new("Unable to cast #{value.inspect} to integer.")
         end
       end
     end

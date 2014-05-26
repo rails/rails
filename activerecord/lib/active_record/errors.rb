@@ -219,4 +219,13 @@ module ActiveRecord
 
   class TransactionIsolationError < ActiveRecordError
   end
+
+  class UnableToTypeCast < ActiveRecordError
+    attr_reader :column_name
+
+    def initialize(message, column_name = nil)
+      @column_name = column_name
+      super(message)
+    end
+  end
 end

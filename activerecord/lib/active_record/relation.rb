@@ -108,7 +108,9 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(*args, &block)
-      scoping { @klass.new(*args, &block) }
+      scoping {
+        allowing_failed_type_casts { @klass.new(*args, &block) }
+      }
     end
 
     alias build new
@@ -131,7 +133,9 @@ module ActiveRecord
     #   users.create(name: nil) # validation on name
     #   # #<User id: nil, name: nil, ...>
     def create(*args, &block)
-      scoping { @klass.create(*args, &block) }
+      scoping {
+        allowing_failed_type_casts { @klass.create(*args, &block) }
+      }
     end
 
     # Similar to #create, but calls +create!+ on the base class. Raises
@@ -139,7 +143,9 @@ module ActiveRecord
     #
     # Expects arguments in the same format as <tt>Base.create!</tt>.
     def create!(*args, &block)
-      scoping { @klass.create!(*args, &block) }
+      scoping {
+        allowing_failed_type_casts { @klass.create!(*args, &block) }
+      }
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
@@ -618,6 +624,14 @@ module ActiveRecord
     end
 
     private
+
+    def allowing_failed_type_casts(&block)
+      yield
+    rescue UnableToTypeCast => e
+      where(e.column_name => nil).scoping do
+        allowing_failed_type_casts { yield }
+      end
+    end
 
     def exec_queries
       @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, arel.bind_values + bind_values)
