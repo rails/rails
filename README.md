@@ -91,10 +91,6 @@ We currently have adapters for:
 * [Sneakers](https://github.com/jondot/sneakers)
 * [Sucker Punch](https://github.com/brandonhilkert/sucker_punch)
 
-We would like to have adapters for:
-
-* [Resque 2.x](https://github.com/resque/resque) (see [#7](https://github.com/rails/activejob/issues/7))
-
 
 ## Under development as a gem, targeted for Rails inclusion
 
