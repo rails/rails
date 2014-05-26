@@ -1,4 +1,6 @@
 module ActionMailer
+  # Provides helper methods for testing ActionMailer, including #assert_emails
+  # and #assert_no_emails
   module TestHelper
     # Asserts that the number of emails sent matches the given number.
     #
