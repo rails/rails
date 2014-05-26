@@ -122,7 +122,7 @@
     // On key press perform a search for matching paths
     pathElem.onkeyup = function(e){
       var path        = sanitizePath(pathElem.value),
-          defaultText = '<tr><th colspan="4">Paths Matching (' + path + '):</th></tr>';
+          defaultText = '<tr><th colspan="4">Paths Matching (' + escape(path) + '):</th></tr>';
 
       // Clear out results section
       selectedSection.innerHTML= defaultText;
