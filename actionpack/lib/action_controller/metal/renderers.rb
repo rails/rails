@@ -78,7 +78,7 @@ module ActionController
     #     respond_to do |format|
     #       format.html
     #       format.csv { render csv: @csvable, filename: @csvable.name }
-    #     }
+    #     end
     #   end
     # To use renderers and their mime types in more concise ways, see
     # <tt>ActionController::MimeResponds::ClassMethods.respond_to</tt> and
