@@ -215,6 +215,36 @@ Rails follows a simple set of coding style conventions:
 
 The above are guidelines - please use your best judgment in using them.
 
+### Benchmark Your Code
+
+If your change has an impact on the performance of Rails, please use the
+[benchmark-ips](https://github.com/evanphx/benchmark-ips) gem to provide
+benchmark results for comparison.
+
+Here's an example of using benchmark-ips:
+
+```ruby
+require 'benchmark/ips'
+
+Benchmark.ips do |x|
+  x.report('addition') { 1 + 2 }
+  x.report('addition with send') { 1.send(:+, 2) }
+end
+```
+
+This will generate a report with the following information:
+
+```
+Calculating -------------------------------------
+            addition     69114 i/100ms
+  addition with send     64062 i/100ms
+-------------------------------------------------
+            addition  5307644.4 (±3.5%) i/s -   26539776 in   5.007219s
+  addition with send  3702897.9 (±3.5%) i/s -   18513918 in   5.006723s
+```
+
+Please see the benchmark/ips [README](https://github.com/evanphx/benchmark-ips/blob/master/README.md) for more information.
+
 ### Running Tests
 
 It is not customary in Rails to run the full test suite before pushing
