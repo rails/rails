@@ -5,7 +5,7 @@ module ActionDispatch
   module Routing
     class RouteWrapper < SimpleDelegator
       def endpoint
-        rack_app ? rack_app.inspect : "#{controller}##{action}"
+        app.dispatcher? ? "#{controller}##{action}" : rack_app.inspect
       end
 
       def constraints
@@ -13,13 +13,7 @@ module ActionDispatch
       end
 
       def rack_app
-        @rack_app ||= begin
-          endpoint = app.app
-
-          unless app.dispatcher?
-            endpoint
-          end
-        end
+        app.app
       end
 
       def verb
@@ -72,7 +66,7 @@ module ActionDispatch
       end
 
       def engine?
-        rack_app && rack_app.respond_to?(:routes)
+        rack_app.respond_to?(:routes)
       end
     end
 
