@@ -20,9 +20,9 @@ module Rails
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
-        parts, message = [ name.inspect ], name
+        parts, message = [ quote(name) ], name
         if version ||= options.delete(:version)
-          parts   << version.inspect
+          parts   << quote(version)
           message << " (#{version})"
         end
         message = options[:git] if options[:git]
@@ -30,7 +30,7 @@ module Rails
         log :gemfile, message
 
         options.each do |option, value|
-          parts << "#{option}: #{value.inspect}"
+          parts << "#{option}: #{quote(value)}"
         end
 
         in_root do
@@ -68,7 +68,7 @@ module Rails
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{source.inspect}\n", verbose: false
+          prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
         end
       end
 
@@ -252,6 +252,16 @@ module Rails
             "#{name}.bat"
           else
             name
+          end
+        end
+
+        # Surround string with single quotes if there is no quotes.
+        # Otherwise fall back to double quotes
+        def quote(str)
+          if str.class == String && str.scan("'").size > 0
+            str.inspect
+          else
+            "'#{str}'"
           end
         end
 
