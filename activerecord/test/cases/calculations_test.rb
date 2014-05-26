@@ -33,6 +33,16 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 318, Account.sum(:available_credit)
   end
 
+  def test_should_calculate_arel_attribute
+    node = Account.arel_table[:credit_limit]
+    assert_equal 318, Account.sum(node)
+  end
+
+  def test_should_calculate_arel_node
+    node = Account.arel_table[:credit_limit] * 2
+    assert_equal 636, Account.sum(node)
+  end
+
   def test_should_return_decimal_average_of_integer_field
     value = Account.average(:id)
     assert_equal 3.5, value
@@ -605,5 +615,31 @@ class CalculationsTest < ActiveRecord::TestCase
     taks_relation = Topic.select(:approved, :id).order(:id)
     assert_equal [1,2,3,4,5], taks_relation.pluck(:id)
     assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
+  end
+
+  def test_pluck_can_take_an_arel_attribute
+    node = Topic.arel_table[:id]
+    assert_equal [1,2,3,4,5], Topic.order(:id).pluck(node)
+  end
+
+  def test_pluck_can_take_multiple_arel_attributes
+    id_node = Topic.arel_table[:id]
+    title_node = Topic.arel_table[:title]
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ], Topic.order(:id).pluck(id_node, title_node)
+  end
+
+  def test_pluck_can_take_computed_arel_node
+    node = Topic.arel_table[:id]
+    node = node + 6
+    assert_equal [7,8,9,10,11], Topic.order(:id).pluck(node)
+  end
+
+  def test_pluck_can_take_arel_function_nodes
+    node = Topic.arel_table[:id].count
+    assert_equal [5], Topic.pluck(node)
   end
 end
