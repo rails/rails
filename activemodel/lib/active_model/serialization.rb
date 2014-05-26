@@ -97,17 +97,12 @@ module ActiveModel
     def serializable_hash(options = nil)
       options ||= {}
 
-      attribute_names = attributes.keys
-      if only = options[:only]
-        attribute_names &= Array(only).map(&:to_s)
-      elsif except = options[:except]
-        attribute_names -= Array(except).map(&:to_s)
+      attribute_names = serializable_attribute_names(attributes.keys, options)
+
+      hash = serializable_attributes_hash(attribute_names)
+      if methods = options[:methods]
+        hash = serializable_methods_hash(methods, hash)
       end
-
-      hash = {}
-      attribute_names.each { |n| hash[n] = read_attribute_for_serialization(n) }
-
-      Array(options[:methods]).each { |m| hash[m.to_s] = send(m) if respond_to?(m) }
 
       serializable_add_includes(options) do |association, records, opts|
         hash[association.to_s] = if records.respond_to?(:to_ary)
@@ -158,6 +153,39 @@ module ActiveModel
             yield association, records, opts
           end
         end
+      end
+
+      # Returns a Hash of serialized attributes.
+      #
+      # Optionally accepts a Hash of +options+ which may specify included names
+      # as an Array with the +:only+ key, or exclude any names given an Array
+      # with the +:except+ key.
+      def serializable_attribute_names(attribute_names, options = nil)
+        if only = options[:only]
+          attribute_names &= Array(only).map(&:to_s)
+        elsif except = options[:except]
+          attribute_names -= Array(except).map(&:to_s)
+        end
+        attribute_names
+      end
+
+      # Setup the serialized attributes hash given a list of attribute names.
+      def serializable_attributes_hash(attribute_names)
+        attribute_names.each_with_object({}) do |(key, _), hash|
+          hash[key] = read_attribute_for_serialization(key)
+        end
+      end
+
+      # Sets keys of the given +hash+ for each method name given from the
+      # +methods+ which are received from options in #serializable_hash.
+      #
+      # These methods are then serialized into the existing hash, originally
+      # setup in #serializable_attributes_hash.
+      def serializable_methods_hash(methods, hash)
+        Array(methods).each do |m|
+          hash[m.to_s] = send(m) if respond_to?(m)
+        end
+        hash
       end
   end
 end
