@@ -33,6 +33,16 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 318, Account.sum(:available_credit)
   end
 
+  def test_should_calculate_arel_attribute
+    node = Account.arel_table[:available_credit]
+    assert_equal 318, Account.sum(node)
+  end
+
+  def test_should_calculate_arel_node
+    node = Account.arel_table[:available_credit] * 2
+    assert_equal 636, Account.sum(node)
+  end
+
   def test_should_return_decimal_average_of_integer_field
     value = Account.average(:id)
     assert_equal 3.5, value
