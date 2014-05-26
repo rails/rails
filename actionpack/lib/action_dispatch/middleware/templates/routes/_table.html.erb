@@ -148,8 +148,8 @@
     // On key press perform a search for matching paths
     searchElem.onkeyup = function(e){
       var userInput         = searchElem.value,
-          defaultExactMatch = '<tr><th colspan="4">Paths Matching (' + sanitizePath(userInput) +'):</th></tr>',
-          defaultFuzzyMatch = '<tr><th colspan="4">Paths Containing (' + userInput +'):</th></tr>',
+          defaultExactMatch = '<tr><th colspan="4">Paths Matching (' + escape(sanitizePath(userInput)) +'):</th></tr>',
+          defaultFuzzyMatch = '<tr><th colspan="4">Paths Containing (' + escape(userInput) +'):</th></tr>',
           noExactMatch      = '<tr><th colspan="4">No Exact Matches Found</th></tr>',
           noFuzzyMatch      = '<tr><th colspan="4">No Fuzzy Matches Found</th></tr>';
 
