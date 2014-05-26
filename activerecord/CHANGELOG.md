@@ -28,6 +28,17 @@
 
     *Brock Trappitt*
 
+*   Changed scoped blocks to be executed with `instance_eval`
+
+    Named scopes (i.e. using STI) were previously cached according to
+    base class so scoped queries made by classes with a common ancestor would
+    leak. Changed the way scope blocks were called so inheritance rules are
+    followed during the call and scopes are cached correctly.
+
+    Fixes #13466.
+
+    *Jefferson Lai*
+
 *   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
     table inside a schema.
 

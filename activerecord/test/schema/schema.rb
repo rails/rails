@@ -599,7 +599,9 @@ ActiveRecord::Schema.define do
 
   create_table :ratings, force: true do |t|
     t.integer :comment_id
+    t.integer :special_comment_id
     t.integer :value
+    t.string :type
   end
 
   create_table :readers, force: true do |t|

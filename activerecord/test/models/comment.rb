@@ -42,6 +42,7 @@ class SubSpecialComment < SpecialComment
 end
 
 class VerySpecialComment < Comment
+  scope :special_parent, lambda { |special_rating| where parent_id: special_rating.special_comment.id }
 end
 
 class CommentThatAutomaticallyAltersPostBody < Comment
