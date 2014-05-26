@@ -2,6 +2,8 @@ module ActiveRecord
   class PredicateBuilder
     class ArrayHandler # :nodoc:
       def call(attribute, value)
+        return attribute.in([]) if value.empty?
+
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         ranges, values = values.partition { |v| v.is_a?(Range) }
         nils, values = values.partition(&:nil?)
