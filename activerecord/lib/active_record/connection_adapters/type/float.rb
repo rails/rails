@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Float < Value # :nodoc:
+      class Float < Value
         include Numeric
 
         def type

@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Date < Value # :nodoc:
+      class Date < Value
         def type
           :date
         end
