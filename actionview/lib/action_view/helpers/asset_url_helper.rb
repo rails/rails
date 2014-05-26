@@ -7,10 +7,10 @@ module ActionView
     # urls.
     #
     #   image_path("rails.png")
-    #   # => "/assets/rails.png"
+    #   # => "/images/rails.png"
     #
     #   image_url("rails.png")
-    #   # => "http://www.example.com/assets/rails.png"
+    #   # => "http://www.example.com/images/rails.png"
     #
     # === Using asset hosts
     #
@@ -113,9 +113,9 @@ module ActionView
       #
       # All other asset *_path helpers delegate through this method.
       #
-      #   asset_path "application.js"                     # => /application.js
-      #   asset_path "application", type: :javascript     # => /javascripts/application.js
-      #   asset_path "application", type: :stylesheet     # => /stylesheets/application.css
+      #   asset_path "application.js"                     # => /assets/application.js
+      #   asset_path "application", type: :javascript     # => /assets/application.js
+      #   asset_path "application", type: :stylesheet     # => /assets/application.css
       #   asset_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
       def asset_path(source, options = {})
         return "" unless source.present?
@@ -153,7 +153,7 @@ module ActionView
       # All other options provided are forwarded to +asset_path+ call.
       #
       #   asset_url "application.js"                                 # => http://example.com/application.js
-      #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/javascripts/application.js
+      #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/assets/application.js
       #
       def asset_url(source, options = {})
         path_to_asset(source, options.merge(:protocol => :request))
@@ -231,7 +231,7 @@ module ActionView
       # Computes the path to a javascript asset in the public javascripts directory.
       # If the +source+ filename has no extension, .js will be appended (except for explicit URIs)
       # Full paths from the document root will be passed through.
-      # Used internally by javascript_include_tag to build the script path.
+      # Used internally by +javascript_include_tag+ to build the script path.
       #
       #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
       #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
@@ -251,7 +251,7 @@ module ActionView
       alias_method :url_to_javascript, :javascript_url # aliased to avoid conflicts with a javascript_url named route
 
       # Computes the path to a stylesheet asset in the public stylesheets directory.
-      # If the +source+ filename has no extension, <tt>.css</tt> will be appended (except for explicit URIs).
+      # If the +source+ filename has no extension, .css will be appended (except for explicit URIs).
       # Full paths from the document root will be passed through.
       # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
       #
@@ -276,9 +276,9 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +image_tag+ to build the image path:
       #
-      #   image_path("edit")                                         # => "/assets/edit"
-      #   image_path("edit.png")                                     # => "/assets/edit.png"
-      #   image_path("icons/edit.png")                               # => "/assets/icons/edit.png"
+      #   image_path("edit")                                         # => "/images/edit"
+      #   image_path("edit.png")                                     # => "/images/edit.png"
+      #   image_path("icons/edit.png")                               # => "/images/icons/edit.png"
       #   image_path("/icons/edit.png")                              # => "/icons/edit.png"
       #   image_path("http://www.example.com/img/edit.png")          # => "http://www.example.com/img/edit.png"
       #
@@ -342,9 +342,9 @@ module ActionView
       # Computes the path to a font asset.
       # Full paths from the document root will be passed through.
       #
-      #   font_path("font")                                           # => /assets/font
-      #   font_path("font.ttf")                                       # => /assets/font.ttf
-      #   font_path("dir/font.ttf")                                   # => /assets/dir/font.ttf
+      #   font_path("font")                                           # => /fonts/font
+      #   font_path("font.ttf")                                       # => /fonts/font.ttf
+      #   font_path("dir/font.ttf")                                   # => /fonts/dir/font.ttf
       #   font_path("/dir/font.ttf")                                  # => /dir/font.ttf
       #   font_path("http://www.example.com/dir/font.ttf")            # => http://www.example.com/dir/font.ttf
       def font_path(source, options = {})
