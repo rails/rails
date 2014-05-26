@@ -480,6 +480,27 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to_unless_current("Listing", "http://www.example.com/")
   end
 
+  def test_link_to_with_active_class
+    @request = request_for_url("/")
+
+    assert_equal %{<a class="current-page" href="http://www.example.com/">Root Page</a>},
+      link_to_with_active_class("Root Page", "http://www.example.com/")
+
+    assert_equal %{<a class="custom-current" href="http://www.example.com/">Root Page</a>},
+      link_to_with_active_class("Root Page", "http://www.example.com/", current_page_class: "custom-current")
+
+    assert_not_equal %{<a class="active" href="http://www.example.com/">Root Page</a>},
+      link_to_with_active_class("Not Root Page", "http://www.example.com/not-root-path")
+
+    assert_equal %{<a class="non-current-page" href="http://www.example.com/not-root-path">Not Root Page</a>},
+      link_to_with_active_class("Not Root Page", "http://www.example.com/not-root-path")
+
+    assert_equal %{<a class="custom-non-current-page" href="http://www.example.com/not-root-path">Not Root Page</a>},
+      link_to_with_active_class(
+        "Not Root Page", "http://www.example.com/not-root-path", non_current_page_class: "custom-non-current-page"
+      )
+  end
+
   def test_mail_to
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">david@loudthinking.com</a>}, mail_to("david@loudthinking.com")
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">David Heinemeier Hansson</a>}, mail_to("david@loudthinking.com", "David Heinemeier Hansson")

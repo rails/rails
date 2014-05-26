@@ -1,3 +1,8 @@
+*   Add `link_to_with_active_class` helper which adds a `current-page` or
+    `non-current-page` class to links
+
+    *Matthew Witek*
+
 *   Allow custom `:host` option to be passed to `asset_url` helper that
     overwrites `config.action_controller.asset_host` for particular asset.
 

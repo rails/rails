@@ -368,6 +368,43 @@ module ActionView
         link_to_unless current_page?(options), name, options, html_options, &block
       end
 
+      # Description
+      # Creates a link tag of the given +name+ using a URL created by the set of
+      # +options+ and will add a class of 'current-page' if the current request URI
+      # is the same as the links, or a class of 'non-current-page' if the current request
+      # URI is not the same as the links.
+
+      # ==== Examples
+      #
+      # for the following examples the current_page is "/"
+      #
+      #   When link path is the current page path, returns a 'current-page' class
+      #   <%= link_to_with_active_class("Root Page", "/") %>
+      #   # => <a class="current-page" href="/">Root Page</a>
+      #
+      #   the 'current-page' class can be modified
+      #   <%= link_to_with_active_class("Root Page", "/", current_page_class: "my-custom-active-class") %>
+      #   # => <a class="my-custom-active-class" href="/">Root Page</a>
+      #
+      #   When the link path is not current page path, returns a 'non-current-page' class
+      #   <%= link_to_with_active_class("Not Root Page", "/not-root-page") %>
+      #   # => <a class="non-current-page" href="/">Not Root Page</a>
+      #
+      #   the 'non-current-page' class can be modified
+      #   <%= link_to_with_active_class("Not Root Page", "/not-root-page", non_current_page_class: "my-custom-non-active-class") %>
+      #   # => <a class="my-custom-non-active-class" href="/">Not Root Page</a>
+      def link_to_with_active_class(name, options = {}, html_options = {}, &block)
+        html_opts = {
+          current_page_class: "current-page",
+          non_current_page_class: "non-current-page"
+        }.merge!(html_options)
+
+        active_page_class = current_page?(options) ? html_opts[:current_page_class] : html_opts[:non_current_page_class]
+        html_opts[:class] = "#{active_page_class} #{html_opts[:class]}".rstrip
+
+        link_to(name, options, html_opts.except(:current_page_class, :non_current_page_class), &block)
+      end
+
       # Creates a link tag of the given +name+ using a URL created by the set of
       # +options+ unless +condition+ is true, in which case only the name is
       # returned. To specialize the default behavior (i.e., show a login link rather
