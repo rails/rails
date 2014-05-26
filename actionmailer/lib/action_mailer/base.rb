@@ -301,12 +301,13 @@ module ActionMailer
   #       end
   #   end
   #
-  # Callbacks in ActionMailer are implemented using AbstractController::Callbacks, so you
-  # can define and configure callbacks in the same manner that you would use callbacks in
-  # classes that inherit from ActionController::Base.
+  # Callbacks in Action Mailer are implemented using
+  # <tt>AbstractController::Callbacks</tt>, so you can define and configure
+  # callbacks in the same manner that you would use callbacks in classes that
+  # inherit from <tt>ActionController::Base</tt>.
   #
   # Note that unless you have a specific reason to do so, you should prefer using before_action
-  # rather than after_action in your ActionMailer classes so that headers are parsed properly.
+  # rather than after_action in your Action Mailer classes so that headers are parsed properly.
   #
   # = Previewing emails
   #
