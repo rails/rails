@@ -429,8 +429,12 @@ module Arel
       end
 
       def visit_Arel_Nodes_Grouping o, collector
-        collector << "("
-        visit(o.expr, collector) << ")"
+        if o.expr.is_a? Nodes::Grouping
+          visit(o.expr, collector)
+        else
+          collector << "("
+          visit(o.expr, collector) << ")"
+        end
       end
 
       def visit_Arel_SelectManager o, collector
