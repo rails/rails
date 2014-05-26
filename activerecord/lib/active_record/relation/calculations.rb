@@ -111,8 +111,6 @@ module ActiveRecord
       # activerecord-deprecated_finders.
       if column_name.is_a?(Symbol) && attribute_alias?(column_name)
         column_name = attribute_alias(column_name)
-#      elsif column_name.is_a?(Arel::Attributes::Attribute) || column_name.class <= Arel::Nodes::Node
-#        column_name = visitor.compile(column_name)
       end
 
       if has_include?(column_name)
@@ -232,8 +230,8 @@ module ActiveRecord
     def aggregate_column(column_name)
       if @klass.column_names.include?(column_name.to_s)
         Arel::Attribute.new(@klass.unscoped.table, column_name)
-#      elsif column_name.is_a?(Arel::Attributes::Attribute) || column_name.class <= Arel::Nodes::Node
-#        visitor.compile(column_name)
+      elsif column_name.is_a?(Arel::Attributes::Attribute) || column_name.class <= Arel::Nodes::Node
+        column_name
       else
         Arel.sql(column_name == :all ? "*" : column_name.to_s)
       end

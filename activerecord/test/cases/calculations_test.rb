@@ -34,12 +34,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_arel_attribute
-    node = Account.arel_table[:available_credit]
+    node = Account.arel_table[:credit_limit]
     assert_equal 318, Account.sum(node)
   end
 
   def test_should_calculate_arel_node
-    node = Account.arel_table[:available_credit] * 2
+    node = Account.arel_table[:credit_limit] * 2
     assert_equal 636, Account.sum(node)
   end
 
