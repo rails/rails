@@ -160,7 +160,7 @@ module ActiveRecord
       def marshal_load(data)
         reflection_name, ivars = data
         ivars.each { |name, val| instance_variable_set(name, val) }
-        @reflection = @owner.class.reflect_on_association(reflection_name)
+        @reflection = @owner.class._reflect_on_association(reflection_name)
       end
 
       def initialize_attributes(record) #:nodoc:

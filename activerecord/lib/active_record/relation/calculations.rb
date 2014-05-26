@@ -277,7 +277,7 @@ module ActiveRecord
       group_attrs = group_values
 
       if group_attrs.first.respond_to?(:to_sym)
-        association  = @klass.reflect_on_association(group_attrs.first.to_sym)
+        association  = @klass._reflect_on_association(group_attrs.first.to_sym)
         associated   = group_attrs.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
         group_fields = Array(associated ? association.foreign_key : group_attrs)
       else

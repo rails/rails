@@ -20,7 +20,7 @@ module ActiveRecord
       def reset_counters(id, *counters)
         object = find(id)
         counters.each do |counter_association|
-          has_many_association = reflect_on_association(counter_association.to_sym)
+          has_many_association = _reflect_on_association(counter_association.to_sym)
           unless has_many_association
             has_many = reflect_on_all_associations(:has_many)
             has_many_association = has_many.find { |association| association.counter_cache_column && association.counter_cache_column.to_sym == counter_association.to_sym }
@@ -34,8 +34,7 @@ module ActiveRecord
 
           foreign_key  = has_many_association.foreign_key.to_s
           child_class  = has_many_association.klass
-          belongs_to   = child_class.reflect_on_all_associations(:belongs_to)
-          reflection   = belongs_to.find { |e| e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
+          reflection   = child_class._reflections.values.find { |e| :belongs_to == e.macro && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
           stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
@@ -167,7 +166,7 @@ module ActiveRecord
       end
 
       def each_counter_cached_associations
-        reflections.each do |name, reflection|
+        _reflections.each do |name, reflection|
           yield association(name) if reflection.belongs_to? && reflection.counter_cache_column
         end
       end

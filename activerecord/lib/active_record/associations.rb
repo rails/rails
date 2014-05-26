@@ -50,7 +50,7 @@ module ActiveRecord
     def initialize(reflection)
       through_reflection      = reflection.through_reflection
       source_reflection_names = reflection.source_reflection_names
-      source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
+      source_associations     = reflection.through_reflection.klass._reflections.keys
       super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
     end
   end
@@ -151,7 +151,7 @@ module ActiveRecord
       association = association_instance_get(name)
 
       if association.nil?
-        raise AssociationNotFoundError.new(self, name) unless reflection = self.class.reflect_on_association(name)
+        raise AssociationNotFoundError.new(self, name) unless reflection = self.class._reflect_on_association(name)
         association = reflection.association_class.new(self, reflection)
         association_instance_set(name, association)
       end
@@ -1577,6 +1577,8 @@ module ActiveRecord
           scope   = nil
         end
 
+        habtm_reflection = ActiveRecord::Reflection::AssociationReflection.new(:has_and_belongs_to_many, name, scope, options, self)
+
         builder = Builder::HasAndBelongsToMany.new name, self, options
 
         join_model = builder.through_model
@@ -1590,6 +1592,7 @@ module ActiveRecord
 
         Builder::HasMany.define_callbacks self, middle_reflection
         Reflection.add_reflection self, middle_reflection.name, middle_reflection
+        middle_reflection.parent_reflection = [name.to_s, habtm_reflection]
 
         include Module.new {
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -1610,6 +1613,7 @@ module ActiveRecord
         end
 
         has_many name, scope, hm_options, &extension
+        self._reflections[name.to_s].parent_reflection = [name.to_s, habtm_reflection]
       end
     end
   end
