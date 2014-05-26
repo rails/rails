@@ -750,6 +750,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [], relation.to_a
   end
 
+  def test_typecasting_where_with_array
+    ids = Author.pluck(:id)
+    slugs = ids.map { |id| "#{id}-as-a-slug" }
+
+    assert_equal Author.all.to_a, Author.where(id: slugs).to_a
+  end
+
   def test_find_all_using_where_with_relation
     david = authors(:david)
     # switching the lines below would succeed in current rails
