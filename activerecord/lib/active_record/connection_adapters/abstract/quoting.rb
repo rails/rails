@@ -6,13 +6,13 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
       def quote(value, column = nil)
+        column ||= NullColumn.new
         # records are quoted as their primary key
         return value.quoted_id if value.respond_to?(:quoted_id)
 
         case value
         when String, ActiveSupport::Multibyte::Chars
           value = value.to_s
-          return "'#{quote_string(value)}'" unless column
 
           case column.type
           when :integer then value.to_i.to_s

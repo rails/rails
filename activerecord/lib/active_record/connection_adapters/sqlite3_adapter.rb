@@ -220,7 +220,8 @@ module ActiveRecord
       # QUOTING ==================================================
 
       def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary
+        column ||= ActiveRecord::ConnectionAdapters::NullColumn.new
+        if value.kind_of?(String) && column.type == :binary
           s = value.unpack("H*")[0]
           "x'#{s}'"
         else

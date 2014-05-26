@@ -16,8 +16,7 @@ module ActiveRecord
 
         # Quotes PostgreSQL-specific data types for SQL input.
         def quote(value, column = nil) #:nodoc:
-          return super unless column
-
+          column ||= ActiveRecord::ConnectionAdapters::NullColumn.new
           sql_type = type_to_sql(column.type, column.limit, column.precision, column.scale)
 
           case value
