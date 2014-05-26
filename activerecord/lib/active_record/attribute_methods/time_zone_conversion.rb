@@ -2,6 +2,8 @@ module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
       class Type # :nodoc:
+        delegate :type, :type_cast_for_database, to: :@column
+
         def initialize(column)
           @column = column
         end
@@ -9,10 +11,6 @@ module ActiveRecord
         def type_cast(value)
           value = @column.type_cast(value)
           value.acts_like?(:time) ? value.in_time_zone : value
-        end
-
-        def type
-          @column.type
         end
       end
 

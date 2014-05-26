@@ -47,6 +47,15 @@ module ActiveRecord
           return value.id
         end
 
+        # FIXME: The only case we get an object other than nil or a real column
+        # is `SchemaStatements#add_column` with a PG array that has a non-empty default
+        # value. Is this really the only case? Are we missing tests for other types?
+        # We should have a real column object passed (or nil) here, and check for that
+        # instead
+        if column.respond_to?(:type_cast_for_database)
+          value = column.type_cast_for_database(value)
+        end
+
         case value
         when String, ActiveSupport::Multibyte::Chars
           value = value.to_s

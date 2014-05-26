@@ -122,7 +122,6 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
     assert_equal "Champs-Élysées", composite.address.street
 
     composite.address = FullAddress.new("Paris", "Rue Basse")
-    skip "Saving with custom OID type is currently not supported."
     composite.save!
 
     assert_equal 'Paris', composite.reload.address.city
