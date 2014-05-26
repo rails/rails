@@ -16,7 +16,7 @@ module ActionDispatch
         @rack_app ||= begin
           endpoint = app.app
 
-          if app.redirect? || !app.dispatcher?
+          unless app.dispatcher?
             endpoint
           end
         end
