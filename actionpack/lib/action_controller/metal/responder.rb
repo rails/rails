@@ -267,7 +267,7 @@ module ActionController #:nodoc:
     # Check whether the resource has errors.
     #
     def has_errors?
-      resource.respond_to?(:errors) && !resource.errors.empty?
+      resource.respond_to?(:errors) && resource.errors.any?
     end
 
     # Check whether the necessary Renderer is available
