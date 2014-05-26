@@ -498,10 +498,10 @@ class InflectorTest < ActiveSupport::TestCase
   end
 
   %w(plurals singulars uncountables humans acronyms).each do |scope|
-    ActiveSupport::Inflector.inflections do |inflect|
-      define_method("test_clear_inflections_with_#{scope}") do
-        with_dup do
-          # clear the inflections
+    define_method("test_clear_inflections_with_#{scope}") do
+      with_dup do
+        # clear the inflections
+        ActiveSupport::Inflector.inflections do |inflect|
           inflect.clear(scope)
           assert_equal [], inflect.send(scope)
         end
@@ -516,9 +516,10 @@ class InflectorTest < ActiveSupport::TestCase
   # there are module functions that access ActiveSupport::Inflector.inflections,
   # so we need to replace the singleton itself.
   def with_dup
-    original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)
-    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original.dup)
+    original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)[:en]
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: original.dup)
+    yield
   ensure
-    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original)
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: original)
   end
 end
