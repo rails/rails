@@ -55,8 +55,8 @@ module ActiveRecord
         case value
         when String, ActiveSupport::Multibyte::Chars
           value.to_s
-        when true       then 't'
-        when false      then 'f'
+        when true       then unquoted_true
+        when false      then unquoted_false
         when nil        then nil
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
@@ -101,8 +101,16 @@ module ActiveRecord
         "'t'"
       end
 
+      def unquoted_true
+        't'
+      end
+
       def quoted_false
         "'f'"
+      end
+
+      def unquoted_false
+        'f'
       end
 
       def quoted_date(value)
