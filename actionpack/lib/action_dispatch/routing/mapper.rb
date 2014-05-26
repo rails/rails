@@ -18,7 +18,7 @@ module ActionDispatch
       class Constraints #:nodoc:
         attr_reader :app, :constraints
 
-        def initialize(app, constraints, request, dispatcher_p)
+        def initialize(app, constraints, request, dispatcher_p, redirect_p)
           # Unwrap Constraints objects.  I don't actually think it's possible
           # to pass a Constraints object to this constructor, but there were
           # multiple places that kept testing children of this object.  I
@@ -28,12 +28,14 @@ module ActionDispatch
             app = app.app
           end
 
-          @dispatcher  = dispatcher_p
+          @dispatcher = dispatcher_p
+          @redirect   = redirect_p
 
           @app, @constraints, @request = app, constraints, request
         end
 
         def dispatcher?; @dispatcher; end
+        def redirect?; @redirect; end
 
         def matches?(req)
           @constraints.all? do |constraint|
@@ -218,21 +220,24 @@ module ActionDispatch
           end
 
           def app
+            dispatcher_p = false
+            redirect     = false
+
             # Unwrap any constraints so we can see what's inside for route generation.
             # This allows the formatter to skip over any mounted applications or redirects
             # that shouldn't be matched when using a url_for without a route name.
             if to.respond_to?(:call)
-              dispatcher_p = false
               endpoint = to
+              redirect = Redirect === endpoint
             else
               dispatcher_p = true
               endpoint = dispatcher
             end
 
             if blocks.any?
-              Constraints.new(endpoint, blocks, @set.request_class, dispatcher_p)
+              Constraints.new(endpoint, blocks, @set.request_class, dispatcher_p, redirect)
             else
-              Constraints.new(endpoint, blocks, @set.request_class, dispatcher_p)
+              Constraints.new(endpoint, blocks, @set.request_class, dispatcher_p, redirect)
             end
           end
 
