@@ -136,6 +136,14 @@ module ActiveSupport #:nodoc:
         (slice(0) || chars('')).upcase + (slice(1..-1) || chars('')).downcase
       end
 
+      # Converts the first character to uppercase and leaves the remainder untouched.
+      #
+      #  "my name is Aldo and I like BBQ".mb_chars.upcase_first_char.to_s # => "my name is Aldo and I like BBQ"
+      #  "è AJAX?".mb_chars.upcase_first_char.to_s # => "È AJAX?"
+      def upcase_first_char
+        (slice(0) || chars('')).upcase + (slice(1..-1) || chars(''))
+      end
+
       # Capitalizes the first letter of every word, when possible.
       #
       #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
@@ -193,7 +201,7 @@ module ActiveSupport #:nodoc:
         to_s.as_json(options)
       end
 
-      %w(capitalize downcase reverse tidy_bytes upcase).each do |method|
+      %w(capitalize downcase reverse tidy_bytes upcase upcase_first_char).each do |method|
         define_method("#{method}!") do |*args|
           @wrapped_string = send(method, *args).to_s
           self
