@@ -159,12 +159,18 @@ module ActiveRecord
           end
 
           singleton_class.send(:define_method, name) do |*args|
-            if body.respond_to?(:call)
+            if body.respond_to?(:exec_or_call)
+              # Need special handling when body is a ScopeWrapper from activerecord-deprecated_finders.
+              scope = all.scoping { body.exec_or_call(self, *args) }
+            elsif body.respond_to?(:to_proc)
+              scope = all.scoping { instance_exec(*args, &body) }
+            elsif body.respond_to?(:call)
               scope = all.scoping { body.call(*args) }
-              scope = scope.extending(extension) if extension
             else
               scope = body
             end
+
+            scope = scope.extending(extension) if extension && scope != body
 
             scope || all
           end
