@@ -11,24 +11,11 @@ module ActiveRecord
 
         case value
         when String, ActiveSupport::Multibyte::Chars
-          value = value.to_s
-          return "'#{quote_string(value)}'" unless column
-
-          case column.type
-          when :integer then value.to_i.to_s
-          when :float then value.to_f.to_s
-          else
-            "'#{quote_string(value)}'"
-          end
-
-        when true, false
-          if column && column.type == :integer
-            value ? '1' : '0'
-          else
-            value ? quoted_true : quoted_false
-          end
-          # BigDecimals need to be put in a non-normalized form and quoted.
+          "'#{quote_string(value.to_s)}'"
+        when true       then quoted_true
+        when false      then quoted_false
         when nil        then "NULL"
+        # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
         when Numeric, ActiveSupport::Duration then value.to_s
         when Date, Time then "'#{quoted_date(value)}'"
@@ -58,24 +45,11 @@ module ActiveRecord
 
         case value
         when String, ActiveSupport::Multibyte::Chars
-          value = value.to_s
-          return value unless column
-
-          case column.type
-          when :integer then value.to_i
-          when :float then value.to_f
-          else
-            value
-          end
-
-        when true, false
-          if column && column.type == :integer
-            value ? 1 : 0
-          else
-            value ? 't' : 'f'
-          end
-          # BigDecimals need to be put in a non-normalized form and quoted.
+          value.to_s
+        when true       then 't'
+        when false      then 'f'
         when nil        then nil
+        # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
         when Numeric    then value
         when Date, Time then quoted_date(value)

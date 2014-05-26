@@ -12,6 +12,8 @@ module ActiveRecord
           ::Float
         end
 
+        alias type_cast_for_database type_cast
+
         private
 
         def cast_value(value)
