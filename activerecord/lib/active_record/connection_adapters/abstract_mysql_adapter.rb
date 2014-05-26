@@ -178,17 +178,6 @@ module ActiveRecord
         true
       end
 
-      def type_cast(value, column)
-        case value
-        when TrueClass
-          1
-        when FalseClass
-          0
-        else
-          super
-        end
-      end
-
       # MySQL 4 technically support transaction isolation, but it is affected by a bug
       # where the transaction level gets persisted for the whole session:
       #
@@ -253,8 +242,16 @@ module ActiveRecord
         QUOTED_TRUE
       end
 
+      def unquoted_true
+        1
+      end
+
       def quoted_false
         QUOTED_FALSE
+      end
+
+      def unquoted_false
+        0
       end
 
       # REFERENTIAL INTEGRITY ====================================
