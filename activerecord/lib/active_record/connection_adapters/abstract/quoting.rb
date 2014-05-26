@@ -53,16 +53,15 @@ module ActiveRecord
         end
 
         case value
-        when String, ActiveSupport::Multibyte::Chars
+        when Symbol, ActiveSupport::Multibyte::Chars
           value.to_s
         when true       then unquoted_true
         when false      then unquoted_false
-        when nil        then nil
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
-        when Numeric    then value
         when Date, Time then quoted_date(value)
-        when Symbol     then value.to_s
+        when *types_which_need_no_typecasting
+          value
         else
           to_type = column ? " to #{column.type}" : ""
           raise TypeError, "can't cast #{value.class}#{to_type}"
@@ -123,6 +122,12 @@ module ActiveRecord
         end
 
         value.to_s(:db)
+      end
+
+      private
+
+      def types_which_need_no_typecasting
+        [nil, Numeric, String]
       end
     end
   end
