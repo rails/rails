@@ -1,3 +1,7 @@
+*   `rake railties:install:migrations` respects the order of railties.
+
+    *Arun Agrawal*
+
 *   Fix redefine a has_and_belongs_to_many inside inherited class
     Fixing regression case, where redefining the same has_an_belongs_to_many
     definition into a subclass would raise.
