@@ -1167,6 +1167,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     )
   end
 
+  test "deep preload"
+    post = Post.preload(author: :posts, comments: :post).first
+
+    assert_predicate post.author.association(:posts), :loaded?
+    assert_predicate post.comments.first.association(:post), :loaded?
+  end
+
   test "preloading does not cache has many association subset when preloaded with a through association" do
     author = Author.includes(:comments_with_order_and_conditions, :posts).first
     assert_no_queries { assert_equal 2, author.comments_with_order_and_conditions.size }
