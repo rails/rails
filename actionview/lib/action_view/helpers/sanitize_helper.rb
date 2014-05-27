@@ -190,7 +190,7 @@ module ActionView
         #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
         #   end
         #
-        def sanitized_allowed_tags=(*tags)
+        def sanitized_allowed_tags=(tags)
           Rails::Html::WhiteListSanitizer.allowed_tags = tags
         end
 
@@ -200,7 +200,7 @@ module ActionView
         #     config.action_view.sanitized_allowed_attributes = ['onclick', 'longdesc']
         #   end
         #
-        def sanitized_allowed_attributes=(*attributes)
+        def sanitized_allowed_attributes=(attributes)
           Rails::Html::WhiteListSanitizer.allowed_attributes = attributes
         end
       end
