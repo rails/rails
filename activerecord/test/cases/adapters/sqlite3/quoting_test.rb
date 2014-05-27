@@ -84,7 +84,7 @@ module ActiveRecord
           assert_raise(TypeError) { @conn.type_cast(obj, nil) }
         end
 
-        def test_quoted_id
+        def test_type_cast_object_which_responds_to_quoted_id
           quoted_id_obj = Class.new {
             def quoted_id
               "'zomg'"
