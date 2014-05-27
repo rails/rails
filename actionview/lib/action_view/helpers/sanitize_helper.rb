@@ -137,10 +137,11 @@ module ActionView
           define_method("#{meth_name}=") { |value| imp.("#{meth_name}=") }
         end
 
-        # A class to vendor out the full, link and white list sanitizers
-        # Can be set to either HTML::Deprecated::Sanitizer or Rails::Html::Sanitizer
-        mattr_accessor :sanitizer_vendor
-        self.sanitizer_vendor = Rails::Html::Sanitizer
+        # Vendors the full, link and white list sanitizers.
+        # Strictly for backwards compatibility with html-scanner.
+        def sanitizer_vendor
+          Rails::Html::Sanitizer
+        end
 
         def sanitized_allowed_tags
           Rails::Html::WhiteListSanitizer.allowed_tags
