@@ -860,6 +860,7 @@ ActiveRecord::Schema.define do
     t.float :overloaded_float, default: 500
     t.float :unoverloaded_float
     t.string :overloaded_string_with_limit, limit: 255
+    t.string :string_with_default, default: 'the original default'
   end
 end
 

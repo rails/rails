@@ -4,6 +4,7 @@ class OverloadedType < ActiveRecord::Base
   property :overloaded_float, Type::Integer.new
   property :overloaded_string_with_limit, Type::String.new(limit: 50)
   property :non_existent_decimal, Type::Decimal.new
+  property :string_with_default, Type::String.new, default: 'the overloaded default'
 end
 
 class ChildOfOverloadedType < OverloadedType
@@ -62,12 +63,12 @@ module ActiveRecord
       end
     end
 
-    def test_overloaded_properties_have_no_default
+    def test_changing_defaults
       data = OverloadedType.new
       unoverloaded_data = UnoverloadedType.new
 
-      assert_nil data.overloaded_float
-      assert unoverloaded_data.overloaded_float
+      assert_equal 'the overloaded default', data.string_with_default
+      assert_equal 'the original default', unoverloaded_data.string_with_default
     end
 
     def test_children_inherit_custom_properties
@@ -84,7 +85,7 @@ module ActiveRecord
 
     def test_overloading_properties_does_not_change_column_order
       column_names = OverloadedType.column_names
-      assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit non_existent_decimal), column_names
+      assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit string_with_default non_existent_decimal), column_names
     end
   end
 end
