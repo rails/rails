@@ -227,8 +227,12 @@ module ActionController
 
     # Returns a Rack endpoint for the given action name.
     def self.action(name, klass = ActionDispatch::Request)
-      middleware_stack.build(name.to_s) do |env|
-        new.dispatch(name, klass.new(env))
+      if middleware_stack.any?
+        middleware_stack.build(name.to_s) do |env|
+          new.dispatch(name, klass.new(env))
+        end
+      else
+        lambda { |env| new.dispatch(name, klass.new(env)) }
       end
     end
 
