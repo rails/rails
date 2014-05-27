@@ -1,3 +1,8 @@
+*   `rake railties:install:migrations` respects the order of railties.
+
+    *Arun Agrawal*
+
+
 ## Rails 4.0.6 (unreleased) ##
 
 *   Fixed the inferred table name of a has_and_belongs_to_many auxiliar

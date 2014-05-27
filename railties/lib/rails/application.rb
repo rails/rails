@@ -235,6 +235,10 @@ module Rails
       config.helpers_paths
     end
 
+    def migration_railties # :nodoc:
+      (ordered_railties & railties_without_main_app).reverse
+    end
+
   protected
 
     alias :build_middleware_stack :app
@@ -264,6 +268,11 @@ module Rails
     def run_console_blocks(app) #:nodoc:
       railties.each { |r| r.run_console_blocks(app) }
       super
+    end
+
+    def railties_without_main_app # :nodoc:
+      @railties_without_main_app ||= Rails::Railtie.subclasses.map(&:instance) +
+        Rails::Engine.subclasses.map(&:instance)
     end
 
     # Returns the ordered railties for this application considering railties_order.
