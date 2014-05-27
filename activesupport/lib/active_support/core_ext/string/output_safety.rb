@@ -4,7 +4,7 @@ require 'active_support/core_ext/kernel/singleton_class'
 class ERB
   module Util
     HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#x27;' }
-    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
+    JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C', "\u2028" => '\u2028', "\u2029" => '\u2029' }
 
     if RUBY_VERSION >= '1.9'
       # A utility method for escaping HTML tag characters.
@@ -62,7 +62,7 @@ class ERB
     #   <%=j @person.to_json %>
     #
     def json_escape(s)
-      result = s.to_s.gsub(/[&"><]/) { |special| JSON_ESCAPE[special] }
+      result = s.to_s.gsub(/[&"><\u2028\u2029]/u) { |special| JSON_ESCAPE[special] }
       s.html_safe? ? result.html_safe : result
     end
 
