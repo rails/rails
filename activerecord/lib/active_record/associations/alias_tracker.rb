@@ -32,8 +32,18 @@ module ActiveRecord
             join.left.downcase.scan(
               /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
             ).size
-          else
+          elsif join.respond_to? :left
             join.left.table_name == name ? 1 : 0
+          else
+            # this branch is reached by two tests:
+            #
+            # activerecord/test/cases/associations/cascaded_eager_loading_test.rb:37
+            #   with :posts
+            #
+            # activerecord/test/cases/associations/eager_test.rb:1133
+            #   with :comments
+            #
+            0
           end
         end
 
