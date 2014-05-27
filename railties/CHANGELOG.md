@@ -1,3 +1,7 @@
+*   Replace double quotes with single quotes while adding an entry into Gemfile.
+
+    *Alexander Belaev*
+
 *   Default `config.assets.digest` to `true` in development.
 
     *Dan Kang*
