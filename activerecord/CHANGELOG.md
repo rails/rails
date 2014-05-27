@@ -10,12 +10,6 @@
 
     *arthurnn*
 
-*   Add a properties API to allow custom types and type casting behavior
-    to be specified. Will enable many edge cases to be deprecated, and
-    allow for additional interesting features in the future.
-
-    *Sean Griffin*
-
 *   Fix has_and_belongs_to_many public reflection.
     When defining a has_and_belongs_to_many, internally we convert that to two has_many.
     But as `reflections` is a public API, people expect to see the right macro.

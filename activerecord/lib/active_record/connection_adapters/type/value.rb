@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module Type
-      class Value
+      class Value # :nodoc:
         attr_reader :precision, :scale, :limit
 
         # Valid options are +precision+, +scale+, and +limit+.
