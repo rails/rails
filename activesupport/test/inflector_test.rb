@@ -42,6 +42,19 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_uniq_uncoutables
+    ActiveSupport::Inflector.inflections do |inflect|
+      with_dup do
+        inflect.clear :all
+        uncountable_word = 'money'
+        assert_equal [], inflect.uncountables
+
+        inflect.uncountable uncountable_word, uncountable_word
+        assert_equal ['money'], inflect.uncountables
+      end
+    end
+  end
+
   SingularToPlural.each do |singular, plural|
     define_method "test_pluralize_singular_#{singular}" do
       assert_equal(plural, ActiveSupport::Inflector.pluralize(singular))
