@@ -51,8 +51,6 @@ module ActionDispatch
           else
             @app.call req.env
           end
-        ensure
-          req.reset_parameters
         end
 
         private

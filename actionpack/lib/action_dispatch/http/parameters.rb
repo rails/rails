@@ -43,10 +43,6 @@ module ActionDispatch
         @env[Routing::RouteSet::PARAMETERS_KEY] ||= {}
       end
 
-      def reset_parameters #:nodoc:
-        @env.delete("action_dispatch.request.parameters")
-      end
-
     private
 
       # Convert nested Hash to HashWithIndifferentAccess
