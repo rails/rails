@@ -87,7 +87,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_symbols_with_dashes
     rs.draw do
       get '/:artist/:song-omg', :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -99,7 +99,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_id_with_dash
     rs.draw do
       get '/journey/:id', :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -111,7 +111,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_dash_with_custom_regexp
     rs.draw do
       get '/:artist/:song-omg', :constraints => { :song => /\d+/ }, :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -124,7 +124,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_pre_dash
     rs.draw do
       get '/:artist/omg-:song', :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -136,7 +136,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_pre_dash_with_custom_regexp
     rs.draw do
       get '/:artist/omg-:song', :constraints => { :song => /\d+/ }, :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end

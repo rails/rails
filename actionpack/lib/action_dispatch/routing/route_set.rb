@@ -19,8 +19,6 @@ module ActionDispatch
       # alias inspect to to_s.
       alias inspect to_s
 
-      PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
-
       class Dispatcher < Routing::Endpoint #:nodoc:
         def initialize(defaults)
           @defaults = defaults
