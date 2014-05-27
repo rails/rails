@@ -1,3 +1,7 @@
+*   Deprecate all *_filter callbacks in favor of *_action callbacks.
+
+    *Rafael Mendonça França*
+
 *   Fix URL generation with `:trailing_slash` such that it does not add
     a trailing slash after `.:format`
 

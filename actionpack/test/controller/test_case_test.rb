@@ -164,7 +164,7 @@ XML
   end
 
   class DefaultUrlOptionsCachingController < ActionController::Base
-    before_filter { @dynamic_opt = 'opt' }
+    before_action { @dynamic_opt = 'opt' }
 
     def test_url_options_reset
       render text: url_for(params)
