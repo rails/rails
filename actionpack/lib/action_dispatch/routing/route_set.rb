@@ -8,6 +8,7 @@ require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/array/extract_options'
 require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
@@ -20,24 +21,17 @@ module ActionDispatch
 
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
-      class Dispatcher #:nodoc:
+      class Dispatcher < Routing::Endpoint #:nodoc:
         def initialize(defaults)
           @defaults = defaults
           @controller_class_names = ThreadSafe::Cache.new
         end
 
-        def call(env)
-          params = env[PARAMETERS_KEY]
+        def dispatcher?; true; end
 
-          # If any of the path parameters has an invalid encoding then
-          # raise since it's likely to trigger errors further on.
-          params.each do |key, value|
-            next unless value.respond_to?(:valid_encoding?)
-
-            unless value.valid_encoding?
-              raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
-            end
-          end
+        def serve(req)
+          req.check_path_parameters!
+          params = req.path_parameters
 
           prepare_params!(params)
 
@@ -46,7 +40,7 @@ module ActionDispatch
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
-          dispatch(controller, params[:action], env)
+          dispatch(controller, params[:action], req.env)
         end
 
         def prepare_params!(params)
@@ -703,12 +697,10 @@ module ActionDispatch
           end
           old_params = req.path_parameters
           req.path_parameters = old_params.merge params
-          dispatcher = route.app
-          if dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env)
-            dispatcher = dispatcher.app
-          end
+          app = route.app
+          if app.matches?(req) && app.dispatcher?
+            dispatcher = app.app
 
-          if dispatcher.is_a?(Dispatcher)
             if dispatcher.controller(params, false)
               dispatcher.prepare_params!(params)
               return params

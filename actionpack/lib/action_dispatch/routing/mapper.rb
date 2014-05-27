@@ -6,6 +6,7 @@ require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
@@ -15,35 +16,41 @@ module ActionDispatch
                        :controller, :action, :path_names, :constraints,
                        :shallow, :blocks, :defaults, :options]
 
-      class Constraints #:nodoc:
+      class Constraints < Endpoint #:nodoc:
         attr_reader :app, :constraints
 
-        def initialize(app, constraints, request)
+        def initialize(app, constraints, dispatcher_p)
           # Unwrap Constraints objects.  I don't actually think it's possible
           # to pass a Constraints object to this constructor, but there were
           # multiple places that kept testing children of this object.  I
           # *think* they were just being defensive, but I have no idea.
-          while app.is_a?(self.class)
+          if app.is_a?(self.class)
             constraints += app.constraints
             app = app.app
           end
 
-          @app, @constraints, @request = app, constraints, request
+          @dispatcher = dispatcher_p
+
+          @app, @constraints, = app, constraints
         end
 
-        def matches?(env)
-          req = @request.new(env)
+        def dispatcher?; @dispatcher; end
 
+        def matches?(req)
           @constraints.all? do |constraint|
             (constraint.respond_to?(:matches?) && constraint.matches?(req)) ||
               (constraint.respond_to?(:call) && constraint.call(*constraint_args(constraint, req)))
           end
-        ensure
-          req.reset_parameters
         end
 
-        def call(env)
-          matches?(env) ? @app.call(env) : [ 404, {'X-Cascade' => 'pass'}, [] ]
+        def serve(req)
+          return [ 404, {'X-Cascade' => 'pass'}, [] ] unless matches?(req)
+
+          if dispatcher?
+            @app.serve req
+          else
+            @app.call req.env
+          end
         end
 
         private
@@ -216,10 +223,16 @@ module ActionDispatch
           end
 
           def app
-            if blocks.any?
-              Constraints.new(endpoint, blocks, @set.request_class)
+            return to if Redirect === to
+
+            if to.respond_to?(:call)
+              Constraints.new(to, blocks, false)
             else
-              endpoint
+              if blocks.any?
+                Constraints.new(dispatcher, blocks, true)
+              else
+                dispatcher
+              end
             end
           end
 
@@ -304,10 +317,6 @@ module ActionDispatch
 
           def strexp
             Journey::Router::Strexp.compile(path, requirements, SEPARATORS)
-          end
-
-          def endpoint
-            to.respond_to?(:call) ? to : dispatcher
           end
 
           def dispatcher

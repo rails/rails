@@ -5,22 +5,15 @@ module ActionDispatch
   module Routing
     class RouteWrapper < SimpleDelegator
       def endpoint
-        rack_app ? rack_app.inspect : "#{controller}##{action}"
+        app.dispatcher? ? "#{controller}##{action}" : rack_app.inspect
       end
 
       def constraints
         requirements.except(:controller, :action)
       end
 
-      def rack_app(app = self.app)
-        @rack_app ||= begin
-          class_name = app.class.name.to_s
-          if class_name == "ActionDispatch::Routing::Mapper::Constraints"
-            app.app
-          elsif ActionDispatch::Routing::Redirect === app || class_name !~ /^ActionDispatch::Routing/
-            app
-          end
-        end
+      def rack_app
+        app.app
       end
 
       def verb
@@ -73,7 +66,7 @@ module ActionDispatch
       end
 
       def engine?
-        rack_app && rack_app.respond_to?(:routes)
+        rack_app.respond_to?(:routes)
       end
     end
 

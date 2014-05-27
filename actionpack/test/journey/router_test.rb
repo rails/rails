@@ -9,6 +9,7 @@ module ActionDispatch
         def initialize
           super({})
         end
+        def dispatcher?; true; end
       end
 
       attr_reader :routes
@@ -217,13 +218,16 @@ module ActionDispatch
       end
 
       def test_clear_trailing_slash_from_script_name_on_root_unanchored_routes
+        route_set = Routing::RouteSet.new
+        mapper = Routing::Mapper.new route_set
+
         strexp = Router::Strexp.new("/", {}, ['/', '.', '?'], false)
         path   = Path::Pattern.new strexp
         app    = lambda { |env| [200, {}, ['success!']] }
-        @router.routes.add_route(app, path, {}, {}, {})
+        mapper.get '/weblog', :to => app
 
         env  = rack_env('SCRIPT_NAME' => '', 'PATH_INFO' => '/weblog')
-        resp = @router.serve rails_env env
+        resp = route_set.call env
         assert_equal ['success!'], resp.last
         assert_equal '', env['SCRIPT_NAME']
       end
