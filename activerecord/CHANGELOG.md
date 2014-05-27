@@ -1,3 +1,11 @@
+*   Fix redefine a has_and_belongs_to_many inside inherited class
+    Fixing regression case, where redefining the same has_an_belongs_to_many
+    definition into a subclass would raise.
+
+    Fixes #14983.
+
+    *arthurnn*
+
 *   Add a properties API to allow custom types and type casting behavior
     to be specified. Will enable many edge cases to be deprecated, and
     allow for additional interesting features in the future.
