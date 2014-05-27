@@ -1,3 +1,9 @@
+*   Add `increment_counter!`, `decrement_counter!`, and `update_counters!`
+    which will ensure that the updated_at field is also updated whenever
+    counters are changed.
+
+    *Chris Burkhart*
+
 *   `rake railties:install:migrations` respects the order of railties.
 
     *Arun Agrawal*
