@@ -1196,6 +1196,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  test "preloading the same association twice works" do
+    Member.create!
+    members = Member.preload(:current_membership).includes(current_membership: :club).all.to_a
+    assert_no_queries {
+      members_with_membership = members.select(&:current_membership)
+      assert_equal 3, members_with_membership.map(&:current_membership).map(&:club).size
+    }
+  end
+
   test "preloading with a polymorphic association and using the existential predicate" do
     assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
 
