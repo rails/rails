@@ -298,7 +298,7 @@ module ActiveRecord
         end
 
         class << self
-          TYPES = ConnectionAdapters::Type::HashLookupTypeMap.new # :nodoc:
+          TYPES = Type::HashLookupTypeMap.new # :nodoc:
 
           delegate :register_type, :alias_type, to: :TYPES
 
