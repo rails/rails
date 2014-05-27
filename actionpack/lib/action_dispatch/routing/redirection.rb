@@ -22,14 +22,7 @@ module ActionDispatch
       end
 
       def serve(req)
-        # If any of the path parameters has an invalid encoding then
-        # raise since it's likely to trigger errors further on.
-        req.path_parameters.each do |key, value|
-          unless value.valid_encoding?
-            raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
-          end
-        end
-
+        req.check_path_parameters!
         uri = URI.parse(path(req.path_parameters, req))
         
         unless uri.host
