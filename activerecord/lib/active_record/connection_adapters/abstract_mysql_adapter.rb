@@ -223,8 +223,6 @@ module ActiveRecord
         if value.kind_of?(String) && column && column.type == :binary
           s = value.unpack("H*")[0]
           "x'#{s}'"
-        elsif value.kind_of?(BigDecimal)
-          value.to_s("F")
         else
           super
         end
