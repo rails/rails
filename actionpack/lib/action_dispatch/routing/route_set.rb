@@ -8,6 +8,7 @@ require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/array/extract_options'
 require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
@@ -20,14 +21,20 @@ module ActionDispatch
 
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
-      class Dispatcher #:nodoc:
+      class Dispatcher < Routing::Endpoint #:nodoc:
         def initialize(defaults)
           @defaults = defaults
           @controller_class_names = ThreadSafe::Cache.new
         end
 
+        def dispatcher?; true; end
+
         def call(env)
-          params = env[PARAMETERS_KEY]
+          serve Request.new env
+        end
+
+        def serve(req)
+          params = req.path_parameters
 
           # If any of the path parameters has an invalid encoding then
           # raise since it's likely to trigger errors further on.
@@ -46,7 +53,7 @@ module ActionDispatch
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
-          dispatch(controller, params[:action], env)
+          dispatch(controller, params[:action], req.env)
         end
 
         def prepare_params!(params)

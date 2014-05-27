@@ -3,10 +3,11 @@ require 'active_support/core_ext/uri'
 require 'active_support/core_ext/array/extract_options'
 require 'rack/utils'
 require 'action_controller/metal/exceptions'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
-    class Redirect # :nodoc:
+    class Redirect < Endpoint # :nodoc:
       attr_reader :status, :block
 
       def initialize(status, block)
@@ -14,9 +15,13 @@ module ActionDispatch
         @block  = block
       end
 
-      def call(env)
-        req = Request.new(env)
+      def redirect?; true; end
 
+      def call(env)
+        serve Request.new env
+      end
+
+      def serve(req)
         # If any of the path parameters has an invalid encoding then
         # raise since it's likely to trigger errors further on.
         req.path_parameters.each do |key, value|

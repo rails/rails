@@ -6,6 +6,7 @@ require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
@@ -15,10 +16,10 @@ module ActionDispatch
                        :controller, :action, :path_names, :constraints,
                        :shallow, :blocks, :defaults, :options]
 
-      class Constraints #:nodoc:
+      class Constraints < Endpoint #:nodoc:
         attr_reader :app, :constraints
 
-        def initialize(app, constraints, request, dispatcher_p, redirect_p)
+        def initialize(app, constraints, request, dispatcher_p)
           # Unwrap Constraints objects.  I don't actually think it's possible
           # to pass a Constraints object to this constructor, but there were
           # multiple places that kept testing children of this object.  I
@@ -29,13 +30,11 @@ module ActionDispatch
           end
 
           @dispatcher = dispatcher_p
-          @redirect   = redirect_p
 
           @app, @constraints, @request = app, constraints, request
         end
 
         def dispatcher?; @dispatcher; end
-        def redirect?; @redirect; end
 
         def matches?(req)
           @constraints.all? do |constraint|
@@ -220,24 +219,21 @@ module ActionDispatch
           end
 
           def app
-            dispatcher_p = false
-            redirect     = false
-
             # Unwrap any constraints so we can see what's inside for route generation.
             # This allows the formatter to skip over any mounted applications or redirects
             # that shouldn't be matched when using a url_for without a route name.
             if to.respond_to?(:call)
-              endpoint = to
-              redirect = Redirect === endpoint
+              if Redirect === to
+                to
+              else
+                Constraints.new(to, blocks, @set.request_class, false)
+              end
             else
-              dispatcher_p = true
-              endpoint = dispatcher
-            end
-
-            if blocks.any?
-              Constraints.new(endpoint, blocks, @set.request_class, dispatcher_p, redirect)
-            else
-              Constraints.new(endpoint, blocks, @set.request_class, dispatcher_p, redirect)
+              if blocks.any?
+                Constraints.new(dispatcher, blocks, @set.request_class, true)
+              else
+                dispatcher
+              end
             end
           end
 
