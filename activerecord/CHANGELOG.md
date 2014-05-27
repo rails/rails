@@ -1,5 +1,13 @@
 ## Rails 4.1.2 (unreleased) ##
 
+*   Fix redefine a has_and_belongs_to_many inside inherited class
+    Fixing regression case, where redefining the same has_an_belongs_to_many
+    definition into a subclass would raise.
+
+    Fixes #14983.
+
+    *arthurnn*
+
 *   Fix has_and_belongs_to_many public reflection.
     When defining a has_and_belongs_to_many, internally we convert that to two has_many.
     But as `reflections` is a public API, people expect to see the right macro.
