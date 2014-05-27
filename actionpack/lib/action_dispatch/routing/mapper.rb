@@ -19,7 +19,7 @@ module ActionDispatch
       class Constraints < Endpoint #:nodoc:
         attr_reader :app, :constraints
 
-        def initialize(app, constraints, request, dispatcher_p)
+        def initialize(app, constraints, dispatcher_p)
           # Unwrap Constraints objects.  I don't actually think it's possible
           # to pass a Constraints object to this constructor, but there were
           # multiple places that kept testing children of this object.  I
@@ -31,7 +31,7 @@ module ActionDispatch
 
           @dispatcher = dispatcher_p
 
-          @app, @constraints, @request = app, constraints, request
+          @app, @constraints, = app, constraints
         end
 
         def dispatcher?; @dispatcher; end
@@ -226,11 +226,11 @@ module ActionDispatch
               if Redirect === to
                 to
               else
-                Constraints.new(to, blocks, @set.request_class, false)
+                Constraints.new(to, blocks, false)
               end
             else
               if blocks.any?
-                Constraints.new(dispatcher, blocks, @set.request_class, true)
+                Constraints.new(dispatcher, blocks, true)
               else
                 dispatcher
               end
