@@ -36,7 +36,7 @@
 
 *   Change belongs_to touch to be consistent with timestamp updates
 
-    If a model is set up with a belongs_to: touch relatinoship the parent
+    If a model is set up with a belongs_to: touch relationship the parent
     record will only be touched if the record was modified. This makes it
     consistent with timestamp updating on the record itself.
 
