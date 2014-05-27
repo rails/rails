@@ -6,11 +6,6 @@ module ActionDispatch
     module Parameters
       PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
-      def initialize(env)
-        super
-        @symbolized_path_params = nil
-      end
-
       # Returns both GET and POST \parameters in a single hash.
       def parameters
         @env["action_dispatch.request.parameters"] ||= begin
