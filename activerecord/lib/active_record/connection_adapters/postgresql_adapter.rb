@@ -478,6 +478,8 @@ module ActiveRecord
             # places after decimal  = fmod - 4 & 0xffff
             # places before decimal = (fmod - 4) >> 16 & 0xffff
             if fmod && (fmod - 4 & 0xffff).zero?
+              # FIXME: Remove this class, and the second argument to
+              # lookups on PG
               Type::DecimalWithoutScale.new(precision: precision)
             else
               OID::Decimal.new(precision: precision, scale: scale)

@@ -11,7 +11,10 @@ require MIGRATIONS_ROOT + "/rename/1_we_need_things"
 require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
-class BigNumber < ActiveRecord::Base; end
+class BigNumber < ActiveRecord::Base
+  property :world_population, Type::Integer.new
+  property :my_house_population, Type::Integer.new
+end
 
 class Reminder < ActiveRecord::Base; end
 
