@@ -44,7 +44,13 @@ module ActionDispatch
         end
 
         def serve(req)
-          matches?(req) ? @app.call(req.env) : [ 404, {'X-Cascade' => 'pass'}, [] ]
+          return [ 404, {'X-Cascade' => 'pass'}, [] ] unless matches?(req)
+
+          if dispatcher?
+            @app.serve req
+          else
+            @app.call req.env
+          end
         ensure
           req.reset_parameters
         end
@@ -219,15 +225,10 @@ module ActionDispatch
           end
 
           def app
-            # Unwrap any constraints so we can see what's inside for route generation.
-            # This allows the formatter to skip over any mounted applications or redirects
-            # that shouldn't be matched when using a url_for without a route name.
+            return to if Redirect === to
+
             if to.respond_to?(:call)
-              if Redirect === to
-                to
-              else
-                Constraints.new(to, blocks, false)
-              end
+              Constraints.new(to, blocks, false)
             else
               if blocks.any?
                 Constraints.new(dispatcher, blocks, true)
