@@ -1,4 +1,4 @@
-## Rails 4.0.6 (unreleased) ##
+## Rails 4.0.6 (May 27, 2014) ##
 
 *No changes*
 
