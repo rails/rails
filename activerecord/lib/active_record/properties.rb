@@ -1,5 +1,5 @@
 module ActiveRecord
-  module Properties
+  module Properties # :nodoc:
     extend ActiveSupport::Concern
 
     Type = ConnectionAdapters::Type
@@ -64,19 +64,7 @@ module ActiveRecord
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        @columns ||= add_user_provided_columns(connection.schema_cache.columns(table_name)).each do |column|
-          if Type::DecimalWithoutScale === column.cast_type
-            ActiveSupport::Deprecation.warn <<-MESSAGE.strip_heredoc
-              Decimal columns with 0 scale being automatically treated as integers
-              is deprecated, and will be removed in a future version of Rails. If
-              you'd like to keep this behavior, add
-
-                property :#{column.name}, Type::Integer.new
-
-              to your #{name} model.
-            MESSAGE
-          end
-        end
+        @columns ||= add_user_provided_columns(connection.schema_cache.columns(table_name))
       end
 
       # Returns a hash of column objects for the table associated with this class.
