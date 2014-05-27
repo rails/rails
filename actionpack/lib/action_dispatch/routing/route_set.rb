@@ -29,10 +29,6 @@ module ActionDispatch
 
         def dispatcher?; true; end
 
-        def call(env)
-          serve Request.new env
-        end
-
         def serve(req)
           params = req.path_parameters
 
