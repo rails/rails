@@ -125,6 +125,16 @@ module ActiveRecord
           assert_equal mapping.lookup(3), 'string'
           assert_kind_of Type::Value, mapping.lookup(4)
         end
+
+        def test_clear_mappings
+          time = Time.new
+          mapping = TypeMap.new
+
+          mapping.register_type(/time/i, time)
+          mapping.clear
+
+          assert_not_equal mapping.lookup('time'), time
+        end
       end
     end
   end
