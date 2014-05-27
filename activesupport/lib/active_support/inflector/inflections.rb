@@ -161,6 +161,8 @@ module ActiveSupport
       #   uncountable %w( money information rice )
       def uncountable(*words)
         (@uncountables << words).flatten!
+        @uncountables.uniq!
+        @uncountables
       end
 
       # Specifies a humanized form of a string by a regular expression rule or
