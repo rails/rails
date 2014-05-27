@@ -1,3 +1,8 @@
+*   `rake railties:install:migrations` respects the order of railties.
+
+    *Arun Agrawal*
+
+
 ## Rails 4.1.2 (unreleased) ##
 
 *   Fix redefine a has_and_belongs_to_many inside inherited class
