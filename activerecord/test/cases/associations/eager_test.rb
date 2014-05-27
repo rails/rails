@@ -1167,7 +1167,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     )
   end
 
-  test "deep preload"
+  test "deep preload" do
     post = Post.preload(author: :posts, comments: :post).first
 
     assert_predicate post.author.association(:posts), :loaded?
