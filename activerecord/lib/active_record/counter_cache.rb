@@ -75,13 +75,21 @@ module ActiveRecord
       #   #    SET comment_count = COALESCE(comment_count, 0) + 1
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
-        updates = counters.map do |counter_name, value|
-          operator = value < 0 ? '-' : '+'
-          quoted_column = connection.quote_column_name(counter_name)
-          "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
-        end
+        unscoped.where(primary_key => id).update_all updates(counters).join(', ')
+      end
 
-        unscoped.where(primary_key => id).update_all updates.join(', ')
+      # This method differs from its non-bang version in that it also sets updated_at / updated_on to now.
+      #
+      # If timestamp columns are missing, it will operate the same as the non-bang version.
+      #
+      def update_counters!(id, counters)
+        now = connection.quote(connection.quoted_date(instance_method(:current_time_from_proper_timezone).bind(self.new).call))
+        changes = updates(counters)
+        instance_method(:timestamp_attributes_for_update_in_model).bind(self.new).call.each do |column|
+          quoted_column = connection.quote_column_name(column)
+          changes << "#{quoted_column} = #{now}"
+        end
+        unscoped.where(primary_key => id).update_all changes.join(', ')
       end
 
       # Increment a numeric field by one, via a direct SQL update.
@@ -104,6 +112,14 @@ module ActiveRecord
         update_counters(id, counter_name => 1)
       end
 
+      # This method differs from its non-bang version in that it also sets updated_at / updated_on to now.
+      #
+      # If timestamp columns are missing, it will operate the same as the non-bang version.
+      #
+      def increment_counter!(counter_name, id)
+        update_counters!(id, counter_name => 1)
+      end
+
       # Decrement a numeric field by one, via a direct SQL update.
       #
       # This works the same as increment_counter but reduces the column value by
@@ -121,6 +137,23 @@ module ActiveRecord
       def decrement_counter(counter_name, id)
         update_counters(id, counter_name => -1)
       end
+
+      # This method differs from its non-bang version in that it also sets updated_at / updated_on to now.
+      #
+      # If timestamp columns are missing, it will operate the same as the non-bang version.
+      #
+      def decrement_counter!(counter_name, id)
+        update_counters!(id, counter_name => -1)
+      end
+
+      private
+        def updates(counters)
+          counters.map do |counter_name, value|
+            operator = value < 0 ? '-' : '+'
+            quoted_column = connection.quote_column_name(counter_name)
+            "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
+          end
+        end
     end
 
     protected

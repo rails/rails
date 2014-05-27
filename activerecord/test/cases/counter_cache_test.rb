@@ -35,9 +35,33 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "increment counter with bang" do
+    @topic.updated_at = 1.minute.ago
+    @topic.save!
+    current_time = @topic.updated_at
+    assert_not_equal current_time, '@topic.reload.updated_at' do
+      Topic.increment_counter!(:replies_count, @topic.id)
+    end
+  end
+
+  test "increment counter with bang on table without timestamps" do
+    category = categories(:general)
+    Category.increment_counter!(:categorizations_count, category.id)
+    assert_equal 1, category.reload.categorizations_count
+  end
+
   test "decrement counter" do
     assert_difference '@topic.reload.replies_count', -1 do
       Topic.decrement_counter(:replies_count, @topic.id)
+    end
+  end
+
+  test "decrement counter with bang" do
+    @topic.updated_at = 1.minute.ago
+    @topic.save!
+    current_time = @topic.updated_at
+    assert_not_equal current_time, '@topic.reload.updated_at' do
+      Topic.decrement_counter!(:updated_at, @topic.id)
     end
   end
 
@@ -132,9 +156,30 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "update counters of multiple records with bang" do
+    t1, t2 = topics(:first, :second)
+    t1.updated_at, t2.updated_at = 1.minute.ago, 1.minute.ago
+    t1.save
+    t2.save
+    t1_current_time = t1.updated_at
+    t2_current_time = t2.updated_at
+    Topic.update_counters!([t1.id, t2.id], :replies_count => 2)
+    assert_not_equal t1_current_time, t1.reload.updated_at
+    assert_not_equal t2_current_time, t2.reload.updated_at
+  end
+
   test 'update multiple counters' do
     assert_difference ['@topic.reload.replies_count', '@topic.reload.unique_replies_count'], 2 do
       Topic.update_counters @topic.id, replies_count: 2, unique_replies_count: 2
+    end
+  end
+
+  test 'update multiple counters with bang' do
+    @topic.updated_at = 1.minute.ago
+    @topic.save!
+    current_time = @topic.updated_at
+    assert_not_equal current_time, '@topic.reload.updated_at' do
+      Topic.update_counters! @topic.id, replies_count: 2, unique_replies_count: 2
     end
   end
 
