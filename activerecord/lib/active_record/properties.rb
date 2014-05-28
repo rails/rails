@@ -4,6 +4,11 @@ module ActiveRecord
 
     Type = ActiveRecord::Type
 
+    included do
+      class_attribute :user_provided_columns, instance_accessor: false # :internal
+      self.user_provided_columns = {}
+    end
+
     module ClassMethods
       # Defines or overrides a property on this model. This allows customization of
       # Active Record's type casting behavior, as well as adding support for user defined
@@ -59,7 +64,8 @@ module ActiveRecord
       #   store_listing.price_in_cents # => 1000
       def property(name, cast_type)
         name = name.to_s
-        user_provided_columns[name] = ConnectionAdapters::Column.new(name, nil, cast_type)
+        # Assign a new hash to ensure that subclasses do not share a hash
+        self.user_provided_columns = user_provided_columns.merge(name => ConnectionAdapters::Column.new(name, nil, cast_type))
       end
 
       # Returns an array of column objects for the table associated with this class.
@@ -80,10 +86,6 @@ module ActiveRecord
       end
 
       private
-
-      def user_provided_columns
-        @user_provided_columns ||= {}
-      end
 
       def add_user_provided_columns(schema_columns)
         schema_columns.reject { |column|

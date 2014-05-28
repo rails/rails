@@ -6,6 +6,13 @@ class OverloadedType < ActiveRecord::Base
   property :non_existent_decimal, Type::Decimal.new
 end
 
+class ChildOfOverloadedType < OverloadedType
+end
+
+class GrandchildOfOverloadedType < ChildOfOverloadedType
+  property :overloaded_float, Type::Float.new
+end
+
 class UnoverloadedType < ActiveRecord::Base
   self.table_name = 'overloaded_types'
 end
@@ -59,6 +66,18 @@ module ActiveRecord
 
       assert_nil data.overloaded_float
       assert unoverloaded_data.overloaded_float
+    end
+
+    def test_children_inherit_custom_properties
+      data = ChildOfOverloadedType.new(overloaded_float: '4.4')
+
+      assert_equal 4, data.overloaded_float
+    end
+
+    def test_children_can_override_parents
+      data = GrandchildOfOverloadedType.new(overloaded_float: '4.4')
+
+      assert_equal 4.4, data.overloaded_float
     end
   end
 end
