@@ -260,14 +260,19 @@ module ActionDispatch
                 end
               end
 
-              controller = controller.to_s unless controller.is_a?(Regexp)
+              hash = {}
+
               action     = action.to_s     unless action.is_a?(Regexp)
 
-              check_action! action
-              check_controller! controller
+              if controller.is_a? Regexp
+                hash[:controller] = controller
+              else
+                check_controller! controller.to_s
+                hash[:controller] = controller.to_s if controller
+              end
 
-              hash = {}
-              hash[:controller] = controller unless controller.blank?
+              check_action! action
+
               hash[:action]     = action unless action.blank?
               hash
             end
