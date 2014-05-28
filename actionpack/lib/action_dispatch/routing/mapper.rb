@@ -237,47 +237,44 @@ module ActionDispatch
           end
 
           def default_controller_and_action
-            if to.respond_to?(:call)
-              { }
-            else
-              controller = default_controller
-              action     = default_action
+            hash = {}
+            return hash if to.respond_to? :call
 
-              case to
-              when Symbol
-                action = to.to_s
-              when /#/
-                controller, action = to.split('#')
-              when String
-                controller = to
-              end
+            controller = default_controller
+            action     = default_action
 
-              if @scope[:module] && !controller.is_a?(Regexp)
-                if controller =~ %r{\A/}
-                  controller = controller[1..-1]
-                else
-                  controller = [@scope[:module], controller].compact.join("/").presence
-                end
-              end
-
-              hash = {}
-
-              if controller.is_a? Regexp
-                hash[:controller] = controller
-              else
-                check_controller! controller
-                hash[:controller] = controller.to_s if controller
-              end
-
-              if action.is_a? Regexp
-                hash[:action] = action
-              else
-                check_action! action
-                hash[:action] = action.to_s if action
-              end
-
-              hash
+            case to
+            when Symbol
+              action = to.to_s
+            when /#/
+              controller, action = to.split('#')
+            when String
+              controller = to
             end
+
+            if @scope[:module] && !controller.is_a?(Regexp)
+              if controller =~ %r{\A/}
+                controller = controller[1..-1]
+              else
+                controller = [@scope[:module], controller].compact.join("/").presence
+              end
+            end
+
+            if controller.is_a? Regexp
+              hash[:controller] = controller
+            else
+              check_controller! controller
+              hash[:controller] = controller.to_s if controller
+            end
+
+            if action.is_a? Regexp
+              hash[:action] = action
+            else
+              check_action! action
+              hash[:action] = action.to_s if action
+            end
+
+            hash
           end
 
           def check_action!(action)
