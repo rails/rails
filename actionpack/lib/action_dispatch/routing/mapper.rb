@@ -247,16 +247,15 @@ module ActionDispatch
               @scope[:module]
             )
 
-            if controller.is_a? Regexp
+            case controller
+            when Regexp
               hash[:controller] = controller
+            when String, Symbol
+              hash[:controller] = check_controller!(controller).to_s
             else
-              if controller
-                hash[:controller] = check_controller!(controller).to_s
-              else
-                unless segment_keys.include?(:controller)
-                  message = "Missing :controller key on routes definition, please check your routes."
-                  raise ArgumentError, message
-                end
+              unless segment_keys.include?(:controller)
+                message = "Missing :controller key on routes definition, please check your routes."
+                raise ArgumentError, message
               end
             end
 
