@@ -281,20 +281,20 @@ module ActionDispatch
           end
 
           def check_action!(action)
-            if action.nil? && segment_keys.exclude?(:action)
+            unless action || segment_keys.include?(:action)
               message = "Missing :action key on routes definition, please check your routes."
               raise ArgumentError, message
             end
           end
 
           def check_controller!(controller)
-            if controller.is_a?(String) && controller =~ %r{\A/}
-              raise ArgumentError, "controller name should not start with a slash"
-            end
-
-            if controller.nil? && segment_keys.exclude?(:controller)
+            unless controller || segment_keys.include?(:controller)
               message = "Missing :controller key on routes definition, please check your routes."
               raise ArgumentError, message
+            end
+
+            if controller.is_a?(String) && controller =~ %r{\A/}
+              raise ArgumentError, "controller name should not start with a slash"
             end
 
             if controller.is_a?(String) && controller !~ /\A[a-z_0-9\/]*\z/
