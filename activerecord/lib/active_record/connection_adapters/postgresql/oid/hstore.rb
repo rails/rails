@@ -8,7 +8,13 @@ module ActiveRecord
           end
 
           def type_cast_for_write(value)
-            ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
+            # roundtrip to ensure uniform uniform types
+            # TODO: This is not an efficient solution.
+            cast_value(type_cast_for_database(value))
+          end
+
+          def type_cast_for_database(value)
+            ConnectionAdapters::PostgreSQLColumn.hstore_to_string(value)
           end
 
           def cast_value(value)

@@ -1,3 +1,10 @@
+*   Keep PostgreSQL `hstore` and `json` attributes as `Hash` in `@attributes`.
+    Fixes duplication in combination with `store_accessor`.
+
+    Fixes #15369.
+
+    *Yves Senn*
+
 *   `rake railties:install:migrations` respects the order of railties.
 
     *Arun Agrawal*
