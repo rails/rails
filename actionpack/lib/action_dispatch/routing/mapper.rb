@@ -294,16 +294,16 @@ module ActionDispatch
             end
 
             return unless controller
+            return if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
 
             if controller =~ %r{\A/}
-              raise ArgumentError, "controller name should not start with a slash"
-            end
-
-            if controller !~ /\A[a-z_0-9\/]*\z/
+              message = "controller name should not start with a slash"
+            else
               message = "'#{controller}' is not a supported controller name. This can lead to potential routing problems."
               message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
-              raise ArgumentError, message
             end
+
+            raise ArgumentError, message
           end
 
           def blocks
