@@ -26,10 +26,6 @@ class AssertSelectEmailTest < ActionMailer::TestCase
   # Test assert_select_email
   #
 
-  def setup
-    @response = FakeResponse.new(:html, 'some body text')
-  end
-
   def test_assert_select_email
     assert_raise(Assertion) { assert_select_email {} }
     AssertSelectMailer.test("<div><p>foo</p><p>bar</p></div>").deliver
@@ -50,14 +46,4 @@ class AssertSelectEmailTest < ActionMailer::TestCase
       end
     end
   end
-
-  protected
-
-    class FakeResponse
-      attr_accessor :content_type, :body
-
-      def initialize(content_type, body)
-        @content_type, @body = content_type, body
-      end
-    end
 end
