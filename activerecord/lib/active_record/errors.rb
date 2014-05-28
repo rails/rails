@@ -217,6 +217,9 @@ module ActiveRecord
   class ImmutableRelation < ActiveRecordError
   end
 
+  # TransactionIsolationError will be raised if: The adapter does not support setting the isolation level;
+  # You are joining an existing open transaction; You are creating a nested (savepoint) transaction; The mysql,
+  # mysql2 and postgresql adapters support setting the transaction isolation level.
   class TransactionIsolationError < ActiveRecordError
   end
 end
