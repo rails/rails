@@ -3137,6 +3137,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/foo', foo_root_path
   end
 
+  def test_namespace_as_controller
+    draw do
+      namespace :foo do
+        get '/', to: '/bar#index', as: 'root'
+      end
+    end
+
+    get '/foo'
+    assert_equal 'bar#index', @response.body
+    assert_equal '/foo', foo_root_path
+  end
+
   def test_trailing_slash
     draw do
       resources :streams
