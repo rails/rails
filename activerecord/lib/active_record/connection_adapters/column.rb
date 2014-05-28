@@ -14,12 +14,9 @@ module ActiveRecord
       end
 
       attr_reader :name, :default, :cast_type, :null, :sql_type, :default_function
-      attr_accessor :coder
-
-      alias :encoded? :coder
 
       delegate :type, :precision, :scale, :limit, :klass, :text?, :number?, :binary?,
-        :type_cast_for_write, :type_cast_for_database, to: :cast_type
+        :type_cast, :type_cast_for_write, :type_cast_for_database, to: :cast_type
 
       # Instantiates a new column in the table.
       #
@@ -37,20 +34,10 @@ module ActiveRecord
         @null             = null
         @default          = extract_default(default)
         @default_function = nil
-        @coder            = nil
       end
 
       def has_default?
         !default.nil?
-      end
-
-      # Casts value to an appropriate instance.
-      def type_cast(value)
-        if encoded?
-          coder.load(value)
-        else
-          cast_type.type_cast(value)
-        end
       end
 
       # Returns the human name of the column name.
