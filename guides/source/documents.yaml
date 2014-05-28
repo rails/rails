@@ -162,7 +162,6 @@
     -
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
-      work_in_progress: true
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
       name: Ruby on Rails 4.1 Release Notes
