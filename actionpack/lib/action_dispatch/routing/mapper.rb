@@ -260,33 +260,40 @@ module ActionDispatch
                 end
               end
 
-              if controller.is_a?(String) && controller =~ %r{\A/}
-                raise ArgumentError, "controller name should not start with a slash"
-              end
-
               controller = controller.to_s unless controller.is_a?(Regexp)
               action     = action.to_s     unless action.is_a?(Regexp)
 
-              if controller.blank? && segment_keys.exclude?(:controller)
-                message = "Missing :controller key on routes definition, please check your routes."
-                raise ArgumentError, message
-              end
-
-              if action.blank? && segment_keys.exclude?(:action)
-                message = "Missing :action key on routes definition, please check your routes."
-                raise ArgumentError, message
-              end
-
-              if controller.is_a?(String) && controller !~ /\A[a-z_0-9\/]*\z/
-                message = "'#{controller}' is not a supported controller name. This can lead to potential routing problems."
-                message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
-                raise ArgumentError, message
-              end
+              check_action! action
+              check_controller! controller
 
               hash = {}
               hash[:controller] = controller unless controller.blank?
               hash[:action]     = action unless action.blank?
               hash
+            end
+          end
+
+          def check_action!(action)
+            if action.blank? && segment_keys.exclude?(:action)
+              message = "Missing :action key on routes definition, please check your routes."
+              raise ArgumentError, message
+            end
+          end
+
+          def check_controller!(controller)
+            if controller.is_a?(String) && controller =~ %r{\A/}
+              raise ArgumentError, "controller name should not start with a slash"
+            end
+
+            if controller.blank? && segment_keys.exclude?(:controller)
+              message = "Missing :controller key on routes definition, please check your routes."
+              raise ArgumentError, message
+            end
+
+            if controller.is_a?(String) && controller !~ /\A[a-z_0-9\/]*\z/
+              message = "'#{controller}' is not a supported controller name. This can lead to potential routing problems."
+              message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
+              raise ArgumentError, message
             end
           end
 
