@@ -259,11 +259,16 @@ module ActionDispatch
               end
             end
 
-            if action.is_a? Regexp
+            case action
+            when Regexp
               hash[:action] = action
+            when String, Symbol
+              hash[:action] = action.to_s
             else
-              check_action! action
-              hash[:action] = action.to_s if action
+              unless segment_keys.include?(:action)
+                message = "Missing :action key on routes definition, please check your routes."
+                raise ArgumentError, message
+              end
             end
 
             hash
@@ -287,13 +292,6 @@ module ActionDispatch
               end
             end
             [controller, action]
-          end
-
-          def check_action!(action)
-            unless action || segment_keys.include?(:action)
-              message = "Missing :action key on routes definition, please check your routes."
-              raise ArgumentError, message
-            end
           end
 
           def check_controller!(controller)
