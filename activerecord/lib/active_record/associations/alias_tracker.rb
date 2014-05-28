@@ -60,8 +60,10 @@ module ActiveRecord
               join.left.downcase.scan(
                 /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
               ).size
-            else
+            elsif join.respond_to? :left
               join.left.table_name == name ? 1 : 0
+            else
+              0
             end
           end
 
