@@ -325,10 +325,6 @@ module ActiveRecord
         @connection
       end
 
-      def open_transactions
-        @transaction.number
-      end
-
       def create_savepoint(name = nil)
       end
 

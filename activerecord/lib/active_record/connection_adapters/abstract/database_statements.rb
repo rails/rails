@@ -227,6 +227,10 @@ module ActiveRecord
         end
       end
 
+      def open_transactions
+        @transaction.number
+      end
+
       def current_transaction #:nodoc:
         @transaction
       end
