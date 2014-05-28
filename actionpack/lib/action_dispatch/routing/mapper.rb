@@ -240,25 +240,12 @@ module ActionDispatch
             hash = {}
             return hash if to.respond_to? :call
 
-            controller = default_controller
-            action     = default_action
-
-            case to
-            when Symbol
-              action = to.to_s
-            when /#/
-              controller, action = to.split('#')
-            when String
-              controller = to
-            end
-
-            if @scope[:module] && !controller.is_a?(Regexp)
-              if controller =~ %r{\A/}
-                controller = controller[1..-1]
-              else
-                controller = [@scope[:module], controller].compact.join("/")
-              end
-            end
+            controller, action = get_controller_and_action(
+              default_controller,
+              default_action,
+              to,
+              @scope[:module]
+            )
 
             if controller.is_a? Regexp
               hash[:controller] = controller
@@ -275,6 +262,26 @@ module ActionDispatch
             end
 
             hash
+          end
+
+          def get_controller_and_action(controller, action, to, modyoule)
+            case to
+            when Symbol
+              action = to.to_s
+            when /#/
+              controller, action = to.split('#')
+            when String
+              controller = to
+            end
+
+            if modyoule && !controller.is_a?(Regexp)
+              if controller =~ %r{\A/}
+                controller = controller[1..-1]
+              else
+                controller = [modyoule, controller].compact.join("/")
+              end
+            end
+            [controller, action]
           end
 
           def check_action!(action)
