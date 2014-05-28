@@ -240,14 +240,17 @@ module ActionDispatch
             if to.respond_to?(:call)
               { }
             else
-              if to.is_a?(String)
-                controller, action = to.split('#')
-              elsif to.is_a?(Symbol)
-                action = to.to_s
-              end
+              controller = default_controller
+              action     = default_action
 
-              controller ||= default_controller
-              action     ||= default_action
+              case to
+              when Symbol
+                action = to.to_s
+              when /#/
+                controller, action = to.split('#')
+              when String
+                controller = to
+              end
 
               if @scope[:module] && !controller.is_a?(Regexp)
                 if controller =~ %r{\A/}
