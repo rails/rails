@@ -57,26 +57,22 @@ module ActiveRecord
 
       def test_type_cast_non_integer_to_integer
         type = Type::Integer.new
-        assert_nil type.type_cast([1,2])
-        assert_nil type.type_cast({1 => 2})
-        assert_nil type.type_cast((1..2))
+        assert_raises(UnableToTypeCast) { type.type_cast([1,2]) }
+        assert_raises(UnableToTypeCast) { type.type_cast({1 => 2}) }
+        assert_raises(UnableToTypeCast) { type.type_cast((1..2)) }
       end
 
-      def test_type_cast_activerecord_to_integer
-        type = Type::Integer.new
-        firm = Firm.create(:name => 'Apple')
-        assert_nil type.type_cast(firm)
-      end
+      def test_columns_add_column_name_to_exception
+        column = Column.new('my_column', nil, Type::Integer.new)
+        raised = nil
 
-      def test_type_cast_object_without_to_i_to_integer
-        type = Type::Integer.new
-        assert_nil type.type_cast(Object.new)
-      end
+        begin
+          column.type_cast([1, 2])
+        rescue UnableToTypeCast => e
+          raised = e
+        end
 
-      def test_type_cast_nan_and_infinity_to_integer
-        type = Type::Integer.new
-        assert_nil type.type_cast(Float::NAN)
-        assert_nil type.type_cast(1.0/0.0)
+        assert_equal 'my_column', raised.column_name
       end
 
       def test_type_cast_float

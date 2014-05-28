@@ -51,6 +51,8 @@ module ActiveRecord
         else
           cast_type.type_cast(value)
         end
+      rescue UnableToTypeCast => e
+        raise UnableToTypeCast.new(e.message, name)
       end
 
       # Returns the human name of the column name.
