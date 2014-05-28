@@ -256,7 +256,7 @@ module ActionDispatch
               if controller =~ %r{\A/}
                 controller = controller[1..-1]
               else
-                controller = [@scope[:module], controller].compact.join("/").presence
+                controller = [@scope[:module], controller].compact.join("/")
               end
             end
 
