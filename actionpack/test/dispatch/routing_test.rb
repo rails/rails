@@ -3478,6 +3478,33 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     @app.draw(&block)
   end
 
+  def test_missing_controller
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get '/foo/bar', :to => :index
+      end
+    }
+    assert_match(/Missing :controller/, ex.message)
+  end
+
+  def test_missing_action
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get '/foo/bar', :to => 'foo'
+      end
+    }
+    assert_match(/Missing :action/, ex.message)
+  end
+
+  def test_missing_action_on_hash
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get '/foo/bar', :to => 'foo#'
+      end
+    }
+    assert_match(/Missing :action/, ex.message)
+  end
+
   def test_valid_controller_options_inside_namespace
     draw do
       namespace :admin do
