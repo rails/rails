@@ -237,8 +237,7 @@ module ActionDispatch
           end
 
           def default_controller_and_action
-            hash = {}
-            return hash if to.respond_to? :call
+            return {} if to.respond_to? :call
 
             controller, action = get_controller_and_action(
               default_controller,
@@ -247,24 +246,28 @@ module ActionDispatch
               @scope[:module]
             )
 
-            if controller
-              hash[:controller] = translate_controller controller
+            hash = check_part(:controller, controller, {}) do
+              translate_controller controller
+            end
+
+            check_part(:action, action, hash) do
+              if Regexp === action
+                action
+              else
+                action.to_s
+              end
+            end
+          end
+
+          def check_part(name, part, hash)
+            if part
+              hash[name] = yield
             else
-              unless segment_keys.include?(:controller)
-                message = "Missing :controller key on routes definition, please check your routes."
+              unless segment_keys.include?(name)
+                message = "Missing :#{name} key on routes definition, please check your routes."
                 raise ArgumentError, message
               end
             end
-
-            if action
-              hash[:action] = translate_action action
-            else
-              unless segment_keys.include?(:action)
-                message = "Missing :action key on routes definition, please check your routes."
-                raise ArgumentError, message
-              end
-            end
-
             hash
           end
 
@@ -286,10 +289,6 @@ module ActionDispatch
               end
             end
             [controller, action]
-          end
-
-          def translate_action(action)
-            Regexp === action ? action : action.to_s
           end
 
           def translate_controller(controller)
