@@ -250,8 +250,14 @@ module ActionDispatch
             if controller.is_a? Regexp
               hash[:controller] = controller
             else
-              check_controller! controller
-              hash[:controller] = controller.to_s if controller
+              if controller
+                hash[:controller] = check_controller!(controller).to_s
+              else
+                unless segment_keys.include?(:controller)
+                  message = "Missing :controller key on routes definition, please check your routes."
+                  raise ArgumentError, message
+                end
+              end
             end
 
             if action.is_a? Regexp
@@ -292,13 +298,7 @@ module ActionDispatch
           end
 
           def check_controller!(controller)
-            unless controller || segment_keys.include?(:controller)
-              message = "Missing :controller key on routes definition, please check your routes."
-              raise ArgumentError, message
-            end
-
-            return unless controller
-            return if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
+            return controller if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
 
             if controller =~ %r{\A/}
               message = "controller name should not start with a slash"
