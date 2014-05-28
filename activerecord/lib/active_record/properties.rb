@@ -88,9 +88,14 @@ module ActiveRecord
       private
 
       def add_user_provided_columns(schema_columns)
-        schema_columns.reject { |column|
-          user_provided_columns.key? column.name
-        } + user_provided_columns.values
+        existing_columns = schema_columns.map do |column|
+          user_provided_columns[column.name] || column
+        end
+
+        existing_column_names = existing_columns.map(&:name)
+        new_columns = user_provided_columns.except(*existing_column_names).values
+
+        existing_columns + new_columns
       end
     end
   end

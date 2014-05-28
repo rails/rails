@@ -79,5 +79,10 @@ module ActiveRecord
 
       assert_equal 4.4, data.overloaded_float
     end
+
+    def test_overloading_properties_does_not_change_column_order
+      column_names = OverloadedType.column_names
+      assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit non_existent_decimal), column_names
+    end
   end
 end
