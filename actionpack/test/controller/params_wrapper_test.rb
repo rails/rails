@@ -337,14 +337,26 @@ class IrregularInflectionParamsWrapperTest < ActionController::TestCase
   tests ParamswrappernewsController
 
   def test_uses_model_attribute_names_with_irregular_inflection
-    ActiveSupport::Inflector.inflections do |inflect|
-      inflect.irregular 'paramswrappernews_item', 'paramswrappernews'
-    end
+    with_dup do
+      ActiveSupport::Inflector.inflections do |inflect|
+        inflect.irregular 'paramswrappernews_item', 'paramswrappernews'
+      end
 
-    with_default_wrapper_options do
-      @request.env['CONTENT_TYPE'] = 'application/json'
-      post :parse, { 'username' => 'sikachu', 'test_attr' => 'test_value' }
-      assert_parameters({ 'username' => 'sikachu', 'test_attr' => 'test_value', 'paramswrappernews_item' => { 'test_attr' => 'test_value' }})
+      with_default_wrapper_options do
+        @request.env['CONTENT_TYPE'] = 'application/json'
+        post :parse, { 'username' => 'sikachu', 'test_attr' => 'test_value' }
+        assert_parameters({ 'username' => 'sikachu', 'test_attr' => 'test_value', 'paramswrappernews_item' => { 'test_attr' => 'test_value' }})
+      end
     end
+  end
+
+  private
+
+  def with_dup
+    original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)[:en]
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: original.dup)
+    yield
+  ensure
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: original)
   end
 end
