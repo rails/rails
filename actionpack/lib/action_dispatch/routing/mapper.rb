@@ -265,14 +265,14 @@ module ActionDispatch
               if controller.is_a? Regexp
                 hash[:controller] = controller
               else
-                check_controller! controller.to_s
+                check_controller! controller
                 hash[:controller] = controller.to_s if controller
               end
 
               if action.is_a? Regexp
                 hash[:action] = action
               else
-                check_action! action.to_s
+                check_action! action
                 hash[:action] = action.to_s if action
               end
 
@@ -281,7 +281,7 @@ module ActionDispatch
           end
 
           def check_action!(action)
-            if action.blank? && segment_keys.exclude?(:action)
+            if action.nil? && segment_keys.exclude?(:action)
               message = "Missing :action key on routes definition, please check your routes."
               raise ArgumentError, message
             end
@@ -292,7 +292,7 @@ module ActionDispatch
               raise ArgumentError, "controller name should not start with a slash"
             end
 
-            if controller.blank? && segment_keys.exclude?(:controller)
+            if controller.nil? && segment_keys.exclude?(:controller)
               message = "Missing :controller key on routes definition, please check your routes."
               raise ArgumentError, message
             end
