@@ -48,7 +48,7 @@ module ActionView
       # Change allowed default attributes
       #
       #   class Application < Rails::Application
-      #     config.action_view.sanitized_allowed_attributes = 'id', 'class', 'style'
+      #     config.action_view.sanitized_allowed_attributes = ['id', 'class', 'style']
       #   end
       #
       # Please note that sanitizing user-provided text does not guarantee that the
@@ -204,7 +204,7 @@ module ActionView
         # Adds to the Set of allowed HTML attributes for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_attributes = 'onclick', 'longdesc'
+        #     config.action_view.sanitized_allowed_attributes = ['onclick', 'longdesc']
         #   end
         #
         def sanitized_allowed_attributes=(attributes)
