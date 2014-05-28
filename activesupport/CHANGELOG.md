@@ -1,3 +1,16 @@
+*   Fixed precision error in NumberHelper when using Rationals.
+
+    before:
+        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
+        #=> "330.00"
+    after:
+        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
+        #=> "333.33"
+
+    See #15379.
+
+    *Juanjo Bazán*
+
 *   Removed deprecated `Numeric#ago` and friends
 
     Replacements:
