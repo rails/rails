@@ -715,7 +715,7 @@ module Arel
         quote(o, column_for(a))
       end
 
-      def unsupported o
+      def unsupported o, collector
         raise "unsupported: #{o.class.name}"
       end
 

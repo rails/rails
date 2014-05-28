@@ -247,6 +247,11 @@ module Arel
         compile(Nodes.build_quoted(nil)).must_be_like "NULL"
       end
 
+      it "unsupported input should not raise ArgumentError" do
+        error = assert_raises(RuntimeError) { compile(nil) }
+        assert_match /\Aunsupported/, error.message
+      end
+
       it "should visit_Arel_SelectManager, which is a subquery" do
         mgr = Table.new(:foo).project(:bar)
         compile(mgr).must_be_like '(SELECT bar FROM "foo")'
