@@ -14,10 +14,6 @@
 
     *Matthew Draper*
 
-*   Do not set the Rails environment to test by default when using test_unit Railtie.
-
-    *Konstantin Shabanov*
-
 
 ## Rails 4.1.1 (May 6, 2014) ##
 
