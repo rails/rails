@@ -58,29 +58,15 @@ module ActiveRecord
                     Coders::YAMLColumn.new(class_name_or_coder)
                   end
 
+          type = columns_hash[attr_name.to_s].cast_type
+          if type.serialized?
+            type = type.subtype
+          end
+          property attr_name, ActiveRecord::Type::Serialized.new(type)
+
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
           # has its own hash of own serialized attributes
           self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
-        end
-      end
-
-      class Type # :nodoc:
-        delegate :type, :type_cast_for_database, to: :@column
-
-        def initialize(column)
-          @column = column
-        end
-
-        def type_cast(value)
-          if value.state == :serialized
-            value.unserialized_value @column.type_cast value.value
-          else
-            value.unserialized_value
-          end
-        end
-
-        def accessor
-          ActiveRecord::Store::IndifferentHashAccessor
         end
       end
 

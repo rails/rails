@@ -43,6 +43,10 @@ module ActiveRecord
         false
       end
 
+      def serialized?
+        false
+      end
+
       def klass
         ::Object
       end

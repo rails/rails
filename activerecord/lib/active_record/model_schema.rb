@@ -224,14 +224,6 @@ module ActiveRecord
       def decorate_columns(columns_hash) # :nodoc:
         return if columns_hash.empty?
 
-        @serialized_column_names ||= self.columns_hash.keys.find_all do |name|
-          serialized_attributes.key?(name)
-        end
-
-        @serialized_column_names.each do |name|
-          columns_hash[name] = AttributeMethods::Serialization::Type.new(columns_hash[name])
-        end
-
         @time_zone_column_names ||= self.columns_hash.find_all do |name, col|
           create_time_zone_conversion_attribute?(name, col)
         end.map!(&:first)
@@ -299,7 +291,6 @@ module ActiveRecord
         @dynamic_methods_hash    = nil
         @inheritance_column      = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation                = nil
-        @serialized_column_names = nil
         @time_zone_column_names  = nil
         @cached_time_zone        = nil
       end
