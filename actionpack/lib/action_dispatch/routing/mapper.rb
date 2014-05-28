@@ -247,11 +247,8 @@ module ActionDispatch
               @scope[:module]
             )
 
-            case controller
-            when Regexp
-              hash[:controller] = controller
-            when String, Symbol
-              hash[:controller] = check_controller!(controller).to_s
+            if controller
+              hash[:controller] = translate_controller controller
             else
               unless segment_keys.include?(:controller)
                 message = "Missing :controller key on routes definition, please check your routes."
@@ -259,11 +256,8 @@ module ActionDispatch
               end
             end
 
-            case action
-            when Regexp
-              hash[:action] = action
-            when String, Symbol
-              hash[:action] = action.to_s
+            if action
+              hash[:action] = translate_action action
             else
               unless segment_keys.include?(:action)
                 message = "Missing :action key on routes definition, please check your routes."
@@ -294,8 +288,13 @@ module ActionDispatch
             [controller, action]
           end
 
-          def check_controller!(controller)
-            return controller if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
+          def translate_action(action)
+            Regexp === action ? action : action.to_s
+          end
+
+          def translate_controller(controller)
+            return controller if Regexp === controller
+            return controller.to_s if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
 
             if controller =~ %r{\A/}
               message = "controller name should not start with a slash"
