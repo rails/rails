@@ -2,8 +2,6 @@ require 'abstract_unit'
 require 'rails-dom-testing'
 
 class AssertSelectEmailTest < ActionMailer::TestCase
-  Assertion = ActiveSupport::TestCase::Assertion
-
   include Rails::Dom::Testing::Assertions::SelectorAssertions
 
   class AssertSelectMailer < ActionMailer::Base
@@ -27,7 +25,10 @@ class AssertSelectEmailTest < ActionMailer::TestCase
   #
 
   def test_assert_select_email
-    assert_raise(Assertion) { assert_select_email {} }
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_select_email {}
+    end
+
     AssertSelectMailer.test("<div><p>foo</p><p>bar</p></div>").deliver
     assert_select_email do
       assert_select "div:root" do
