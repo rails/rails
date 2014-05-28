@@ -83,7 +83,7 @@ end
 class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
   include PostgresqlCompositeBehavior
 
-  class FullAddressType < ActiveRecord::ConnectionAdapters::Type::Value
+  class FullAddressType < ActiveRecord::Type::Value
     def type; :full_address end
 
     def type_cast(value)

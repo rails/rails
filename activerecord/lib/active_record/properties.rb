@@ -2,7 +2,7 @@ module ActiveRecord
   module Properties # :nodoc:
     extend ActiveSupport::Concern
 
-    Type = ConnectionAdapters::Type
+    Type = ActiveRecord::Type
 
     module ClassMethods
       # Defines or overrides a property on this model. This allows customization of
