@@ -77,8 +77,9 @@ module ActionDispatch
           @default_action     = options[:action] || scope[:action]
 
           @path = normalize_path! @path, options[:format]
-          path_params = path_params @path
-          @options = normalize_options!(options, path_params)
+          ast  = path_ast @path
+          path_params = path_params ast
+          @options = normalize_options!(options, path_params, ast)
           normalize_requirements!(path_params)
           normalize_conditions!(path_params)
           normalize_defaults!
@@ -107,13 +108,13 @@ module ActionDispatch
             format != false && !path.include?(':format') && !path.end_with?('/')
           end
 
-          def normalize_options!(options, path_params)
-            wildcards = path_ast(path).grep(Journey::Nodes::Star).map(&:name)
-
+          def normalize_options!(options, path_params, path_ast)
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
-            if wildcards.any? && options[:format] != false
-              wildcards.each { |wc| options[wc.to_sym] ||= /.+?/ }
+            if options[:format] != false
+              path_ast.grep(Journey::Nodes::Star) do |node|
+                options[node.name.to_sym] ||= /.+?/
+              end
             end
 
             if path_params.include?(:controller)
@@ -316,8 +317,8 @@ module ActionDispatch
             end
           end
 
-          def path_params(path)
-            path_ast(path).grep(Journey::Nodes::Symbol).map { |n| n.name.to_sym }
+          def path_params(ast)
+            ast.grep(Journey::Nodes::Symbol).map { |n| n.name.to_sym }
           end
 
           def path_ast(path)
