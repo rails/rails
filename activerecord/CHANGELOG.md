@@ -1,3 +1,7 @@
+*   PostgreSQL invalid `uuid` are convert to nil.
+
+    *Abdelkader Boudih*
+    
 *   Fix the schema dump generated for tables without constraints and with
     primary key with default value of custom PostgreSQL function result.
 
