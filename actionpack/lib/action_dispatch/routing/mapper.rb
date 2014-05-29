@@ -66,8 +66,8 @@ module ActionDispatch
         attr_reader :scope, :options, :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action
 
-        def initialize(set, scope, path, options)
-          @set, @scope = set, scope
+        def initialize(scope, path, options)
+          @scope = scope
           @requirements, @conditions, @defaults = {}, {}, {}
 
           options = scope[:options].merge(options) if scope[:options]
@@ -1515,7 +1515,7 @@ module ActionDispatch
             options[:as] = name_for_action(options[:as], action)
           end
 
-          mapping = Mapping.new(@set, @scope, URI.parser.escape(path), options)
+          mapping = Mapping.new(@scope, URI.parser.escape(path), options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
