@@ -91,7 +91,6 @@ module ActionDispatch
         private
 
           def normalize_path!(path, format)
-            raise ArgumentError, "path is required" if path.blank?
             path = Mapper.normalize_path(path)
 
             if format == true
@@ -1500,6 +1499,8 @@ module ActionDispatch
 
         def add_route(action, options) # :nodoc:
           path = path_for_action(action, options.delete(:path))
+          raise ArgumentError, "path is required" if path.blank?
+
           action = action.to_s.dup
 
           if action =~ /^[\w\-\/]+$/
