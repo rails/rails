@@ -21,10 +21,6 @@ module ActionDispatch
           @separators   = separators
           @anchor       = anchor
         end
-
-        def names
-          @path.scan(/:\w+/).map { |s| s.tr(':', '') }
-        end
       end
     end
   end
