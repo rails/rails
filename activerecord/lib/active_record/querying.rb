@@ -40,7 +40,7 @@ module ActiveRecord
       column_types = {}
 
       if result_set.respond_to? :column_types
-        column_types = result_set.column_types
+        column_types = result_set.column_types.merge(columns_hash)
       else
         ActiveSupport::Deprecation.warn "the object returned from `select_all` must respond to `column_types`"
       end
