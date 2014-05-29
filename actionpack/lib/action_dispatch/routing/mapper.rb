@@ -62,7 +62,6 @@ module ActionDispatch
       class Mapping #:nodoc:
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix, :format]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
-        WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action
