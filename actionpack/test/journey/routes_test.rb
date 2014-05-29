@@ -5,7 +5,7 @@ module ActionDispatch
     class TestRoutes < ActiveSupport::TestCase
       def test_clear
         routes = Routes.new
-        exp    = Router::Strexp.new '/foo(/:id)', {}, ['/.?']
+        exp    = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
         path   = Path::Pattern.new exp
         requirements = { :hello => /world/ }
 

@@ -32,7 +32,7 @@ module ActionDispatch
       def test_dashes
         router = Router.new(routes)
 
-        exp = Router::Strexp.new '/foo-bar-baz', {}, ['/.?']
+        exp = Router::Strexp.build '/foo-bar-baz', {}, ['/.?']
         path  = Path::Pattern.new exp
 
         routes.add_route nil, path, {}, {:id => nil}, {}
@@ -49,7 +49,7 @@ module ActionDispatch
         router = Router.new(routes)
 
         #match the escaped version of /ほげ
-        exp = Router::Strexp.new '/%E3%81%BB%E3%81%92', {}, ['/.?']
+        exp = Router::Strexp.build '/%E3%81%BB%E3%81%92', {}, ['/.?']
         path  = Path::Pattern.new exp
 
         routes.add_route nil, path, {}, {:id => nil}, {}
@@ -68,7 +68,7 @@ module ActionDispatch
 
         requirements = { :hello => /world/ }
 
-        exp = Router::Strexp.new '/foo(/:id)', {}, ['/.?']
+        exp = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
         path  = Path::Pattern.new exp
 
         routes.add_route nil, path, requirements, {:id => nil}, {}
@@ -88,7 +88,7 @@ module ActionDispatch
 
         requirements = { :hello => /mom/ }
 
-        exp = Router::Strexp.new '/foo(/:id)', {}, ['/.?']
+        exp = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
         path  = Path::Pattern.new exp
 
         router.routes.add_route nil, path, requirements, {:id => nil}, {}
@@ -115,7 +115,7 @@ module ActionDispatch
       def test_request_class_overrides_path_info
         router = Router.new(routes)
 
-        exp = Router::Strexp.new '/bar', {}, ['/.?']
+        exp = Router::Strexp.build '/bar', {}, ['/.?']
         path = Path::Pattern.new exp
 
         routes.add_route nil, path, {}, {}, {}
@@ -133,8 +133,8 @@ module ActionDispatch
 
       def test_regexp_first_precedence
         add_routes @router, [
-          Router::Strexp.new("/whois/:domain", {:domain => /\w+\.[\w\.]+/}, ['/', '.', '?']),
-          Router::Strexp.new("/whois/:id(.:format)", {}, ['/', '.', '?'])
+          Router::Strexp.build("/whois/:domain", {:domain => /\w+\.[\w\.]+/}, ['/', '.', '?']),
+          Router::Strexp.build("/whois/:id(.:format)", {}, ['/', '.', '?'])
         ]
 
         env = rails_env 'PATH_INFO' => '/whois/example.com'
@@ -152,7 +152,7 @@ module ActionDispatch
 
       def test_required_parts_verified_are_anchored
         add_routes @router, [
-          Router::Strexp.new("/foo/:id", { :id => /\d/ }, ['/', '.', '?'], false)
+          Router::Strexp.build("/foo/:id", { :id => /\d/ }, ['/', '.', '?'], false)
         ]
 
         assert_raises(ActionController::UrlGenerationError) do
@@ -162,7 +162,7 @@ module ActionDispatch
 
       def test_required_parts_are_verified_when_building
         add_routes @router, [
-          Router::Strexp.new("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
+          Router::Strexp.build("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
         ]
 
         path, _ = @formatter.generate(nil, { :id => '10' }, { })
@@ -175,7 +175,7 @@ module ActionDispatch
 
       def test_only_required_parts_are_verified
         add_routes @router, [
-          Router::Strexp.new("/foo(/:id)", {:id => /\d/}, ['/', '.', '?'], false)
+          Router::Strexp.build("/foo(/:id)", {:id => /\d/}, ['/', '.', '?'], false)
         ]
 
         path, _ = @formatter.generate(nil, { :id => '10' }, { })
@@ -190,7 +190,7 @@ module ActionDispatch
 
       def test_knows_what_parts_are_missing_from_named_route
         route_name = "gorby_thunderhorse"
-        pattern = Router::Strexp.new("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
+        pattern = Router::Strexp.build("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
         path = Path::Pattern.new pattern
         @router.routes.add_route nil, path, {}, {}, route_name
 
@@ -213,7 +213,7 @@ module ActionDispatch
         route_set = Routing::RouteSet.new
         mapper = Routing::Mapper.new route_set
 
-        strexp = Router::Strexp.new("/", {}, ['/', '.', '?'], false)
+        strexp = Router::Strexp.build("/", {}, ['/', '.', '?'], false)
         path   = Path::Pattern.new strexp
         app    = lambda { |env| [200, {}, ['success!']] }
         mapper.get '/weblog', :to => app
@@ -241,7 +241,7 @@ module ActionDispatch
 
       def test_recognize_with_unbound_regexp
         add_routes @router, [
-          Router::Strexp.new("/foo", { }, ['/', '.', '?'], false)
+          Router::Strexp.build("/foo", { }, ['/', '.', '?'], false)
         ]
 
         env = rails_env 'PATH_INFO' => '/foo/bar'
@@ -254,7 +254,7 @@ module ActionDispatch
 
       def test_bound_regexp_keeps_path_info
         add_routes @router, [
-          Router::Strexp.new("/foo", { }, ['/', '.', '?'], true)
+          Router::Strexp.build("/foo", { }, ['/', '.', '?'], true)
         ]
 
         env = rails_env 'PATH_INFO' => '/foo'
@@ -321,7 +321,7 @@ module ActionDispatch
       def test_generate_slash
         params = [ [:controller, "tasks"],
                    [:action, "show"] ]
-        str = Router::Strexp.new("/", Hash[params], ['/', '.', '?'], true)
+        str = Router::Strexp.build("/", Hash[params], ['/', '.', '?'], true)
         path  = Path::Pattern.new str
 
         @router.routes.add_route @app, path, {}, {}, {}
@@ -463,7 +463,7 @@ module ActionDispatch
       end
 
       def test_namespaced_controller
-        strexp = Router::Strexp.new(
+        strexp = Router::Strexp.build(
           "/:controller(/:action(/:id))",
           { :controller => /.+?/ },
           ["/", ".", "?"]

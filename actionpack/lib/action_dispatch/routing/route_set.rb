@@ -427,7 +427,7 @@ module ActionDispatch
       end
 
       def build_path(path, requirements, separators, anchor)
-        strexp = Journey::Router::Strexp.new(
+        strexp = Journey::Router::Strexp.build(
             path,
             requirements,
             SEPARATORS,

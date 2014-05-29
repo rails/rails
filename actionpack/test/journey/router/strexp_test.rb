@@ -5,7 +5,7 @@ module ActionDispatch
     class Router
       class TestStrexp < ActiveSupport::TestCase
         def test_many_names
-          exp = Strexp.new(
+          exp = Strexp.build(
             "/:controller(/:action(/:id(.:format)))",
             {:controller=>/.+?/},
             ["/", ".", "?"],
@@ -22,7 +22,7 @@ module ActionDispatch
             ":format0"          => %w{ format0 },
             ":format1,:format2" => %w{ format1 format2 },
           }.each do |string, expected|
-            exp = Strexp.new(string, {}, ["/", ".", "?"])
+            exp = Strexp.build(string, {}, ["/", ".", "?"])
             assert_equal expected, exp.names
           end
         end
