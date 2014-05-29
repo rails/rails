@@ -204,7 +204,7 @@ module ActiveModel
   #     extend ActiveModel::Naming
   #   end
   #
-  #   BookCover.model_name        # => "BookCover"
+  #   BookCover.model_name.name   # => "BookCover"
   #   BookCover.model_name.human  # => "Book cover"
   #
   #   BookCover.model_name.i18n_key              # => :book_cover
