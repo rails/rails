@@ -249,12 +249,8 @@ module ActionDispatch
 
             hash = check_part(:controller, controller, {}) do |part|
               translate_controller(part) {
-                if part =~ %r{\A/}
-                  message = "controller name should not start with a slash"
-                else
-                  message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
-                  message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
-                end
+                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
+                message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
 
                 raise ArgumentError, message
               }
