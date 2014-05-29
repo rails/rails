@@ -75,10 +75,6 @@ module ActionDispatch
           end
         end
 
-        def test_to_raise_exception_with_bad_expression
-          assert_raise(ArgumentError, "Bad expression: []") { Pattern.new [] }
-        end
-
         def test_to_regexp_with_extended_group
           strexp = Router::Strexp.build(
             '/page/:name',

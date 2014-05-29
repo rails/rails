@@ -11,15 +11,10 @@ module ActionDispatch
         end
 
         def initialize(strexp)
-          case strexp
-          when Router::Strexp
-            @spec         = strexp.ast
-            @requirements = strexp.requirements
-            @separators   = strexp.separators.join
-            @anchored     = strexp.anchor
-          else
-            raise ArgumentError, "Bad expression: #{strexp}"
-          end
+          @spec         = strexp.ast
+          @requirements = strexp.requirements
+          @separators   = strexp.separators.join
+          @anchored     = strexp.anchor
 
           @names          = nil
           @optional_names = nil
