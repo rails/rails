@@ -43,7 +43,15 @@ end
 Enqueue a job like so:
 
 ```ruby
-MyJob.enqueue record
+MyJob.enqueue record  # Enqueue a job to be performed as soon the queueing system is free.
+``` 
+
+```ruby
+MyJob.enqueue_at Date.tomorrow.noon, record  # Enqueue a job to be performed tomorrow at noon.
+```
+
+```ruby
+MyJob.enqueue_in 1.week, record # Enqueue a job to be performed 1 week from now.
 ```
 
 That's it!
