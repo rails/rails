@@ -5,17 +5,16 @@ module ActionDispatch
         attr_reader :spec, :requirements, :anchored
 
         def initialize(strexp)
-          parser = Journey::Parser.new
-
           @anchored = true
 
           case strexp
           when String
+            parser        = Journey::Parser.new
             @spec         = parser.parse(strexp)
             @requirements = {}
             @separators   = "/.?"
           when Router::Strexp
-            @spec         = parser.parse(strexp.path)
+            @spec         = strexp.ast
             @requirements = strexp.requirements
             @separators   = strexp.separators.join
             @anchored     = strexp.anchor

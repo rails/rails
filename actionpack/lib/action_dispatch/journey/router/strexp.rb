@@ -15,6 +15,11 @@ module ActionDispatch
           @anchor       = anchor
         end
 
+        def ast
+          parser = Journey::Parser.new
+          parser.parse path
+        end
+
         def names
           @path.scan(/:\w+/).map { |s| s.tr(':', '') }
         end
