@@ -471,7 +471,7 @@ called `Blorgh::Comment`. Now run the migration to create our blorgh_comments
 table:
 
 ```bash
-$ bin/rake db:migrate
+$ rake db:migrate
 ```
 
 To show the comments on an article, edit `app/views/blorgh/articles/show.html.erb` and
@@ -682,14 +682,14 @@ engine's models can query them correctly. To copy these migrations into the
 application use this command:
 
 ```bash
-$ bin/rake blorgh:install:migrations
+$ rake blorgh:install:migrations
 ```
 
 If you have multiple engines that need migrations copied over, use
 `railties:install:migrations` instead:
 
 ```bash
-$ bin/rake railties:install:migrations
+$ rake railties:install:migrations
 ```
 
 This command, when run for the first time, will copy over all the migrations
@@ -822,7 +822,7 @@ This migration will need to be run on the application. To do that, it must first
 be copied using this command:
 
 ```bash
-$ bin/rake blorgh:install:migrations
+$ rake blorgh:install:migrations
 ```
 
 Notice that only _one_ migration was copied over here. This is because the first
@@ -839,7 +839,7 @@ with the same name already exists. Copied migration
 Run the migration using:
 
 ```bash
-$ bin/rake db:migrate
+$ rake db:migrate
 ```
 
 Now with all the pieces in place, an action will take place that will associate
