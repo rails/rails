@@ -23,10 +23,6 @@ module ActiveRecord
         cast_value(value) unless value.nil?
       end
 
-      def type_cast_for_write(value)
-        value
-      end
-
       def type_cast_for_database(value)
         type_cast_for_write(value)
       end
@@ -47,9 +43,14 @@ module ActiveRecord
         false
       end
 
-      def klass
+      def klass # :nodoc:
         ::Object
       end
+
+      def type_cast_for_write(value) # :nodoc:
+        value
+      end
+      alias_method :raw_type_cast_for_write, :type_cast_for_write # :internal:
 
       private
 

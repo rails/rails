@@ -62,7 +62,7 @@ module ActiveRecord
           if type.serialized?
             type = type.subtype
           end
-          property attr_name, ActiveRecord::Type::Serialized.new(type)
+          property attr_name, Type::Serialized.new(type, coder)
 
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
           # has its own hash of own serialized attributes
@@ -70,25 +70,6 @@ module ActiveRecord
         end
       end
 
-      class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
-        def unserialized_value(v = value)
-          state == :serialized ? unserialize(v) : value
-        end
-
-        def serialized_value
-          state == :unserialized ? serialize : value
-        end
-
-        def unserialize(v)
-          self.state = :unserialized
-          self.value = coder.load(v)
-        end
-
-        def serialize
-          self.state = :serialized
-          self.value = coder.dump(value)
-        end
-      end
 
       # This is only added to the model when serialize is called, which
       # ensures we do not make things slower when serialization is not used.
@@ -102,7 +83,7 @@ module ActiveRecord
 
             serialized_attributes.each do |key, coder|
               if attributes.key?(key)
-                attributes[key] = Attribute.new(coder, attributes[key], serialized)
+                attributes[key] = Type::Serialized::Attribute.new(coder, attributes[key], serialized)
               end
             end
 
@@ -116,22 +97,6 @@ module ActiveRecord
 
         def keys_for_partial_write
           super | (attributes.keys & self.class.serialized_attributes.keys)
-        end
-
-        def type_cast_attribute_for_write(column, value)
-          if column && coder = self.class.serialized_attributes[column.name]
-            Attribute.new(coder, value, :unserialized)
-          else
-            super
-          end
-        end
-
-        def raw_type_cast_attribute_for_write(column, value)
-          if column && coder = self.class.serialized_attributes[column.name]
-            Attribute.new(coder, value, :serialized)
-          else
-            super
-          end
         end
 
         def _field_changed?(attr, old, value)
