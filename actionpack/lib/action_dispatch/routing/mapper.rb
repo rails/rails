@@ -62,13 +62,12 @@ module ActionDispatch
       class Mapping #:nodoc:
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix, :format]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
-        WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
-        attr_reader :scope, :path, :options, :requirements, :conditions, :defaults
+        attr_reader :scope, :options, :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action
 
         def initialize(set, scope, path, options)
-          @set, @scope, @path = set, scope, path
+          @set, @scope = set, scope
           @requirements, @conditions, @defaults = {}, {}, {}
 
           options = scope[:options].merge(options) if scope[:options]
@@ -76,10 +75,12 @@ module ActionDispatch
           @default_controller = options[:controller] || scope[:controller]
           @default_action     = options[:action] || scope[:action]
 
-          @options = normalize_options!(options)
-          normalize_path!
-          normalize_requirements!
-          normalize_conditions!
+          path = normalize_path! path, options[:format]
+          ast  = path_ast path
+          path_params = path_params ast
+          @options = normalize_options!(options, path_params, ast)
+          normalize_requirements!(path_params)
+          normalize_conditions!(path_params, path, ast)
           normalize_defaults!
         end
 
@@ -89,35 +90,33 @@ module ActionDispatch
 
         private
 
-          def normalize_path!
-            raise ArgumentError, "path is required" if @path.blank?
-            @path = Mapper.normalize_path(@path)
+          def normalize_path!(path, format)
+            raise ArgumentError, "path is required" if path.blank?
+            path = Mapper.normalize_path(path)
 
-            if required_format?
-              @path = "#{@path}.:format"
-            elsif optional_format?
-              @path = "#{@path}(.:format)"
+            if format == true
+              "#{path}.:format"
+            elsif optional_format?(path, format)
+              "#{path}(.:format)"
+            else
+              path
             end
           end
 
-          def required_format?
-            options[:format] == true
+          def optional_format?(path, format)
+            format != false && !path.include?(':format') && !path.end_with?('/')
           end
 
-          def optional_format?
-            options[:format] != false && !path.include?(':format') && !path.end_with?('/')
-          end
-
-          def normalize_options!(options)
-            path_without_format = path.sub(/\(\.:format\)$/, '')
-
+          def normalize_options!(options, path_params, path_ast)
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
-            if path_without_format.match(WILDCARD_PATH) && options[:format] != false
-              options[$1.to_sym] ||= /.+?/
+            if options[:format] != false
+              path_ast.grep(Journey::Nodes::Star) do |node|
+                options[node.name.to_sym] ||= /.+?/
+              end
             end
 
-            if path_without_format.match(':controller')
+            if path_params.include?(:controller)
               raise ArgumentError, ":controller segment is not allowed within a namespace block" if scope[:module]
 
               # Add a default constraint for :controller path segments that matches namespaced
@@ -127,12 +126,16 @@ module ActionDispatch
               options[:controller] ||= /.+?/
             end
 
-            options.merge!(default_controller_and_action)
+            if to.respond_to? :call
+              options
+            else
+              options.merge!(default_controller_and_action(path_params))
+            end
           end
 
-          def normalize_requirements!
+          def normalize_requirements!(path_params)
             constraints.each do |key, requirement|
-              next unless segment_keys.include?(key) || key == :controller
+              next unless path_params.include?(key) || key == :controller
               verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
               @requirements[key] = requirement
             end
@@ -189,18 +192,19 @@ module ActionDispatch
             end
           end
 
-          def normalize_conditions!
+          def normalize_conditions!(path_params, path, ast)
             @conditions[:path_info] = path
+            @conditions[:parsed_path_info] = ast
 
             constraints.each do |key, condition|
-              unless segment_keys.include?(key) || key == :controller
+              unless path_params.include?(key) || key == :controller
                 @conditions[key] = condition
               end
             end
 
             required_defaults = []
             options.each do |key, required_default|
-              unless segment_keys.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
+              unless path_params.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
                 required_defaults << key
               end
             end
@@ -236,55 +240,61 @@ module ActionDispatch
             end
           end
 
-          def default_controller_and_action
-            if to.respond_to?(:call)
-              { }
-            else
-              if to.is_a?(String)
-                controller, action = to.split('#')
-              elsif to.is_a?(Symbol)
-                action = to.to_s
-              end
+          def default_controller_and_action(path_params)
+            controller, action = get_controller_and_action(default_controller,
+              default_action,
+              to,
+              @scope[:module]
+            )
 
-              controller ||= default_controller
-              action     ||= default_action
-
-              if @scope[:module] && !controller.is_a?(Regexp)
-                if controller =~ %r{\A/}
-                  controller = controller[1..-1]
-                else
-                  controller = [@scope[:module], controller].compact.join("/").presence
-                end
-              end
-
-              if controller.is_a?(String) && controller =~ %r{\A/}
-                raise ArgumentError, "controller name should not start with a slash"
-              end
-
-              controller = controller.to_s unless controller.is_a?(Regexp)
-              action     = action.to_s     unless action.is_a?(Regexp)
-
-              if controller.blank? && segment_keys.exclude?(:controller)
-                message = "Missing :controller key on routes definition, please check your routes."
-                raise ArgumentError, message
-              end
-
-              if action.blank? && segment_keys.exclude?(:action)
-                message = "Missing :action key on routes definition, please check your routes."
-                raise ArgumentError, message
-              end
-
-              if controller.is_a?(String) && controller !~ /\A[a-z_0-9\/]*\z/
-                message = "'#{controller}' is not a supported controller name. This can lead to potential routing problems."
+            hash = check_part(:controller, controller, path_params, {}) do |part|
+              translate_controller(part) {
+                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
                 message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
+
+                raise ArgumentError, message
+              }
+            end
+
+            check_part(:action, action, path_params, hash) { |part|
+              part.is_a?(Regexp) ? part : part.to_s
+            }
+          end
+
+          def check_part(name, part, path_params, hash)
+            if part
+              hash[name] = yield(part)
+            else
+              unless path_params.include?(name)
+                message = "Missing :#{name} key on routes definition, please check your routes."
                 raise ArgumentError, message
               end
-
-              hash = {}
-              hash[:controller] = controller unless controller.blank?
-              hash[:action]     = action unless action.blank?
-              hash
             end
+            hash
+          end
+
+          def get_controller_and_action(controller, action, to, modyoule)
+            case to
+            when Symbol then action = to.to_s
+            when /#/    then controller, action = to.split('#')
+            when String then controller = to
+            end
+
+            if modyoule && !controller.is_a?(Regexp)
+              if controller =~ %r{\A/}
+                controller = controller[1..-1]
+              else
+                controller = [modyoule, controller].compact.join("/")
+              end
+            end
+            [controller, action]
+          end
+
+          def translate_controller(controller)
+            return controller if Regexp === controller
+            return controller.to_s if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
+
+            yield
           end
 
           def blocks
@@ -307,16 +317,13 @@ module ActionDispatch
             end
           end
 
-          def segment_keys
-            @segment_keys ||= path_pattern.names.map{ |s| s.to_sym }
+          def path_params(ast)
+            ast.grep(Journey::Nodes::Symbol).map { |n| n.name.to_sym }
           end
 
-          def path_pattern
-            Journey::Path::Pattern.new(strexp)
-          end
-
-          def strexp
-            Journey::Router::Strexp.compile(path, requirements, SEPARATORS)
+          def path_ast(path)
+            parser = Journey::Parser.new
+            parser.parse path
           end
 
           def dispatcher

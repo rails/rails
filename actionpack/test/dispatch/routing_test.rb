@@ -99,6 +99,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_namespace_without_controller_segment
+    draw do
+      namespace :admin do
+        get 'hello/:controllers/:action'
+      end
+    end
+    get '/admin/hello/foo/new'
+    assert_equal 'foo', @request.params["controllers"]
+  end
+
   def test_session_singleton_resource
     draw do
       resource :session do
@@ -3137,6 +3147,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/foo', foo_root_path
   end
 
+  def test_namespace_as_controller
+    draw do
+      namespace :foo do
+        get '/', to: '/bar#index', as: 'root'
+      end
+    end
+
+    get '/foo'
+    assert_equal 'bar#index', @response.body
+    assert_equal '/foo', foo_root_path
+  end
+
   def test_trailing_slash
     draw do
       resources :streams
@@ -3545,6 +3567,16 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     end
 
     assert_match "'Admin::StorageFiles' is not a supported controller name", e.message
+  end
+
+  def test_warn_with_ruby_constant_syntax_no_colons
+    e = assert_raise(ArgumentError) do
+      draw do
+        resources :storage_files, :controller => 'Admin'
+      end
+    end
+
+    assert_match "'Admin' is not a supported controller name", e.message
   end
 end
 

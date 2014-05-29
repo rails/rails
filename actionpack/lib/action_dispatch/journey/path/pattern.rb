@@ -1,27 +1,20 @@
+require 'action_dispatch/journey/router/strexp'
+
 module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
         attr_reader :spec, :requirements, :anchored
 
+        def self.from_string string
+          new Journey::Router::Strexp.build(string, {}, ["/.?"], true)
+        end
+
         def initialize(strexp)
-          parser = Journey::Parser.new
-
-          @anchored = true
-
-          case strexp
-          when String
-            @spec         = parser.parse(strexp)
-            @requirements = {}
-            @separators   = "/.?"
-          when Router::Strexp
-            @spec         = parser.parse(strexp.path)
-            @requirements = strexp.requirements
-            @separators   = strexp.separators.join
-            @anchored     = strexp.anchor
-          else
-            raise ArgumentError, "Bad expression: #{strexp}"
-          end
+          @spec         = strexp.ast
+          @requirements = strexp.requirements
+          @separators   = strexp.separators.join
+          @anchored     = strexp.anchor
 
           @names          = nil
           @optional_names = nil

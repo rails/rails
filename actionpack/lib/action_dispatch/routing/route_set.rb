@@ -418,7 +418,9 @@ module ActionDispatch
             "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
-        path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
+        path = conditions.delete :path_info
+        ast  = conditions.delete :parsed_path_info
+        path = build_path(path, ast, requirements, SEPARATORS, anchor)
         conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
@@ -426,8 +428,9 @@ module ActionDispatch
         route
       end
 
-      def build_path(path, requirements, separators, anchor)
+      def build_path(path, ast, requirements, separators, anchor)
         strexp = Journey::Router::Strexp.new(
+            ast,
             path,
             requirements,
             SEPARATORS,
