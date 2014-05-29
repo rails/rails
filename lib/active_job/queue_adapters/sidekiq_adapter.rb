@@ -5,6 +5,7 @@ module ActiveJob
     class SidekiqAdapter
       class << self
         def enqueue(job, *args)
+          #Sidekiq::Client does not support symbols as keys
           Sidekiq::Client.push \
             'class' => JobWrapper,
             'queue' => job.queue_name,
