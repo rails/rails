@@ -1044,6 +1044,28 @@ end
 
 This will create routing helpers such as `magazine_periodical_ads_url` and `edit_magazine_periodical_ad_path`.
 
+### Overriding Named Route Parameters
+
+The `:param` option overrides the default resource identifier `:id` (name of
+the [dynamic segment](routing.html#dynamic-segments) used to generate the
+routes). You can access that segment from your controller using
+`params[<:param>]`.
+
+```ruby
+resources :videos, param: :identifier
+```
+
+```
+     videos GET  /videos(.:format)                  videos#index
+            POST /videos(.:format)                  videos#create
+ new_videos GET  /videos/new(.:format)              videos#new
+edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
+```
+
+```ruby
+Video.find_by(identifier: params[:identifier])
+```
+
 Inspecting and Testing Routes
 -----------------------------
 

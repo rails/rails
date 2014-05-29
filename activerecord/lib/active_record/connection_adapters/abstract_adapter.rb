@@ -363,6 +363,10 @@ module ActiveRecord
         end
       end
 
+      def new_column(name, default, cast_type, sql_type = nil, null = true)
+        Column.new(name, default, cast_type, sql_type, null)
+      end
+
       protected
 
       def lookup_cast_type(sql_type) # :nodoc:

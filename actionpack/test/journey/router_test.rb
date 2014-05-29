@@ -4,18 +4,10 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     class TestRouter < ActiveSupport::TestCase
-      # TODO : clean up routing tests so we don't need this hack
-      class StubDispatcher < Routing::RouteSet::Dispatcher
-        def initialize
-          super({})
-        end
-        def dispatcher?; true; end
-      end
-
       attr_reader :routes
 
       def setup
-        @app       = StubDispatcher.new
+        @app       = Routing::RouteSet::Dispatcher.new({})
         @routes    = Routes.new
         @router    = Router.new(@routes)
         @formatter = Formatter.new(@routes)
@@ -565,8 +557,6 @@ module ActionDispatch
           router.routes.add_route @app, path, {}, {}, {}
         end
       end
-
-      RailsEnv = Struct.new(:env)
 
       def rails_env env, klass = ActionDispatch::Request
         klass.new env

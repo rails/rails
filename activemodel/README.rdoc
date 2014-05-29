@@ -147,7 +147,7 @@ behavior out of the box:
       extend ActiveModel::Naming
     end
 
-    NamedPerson.model_name        # => "NamedPerson"
+    NamedPerson.model_name.name   # => "NamedPerson"
     NamedPerson.model_name.human  # => "Named person"
 
   {Learn more}[link:classes/ActiveModel/Naming.html]

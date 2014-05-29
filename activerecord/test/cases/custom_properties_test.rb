@@ -37,7 +37,9 @@ module ActiveRecord
       data.reload
 
       assert_equal 2, data.overloaded_float
+      assert_kind_of Fixnum, OverloadedType.last.overloaded_float
       assert_equal 2.0, UnoverloadedType.last.overloaded_float
+      assert_kind_of Float, UnoverloadedType.last.overloaded_float
     end
 
     def test_properties_assigned_in_constructor
