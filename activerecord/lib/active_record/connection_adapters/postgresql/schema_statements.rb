@@ -181,8 +181,12 @@ module ActiveRecord
             oid = get_oid_type(oid.to_i, fmod.to_i, column_name, type)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            PostgreSQLColumn.new(column_name, default_value, oid, type, notnull == 'f', default_function)
+            new_column(column_name, default_value, oid, type, notnull == 'f', default_function)
           end
+        end
+
+        def new_column(name, default, cast_type, sql_type = nil, null = true, default_function = nil) # :nodoc:
+          PostgreSQLColumn.new(name, default, cast_type, sql_type, null, default_function)
         end
 
         # Returns the current database name.
