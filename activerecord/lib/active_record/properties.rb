@@ -65,7 +65,7 @@ module ActiveRecord
       def property(name, cast_type)
         name = name.to_s
         # Assign a new hash to ensure that subclasses do not share a hash
-        self.user_provided_columns = user_provided_columns.merge(name => ConnectionAdapters::Column.new(name, nil, cast_type))
+        self.user_provided_columns = user_provided_columns.merge(name => connection.new_column(name, nil, cast_type))
       end
 
       # Returns an array of column objects for the table associated with this class.

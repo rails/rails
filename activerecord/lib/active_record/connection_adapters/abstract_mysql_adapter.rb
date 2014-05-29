@@ -206,8 +206,7 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def new_column(field, default, sql_type, null, collation, extra = "") # :nodoc:
-        cast_type = lookup_cast_type(sql_type)
+      def new_column(field, default, cast_type, sql_type = nil, null = true, collation = "", extra = "") # :nodoc:
         Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
@@ -425,7 +424,9 @@ module ActiveRecord
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
             field_name = set_field_encoding(field[:Field])
-            new_column(field_name, field[:Default], field[:Type], field[:Null] == "YES", field[:Collation], field[:Extra])
+            sql_type = field[:Type]
+            cast_type = lookup_cast_type(sql_type)
+            new_column(field_name, field[:Default], cast_type, sql_type, field[:Null] == "YES", field[:Collation], field[:Extra])
           end
         end
       end

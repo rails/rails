@@ -393,7 +393,7 @@ module ActiveRecord
 
           sql_type = field['type']
           cast_type = lookup_cast_type(sql_type)
-          Column.new(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
+          new_column(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
         end
       end
 
