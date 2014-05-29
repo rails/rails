@@ -429,5 +429,5 @@ first.archive!
 p Article.count # => 2
 ```
 
-Note: This application only cares about non-archived `Articles`. A view also
+NOTE: This application only cares about non-archived `Articles`. A view also
 allows for conditions so we can exclude the archived `Articles` directly.
