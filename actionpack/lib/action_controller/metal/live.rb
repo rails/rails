@@ -1,6 +1,7 @@
 require 'action_dispatch/http/response'
 require 'delegate'
 require 'active_support/json'
+require 'timeout'
 
 module ActionController
   # Mix this module in to your controller, and all actions in that controller
@@ -122,7 +123,12 @@ module ActionController
           @response.headers.delete "Content-Length"
         end
 
-        super
+        # Allow the thread to recheck if the response buffer has been closed
+        begin
+          Timeout.timeout(0.1) { super }
+        rescue TimeoutError => e
+          retry
+        end
       end
 
       def each
