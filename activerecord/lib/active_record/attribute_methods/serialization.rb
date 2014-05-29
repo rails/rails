@@ -124,14 +124,6 @@ module ActiveRecord
           end
         end
 
-        def should_record_timestamps?
-          super || (self.record_timestamps && (attributes.keys & self.class.serialized_attributes.keys).present?)
-        end
-
-        def keys_for_partial_write
-          super | (attributes.keys & self.class.serialized_attributes.keys)
-        end
-
         def type_cast_attribute_for_write(column, value)
           if column && coder = self.class.serialized_attributes[column.name]
             Attribute.new(coder, value, :unserialized)
@@ -149,15 +141,31 @@ module ActiveRecord
         end
 
         def _field_changed?(attr, old, value)
-          if self.class.serialized_attributes.include?(attr)
+          if serialized_attribute?(attr)
             old != value
           else
             super
           end
         end
 
+        def read_attribute(attr)
+          if serialized_attribute?(attr)
+            super.tap do |value|
+              unless original_serialized_attributes.has_key?(attr.to_s)
+                set_original_serialized(attr, value)
+              end
+            end
+          else
+            super
+          end
+        end
+
+        def changed_attributes
+          super.except!(*self.class.serialized_attributes.keys).merge!(changed_serialized_attributes)
+        end
+
         def read_attribute_before_type_cast(attr_name)
-          if self.class.serialized_attributes.include?(attr_name)
+          if serialized_attribute?(attr_name)
             super.unserialized_value
           else
             super
@@ -175,7 +183,7 @@ module ActiveRecord
         end
 
         def typecasted_attribute_value(name)
-          if self.class.serialized_attributes.include?(name)
+          if serialized_attribute?(name)
             @attributes[name].serialized_value
           else
             super
@@ -184,12 +192,61 @@ module ActiveRecord
 
         def attributes_for_coder
           attribute_names.each_with_object({}) do |name, attrs|
-            attrs[name] = if self.class.serialized_attributes.include?(name)
+            attrs[name] = if serialized_attribute?(name)
                             @attributes[name].serialized_value
                           else
                             read_attribute(name)
                           end
           end
+        end
+
+        private
+
+        def serialized_attribute?(attr_name)
+          self.class.serialized_attributes.include?(attr_name)
+        end
+
+        def reset_changes
+          super
+          reset_original_serialized_attributes
+        end
+
+        def changes_applied
+          super
+          reset_original_serialized_attributes
+        end
+
+        def init_changed_attribute(attr, orig_value)
+          if serialized_attribute?(attr)
+            set_original_serialized(attr, orig_value)
+          else
+            super
+          end
+        end
+
+        def changed_serialized_attributes
+          original_serialized_attributes.inject({}) do |changed_hash, (attr, value)|
+            if serialized_attribute_comparer_value(read_attribute(attr)) != value
+              changed_hash[attr] = nil
+            end
+            changed_hash
+          end
+        end
+
+        def serialized_attribute_comparer_value(val)
+          val.hash
+        end
+
+        def set_original_serialized(attr, val)
+          original_serialized_attributes[attr] = serialized_attribute_comparer_value(val)
+        end
+
+        def original_serialized_attributes
+          @original_serialized_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
+        end
+
+        def reset_original_serialized_attributes
+          @original_serialized_attributes = ActiveSupport::HashWithIndifferentAccess.new
         end
       end
     end

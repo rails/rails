@@ -446,7 +446,7 @@ class DirtyTest < ActiveRecord::TestCase
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
+      assert topic.changed?
       topic.save!
       assert_equal "b", topic.content[:b]
       topic.reload
@@ -454,17 +454,49 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
+  def test_changed_should_check_serialized_attributes
+    with_partial_writes(Topic) do
+      topic = Topic.create!
+      assert !topic.changed?
+      topic.content = {a: "a"}
+      assert topic.changed?
+      topic.content[:b] = "b"
+      assert topic.content_changed?
+      topic.save!
+      assert_equal "b", topic.content[:b]
+      assert !topic.changed?
+      topic.reload
+      assert_equal "b", topic.content[:b]
+      assert !topic.content_changed?
+      topic.content['b'] = "c"
+      assert topic.changed?
+      assert_nil topic.content_was #one downside of using .hash for comparator is no way to track original value
+      topic.save
+      original_content = topic.content.dup
+      assert !topic.changed?
+      topic.content = nil
+      assert topic.changed?
+      topic.content = original_content
+      assert !topic.changed?
+    end
+  end
+
+  def test_save_should_update_timestamps_with_partial_writes_only_when_serialized_attributes_change
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.save!
 
-      updated_at = topic.updated_at
+      updated_at = 1.month.ago
+      topic.update_column(:updated_at, updated_at)
       topic.content[:hello] = 'world'
       topic.save!
 
       assert_not_equal updated_at, topic.updated_at
       assert_equal 'world', topic.content[:hello]
+
+      topic.update_column(:updated_at, updated_at)
+      topic.save!
+      assert_equal updated_at, topic.updated_at
     end
   end
 

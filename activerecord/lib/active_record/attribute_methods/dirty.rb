@@ -55,8 +55,12 @@ module ActiveRecord
         # optimistic locking) won't get written unless they get marked as changed
         self.class.columns.each do |c|
           attr, orig_value = c.name, c.default
-          changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
+          init_changed_attribute(attr, orig_value) if _field_changed?(attr, orig_value, @attributes[attr])
         end
+      end
+
+      def init_changed_attribute(attr, orig_value)
+        changed_attributes[attr] = orig_value
       end
 
       # Wrap write_attribute to remember original attribute value.
