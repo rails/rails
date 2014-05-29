@@ -64,11 +64,11 @@ module ActionDispatch
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         WILDCARD_PATH = %r{\*([^/\)]+)\)?$}
 
-        attr_reader :scope, :path, :options, :requirements, :conditions, :defaults
+        attr_reader :scope, :options, :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action
 
         def initialize(set, scope, path, options)
-          @set, @scope, @path = set, scope, path
+          @set, @scope = set, scope
           @requirements, @conditions, @defaults = {}, {}, {}
 
           options = scope[:options].merge(options) if scope[:options]
@@ -76,12 +76,12 @@ module ActionDispatch
           @default_controller = options[:controller] || scope[:controller]
           @default_action     = options[:action] || scope[:action]
 
-          @path = normalize_path! @path, options[:format]
-          ast  = path_ast @path
+          path = normalize_path! path, options[:format]
+          ast  = path_ast path
           path_params = path_params ast
           @options = normalize_options!(options, path_params, ast)
           normalize_requirements!(path_params)
-          normalize_conditions!(path_params)
+          normalize_conditions!(path_params, path)
           normalize_defaults!
         end
 
@@ -193,7 +193,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_conditions!(path_params)
+          def normalize_conditions!(path_params, path)
             @conditions[:path_info] = path
 
             constraints.each do |key, condition|
