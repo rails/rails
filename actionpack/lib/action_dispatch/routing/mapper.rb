@@ -246,22 +246,27 @@ module ActionDispatch
               @scope[:module]
             )
 
-            hash = check_part(:controller, controller, {}) do
-              translate_controller controller
+            hash = check_part(:controller, controller, {}) do |part|
+              if part =~ %r{\A/}
+                message = "controller name should not start with a slash"
+              else
+                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
+                message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
+              end
+
+              raise ArgumentError, message
             end
 
-            check_part(:action, action, hash) do
-              if Regexp === action
-                action
-              else
-                action.to_s
-              end
-            end
+            check_part(:action, action, hash) { |part|
+              # we never get here in the tests, but I believe this block should
+              # be the same as the `controller` block.
+              part.to_s
+            }
           end
 
           def check_part(name, part, hash)
             if part
-              hash[name] = yield
+              hash[name] = translate_part(name, part) { yield(part) }
             else
               unless segment_keys.include?(name)
                 message = "Missing :#{name} key on routes definition, please check your routes."
@@ -291,18 +296,11 @@ module ActionDispatch
             [controller, action]
           end
 
-          def translate_controller(controller)
+          def translate_part(name, controller)
             return controller if Regexp === controller
             return controller.to_s if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
 
-            if controller =~ %r{\A/}
-              message = "controller name should not start with a slash"
-            else
-              message = "'#{controller}' is not a supported controller name. This can lead to potential routing problems."
-              message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
-            end
-
-            raise ArgumentError, message
+            yield
           end
 
           def blocks
