@@ -1046,7 +1046,10 @@ This will create routing helpers such as `magazine_periodical_ads_url` and `edit
 
 ### Overriding Named Route Parameters
 
-The `:param` option overrides the default resource identifier `:id` allowing you to use the specified name in your controller action to find the specific resource in the database.
+The `:param` option overrides the default resource identifier `:id` (name of
+the [dynamic segment](routing.html#dynamic-segments) used to generate the
+routes). You can access that segment from your controller using
+`params[<:param>]`.
 
 ```ruby
 resources :videos, param: :identifier
