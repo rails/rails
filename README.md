@@ -24,8 +24,8 @@ Set the queue adapter for Active Job:
 
 ``` ruby
 ActiveJob::Base.queue_adapter = :inline # default queue adapter
-# Adapters currently supported: :delayed_job, :que, :queue_classic, :resque,
-#                               :sidekiq, :sneakers, :sucker_punch
+# Adapters currently supported: :backburner, :delayed_job, :que, :queue_classic, 
+#                               :resque, :sidekiq, :sneakers, :sucker_punch
 ```
 
 Declare a job like so:
