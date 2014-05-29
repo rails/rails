@@ -108,12 +108,12 @@ module ActionDispatch
           end
 
           def normalize_options!(options, path_params)
-            path_without_format = path.sub(/\(\.:format\)$/, '')
+            wildcards = path_ast(path).grep(Journey::Nodes::Star).map(&:name)
 
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
-            if path_without_format.match(WILDCARD_PATH) && options[:format] != false
-              options[$1.to_sym] ||= /.+?/
+            if wildcards.any? && options[:format] != false
+              wildcards.each { |wc| options[wc.to_sym] ||= /.+?/ }
             end
 
             if path_params.include?(:controller)

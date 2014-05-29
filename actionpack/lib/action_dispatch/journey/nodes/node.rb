@@ -93,6 +93,10 @@ module ActionDispatch
 
       class Star < Unary # :nodoc:
         def type; :STAR; end
+
+        def name
+          left.name.tr '*:', ''
+        end
       end
 
       class Binary < Node # :nodoc:
