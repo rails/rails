@@ -2,43 +2,12 @@ require 'date'
 require 'active_support/inflector/methods'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/core_ext/date_time/calculations'
+require 'active_support/core_ext/date_and_time/conversions'
 require 'active_support/values/time_zone'
 
 class DateTime
-  # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
-  #
-  # This method is aliased to <tt>to_s</tt>.
-  #
-  # === Examples
-  #   datetime = DateTime.civil(2007, 12, 4, 0, 0, 0, 0)   # => Tue, 04 Dec 2007 00:00:00 +0000
-  #
-  #   datetime.to_formatted_s(:db)            # => "2007-12-04 00:00:00"
-  #   datetime.to_s(:db)                      # => "2007-12-04 00:00:00"
-  #   datetime.to_s(:number)                  # => "20071204000000"
-  #   datetime.to_formatted_s(:short)         # => "04 Dec 00:00"
-  #   datetime.to_formatted_s(:long)          # => "December 04, 2007 00:00"
-  #   datetime.to_formatted_s(:long_ordinal)  # => "December 4th, 2007 00:00"
-  #   datetime.to_formatted_s(:rfc822)        # => "Tue, 04 Dec 2007 00:00:00 +0000"
-  #   datetime.to_formatted_s(:iso8601)       # => "2007-12-04T00:00:00+00:00"
-  #
-  # == Adding your own datetime formats to to_formatted_s
-  # DateTime formats are shared with Time. You can add your own to the
-  # Time::DATE_FORMATS hash. Use the format name as the hash key and
-  # either a strftime string or Proc instance that takes a time or
-  # datetime argument as the value.
-  #
-  #   # config/initializers/time_formats.rb
-  #   Time::DATE_FORMATS[:month_and_year] = '%B %Y'
-  #   Time::DATE_FORMATS[:short_ordinal] = lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
-  def to_formatted_s(format = :default)
-    if formatter = ::Time::DATE_FORMATS[format]
-      formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
-    else
-      to_default_s
-    end
-  end
-  alias_method :to_default_s, :to_s if instance_methods(false).include?(:to_s)
-  alias_method :to_s, :to_formatted_s
+  include DateAndTime::Conversions
+  DATE_FORMATS = ::Time::DATE_FORMATS
 
   #
   #   datetime = DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-6, 24))
