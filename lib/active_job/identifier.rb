@@ -11,6 +11,5 @@ module ActiveJob
     def job_id
       @job_id ||= SecureRandom.uuid
     end
-
   end
 end
