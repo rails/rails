@@ -127,7 +127,11 @@ module ActionDispatch
               options[:controller] ||= /.+?/
             end
 
-            options.merge!(default_controller_and_action)
+            if to.respond_to? :call
+              options
+            else
+              options.merge!(default_controller_and_action)
+            end
           end
 
           def normalize_requirements!
@@ -237,8 +241,6 @@ module ActionDispatch
           end
 
           def default_controller_and_action
-            return {} if to.respond_to? :call
-
             controller, action = get_controller_and_action(default_controller,
               default_action,
               to,
@@ -246,26 +248,26 @@ module ActionDispatch
             )
 
             hash = check_part(:controller, controller, {}) do |part|
-              if part =~ %r{\A/}
-                message = "controller name should not start with a slash"
-              else
-                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
-                message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
-              end
+              translate_controller(part) {
+                if part =~ %r{\A/}
+                  message = "controller name should not start with a slash"
+                else
+                  message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
+                  message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
+                end
 
-              raise ArgumentError, message
+                raise ArgumentError, message
+              }
             end
 
             check_part(:action, action, hash) { |part|
-              # we never get here in the tests, but I believe this block should
-              # be the same as the `controller` block.
-              part.to_s
+              part.is_a?(Regexp) ? part : part.to_s
             }
           end
 
           def check_part(name, part, hash)
             if part
-              hash[name] = translate_part(name, part) { yield(part) }
+              hash[name] = yield(part)
             else
               unless segment_keys.include?(name)
                 message = "Missing :#{name} key on routes definition, please check your routes."
@@ -292,7 +294,7 @@ module ActionDispatch
             [controller, action]
           end
 
-          def translate_part(name, controller)
+          def translate_controller(controller)
             return controller if Regexp === controller
             return controller.to_s if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
 
