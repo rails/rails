@@ -117,7 +117,7 @@ module ActionDispatch
               options[$1.to_sym] ||= /.+?/
             end
 
-            if path_without_format.match(':controller')
+            if path_pattern.names.map(&:to_sym).include?(:controller)
               raise ArgumentError, ":controller segment is not allowed within a namespace block" if scope[:module]
 
               # Add a default constraint for :controller path segments that matches namespaced
