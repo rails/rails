@@ -3558,6 +3558,16 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
 
     assert_match "'Admin::StorageFiles' is not a supported controller name", e.message
   end
+
+  def test_warn_with_ruby_constant_syntax_no_colons
+    e = assert_raise(ArgumentError) do
+      draw do
+        resources :storage_files, :controller => 'Admin'
+      end
+    end
+
+    assert_match "'Admin' is not a supported controller name", e.message
+  end
 end
 
 class TestDefaultScope < ActionDispatch::IntegrationTest
