@@ -239,8 +239,7 @@ module ActionDispatch
           def default_controller_and_action
             return {} if to.respond_to? :call
 
-            controller, action = get_controller_and_action(
-              default_controller,
+            controller, action = get_controller_and_action(default_controller,
               default_action,
               to,
               @scope[:module]
@@ -278,12 +277,9 @@ module ActionDispatch
 
           def get_controller_and_action(controller, action, to, modyoule)
             case to
-            when Symbol
-              action = to.to_s
-            when /#/
-              controller, action = to.split('#')
-            when String
-              controller = to
+            when Symbol then action = to.to_s
+            when /#/    then controller, action = to.split('#')
+            when String then controller = to
             end
 
             if modyoule && !controller.is_a?(Regexp)
