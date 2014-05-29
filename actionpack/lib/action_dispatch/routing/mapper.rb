@@ -80,7 +80,7 @@ module ActionDispatch
           path_params = path_params ast
           @options = normalize_options!(options, path_params, ast)
           normalize_requirements!(path_params)
-          normalize_conditions!(path_params, path)
+          normalize_conditions!(path_params, path, ast)
           normalize_defaults!
         end
 
@@ -192,8 +192,9 @@ module ActionDispatch
             end
           end
 
-          def normalize_conditions!(path_params, path)
+          def normalize_conditions!(path_params, path, ast)
             @conditions[:path_info] = path
+            @conditions[:parsed_path_info] = ast
 
             constraints.each do |key, condition|
               unless path_params.include?(key) || key == :controller
