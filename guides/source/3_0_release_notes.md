@@ -308,7 +308,7 @@ More Information:
 
 Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands. This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
 
-What this means is that all previous `remote_<method>` helpers have been removed from Rails core and put into the [Prototype Legacy Helper](http://github.com/rails/prototype_legacy_helper) To get UJS hooks into your HTML, you now pass `:remote => true` instead. For example:
+What this means is that all previous `remote_<method>` helpers have been removed from Rails core and put into the [Prototype Legacy Helper](http://github.com/rails/prototype_legacy_helper). To get UJS hooks into your HTML, you now pass `:remote => true` instead. For example:
 
 ```ruby
 form_for @post, :remote => true
