@@ -35,10 +35,6 @@ module ActiveRecord
         end
       end
       # :startdoc:
-
-      def accessor
-        cast_type.accessor
-      end
     end
   end
 end

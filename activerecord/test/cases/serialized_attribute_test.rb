@@ -235,16 +235,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [], light.long_state
   end
 
-  def test_serialized_column_should_not_be_wrapped_twice
-    Topic.serialize(:content, MyObject)
-
-    myobj = MyObject.new('value1', 'value2')
-    Topic.create(content: myobj)
-    Topic.create(content: myobj)
-    type = Topic.column_types["content"]
-    assert !type.instance_variable_get("@column").is_a?(ActiveRecord::AttributeMethods::Serialization::Type)
-  end
-
   def test_serialized_column_should_unserialize_after_update_column
     t = Topic.create(content: "first")
     assert_equal("first", t.content)
