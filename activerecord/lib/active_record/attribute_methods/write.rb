@@ -26,8 +26,6 @@ module ActiveRecord
         protected
 
         if Module.methods_transplantable?
-          # See define_method_attribute in read.rb for an explanation of
-          # this code.
           def define_method_attribute=(name)
             method = WriterMethodCache[name]
             generated_attribute_methods.module_eval {
