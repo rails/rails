@@ -225,7 +225,7 @@ module ActionDispatch
       end
 
       def test_defaults_merge_correctly
-        path  = Path::Pattern.new '/foo(/:id)'
+        path  = Path::Pattern.from_string '/foo(/:id)'
         @router.routes.add_route nil, path, {}, {:id => nil}, {}
 
         env = rails_env 'PATH_INFO' => '/foo/10'
@@ -308,7 +308,7 @@ module ActionDispatch
       end
 
       def test_nil_path_parts_are_ignored
-        path  = Path::Pattern.new "/:controller(/:action(.:format))"
+        path  = Path::Pattern.from_string "/:controller(/:action(.:format))"
         @router.routes.add_route @app, path, {}, {}, {}
 
         params = { :controller => "tasks", :format => nil }
@@ -331,7 +331,7 @@ module ActionDispatch
       end
 
       def test_generate_calls_param_proc
-        path  = Path::Pattern.new '/:controller(/:action)'
+        path  = Path::Pattern.from_string '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
         parameterized = []
@@ -348,7 +348,7 @@ module ActionDispatch
       end
 
       def test_generate_id
-        path  = Path::Pattern.new '/:controller(/:action)'
+        path  = Path::Pattern.from_string '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(
@@ -358,7 +358,7 @@ module ActionDispatch
       end
 
       def test_generate_escapes
-        path  = Path::Pattern.new '/:controller(/:action)'
+        path  = Path::Pattern.from_string '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
         path, _ = @formatter.generate(nil,
@@ -369,7 +369,7 @@ module ActionDispatch
       end
 
       def test_generate_escapes_with_namespaced_controller
-        path  = Path::Pattern.new '/:controller(/:action)'
+        path  = Path::Pattern.from_string '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
         path, _ = @formatter.generate(
@@ -380,7 +380,7 @@ module ActionDispatch
       end
 
       def test_generate_extra_params
-        path  = Path::Pattern.new '/:controller(/:action)'
+        path  = Path::Pattern.from_string '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(
@@ -394,7 +394,7 @@ module ActionDispatch
       end
 
       def test_generate_uses_recall_if_needed
-        path  = Path::Pattern.new '/:controller(/:action(/:id))'
+        path  = Path::Pattern.from_string '/:controller(/:action(/:id))'
         @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(
@@ -406,7 +406,7 @@ module ActionDispatch
       end
 
       def test_generate_with_name
-        path  = Path::Pattern.new '/:controller(/:action)'
+        path  = Path::Pattern.from_string '/:controller(/:action)'
         @router.routes.add_route @app, path, {}, {}, {}
 
         path, params = @formatter.generate(
@@ -423,7 +423,7 @@ module ActionDispatch
         '/content/show/10'  => { :controller => 'content', :action => 'show', :id => "10" },
       }.each do |request_path, expected|
         define_method("test_recognize_#{expected.keys.map(&:to_s).join('_')}") do
-          path  = Path::Pattern.new "/:controller(/:action(/:id))"
+          path  = Path::Pattern.from_string "/:controller(/:action(/:id))"
           app   = Object.new
           route = @router.routes.add_route(app, path, {}, {}, {})
 
@@ -445,7 +445,7 @@ module ActionDispatch
         :splat   => ['/segment/a/b%20c+d', { :segment => 'segment', :splat => 'a/b c+d' }]
       }.each do |name, (request_path, expected)|
         define_method("test_recognize_#{name}") do
-          path  = Path::Pattern.new '/:segment/*splat'
+          path  = Path::Pattern.from_string '/:segment/*splat'
           app   = Object.new
           route = @router.routes.add_route(app, path, {}, {}, {})
 
@@ -489,7 +489,7 @@ module ActionDispatch
       end
 
       def test_recognize_literal
-        path   = Path::Pattern.new "/books(/:action(.:format))"
+        path   = Path::Pattern.from_string "/books(/:action(.:format))"
         app    = Object.new
         route  = @router.routes.add_route(app, path, {}, {:controller => 'books'})
 
@@ -506,7 +506,7 @@ module ActionDispatch
       end
 
       def test_recognize_head_request_as_get_route
-        path   = Path::Pattern.new "/books(/:action(.:format))"
+        path   = Path::Pattern.from_string "/books(/:action(.:format))"
         app    = Object.new
         conditions = {
           :request_method => 'GET'
@@ -525,7 +525,7 @@ module ActionDispatch
       end
 
       def test_recognize_cares_about_verbs
-        path   = Path::Pattern.new "/books(/:action(.:format))"
+        path   = Path::Pattern.from_string "/books(/:action(.:format))"
         app    = Object.new
         conditions = {
           :request_method => 'GET'
@@ -553,7 +553,11 @@ module ActionDispatch
 
       def add_routes router, paths
         paths.each do |path|
-          path  = Path::Pattern.new path
+          if String === path
+            path  = Path::Pattern.from_string path
+          else
+            path  = Path::Pattern.new path
+          end
           router.routes.add_route @app, path, {}, {}, {}
         end
       end

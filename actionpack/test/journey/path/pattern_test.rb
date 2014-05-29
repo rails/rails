@@ -101,7 +101,7 @@ module ActionDispatch
             ['/:foo(/:bar)', %w{ bar }],
             ['/:foo(/:bar)/:lol(/:baz)', %w{ bar baz }],
           ].each do |pattern, list|
-            path = Pattern.new pattern
+            path = Pattern.from_string pattern
             assert_equal list.sort, path.optional_names.sort
           end
         end
@@ -205,20 +205,20 @@ module ActionDispatch
         end
 
         def test_to_regexp_defaults
-          path = Pattern.new '/:controller(/:action(/:id))'
+          path = Pattern.from_string '/:controller(/:action(/:id))'
           expected = %r{\A/([^/.?]+)(?:/([^/.?]+)(?:/([^/.?]+))?)?\Z}
           assert_equal expected, path.to_regexp
         end
 
         def test_failed_match
-          path = Pattern.new '/:controller(/:action(/:id(.:format)))'
+          path = Pattern.from_string '/:controller(/:action(/:id(.:format)))'
           uri = 'content'
 
           assert_not path =~ uri
         end
 
         def test_match_controller
-          path = Pattern.new '/:controller(/:action(/:id(.:format)))'
+          path = Pattern.from_string '/:controller(/:action(/:id(.:format)))'
           uri = '/content'
 
           match = path =~ uri
@@ -230,7 +230,7 @@ module ActionDispatch
         end
 
         def test_match_controller_action
-          path = Pattern.new '/:controller(/:action(/:id(.:format)))'
+          path = Pattern.from_string '/:controller(/:action(/:id(.:format)))'
           uri = '/content/list'
 
           match = path =~ uri
@@ -242,7 +242,7 @@ module ActionDispatch
         end
 
         def test_match_controller_action_id
-          path = Pattern.new '/:controller(/:action(/:id(.:format)))'
+          path = Pattern.from_string '/:controller(/:action(/:id(.:format)))'
           uri = '/content/list/10'
 
           match = path =~ uri
@@ -254,7 +254,7 @@ module ActionDispatch
         end
 
         def test_match_literal
-          path = Path::Pattern.new "/books(/:action(.:format))"
+          path = Path::Pattern.from_string "/books(/:action(.:format))"
 
           uri = '/books'
           match = path =~ uri
@@ -264,7 +264,7 @@ module ActionDispatch
         end
 
         def test_match_literal_with_action
-          path = Path::Pattern.new "/books(/:action(.:format))"
+          path = Path::Pattern.from_string "/books(/:action(.:format))"
 
           uri = '/books/list'
           match = path =~ uri
@@ -274,7 +274,7 @@ module ActionDispatch
         end
 
         def test_match_literal_with_action_and_format
-          path = Path::Pattern.new "/books(/:action(.:format))"
+          path = Path::Pattern.from_string "/books(/:action(.:format))"
 
           uri = '/books/list.rss'
           match = path =~ uri

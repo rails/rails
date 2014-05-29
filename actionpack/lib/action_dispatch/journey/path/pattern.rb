@@ -1,18 +1,17 @@
+require 'action_dispatch/journey/router/strexp'
+
 module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
         attr_reader :spec, :requirements, :anchored
 
-        def initialize(strexp)
-          @anchored = true
+        def self.from_string string
+          new Journey::Router::Strexp.build(string, {}, ["/.?"], true)
+        end
 
+        def initialize(strexp)
           case strexp
-          when String
-            parser        = Journey::Parser.new
-            @spec         = parser.parse(strexp)
-            @requirements = {}
-            @separators   = "/.?"
           when Router::Strexp
             @spec         = strexp.ast
             @requirements = strexp.requirements
