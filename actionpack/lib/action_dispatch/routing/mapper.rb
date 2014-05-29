@@ -76,10 +76,11 @@ module ActionDispatch
           @default_controller = options[:controller] || scope[:controller]
           @default_action     = options[:action] || scope[:action]
 
-          @options = normalize_options!(options)
-          normalize_path!
-          normalize_requirements!
-          normalize_conditions!
+          @path = normalize_path! @path, options[:format]
+          path_params = path_params @path
+          @options = normalize_options!(options, path_params)
+          normalize_requirements!(path_params)
+          normalize_conditions!(path_params)
           normalize_defaults!
         end
 
@@ -89,26 +90,24 @@ module ActionDispatch
 
         private
 
-          def normalize_path!
-            raise ArgumentError, "path is required" if @path.blank?
-            @path = Mapper.normalize_path(@path)
+          def normalize_path!(path, format)
+            raise ArgumentError, "path is required" if path.blank?
+            path = Mapper.normalize_path(path)
 
-            if required_format?
-              @path = "#{@path}.:format"
-            elsif optional_format?
-              @path = "#{@path}(.:format)"
+            if format == true
+              "#{path}.:format"
+            elsif optional_format?(path, format)
+              "#{path}(.:format)"
+            else
+              path
             end
           end
 
-          def required_format?
-            options[:format] == true
+          def optional_format?(path, format)
+            format != false && !path.include?(':format') && !path.end_with?('/')
           end
 
-          def optional_format?
-            options[:format] != false && !path.include?(':format') && !path.end_with?('/')
-          end
-
-          def normalize_options!(options)
+          def normalize_options!(options, path_params)
             path_without_format = path.sub(/\(\.:format\)$/, '')
 
             # Add a constraint for wildcard route to make it non-greedy and match the
@@ -117,7 +116,7 @@ module ActionDispatch
               options[$1.to_sym] ||= /.+?/
             end
 
-            if path_pattern.names.map(&:to_sym).include?(:controller)
+            if path_params.include?(:controller)
               raise ArgumentError, ":controller segment is not allowed within a namespace block" if scope[:module]
 
               # Add a default constraint for :controller path segments that matches namespaced
@@ -130,13 +129,13 @@ module ActionDispatch
             if to.respond_to? :call
               options
             else
-              options.merge!(default_controller_and_action)
+              options.merge!(default_controller_and_action(path_params))
             end
           end
 
-          def normalize_requirements!
+          def normalize_requirements!(path_params)
             constraints.each do |key, requirement|
-              next unless segment_keys.include?(key) || key == :controller
+              next unless path_params.include?(key) || key == :controller
               verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
               @requirements[key] = requirement
             end
@@ -193,18 +192,18 @@ module ActionDispatch
             end
           end
 
-          def normalize_conditions!
+          def normalize_conditions!(path_params)
             @conditions[:path_info] = path
 
             constraints.each do |key, condition|
-              unless segment_keys.include?(key) || key == :controller
+              unless path_params.include?(key) || key == :controller
                 @conditions[key] = condition
               end
             end
 
             required_defaults = []
             options.each do |key, required_default|
-              unless segment_keys.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
+              unless path_params.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
                 required_defaults << key
               end
             end
@@ -240,14 +239,14 @@ module ActionDispatch
             end
           end
 
-          def default_controller_and_action
+          def default_controller_and_action(path_params)
             controller, action = get_controller_and_action(default_controller,
               default_action,
               to,
               @scope[:module]
             )
 
-            hash = check_part(:controller, controller, {}) do |part|
+            hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
                 message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
                 message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
@@ -256,16 +255,16 @@ module ActionDispatch
               }
             end
 
-            check_part(:action, action, hash) { |part|
+            check_part(:action, action, path_params, hash) { |part|
               part.is_a?(Regexp) ? part : part.to_s
             }
           end
 
-          def check_part(name, part, hash)
+          def check_part(name, part, path_params, hash)
             if part
               hash[name] = yield(part)
             else
-              unless segment_keys.include?(name)
+              unless path_params.include?(name)
                 message = "Missing :#{name} key on routes definition, please check your routes."
                 raise ArgumentError, message
               end
@@ -317,16 +316,13 @@ module ActionDispatch
             end
           end
 
-          def segment_keys
-            @segment_keys ||= path_pattern.names.map{ |s| s.to_sym }
+          def path_params(path)
+            path_ast(path).grep(Journey::Nodes::Symbol).map { |n| n.name.to_sym }
           end
 
-          def path_pattern
-            Journey::Path::Pattern.new(strexp)
-          end
-
-          def strexp
-            Journey::Router::Strexp.compile(path, requirements, SEPARATORS)
+          def path_ast(path)
+            parser = Journey::Parser.new
+            parser.parse path
           end
 
           def dispatcher
