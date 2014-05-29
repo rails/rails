@@ -231,7 +231,10 @@ module ActiveRecord
 
         class Hstore < Type
           def type_cast_for_write(value)
-            ConnectionAdapters::PostgreSQLColumn.hstore_to_string value
+            # roundtrip to ensure uniform uniform types
+            # TODO: This is not an efficient solution.
+            stringified = ConnectionAdapters::PostgreSQLColumn.hstore_to_string(value)
+            type_cast(stringified)
           end
 
           def type_cast(value)
@@ -255,7 +258,10 @@ module ActiveRecord
 
         class Json < Type
           def type_cast_for_write(value)
-            ConnectionAdapters::PostgreSQLColumn.json_to_string value
+            # roundtrip to ensure uniform uniform types
+            # TODO: This is not an efficient solution.
+            stringified = ConnectionAdapters::PostgreSQLColumn.json_to_string(value)
+            type_cast(stringified)
           end
 
           def type_cast(value)

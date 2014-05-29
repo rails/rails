@@ -126,6 +126,16 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       assert_equal "GMT", x.timezone
     end
 
+    def test_duplication_with_store_accessors
+      x = Hstore.new(language: "fr", timezone: "GMT")
+      assert_equal "fr", x.language
+      assert_equal "GMT", x.timezone
+
+      y = x.dup
+      assert_equal "fr", y.language
+      assert_equal "GMT", y.timezone
+    end
+
     def test_gen1
       assert_equal(%q(" "=>""), @column.class.hstore_to_string({' '=>''}))
     end

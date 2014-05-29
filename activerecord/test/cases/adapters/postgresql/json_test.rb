@@ -122,6 +122,14 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     assert_equal "640×1136", x.resolution
   end
 
+  def test_duplication_with_store_accessors
+    x = JsonDataType.new(resolution: "320×480")
+    assert_equal "320×480", x.resolution
+
+    y = x.dup
+    assert_equal "320×480", y.resolution
+  end
+
   def test_update_all
     json = JsonDataType.create! payload: { "one" => "two" }
 
