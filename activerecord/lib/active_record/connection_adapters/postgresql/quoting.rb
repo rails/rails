@@ -150,12 +150,7 @@ module ActiveRecord
         # - "schema.name".table_name
         # - "schema.name"."table.name"
         def quote_table_name(name)
-          schema, table = Utils.extract_schema_and_table(name.to_s)
-          if schema
-            "#{quote_column_name(schema)}.#{quote_column_name(table)}"
-          else
-            quote_column_name(table)
-          end
+          Utils.extract_schema_qualified_name(name.to_s).quoted
         end
 
         def quote_table_name_for_assignment(table, attr)
