@@ -1,3 +1,16 @@
+*   Removed deprecated `Numeric#ago` and friends
+
+    Replacements:
+
+       5.ago   => 5.seconds.ago
+       5.until => 5.seconds.until
+       5.since => 5.seconds.since
+       5.from_now => 5.seconds.from_now
+
+    See #12389 for the history and rationale behind this.
+
+    *Godfrey Chan*
+
 *   DateTime `advance` now supports partial days.
 
     Before:
