@@ -79,6 +79,7 @@ module ActionDispatch
 
           formatted = options.delete :format
           via = Array(options.delete(:via) { [] })
+          @blocks = blocks(options[:constraints], scope[:blocks])
 
           path = normalize_path! path, formatted
           ast  = path_ast path
@@ -87,14 +88,14 @@ module ActionDispatch
 
 
           constraints = constraints(options[:constraints], scope[:constraints])
-          normalize_requirements!(path_params, formatted, constraints)
 
+          normalize_requirements!(path_params, formatted, constraints)
           normalize_conditions!(path_params, path, ast, via, constraints)
           normalize_defaults!(formatted)
         end
 
         def to_route
-          [ app, conditions, requirements, defaults, as, anchor ]
+          [ app(@blocks), conditions, requirements, defaults, as, anchor ]
         end
 
         private
@@ -232,7 +233,7 @@ module ActionDispatch
             end
           end
 
-          def app
+          def app(blocks)
             return to if Redirect === to
 
             if to.respond_to?(:call)
@@ -303,11 +304,11 @@ module ActionDispatch
             yield
           end
 
-          def blocks
-            if options[:constraints].present? && !options[:constraints].is_a?(Hash)
-              [options[:constraints]]
+          def blocks(options_constraints, scope_blocks)
+            if options_constraints.present? && !options_constraints.is_a?(Hash)
+              [options_constraints]
             else
-              scope[:blocks] || []
+              scope_blocks || []
             end
           end
 
