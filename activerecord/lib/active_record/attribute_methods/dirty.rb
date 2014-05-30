@@ -94,8 +94,7 @@ module ActiveRecord
       end
 
       def _field_changed?(attr, old, value)
-        column = column_for_attribute(attr) || Type::Value.new
-        column.changed?(old, value)
+        column_for_attribute(attr).changed?(old, value)
       end
     end
   end

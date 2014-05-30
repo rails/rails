@@ -80,6 +80,25 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal :integer, @first.column_for_attribute("id").type
   end
 
+  def test_non_existent_columns_return_null_object
+    column = @first.column_for_attribute("attribute_that_doesnt_exist")
+    assert_equal "attribute_that_doesnt_exist", column.name
+    assert_equal nil, column.sql_type
+    assert_equal nil, column.type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+  end
+
+  def test_non_existent_columns_are_identity_types
+    column = @first.column_for_attribute("attribute_that_doesnt_exist")
+    object = Object.new
+
+    assert_equal object, column.type_cast(object)
+    assert_equal object, column.type_cast_for_write(object)
+    assert_equal object, column.type_cast_for_database(object)
+  end
+
   def test_reflection_klass_for_nested_class_name
     reflection = MacroReflection.new(:company, nil, nil, { :class_name => 'MyApplication::Business::Company' }, ActiveRecord::Base)
     assert_nothing_raised do

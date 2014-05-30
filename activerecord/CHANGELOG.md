@@ -1,3 +1,7 @@
+*   Return a null column from `column_for_attribute` when no column exists.
+
+    *Sean Griffin*
+
 *   Preserve type when dumping PostgreSQL bit and bit varying columns.
 
     *Yves Senn*
