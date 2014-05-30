@@ -91,7 +91,7 @@ module ActionDispatch
 
           normalize_requirements!(path_params, formatted, constraints)
           normalize_conditions!(path_params, path, ast, via, constraints)
-          normalize_defaults!(formatted)
+          normalize_defaults!(formatted, options[:constraints])
         end
 
         def to_route
@@ -168,7 +168,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_defaults!(formatted)
+          def normalize_defaults!(formatted, options_constraints)
             @defaults.merge!(scope[:defaults]) if scope[:defaults]
             @defaults.merge!(options[:defaults]) if options[:defaults]
 
@@ -178,14 +178,14 @@ module ActionDispatch
               end
             end
 
-            if options[:constraints].is_a?(Hash)
-              options[:constraints].each do |key, default|
+            if options_constraints.is_a?(Hash)
+              options_constraints.each do |key, default|
                 if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
                   @defaults[key] ||= default
                 end
               end
-            elsif options[:constraints]
-              verify_callable_constraint(options[:constraints])
+            elsif options_constraints
+              verify_callable_constraint(options_constraints)
             end
 
             if Regexp === formatted
