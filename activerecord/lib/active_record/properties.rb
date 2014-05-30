@@ -14,6 +14,17 @@ module ActiveRecord
       # Active Record's type casting behavior, as well as adding support for user defined
       # types.
       #
+      # +name+ The name of the methods to define attribute methods for, and the column which
+      # this will persist to.
+      #
+      # +cast_type+ A type object that contains information about how to type cast the value.
+      # See the examples section for more information.
+      #
+      # ==== Options
+      # The options hash accepts the following options:
+      #
+      # +default+ is the default value that the column should use on a new record.
+      #
       # ==== Examples
       #
       # The type detected by Active Record can be overriden.
@@ -62,11 +73,11 @@ module ActiveRecord
       #
       #   store_listing = StoreListing.new(price_in_cents: '$10.00')
       #   store_listing.price_in_cents # => 1000
-      def property(name, cast_type)
+      def property(name, cast_type, options = {})
         name = name.to_s
         clear_properties_cache
         # Assign a new hash to ensure that subclasses do not share a hash
-        self.user_provided_columns = user_provided_columns.merge(name => connection.new_column(name, nil, cast_type))
+        self.user_provided_columns = user_provided_columns.merge(name => connection.new_column(name, options[:default], cast_type))
       end
 
       # Returns an array of column objects for the table associated with this class.
