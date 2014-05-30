@@ -99,6 +99,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
     Topic.reset_primary_key
     assert_equal "topic_id", Topic.primary_key
+    assert_equal nil, ActiveRecord::SchemaMigration.primary_key
 
     ActiveRecord::Base.primary_key_prefix_type = nil
     Topic.reset_primary_key

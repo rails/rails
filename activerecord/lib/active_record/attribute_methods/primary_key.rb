@@ -87,6 +87,7 @@ module ActiveRecord
           when :table_name
             base_name.foreign_key(false)
           when :table_name_with_underscore
+            return nil if base_name.to_s == 'ActiveRecord::SchemaMigration'
             base_name.foreign_key
           else
             if ActiveRecord::Base != self && table_exists?
