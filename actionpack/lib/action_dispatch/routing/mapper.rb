@@ -213,19 +213,22 @@ module ActionDispatch
             end
             @conditions[:required_defaults] = required_defaults
 
-            via_all = options.delete(:via) if options[:via] == :all
+            via = options[:via]
 
-            if !via_all && options[:via].blank?
-              msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
-                    "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
-                    "If you want to expose your action to GET, use `get` in the router:\n" \
-                    "  Instead of: match \"controller#action\"\n" \
-                    "  Do: get \"controller#action\""
-              raise ArgumentError, msg
-            end
+            if via == :all
+              options.delete(:via)
+            else
+              via = Array(via).compact
+              if via.empty?
+                msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
+                      "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
+                      "If you want to expose your action to GET, use `get` in the router:\n" \
+                      "  Instead of: match \"controller#action\"\n" \
+                      "  Do: get \"controller#action\""
+                raise ArgumentError, msg
+              end
 
-            if via = options[:via]
-              @conditions[:request_method] = Array(via).map { |m| m.to_s.dasherize.upcase }
+              @conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
             end
           end
 
