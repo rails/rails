@@ -60,7 +60,6 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:except, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
@@ -174,7 +173,7 @@ module ActionDispatch
 
           def normalize_defaults!(formatted, options_constraints)
             options.each do |key, default|
-              unless Regexp === default || IGNORE_OPTIONS.include?(key)
+              unless Regexp === default
                 @defaults[key] = default
               end
             end
@@ -214,7 +213,7 @@ module ActionDispatch
 
             required_defaults = []
             options.each do |key, required_default|
-              unless path_params.include?(key) || IGNORE_OPTIONS.include?(key) || Regexp === required_default
+              unless path_params.include?(key) || Regexp === required_default
                 required_defaults << key
               end
             end
@@ -317,7 +316,7 @@ module ActionDispatch
             constraints = {}
             constraints.merge!(scope_constraints) if scope_constraints
 
-            options.except(*IGNORE_OPTIONS).each do |key, option|
+            options.each do |key, option|
               constraints[key] = option if Regexp === option
             end
 
@@ -1525,6 +1524,11 @@ module ActionDispatch
           end
 
           options.delete :only
+          options.delete :except
+          options.delete :shallow_path
+          options.delete :shallow_prefix
+          options.delete :shallow
+
           mapping = Mapping.new(@scope, URI.parser.escape(path), options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
