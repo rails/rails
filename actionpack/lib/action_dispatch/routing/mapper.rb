@@ -305,9 +305,10 @@ module ActionDispatch
           def constraints(option_constraints, constraints, path_params)
             required_defaults = []
             options.each_pair do |key, option|
-              constraints[key] = option if Regexp === option
-              unless path_params.include?(key) || Regexp === option
-                required_defaults << key
+              if Regexp === option
+                constraints[key] = option
+              else
+                required_defaults << key unless path_params.include?(key)
               end
             end
             @conditions[:required_defaults] = required_defaults
