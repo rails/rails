@@ -60,11 +60,11 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
+        IGNORE_OPTIONS = [:via, :on, :constraints, :defaults, :only, :except, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
-        attr_reader :to, :default_controller, :default_action
+        attr_reader :to, :default_controller, :default_action, :as, :anchor
 
         def initialize(scope, path, options)
           @scope = scope
@@ -74,6 +74,8 @@ module ActionDispatch
           @to                 = options.delete :to
           @default_controller = options[:controller] || scope[:controller]
           @default_action     = options[:action] || scope[:action]
+          @as                 = options.delete :as
+          @anchor             = options.delete :anchor
 
           formatted = options.delete :format
 
@@ -87,7 +89,7 @@ module ActionDispatch
         end
 
         def to_route
-          [ app, conditions, requirements, defaults, options[:as], options[:anchor] ]
+          [ app, conditions, requirements, defaults, as, anchor ]
         end
 
         private
