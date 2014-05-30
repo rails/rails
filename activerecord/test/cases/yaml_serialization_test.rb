@@ -23,13 +23,6 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal({:omg=>:lol}, YAML.load(YAML.dump(topic)).content)
   end
 
-  def test_encode_with_coder
-    topic = Topic.first
-    coder = {}
-    topic.encode_with coder
-    assert_equal({'attributes' => topic.attributes}, coder)
-  end
-
   def test_psych_roundtrip
     topic = Topic.first
     assert topic
@@ -46,5 +39,17 @@ class YamlSerializationTest < ActiveRecord::TestCase
 
   def test_active_record_relation_serialization
     [Topic.all].to_yaml
+  end
+
+  def test_raw_types_are_not_changed_on_round_trip
+    topic = Topic.new(parent_id: "123")
+    assert_equal "123", topic.parent_id_before_type_cast
+    assert_equal "123", YAML.load(YAML.dump(topic)).parent_id_before_type_cast
+  end
+
+  def test_cast_types_are_not_changed_on_round_trip
+    topic = Topic.new(parent_id: "123")
+    assert_equal 123, topic.parent_id
+    assert_equal 123, YAML.load(YAML.dump(topic)).parent_id
   end
 end
