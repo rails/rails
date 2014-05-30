@@ -1,3 +1,8 @@
+*   Fixed `columns_for_distinct` of postgresql adapter to work correctly
+    with orders without sort direction modifiers.
+
+    *Nikolay Kondratyev*
+
 *   `rake railties:install:migrations` respects the order of railties.
 
     *Arun Agrawal*
