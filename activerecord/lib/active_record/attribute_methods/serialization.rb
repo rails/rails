@@ -127,7 +127,7 @@ module ActiveRecord
 
         def typecasted_attribute_value(name)
           if self.class.serialized_attributes.include?(name)
-            @attributes[name].serialized_value
+            @raw_attributes[name].serialized_value
           else
             super
           end
@@ -136,7 +136,7 @@ module ActiveRecord
         def attributes_for_coder
           attribute_names.each_with_object({}) do |name, attrs|
             attrs[name] = if self.class.serialized_attributes.include?(name)
-                            @attributes[name].serialized_value
+                            @raw_attributes[name].serialized_value
                           else
                             read_attribute(name)
                           end

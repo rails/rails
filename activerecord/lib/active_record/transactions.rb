@@ -347,7 +347,7 @@ module ActiveRecord
         @_start_transaction_state[:destroyed] = @destroyed
       end
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
-      @_start_transaction_state[:frozen?] = @attributes.frozen?
+      @_start_transaction_state[:frozen?] = @raw_attributes.frozen?
     end
 
     # Clear the new record state and id of a record.
@@ -368,16 +368,16 @@ module ActiveRecord
         if transaction_level < 1 || force
           restore_state = @_start_transaction_state
           was_frozen = restore_state[:frozen?]
-          @attributes = @attributes.dup if @attributes.frozen?
+          @raw_attributes = @raw_attributes.dup if @raw_attributes.frozen?
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
           if restore_state.has_key?(:id)
             write_attribute(self.class.primary_key, restore_state[:id])
           else
+            @raw_attributes.delete(self.class.primary_key)
             @attributes.delete(self.class.primary_key)
-            @attributes_cache.delete(self.class.primary_key)
           end
-          @attributes.freeze if was_frozen
+          @raw_attributes.freeze if was_frozen
         end
       end
     end

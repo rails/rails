@@ -179,8 +179,8 @@ module ActiveRecord
     # So any change to the attributes in either instance will affect the other.
     def becomes(klass)
       became = klass.new
+      became.instance_variable_set("@raw_attributes", @raw_attributes)
       became.instance_variable_set("@attributes", @attributes)
-      became.instance_variable_set("@attributes_cache", @attributes_cache)
       became.instance_variable_set("@changed_attributes", @changed_attributes) if defined?(@changed_attributes)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
@@ -396,11 +396,11 @@ module ActiveRecord
           self.class.unscoped { self.class.find(id) }
         end
 
-      @attributes.update(fresh_object.instance_variable_get('@attributes'))
+      @raw_attributes.update(fresh_object.instance_variable_get('@raw_attributes'))
 
       @column_types           = self.class.column_types
       @column_types_override  = fresh_object.instance_variable_get('@column_types_override')
-      @attributes_cache       = {}
+      @attributes             = {}
       self
     end
 
@@ -490,7 +490,7 @@ module ActiveRecord
 
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def _update_record(attribute_names = @attributes.keys)
+    def _update_record(attribute_names = @raw_attributes.keys)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
         0
@@ -501,7 +501,7 @@ module ActiveRecord
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def _create_record(attribute_names = @attributes.keys)
+    def _create_record(attribute_names = @raw_attributes.keys)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values
