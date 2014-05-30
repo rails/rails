@@ -60,7 +60,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:only, :except, :shallow, :shallow_path, :shallow_prefix]
+        IGNORE_OPTIONS = [:except, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
@@ -1524,6 +1524,7 @@ module ActionDispatch
             options[:as] = name_for_action(options[:as], action)
           end
 
+          options.delete :only
           mapping = Mapping.new(@scope, URI.parser.escape(path), options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
