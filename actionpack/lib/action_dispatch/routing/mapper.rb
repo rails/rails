@@ -221,7 +221,7 @@ module ActionDispatch
                     "If you want to expose your action to GET, use `get` in the router:\n" \
                     "  Instead of: match \"controller#action\"\n" \
                     "  Do: get \"controller#action\""
-              raise msg
+              raise ArgumentError, msg
             end
 
             if via = options[:via]

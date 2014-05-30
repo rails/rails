@@ -2242,6 +2242,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
   end
 
+  def test_match_without_via
+    assert_raises(ArgumentError) do
+      draw do
+        match '/foo/bar', :to => 'files#show'
+      end
+    end
+  end
+
   def test_glob_parameter_accepts_regexp
     draw do
       get '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
