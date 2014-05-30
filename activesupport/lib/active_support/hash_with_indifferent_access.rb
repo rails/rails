@@ -176,7 +176,14 @@ module ActiveSupport
       indices.collect { |key| self[convert_key(key)] }
     end
 
-    # Returns an exact copy of the hash.
+    # Returns a shallow copy of the hash.
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new({ a: { b: 'b' } })
+    #   dup  = hash.dup
+    #   dup[:a][:c] = 'c'
+    #
+    #   hash[:a][:c] #=> "c"
+    #   dup[:a][:c]  #=> "c"
     def dup
       self.class.new(self).tap do |new_hash|
         new_hash.default = default
