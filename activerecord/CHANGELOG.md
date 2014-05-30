@@ -1,3 +1,8 @@
+*   Fixed `columns_for_distinct` of postgresql adapter to work correctly
+    with orders without sort direction modifiers.
+
+    *Nikolay Kondratyev*
+
 *   Keep PostgreSQL `hstore` and `json` attributes as `Hash` in `@attributes`.
     Fixes duplication in combination with `store_accessor`.
 
