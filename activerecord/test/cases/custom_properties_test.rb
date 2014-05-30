@@ -87,5 +87,25 @@ module ActiveRecord
       column_names = OverloadedType.column_names
       assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit string_with_default non_existent_decimal), column_names
     end
+
+    def test_caches_are_cleared
+      klass = Class.new(OverloadedType)
+
+      assert_equal 6, klass.columns.length
+      assert_not klass.columns_hash.key?('wibble')
+      assert_equal 6, klass.column_types.length
+      assert_equal 6, klass.column_defaults.length
+      assert_not klass.column_names.include?('wibble')
+      assert_equal 5, klass.content_columns.length
+
+      klass.property :wibble, Type::Value.new
+
+      assert_equal 7, klass.columns.length
+      assert klass.columns_hash.key?('wibble')
+      assert_equal 7, klass.column_types.length
+      assert_equal 7, klass.column_defaults.length
+      assert klass.column_names.include?('wibble')
+      assert_equal 6, klass.content_columns.length
+    end
   end
 end

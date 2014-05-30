@@ -75,7 +75,7 @@ module ActiveRecord
       #   store_listing.price_in_cents # => 1000
       def property(name, cast_type, options = {})
         name = name.to_s
-        clear_properties_cache
+        clear_caches_calculated_from_columns
         # Assign a new hash to ensure that subclasses do not share a hash
         self.user_provided_columns = user_provided_columns.merge(name => connection.new_column(name, options[:default], cast_type))
       end
@@ -92,7 +92,7 @@ module ActiveRecord
 
       def reset_column_information # :nodoc:
         super
-        clear_properties_cache
+        clear_caches_calculated_from_columns
       end
 
       private
@@ -108,9 +108,13 @@ module ActiveRecord
         existing_columns + new_columns
       end
 
-      def clear_properties_cache
+      def clear_caches_calculated_from_columns
         @columns = nil
         @columns_hash = nil
+        @column_types = nil
+        @column_defaults = nil
+        @column_names = nil
+        @content_columns = nil
       end
     end
   end
