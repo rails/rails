@@ -88,9 +88,14 @@ module ActionDispatch
           @options = normalize_options!(options, formatted, path_params, ast, scope[:module])
 
 
-          constraints = constraints(options_constraints, scope[:constraints])
+          constraints = constraints(options_constraints,
+                                    scope[:constraints] || {})
 
           normalize_requirements!(path_params, formatted, constraints)
+
+          @conditions[:path_info] = path
+          @conditions[:parsed_path_info] = ast
+
           normalize_conditions!(path_params, path, ast, via, constraints)
           normalize_defaults!(formatted, options_constraints)
         end
@@ -144,10 +149,13 @@ module ActionDispatch
           end
 
           def normalize_requirements!(path_params, formatted, constraints)
-            constraints.each do |key, requirement|
-              next unless path_params.include?(key) || key == :controller
-              verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
-              @requirements[key] = requirement
+            constraints.each_pair do |key, requirement|
+              if path_params.include?(key) || key == :controller
+                verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
+                @requirements[key] = requirement
+              else
+                @conditions[key] = requirement
+              end
             end
 
             if formatted == true
@@ -200,15 +208,6 @@ module ActionDispatch
           end
 
           def normalize_conditions!(path_params, path, ast, via, constraints)
-            @conditions[:path_info] = path
-            @conditions[:parsed_path_info] = ast
-
-            constraints.each do |key, condition|
-              unless path_params.include?(key) || key == :controller
-                @conditions[key] = condition
-              end
-            end
-
             required_defaults = []
             options.each do |key, required_default|
               unless path_params.include?(key) || Regexp === required_default
@@ -310,11 +309,8 @@ module ActionDispatch
             end
           end
 
-          def constraints(option_constraints, scope_constraints)
-            constraints = {}
-            constraints.merge!(scope_constraints) if scope_constraints
-
-            options.each do |key, option|
+          def constraints(option_constraints, constraints)
+            options.each_pair do |key, option|
               constraints[key] = option if Regexp === option
             end
 
