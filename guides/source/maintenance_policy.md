@@ -12,13 +12,13 @@ Rails follows a shifted version of [semver](http://semver.org/):
 **Patch `Z`**
 
 Only bug fixes, no API changes, no new features.
-Except as necessary for security fixes or deprecations.
+Except as necessary for security fixes.
 
 **Minor `Y`**
 
 New features, may contain API changes (Serve as major versions of Semver).
-Breaking changes are paired with deprecation notices in patch level release of
-the last minor version level.
+Breaking changes are paired with deprecation notices in the previous minor
+or major release.
 
 **Major `X`**
 
