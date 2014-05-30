@@ -81,8 +81,6 @@ module ActionDispatch
           via = Array(options.delete(:via) { [] })
           options_constraints = options.delete :constraints
 
-          @blocks = blocks(options_constraints, scope[:blocks])
-
           path = normalize_path! path, formatted
           ast  = path_ast path
           path_params = path_params ast
@@ -94,6 +92,8 @@ module ActionDispatch
           constraints = constraints(options, path_params)
 
           split_constraints path_params, constraints
+
+          @blocks = blocks(options_constraints, scope[:blocks])
 
           if options_constraints.is_a?(Hash)
             split_constraints path_params, options_constraints
