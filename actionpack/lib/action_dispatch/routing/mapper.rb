@@ -62,11 +62,10 @@ module ActionDispatch
       class Mapping #:nodoc:
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
-        attr_reader :scope, :options, :requirements, :conditions, :defaults
+        attr_reader :options, :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
         def initialize(scope, path, options)
-          @scope = scope
           @requirements, @conditions, @defaults = {}, {}, {}
 
           @defaults.merge!(scope[:defaults]) if scope[:defaults]
