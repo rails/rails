@@ -80,6 +80,7 @@ module ActionDispatch
           formatted = options.delete :format
           via = Array(options.delete(:via) { [] })
           options_constraints = options.delete :constraints
+
           @blocks = blocks(options_constraints, scope[:blocks])
 
           path = normalize_path! path, formatted
@@ -89,18 +90,27 @@ module ActionDispatch
           options = normalize_options!(options, formatted, path_params, ast, scope[:module])
 
 
-          constraints = constraints(options,
-                                    options_constraints,
-                                    (scope[:constraints] || {}),
-                                    path_params)
+          split_constraints(path_params, scope[:constraints]) if scope[:constraints]
+          constraints = constraints(options, path_params)
 
-          normalize_requirements!(path_params, formatted, constraints)
+          split_constraints path_params, constraints
+
+          if options_constraints.is_a?(Hash)
+            split_constraints path_params, options_constraints
+            options_constraints.each do |key, default|
+              if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
+                @defaults[key] ||= default
+              end
+            end
+          end
+
+          normalize_format!(formatted)
 
           @conditions[:path_info] = path
           @conditions[:parsed_path_info] = ast
 
           add_request_method(via, @conditions)
-          normalize_defaults!(options, formatted, options_constraints)
+          normalize_defaults!(options, formatted)
         end
 
         def to_route
@@ -151,7 +161,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_requirements!(path_params, formatted, constraints)
+          def split_constraints(path_params, constraints)
             constraints.each_pair do |key, requirement|
               if path_params.include?(key) || key == :controller
                 verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
@@ -160,7 +170,9 @@ module ActionDispatch
                 @conditions[key] = requirement
               end
             end
+          end
 
+          def normalize_format!(formatted)
             if formatted == true
               @requirements[:format] ||= /.+/
             elsif Regexp === formatted
@@ -180,21 +192,11 @@ module ActionDispatch
             end
           end
 
-          def normalize_defaults!(options, formatted, options_constraints)
+          def normalize_defaults!(options, formatted)
             options.each do |key, default|
               unless Regexp === default
                 @defaults[key] = default
               end
-            end
-
-            if options_constraints.is_a?(Hash)
-              options_constraints.each do |key, default|
-                if URL_OPTIONS.include?(key) && (String === default || Fixnum === default)
-                  @defaults[key] ||= default
-                end
-              end
-            elsif options_constraints
-              verify_callable_constraint(options_constraints)
             end
 
             if Regexp === formatted
@@ -297,14 +299,16 @@ module ActionDispatch
           end
 
           def blocks(options_constraints, scope_blocks)
-            if options_constraints.present? && !options_constraints.is_a?(Hash)
+            if options_constraints && !options_constraints.is_a?(Hash)
+              verify_callable_constraint(options_constraints)
               [options_constraints]
             else
               scope_blocks || []
             end
           end
 
-          def constraints(options, option_constraints, constraints, path_params)
+          def constraints(options, path_params)
+            constraints = {}
             required_defaults = []
             options.each_pair do |key, option|
               if Regexp === option
@@ -314,8 +318,6 @@ module ActionDispatch
               end
             end
             @conditions[:required_defaults] = required_defaults
-
-            constraints.merge!(option_constraints) if option_constraints.is_a?(Hash)
             constraints
           end
 
