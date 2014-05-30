@@ -134,18 +134,18 @@ module ActiveRecord
       end
 
       def test_default_sequence_name
-        assert_equal 'accounts_id_seq',
+        assert_equal PostgreSQL::Name.new('public', 'accounts_id_seq'),
           @connection.default_sequence_name('accounts', 'id')
 
-        assert_equal 'accounts_id_seq',
+        assert_equal PostgreSQL::Name.new('public', 'accounts_id_seq'),
           @connection.default_sequence_name('accounts')
       end
 
       def test_default_sequence_name_bad_table
-        assert_equal 'zomg_id_seq',
+        assert_equal PostgreSQL::Name.new(nil, 'zomg_id_seq'),
           @connection.default_sequence_name('zomg', 'id')
 
-        assert_equal 'zomg_id_seq',
+        assert_equal PostgreSQL::Name.new(nil, 'zomg_id_seq'),
           @connection.default_sequence_name('zomg')
       end
 
@@ -153,8 +153,7 @@ module ActiveRecord
         with_example_table do
           pk, seq = @connection.pk_and_sequence_for('ex')
           assert_equal 'id', pk
-          expected = PostgreSQL::Name.new("public", @connection.default_sequence_name('ex', 'id'))
-          assert_equal expected, seq
+          assert_equal @connection.default_sequence_name('ex', 'id'), seq
         end
       end
 
@@ -162,8 +161,7 @@ module ActiveRecord
         with_example_table 'code serial primary key' do
           pk, seq = @connection.pk_and_sequence_for('ex')
           assert_equal 'code', pk
-          expected = PostgreSQL::Name.new("public", @connection.default_sequence_name('ex', 'code'))
-          assert_equal expected, seq
+          assert_equal @connection.default_sequence_name('ex', 'code'), seq
         end
       end
 
