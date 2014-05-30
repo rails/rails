@@ -84,9 +84,12 @@ module ActionDispatch
           ast  = path_ast path
           path_params = path_params ast
           @options = normalize_options!(options, formatted, path_params, ast)
-          normalize_requirements!(path_params, formatted)
 
-          normalize_conditions!(path_params, path, ast, via)
+
+          constraints = constraints(options[:constraints], scope[:constraints])
+          normalize_requirements!(path_params, formatted, constraints)
+
+          normalize_conditions!(path_params, path, ast, via, constraints)
           normalize_defaults!(formatted)
         end
 
@@ -138,7 +141,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_requirements!(path_params, formatted)
+          def normalize_requirements!(path_params, formatted, constraints)
             constraints.each do |key, requirement|
               next unless path_params.include?(key) || key == :controller
               verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
@@ -197,7 +200,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_conditions!(path_params, path, ast, via)
+          def normalize_conditions!(path_params, path, ast, via, constraints)
             @conditions[:path_info] = path
             @conditions[:parsed_path_info] = ast
 
@@ -308,16 +311,16 @@ module ActionDispatch
             end
           end
 
-          def constraints
-            @constraints ||= {}.tap do |constraints|
-              constraints.merge!(scope[:constraints]) if scope[:constraints]
+          def constraints(option_constraints, scope_constraints)
+            constraints = {}
+            constraints.merge!(scope_constraints) if scope_constraints
 
-              options.except(*IGNORE_OPTIONS).each do |key, option|
-                constraints[key] = option if Regexp === option
-              end
-
-              constraints.merge!(options[:constraints]) if options[:constraints].is_a?(Hash)
+            options.except(*IGNORE_OPTIONS).each do |key, option|
+              constraints[key] = option if Regexp === option
             end
+
+            constraints.merge!(option_constraints) if option_constraints.is_a?(Hash)
+            constraints
           end
 
           def path_params(ast)
