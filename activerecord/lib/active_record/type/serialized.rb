@@ -10,20 +10,21 @@ module ActiveRecord
       end
 
       def type_cast(value)
-        if value.respond_to?(:unserialized_value)
-          value.unserialized_value(super(value.value))
+        if is_default_value?(value)
+          value
         else
-          super
+          coder.load(super)
         end
       end
 
       def type_cast_for_write(value)
-        Attribute.new(coder, value, :unserialized)
+        return if value.nil?
+        unless is_default_value?(value)
+          coder.dump(value)
+        end
       end
 
-      def raw_type_cast_for_write(value)
-        Attribute.new(coder, value, :serialized)
-      end
+      alias type_cast_for_database type_cast_for_write
 
       def serialized?
         true
@@ -33,24 +34,10 @@ module ActiveRecord
         ActiveRecord::Store::IndifferentHashAccessor
       end
 
-      class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
-        def unserialized_value(v = value)
-          state == :serialized ? unserialize(v) : value
-        end
+      private
 
-        def serialized_value
-          state == :unserialized ? serialize : value
-        end
-
-        def unserialize(v)
-          self.state = :unserialized
-          self.value = coder.load(v)
-        end
-
-        def serialize
-          self.state = :serialized
-          self.value = coder.dump(value)
-        end
+      def is_default_value?(value)
+        value == coder.load(nil)
       end
     end
   end
