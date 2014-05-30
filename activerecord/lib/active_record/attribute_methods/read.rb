@@ -22,7 +22,7 @@ module ActiveRecord
         # the attribute name. Using a constant means that we do not have
         # to allocate an object on each call to the attribute method.
         # Making it frozen means that it doesn't get duped when used to
-        # key the @attributes_cache in read_attribute.
+        # key the @attributes in read_attribute.
         def method_body(method_name, const_name)
           <<-EOMETHOD
           def #{method_name}
@@ -108,22 +108,22 @@ module ActiveRecord
         # If it's cached, just return it
         # We use #[] first as a perf optimization for non-nil values. See https://gist.github.com/jonleighton/3552829.
         name = attr_name.to_s
-        @attributes_cache[name] || @attributes_cache.fetch(name) {
+        @attributes[name] || @attributes.fetch(name) {
           column = @column_types_override[name] if @column_types_override
           column ||= @column_types[name]
 
-          return @attributes.fetch(name) {
+          return @raw_attributes.fetch(name) {
             if name == 'id' && self.class.primary_key != name
               read_attribute(self.class.primary_key)
             end
           } unless column
 
-          value = @attributes.fetch(name) {
+          value = @raw_attributes.fetch(name) {
             return block_given? ? yield(name) : nil
           }
 
           if self.class.cache_attribute?(name)
-            @attributes_cache[name] = column.type_cast(value)
+            @attributes[name] = column.type_cast(value)
           else
             column.type_cast value
           end

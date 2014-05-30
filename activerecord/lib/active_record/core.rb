@@ -252,7 +252,7 @@ module ActiveRecord
       defaults = self.class.column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
 
-      @attributes   = self.class.initialize_attributes(defaults)
+      @raw_attributes = self.class.initialize_attributes(defaults)
       @column_types_override = nil
       @column_types = self.class.column_types
 
@@ -278,7 +278,7 @@ module ActiveRecord
     #   post.init_with('attributes' => { 'title' => 'hello world' })
     #   post.title # => 'hello world'
     def init_with(coder)
-      @attributes   = self.class.initialize_attributes(coder['attributes'])
+      @raw_attributes = self.class.initialize_attributes(coder['attributes'])
       @column_types_override = coder['column_types']
       @column_types = self.class.column_types
 
@@ -325,14 +325,14 @@ module ActiveRecord
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
       self.class.initialize_attributes(cloned_attributes, :serialized => false)
 
-      @attributes = cloned_attributes
-      @attributes[self.class.primary_key] = nil
+      @raw_attributes = cloned_attributes
+      @raw_attributes[self.class.primary_key] = nil
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
       @aggregation_cache = {}
       @association_cache = {}
-      @attributes_cache  = {}
+      @attributes        = {}
 
       @new_record  = true
       @destroyed   = false
@@ -383,13 +383,13 @@ module ActiveRecord
     # accessible, even on destroyed records, but cloned models will not be
     # frozen.
     def freeze
-      @attributes = @attributes.clone.freeze
+      @raw_attributes = @raw_attributes.clone.freeze
       self
     end
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
-      @attributes.frozen?
+      @raw_attributes.frozen?
     end
 
     # Allows sort on objects
@@ -418,9 +418,9 @@ module ActiveRecord
 
     # Returns the contents of the record as a nicely formatted string.
     def inspect
-      # We check defined?(@attributes) not to issue warnings if the object is
+      # We check defined?(@raw_attributes) not to issue warnings if the object is
       # allocated but not initialized.
-      inspection = if defined?(@attributes) && @attributes
+      inspection = if defined?(@raw_attributes) && @raw_attributes
                      self.class.column_names.collect { |name|
                        if has_attribute?(name)
                          "#{name}: #{attribute_for_inspect(name)}"
@@ -496,11 +496,11 @@ module ActiveRecord
 
     def init_internals
       pk = self.class.primary_key
-      @attributes[pk] = nil unless @attributes.key?(pk)
+      @raw_attributes[pk] = nil unless @raw_attributes.key?(pk)
 
       @aggregation_cache        = {}
       @association_cache        = {}
-      @attributes_cache         = {}
+      @attributes               = {}
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false

@@ -66,7 +66,7 @@ module ActiveRecord
           send(lock_col + '=', previous_lock_value + 1)
         end
 
-        def _update_record(attribute_names = @attributes.keys) #:nodoc:
+        def _update_record(attribute_names = @raw_attributes.keys) #:nodoc:
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
 

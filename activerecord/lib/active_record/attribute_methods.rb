@@ -239,9 +239,9 @@ module ActiveRecord
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
-      # We check defined?(@attributes) not to issue warnings if called on objects that
+      # We check defined?(@raw_attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && @attributes.any? && self.class.column_names.include?(name)
+      if defined?(@raw_attributes) && @raw_attributes.any? && self.class.column_names.include?(name)
         return has_attribute?(name)
       end
 
@@ -258,7 +258,7 @@ module ActiveRecord
     #   person.has_attribute?('age')    # => true
     #   person.has_attribute?(:nothing) # => false
     def has_attribute?(attr_name)
-      @attributes.has_key?(attr_name.to_s)
+      @raw_attributes.has_key?(attr_name.to_s)
     end
 
     # Returns an array of names for the attributes available on this object.
@@ -270,7 +270,7 @@ module ActiveRecord
     #   person.attribute_names
     #   # => ["id", "created_at", "updated_at", "name", "age"]
     def attribute_names
-      @attributes.keys
+      @raw_attributes.keys
     end
 
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
@@ -424,7 +424,7 @@ module ActiveRecord
 
     def attribute_method?(attr_name) # :nodoc:
       # We check defined? because Syck calls respond_to? before actually calling initialize.
-      defined?(@attributes) && @attributes.include?(attr_name)
+      defined?(@raw_attributes) && @raw_attributes.include?(attr_name)
     end
 
     private

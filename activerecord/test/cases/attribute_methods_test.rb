@@ -534,7 +534,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_accessing_cached_attributes_caches_the_converted_values_and_nothing_else
     t = topics(:first)
-    cache = t.instance_variable_get "@attributes_cache"
+    cache = t.instance_variable_get "@attributes"
 
     assert_not_nil cache
     assert cache.empty?
