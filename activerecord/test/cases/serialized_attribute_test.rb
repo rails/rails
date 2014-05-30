@@ -46,27 +46,14 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(hash, important_topic.content)
   end
 
-  # This test was added to fix GH #4004. Obviously the value returned
-  # is not really the value 'before type cast' so we should maybe think
-  # about changing that in the future.
-  def test_serialized_attribute_before_type_cast_returns_unserialized_value
+  def test_serialized_attributes_from_database_on_subclass
     Topic.serialize :content, Hash
 
-    t = Topic.new(content: { foo: :bar })
-    assert_equal({ foo: :bar }, t.content_before_type_cast)
+    t = Reply.new(content: { foo: :bar })
+    assert_equal({ foo: :bar }, t.content)
     t.save!
-    t.reload
-    assert_equal({ foo: :bar }, t.content_before_type_cast)
-  end
-
-  def test_serialized_attributes_before_type_cast_returns_unserialized_value
-    Topic.serialize :content, Hash
-
-    t = Topic.new(content: { foo: :bar })
-    assert_equal({ foo: :bar }, t.attributes_before_type_cast["content"])
-    t.save!
-    t.reload
-    assert_equal({ foo: :bar }, t.attributes_before_type_cast["content"])
+    t = Reply.last
+    assert_equal({ foo: :bar }, t.content)
   end
 
   def test_serialized_attribute_calling_dup_method
@@ -168,45 +155,22 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialize_with_coder
-    coder = Class.new {
-      # Identity
-      def load(thing)
-        thing
+    some_class = Struct.new(:foo) do
+      def self.dump(value)
+        value.foo
       end
 
-      # base 64
-      def dump(thing)
-        [thing].pack('m')
+      def self.load(value)
+        new(value)
       end
-    }.new
+    end
 
-    Topic.serialize(:content, coder)
-    s = 'hello world'
-    topic = Topic.new(:content => s)
-    assert topic.save
-    topic = topic.reload
-    assert_equal [s].pack('m'), topic.content
-  end
-
-  def test_serialize_with_bcrypt_coder
-    crypt_coder = Class.new {
-      def load(thing)
-        return unless thing
-        BCrypt::Password.new thing
-      end
-
-      def dump(thing)
-        BCrypt::Password.create(thing).to_s
-      end
-    }.new
-
-    Topic.serialize(:content, crypt_coder)
-    password = 'password'
-    topic = Topic.new(:content => password)
-    assert topic.save
-    topic = topic.reload
-    assert_kind_of BCrypt::Password, topic.content
-    assert_equal(true, topic.content == password, 'password should equal')
+    Topic.serialize(:content, some_class)
+    topic = Topic.new(:content => some_class.new('my value'))
+    topic.save!
+    topic.reload
+    assert_kind_of some_class, topic.content
+    assert_equal topic.content, some_class.new('my value')
   end
 
   def test_serialize_attribute_via_select_method_when_time_zone_available
