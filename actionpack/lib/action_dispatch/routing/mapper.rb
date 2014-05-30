@@ -110,7 +110,7 @@ module ActionDispatch
           @conditions[:parsed_path_info] = ast
 
           add_request_method(via, @conditions)
-          normalize_defaults!(options, formatted)
+          normalize_defaults!(options)
         end
 
         def to_route
@@ -177,8 +177,10 @@ module ActionDispatch
               @requirements[:format] ||= /.+/
             elsif Regexp === formatted
               @requirements[:format] = formatted
+              @defaults[:format] = nil
             elsif String === formatted
               @requirements[:format] = Regexp.compile(formatted)
+              @defaults[:format] = formatted
             end
           end
 
@@ -192,17 +194,11 @@ module ActionDispatch
             end
           end
 
-          def normalize_defaults!(options, formatted)
-            options.each do |key, default|
+          def normalize_defaults!(options)
+            options.each_pair do |key, default|
               unless Regexp === default
                 @defaults[key] = default
               end
-            end
-
-            if Regexp === formatted
-              @defaults[:format] = nil
-            elsif String === formatted
-              @defaults[:format] = formatted
             end
           end
 
