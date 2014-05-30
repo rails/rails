@@ -89,14 +89,15 @@ module ActionDispatch
 
 
           constraints = constraints(options_constraints,
-                                    scope[:constraints] || {})
+                                    (scope[:constraints] || {}),
+                                    path_params)
 
           normalize_requirements!(path_params, formatted, constraints)
 
           @conditions[:path_info] = path
           @conditions[:parsed_path_info] = ast
 
-          normalize_conditions!(path_params, path, ast, via, constraints)
+          add_request_method(via, @conditions)
           normalize_defaults!(formatted, options_constraints)
         end
 
@@ -207,15 +208,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_conditions!(path_params, path, ast, via, constraints)
-            required_defaults = []
-            options.each do |key, required_default|
-              unless path_params.include?(key) || Regexp === required_default
-                required_defaults << key
-              end
-            end
-            @conditions[:required_defaults] = required_defaults
-
+          def add_request_method(via, conditions)
             unless via == [:all]
               if via.empty?
                 msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
@@ -226,7 +219,7 @@ module ActionDispatch
                 raise ArgumentError, msg
               end
 
-              @conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
+              conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
             end
           end
 
@@ -309,10 +302,15 @@ module ActionDispatch
             end
           end
 
-          def constraints(option_constraints, constraints)
+          def constraints(option_constraints, constraints, path_params)
+            required_defaults = []
             options.each_pair do |key, option|
               constraints[key] = option if Regexp === option
+              unless path_params.include?(key) || Regexp === option
+                required_defaults << key
+              end
             end
+            @conditions[:required_defaults] = required_defaults
 
             constraints.merge!(option_constraints) if option_constraints.is_a?(Hash)
             constraints
