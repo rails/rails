@@ -233,7 +233,7 @@ module ActiveRecord
           when 'xml'
             :xml
           # tsvector type
-          when 'tsvector'
+          when 'tsvector', 'public.tsvector'
             :tsvector
           # Arrays
           when /^\D+\[\]$/
