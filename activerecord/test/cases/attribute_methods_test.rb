@@ -517,43 +517,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_only_time_related_columns_are_meant_to_be_cached_by_default
-    expected = %w(datetime time date).sort
-    assert_equal expected, ActiveRecord::Base.attribute_types_cached_by_default.map(&:to_s).sort
-  end
+  def test_deprecated_cache_attributes
+    assert_deprecated do
+      Topic.cache_attributes :replies_count
+    end
 
-  def test_declaring_attributes_as_cached_adds_them_to_the_attributes_cached_by_default
-    default_attributes = Topic.cached_attributes
-    Topic.cache_attributes :replies_count
-    expected = default_attributes + ["replies_count"]
-    assert_equal expected.sort, Topic.cached_attributes.sort
-    Topic.instance_variable_set "@cached_attributes", nil
-  end
+    assert_deprecated do
+      Topic.cached_attributes
+    end
 
-  def test_cacheable_columns_are_actually_cached
-    assert_equal cached_columns.sort, Topic.cached_attributes.sort
-  end
-
-  def test_accessing_cached_attributes_caches_the_converted_values_and_nothing_else
-    t = topics(:first)
-    cache = t.instance_variable_get "@attributes"
-
-    assert_not_nil cache
-    assert cache.empty?
-
-    all_columns = Topic.columns.map(&:name)
-    uncached_columns = all_columns - cached_columns
-
-    all_columns.each do |attr_name|
-      attribute_gets_cached = Topic.cache_attribute?(attr_name)
-      val = t.send attr_name unless attr_name == "type"
-      if attribute_gets_cached
-        assert cached_columns.include?(attr_name)
-        assert_equal val, cache[attr_name]
-      else
-        assert uncached_columns.include?(attr_name)
-        assert !cache.include?(attr_name)
-      end
+    assert_deprecated do
+      Topic.cache_attribute? :replies_count
     end
   end
 
