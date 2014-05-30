@@ -299,6 +299,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     computer = Computer.select('id').first
     assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
     assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
+    assert_raises(ActiveModel::MissingAttributeError) { computer[:no_column_exists] = 'Hello!' }
+    assert_nothing_raised { computer[:developer] = 'Hello!' }
   end
 
   def test_read_attribute_when_false
