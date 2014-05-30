@@ -39,6 +39,17 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     assert_not column.array
   end
 
+  def test_enum_defaults
+    @connection.add_column 'postgresql_enums', 'good_mood', :mood, default: 'happy'
+    PostgresqlEnum.reset_column_information
+    column = PostgresqlEnum.columns_hash["good_mood"]
+
+    assert_equal "happy", column.default
+    assert_equal "happy", PostgresqlEnum.new.good_mood
+  ensure
+    PostgresqlEnum.reset_column_information
+  end
+
   def test_enum_mapping
     @connection.execute "INSERT INTO postgresql_enums VALUES (1, 'sad');"
     enum = PostgresqlEnum.first

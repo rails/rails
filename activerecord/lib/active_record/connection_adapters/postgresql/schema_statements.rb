@@ -179,7 +179,7 @@ module ActiveRecord
           # Limit, precision, and scale are all handled by the superclass.
           column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
             oid = get_oid_type(oid.to_i, fmod.to_i, column_name, type)
-            default_value = extract_value_from_default(default)
+            default_value = extract_value_from_default(oid, default)
             default_function = extract_default_function(default_value, default)
             new_column(column_name, default_value, oid, type, notnull == 'f', default_function)
           end

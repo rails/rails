@@ -498,7 +498,7 @@ module ActiveRecord
         end
 
         # Extracts the value from a PostgreSQL column default definition.
-        def extract_value_from_default(default) # :nodoc:
+        def extract_value_from_default(oid, default) # :nodoc:
           # This is a performance optimization for Ruby 1.9.2 in development.
           # If the value is nil, we return nil straight away without checking
           # the regular expressions. If we check each regular expression,
@@ -506,6 +506,13 @@ module ActiveRecord
           # method_missing (defined by whiny nil in ActiveSupport) which
           # makes this method very very slow.
           return default unless default
+
+          # TODO: The default extraction is related to the cast-type.
+          # we should probably make a type_map lookup and cast the default-
+          # expression accordingly
+          if oid.type == :enum && default =~ /\A'(.*)'::/
+            return $1
+          end
 
           case default
             when /\A'(.*)'::(num|date|tstz|ts|int4|int8)range\z/m

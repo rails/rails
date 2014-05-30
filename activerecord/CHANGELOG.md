@@ -1,3 +1,7 @@
+*   PostgreSQL support default values for enum types. Fixes #7814.
+
+    *Yves Senn*
+
 *   PostgreSQL `default_sequence_name` respects schema. Fixes #7516.
 
     *Yves Senn*
