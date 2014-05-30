@@ -105,6 +105,17 @@ module ActiveRecord
     end
 
     initializer "active_record.set_configs" do |app|
+      if app.config.active_record.errors_in_transactional_callbacks.nil?
+        ActiveSupport::Deprecation.warn <<-EOF
+You haven't set the errors_in_transactional_callbacks option. By default the value will be :log, but in next versions it will use :raise.
+
+Here`s what they mean:
+`:log`   : after_commit/after_rollback callbacks would only log if there is an error raised in the callback.
+`:raise` : If any error should occur in after_commit/after_rollback callbacks, it will not be swallowed.
+
+EOF
+      end
+
       ActiveSupport.on_load(:active_record) do
         app.config.active_record.each do |k,v|
           send "#{k}=", v

@@ -35,6 +35,10 @@ module ActiveRecord
         @state == :rolledback
       end
 
+      def completed?
+        committed? || rolledback?
+      end
+
       def set_state(state)
         if !VALID_STATES.include?(state)
           raise ArgumentError, "Invalid transaction state: #{state}"
@@ -131,24 +135,43 @@ module ActiveRecord
 
       def rollback_records
         @state.set_state(:rolledback)
+        error = nil
         records.uniq.each do |record|
           begin
-            record.rolledback!(parent.closed?)
+            record.rolledback! unless error
           rescue => e
-            record.logger.error(e) if record.respond_to?(:logger) && record.logger
+            if :raise == ActiveRecord::Base.errors_in_transactional_callbacks
+              error = e
+            else
+              record.logger.error(e) if record.respond_to?(:logger) && record.logger
+            end
+          ensure
+            record.restore_transaction_record_state(parent.closed?)
+            record.clear_transaction_record_state
           end
         end
+
+        raise error if error
       end
 
       def commit_records
         @state.set_state(:committed)
+        error = nil
         records.uniq.each do |record|
           begin
-            record.committed!
+            record.committed! unless error
           rescue => e
-            record.logger.error(e) if record.respond_to?(:logger) && record.logger
+            if :raise == ActiveRecord::Base.errors_in_transactional_callbacks
+              error = e
+            else
+              record.logger.error(e) if record.respond_to?(:logger) && record.logger
+            end
+          ensure
+            record.force_clear_transaction_record_state
           end
         end
+
+        raise error if error
       end
 
       def closed?

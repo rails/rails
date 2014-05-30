@@ -222,7 +222,7 @@ module ActiveRecord
         begin
           commit_transaction unless error
         rescue Exception
-          rollback_transaction
+          rollback_transaction unless @transaction.state.completed?
           raise
         end
       end
