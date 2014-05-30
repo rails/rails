@@ -312,6 +312,12 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
     fixtures :accounts
     fixtures :companies
 
+    def sequence_and_last_record_id(model)
+      _, sequence = model.connection.pk_and_sequence_for(model.table_name)
+      id = model.last.id
+      [sequence, id]
+    end
+
     def setup
       @instances = [Account.new(:credit_limit => 50), Company.new(:name => 'RoR Consulting')]
       ActiveRecord::FixtureSet.reset_cache # make sure tables get reinitialized
@@ -320,22 +326,28 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
     def test_resets_to_min_pk_with_specified_pk_and_sequence
       @instances.each do |instance|
         model = instance.class
+        sequence, last_record_id = sequence_and_last_record_id(model)
         model.delete_all
         model.connection.reset_pk_sequence!(model.table_name, model.primary_key, model.sequence_name)
 
         instance.save!
         assert_equal 1, instance.id, "Sequence reset for #{model.table_name} failed."
+        model.delete_all
+        ActiveRecord::Base.connection.execute("ALTER SEQUENCE #{sequence} RESTART #{last_record_id + 1}")
       end
     end
 
     def test_resets_to_min_pk_with_default_pk_and_sequence
       @instances.each do |instance|
         model = instance.class
+        sequence, last_record_id = sequence_and_last_record_id(model)
         model.delete_all
         model.connection.reset_pk_sequence!(model.table_name)
 
         instance.save!
         assert_equal 1, instance.id, "Sequence reset for #{model.table_name} failed."
+        model.delete_all
+        ActiveRecord::Base.connection.execute("ALTER SEQUENCE #{sequence} RESTART #{last_record_id + 1}")
       end
     end
 

@@ -35,6 +35,8 @@ class DefaultTest < ActiveRecord::TestCase
       # older postgres versions represent the default with escapes ("\\012" for a newline)
       assert( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
                "--- []\\012\\012" == Default.columns_hash['multiline_default'].default)
+    ensure
+      Default.reset_column_information
     end
   end
 end

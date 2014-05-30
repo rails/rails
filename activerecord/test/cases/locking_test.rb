@@ -308,6 +308,8 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
   # See Lighthouse ticket #1966
   def test_destroy_dependents
+    destroy_callbacks = Person._destroy_callbacks.dup
+
     # Establish dependent relationship between People and LegacyThing
     add_counter_column_to(Person, 'legacy_things_count')
     LegacyThing.connection.add_column LegacyThing.table_name, 'person_id', :integer
@@ -332,6 +334,11 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { LegacyThing.find(t.id) }
   ensure
     remove_counter_column_from(Person, 'legacy_things_count')
+    LegacyThing.connection.remove_column LegacyThing.table_name, 'person_id'
+    LegacyThing.reset_column_information
+
+    # Restoring original destroy callback in order to get rid of legacy_things destroy callback
+    Person._destroy_callbacks = destroy_callbacks
   end
 
   private
