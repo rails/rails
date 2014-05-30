@@ -74,7 +74,7 @@ module ActiveRecord
 
           pk, seq = connection.pk_and_sequence_for('octopi')
 
-          assert_equal "octopi_#{pk}_seq", seq
+          assert_equal ConnectionAdapters::PostgreSQL::Name.new("public", "octopi_#{pk}_seq"), seq
         end
       end
     end

@@ -153,7 +153,8 @@ module ActiveRecord
         with_example_table do
           pk, seq = @connection.pk_and_sequence_for('ex')
           assert_equal 'id', pk
-          assert_equal @connection.default_sequence_name('ex', 'id'), seq
+          expected = PostgreSQL::Name.new("public", @connection.default_sequence_name('ex', 'id'))
+          assert_equal expected, seq
         end
       end
 
@@ -161,7 +162,8 @@ module ActiveRecord
         with_example_table 'code serial primary key' do
           pk, seq = @connection.pk_and_sequence_for('ex')
           assert_equal 'code', pk
-          assert_equal @connection.default_sequence_name('ex', 'code'), seq
+          expected = PostgreSQL::Name.new("public", @connection.default_sequence_name('ex', 'code'))
+          assert_equal expected, seq
         end
       end
 
@@ -216,7 +218,7 @@ module ActiveRecord
         )
 
         seq = @connection.pk_and_sequence_for('ex').last
-        assert_equal 'ex_id_seq', seq
+        assert_equal PostgreSQL::Name.new("public", "ex_id_seq"), seq
 
         @connection.exec_query(
           "DELETE FROM pg_depend WHERE objid = 'ex2_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"

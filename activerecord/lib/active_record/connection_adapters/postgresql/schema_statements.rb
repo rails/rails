@@ -312,17 +312,19 @@ module ActiveRecord
           # First try looking for a sequence with a dependency on the
           # given table's primary key.
           result = query(<<-end_sql, 'SCHEMA')[0]
-            SELECT attr.attname, seq.relname
+            SELECT attr.attname, nsp.nspname, seq.relname
             FROM pg_class      seq,
                  pg_attribute  attr,
                  pg_depend     dep,
-                 pg_constraint cons
+                 pg_constraint cons,
+                 pg_namespace  nsp
             WHERE seq.oid           = dep.objid
               AND seq.relkind       = 'S'
               AND attr.attrelid     = dep.refobjid
               AND attr.attnum       = dep.refobjsubid
               AND attr.attrelid     = cons.conrelid
               AND attr.attnum       = cons.conkey[1]
+              AND seq.relnamespace  = nsp.oid
               AND cons.contype      = 'p'
               AND dep.classid       = 'pg_class'::regclass
               AND dep.refobjid      = '#{quote_table_name(table)}'::regclass
@@ -330,7 +332,7 @@ module ActiveRecord
 
           if result.nil? or result.empty?
             result = query(<<-end_sql, 'SCHEMA')[0]
-              SELECT attr.attname,
+              SELECT attr.attname, nsp.nspname,
                 CASE
                   WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
                   WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
@@ -342,13 +344,19 @@ module ActiveRecord
               JOIN pg_attribute   attr ON (t.oid = attrelid)
               JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
               JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
+              JOIN pg_namespace   nsp  ON (t.relnamespace = nsp.oid)
               WHERE t.oid = '#{quote_table_name(table)}'::regclass
                 AND cons.contype = 'p'
                 AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate'
             end_sql
           end
 
-          [result.first, result.last]
+          pk = result.shift
+          if result.last
+            [pk, PostgreSQL::Name.new(*result)]
+          else
+            [pk, nil]
+          end
         rescue
           nil
         end
@@ -376,7 +384,7 @@ module ActiveRecord
           clear_cache!
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
-          if seq == "#{table_name}_#{pk}_seq"
+          if seq.identifier == "#{table_name}_#{pk}_seq"
             new_seq = "#{new_name}_#{pk}_seq"
             execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
           end

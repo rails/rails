@@ -1,3 +1,7 @@
+*   PostgreSQL `reset_pk_sequence!` respects schemas. Fixes #14719.
+
+    *Yves Senn*
+
 *   Keep PostgreSQL `hstore` and `json` attributes as `Hash` in `@attributes`.
     Fixes duplication in combination with `store_accessor`.
 
