@@ -60,7 +60,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:via, :on, :constraints, :defaults, :only, :except, :shallow, :shallow_path, :shallow_prefix]
+        IGNORE_OPTIONS = [:on, :constraints, :defaults, :only, :except, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
@@ -78,13 +78,15 @@ module ActionDispatch
           @anchor             = options.delete :anchor
 
           formatted = options.delete :format
+          via = Array(options.delete(:via) { [] })
 
           path = normalize_path! path, formatted
           ast  = path_ast path
           path_params = path_params ast
           @options = normalize_options!(options, formatted, path_params, ast)
           normalize_requirements!(path_params, formatted)
-          normalize_conditions!(path_params, path, ast)
+
+          normalize_conditions!(path_params, path, ast, via)
           normalize_defaults!(formatted)
         end
 
@@ -195,7 +197,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_conditions!(path_params, path, ast)
+          def normalize_conditions!(path_params, path, ast, via)
             @conditions[:path_info] = path
             @conditions[:parsed_path_info] = ast
 
@@ -213,11 +215,7 @@ module ActionDispatch
             end
             @conditions[:required_defaults] = required_defaults
 
-            via = Array(options[:via]).compact
-
-            if via == [:all]
-              options.delete(:via)
-            else
+            unless via == [:all]
               if via.empty?
                 msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
                       "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
