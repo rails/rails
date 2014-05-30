@@ -62,7 +62,7 @@ module ActionDispatch
       class Mapping #:nodoc:
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
-        attr_reader :options, :requirements, :conditions, :defaults
+        attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
         def initialize(scope, path, options)
@@ -85,10 +85,12 @@ module ActionDispatch
           path = normalize_path! path, formatted
           ast  = path_ast path
           path_params = path_params ast
-          @options = normalize_options!(options, formatted, path_params, ast, scope[:module])
+
+          options = normalize_options!(options, formatted, path_params, ast, scope[:module])
 
 
-          constraints = constraints(options_constraints,
+          constraints = constraints(options,
+                                    options_constraints,
                                     (scope[:constraints] || {}),
                                     path_params)
 
@@ -98,7 +100,7 @@ module ActionDispatch
           @conditions[:parsed_path_info] = ast
 
           add_request_method(via, @conditions)
-          normalize_defaults!(formatted, options_constraints)
+          normalize_defaults!(options, formatted, options_constraints)
         end
 
         def to_route
@@ -178,7 +180,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_defaults!(formatted, options_constraints)
+          def normalize_defaults!(options, formatted, options_constraints)
             options.each do |key, default|
               unless Regexp === default
                 @defaults[key] = default
@@ -302,7 +304,7 @@ module ActionDispatch
             end
           end
 
-          def constraints(option_constraints, constraints, path_params)
+          def constraints(options, option_constraints, constraints, path_params)
             required_defaults = []
             options.each_pair do |key, option|
               if Regexp === option
