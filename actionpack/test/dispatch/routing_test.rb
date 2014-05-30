@@ -2250,6 +2250,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_match_with_empty_via
+    assert_raises(ArgumentError) do
+      draw do
+        match '/foo/bar', :to => 'files#show', :via => []
+      end
+    end
+  end
+
   def test_glob_parameter_accepts_regexp
     draw do
       get '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
