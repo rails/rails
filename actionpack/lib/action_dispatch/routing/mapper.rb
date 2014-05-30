@@ -75,13 +75,15 @@ module ActionDispatch
           @default_controller = options[:controller] || scope[:controller]
           @default_action     = options[:action] || scope[:action]
 
-          path = normalize_path! path, options[:format]
+          formatted = options[:format]
+
+          path = normalize_path! path, formatted
           ast  = path_ast path
           path_params = path_params ast
-          @options = normalize_options!(options, path_params, ast)
-          normalize_requirements!(path_params)
+          @options = normalize_options!(options, formatted, path_params, ast)
+          normalize_requirements!(path_params, formatted)
           normalize_conditions!(path_params, path, ast)
-          normalize_defaults!
+          normalize_defaults!(formatted)
         end
 
         def to_route
@@ -106,10 +108,10 @@ module ActionDispatch
             format != false && !path.include?(':format') && !path.end_with?('/')
           end
 
-          def normalize_options!(options, path_params, path_ast)
+          def normalize_options!(options, formatted, path_params, path_ast)
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
-            if options[:format] != false
+            if formatted != false
               path_ast.grep(Journey::Nodes::Star) do |node|
                 options[node.name.to_sym] ||= /.+?/
               end
@@ -132,19 +134,19 @@ module ActionDispatch
             end
           end
 
-          def normalize_requirements!(path_params)
+          def normalize_requirements!(path_params, formatted)
             constraints.each do |key, requirement|
               next unless path_params.include?(key) || key == :controller
               verify_regexp_requirement(requirement) if requirement.is_a?(Regexp)
               @requirements[key] = requirement
             end
 
-            if options[:format] == true
+            if formatted == true
               @requirements[:format] ||= /.+/
-            elsif Regexp === options[:format]
-              @requirements[:format] = options[:format]
-            elsif String === options[:format]
-              @requirements[:format] = Regexp.compile(options[:format])
+            elsif Regexp === formatted
+              @requirements[:format] = formatted
+            elsif String === formatted
+              @requirements[:format] = Regexp.compile(formatted)
             end
           end
 
@@ -158,7 +160,7 @@ module ActionDispatch
             end
           end
 
-          def normalize_defaults!
+          def normalize_defaults!(formatted)
             @defaults.merge!(scope[:defaults]) if scope[:defaults]
             @defaults.merge!(options[:defaults]) if options[:defaults]
 
@@ -178,10 +180,10 @@ module ActionDispatch
               verify_callable_constraint(options[:constraints])
             end
 
-            if Regexp === options[:format]
+            if Regexp === formatted
               @defaults[:format] = nil
-            elsif String === options[:format]
-              @defaults[:format] = options[:format]
+            elsif String === formatted
+              @defaults[:format] = formatted
             end
           end
 
