@@ -213,12 +213,11 @@ module ActionDispatch
             end
             @conditions[:required_defaults] = required_defaults
 
-            via = options[:via]
+            via = Array(options[:via]).compact
 
-            if via == :all
+            if via == [:all]
               options.delete(:via)
             else
-              via = Array(via).compact
               if via.empty?
                 msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
                       "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
