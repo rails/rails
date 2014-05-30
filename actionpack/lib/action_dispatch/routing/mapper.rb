@@ -65,15 +65,27 @@ module ActionDispatch
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
-        def initialize(scope, path, options)
-          @requirements, @conditions = {}, {}
-
-          @defaults = (scope[:defaults] || {}).merge options.delete(:defaults) || {}
-
+        def self.build(scope, path, options)
           options = scope[:options].merge(options) if scope[:options]
+
+          options.delete :only
+          options.delete :except
+          options.delete :shallow_path
+          options.delete :shallow_prefix
+          options.delete :shallow
+
+          defaults = (scope[:defaults] || {}).merge options.delete(:defaults) || {}
+
+          new scope, path, defaults, options
+        end
+
+        def initialize(scope, path, defaults, options)
+          @requirements, @conditions = {}, {}
+          @defaults = defaults
+
           @to                 = options.delete :to
-          @default_controller = options[:controller] || scope[:controller]
-          @default_action     = options[:action] || scope[:action]
+          @default_controller = options.delete(:controller) || scope[:controller]
+          @default_action     = options.delete(:action) || scope[:action]
           @as                 = options.delete :as
           @anchor             = options.delete :anchor
 
@@ -1516,13 +1528,7 @@ module ActionDispatch
             options[:as] = name_for_action(options[:as], action)
           end
 
-          options.delete :only
-          options.delete :except
-          options.delete :shallow_path
-          options.delete :shallow_prefix
-          options.delete :shallow
-
-          mapping = Mapping.new(@scope, URI.parser.escape(path), options)
+          mapping = Mapping.build(@scope, URI.parser.escape(path), options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
