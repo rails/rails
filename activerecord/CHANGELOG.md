@@ -1,3 +1,8 @@
+*   Fixed `columns_for_distinct` of postgresql adapter to work correctly
+    with orders without sort direction modifiers.
+
+    *Nikolay Kondratyev*
+
 *   PostgreSQL `reset_pk_sequence!` respects schemas. Fixes #14719.
 
     *Yves Senn*
