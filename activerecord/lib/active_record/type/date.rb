@@ -9,6 +9,10 @@ module ActiveRecord
         ::Date
       end
 
+      def type_cast_for_schema(value)
+        "'#{value.to_s(:db)}'"
+      end
+
       private
 
       def cast_value(value)

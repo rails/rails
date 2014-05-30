@@ -27,6 +27,10 @@ module ActiveRecord
         type_cast_for_write(value)
       end
 
+      def type_cast_for_schema(value)
+        value.inspect
+      end
+
       def text?
         false
       end

@@ -5,6 +5,10 @@ module ActiveRecord
         ::Time
       end
 
+      def type_cast_for_schema(value)
+        "'#{value.to_s(:db)}'"
+      end
+
       private
 
       def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
