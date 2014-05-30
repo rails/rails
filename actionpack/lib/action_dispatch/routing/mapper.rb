@@ -60,7 +60,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:defaults, :only, :except, :shallow, :shallow_path, :shallow_prefix]
+        IGNORE_OPTIONS = [:only, :except, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
@@ -69,6 +69,9 @@ module ActionDispatch
         def initialize(scope, path, options)
           @scope = scope
           @requirements, @conditions, @defaults = {}, {}, {}
+
+          @defaults.merge!(scope[:defaults]) if scope[:defaults]
+          @defaults.merge!(options.delete(:defaults)) if options[:defaults]
 
           options = scope[:options].merge(options) if scope[:options]
           @to                 = options.delete :to
@@ -170,9 +173,6 @@ module ActionDispatch
           end
 
           def normalize_defaults!(formatted, options_constraints)
-            @defaults.merge!(scope[:defaults]) if scope[:defaults]
-            @defaults.merge!(options[:defaults]) if options[:defaults]
-
             options.each do |key, default|
               unless Regexp === default || IGNORE_OPTIONS.include?(key)
                 @defaults[key] = default
