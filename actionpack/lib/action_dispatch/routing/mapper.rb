@@ -60,7 +60,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
+        IGNORE_OPTIONS = [:as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
@@ -71,7 +71,7 @@ module ActionDispatch
           @requirements, @conditions, @defaults = {}, {}, {}
 
           options = scope[:options].merge(options) if scope[:options]
-          @to                 = options[:to]
+          @to                 = options.delete :to
           @default_controller = options[:controller] || scope[:controller]
           @default_action     = options[:action] || scope[:action]
 
