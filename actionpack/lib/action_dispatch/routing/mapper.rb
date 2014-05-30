@@ -66,10 +66,9 @@ module ActionDispatch
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
         def initialize(scope, path, options)
-          @requirements, @conditions, @defaults = {}, {}, {}
+          @requirements, @conditions = {}, {}
 
-          @defaults.merge!(scope[:defaults]) if scope[:defaults]
-          @defaults.merge!(options.delete(:defaults)) if options[:defaults]
+          @defaults = (scope[:defaults] || {}).merge options.delete(:defaults) || {}
 
           options = scope[:options].merge(options) if scope[:options]
           @to                 = options.delete :to
