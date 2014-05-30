@@ -60,7 +60,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix, :format]
+        IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
@@ -75,7 +75,7 @@ module ActionDispatch
           @default_controller = options[:controller] || scope[:controller]
           @default_action     = options[:action] || scope[:action]
 
-          formatted = options[:format]
+          formatted = options.delete :format
 
           path = normalize_path! path, formatted
           ast  = path_ast path
