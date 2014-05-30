@@ -60,7 +60,7 @@ module ActionDispatch
       end
 
       class Mapping #:nodoc:
-        IGNORE_OPTIONS = [:constraints, :defaults, :only, :except, :shallow, :shallow_path, :shallow_prefix]
+        IGNORE_OPTIONS = [:defaults, :only, :except, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
 
         attr_reader :scope, :options, :requirements, :conditions, :defaults
@@ -79,7 +79,8 @@ module ActionDispatch
 
           formatted = options.delete :format
           via = Array(options.delete(:via) { [] })
-          @blocks = blocks(options[:constraints], scope[:blocks])
+          options_constraints = options.delete :constraints
+          @blocks = blocks(options_constraints, scope[:blocks])
 
           path = normalize_path! path, formatted
           ast  = path_ast path
@@ -87,11 +88,11 @@ module ActionDispatch
           @options = normalize_options!(options, formatted, path_params, ast)
 
 
-          constraints = constraints(options[:constraints], scope[:constraints])
+          constraints = constraints(options_constraints, scope[:constraints])
 
           normalize_requirements!(path_params, formatted, constraints)
           normalize_conditions!(path_params, path, ast, via, constraints)
-          normalize_defaults!(formatted, options[:constraints])
+          normalize_defaults!(formatted, options_constraints)
         end
 
         def to_route
