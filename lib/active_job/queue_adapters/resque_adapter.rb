@@ -8,11 +8,11 @@ module ActiveJob
     class ResqueAdapter
       class << self
         def enqueue(job, *args)
-          Resque.enqueue JobWrapper.new(job), job, *args
+          Resque.enqueue_to job.queue_name, JobWrapper, job.name, *args
         end
 
         def enqueue_at(job, timestamp, *args)
-          Resque.enqueue_at timestamp, JobWrapper.new(job), job, *args
+          Resque.enqueue_at_with_queue job.queue_name, timestamp, JobWrapper, job.name, *args
         end
       end
 
@@ -21,14 +21,6 @@ module ActiveJob
           def perform(job_name, *args)
             job_name.constantize.new.execute *args
           end
-        end
-
-        def initialize(job)
-          @queue = job.queue_name
-        end
-
-        def to_s
-          self.class.name
         end
       end
     end

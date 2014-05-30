@@ -5,7 +5,7 @@ require 'active_support/core_ext/object/inclusion'
 
 class CallbacksTest < ActiveSupport::TestCase
   test 'perform callbacks' do
-    performed_callback_job = CallbackJob.new.tap { |j| j.execute }
+    performed_callback_job = CallbackJob.new.tap { |j| j.execute("A-JOB-ID") }
     assert "CallbackJob ran before_perform".in? performed_callback_job.history
     assert "CallbackJob ran after_perform".in? performed_callback_job.history
     assert "CallbackJob ran around_perform_start".in? performed_callback_job.history
