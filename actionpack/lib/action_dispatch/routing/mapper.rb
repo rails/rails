@@ -209,18 +209,18 @@ module ActionDispatch
           end
 
           def add_request_method(via, conditions)
-            unless via == [:all]
-              if via.empty?
-                msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
-                      "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
-                      "If you want to expose your action to GET, use `get` in the router:\n" \
-                      "  Instead of: match \"controller#action\"\n" \
-                      "  Do: get \"controller#action\""
-                raise ArgumentError, msg
-              end
+            return if via == [:all]
 
-              conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
+            if via.empty?
+              msg = "You should not use the `match` method in your router without specifying an HTTP method.\n" \
+                    "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
+                    "If you want to expose your action to GET, use `get` in the router:\n" \
+                    "  Instead of: match \"controller#action\"\n" \
+                    "  Do: get \"controller#action\""
+              raise ArgumentError, msg
             end
+
+            conditions[:request_method] = via.map { |m| m.to_s.dasherize.upcase }
           end
 
           def app(blocks)
