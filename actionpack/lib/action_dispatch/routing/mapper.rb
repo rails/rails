@@ -87,7 +87,7 @@ module ActionDispatch
           path = normalize_path! path, formatted
           ast  = path_ast path
           path_params = path_params ast
-          @options = normalize_options!(options, formatted, path_params, ast)
+          @options = normalize_options!(options, formatted, path_params, ast, scope[:module])
 
 
           constraints = constraints(options_constraints, scope[:constraints])
@@ -119,7 +119,7 @@ module ActionDispatch
             format != false && !path.include?(':format') && !path.end_with?('/')
           end
 
-          def normalize_options!(options, formatted, path_params, path_ast)
+          def normalize_options!(options, formatted, path_params, path_ast, modyoule)
             # Add a constraint for wildcard route to make it non-greedy and match the
             # optional format part of the route by default
             if formatted != false
@@ -129,7 +129,7 @@ module ActionDispatch
             end
 
             if path_params.include?(:controller)
-              raise ArgumentError, ":controller segment is not allowed within a namespace block" if scope[:module]
+              raise ArgumentError, ":controller segment is not allowed within a namespace block" if modyoule
 
               # Add a default constraint for :controller path segments that matches namespaced
               # controllers with default routes like :controller/:action/:id(.:format), e.g:
@@ -141,7 +141,7 @@ module ActionDispatch
             if to.respond_to? :call
               options
             else
-              options.merge!(default_controller_and_action(path_params))
+              options.merge!(default_controller_and_action(path_params, modyoule))
             end
           end
 
@@ -247,11 +247,11 @@ module ActionDispatch
             end
           end
 
-          def default_controller_and_action(path_params)
+          def default_controller_and_action(path_params, modyoule)
             controller, action = get_controller_and_action(default_controller,
               default_action,
               to,
-              @scope[:module]
+              modyoule
             )
 
             hash = check_part(:controller, controller, path_params, {}) do |part|
