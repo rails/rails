@@ -115,7 +115,7 @@
     *Boris Kuznetsov*
 
 *   Swapped the parameters of assert_equal in `assert_select` so that the
-    proper values were printed correctly
+    proper values were printed correctly.
 
     Fixes #14422.
 
