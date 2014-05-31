@@ -83,14 +83,6 @@ module ActiveRecord
         def keys_for_partial_write
           super | (attributes.keys & self.class.serialized_attributes.keys)
         end
-
-        def _field_changed?(attr, old, value)
-          if self.class.serialized_attributes.include?(attr)
-            old != value
-          else
-            super
-          end
-        end
       end
     end
   end
