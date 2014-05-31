@@ -1,4 +1,0 @@
-blackbeard_to_redbeard:
-  pirate_id: <%= ActiveRecord::FixtureSet.identify(:blackbeard) %>
-  target_id: <%= ActiveRecord::FixtureSet.identify(:redbeard) %>
-  weight: 10
