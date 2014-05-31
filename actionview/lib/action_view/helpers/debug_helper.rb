@@ -11,20 +11,16 @@ module ActionView
       # If the object cannot be converted to YAML using +to_yaml+, +inspect+ will be called instead.
       # Useful for inspecting an object at the time of rendering.
       #
-      #   @user = User.new({ username: 'testing', password: 'xyz', age: 42}) %>
+      #   @user = User.new({ username: 'testing', password: 'xyz', age: 42})
       #   debug(@user)
       #   # =>
       #   <pre class='debug_dump'>--- !ruby/object:User
       #   attributes:
       #   &nbsp; updated_at:
       #   &nbsp; username: testing
-      #
       #   &nbsp; age: 42
       #   &nbsp; password: xyz
       #   &nbsp; created_at:
-      #   attributes_cache: {}
-      #
-      #   new_record: true
       #   </pre>
       def debug(object)
         Marshal::dump(object)
