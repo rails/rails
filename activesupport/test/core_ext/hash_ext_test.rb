@@ -70,6 +70,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :to_options!
     assert_respond_to h, :compact
     assert_respond_to h, :compact!
+    assert_respond_to h, :except
+    assert_respond_to h, :except!
   end
 
   def test_transform_keys
@@ -919,13 +921,19 @@ class HashExtTest < ActiveSupport::TestCase
   def test_except_with_more_than_one_argument
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x' }
+
     assert_equal expected, original.except(:b, :c)
+
+    assert_equal expected, original.except!(:b, :c)
+    assert_equal expected, original
   end
 
   def test_except_with_original_frozen
     original = { :a => 'x', :b => 'y' }
     original.freeze
     assert_nothing_raised { original.except(:a) }
+
+    assert_raise(RuntimeError) { original.except!(:a) }
   end
 
   def test_except_with_mocha_expectation_on_original
