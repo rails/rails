@@ -96,11 +96,6 @@
       url: command_line.html
       description: This guide covers the command line tools and rake tasks provided by Rails.
     -
-      name: Caching with Rails
-      work_in_progress: true
-      url: caching_with_rails.html
-      description: Various caching techniques provided by Rails.
-    -
       name: Asset Pipeline
       url: asset_pipeline.html
       description: This guide documents the asset pipeline.
