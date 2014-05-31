@@ -1,7 +1,6 @@
 require 'action_dispatch/http/response'
 require 'delegate'
 require 'active_support/json'
-require 'timeout'
 
 module ActionController
   # Mix this module in to your controller, and all actions in that controller
@@ -114,6 +113,7 @@ module ActionController
       def initialize(response)
         @error_callback = lambda { true }
         @cv = new_cond
+        @buf_max = 10
         super(response, SizedQueue.new(10))
       end
 
@@ -123,12 +123,15 @@ module ActionController
           @response.headers.delete "Content-Length"
         end
 
-        # Allow the thread to recheck if the response buffer has been closed
-        begin
-          Timeout.timeout(0.1) { super }
-        rescue TimeoutError => e
-          retry
+        # Wait until there is room in the buffer, but allow the thread to
+        # recheck if the response buffer has been closed
+        while @buf.size >= @buf_max
+          raise IOError, "closed stream" if closed?
+          sleep 0.1
         end
+
+        @response.commit!
+        @buf.push string
       end
 
       def each
