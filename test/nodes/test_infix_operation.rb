@@ -18,7 +18,7 @@ module Arel
         assert_equal 'zomg', aliaz.right
       end
 
-      def test_opertaion_ordering
+      def test_operation_ordering
         operation = InfixOperation.new :+, 1, 2
         ordering = operation.desc
         assert_kind_of Descending, ordering

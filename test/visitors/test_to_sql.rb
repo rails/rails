@@ -249,7 +249,7 @@ module Arel
 
       it "unsupported input should not raise ArgumentError" do
         error = assert_raises(RuntimeError) { compile(nil) }
-        assert_match /\Aunsupported/, error.message
+        assert_match(/\Aunsupported/, error.message)
       end
 
       it "should visit_Arel_SelectManager, which is a subquery" do
