@@ -103,9 +103,7 @@ module Arel
 
         collector << "UPDATE "
         collector = visit o.relation, collector
-        values = false
         unless o.values.empty?
-          values = true
           collector << " SET "
           collector = inject_join o.values, collector, ", "
         end
