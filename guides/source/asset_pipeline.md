@@ -580,7 +580,7 @@ config.assets.raise_runtime_errors = false
 
 When this option is true, the asset pipeline will check if all the assets loaded
 in your application are included in the `config.assets.precompile` list.
-If `config.assets.digests` is also true, the asset pipeline will require that
+If `config.assets.digest` is also true, the asset pipeline will require that
 all requests for assets include digests.
 
 ### Turning Digests Off
@@ -589,7 +589,7 @@ You can turn off digests by updating `config/environments/development.rb` to
 include:
 
 ```ruby
-config.assets.digests = false
+config.assets.digest = false
 ```
 
 When this option is true, digests will be generated for asset URLs.
