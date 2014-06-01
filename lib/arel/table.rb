@@ -57,7 +57,7 @@ primary_key (#{caller.first}) is deprecated and will be removed in Arel 4.0.0
 
       case relation
       when String, Nodes::SqlLiteral
-        raise if relation.blank?
+        raise if relation.empty?
         klass = Nodes::StringJoin
       end
 
