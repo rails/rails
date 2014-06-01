@@ -3,13 +3,6 @@ module ActiveRecord
     module Serialization
       extend ActiveSupport::Concern
 
-      included do
-        # Returns a hash of all the attributes that have been specified for
-        # serialization as keys and their class restriction as values.
-        class_attribute :serialized_attributes, instance_accessor: false
-        self.serialized_attributes = {}
-      end
-
       module ClassMethods
         ##
         # :method: serialized_attributes
@@ -63,13 +56,17 @@ module ActiveRecord
             type = type.subtype
           end
           property attr_name, Type::Serialized.new(type, coder)
+        end
 
-          # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
-          # has its own hash of own serialized attributes
-          self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
+        def serialized_attributes
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            `serialized_attributes` has been removed. If you need a list of all serialized attributes,
+            you can do so by doing `klass.columns.select(&:serialized?)`. The coder should be considered
+            an internal implementation detail, and should not be directly accessed. You can load/dump from
+            the coder by calling `type_cast` and `type_cast_for_write` on the column object.
+          MESSAGE
         end
       end
-
 
       # This is only added to the model when serialize is called, which
       # ensures we do not make things slower when serialization is not used.
