@@ -1,3 +1,8 @@
+*   Fixed automatic maintaining test schema to properly handle sql structure
+    schema format. Fixes #15394.
+
+    *Wojciech Wnętrzak*
+
 *   PostgreSQL support default values for enum types. Fixes #7814.
 
     *Yves Senn*
