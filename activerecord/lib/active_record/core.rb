@@ -284,7 +284,7 @@ module ActiveRecord
 
       init_internals
 
-      @new_record = false
+      @new_record = coder['new_record']
 
       self.class.define_attribute_methods
 
@@ -354,6 +354,7 @@ module ActiveRecord
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
       coder['attributes'] = @raw_attributes
+      coder['new_record'] = new_record?
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+

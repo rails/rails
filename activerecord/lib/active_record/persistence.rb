@@ -49,7 +49,11 @@ module ActiveRecord
       def instantiate(attributes, column_types = {})
         klass = discriminate_class_for_record(attributes)
         column_types = klass.decorate_columns(column_types.dup)
-        klass.allocate.init_with('attributes' => attributes, 'column_types' => column_types)
+        klass.allocate.init_with(
+          'attributes' => attributes,
+          'column_types' => column_types,
+          'new_record' => false,
+        )
       end
 
       private

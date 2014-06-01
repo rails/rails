@@ -52,4 +52,21 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal 123, topic.parent_id
     assert_equal 123, YAML.load(YAML.dump(topic)).parent_id
   end
+
+  def test_new_records_remain_new_after_round_trip
+    topic = Topic.new
+
+    assert topic.new_record?, "Sanity check that new records are new"
+    assert YAML.load(YAML.dump(topic)).new_record?, "Record should be new after deserialization"
+
+    topic.save!
+
+    assert_not topic.new_record?, "Saved records are not new"
+    assert_not YAML.load(YAML.dump(topic)).new_record?, "Saved record should not be new after deserialization"
+
+    topic = Topic.select('title').last
+
+    assert_not topic.new_record?, "Loaded records without ID are not new"
+    assert_not YAML.load(YAML.dump(topic)).new_record?, "Record should not be new after deserialization"
+  end
 end

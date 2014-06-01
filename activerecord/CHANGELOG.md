@@ -1,3 +1,7 @@
+*   New records remain new after YAML serialization.
+
+    *Sean Griffin*
+
 *   PostgreSQL support default values for enum types. Fixes #7814.
 
     *Yves Senn*
