@@ -59,8 +59,9 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   def test_serialized_attribute_calling_dup_method
     Topic.serialize :content, JSON
 
-    t = Topic.new(:content => { :foo => :bar }).dup
-    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+    orig = Topic.new(content: { foo: :bar })
+    clone = orig.dup
+    assert_equal(orig.content, clone.content)
   end
 
   def test_serialized_attribute_declared_in_subclass
@@ -103,8 +104,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   def test_serialized_attribute_should_raise_exception_on_save_with_wrong_type
     Topic.serialize(:content, Hash)
-    topic = Topic.new(:content => "string")
-    assert_raise(ActiveRecord::SerializationTypeMismatch) { topic.save }
+    assert_raise(ActiveRecord::SerializationTypeMismatch) do
+      topic = Topic.new(content: 'string')
+      topic.save
+    end
   end
 
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch

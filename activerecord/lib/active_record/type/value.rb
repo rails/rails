@@ -54,7 +54,6 @@ module ActiveRecord
       def type_cast_for_write(value) # :nodoc:
         value
       end
-      alias_method :raw_type_cast_for_write, :type_cast_for_write # :internal:
 
       private
 

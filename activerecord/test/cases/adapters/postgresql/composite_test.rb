@@ -93,6 +93,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
     end
 
     def type_cast_for_write(value)
+      return if value.nil?
       "(#{value.city},#{value.street})"
     end
   end

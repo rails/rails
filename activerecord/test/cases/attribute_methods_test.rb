@@ -870,7 +870,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def cached_columns
-    Topic.columns.map(&:name) - Topic.serialized_attributes.keys
+    Topic.columns.map(&:name)
   end
 
   def time_related_columns_on_topic

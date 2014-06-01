@@ -353,7 +353,7 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      coder['attributes'] = attributes_for_coder
+      coder['attributes'] = @raw_attributes
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+

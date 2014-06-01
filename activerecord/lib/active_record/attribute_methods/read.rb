@@ -94,7 +94,7 @@ module ActiveRecord
 
         def cacheable_column?(column)
           if attribute_types_cached_by_default == ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-            ! serialized_attributes.include? column.name
+            true
           else
             attribute_types_cached_by_default.include?(column.type)
           end

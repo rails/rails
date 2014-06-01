@@ -17,7 +17,7 @@ module ActiveRecord
 
       delegate :type, :precision, :scale, :limit, :klass, :accessor,
         :text?, :number?, :binary?, :serialized?,
-        :type_cast, :type_cast_for_write, :raw_type_cast_for_write, :type_cast_for_database,
+        :type_cast, :type_cast_for_write, :type_cast_for_database,
         :type_cast_for_schema,
         to: :cast_type
 
@@ -52,7 +52,7 @@ module ActiveRecord
       end
 
       def extract_default(default)
-        type_cast(default)
+        type_cast_for_write(type_cast(default))
       end
     end
   end
