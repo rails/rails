@@ -289,7 +289,7 @@ module ActiveRecord
 
     # Placeholder so it can be overriden when needed by serialization
     def attributes_for_coder # :nodoc:
-      attributes
+      attributes_before_type_cast
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the

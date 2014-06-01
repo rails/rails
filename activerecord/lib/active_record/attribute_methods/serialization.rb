@@ -138,7 +138,7 @@ module ActiveRecord
             attrs[name] = if self.class.serialized_attributes.include?(name)
                             @raw_attributes[name].serialized_value
                           else
-                            read_attribute(name)
+                            read_attribute_before_type_cast(name)
                           end
           end
         end
