@@ -25,9 +25,9 @@ module ActiveSupport
         subscriber
       end
 
-      def unsubscribe(subscriber)
+      def unsubscribe(subscriber_or_name)
         synchronize do
-          @subscribers.reject! { |s| s.matches?(subscriber) }
+          @subscribers.reject! { |s| s.matches?(subscriber_or_name) }
           @listeners_for.clear
         end
       end
