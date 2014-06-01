@@ -3,12 +3,8 @@ module Arel
     class And < Arel::Nodes::Node
       attr_reader :children
 
-      def initialize children, right = nil
+      def initialize children
         super()
-        unless Array === children
-          warn "(#{caller.first}) AND nodes should be created with a list"
-          children = [children, right]
-        end
         @children = children
       end
 
