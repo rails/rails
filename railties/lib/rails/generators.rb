@@ -161,6 +161,11 @@ module Rails
       end
     end
 
+    # Returns an array of generator namespaces that are hidden.
+    # Generator namespaces may be hidden for a variety of reasons.
+    # Some are aliased such as "rails:migration" and can be
+    # invoked with the shorter "migration", others are private to other generators
+    # such as "css:scaffold".
     def self.hidden_namespaces
       @hidden_namespaces ||= begin
         orm      = options[:rails][:orm]
