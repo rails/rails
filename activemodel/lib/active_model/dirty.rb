@@ -107,7 +107,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      changed_attributes.present?
+      changed_attributes.present? || changed_in_place.any?
     end
 
     # Returns an array with the name of the attributes with unsaved changes.
@@ -116,7 +116,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed # => ["name"]
     def changed
-      changed_attributes.keys
+      changed_attributes.keys | changed_in_place
     end
 
     # Returns a hash of changed attributes indicating their original
@@ -152,6 +152,7 @@ module ActiveModel
     # Handle <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, options = {}) #:nodoc:
       result = changed_attributes.include?(attr)
+      result ||= changed_in_place?(attr) unless options.key?(:from)
       result &&= options[:to] == __send__(attr) if options.key?(:to)
       result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
       result
@@ -168,12 +169,14 @@ module ActiveModel
       def changes_applied
         @previously_changed = changes
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+        store_attribute_hashes
       end
 
       # Removes all dirty data: current changes and previous changes
       def reset_changes
         @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+        store_attribute_hashes
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
@@ -183,6 +186,7 @@ module ActiveModel
 
       # Handle <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
+        store_attribute_hash(attr)
         return if attribute_changed?(attr)
 
         begin
@@ -199,6 +203,33 @@ module ActiveModel
         if attribute_changed?(attr)
           __send__("#{attr}=", changed_attributes[attr])
           changed_attributes.delete(attr)
+        end
+        store_attribute_hash(attr)
+      end
+
+      def changed_in_place
+        original_attribute_hashes.keys.select do |attr|
+          changed_in_place?(attr)
+        end
+      end
+
+      def changed_in_place?(attr)
+        attr = attr.to_s
+        original_hash = original_attribute_hashes[attr]
+        original_hash && __send__(attr).hash != original_hash
+      end
+
+      def original_attribute_hashes
+        @original_attribute_hashes ||= {}
+      end
+
+      def store_attribute_hash(attr)
+        original_attribute_hashes[attr.to_s] = __send__(attr).hash
+      end
+
+      def store_attribute_hashes
+        original_attribute_hashes.keys.each do |attr|
+          store_attribute_hash(attr)
         end
       end
   end

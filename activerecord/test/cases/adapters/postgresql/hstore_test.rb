@@ -329,6 +329,13 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       dupe = record.dup
       assert_equal({"one" => "two"}, dupe.tags.to_hash)
     end
+
+    def test_changes_in_place
+      json = Hstore.create!(tags: { 'a' => 'a' })
+      assert_not json.tags_changed?
+      json.tags['b'] = 'b'
+      assert json.tags_changed?
+    end
   end
 
   private

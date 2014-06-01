@@ -310,7 +310,6 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.create!(:catchphrase => 'arr')
 
     pirate.catchphrase << ' matey'
-    assert !pirate.catchphrase_changed?
 
     assert pirate.catchphrase_will_change!
     assert pirate.catchphrase_changed?
@@ -446,12 +445,24 @@ class DirtyTest < ActiveRecord::TestCase
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
       topic.save!
       assert_equal "b", topic.content[:b]
       topic.reload
       assert_equal "b", topic.content[:b]
     end
+  end
+
+  def test_model_changed_when_attribute_modified_in_place
+    topic = Topic.create!(content: { a: 'a' })
+    topic.content[:b] = 'b'
+    assert topic.changed?
+    assert topic.content_changed?
+    assert_not topic.content_changed?(from: { a: 'a' }) # We use hashes so we can't check specific values
+
+    topic = Topic.last
+    topic.content[:c] = 'c'
+    assert topic.changed?
+    assert topic.content_changed?
   end
 
   def test_save_always_should_update_timestamps_when_serialized_attributes_are_present

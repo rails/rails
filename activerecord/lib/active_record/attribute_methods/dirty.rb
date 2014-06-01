@@ -41,6 +41,15 @@ module ActiveRecord
     def initialize_dup(other) # :nodoc:
       super
       init_changed_attributes
+      store_attribute_hashes
+    end
+
+    def read_attribute(attr)
+      super.tap do |value|
+        if has_attribute?(attr)
+          original_attribute_hashes[attr.to_s] ||= value.hash
+        end
+      end
     end
 
     private
@@ -65,13 +74,21 @@ module ActiveRecord
 
         old_value = old_attribute_value(attr)
 
-        result = super(attr, value)
-        save_changed_attribute(attr, old_value)
-        result
+        super(attr, value).tap do
+          save_changed_attribute(attr, old_value)
+          store_attribute_hash(attr)
+        end
+      end
+
+      def raw_write_attribute(attr, value)
+        attr = attr.to_s
+        super(attr, value).tap do
+          store_attribute_hash(attr)
+        end
       end
 
       def save_changed_attribute(attr, old_value)
-        if attribute_changed?(attr)
+        if changed_attributes.key?(attr)
           changed_attributes.delete(attr) unless _field_changed?(attr, old_value)
         else
           changed_attributes[attr] = old_value if _field_changed?(attr, old_value)
@@ -79,7 +96,7 @@ module ActiveRecord
       end
 
       def old_attribute_value(attr)
-        if attribute_changed?(attr)
+        if changed_attributes.key?(attr)
           changed_attributes[attr]
         else
           clone_attribute_value(:read_attribute, attr)
@@ -98,6 +115,12 @@ module ActiveRecord
       # changed in place.
       def keys_for_partial_write
         changed
+      end
+
+      def store_attribute_hashes
+        @original_attribute_hashes = Hash[attributes.map { |attr, value|
+          [attr, value.hash]
+        }]
       end
 
       def _field_changed?(attr, old_value)

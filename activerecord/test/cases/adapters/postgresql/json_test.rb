@@ -164,4 +164,11 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     JsonDataType.update_all payload: { }
     assert_equal({ }, json.reload.payload)
   end
+
+  def test_changes_in_place
+    json = JsonDataType.create!(payload: { 'a' => 'a' })
+    assert_not json.payload_changed?
+    json.payload['b'] = 'b'
+    assert json.payload_changed?
+  end
 end
