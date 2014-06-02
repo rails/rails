@@ -252,7 +252,7 @@ module ActiveRecord
       defaults = self.class.column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
 
-      @raw_attributes = self.class.initialize_attributes(defaults)
+      @raw_attributes = defaults
       @column_types_override = nil
       @column_types = self.class.column_types
 
@@ -278,7 +278,7 @@ module ActiveRecord
     #   post.init_with('attributes' => { 'title' => 'hello world' })
     #   post.title # => 'hello world'
     def init_with(coder)
-      @raw_attributes = self.class.initialize_attributes(coder['attributes'])
+      @raw_attributes = coder['attributes']
       @column_types_override = coder['column_types']
       @column_types = self.class.column_types
 
@@ -323,7 +323,6 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
-      self.class.initialize_attributes(cloned_attributes, :serialized => false)
 
       @raw_attributes = cloned_attributes
       @raw_attributes[self.class.primary_key] = nil
