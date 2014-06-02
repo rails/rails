@@ -66,8 +66,12 @@ class ParameterDeserializationTest < ActiveSupport::TestCase
     assert_equal [ 3, Person.find(5) ], ActiveJob::Arguments.deserialize([ 3, Person.find(5).gid ])
   end
 
-  test 'should dive deep when desierializing' do
+  test 'should dive deep when deserialising arrays' do
     assert_equal [ [ 3, Person.find(5) ] ], ActiveJob::Arguments.deserialize([ [ 3, Person.find(5).gid ] ])
+  end
+
+  test 'should dive deep when deserialising hashes' do
+    assert_equal [ { "5" => Person.find(5) } ], ActiveJob::Arguments.deserialize([ { "5" => Person.find(5).gid } ])
   end
 
 end

@@ -28,7 +28,7 @@ module ActiveJob
         when Array
           deserialize(argument)
         when Hash
-          argument.with_indifferent_access
+          Hash[argument.map{ |key, value| [ key, deserialize([value]).first ] }].with_indifferent_access
         else
           ActiveModel::GlobalLocator.locate(argument) || argument
         end
