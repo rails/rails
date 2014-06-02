@@ -24,10 +24,6 @@ module ActiveRecord
             value.respond_to?(:infinite?) && value.infinite?
           end
 
-          def type_cast_for_schema(value)
-            value.inspect.gsub('Infinity', '::Float::INFINITY')
-          end
-
           def type_cast_single(value)
             infinity?(value) ? value : @subtype.type_cast(value)
           end
