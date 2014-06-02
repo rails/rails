@@ -6,15 +6,6 @@ module ActiveRecord
           "(#{point[0]},#{point[1]})"
         end
 
-        def string_to_bit(value) # :nodoc:
-          case value
-          when /^0x/i
-            value[2..-1].hex.to_s(2) # Hexadecimal notation
-          else
-            value                    # Bit-string notation
-          end
-        end
-
         def hstore_to_string(object, array_member = false) # :nodoc:
           if Hash === object
             string = object.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(',')
@@ -73,28 +64,6 @@ module ActiveRecord
             ActiveSupport::JSON.decode(string)
           else
             string
-          end
-        end
-
-        def string_to_cidr(string) # :nodoc:
-          if string.nil?
-            nil
-          elsif String === string
-            begin
-              IPAddr.new(string)
-            rescue ArgumentError
-              nil
-            end
-          else
-            string
-          end
-        end
-
-        def cidr_to_string(object) # :nodoc:
-          if IPAddr === object
-            "#{object.to_s}/#{object.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
-          else
-            object
           end
         end
 

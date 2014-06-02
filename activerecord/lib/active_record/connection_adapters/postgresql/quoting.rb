@@ -44,11 +44,6 @@ module ActiveRecord
             when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
             else super
             end
-          when IPAddr
-            case sql_type
-            when 'inet', 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
-            else super
-            end
           when Float
             if value.infinite? && column.type == :datetime
               "'#{value.to_s.downcase}'"
@@ -124,12 +119,6 @@ module ActiveRecord
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)
             when 'json' then PostgreSQLColumn.json_to_string(value)
             else super(value, column)
-            end
-          when IPAddr
-            if %w(inet cidr).include? column.sql_type
-              PostgreSQLColumn.cidr_to_string(value)
-            else
-              super(value, column)
             end
           else
             super(value, column)
