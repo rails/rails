@@ -58,9 +58,29 @@ module ActiveRecord
         alias exclude_start? exclude_start
         alias :end to
 
+        def discrete_type?
+          # Exclude :datetime, :timestamp, :decimal
+          [:integer, :date].include? @subtype
+        end
+
+        def equivalent_discrete?(other)
+          return false if !matches?(other, [:subtype, :unbound_start?, :unbound_end?])
+          eq = false
+          if discrete_type? && valid_ruby_range?
+            if !unbound_start? && exclude_start?
+              eq ||= matches?(other, [:from, :to], {:from => from.succ})
+              eq ||= matches?(other, [:from, :to], {:from => from.succ, :to => last(1).first}) if !unbound_end? && exclude_end?
+            elsif !unbound_end? && exclude_end?
+              eq ||= matches?(other, [:from, :to], {:to => last(1).first})
+            end
+          end
+          eq
+        end
+
         def ==(other)
           if other.is_a? PGRange
-            [:from, :to, :subtype, :exclude_start, :exclude_end].all?{|v| self.public_send(v) == other.public_send(v)}
+            exactly_equals = matches?(other, [:from, :to, :subtype, :exclude_start, :exclude_end])
+            exactly_equals || equivalent_discrete?(other) || other.equivalent_discrete?(self)
           else
             false
           end
@@ -157,13 +177,13 @@ module ActiveRecord
         # Attempts to convert this PGRange to a ::Range for cases when only discrete values are used. Since
         # only discrete values are used, we can deal with exclusive lower bounds.
         def to_range
-          if defined? @discrete_rng
-            @discrete_rng
+          if defined? @ruby_range
+            @ruby_range
           else
             raise(RuntimeError, "can't discretize unbounded PGRange") if unbound_start? || unbound_end?
             raise(TypeError, "can't iterate from #{@subtype}") if !self.begin.respond_to?(:succ)
             start = self.exclude_start? ? self.begin.succ : self.begin
-            @discrete_rng = ::Range.new(start, self.end, self.exclude_end?)
+            @ruby_range = ::Range.new(start, self.end, self.exclude_end?)
           end
         end
 
@@ -183,6 +203,13 @@ module ActiveRecord
 
         def valid_ruby_range?
           !(empty? || exclude_start? || @from.nil? || @to.nil?)
+        end
+
+        def matches?(other, other_names, substitute_values={})
+          other_names.all? do |name|
+            value = substitute_values.include?(name) ? substitute_values[name] : self.public_send(name)
+            value == other.public_send(name)
+          end
         end
       end
     end

@@ -107,6 +107,10 @@ _SQL
       assert_equal :int8range, @first_range.column_for_attribute(:int8_range).type
     end
 
+    def test_transformed_discrete_range
+      assert_equal pgrange(1, 10, :integer), @first_range.int4_range
+    end
+
     def test_int4range_values
       assert_equal 1...11, @first_range.int4_range.to_range
       assert_equal 1...10, @second_range.int4_range.to_range
