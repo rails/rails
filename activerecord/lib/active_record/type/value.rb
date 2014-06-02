@@ -12,8 +12,8 @@ module ActiveRecord
         @limit = options[:limit]
       end
 
-      # The simplified that this object represents. Subclasses
-      # should override this method.
+      # The simplified type that this object represents. Subclasses
+      # must override this method.
       def type; end
 
       # Takes an input from the database, or from attribute setters,
