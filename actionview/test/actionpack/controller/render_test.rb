@@ -738,8 +738,9 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_render_action_upcased
-    get :render_action_upcased_hello_world
-    assert_equal "Hello world!", @response.body
+    assert_raise ActionView::MissingTemplate do
+      get :render_action_upcased_hello_world
+    end
   end
 
   # :ported:

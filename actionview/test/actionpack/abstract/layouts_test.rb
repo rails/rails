@@ -39,8 +39,9 @@ module AbstractControllerTests
         render :template => ActionView::Template::Text.new("Hello string!")
       end
 
+      # TODO: use this for deprecation test
       def action_has_layout_false
-        self.action_has_layout = false
+        # self.action_has_layout = false
         render :template => ActionView::Template::Text.new("Hello string!")
       end
 
@@ -358,16 +359,16 @@ module AbstractControllerTests
       end
 
       test "when a grandchild has nil layout specified, the child has an implied layout, and the " \
-        "parent has specified a layout, use the child controller layout" do
+        "parent has specified a layout, use the grand child controller layout" do
           controller = WithGrandChildOfImplied.new
           controller.process(:index)
           assert_equal "With Grand Child Hello string!", controller.response_body
       end
 
       test "a child inherits layout from abstract controller" do
-          controller = AbstractWithStringChild.new
-          controller.process(:index)
-          assert_equal "With String Hello abstract child!", controller.response_body
+        controller = AbstractWithStringChild.new
+        controller.process(:index)
+        assert_equal "With String Hello abstract child!", controller.response_body
       end
 
       test "raises an exception when specifying layout true" do
@@ -416,8 +417,24 @@ module AbstractControllerTests
         assert_equal "With String index", controller.response_body
       end
 
-      test "when layout is disabled with action_has_layout=false, render no layout" do
+      test "when layout is disabled with #action_has_layout? returning false, render no layout" do
         controller = WithString.new
+        controller.instance_eval do
+          def action_has_layout?
+            false
+          end
+        end
+        controller.process(:action_has_layout_false)
+        assert_equal "Hello string!", controller.response_body
+      end
+
+      test "deprecation warning when #action_has_layout= is used" do
+        controller = Class.new(WithString).new
+
+        assert_deprecated do
+          controller.action_has_layout = false # this still works
+        end
+
         controller.process(:action_has_layout_false)
         assert_equal "Hello string!", controller.response_body
       end
