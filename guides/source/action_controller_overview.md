@@ -1078,7 +1078,7 @@ Rails keeps a log file for each environment in the `log` folder. These are extre
 
 ### Parameters Filtering
 
-You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+You can filter out sensitive request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
@@ -1086,7 +1086,7 @@ config.filter_parameters << :password
 
 ### Redirects Filtering
 
-Sometimes it's desirable to filter out from log files some sensible locations your application is redirecting to.
+Sometimes it's desirable to filter out from log files some sensitive locations your application is redirecting to.
 You can do that by using the `config.filter_redirect` configuration option:
 
 ```ruby
