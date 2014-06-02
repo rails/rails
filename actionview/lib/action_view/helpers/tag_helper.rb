@@ -139,7 +139,7 @@ module ActionView
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
-          content     = ERB::Util.h(content) if escape
+          content     = ERB::Util.unwrapped_html_escape(content) if escape
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
         end
 
@@ -174,7 +174,7 @@ module ActionView
 
         def tag_option(key, value, escape)
           value = value.join(" ") if value.is_a?(Array)
-          value = ERB::Util.h(value) if escape
+          value = ERB::Util.unwrapped_html_escape(value) if escape
           %(#{key}="#{value}")
         end
     end

@@ -19,12 +19,7 @@ class ERB
     #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
     def html_escape(s)
-      s = s.to_s
-      if s.html_safe?
-        s
-      else
-        s.gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE).html_safe
-      end
+      unwrapped_html_escape(s).html_safe
     end
 
     # Aliasing twice issues a warning "discarding old...". Remove first to avoid it.
@@ -35,6 +30,18 @@ class ERB
 
     singleton_class.send(:remove_method, :html_escape)
     module_function :html_escape
+
+    # HTML escapes strings but doesn't wrap them with an ActiveSupport::SafeBuffer.
+    # This method is not for public consumption! Seriously!
+    def unwrapped_html_escape(s) # :nodoc:
+      s = s.to_s
+      if s.html_safe?
+        s
+      else
+        s.gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE)
+      end
+    end
+    module_function :unwrapped_html_escape
 
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
