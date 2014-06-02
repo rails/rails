@@ -63,18 +63,32 @@ module ActiveRecord
           [:integer, :date].include? @subtype
         end
 
+        # Check for equivalence in the discrete sense.
+        # Note, this only checks for equivalence achieved from incrementing the exclusive lower
+        # bound or decrementing the exclusive upper bound of this range. Invert the argument and
+        # the receiving object to check the other possible equivalence situations. In most cases,
+        # these two calls will be performed together. For example
+        #
+        #   a = PGRange.new(1, 10, :integer, :exclude_start => false, :exclude_end => false)
+        #   b = PGRange.new(1, 11, :integer, :exclude_start => false, :exclude_end => true)
+        #
+        #   a.equivalent_discrete?(b) # => false
+        #   b.equivalent_discrete?(a) # => true
+        #
+        #   # Complete check for discrete equivalence
+        #   a.equivalent_discrete?(b) || b.equivalent_discrete?(a) # => true
+        #
         def equivalent_discrete?(other)
           return false if !matches?(other, [:subtype, :unbound_start?, :unbound_end?])
-          eq = false
           if discrete_type? && valid_ruby_range?
-            if !unbound_start? && exclude_start?
+            if !unbound_start? && exclude_start? && !other.exclude_start?
               eq ||= matches?(other, [:from, :to], {:from => from.succ})
-              eq ||= matches?(other, [:from, :to], {:from => from.succ, :to => last(1).first}) if !unbound_end? && exclude_end?
-            elsif !unbound_end? && exclude_end?
+              eq ||= matches?(other, [:from, :to], {:from => from.succ, :to => last(1).first}) if !unbound_end? && exclude_end? && !other.exclude_end?
+            elsif !unbound_end? && exclude_end? && !other.exclude_end?
               eq ||= matches?(other, [:from, :to], {:to => last(1).first})
             end
           end
-          eq
+          !!eq
         end
 
         def ==(other)
