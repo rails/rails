@@ -1,3 +1,10 @@
+*   Set Rails console to use log formatter and log level as specified for the
+    given environment.
+
+    Fixes #15470.
+
+    *Jacob Evelyn*
+
 *   New records remain new after YAML serialization.
 
     *Sean Griffin*
