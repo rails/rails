@@ -233,7 +233,8 @@ module ActiveSupport #:nodoc:
     private
 
     def html_escape_interpolated_argument(arg)
-      (!html_safe? || arg.html_safe?) ? arg : ERB::Util.h(arg)
+      (!html_safe? || arg.html_safe?) ? arg :
+        arg.to_s.gsub(ERB::Util::HTML_ESCAPE_REGEXP, ERB::Util::HTML_ESCAPE)
     end
   end
 end
