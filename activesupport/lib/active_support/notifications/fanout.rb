@@ -25,9 +25,15 @@ module ActiveSupport
         subscriber
       end
 
-      def unsubscribe(subscriber)
+      def unsubscribe(subscriber_or_name)
         synchronize do
-          @subscribers.reject! { |s| s.matches?(subscriber) }
+          case subscriber_or_name
+          when String
+            @subscribers.reject! { |s| s.matches?(subscriber_or_name) }
+          else
+            @subscribers.delete(subscriber_or_name)
+          end
+
           @listeners_for.clear
         end
       end
@@ -97,12 +103,11 @@ module ActiveSupport
           end
 
           def subscribed_to?(name)
-            @pattern === name.to_s
+            @pattern === name
           end
 
-          def matches?(subscriber_or_name)
-            self === subscriber_or_name ||
-              @pattern && @pattern === subscriber_or_name
+          def matches?(name)
+            @pattern && @pattern === name
           end
         end
 
