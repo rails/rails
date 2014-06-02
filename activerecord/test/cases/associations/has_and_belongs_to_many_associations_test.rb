@@ -872,6 +872,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_redefine_habtm
     child = SubDeveloper.new("name" => "Aredridel")
     child.special_projects << SpecialProject.new("name" => "Special Project")
-    assert_equal true, child.save
+    assert child.save, 'child object should be saved'
   end
 end
