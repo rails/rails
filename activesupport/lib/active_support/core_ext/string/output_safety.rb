@@ -170,12 +170,14 @@ module ActiveSupport #:nodoc:
       self[0, 0]
     end
 
-    %w[concat prepend].each do |method_name|
-      define_method method_name do |value|
-        super(html_escape_interpolated_argument(value))
-      end
+    def concat(value)
+      super(html_escape_interpolated_argument(value))
     end
     alias << concat
+
+    def prepend(value)
+      super(html_escape_interpolated_argument(value))
+    end
 
     def prepend!(value)
       ActiveSupport::Deprecation.deprecation_warning "ActiveSupport::SafeBuffer#prepend!", :prepend
