@@ -12,11 +12,7 @@ module ActiveSupport
         when Float, String
           @number = BigDecimal(number.to_s)
         when Rational
-          if significant
-            @number = BigDecimal(number, digit_count(number.to_i) + precision)
-          else
-            @number = BigDecimal(number, precision)
-          end
+          @number = BigDecimal(number, digit_count(number.to_i) + precision)
         else
           @number = number.to_d
         end

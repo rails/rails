@@ -48,6 +48,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "-111.235", number_with_precision(-111.2346)
     assert_equal "111.00", number_with_precision(111, precision: 2)
     assert_equal "0.00100", number_with_precision(0.001, precision: 5)
+    assert_equal "3.33", number_with_precision(Rational(10, 3), precision: 2)
   end
 
   def test_number_to_human_size
