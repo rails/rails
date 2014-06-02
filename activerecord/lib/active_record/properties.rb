@@ -5,7 +5,7 @@ module ActiveRecord
     Type = ActiveRecord::Type
 
     included do
-      class_attribute :user_provided_columns, instance_accessor: false # :internal
+      class_attribute :user_provided_columns, instance_accessor: false # :internal:
       self.user_provided_columns = {}
     end
 
