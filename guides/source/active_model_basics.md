@@ -1,20 +1,32 @@
 Active Model Basics
 ===================
 
-This guide should provide you with all you need to get started using model classes. Active Model allows for Action Pack helpers to interact with non-Active Record models. Active Model also helps building custom ORMs for use outside of the Rails framework.
+This guide should provide you with all you need to get started using model
+classes. Active Model allows for Action Pack helpers to interact with
+plain Ruby object. Active Model also helps building custom ORMs for use
+outside of the Rails framework.
 
-After reading this guide, you will know:
+After reading this guide, you will be able to add to plain Ruby objects:
+
+* The ability to behaves like an Active Record model.
+* Add callbacks and validations like Active Record.
+* Add serializers.
+* Integrate with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
 Introduction
 ------------
 
-Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. Some of modules are explained below.
+Active Model is a library containing various modules used in developing
+classes that need some features present on Active Record.
+Some of these modules are explained below.
 
-### AttributeMethods
+### ActiveModel::AttributeMethods
 
-The AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes and which methods on the object will use them.
+The `ActiveModel::AttributeMethods` module can add custom prefixes and suffixes
+on methods of a class. It is used by defining the prefixes and suffixes and
+which methods on the object will use them.
 
 ```ruby
 class Person
@@ -43,9 +55,12 @@ person.reset_age     # 0
 person.age_highest?  # false
 ```
 
-### Callbacks
+### ActiveModel::Callbacks
 
-Callbacks gives Active Record style callbacks. This provides an ability to define callbacks which run at appropriate times. After defining callbacks, you can wrap them with before, after and around custom methods.
+`ActiveModel::Callbacks` gives Active Record style callbacks. This provides an
+ability to define callbacks which run at appropriate times.
+After defining callbacks, you can wrap them with before, after and around
+custom methods.
 
 ```ruby
 class Person
@@ -67,9 +82,11 @@ class Person
 end
 ```
 
-### Conversion
+### ActiveModel::Conversion
 
-If a class defines `persisted?` and `id` methods, then you can include the `Conversion` module in that class and call the Rails conversion methods on objects of that class.
+If a class defines `persisted?` and `id` methods, then you can include the
+`ActiveModel::Conversion` module in that class and call the Rails conversion
+methods on objects of that class.
 
 ```ruby
 class Person
@@ -90,9 +107,12 @@ person.to_key              # => nil
 person.to_param            # => nil
 ```
 
-### Dirty
+### ActiveModel::Dirty
 
-An object becomes dirty when it has gone through one or more changes to its attributes and has not been saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Let's consider a Person class with attributes `first_name` and `last_name`:
+An object becomes dirty when it has gone through one or more changes to its
+attributes and has not been saved. This gives the ability to check whether an
+object has been changed or not. It also has attribute based accessor methods.
+Let's consider a Person class with attributes `first_name` and `last_name`:
 
 ```ruby
 require 'active_model'
@@ -165,7 +185,8 @@ Track what was the previous value of the attribute.
 person.first_name_was # => "First Name"
 ```
 
-Track both previous and current value of the changed attribute. Returns an array if changed, else returns nil.
+Track both previous and current value of the changed attribute. Returns an array
+if changed, else returns nil.
 
 ```ruby
 # attr_name_change
@@ -173,9 +194,10 @@ person.first_name_change # => [nil, "First Name"]
 person.last_name_change # => nil
 ```
 
-### Validations
+### ActiveModel::Validations
 
-Validations module adds the ability to class objects to validate them in Active Record style.
+`ActiveModel::Validations` module adds the ability to class objects to validate
+them in Active Record style.
 
 ```ruby
 class Person
@@ -220,4 +242,265 @@ Person.model_name.param_key           # => "person"
 Person.model_name.i18n_key            # => :person
 Person.model_name.route_key           # => "people"
 Person.model_name.singular_route_key  # => "person"
+
+### ActiveModel::Model
+
+`ActiveModel::Model` adds the ability to a class to work with Action Pack and
+Action View out of box.
+
+```ruby
+class EmailContact
+  include ActiveModel::Model
+
+  attr_acessor :name, :email, :message
+  validates :name, :email, :message, presence: true
+
+  def deliver
+    if valid?
+      # deliver email
+    end
+  end
+end
 ```
+
+When including `ActiveModel::Model` you get some features like:
+
+- model name instrospection
+- conversions
+- translations
+- validations
+
+It also gives you the ability to initialize an object with a hash of attributes,
+much like any Active Record object.
+
+```ruby
+email_contact = EmailContact.new(name: 'David',
+                                 email: 'david@example.com',
+                                 message: 'Hello World')
+email_contact.name       # => 'David'
+email_contact.email      # => 'david@example.com'
+email_contact.valid?     # => true
+email_contact.persisted? # => false
+```
+
+Any class that includes `ActiveModel::Model` can be used with `form_for`,
+`render` and any other Action View helper methods, just like Active Record
+objects.
+
+### ActiveModel::Serialization
+
+`ActiveModel::Serialization` provides a basic serialization for your object.
+You need to declare an attributes hash which contains the attributes you want to
+serialize. Attributes must be strings, not symbols.
+
+```ruby
+class Person
+  include ActiveModel::Serialization
+
+  attr_accessor :name
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+Now you can access a serialized hash of your object using the `serializable_hash`.
+
+```ruby
+person = Person.new
+person.serializable_hash   # => {"name"=>nil}
+person.name = "Bob"
+person.serializable_hash   # => {"name"=>"Bob"}
+```
+
+#### ActiveModel::Serializers
+
+Rails provides two serializers `ActiveModel::Serializers::JSON` and
+`ActiveModel::Serializers::Xml`. Both of these modules automatically include
+the `ActiveModel::Serialization`.
+
+##### ActiveModel::Serializers::JSON
+
+To use the `ActiveModel::Serializers::JSON` you only need to change from
+`ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`.
+
+```ruby
+class Person
+  include ActiveModel::Serializers::JSON
+
+  attr_accessor :name
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+With the `as_json` you have a hash representing the model.
+
+```ruby
+person = Person.new
+person.as_json # => {"name"=>nil}
+person.name = "Bob"
+person.as_json # => {"name"=>"Bob"}
+```
+
+From a JSON string you define the attributes of the model.
+You need to have the `attributes=` method defined on your class:
+
+```ruby
+class Person
+  include ActiveModel::Serializers::JSON
+
+  attr_accessor :name
+
+  def attributes=(hash)
+    hash.each do |key, value|
+      send("#{key}=", value)
+    end
+  end
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+Now it is possible to create an instance of person using the `from_json`.
+
+```ruby
+json = { name: 'Bob' }.to_json
+person = Person.new
+person.from_json(json) # => #<Person:0x00000100c773f0 @name="Bob">
+person.name            # => "Bob"
+```
+
+##### ActiveModel::Serializers::Xml
+
+To use the `ActiveModel::Serializers::Xml` you only need to change from
+`ActiveModel::Serialization` to `ActiveModel::Serializers::Xml`.
+
+```ruby
+class Person
+  include ActiveModel::Serializers::Xml
+
+  attr_accessor :name
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+With the `to_xml` you have a XML representing the model.
+
+```ruby
+person = Person.new
+person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name nil=\"true\"/>\n</person>\n"
+person.name = "Bob"
+person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>Bob</name>\n</person>\n"
+```
+
+From a XML string you define the attributes of the model.
+You need to have the `attributes=` method defined on your class:
+
+```ruby
+class Person
+  include ActiveModel::Serializers::Xml
+
+  attr_accessor :name
+
+  def attributes=(hash)
+    hash.each do |key, value|
+      send("#{key}=", value)
+    end
+  end
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+Now it is possible to create an instance of person using the `from_xml`.
+
+```ruby
+xml = { name: 'Bob' }.to_xml
+person = Person.new
+person.from_xml(xml) # => #<Person:0x00000100c773f0 @name="Bob">
+person.name          # => "Bob"
+```
+
+### ActiveModel::Translation
+
+Provides integration between your object and the Rails internationalization
+(i18n) framework.
+
+```ruby
+class Person
+  extend ActiveModel::Translation
+end
+```
+
+With the `human_attribute_name` you can transform attribute names into a more
+human format. The human format is defined in your locale file.
+
+* config/locales/app.pt-BR.yml
+
+  ```yml
+  pt-BR:
+    activemodel:
+      attributes:
+        person:
+          name: 'Nome'
+  ```
+
+```ruby
+Person.human_attribute_name('name') # => "Nome"
+```
+
+### ActiveModel::Lint::Tests
+
+Test whether an object is compliant with the Active Model API.
+
+* app/models/person.rb
+
+    ```ruby
+    class person
+      include ActiveModel::Model
+
+    end
+    ```
+
+* test/models/person_test.rb
+
+    ```ruby
+    require 'test_helper'
+
+    class PersonTest < ActiveSupport::TestCase
+      include ActiveModel::Lint::Tests
+
+      def setup
+        @model = Person.new
+      end
+    end
+    ```
+
+```bash
+$ rake test
+
+Run options: --seed 14596
+
+# Running:
+
+......
+
+Finished in 0.024899s, 240.9735 runs/s, 1204.8677 assertions/s.
+
+6 runs, 30 assertions, 0 failures, 0 errors, 0 skips
+```
+
+An object is not required to implement all APIs in order to work with
+Action Pack. This module only intends to provide guidance in case you want all
+features out of the box.
