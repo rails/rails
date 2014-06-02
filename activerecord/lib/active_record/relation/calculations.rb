@@ -177,7 +177,7 @@ module ActiveRecord
         end
 
         result = result.map do |attributes|
-          values = klass.initialize_attributes(attributes).values
+          values = attributes.values
 
           columns.zip(values).map { |column, value| column.type_cast value }
         end
