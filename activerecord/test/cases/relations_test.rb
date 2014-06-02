@@ -335,17 +335,17 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal 0,     Developer.none.delete_all
       assert_equal 0,     Developer.none.update_all(:name => 'David')
       assert_equal 0,     Developer.none.delete(1)
-      assert_equal false, Developer.none.exists?(1)
+      assert_not Developer.none.exists?(1)
     end
   end
 
   def test_null_relation_content_size_methods
     assert_no_queries do
-      assert_equal 0,     Developer.none.size
-      assert_equal 0,     Developer.none.count
-      assert_equal true,  Developer.none.empty?
-      assert_equal false, Developer.none.any?
-      assert_equal false, Developer.none.many?
+      assert_equal 0, Developer.none.size
+      assert_equal 0, Developer.none.count
+      assert Developer.none.empty?
+      assert_not Developer.none.any?
+      assert_not Developer.none.many?
     end
   end
 
@@ -1013,7 +1013,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty_with_zero_limit
     posts = Post.limit(0)
 
-    assert_no_queries { assert_equal true, posts.empty? }
+    assert_no_queries { assert posts.empty? }
     assert ! posts.loaded?
   end
 
@@ -1027,26 +1027,26 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty
     posts = Post.all
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries(1) { assert_not posts.empty? }
     assert ! posts.loaded?
 
     no_posts = posts.where(:title => "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries(1) { assert no_posts.empty? }
     assert ! no_posts.loaded?
 
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
-    assert_no_queries { assert_equal false, best_posts.empty? }
+    assert_no_queries { assert_not best_posts.empty? }
   end
 
   def test_empty_complex_chained_relations
     posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count > 0")
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries(1) { assert_not posts.empty? }
     assert ! posts.loaded?
 
     no_posts = posts.where(:title => "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries(1) { assert no_posts.empty? }
     assert ! no_posts.loaded?
   end
 

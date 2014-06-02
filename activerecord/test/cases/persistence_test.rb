@@ -669,7 +669,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_returns_boolean
     topic = Topic.find(1)
-    assert_equal true, topic.update_columns(title: "New title")
+    assert topic.update_columns(title: "New title")
   end
 
   def test_update_columns_with_default_scope
@@ -776,31 +776,31 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_destroyed_returns_boolean
     developer = Developer.first
-    assert_equal false, developer.destroyed?
+    assert_not developer.destroyed?
     developer.destroy
-    assert_equal true, developer.destroyed?
+    assert developer.destroyed?
 
     developer = Developer.last
-    assert_equal false, developer.destroyed?
+    assert_not developer.destroyed?
     developer.delete
-    assert_equal true, developer.destroyed?
+    assert developer.destroyed?
   end
 
   def test_persisted_returns_boolean
     developer = Developer.new(:name => "Jose")
-    assert_equal false, developer.persisted?
+    assert_not developer.persisted?
     developer.save!
-    assert_equal true, developer.persisted?
+    assert developer.persisted?
 
     developer = Developer.first
-    assert_equal true, developer.persisted?
+    assert developer.persisted?
     developer.destroy
-    assert_equal false, developer.persisted?
+    assert_not developer.persisted?
 
     developer = Developer.last
-    assert_equal true, developer.persisted?
+    assert developer.persisted?
     developer.delete
-    assert_equal false, developer.persisted?
+    assert_not developer.persisted?
   end
 
   def test_class_level_destroy

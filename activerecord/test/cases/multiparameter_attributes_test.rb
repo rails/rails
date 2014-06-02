@@ -220,7 +220,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
       topic = Topic.find(1)
       topic.attributes = attributes
       assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
-      assert_equal false, topic.written_on.respond_to?(:time_zone)
+      assert_not topic.written_on.respond_to?(:time_zone)
     end
   end
 
@@ -234,7 +234,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
       topic = Topic.find(1)
       topic.attributes = attributes
       assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
-      assert_equal false, topic.written_on.respond_to?(:time_zone)
+      assert_not topic.written_on.respond_to?(:time_zone)
     end
   ensure
     Topic.skip_time_zone_conversion_for_attributes = []
