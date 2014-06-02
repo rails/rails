@@ -67,7 +67,7 @@ module ActionView
       def form_tag(url_for_options = {}, options = {}, &block)
         html_options = html_options_for_form(url_for_options, options)
         if block_given?
-          form_tag_in_block(html_options, &block)
+          form_tag_with_body(html_options, capture(&block))
         else
           form_tag_html(html_options)
         end
@@ -848,8 +848,7 @@ module ActionView
           tag(:form, html_options, true) + extra_tags
         end
 
-        def form_tag_in_block(html_options, &block)
-          content = capture(&block)
+        def form_tag_with_body(html_options, content)
           output = form_tag_html(html_options)
           output << content
           output.safe_concat("</form>")

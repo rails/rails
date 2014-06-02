@@ -434,7 +434,8 @@ module ActionView
         output  = capture(builder, &block)
         html_options[:multipart] ||= builder.multipart?
 
-        form_tag(options[:url] || {}, html_options) { output }
+        html_options = html_options_for_form(options[:url] || {}, html_options)
+        form_tag_with_body(html_options, output)
       end
 
       def apply_form_for_options!(record, object, options) #:nodoc:
