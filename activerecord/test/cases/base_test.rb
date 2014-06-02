@@ -524,7 +524,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
-    assert_equal false, Topic.new == Topic.new
+    assert_not Topic.new == Topic.new
   end
 
   def test_equality_of_destroyed_records
@@ -744,8 +744,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_new_record_returns_boolean
-    assert_equal false, Topic.new.persisted?
-    assert_equal true, Topic.find(1).persisted?
+    assert_not Topic.new.persisted?
+    assert Topic.find(1).persisted?
   end
 
   def test_dup

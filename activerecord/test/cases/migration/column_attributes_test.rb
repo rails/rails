@@ -152,7 +152,7 @@ module ActiveRecord
           assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
         end
 
-        assert_equal true, bob.male?
+        assert bob.male?
 
         assert_equal String, bob.first_name.class
         assert_equal String, bob.last_name.class

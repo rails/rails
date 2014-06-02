@@ -1237,13 +1237,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_included_in_collection
-    assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
+    assert companies(:first_firm).clients.include?(Client.find(2))
   end
 
   def test_included_in_collection_for_new_records
     client = Client.create(:name => 'Persisted')
     assert_nil client.client_of
-    assert_equal false, Firm.new.clients_of_firm.include?(client),
+    assert_not Firm.new.clients_of_firm.include?(client),
      'includes a client that does not belong to any firm'
   end
 
@@ -1271,7 +1271,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.save
     firm.reload
     assert_equal 2, firm.clients.length
-    assert_equal false, firm.clients.include?(:first_client)
+    assert_not firm.clients.include?(:first_client)
   end
 
   def test_replace_failure
@@ -1379,7 +1379,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.save!
 
     assert_equal 2, firm.clients(true).size
-    assert_equal true, firm.clients.include?(companies(:second_client))
+    assert firm.clients.include?(companies(:second_client))
   end
 
   def test_get_ids_for_through
@@ -1413,7 +1413,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert firm.clients.loaded?
-      assert_equal true, firm.clients.include?(client)
+      assert firm.clients.include?(client)
     end
   end
 
@@ -1424,7 +1424,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.reload
     assert ! firm.clients.loaded?
     assert_queries(1) do
-      assert_equal true, firm.clients.include?(client)
+      assert firm.clients.include?(client)
     end
     assert ! firm.clients.loaded?
   end
@@ -1434,7 +1434,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client = Client.create!(:name => 'Not Associated')
 
     assert ! firm.clients.loaded?
-    assert_equal false, firm.clients.include?(client)
+    assert_not firm.clients.include?(client)
   end
 
   def test_calling_first_nth_or_last_on_association_should_not_load_association
@@ -1655,7 +1655,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_include_method_in_has_many_association_should_return_true_for_instance_added_with_build
     post = Post.new
     comment = post.comments.build
-    assert_equal true, post.comments.include?(comment)
+    assert post.comments.include?(comment)
   end
 
   def test_load_target_respects_protected_attributes
@@ -1676,7 +1676,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     # assignment is used, it won't get updated and will still be false.
     first = topic.replies.to_a.first
     assert_equal reply.id, first.id
-    assert_equal true, first.approved?
+    assert first.approved?
   end
 
   def test_to_a_should_dup_target

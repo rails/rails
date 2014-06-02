@@ -53,16 +53,16 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists
-    assert_equal true, Topic.exists?(1)
-    assert_equal true, Topic.exists?("1")
-    assert_equal true, Topic.exists?(title: "The First Topic")
-    assert_equal true, Topic.exists?(heading: "The First Topic")
-    assert_equal true, Topic.exists?(:author_name => "Mary", :approved => true)
-    assert_equal true, Topic.exists?(["parent_id = ?", 1])
-    assert_equal true, Topic.exists?(id: [1, 9999])
+    assert Topic.exists?(1)
+    assert Topic.exists?("1")
+    assert Topic.exists?(title: "The First Topic")
+    assert Topic.exists?(heading: "The First Topic")
+    assert Topic.exists?(:author_name => "Mary", :approved => true)
+    assert Topic.exists?(["parent_id = ?", 1])
+    assert Topic.exists?(id: [1, 9999])
 
-    assert_equal false, Topic.exists?(45)
-    assert_equal false, Topic.exists?(Topic.new.id)
+    assert_not Topic.exists?(45)
+    assert_not Topic.exists?(Topic.new.id)
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
@@ -79,7 +79,7 @@ class FinderTest < ActiveRecord::TestCase
         Topic.exists?(("9"*53).to_i) # number that's bigger than int
       end
     else
-      assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
+      assert_not Topic.exists?(("9"*53).to_i) # number that's bigger than int
     end
 
     if current_adapter?(:PostgreSQLAdapter)
@@ -87,7 +87,7 @@ class FinderTest < ActiveRecord::TestCase
         Topic.exists?("foo")
       end
     else
-      assert_equal false, Topic.exists?("foo")
+      assert_not Topic.exists?("foo")
     end
   end
 
@@ -98,62 +98,62 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_returns_true_with_one_record_and_no_args
-    assert_equal true, Topic.exists?
+    assert Topic.exists?
   end
 
   def test_exists_returns_false_with_false_arg
-    assert_equal false, Topic.exists?(false)
+    assert_not Topic.exists?(false)
   end
 
   # exists? should handle nil for id's that come from URLs and always return false
   # (example: Topic.exists?(params[:id])) where params[:id] is nil
   def test_exists_with_nil_arg
-    assert_equal false, Topic.exists?(nil)
-    assert_equal true, Topic.exists?
+    assert_not Topic.exists?(nil)
+    assert Topic.exists?
 
-    assert_equal false, Topic.first.replies.exists?(nil)
-    assert_equal true, Topic.first.replies.exists?
+    assert_not Topic.first.replies.exists?(nil)
+    assert Topic.first.replies.exists?
   end
 
   # ensures +exists?+ runs valid SQL by excluding order value
   def test_exists_with_order
-    assert_equal true, Topic.order(:id).distinct.exists?
+    assert Topic.order(:id).distinct.exists?
   end
 
   def test_exists_with_includes_limit_and_empty_result
-    assert_equal false, Topic.includes(:replies).limit(0).exists?
-    assert_equal false, Topic.includes(:replies).limit(1).where('0 = 1').exists?
+    assert_not Topic.includes(:replies).limit(0).exists?
+    assert_not Topic.includes(:replies).limit(1).where('0 = 1').exists?
   end
 
   def test_exists_with_distinct_association_includes_and_limit
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+    assert_not author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
+    assert author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
   end
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
+    assert_not author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
+    assert author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
-    assert_equal false, Topic.exists?
+    assert_not Topic.exists?
   end
 
   def test_exists_with_aggregate_having_three_mappings
     existing_address = customers(:david).address
-    assert_equal true, Customer.exists?(:address => existing_address)
+    assert Customer.exists?(:address => existing_address)
   end
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert_equal false, Customer.exists?(:address =>
+    assert_not Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert_equal false, Customer.exists?(:address =>
+    assert_not Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert_equal false, Customer.exists?(:address =>
+    assert_not Customer.exists?(:address =>
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 

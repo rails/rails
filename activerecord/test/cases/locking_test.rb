@@ -327,7 +327,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     p1.reload
     assert_equal 1, p1.legacy_things_count
     assert p1.destroy
-    assert_equal true, p1.frozen?
+    assert p1.frozen?
     assert_raises(ActiveRecord::RecordNotFound) { Person.find(p1.id) }
     assert_raises(ActiveRecord::RecordNotFound) { LegacyThing.find(t.id) }
   ensure
