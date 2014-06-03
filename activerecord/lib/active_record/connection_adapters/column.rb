@@ -52,7 +52,7 @@ module ActiveRecord
       end
 
       def extract_default(default)
-        type_cast_for_write(type_cast(default))
+        type_cast(default)
       end
     end
   end
