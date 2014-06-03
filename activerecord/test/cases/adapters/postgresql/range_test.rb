@@ -1,7 +1,5 @@
 require "cases/helper"
 require 'support/connection_helper'
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 if ActiveRecord::Base.connection.supports_ranges?
   class PostgresqlRange < ActiveRecord::Base

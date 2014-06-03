@@ -1,8 +1,5 @@
 # encoding: utf-8
-
 require 'cases/helper'
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 if ActiveRecord::Base.connection.supports_extensions?
   class PostgresqlCitextTest < ActiveRecord::TestCase
