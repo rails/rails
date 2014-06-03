@@ -51,10 +51,11 @@ module ActiveRecord
       attr_accessor :indexes
       attr_reader :name, :temporary, :options, :as
 
-      def initialize(types, name, temporary, options, as = nil)
+      def initialize(types, aliased_types, name, temporary, options, as = nil)
         @columns_hash = {}
         @indexes = {}
         @native = types
+        @aliased_types = aliased_types
         @temporary = temporary
         @options = options
         @as = as
@@ -225,12 +226,20 @@ module ActiveRecord
         @columns_hash.delete name.to_s
       end
 
-      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
-        define_method column_type do |*args|
+      def method_missing(method_name, *args, &block)
+        column_type = method_name.to_sym
+        if native.key?(column_type) || aliased_types.key?(column_type)
           options = args.extract_options!
           column_names = args
           column_names.each { |name| column(name, column_type, options) }
+        else
+          super
         end
+      end
+
+      def respond_to_missing?(name, include_private = false)
+        name = name.to_sym
+        super || native.key?(name) || aliased_types.key?(name)
       end
 
       # Adds index options to the indexes hash, keyed by column name
@@ -295,9 +304,7 @@ module ActiveRecord
       end
 
       def aliased_types
-        HashWithIndifferentAccess.new(
-          timestamp: :datetime,
-        )
+        @aliased_types
       end
     end
 
@@ -488,18 +495,29 @@ module ActiveRecord
       #
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
-      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
-        define_method column_type do |*args|
+      def method_missing(method_name, *args, &block)
+        column_type = method_name.to_sym
+        if native.key?(column_type) || aliased_types.key?(column_type)
           options = args.extract_options!
-          args.each do |name|
-            @base.add_column(@table_name, name, column_type, options)
-          end
+          column_names = args
+          column_names.each { |name| @base.add_column(@table_name, name, column_type, options) }
+        else
+          super
         end
+      end
+
+      def respond_to_missing?(name, include_private = false)
+        name = name.to_sym
+        super || native.key?(name) || aliased_types.key?(name)
       end
 
       private
         def native
           @base.native_database_types
+        end
+
+        def aliased_types
+          @base.aliased_types
         end
     end
 

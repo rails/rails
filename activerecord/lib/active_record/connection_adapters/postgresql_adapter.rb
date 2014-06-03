@@ -380,10 +380,6 @@ module ActiveRecord
         !native_database_types[type].nil?
       end
 
-      def update_table_definition(table_name, base) #:nodoc:
-        PostgreSQL::Table.new(table_name, base)
-      end
-
       protected
 
         # Returns the version of the connected PostgreSQL server.
@@ -781,7 +777,7 @@ module ActiveRecord
         end
 
         def create_table_definition(name, temporary, options, as = nil) # :nodoc:
-          PostgreSQL::TableDefinition.new native_database_types, name, temporary, options, as
+          PostgreSQL::TableDefinition.new native_database_types, aliased_types, name, temporary, options, as
         end
     end
   end

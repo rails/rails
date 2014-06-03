@@ -844,9 +844,15 @@ module ActiveRecord
           end
         end
 
+      def aliased_types
+        HashWithIndifferentAccess.new(
+          timestamp: :datetime,
+        )
+      end
+
       private
       def create_table_definition(name, temporary, options, as = nil)
-        TableDefinition.new native_database_types, name, temporary, options, as
+        TableDefinition.new native_database_types, aliased_types, name, temporary, options, as
       end
 
       def create_alter_table(name)
