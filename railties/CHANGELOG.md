@@ -1,3 +1,7 @@
+*   Invalid `bin/rails generate` commands will now show spelling suggestions.
+
+    *Richard Schneeman*
+
 *   Add `bin/setup` script to bootstrap an application.
 
     *Yves Senn*

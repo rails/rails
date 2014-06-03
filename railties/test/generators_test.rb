@@ -24,7 +24,13 @@ class GeneratorsTest < Rails::Generators::TestCase
     name = :unknown
     output = capture(:stdout){ Rails::Generators.invoke name }
     assert_match "Could not find generator '#{name}'", output
-    assert_match "scaffold", output
+    assert_match "`rails generate --help`", output
+  end
+
+  def test_generator_suggestions
+    name = :migrationz
+    output = capture(:stdout){ Rails::Generators.invoke name }
+    assert_match "Maybe you meant 'migration'", output
   end
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
