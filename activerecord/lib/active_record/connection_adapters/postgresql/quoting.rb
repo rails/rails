@@ -61,7 +61,6 @@ module ActiveRecord
             end
           when String
             case sql_type
-            when 'bytea' then "'#{escape_bytea(value)}'"
             when 'xml'   then "xml '#{quote_string(value)}'"
             when /^bit/
               case value
@@ -104,15 +103,6 @@ module ActiveRecord
               else
                 super(value, column)
               end
-            end
-          when String
-            if 'bytea' == column.sql_type
-              # Return a bind param hash with format as binary.
-              # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
-              # for more information
-              { value: value, format: 1 }
-            else
-              super(value, column)
             end
           when Hash
             case column.sql_type
@@ -171,6 +161,27 @@ module ActiveRecord
             value
           else
             quote(value, column)
+          end
+        end
+
+        private
+
+        def _quote(value)
+          if value.is_a?(Type::Binary::Data)
+            "'#{escape_bytea(value.to_s)}'"
+          else
+            super
+          end
+        end
+
+        def _type_cast(value)
+          if value.is_a?(Type::Binary::Data)
+            # Return a bind param hash with format as binary.
+            # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
+            # for more information
+            { value: value.to_s, format: 1 }
+          else
+            super
           end
         end
       end

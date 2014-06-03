@@ -12,6 +12,24 @@ module ActiveRecord
       def klass
         ::String
       end
+
+      def type_cast_for_database(value)
+        Data.new(super)
+      end
+
+      class Data
+        def initialize(value)
+          @value = value
+        end
+
+        def to_s
+          @value
+        end
+
+        def hex
+          @value.unpack('H*')[0]
+        end
+      end
     end
   end
 end
