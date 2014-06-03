@@ -3255,6 +3255,54 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/admin/posts/1/comments', admin_post_comments_path('1')
   end
 
+  def test_mix_string_to_controller_action
+    draw do
+      get '/projects', controller: 'project_files',
+                       action: 'index',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_string_to_controller
+    draw do
+      get '/projects', controller: 'project_files',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_string_to_action
+    draw do
+      get '/projects', action: 'index',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_symbol_to_controller_action
+    draw do
+      get '/projects', controller: 'project_files',
+                       action: 'index',
+                       to: :show
+    end
+    get '/projects'
+    assert_equal 'project_files#show', @response.body
+  end
+
+  def test_mix_string_to_controller_action
+    draw do
+      get '/projects', controller: 'project_files',
+                       action: 'index',
+                       to: 'show'
+    end
+    get '/projects'
+    assert_equal 'show#index', @response.body
+  end
+
   def test_shallow_path_and_prefix_are_not_added_to_non_shallow_routes
     draw do
       scope shallow_path: 'projects', shallow_prefix: 'project' do
