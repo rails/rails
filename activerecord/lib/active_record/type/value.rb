@@ -55,6 +55,15 @@ module ActiveRecord
         value
       end
 
+      # +old_value+ will always be type-cast.
+      # +new_value+ will come straight from the database
+      # or from assignment, so it could be anything. Types
+      # which cannot typecast arbitrary values should override
+      # this method.
+      def changed?(old_value, new_value) # :nodoc:
+        old_value != type_cast(new_value)
+      end
+
       private
 
       # Responsible for casting values from external sources to the appropriate
