@@ -217,7 +217,7 @@ module ActiveRecord
           reflection.check_validity!
           reflection.check_eager_loadable!
 
-          if reflection.options[:polymorphic]
+          if reflection.polymorphic?
             raise EagerLoadPolymorphicError.new(reflection)
           end
 

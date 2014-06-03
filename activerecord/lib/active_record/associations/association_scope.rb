@@ -106,7 +106,7 @@ module ActiveRecord
           table, foreign_table = tables.shift, tables.first
 
           if reflection.source_macro == :belongs_to
-            if reflection.options[:polymorphic]
+            if reflection.polymorphic?
               key = reflection.association_primary_key(assoc_klass)
             else
               key = reflection.association_primary_key

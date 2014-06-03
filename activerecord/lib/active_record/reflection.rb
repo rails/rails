@@ -239,7 +239,7 @@ module ActiveRecord
 
       def association_scope_cache(conn, owner)
         key = conn.prepared_statements
-        if options[:polymorphic]
+        if polymorphic?
           key = [key, owner.read_attribute(@foreign_type)]
         end
         @association_scope_cache[key] ||= @scope_lock.synchronize {
@@ -303,7 +303,7 @@ module ActiveRecord
       end
 
       def check_validity_of_inverse!
-        unless options[:polymorphic]
+        unless polymorphic?
           if has_inverse? && inverse_of.nil?
             raise InverseOfAssociationNotFoundError.new(self)
           end
@@ -403,7 +403,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       def association_class
         case macro
         when :belongs_to
-          if options[:polymorphic]
+          if polymorphic?
             Associations::BelongsToPolymorphicAssociation
           else
             Associations::BelongsToAssociation
@@ -424,7 +424,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       end
 
       def polymorphic?
-        options.key? :polymorphic
+        options[:polymorphic]
       end
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
@@ -441,7 +441,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         def calculate_constructable(macro, options)
           case macro
           when :belongs_to
-            !options[:polymorphic]
+            !polymorphic?
           when :has_one
             !options[:through]
           else
@@ -723,7 +723,7 @@ directive on your declaration like:
           raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
         end
 
-        if through_reflection.options[:polymorphic]
+        if through_reflection.polymorphic?
           raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
         end
 
@@ -731,11 +731,11 @@ directive on your declaration like:
           raise HasManyThroughSourceAssociationNotFoundError.new(self)
         end
 
-        if options[:source_type] && source_reflection.options[:polymorphic].nil?
+        if options[:source_type] && !source_reflection.polymorphic?
           raise HasManyThroughAssociationPointlessSourceTypeError.new(active_record.name, self, source_reflection)
         end
 
-        if source_reflection.options[:polymorphic] && options[:source_type].nil?
+        if source_reflection.polymorphic? && options[:source_type].nil?
           raise HasManyThroughAssociationPolymorphicSourceError.new(active_record.name, self, source_reflection)
         end
 
