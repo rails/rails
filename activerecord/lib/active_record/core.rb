@@ -249,7 +249,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = self.class.column_defaults.dup
+      defaults = self.class.raw_column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
 
       @raw_attributes = defaults
