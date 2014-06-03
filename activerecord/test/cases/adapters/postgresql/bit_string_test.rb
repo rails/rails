@@ -11,13 +11,14 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    @connection.create_table('postgresql_bit_strings') do |t|
+    @connection.create_table('postgresql_bit_strings', :force => true) do |t|
       t.bit :a_bit, default: "00000011", limit: 8
       t.bit_varying :a_bit_varying, default: "0011", limit: 4
     end
   end
 
-  teardown do
+  def teardown
+    return unless @connection
     @connection.execute 'DROP TABLE IF EXISTS postgresql_bit_strings'
   end
 
