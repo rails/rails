@@ -131,7 +131,27 @@ change, ask for it in [Rails](http://github.com/rails/rails) instead.
 
 Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
-If you are unsure of the documentation changes, you can create an issue in the [Rails](https://github.com/rails/rails/issues) issues tracker on GitHub.
+If you are unsure of the documentation changes. You can merely generate offline documentation and verify your changes, spelling, grammar, theoretical mistake etc.
+
+You can locally generate Rails API documentation from Rails sources. This command will build RDoc HTML files for us:
+
+```bash
+bundle exec rake rdoc
+```
+
+Resulting HTML files can be found and browsed at ./doc/rdoc directory. Just open index.html file in the browser and you're done.
+
+Similarly, Rails guide also generate from Rails sources.
+
+```bash
+$ cd guides
+$ bundle exec rake guides:generate:html
+```
+
+Resulting HTML files can be found and browsed at ./guides/output directory.
+Detail article of [HTML Guides Generation](ruby_on_rails_guides_guidelines.html#html-guides) describe here.
+
+For more help you can create an issue in the [Rails](https://github.com/rails/rails/issues) issues tracker on GitHub.
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
