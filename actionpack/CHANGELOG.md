@@ -1,3 +1,7 @@
+*   Routes specifying 'to:' must be a string that contains a "#" or a rack
+    application.  Use of a symbol should be replaced with `action: symbol`.
+    Use of a string without a "#" should be replaced with `controller: string`.
+
 *   Deprecate all *_filter callbacks in favor of *_action callbacks.
 
     *Rafael Mendonça França*

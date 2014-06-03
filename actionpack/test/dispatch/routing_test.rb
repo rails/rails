@@ -361,8 +361,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       controller(:global) do
         get 'global/hide_notice'
-        get 'global/export',      :to => :export, :as => :export_request
-        get '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
+        get 'global/export',      :action => :export, :as => :export_request
+        get '/export/:id/:file',  :action => :export, :as => :export_download, :constraints => { :file => /.*/ }
         get 'global/:action'
       end
     end
@@ -730,8 +730,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       resources :replies do
         member do
-          put :answer, :to => :mark_as_answer
-          delete :answer, :to => :unmark_as_answer
+          put :answer, :action => :mark_as_answer
+          delete :answer, :action => :unmark_as_answer
         end
       end
     end
@@ -1188,7 +1188,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       controller :articles do
         scope '/articles', :as => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
-            get '/:id', :to => :with_id, :as => ""
+            get '/:id', :action => :with_id, :as => ""
           end
         end
       end
@@ -1435,7 +1435,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_scoped_controller_with_namespace_and_action
     draw do
       namespace :account do
-        get ':action/callback', :action => /twitter|github/, :to => "callbacks", :as => :callback
+        get ':action/callback', :action => /twitter|github/, :controller => "callbacks", :as => :callback
       end
     end
 
@@ -1492,7 +1492,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_normalize_namespaced_matches
     draw do
       namespace :account do
-        get 'description', :to => :description, :as => "description"
+        get 'description', :action => :description, :as => "description"
       end
     end
 
@@ -2154,7 +2154,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
         resources :invoices do
           get "outstanding" => "invoices#outstanding", :on => :collection
-          get "overdue", :to => :overdue, :on => :collection
+          get "overdue", :action => :overdue, :on => :collection
           get "print" => "invoices#print", :as => :print, :on => :member
           post "preview" => "invoices#preview", :as => :preview, :on => :new
         end
@@ -2996,7 +2996,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_raise(ArgumentError) do
-      draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      assert_deprecated do
+        draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      end
     end
 
     assert_raise(ArgumentError) do
@@ -3284,20 +3286,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_mix_symbol_to_controller_action
-    draw do
-      get '/projects', controller: 'project_files',
-                       action: 'index',
-                       to: :show
+    assert_deprecated do
+      draw do
+        get '/projects', controller: 'project_files',
+                         action: 'index',
+                         to: :show
+      end
     end
     get '/projects'
     assert_equal 'project_files#show', @response.body
   end
 
-  def test_mix_string_to_controller_action
-    draw do
-      get '/projects', controller: 'project_files',
-                       action: 'index',
-                       to: 'show'
+  def test_mix_string_to_controller_action_no_hash
+    assert_deprecated do
+      draw do
+        get '/projects', controller: 'project_files',
+                         action: 'index',
+                         to: 'show'
+      end
     end
     get '/projects'
     assert_equal 'show#index', @response.body
@@ -3567,7 +3573,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
   def test_missing_controller
     ex = assert_raises(ArgumentError) {
       draw do
-        get '/foo/bar', :to => :index
+        get '/foo/bar', :action => :index
       end
     }
     assert_match(/Missing :controller/, ex.message)
@@ -3575,8 +3581,10 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
 
   def test_missing_action
     ex = assert_raises(ArgumentError) {
-      draw do
-        get '/foo/bar', :to => 'foo'
+      assert_deprecated do
+        draw do
+          get '/foo/bar', :to => 'foo'
+        end
       end
     }
     assert_match(/Missing :action/, ex.message)
@@ -4083,7 +4091,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       set.draw do
         get "/bar/:id", :to => redirect("/foo/show/%{id}")
         get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
-        get "/foo(/:action(/:id))", :to => "test_invalid_urls/foo"
+        get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
         get "/:controller(/:action(/:id))"
       end
 

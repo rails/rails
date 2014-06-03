@@ -7,6 +7,7 @@ require 'active_support/core_ext/module/remove_method'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 require 'action_dispatch/routing/endpoint'
+require 'active_support/deprecation'
 
 module ActionDispatch
   module Routing
@@ -284,9 +285,13 @@ module ActionDispatch
 
           def get_controller_and_action(controller, action, to, modyoule)
             case to
-            when Symbol then action = to.to_s
+            when Symbol
+              ActiveSupport::Deprecation.warn "defining a route where `to` is a symbol is deprecated.  Please change \"to: :#{to}\" to \"action: :#{to}\""
+              action = to.to_s
             when /#/    then controller, action = to.split('#')
-            when String then controller = to
+            when String
+              ActiveSupport::Deprecation.warn "defining a route where `to` is a controller without an action is deprecated.  Please change \"to: :#{to}\" to \"controller: :#{to}\""
+              controller = to
             end
 
             if modyoule && !controller.is_a?(Regexp)
@@ -1458,7 +1463,20 @@ module ActionDispatch
           if rest.empty? && Hash === path
             options  = path
             path, to = options.find { |name, _value| name.is_a?(String) }
-            options[:to] = to
+
+            case to
+            when Symbol
+              options[:action] = to
+            when String
+              if to =~ /#/
+                options[:to] = to
+              else
+                options[:controller] = to
+              end
+            else
+              options[:to] = to
+            end
+
             options.delete(path)
             paths = [path]
           else
