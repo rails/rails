@@ -18,21 +18,7 @@ module ActiveRecord
           value = column.type_cast_for_database(value)
         end
 
-        case value
-        when String, ActiveSupport::Multibyte::Chars
-          "'#{quote_string(value.to_s)}'"
-        when true       then quoted_true
-        when false      then quoted_false
-        when nil        then "NULL"
-        # BigDecimals need to be put in a non-normalized form and quoted.
-        when BigDecimal then value.to_s('F')
-        when Numeric, ActiveSupport::Duration then value.to_s
-        when Date, Time then "'#{quoted_date(value)}'"
-        when Symbol     then "'#{quote_string(value.to_s)}'"
-        when Class      then "'#{value.to_s}'"
-        else
-          "'#{quote_string(YAML.dump(value))}'"
-        end
+        _quote(value)
       end
 
       # Cast a +value+ to a type that the database understands. For example,
@@ -52,20 +38,10 @@ module ActiveRecord
           value = column.type_cast_for_database(value)
         end
 
-        case value
-        when Symbol, ActiveSupport::Multibyte::Chars
-          value.to_s
-        when true       then unquoted_true
-        when false      then unquoted_false
-        # BigDecimals need to be put in a non-normalized form and quoted.
-        when BigDecimal then value.to_s('F')
-        when Date, Time then quoted_date(value)
-        when *types_which_need_no_typecasting
-          value
-        else
-          to_type = column ? " to #{column.type}" : ""
-          raise TypeError, "can't cast #{value.class}#{to_type}"
-        end
+        _type_cast(value)
+      rescue TypeError
+        to_type = column ? " to #{column.type}" : ""
+        raise TypeError, "can't cast #{value.class}#{to_type}"
       end
 
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
@@ -128,6 +104,39 @@ module ActiveRecord
 
       def types_which_need_no_typecasting
         [nil, Numeric, String]
+      end
+
+      def _quote(value)
+        case value
+        when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          "'#{quote_string(value.to_s)}'"
+        when true       then quoted_true
+        when false      then quoted_false
+        when nil        then "NULL"
+        # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal then value.to_s('F')
+        when Numeric, ActiveSupport::Duration then value.to_s
+        when Date, Time then "'#{quoted_date(value)}'"
+        when Symbol     then "'#{quote_string(value.to_s)}'"
+        when Class      then "'#{value.to_s}'"
+        else
+          "'#{quote_string(YAML.dump(value))}'"
+        end
+      end
+
+      def _type_cast(value)
+        case value
+        when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          value.to_s
+        when true       then unquoted_true
+        when false      then unquoted_false
+        # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal then value.to_s('F')
+        when Date, Time then quoted_date(value)
+        when *types_which_need_no_typecasting
+          value
+        else raise TypeError
+        end
       end
     end
   end

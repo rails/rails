@@ -219,10 +219,9 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary
-          s = value.unpack("H*")[0]
-          "x'#{s}'"
+      def _quote(value) # :nodoc:
+        if value.is_a?(Type::Binary::Data)
+          "x'#{value.hex}'"
         else
           super
         end
