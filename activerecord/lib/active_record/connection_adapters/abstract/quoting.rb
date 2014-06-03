@@ -26,6 +26,12 @@ module ActiveRecord
         when nil        then "NULL"
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s('F')
+        when Fixnum
+          case column && column.respond_to?(:type) && column.type
+          when :string then "'#{quote_string(value.to_s)}'"
+          else value.to_s
+          end
+
         when Numeric, ActiveSupport::Duration then value.to_s
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
