@@ -71,6 +71,14 @@ module ActiveRecord
         def point(name, options = {})
           column(name, 'point', options)
         end
+
+        def bit(name, options)
+          column(name, 'bit', options)
+        end
+
+        def bit_varying(name, options)
+          column(name, 'bit varying', options)
+        end
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition

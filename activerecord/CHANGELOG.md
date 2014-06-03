@@ -1,4 +1,8 @@
-*   Preserve type when dumping PostgreSQL point types.
+*   Preserve type when dumping PostgreSQL bit and bit varying columns.
+
+    *Yves Senn*
+
+*   Preserve type when dumping PostgreSQL point columns.
 
     *Yves Senn*
 

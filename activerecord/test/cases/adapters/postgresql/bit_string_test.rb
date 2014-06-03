@@ -13,8 +13,8 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
       @connection.create_table('postgresql_bit_strings') do |t|
-        t.column :a_bit, "bit(8)", default: "00000011"
-        t.column :a_bit_varying, "bit varying", default: "0011"
+        t.bit :a_bit, default: "00000011", limit: 8
+        t.bit_varying :a_bit_varying, default: "0011"
       end
     end
   end
@@ -25,9 +25,9 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
 
   def test_bit_string_column
     column = PostgresqlBitString.columns_hash["a_bit"]
-    assert_equal :string, column.type
+    assert_equal :bit, column.type
     assert_equal "bit(8)", column.sql_type
-    assert column.text?
+    assert_not column.text?
     assert_not column.number?
     assert_not column.binary?
     assert_not column.array
@@ -35,9 +35,9 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
 
   def test_bit_string_varying_column
     column = PostgresqlBitString.columns_hash["a_bit_varying"]
-    assert_equal :string, column.type
+    assert_equal :bit_varying, column.type
     assert_equal "bit varying", column.sql_type
-    assert column.text?
+    assert_not column.text?
     assert_not column.number?
     assert_not column.binary?
     assert_not column.array
@@ -53,8 +53,8 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
 
   def test_schema_dumping
     output = dump_table_schema("postgresql_bit_strings")
-    assert_match %r{t\.string\s+"a_bit",\s+default: "00000011"$}, output
-    assert_match %r{t\.string\s+"a_bit_varying",\s+default: "0011"$}, output
+    assert_match %r{t\.bit\s+"a_bit",\s+default: "00000011"$}, output
+    assert_match %r{t\.bit_varying\s+"a_bit_varying",\s+default: "0011"$}, output
   end
 
   def test_assigning_invalid_hex_string_raises_exception
