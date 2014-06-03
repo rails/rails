@@ -150,14 +150,6 @@ _SQL
 _SQL
 
   execute <<_SQL
-  CREATE TABLE postgresql_bit_strings (
-    id SERIAL PRIMARY KEY,
-    bit_string BIT(8),
-    bit_string_varying BIT VARYING(8)
-  );
-_SQL
-
-  execute <<_SQL
   CREATE TABLE postgresql_oids (
     id SERIAL PRIMARY KEY,
     obj_id OID
