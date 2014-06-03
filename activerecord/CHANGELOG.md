@@ -1,3 +1,7 @@
+*   Implemented ActiveRecord::Base#pretty_print to work with PP.
+
+    *Ethan*
+
 *   Preserve type when dumping PostgreSQL point, bit, bit varying and money
     columns.
 
