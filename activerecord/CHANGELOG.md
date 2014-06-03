@@ -1,8 +1,5 @@
-*   Preserve type when dumping PostgreSQL bit and bit varying columns.
-
-    *Yves Senn*
-
-*   Preserve type when dumping PostgreSQL point columns.
+*   Preserve type when dumping PostgreSQL point, bit, bit varying and money
+    columns.
 
     *Yves Senn*
 

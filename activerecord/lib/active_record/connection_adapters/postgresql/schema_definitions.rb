@@ -79,6 +79,10 @@ module ActiveRecord
         def bit_varying(name, options)
           column(name, :bit_varying, options)
         end
+
+        def money(name, options)
+          column(name, :money, options)
+        end
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition

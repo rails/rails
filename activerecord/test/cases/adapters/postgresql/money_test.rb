@@ -1,26 +1,38 @@
 # encoding: utf-8
-
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
+require 'support/schema_dumping_helper'
 
 class PostgresqlMoneyTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
   class PostgresqlMoney < ActiveRecord::Base; end
 
   setup do
     @connection = ActiveRecord::Base.connection
     @connection.execute("set lc_monetary = 'C'")
+    @connection.create_table('postgresql_moneys') do |t|
+      t.column "wealth", "money"
+      t.column "depth", "money", default: "150.55"
+    end
+  end
+
+  teardown do
+    @connection.execute 'DROP TABLE IF EXISTS postgresql_moneys'
   end
 
   def test_column
     column = PostgresqlMoney.columns_hash["wealth"]
-    assert_equal :decimal, column.type
+    assert_equal :money, column.type
     assert_equal "money", column.sql_type
     assert_equal 2, column.scale
     assert column.number?
     assert_not column.text?
     assert_not column.binary?
     assert_not column.array
+  end
+
+  def test_default
+    assert_equal BigDecimal.new("150.55"), PostgresqlMoney.new.depth
   end
 
   def test_money_values
@@ -39,6 +51,12 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
     assert_equal(12345678.12, column.type_cast("$12.345.678,12"))
     assert_equal(-1.15, column.type_cast("-$1.15"))
     assert_equal(-2.25, column.type_cast("($2.25)"))
+  end
+
+  def test_schema_dumping
+    output = dump_table_schema("postgresql_moneys")
+    assert_match %r{t\.money\s+"wealth",\s+scale: 2$}, output
+    assert_match %r{t\.money\s+"depth",\s+scale: 2,\s+default: 150.55$}, output
   end
 
   def test_create_and_update_money

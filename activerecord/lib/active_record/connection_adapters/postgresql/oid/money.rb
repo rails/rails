@@ -7,6 +7,10 @@ module ActiveRecord
 
           class_attribute :precision
 
+          def type
+            :money
+          end
+
           def scale
             2
           end

@@ -107,6 +107,7 @@ module ActiveRecord
         point:       { name: "point" },
         bit:         { name: "bit" },
         bit_varying: { name: "bit varying" },
+        money:       { name: "money" },
       }
 
       OID = PostgreSQL::OID #:nodoc:
@@ -559,6 +560,8 @@ module ActiveRecord
               $1
             # JSON
             when /\A'(.*)'::json\z/
+              $1
+            when /\A'(.*)'::money\z/
               $1
             # Object identifier types
             when /\A-?\d+\z/
