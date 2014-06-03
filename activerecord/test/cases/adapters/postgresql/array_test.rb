@@ -42,7 +42,6 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     PgArray.reset_column_information
     column = PgArray.columns_hash["score"]
 
-    assert_equal([4, 4, 2], column.default)
     assert_equal([4, 4, 2], PgArray.new.score)
   ensure
     PgArray.reset_column_information
@@ -53,7 +52,6 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     PgArray.reset_column_information
     column = PgArray.columns_hash["names"]
 
-    assert_equal(["foo", "bar"], column.default)
     assert_equal(["foo", "bar"], PgArray.new.names)
   ensure
     PgArray.reset_column_information

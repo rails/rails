@@ -66,7 +66,6 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       Hstore.reset_column_information
       column = Hstore.columns_hash["permissions"]
 
-      assert_equal({"users"=>"read", "articles"=>"write"}, column.default)
       assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.new.permissions)
     ensure
       Hstore.reset_column_information

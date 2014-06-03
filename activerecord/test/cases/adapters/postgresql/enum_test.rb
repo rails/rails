@@ -44,7 +44,6 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     PostgresqlEnum.reset_column_information
     column = PostgresqlEnum.columns_hash["good_mood"]
 
-    assert_equal "happy", column.default
     assert_equal "happy", PostgresqlEnum.new.good_mood
   ensure
     PostgresqlEnum.reset_column_information

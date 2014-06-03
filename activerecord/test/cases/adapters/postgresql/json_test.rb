@@ -45,7 +45,6 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     JsonDataType.reset_column_information
     column = JsonDataType.columns_hash["permissions"]
 
-    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, column.default)
     assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.new.permissions)
   ensure
     JsonDataType.reset_column_information

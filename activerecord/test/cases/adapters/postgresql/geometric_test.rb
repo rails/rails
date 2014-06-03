@@ -2,8 +2,6 @@
 require "cases/helper"
 require 'support/connection_helper'
 require 'support/schema_dumping_helper'
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlPointTest < ActiveRecord::TestCase
   include ConnectionHelper
@@ -38,11 +36,9 @@ class PostgresqlPointTest < ActiveRecord::TestCase
 
   def test_default
     column = PostgresqlPoint.columns_hash["y"]
-    assert_equal [12.2, 13.3], column.default
     assert_equal [12.2, 13.3], PostgresqlPoint.new.y
 
     column = PostgresqlPoint.columns_hash["z"]
-    assert_equal [14.4, 15.5], column.default
     assert_equal [14.4, 15.5], PostgresqlPoint.new.z
   end
 
