@@ -1,3 +1,7 @@
+*   Return a null column from `column_for_attribute` when no column exists.
+
+    *Sean Griffin*
+
 *   Implemented ActiveRecord::Base#pretty_print to work with PP.
 
     *Ethan*
