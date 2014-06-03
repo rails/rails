@@ -104,9 +104,9 @@ module ActiveRecord
         json:        { name: "json" },
         ltree:       { name: "ltree" },
         citext:      { name: "citext" },
-        point:       { name: "point"},
-        bit:         { name: "bit"},
-        bit_varying: { name: "bit varying" }
+        point:       { name: "point" },
+        bit:         { name: "bit" },
+        bit_varying: { name: "bit varying" },
       }
 
       OID = PostgreSQL::OID #:nodoc:
@@ -435,8 +435,8 @@ module ActiveRecord
           m.alias_type 'name', 'varchar'
           m.alias_type 'bpchar', 'varchar'
           m.register_type 'bool', Type::Boolean.new
-          m.register_type 'bit', OID::Bit.new
-          m.register_type 'varbit', OID::BitVarying.new
+          register_class_with_limit m, 'bit', OID::Bit
+          register_class_with_limit m, 'varbit', OID::BitVarying
           m.alias_type 'timestamptz', 'timestamp'
           m.register_type 'date', OID::Date.new
           m.register_type 'time', OID::Time.new
