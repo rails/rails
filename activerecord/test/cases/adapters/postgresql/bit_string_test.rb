@@ -42,10 +42,7 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
   end
 
   def test_default
-    column = PostgresqlBitString.columns_hash["a_bit"]
     assert_equal "00000011", PostgresqlBitString.new.a_bit
-
-    column = PostgresqlBitString.columns_hash["a_bit_varying"]
     assert_equal "0011", PostgresqlBitString.new.a_bit_varying
   end
 

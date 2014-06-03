@@ -38,8 +38,6 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   def test_default
     @connection.add_column 'pg_arrays', 'score', :integer, array: true, default: [4, 4, 2]
     PgArray.reset_column_information
-    column = PgArray.columns_hash["score"]
-
     assert_equal([4, 4, 2], PgArray.new.score)
   ensure
     PgArray.reset_column_information
