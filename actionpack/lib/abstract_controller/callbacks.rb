@@ -1,5 +1,3 @@
-require 'active_support/deprecation'
-
 module AbstractController
   module Callbacks
     extend ActiveSupport::Concern
@@ -56,11 +54,7 @@ module AbstractController
         skip_after_action(*names)
         skip_around_action(*names)
       end
-
-      def skip_filter(*names)
-        ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will removed in Rails 5. Use #{callback}_action instead.")
-        skip_action_callback(*names)
-      end
+      alias_method :skip_filter, :skip_action_callback
 
       # Take callback names and an optional callback proc, normalize them,
       # then call the block with each callback. This allows us to abstract
@@ -175,22 +169,14 @@ module AbstractController
             set_callback(:process_action, callback, name, options)
           end
         end
-
-        define_method "#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will removed in Rails 5. Use #{callback}_action instead.")
-          send("#{callback}_action", *names, &blk)
-        end
+        alias_method :"#{callback}_filter", :"#{callback}_action"
 
         define_method "prepend_#{callback}_action" do |*names, &blk|
           _insert_callbacks(names, blk) do |name, options|
             set_callback(:process_action, callback, name, options.merge(:prepend => true))
           end
         end
-
-        define_method "prepend_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("prepend_#{callback}_filter is deprecated and will removed in Rails 5. Use prepend_#{callback}_action instead.")
-          send("prepend_#{callback}_action", *names, &blk)
-        end
+        alias_method :"prepend_#{callback}_filter", :"prepend_#{callback}_action"
 
         # Skip a before, after or around callback. See _insert_callbacks
         # for details on the allowed parameters.
@@ -199,18 +185,11 @@ module AbstractController
             skip_callback(:process_action, callback, name, options)
           end
         end
-
-        define_method "skip_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("skip_#{callback}_filter is deprecated and will removed in Rails 5. Use skip_#{callback}_action instead.")
-          send("skip_#{callback}_action", *names, &blk)
-        end
+        alias_method :"skip_#{callback}_filter", :"skip_#{callback}_action"
 
         # *_action is the same as append_*_action
-        alias_method :"append_#{callback}_action", :"#{callback}_action"  # alias_method :append_before_action, :before_action
-        define_method "append_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("append_#{callback}_filter is deprecated and will removed in Rails 5. Use append_#{callback}_action instead.")
-          send("append_#{callback}_action", *names, &blk)
-        end
+        alias_method :"append_#{callback}_action", :"#{callback}_action"
+        alias_method :"append_#{callback}_filter", :"#{callback}_action"
       end
     end
   end
