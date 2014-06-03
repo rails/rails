@@ -170,7 +170,13 @@ module ActionDispatch
             if to.respond_to? :call
               options
             else
-              options.merge!(default_controller_and_action(path_params, modyoule))
+              to_endpoint = split_to to
+              controller  = to_endpoint[0] || default_controller
+              action      = to_endpoint[1] || default_action
+
+              controller = add_controller_module(controller, modyoule)
+
+              options.merge! check_controller_and_action(path_params, controller, action)
             end
           end
 
@@ -250,13 +256,7 @@ module ActionDispatch
             end
           end
 
-          def default_controller_and_action(path_params, modyoule)
-            controller, action = get_controller_and_action(default_controller,
-              default_action,
-              to,
-              modyoule
-            )
-
+          def check_controller_and_action(path_params, controller, action)
             hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
                 message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
@@ -283,25 +283,30 @@ module ActionDispatch
             hash
           end
 
-          def get_controller_and_action(controller, action, to, modyoule)
+          def split_to(to)
             case to
             when Symbol
               ActiveSupport::Deprecation.warn "defining a route where `to` is a symbol is deprecated.  Please change \"to: :#{to}\" to \"action: :#{to}\""
-              action = to.to_s
-            when /#/    then controller, action = to.split('#')
+              [nil, to.to_s]
+            when /#/    then to.split('#')
             when String
               ActiveSupport::Deprecation.warn "defining a route where `to` is a controller without an action is deprecated.  Please change \"to: :#{to}\" to \"controller: :#{to}\""
-              controller = to
+              [to, nil]
+            else
+              []
             end
+          end
 
+          def add_controller_module(controller, modyoule)
             if modyoule && !controller.is_a?(Regexp)
               if controller =~ %r{\A/}
-                controller = controller[1..-1]
+                controller[1..-1]
               else
-                controller = [modyoule, controller].compact.join("/")
+                [modyoule, controller].compact.join("/")
               end
+            else
+              controller
             end
-            [controller, action]
           end
 
           def translate_controller(controller)
