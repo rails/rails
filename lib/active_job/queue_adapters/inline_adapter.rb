@@ -6,16 +6,8 @@ module ActiveJob
           job.new.execute *args
         end
 
-        def enqueue_at(job, timestamp, *args)
-          Thread.new do
-            begin
-              interval = Time.now.to_f - timestamp
-              sleep(interval) if interval > 0
-              job.new.execute *args
-            rescue => e
-              ActiveJob::Base.logger.info "Error performing #{job}: #{e.message}"
-            end
-          end
+        def enqueue_at(*)
+          raise NotImplementedError.new("Use a queueing backend to enqueue jobs in the future. Read more at https://github.com/rails/activejob")
         end
       end
     end
