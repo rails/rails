@@ -169,7 +169,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
   test 'arrays are converted at most once' do
     params = ActionController::Parameters.new(foo: [{}])
-    assert params[:foo].equal?(params[:foo])
+    assert_same params[:foo], params[:foo]
   end
 
   test "fetch doesnt raise ParameterMissing exception if there is a default" do
