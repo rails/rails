@@ -103,7 +103,8 @@ module ActiveRecord
         uuid:        { name: "uuid" },
         json:        { name: "json" },
         ltree:       { name: "ltree" },
-        citext:      { name: "citext" }
+        citext:      { name: "citext" },
+        point:       { name: "point"}
       }
 
       OID = PostgreSQL::OID #:nodoc:

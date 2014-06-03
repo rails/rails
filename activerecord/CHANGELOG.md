@@ -1,3 +1,7 @@
+*   Preserve type when dumping PostgreSQL point types.
+
+    *Yves Senn*
+
 *   New records remain new after YAML serialization.
 
     *Sean Griffin*

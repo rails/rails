@@ -67,6 +67,10 @@ module ActiveRecord
         def citext(name, options = {})
           column(name, 'citext', options)
         end
+
+        def point(name, options = {})
+          column(name, 'point', options)
+        end
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
