@@ -203,7 +203,7 @@ person.valid?                        # => raises ActiveModel::StrictValidationFa
 
 ### Model
 
-`Model` add the ability to class work with Action Pack out of box.
+`Model` add the ability to a class work with Action Pack out of box.
 
 ```ruby
 class EmailContact

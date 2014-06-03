@@ -36,6 +36,7 @@
       name: Active Model basics
       url: active_model_basics.html
       description: This guide covers the use of model classes without Active Record.
+      work_in_progress: true
 -
   name: Views
   documents:
