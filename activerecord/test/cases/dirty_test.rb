@@ -616,6 +616,34 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  test "defaults with type that implements `type_cast_for_write`" do
+    type = Class.new(ActiveRecord::Type::Value) do
+      def type_cast(value)
+        value.to_i
+      end
+
+      def type_cast_for_write(value)
+        value.to_s
+      end
+
+      alias type_cast_for_database type_cast_for_write
+    end
+
+    model_class = Class.new(ActiveRecord::Base) do
+      self.table_name = 'numeric_data'
+      property :foo, type.new, default: 1
+    end
+
+    model = model_class.new
+    assert_not model.foo_changed?
+
+    model = model_class.new(foo: 1)
+    assert_not model.foo_changed?
+
+    model = model_class.new(foo: '1')
+    assert_not model.foo_changed?
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
