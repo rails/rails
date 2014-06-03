@@ -1,3 +1,10 @@
+*   Fix regression on eager loading association based on SQL query rather than
+    existing column.
+
+    Fixes #15480.
+
+    *Lauro Caetano*, *Carlos Antonio da Silva*
+
 *   Preserve type when dumping PostgreSQL point, bit, bit varying and money
     columns.
 
