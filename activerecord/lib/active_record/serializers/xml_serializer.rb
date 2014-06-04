@@ -180,12 +180,12 @@ module ActiveRecord #:nodoc:
     class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:
       def compute_type
         klass = @serializable.class
-        type = if klass.serialized_attributes.key?(name)
+        column = klass.columns_hash[name] || Type::Value.new
+
+        type = if column.serialized?
                  super
-               elsif klass.columns_hash.key?(name)
-                 klass.columns_hash[name].type
                else
-                 NilClass
+                 column.type
                end
 
         { :text => :string,
