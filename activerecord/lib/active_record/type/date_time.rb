@@ -7,6 +7,10 @@ module ActiveRecord
         :datetime
       end
 
+      def time_with_zone(value)
+        value.in_time_zone if value.respond_to?(:in_time_zone)
+      end
+
       private
 
       def cast_value(string)
