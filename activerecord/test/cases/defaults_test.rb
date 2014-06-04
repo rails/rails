@@ -206,6 +206,11 @@ if current_adapter?(:PostgreSQLAdapter)
       assert_equal "some text", Default.new.text_col, "Default of text column was not correctly parse after updating default using '::text' since postgreSQL will add parens to the default in db"
     end
 
+    def test_default_containing_quote_and_colons
+      @connection.execute "ALTER TABLE defaults ALTER COLUMN string_col SET DEFAULT 'foo''::bar'"
+      assert_equal "foo'::bar", Default.new.string_col
+    end
+
     teardown do
       @connection.schema_search_path = @old_search_path
       Default.reset_column_information
