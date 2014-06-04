@@ -7,6 +7,8 @@ gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 2.2.0'
 gem 'turbolinks'
 
+gem 'mail', '~> 2.5.4'
+
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
 # being dependent on a binary library.
