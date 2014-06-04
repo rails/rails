@@ -374,7 +374,7 @@ module ActiveRecord
   #
   # == Support for YAML defaults
   #
-  # You can set and reuse defaults in your in your fixtures YAML file.
+  # You can set and reuse defaults in your fixtures YAML file.
   # This is the same technique used in the <tt>database.yml</tt> file
   # to specify defaults:
   #
