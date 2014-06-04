@@ -1,3 +1,10 @@
+*   Fix regression on eager loading association based on SQL query rather than
+    existing column.
+
+    Fixes #15480.
+
+    *Lauro Caetano*, *Carlos Antonio da Silva*
+
 *   Fixed `columns_for_distinct` of postgresql adapter to work correctly
     with orders without sort direction modifiers.
 
