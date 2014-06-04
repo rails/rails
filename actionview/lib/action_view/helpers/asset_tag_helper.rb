@@ -195,11 +195,11 @@ module ActionView
       # ==== Examples
       #
       #   image_tag("icon")
-      #   # => <img alt="Icon" src="/assets/icon" />
+      #   # => <img alt="Icon" src="/images/icon" />
       #   image_tag("icon.png")
-      #   # => <img alt="Icon" src="/assets/icon.png" />
+      #   # => <img alt="Icon" src="/images/icon.png" />
       #   image_tag("icon.png", size: "16x10", alt: "Edit Entry")
-      #   # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
+      #   # => <img src="/images/icon.png" width="16" height="10" alt="Edit Entry" />
       #   image_tag("/icons/icon.gif", size: "16")
       #   # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
       #   image_tag("/icons/icon.gif", height: '32', width: '32')
