@@ -5,7 +5,7 @@ This guide should provide you with all you need to get started using model class
 
 After reading this guide, you will know:
 
-* Create plain ruby objects that behavior like a Active Record model.
+* How to create a plain ruby object that behaves like an Active Record model.
 
 --------------------------------------------------------------------------------
 
@@ -203,7 +203,7 @@ person.valid?                        # => raises ActiveModel::StrictValidationFa
 
 ### Model
 
-`Model` add the ability to a class work with Action Pack out of box.
+`Model` adds the ability to a class to work with Action Pack out of box.
 
 ```ruby
 class EmailContact
@@ -220,9 +220,20 @@ class EmailContact
 end
 ```
 
-In other words, we have a model that don't use a database, with that `Model` adds the ability to use the same validations of Active Record.
+When including `Model` you get some features like model name instrospection, conversions, translations and validations.
+Besides that, it allows you to initialize the object with a hash of attributes, pretty much like Active Record does.
 
-A class with `Model` included can be used on `form_for` and `render` on views.
+```ruby
+email_contact = EmailContact.new(name: 'David',
+                                 email: 'david@example.com',
+                                 message: 'Hello World')
+email_contact.name       # => 'David'
+email_contact.email      # => 'david@example.com'
+email_contact.valid?     # => true
+email_contact.persisted? # => false
+```
+
+A class with `Model` included can be used on `form_for`, `render` and any other Action View helper, as you do with Active Record objects.
 
 ```ruby
 <%= form_for @email_contact %>
