@@ -251,7 +251,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_create_columns_not_equal_attributes
     topic = Topic.allocate.init_with(
-      'attributes' => {
+      'raw_attributes' => {
         'title'          => 'Another New Topic',
         'does_not_exist' => 'test'
       }
@@ -302,7 +302,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
     topic_reloaded = Topic.allocate
     topic_reloaded.init_with(
-      'attributes' => topic.attributes.merge('does_not_exist' => 'test')
+      'raw_attributes' => topic.attributes.merge('does_not_exist' => 'test')
     )
     topic_reloaded.title = 'A New Topic'
     assert_nothing_raised { topic_reloaded.save }

@@ -147,6 +147,14 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     assert_equal "320×480", y.resolution
   end
 
+  def test_yaml_round_trip_with_store_accessors
+    x = JsonDataType.new(resolution: "320×480")
+    assert_equal "320×480", x.resolution
+
+    y = YAML.load(YAML.dump(x))
+    assert_equal "320×480", y.resolution
+  end
+
   def test_update_all
     json = JsonDataType.create! payload: { "one" => "two" }
 
