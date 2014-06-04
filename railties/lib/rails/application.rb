@@ -373,7 +373,7 @@ module Rails
           require "erb"
           all_secrets = YAML.load(ERB.new(IO.read(yaml)).result) || {}
           env_secrets = all_secrets[Rails.env]
-          secrets.merge!(env_secrets.symbolize_keys) if env_secrets
+          secrets.merge!(env_secrets) if env_secrets
         end
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set

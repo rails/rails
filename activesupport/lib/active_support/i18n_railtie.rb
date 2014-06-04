@@ -39,9 +39,9 @@ module I18n
 
       app.config.i18n.each do |setting, value|
         case setting
-        when :railties_load_path
+        when "railties_load_path"
           app.config.i18n.load_path.unshift(*value)
-        when :load_path
+        when "load_path"
           I18n.load_path += value
         else
           I18n.send("#{setting}=", value)

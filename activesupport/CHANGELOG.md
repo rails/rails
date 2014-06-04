@@ -1,3 +1,15 @@
+*   Parent passed into `InheritableOptions` can now have string keys.
+    before:
+        opts = ActiveSupport::InheritableOptions.new({ 'foo' => 'bar' })
+        opts.foo
+        #=> nil
+    after:
+        opts = ActiveSupport::InheritableOptions.new({ 'foo' => 'bar' })
+        opts.foo
+        #=> 'bar'
+
+    *Alex Williams*
+
 *   Fix rounding errors with #travel_to by resetting the usec on any passed time to zero, so we only travel
     with per-second precision, not anything deeper than that.
     

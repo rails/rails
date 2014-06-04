@@ -12,7 +12,7 @@ module ActionView
     initializer "action_view.embed_authenticity_token_in_remote_forms" do |app|
       ActiveSupport.on_load(:action_view) do
         ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms =
-          app.config.action_view.delete(:embed_authenticity_token_in_remote_forms)
+          app.config.action_view.delete("embed_authenticity_token_in_remote_forms")
       end
     end
 

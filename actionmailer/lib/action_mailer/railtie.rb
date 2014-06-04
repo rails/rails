@@ -33,9 +33,9 @@ module ActionMailer
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes, false)
         include app.routes.mounted_helpers
 
-        register_interceptors(options.delete(:interceptors))
-        register_preview_interceptors(options.delete(:preview_interceptors))
-        register_observers(options.delete(:observers))
+        register_interceptors(options.delete("interceptors"))
+        register_preview_interceptors(options.delete("preview_interceptors"))
+        register_observers(options.delete("observers"))
 
         options.each { |k,v| send("#{k}=", v) }
 

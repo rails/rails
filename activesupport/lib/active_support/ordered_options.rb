@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/keys'
+
 module ActiveSupport
   # Usually key value pairs are handled something like this:
   #
@@ -19,11 +21,11 @@ module ActiveSupport
     protected :_get # make it protected
 
     def []=(key, value)
-      super(key.to_sym, value)
+      super(key.to_s, value)
     end
 
     def [](key)
-      super(key.to_sym)
+      super(key.to_s)
     end
 
     def method_missing(name, *args)
@@ -54,7 +56,7 @@ module ActiveSupport
         # use the faster _get when dealing with OrderedOptions
         super() { |h,k| parent._get(k) }
       elsif parent
-        super() { |h,k| parent[k] }
+        super() { |h,k| parent.stringify_keys[k.to_s] }
       else
         super()
       end

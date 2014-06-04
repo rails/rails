@@ -79,7 +79,7 @@ module ActiveRecord
     end
 
     initializer "active_record.migration_error" do
-      if config.active_record.delete(:migration_error) == :page_load
+      if config.active_record.delete("migration_error") == :page_load
         config.app_middleware.insert_after "::ActionDispatch::Callbacks",
           "ActiveRecord::Migration::CheckPending"
       end
