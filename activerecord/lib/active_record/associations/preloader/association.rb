@@ -104,13 +104,11 @@ module ActiveRecord
         end
 
         def association_key_type
-          column = @klass.column_types[association_key_name.to_s]
-          column && column.type
+          @klass.column_for_attribute(association_key_name).type
         end
 
         def owner_key_type
-          column = @model.column_types[owner_key_name.to_s]
-          column && column.type
+          @model.column_for_attribute(owner_key_name).type
         end
 
         def load_slices(slices)
