@@ -116,7 +116,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          !(through_reflection.macro == :belongs_to && owner[through_reflection.foreign_key].blank?)
+          !(through_reflection.belongs_to? && owner[through_reflection.foreign_key].blank?)
         end
 
         def update_through_counter?(method)

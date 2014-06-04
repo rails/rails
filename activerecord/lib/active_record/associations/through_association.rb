@@ -63,14 +63,13 @@ module ActiveRecord
         # Note: this does not capture all cases, for example it would be crazy to try to
         # properly support stale-checking for nested associations.
         def stale_state
-          if through_reflection.macro == :belongs_to
+          if through_reflection.belongs_to?
             owner[through_reflection.foreign_key] && owner[through_reflection.foreign_key].to_s
           end
         end
 
         def foreign_key_present?
-          through_reflection.macro == :belongs_to &&
-          !owner[through_reflection.foreign_key].nil?
+          through_reflection.belongs_to? && !owner[through_reflection.foreign_key].nil?
         end
 
         def ensure_mutable
