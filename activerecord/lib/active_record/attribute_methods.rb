@@ -18,6 +18,8 @@ module ActiveRecord
       include TimeZoneConversion
       include Dirty
       include Serialization
+
+      delegate :column_for_attribute, to: :class
     end
 
     AttrNames = Module.new {
@@ -192,6 +194,25 @@ module ActiveRecord
             []
           end
       end
+
+      # Returns the column object for the named attribute. Returns +nil+ if the
+      # named attribute not exists.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   person = Person.new
+      #   person.column_for_attribute(:name) # the result depends on the ConnectionAdapter
+      #   # => #<ActiveRecord::ConnectionAdapters::SQLite3Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
+      #
+      #   person.column_for_attribute(:nothing)
+      #   # => #<ActiveRecord::ConnectionAdapters::Column:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
+      def column_for_attribute(name)
+        name = name.to_s
+        columns_hash.fetch(name) do
+          ConnectionAdapters::Column.new(name, nil, Type::Value.new)
+        end
+      end
     end
 
     # If we haven't generated any methods yet, generate them, then
@@ -337,25 +358,6 @@ module ActiveRecord
     def attribute_present?(attribute)
       value = read_attribute(attribute)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
-    end
-
-    # Returns the column object for the named attribute. Returns +nil+ if the
-    # named attribute not exists.
-    #
-    #   class Person < ActiveRecord::Base
-    #   end
-    #
-    #   person = Person.new
-    #   person.column_for_attribute(:name) # the result depends on the ConnectionAdapter
-    #   # => #<ActiveRecord::ConnectionAdapters::SQLite3Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
-    #
-    #   person.column_for_attribute(:nothing)
-    #   # => #<ActiveRecord::ConnectionAdapters::Column:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
-    def column_for_attribute(name)
-      name = name.to_s
-      self.class.columns_hash.fetch(name) do
-        ConnectionAdapters::Column.new(name, nil, Type::Value.new)
-      end
     end
 
     # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
