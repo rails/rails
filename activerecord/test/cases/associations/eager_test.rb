@@ -1239,6 +1239,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
   end
 
+  test "including association based on sql condition and no database column" do
+    assert_equal pets(:parrot), Owner.including_last_pet.first.last_pet
+  end
+
   test "include instance dependent associations is deprecated" do
     message = "association scope 'posts_with_signature' is"
     assert_deprecated message do
