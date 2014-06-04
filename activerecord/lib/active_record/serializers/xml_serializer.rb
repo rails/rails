@@ -184,8 +184,6 @@ module ActiveRecord #:nodoc:
                  super
                elsif klass.columns_hash.key?(name)
                  klass.columns_hash[name].type
-               else
-                 NilClass
                end
 
         { :text => :string,
