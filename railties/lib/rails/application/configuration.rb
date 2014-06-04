@@ -13,7 +13,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect
+                    :beginning_of_week, :filter_redirect, :content_security_policy_reporting
 
       attr_writer :log_level
       attr_reader :encoding
@@ -30,6 +30,7 @@ module Rails
         @static_cache_control          = nil
         @force_ssl                     = false
         @ssl_options                   = {}
+        @content_security_policy_reporting = false
         @session_store                 = :cookie_store
         @session_options               = {}
         @time_zone                     = "UTC"

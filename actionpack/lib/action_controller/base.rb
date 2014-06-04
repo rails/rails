@@ -223,6 +223,7 @@ module ActionController
       Flash,
       RequestForgeryProtection,
       ForceSSL,
+      ContentSecurityPolicy,
       Streaming,
       DataStreaming,
       HttpAuthentication::Basic::ControllerMethods,

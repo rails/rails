@@ -38,6 +38,7 @@ module ActionController
     autoload :StrongParameters
     autoload :Testing
     autoload :UrlFor
+    autoload :ContentSecurityPolicy
   end
 
   autoload :TestCase,           'action_controller/test_case'

@@ -71,6 +71,38 @@ module Rails
       end
     end
 
+    class ContentSecurityPolicy
+      attr_accessor :enabled
+      def initialize
+        @enabled = false
+      end
+
+      def enforce
+        @enforce ||= ContentSecurityPolicyConfig.new
+        yield(@enforce) if block_given?
+        @enforce
+      end
+
+      def monitor
+        @monitor ||= ContentSecurityPolicyConfig.new
+        yield(@monitor) if block_given?
+        @monitor
+      end
+    end
+
+    class ContentSecurityPolicyConfig
+      attr_reader :policy
+
+      def initialize
+        @policy = Hash.new
+      end
+
+      def method_missing(method, *args)
+        directive = method.to_s.sub(/=$/, '').to_sym
+        @policy[directive] = args[0]
+      end
+    end
+
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging
       attr_reader :hidden_namespaces
