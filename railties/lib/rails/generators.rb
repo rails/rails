@@ -156,8 +156,12 @@ module Rails
         args << "--help" if args.empty? && klass.arguments.any? { |a| a.required? }
         klass.start(args, config)
       else
-        puts "Could not find generator '#{namespace}'. Please choose a generator below."
-        print_generators
+        options     = sorted_groups.map(&:last).flatten
+        suggestions = options.sort_by {|suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
+        msg =  "Could not find generator '#{namespace}'. "
+        msg << "Maybe you meant #{ suggestions.map {|s| "'#{s}'"}.join(" or ") }\n"
+        msg << "Run `rails generate --help` for more options."
+        puts msg
       end
     end
 
@@ -220,30 +224,70 @@ module Rails
       print_generators
     end
 
-    def self.print_generators
+    def self.public_namespaces
       lookup!
+      subclasses.map { |k| k.namespace }
+    end
 
-      namespaces = subclasses.map{ |k| k.namespace }
+    def self.print_generators
+      sorted_groups.each { |b, n| print_list(b, n) }
+    end
+
+    def self.sorted_groups
+      namespaces = public_namespaces
       namespaces.sort!
-
       groups = Hash.new { |h,k| h[k] = [] }
       namespaces.each do |namespace|
         base = namespace.split(':').first
         groups[base] << namespace
       end
-      # Print Rails defaults first.
       rails = groups.delete("rails")
       rails.map! { |n| n.sub(/^rails:/, '') }
       rails.delete("app")
       rails.delete("plugin")
-      print_list("rails", rails)
 
       hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
-      groups.sort.each { |b, n| print_list(b, n) }
+      [["rails", rails]] + groups.sort.to_a
     end
 
     protected
+
+      # This code is based directly on the Text gem implementation
+      # Returns a value representing the "cost" of transforming str1 into str2
+      def self.levenshtein_distance str1, str2
+        s = str1
+        t = str2
+        n = s.length
+        m = t.length
+        max = n/2
+
+        return m if (0 == n)
+        return n if (0 == m)
+        return n if (n - m).abs > max
+
+        d = (0..m).to_a
+        x = nil
+
+        str1.each_char.each_with_index do |char1,i|
+          e = i+1
+
+          str2.each_char.each_with_index do |char2,j|
+            cost = (char1 == char2) ? 0 : 1
+            x = [
+                 d[j+1] + 1, # insertion
+                 e + 1,      # deletion
+                 d[j] + cost # substitution
+                ].min
+            d[j] = e
+            e = x
+          end
+
+          d[m] = x
+        end
+
+        return x
+      end
 
       # Prints a list of generators.
       def self.print_list(base, namespaces) #:nodoc:
