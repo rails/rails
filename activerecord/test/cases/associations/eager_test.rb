@@ -1248,4 +1248,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 2, author.posts.size
     }
   end
+
+  test "including association based on sql condition and no database column" do
+    assert_equal pets(:parrot), Owner.including_last_pet.first.last_pet
+  end
 end
