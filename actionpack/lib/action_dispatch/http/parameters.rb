@@ -15,7 +15,6 @@ module ActionDispatch
             query_parameters.dup
           end
           params.merge!(path_parameters)
-          params.with_indifferent_access
         end
       end
       alias :params :parameters

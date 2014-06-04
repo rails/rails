@@ -113,6 +113,7 @@ module ActiveRecord
         @columns_hash = nil
         @column_types = nil
         @column_defaults = nil
+        @raw_column_defaults = nil
         @column_names = nil
         @content_columns = nil
       end

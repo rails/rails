@@ -416,8 +416,9 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_should_support_aliased_attributes
     xml = Author.select("name as firstname").to_xml
-    array = Hash.from_xml(xml)['authors']
-    assert_equal array.size, array.select { |author| author.has_key? 'firstname' }.size
+    Author.all.each do |author|
+      assert xml.include?(%(<firstname>#{author.name}</firstname>)), xml
+    end
   end
 
   def test_array_to_xml_including_has_many_association

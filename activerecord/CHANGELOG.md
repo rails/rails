@@ -1,3 +1,18 @@
+*   Fix regression on eager loading association based on SQL query rather than
+    existing column.
+
+    Fixes #15480.
+
+    *Lauro Caetano*, *Carlos Antonio da Silva*
+
+*   Return a null column from `column_for_attribute` when no column exists.
+
+    *Sean Griffin*
+
+*   Implemented ActiveRecord::Base#pretty_print to work with PP.
+
+    *Ethan*
+
 *   Preserve type when dumping PostgreSQL point, bit, bit varying and money
     columns.
 
@@ -577,11 +592,10 @@
 
     *arthurnn*
 
-*   Passing an Active Record object to `find` is now deprecated.  Call `.id`
-    on the object first.
-
 *   Passing an Active Record object to `find` or `exists?` is now deprecated.
     Call `.id` on the object first.
+
+    *Aaron Patterson*
 
 *   Only use BINARY for MySQL case sensitive uniqueness check when column has a case insensitive collation.
 

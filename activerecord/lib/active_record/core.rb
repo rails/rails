@@ -249,7 +249,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = self.class.column_defaults.dup
+      defaults = self.class.raw_column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
 
       @raw_attributes = defaults
@@ -430,6 +430,29 @@ module ActiveRecord
                      "not initialized"
                    end
       "#<#{self.class} #{inspection}>"
+    end
+
+    # Takes a PP and prettily prints this record to it, allowing you to get a nice result from `pp record`
+    # when pp is required.
+    def pretty_print(pp)
+      pp.object_address_group(self) do
+        if defined?(@attributes) && @attributes
+          column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
+          pp.seplist(column_names, proc { pp.text ',' }) do |column_name|
+            column_value = read_attribute(column_name)
+            pp.breakable ' '
+            pp.group(1) do
+              pp.text column_name
+              pp.text ':'
+              pp.breakable
+              pp.pp column_value
+            end
+          end
+        else
+          pp.breakable ' '
+          pp.text 'not initialized'
+        end
+      end
     end
 
     # Returns a hash of the given methods with their names as keys and returned values as values.

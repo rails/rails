@@ -241,6 +241,14 @@ module ActiveRecord
         @column_defaults ||= Hash[columns.map { |c| [c.name, c.default] }]
       end
 
+      # Returns a hash where the keys are the column names and the values
+      # are the default values suitable for use in `@raw_attriubtes`
+      def raw_column_defaults # :nodoc:
+        @raw_column_defauts ||= Hash[column_defaults.map { |name, default|
+          [name, columns_hash[name].type_cast_for_write(default)]
+        }]
+      end
+
       # Returns an array of column names as strings.
       def column_names
         @column_names ||= columns.map { |column| column.name }
@@ -285,6 +293,7 @@ module ActiveRecord
 
         @arel_engine             = nil
         @column_defaults         = nil
+        @raw_column_defauts      = nil
         @column_names            = nil
         @column_types            = nil
         @content_columns         = nil

@@ -72,18 +72,20 @@ module ActiveRecord
         @attributes.delete(attr_name)
         column = column_for_attribute(attr_name)
 
+        unless has_attribute?(attr_name) || self.class.columns_hash.key?(attr_name)
+          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
+        end
+
         # If we're dealing with a binary column, write the data to the cache
         # so we don't attempt to typecast multiple times.
-        if column && column.binary?
+        if column.binary?
           @attributes[attr_name] = value
         end
 
-        if column && should_type_cast
+        if should_type_cast
           @raw_attributes[attr_name] = column.type_cast_for_write(value)
-        elsif !should_type_cast || @raw_attributes.has_key?(attr_name)
-          @raw_attributes[attr_name] = value
         else
-          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
+          @raw_attributes[attr_name] = value
         end
       end
     end
