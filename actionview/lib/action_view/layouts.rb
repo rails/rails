@@ -269,7 +269,8 @@ module ActionView
       # * :only   - A list of actions to apply this layout to.
       # * :except - Apply this layout to all actions but this one.
       def layout(layout, conditions = {})
-        raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil" unless layout == false || layout.nil? || layout.is_a?(Proc) || layout.is_a?(String) || layout.is_a?(Symbol)
+        is_valid = (layout == false || layout.nil? || layout.is_a?(Proc) || layout.is_a?(String) || layout.is_a?(Symbol))
+        raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil" unless is_valid
 
         extend LayoutConditions unless conditions.empty?
 
