@@ -1,3 +1,8 @@
+*   Remove deprecated `ActiveRecord::Migrator.proper_table_name`. Use the
+    `proper_table_name` instance method on `ActiveRecord::Migration` instead.
+
+    *Akshay Vishnoi*
+
 *   Fix regression on eager loading association based on SQL query rather than
     existing column.
 

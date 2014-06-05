@@ -333,47 +333,6 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_table_name
   end
 
-  def test_proper_table_name_on_migrator
-    reminder_class = new_isolated_reminder_class
-    assert_deprecated do
-      assert_equal "table", ActiveRecord::Migrator.proper_table_name('table')
-    end
-    assert_deprecated do
-      assert_equal "table", ActiveRecord::Migrator.proper_table_name(:table)
-    end
-    assert_deprecated do
-      assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(reminder_class)
-    end
-    reminder_class.reset_table_name
-    assert_deprecated do
-      assert_equal reminder_class.table_name, ActiveRecord::Migrator.proper_table_name(reminder_class)
-    end
-
-    # Use the model's own prefix/suffix if a model is given
-    ActiveRecord::Base.table_name_prefix = "ARprefix_"
-    ActiveRecord::Base.table_name_suffix = "_ARsuffix"
-    reminder_class.table_name_prefix = 'prefix_'
-    reminder_class.table_name_suffix = '_suffix'
-    reminder_class.reset_table_name
-    assert_deprecated do
-      assert_equal "prefix_reminders_suffix", ActiveRecord::Migrator.proper_table_name(reminder_class)
-    end
-    reminder_class.table_name_prefix = ''
-    reminder_class.table_name_suffix = ''
-    reminder_class.reset_table_name
-
-    # Use AR::Base's prefix/suffix if string or symbol is given
-    ActiveRecord::Base.table_name_prefix = "prefix_"
-    ActiveRecord::Base.table_name_suffix = "_suffix"
-    reminder_class.reset_table_name
-    assert_deprecated do
-      assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name('table')
-    end
-    assert_deprecated do
-      assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name(:table)
-    end
-  end
-
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new

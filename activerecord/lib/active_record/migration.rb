@@ -851,19 +851,6 @@ module ActiveRecord
         migrations(migrations_paths).last || NullMigration.new
       end
 
-      def proper_table_name(name, options = {})
-        ActiveSupport::Deprecation.warn "ActiveRecord::Migrator.proper_table_name is deprecated and will be removed in Rails 4.2. Use the proper_table_name instance method on ActiveRecord::Migration instead"
-        options = {
-          table_name_prefix: ActiveRecord::Base.table_name_prefix,
-          table_name_suffix: ActiveRecord::Base.table_name_suffix
-        }.merge(options)
-        if name.respond_to? :table_name
-          name.table_name
-        else
-          "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
-        end
-      end
-
       def migrations_paths
         @migrations_paths ||= ['db/migrate']
         # just to not break things if someone uses: migration_path = some_string
