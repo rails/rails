@@ -149,8 +149,9 @@ module ActiveRecord
             result = "#{result}.#{sprintf("%06d", value.usec)}"
           end
 
-          if value.year < 0
-            result = result.sub(/^-/, "") + " BC"
+          if value.year <= 0
+            bce_year = format("%04d", -value.year + 1)
+            result = result.sub(/^-?\d+/, bce_year) + " BC"
           end
           result
         end
