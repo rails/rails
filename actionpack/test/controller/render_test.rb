@@ -242,6 +242,8 @@ class MetalTestController < ActionController::Metal
   include AbstractController::Rendering
   include ActionView::Rendering
   include ActionController::Rendering
+  include ActionController::RackDelegation
+
 
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
