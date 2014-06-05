@@ -239,6 +239,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :defaults, force: true do |t|
+    t.string :string_with_default, default: "Hello!"
+  end
+
   create_table :developers, force: true do |t|
     t.string   :name
     t.integer  :salary, default: 70000

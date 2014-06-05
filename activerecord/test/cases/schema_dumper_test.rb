@@ -208,6 +208,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
+  def test_schema_dump_strings
+    output = standard_dump
+    assert_match %r{t\.string\s+"string_with_default",\s+default: "Hello!"}, output
+  end
+
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
