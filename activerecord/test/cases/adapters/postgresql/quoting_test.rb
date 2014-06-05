@@ -52,6 +52,12 @@ module ActiveRecord
           c = Column.new(nil, nil, 'text')
           assert_equal "'666'", @conn.quote(fixnum, c)
         end
+
+        def test_quote_range
+          range = "1,2]'; SELECT * FROM users; --".."a"
+          c = PostgreSQLColumn.new(nil, nil, OID::Range.new(:integer), 'int8range')
+          assert_equal "[1,2]''; SELECT * FROM users; --,a]::int8range", @conn.quote(range, c)
+        end
       end
     end
   end
