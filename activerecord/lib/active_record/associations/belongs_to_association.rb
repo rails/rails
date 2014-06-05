@@ -92,7 +92,7 @@ module ActiveRecord
         # has_one associations.
         def invertible_for?(record)
           inverse = inverse_reflection_for(record)
-          inverse && inverse.macro == :has_one
+          inverse && inverse.has_one?
         end
 
         def target_id
