@@ -207,29 +207,6 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "", @av.with_output_buffer {}
   end
 
-  def test_flush_output_buffer_concats_output_buffer_to_response
-    view = view_with_controller
-    assert_equal [], view.response.body_parts
-
-    view.output_buffer << 'OMG'
-    view.flush_output_buffer
-    assert_equal ['OMG'], view.response.body_parts
-    assert_equal '', view.output_buffer
-
-    view.output_buffer << 'foobar'
-    view.flush_output_buffer
-    assert_equal ['OMG', 'foobar'], view.response.body_parts
-    assert_equal '', view.output_buffer
-  end
-
-  def test_flush_output_buffer_preserves_the_encoding_of_the_output_buffer
-    view = view_with_controller
-    alt_encoding = alt_encoding(view.output_buffer)
-    view.output_buffer.force_encoding(alt_encoding)
-    flush_output_buffer
-    assert_equal alt_encoding, view.output_buffer.encoding
-  end
-
   def alt_encoding(output_buffer)
     output_buffer.encoding == Encoding::US_ASCII ? Encoding::UTF_8 : Encoding::US_ASCII
   end
