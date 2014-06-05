@@ -4,4 +4,10 @@ class Face < ActiveRecord::Base
   # These is a "broken" inverse_of for the purposes of testing
   belongs_to :horrible_man, :class_name => 'Man', :inverse_of => :horrible_face
   belongs_to :horrible_polymorphic_man, :polymorphic => true, :inverse_of => :horrible_polymorphic_face
+
+  attr_reader :reason
+
+  def reason= reason
+    @reason = "#{ man.name } has this face because #{ reason }"
+  end
 end

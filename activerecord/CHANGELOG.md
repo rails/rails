@@ -1,3 +1,9 @@
+*   Fix missing parent in inverse associations building.
+
+    Fixes #9157.
+
+    *Leandro Facchinetti*
+
 *   Fix regression on eager loading association based on SQL query rather than
     existing column.
 
