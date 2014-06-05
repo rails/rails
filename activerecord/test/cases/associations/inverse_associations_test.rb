@@ -333,7 +333,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_within_create_block_of_new_child
     man = Man.first
-    interest = man.interests.build do |i|
+    interest = man.interests.create do |i|
       assert i.man.equal?(man), "Man of child should be the same instance as a parent"
     end
     assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"
