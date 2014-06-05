@@ -377,7 +377,7 @@ module ActionView
     # for that action or set the <tt>action_has_layout</tt> attribute
     # to false before rendering.
     def action_has_layout? # TODO: remove in 4.3.
-      return if instance_variable_defined?(:@_action_has_layout) && @_action_has_layout === false
+      return if instance_variable_defined?(:@_action_has_layout) && @_action_has_layout == false
       true
     end
 
