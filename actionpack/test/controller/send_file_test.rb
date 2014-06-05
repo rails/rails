@@ -33,15 +33,9 @@ class SendFileTest < ActionController::TestCase
   include TestFileUtils
 
   def setup
-    @mime_type_defined = defined? Mime::PNG
-    Mime::Type.register "image/png", :png unless @mime_type_defined
     @controller = SendFileController.new
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
-  end
-
-  teardown do
-    Mime::Type.unregister :png unless @mime_type_defined
   end
 
   def test_file_nostream
