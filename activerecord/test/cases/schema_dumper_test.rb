@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class SchemaDumperTest < ActiveRecord::TestCase
   setup do
@@ -402,4 +403,32 @@ class SchemaDumperTest < ActiveRecord::TestCase
     $stdout = original
   end
 
+end
+
+class SchemaDumperDefaultsTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :defaults, force: true do |t|
+      t.string   :string_with_default,   default: "Hello!"
+      t.date     :date_with_default,     default: '2014-06-05'
+      t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
+      t.time     :time_with_default,     default: "07:17:04"
+    end
+  end
+
+  teardown do
+    return unless @connection
+    @connection.execute 'DROP TABLE IF EXISTS defaults'
+  end
+
+  def test_schema_dump_defaults_with_universally_supported_types
+    output = dump_table_schema('defaults')
+
+    assert_match %r{t\.string\s+"string_with_default",\s+default: "Hello!"}, output
+    assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output
+    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: '2014-06-05 07:17:04'}, output
+    assert_match %r{t\.time\s+"time_with_default",\s+default: '2000-01-01 07:17:04'}, output
+  end
 end
