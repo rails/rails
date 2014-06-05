@@ -208,6 +208,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
+  def test_schema_dump_dates
+    output = standard_dump
+    assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output
+  end
+
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
