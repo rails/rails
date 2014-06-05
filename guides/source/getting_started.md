@@ -623,6 +623,8 @@ method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
 allows you to access the keys of the hash using either strings or symbols. In
 this situation, the only parameters that matter are the ones from the form.
 
+TIP: Ensure you have a firm grasp of the `params` method, as you'll use it fairly regularly. Let's consider an example URL: **http://www.example.com/?username=dhh&email=dhh@email.com**. In this URL, `params[:username]` would equal "dhh" and `params[:email]` would equal "dhh@email.com".
+
 If you re-submit the form one more time you'll now no longer get the missing
 template error. Instead, you'll see something that looks like the following:
 
@@ -738,6 +740,8 @@ database columns. In the first line we do just that (remember that
 `params[:article]` contains the attributes we're interested in). Then,
 `@article.save` is responsible for saving the model in the database. Finally,
 we redirect the user to the `show` action, which we'll define later.
+
+TIP: You might be wondering why the `A` in `Article.new` is capitalized above, whereas most other references to articles in this guide have used lowercase. In this context, we are referring to the class named `Article` that is defined in `\models\article.rb`. Class names in Ruby must begin with a capital letter.
 
 TIP: As we'll see later, `@article.save` returns a boolean indicating whether
 the article was saved or not.
