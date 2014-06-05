@@ -231,6 +231,18 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
+  def test_parent_instance_should_be_available_before_attribute_assignment_when_building_new_child_in_has_one_association
+    man = Man.first
+    face = man.build_face(reason: 'he is having spare time')
+    assert_match man.name, face.reason
+  end
+
+  def test_parent_instance_should_be_available_before_attribute_assignment_when_building_new_child_in_has_one_association
+    man = Man.first
+    face = man.create_face(reason: 'he is having spare time')
+    assert_match man.name, face.reason
+  end
+
   def test_parent_instance_should_be_shared_with_newly_created_child_via_bang_method
     m = Man.first
     f = m.create_face!(:description => 'haunted')
@@ -345,6 +357,18 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert i.man.equal?(man), "Man of child should be the same instance as a parent"
     end
     assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"
+  end
+
+  def test_parent_instance_should_be_available_before_attribute_assignment_when_building_new_child
+    man = men(:gordon)
+    interest = man.interests.build(reason: 'he is having spare time')
+    assert_match man.name, interest.reason
+  end
+
+  def test_parent_instance_should_be_available_before_attribute_assignment_when_creating_new_child
+    man = men(:gordon)
+    interest = man.interests.create(reason: 'he is having spare time')
+    assert_match man.name, interest.reason
   end
 
   def test_parent_instance_should_be_shared_with_poked_in_child

@@ -249,7 +249,7 @@ module ActiveRecord
 
       # Returns a new, unsaved instance of the associated class. +attributes+ will
       # be passed to the class's constructor.
-      def build_association(attributes, &block)
+      def build_association(attributes = {}, &block)
         klass.new(attributes, &block)
       end
 
