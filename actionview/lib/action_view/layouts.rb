@@ -333,10 +333,9 @@ module ActionView
       private
       def invoke_for(controller, proc)
         layout = controller.send(proc)
-        return if layout.nil?
 
         raise ArgumentError, "Your layout method :#{proc} returned #{layout}. It " \
-          "should have returned a String, false, or nil" unless layout.is_a?(String) || layout === false
+          "should have returned a String, false, or nil" unless layout.is_a?(String) || !layout
 
         layout
       end
