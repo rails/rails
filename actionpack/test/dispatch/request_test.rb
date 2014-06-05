@@ -805,6 +805,7 @@ class RequestFormat < BaseRequestTest
   end
 
   test "ignore_accept_header" do
+    old_ignore_accept_header = ActionDispatch::Request.ignore_accept_header
     ActionDispatch::Request.ignore_accept_header = true
 
     begin
@@ -834,7 +835,7 @@ class RequestFormat < BaseRequestTest
       request.expects(:parameters).at_least_once.returns({:format => :json})
       assert_equal [ Mime::JSON ], request.formats
     ensure
-      ActionDispatch::Request.ignore_accept_header = false
+      ActionDispatch::Request.ignore_accept_header = old_ignore_accept_header
     end
   end
 end
