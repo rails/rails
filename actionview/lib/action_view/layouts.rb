@@ -366,7 +366,7 @@ module ActionView
     end
 
     def action_has_layout=(value)
-      ActiveSupport::Deprecation.warn("Controller#action_has_layout= is deprecated and will be removed in 4.2. Please use `layout: false`.")
+      ActiveSupport::Deprecation.warn("Controller#action_has_layout= is deprecated and will be removed in 4.3. Please use `layout: false`.")
       @_action_has_layout = value
     end
 
@@ -376,7 +376,7 @@ module ActionView
     # either override this method in your controller to return false
     # for that action or set the <tt>action_has_layout</tt> attribute
     # to false before rendering.
-    def action_has_layout? # TODO: remove in 4.2.
+    def action_has_layout? # TODO: remove in 4.3.
       return if instance_variable_defined?(:@_action_has_layout) && @_action_has_layout === false
       true
     end
@@ -389,8 +389,7 @@ module ActionView
     #
     # ==== Parameters
     # * <tt>name</tt> - The name of the template
-    def _layout_for_option(name)
-      # called when render call contains :layout. where is this evaluated?
+    def _layout_for_option(name) # :nodoc:
       case name
       when String     then _normalize_layout(name)
       when Proc       then name

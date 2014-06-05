@@ -1,5 +1,5 @@
 *   Deprecate `ActionView::Layouts#action_has_layout?` and `ActionView::Layouts#action_has_layout=`.
-    Use `:only` or `:except` when configuring with `::layout` or pass `layout: false` to `#render`.
+    Use `:only` or `:except` when configuring with `Controller.layout` or pass `layout: false` to `#render`.
 
     *Nick Sutterer*
 
