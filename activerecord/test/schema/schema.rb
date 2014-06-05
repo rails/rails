@@ -239,6 +239,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :defaults, force: true do |t|
+    t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
+  end
+
   create_table :developers, force: true do |t|
     t.string   :name
     t.integer  :salary, default: 70000
