@@ -178,6 +178,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read x_frame_options, x_content_type_options and x_xss_protection" do
+    original_default_headers = ActionDispatch::Response.default_headers
     begin
       ActionDispatch::Response.default_headers = {
         'X-Frame-Options' => 'DENY',
@@ -193,11 +194,12 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal('nosniff', resp.headers['X-Content-Type-Options'])
       assert_equal('1;', resp.headers['X-XSS-Protection'])
     ensure
-      ActionDispatch::Response.default_headers = nil
+      ActionDispatch::Response.default_headers = original_default_headers
     end
   end
 
   test "read custom default_header" do
+    original_default_headers = ActionDispatch::Response.default_headers
     begin
       ActionDispatch::Response.default_headers = {
         'X-XX-XXXX' => 'Here is my phone number'
@@ -209,7 +211,7 @@ class ResponseTest < ActiveSupport::TestCase
 
       assert_equal('Here is my phone number', resp.headers['X-XX-XXXX'])
     ensure
-      ActionDispatch::Response.default_headers = nil
+      ActionDispatch::Response.default_headers = original_default_headers
     end
   end
 
