@@ -389,10 +389,6 @@ end
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
 
-  def setup
-    super
-  end
-
   def test_multiple_etags
     @request.if_none_match = etag(["123", 'ab', :cde, [:f]])
     get :fresh
