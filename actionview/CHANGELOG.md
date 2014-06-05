@@ -1,3 +1,8 @@
+*   Deprecate `ActionView::Layouts#action_has_layout?` and `ActionView::Layouts#action_has_layout=`.
+    Use `:only` or `:except` when configuring with `::layout` or pass `layout: false` to `#render`.
+
+    *Nick Sutterer*
+
 *   Allow custom `:host` option to be passed to `asset_url` helper that
     overwrites `config.action_controller.asset_host` for particular asset.
 

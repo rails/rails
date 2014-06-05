@@ -365,7 +365,7 @@ module ActionView
       end
     end
 
-    def action_has_layout=(value) # TODO: remove in 4.2.
+    def action_has_layout=(value)
       ActiveSupport::Deprecation.warn("Controller#action_has_layout= is deprecated and will be removed in 4.2. Please use `layout: false`.")
       @_action_has_layout = value
     end
@@ -376,7 +376,6 @@ module ActionView
     # either override this method in your controller to return false
     # for that action or set the <tt>action_has_layout</tt> attribute
     # to false before rendering.
-    # DISCUSS: how do we tell user overriding this method is deprecated?
     def action_has_layout? # TODO: remove in 4.2.
       return if instance_variable_defined?(:@_action_has_layout) && @_action_has_layout === false
       true
