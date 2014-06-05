@@ -158,8 +158,8 @@ module ActionController
     def permit!
       each_pair do |key, value|
         value = convert_hashes_to_parameters(key, value)
-        Array.wrap(value).each do |_|
-          _.permit! if _.respond_to? :permit!
+        Array.wrap(value).each do |v|
+          v.permit! if v.respond_to? :permit!
         end
       end
 
