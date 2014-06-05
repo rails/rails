@@ -51,7 +51,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :aircraft, force: true do |t|
-    t.string :name
+    t.string :name, default: "Boeing 747"
   end
 
   create_table :articles, force: true do |t|

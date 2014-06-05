@@ -4,7 +4,7 @@ module ActiveRecord
       module OID # :nodoc:
         class Bytea < Type::Binary
           def cast_value(value)
-            PGconn.unescape_bytea value
+            PGconn.unescape_bytea(super)
           end
         end
       end

@@ -245,7 +245,7 @@ module ActiveRecord
       # are the default values suitable for use in `@raw_attriubtes`
       def raw_column_defaults # :nodoc:
         @raw_column_defauts ||= Hash[column_defaults.map { |name, default|
-          [name, columns_hash[name].type_cast_for_write(default)]
+          [name, columns_hash[name].type_cast_for_database(default)]
         }]
       end
 

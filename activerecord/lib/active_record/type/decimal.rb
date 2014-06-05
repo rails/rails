@@ -11,10 +11,6 @@ module ActiveRecord
         ::BigDecimal
       end
 
-      def type_cast_for_schema(value)
-        value.to_s
-      end
-
       private
 
       def cast_value(value)

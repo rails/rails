@@ -208,6 +208,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
+  def test_schema_dump_should_quote_strings
+    output = standard_dump
+    assert_match %r{t\.string\s+"name",.+default: "Boeing 747"}, output
+  end
+
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
@@ -279,14 +284,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_json_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_json_data_type"} =~ output
-        assert_match %r|t.json "json_data", default: {}|, output
+        assert_match %r|t.json "json_data", default: "{}"|, output
       end
     end
 
     def test_schema_dump_includes_inet_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_network_addresses"} =~ output
-        assert_match %r{t.inet\s+"inet_address",\s+default: "192.168.1.1"}, output
+        assert_match %r{t.inet\s+"inet_address",\s+default: "192.168.1.1/32"}, output
       end
     end
 
@@ -314,7 +319,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_hstores_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_hstores"} =~ output
-        assert_match %r[t.hstore "hash_store", default: {}], output
+        assert_match %r[t.hstore "hash_store", default: ""], output
       end
     end
 
