@@ -1,3 +1,23 @@
+*   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
+    when working with objects with a nanosecond component.
+
+    `ActiveSupport::TimeWithZone#-` should return the same result as if we were
+    using `Time#-`:
+
+        Time.now.end_of_day - Time.now.beginning_of_day #=> 86399.999999999
+
+    Before:
+
+        Time.zone.now.end_of_day.nsec #=> 999999999
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day #=> 86400.0
+
+    After:
+
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day
+        #=> 86399.999999999
+
+    *Gordon Chan*
+
 *   Fixed precision error in NumberHelper when using Rationals.
 
     before:
