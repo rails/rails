@@ -92,6 +92,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_prefix
+    old_primary_key_prefix_type = ActiveRecord::Base.primary_key_prefix_type
     ActiveRecord::Base.primary_key_prefix_type = :table_name
     Topic.reset_primary_key
     assert_equal "topicid", Topic.primary_key
@@ -103,6 +104,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     ActiveRecord::Base.primary_key_prefix_type = nil
     Topic.reset_primary_key
     assert_equal "id", Topic.primary_key
+  ensure
+    ActiveRecord::Base.primary_key_prefix_type = old_primary_key_prefix_type
   end
 
   def test_delete_should_quote_pkey
