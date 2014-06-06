@@ -1143,18 +1143,30 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 However if you must do this, you may use `where` as you would normally.
 
 ```ruby
-Post.includes(:comments).where("comments.visible" => true)
+Post.includes(:comments).where(comments: { visible: true })
 ```
 
-This would generate a query which contains a `LEFT OUTER JOIN` whereas the `joins` method would generate one using the `INNER JOIN` function instead.
+This would generate a query which contains a `LEFT OUTER JOIN` whereas the
+`joins` method would generate one using the `INNER JOIN` function instead.
 
 ```ruby
   SELECT "posts"."id" AS t0_r0, ... "comments"."updated_at" AS t1_r5 FROM "posts" LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id" WHERE (comments.visible = 1)
 ```
 
-If there was no `where` condition, this would generate the normal set of two queries.
+If there was no `where` condition, this would generate the normal set of two
+queries.
 
-If, in the case of this `includes` query, there were no comments for any posts, all the posts would still be loaded. By using `joins` (an INNER JOIN), the join conditions **must** match, otherwise no records will be returned.
+NOTE: Using `where` like this will only work when you pass it a Hash. For
+SQL-fragments you need use `references` to force joined tables:
+
+```ruby
+Post.includes(:comments).where("comments.visible = true").references(:comments)
+```
+
+If, in the case of this `includes` query, there were no comments for any posts,
+all the posts would still be loaded. By using `joins` (an INNER JOIN), the join
+conditions **must** match, otherwise no records will be returned.
+
 
 Scopes
 ------
