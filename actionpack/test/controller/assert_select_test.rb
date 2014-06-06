@@ -56,13 +56,16 @@ class AssertSelectTest < ActionController::TestCase
 
   def setup
     super
+    @old_delivery_method = ActionMailer::Base.delivery_method
+    @old_perform_deliveries = ActionMailer::Base.perform_deliveries
     ActionMailer::Base.delivery_method = :test
     ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries = []
   end
 
   def teardown
     super
+    ActionMailer::Base.delivery_method = @old_delivery_method
+    ActionMailer::Base.perform_deliveries = @old_perform_deliveries
     ActionMailer::Base.deliveries.clear
   end
 
