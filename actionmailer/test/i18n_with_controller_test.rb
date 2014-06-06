@@ -32,6 +32,10 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
     Routes
   end
 
+  teardown do
+    I18n.locale = I18n.default_locale
+  end
+
   def test_send_mail
     with_translation 'de', email_subject: '[Anmeldung] Willkommen' do
       get '/test/send_mail'
