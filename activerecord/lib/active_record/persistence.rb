@@ -193,17 +193,18 @@ module ActiveRecord
     end
 
     # Wrapper around +becomes+ that also changes the instance's sti column value.
-    # This is especially useful if you want to persist the changed class in your
-    # database.
+    # This method also updates the type attribute for this record in the database.
     #
-    # Note: The old instance's sti column value will be changed too, as both objects
+    # Note: The old instance's type attribute (or other inheritance column, if the
+    # inheritance column has been specified) will be changed too, as both objects
     # share the same set of attributes.
     def becomes!(klass)
-      became = becomes(klass)
       sti_type = nil
       if !klass.descends_from_active_record?
         sti_type = klass.sti_name
+        update_attribute(klass.inheritance_column, sti_type)
       end
+      became = becomes(klass)
       became.public_send("#{klass.inheritance_column}=", sti_type)
       became
     end
