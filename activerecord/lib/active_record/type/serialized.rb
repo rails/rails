@@ -20,7 +20,7 @@ module ActiveRecord
       def type_cast_for_write(value)
         return if value.nil?
         unless is_default_value?(value)
-          coder.dump(value)
+          super coder.dump(value)
         end
       end
 
