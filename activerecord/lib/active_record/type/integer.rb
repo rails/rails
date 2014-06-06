@@ -7,10 +7,6 @@ module ActiveRecord
         :integer
       end
 
-      def klass
-        ::Fixnum
-      end
-
       alias type_cast_for_database type_cast
 
       private

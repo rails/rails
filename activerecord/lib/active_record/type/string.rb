@@ -9,10 +9,6 @@ module ActiveRecord
         true
       end
 
-      def klass
-        ::String
-      end
-
       private
 
       def cast_value(value)

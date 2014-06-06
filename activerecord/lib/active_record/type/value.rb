@@ -48,7 +48,6 @@ module ActiveRecord
       end
 
       def klass # :nodoc:
-        ::Object
       end
 
       def type_cast_for_write(value) # :nodoc:

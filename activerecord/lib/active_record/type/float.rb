@@ -7,10 +7,6 @@ module ActiveRecord
         :float
       end
 
-      def klass
-        ::Float
-      end
-
       alias type_cast_for_database type_cast
 
       private

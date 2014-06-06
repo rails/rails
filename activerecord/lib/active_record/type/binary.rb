@@ -9,10 +9,6 @@ module ActiveRecord
         true
       end
 
-      def klass
-        ::String
-      end
-
       def type_cast_for_database(value)
         Data.new(super)
       end
