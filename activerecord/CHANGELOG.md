@@ -3,7 +3,7 @@
 
     Fixes #15051.
 
-    *Yves Senn*
+    *JoseLuis Torres*, *Yves Senn*
 
 *   `rake db:migrate:status` works with legacy migration numbers like `00018_xyz.rb`.
 
