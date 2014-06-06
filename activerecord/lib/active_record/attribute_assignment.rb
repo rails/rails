@@ -126,8 +126,8 @@ module ActiveRecord
       def read_value
         return if values.values.compact.empty?
 
-        @column = object.class.reflect_on_aggregation(name.to_sym) || object.column_for_attribute(name)
-        klass   = column.klass
+        @column = object.column_for_attribute(name)
+        klass   = column ? column.klass : nil
 
         if klass == Time
           read_time
@@ -186,8 +186,7 @@ module ActiveRecord
         positions    = (1..max_position)
         validate_required_parameters!(positions)
 
-        set_values = values.values_at(*positions)
-        klass.new(*set_values)
+        values.slice(*positions)
       end
 
       # Checks whether some blank date parameter exists. Note that this is different
