@@ -152,6 +152,16 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       assert_equal "GMT", y.timezone
     end
 
+    def test_yaml_round_trip_with_store_accessors
+      x = Hstore.new(language: "fr", timezone: "GMT")
+      assert_equal "fr", x.language
+      assert_equal "GMT", x.timezone
+
+      y = YAML.load(YAML.dump(x))
+      assert_equal "fr", y.language
+      assert_equal "GMT", y.timezone
+    end
+
     def test_gen1
       assert_equal(%q(" "=>""), @column.class.hstore_to_string({' '=>''}))
     end

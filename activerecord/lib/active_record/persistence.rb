@@ -50,7 +50,7 @@ module ActiveRecord
         klass = discriminate_class_for_record(attributes)
         column_types = klass.decorate_columns(column_types.dup)
         klass.allocate.init_with(
-          'attributes' => attributes,
+          'raw_attributes' => attributes,
           'column_types' => column_types,
           'new_record' => false,
         )

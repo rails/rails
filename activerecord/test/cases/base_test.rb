@@ -1495,7 +1495,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
 
     types = { 'author_name' => typecast.new }
-    topic = Topic.allocate.init_with 'attributes' => attrs,
+    topic = Topic.allocate.init_with 'raw_attributes' => attrs,
                                      'column_types' => types
 
     assert_equal 't.lo', topic.author_name

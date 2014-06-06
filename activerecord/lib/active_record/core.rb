@@ -278,12 +278,13 @@ module ActiveRecord
     #   post.init_with('attributes' => { 'title' => 'hello world' })
     #   post.title # => 'hello world'
     def init_with(coder)
-      @raw_attributes = coder['attributes']
+      @raw_attributes = coder['raw_attributes']
       @column_types_override = coder['column_types']
       @column_types = self.class.column_types
 
       init_internals
 
+      @attributes = coder['attributes'] if coder['attributes']
       @new_record = coder['new_record']
 
       self.class.define_attribute_methods
@@ -326,12 +327,13 @@ module ActiveRecord
 
       @raw_attributes = cloned_attributes
       @raw_attributes[self.class.primary_key] = nil
+      @attributes = other.clone_attributes(:read_attribute)
+      @attributes[self.class.primary_key] = nil
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
       @aggregation_cache = {}
       @association_cache = {}
-      @attributes        = {}
 
       @new_record  = true
       @destroyed   = false
@@ -352,7 +354,8 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      coder['attributes'] = @raw_attributes
+      coder['raw_attributes'] = @raw_attributes
+      coder['attributes'] = @attributes
       coder['new_record'] = new_record?
     end
 
