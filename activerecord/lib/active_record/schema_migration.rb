@@ -4,6 +4,9 @@ require 'active_record/base'
 
 module ActiveRecord
   class SchemaMigration < ActiveRecord::Base
+    def self.primary_key
+      nil
+    end
 
     def self.table_name
       "#{Base.table_name_prefix}schema_migrations#{Base.table_name_suffix}"
