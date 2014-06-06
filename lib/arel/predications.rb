@@ -29,14 +29,16 @@ module Arel
       when Arel::SelectManager
         Arel::Nodes::In.new(self, other.ast)
       when Range
-        if other.begin == -Float::INFINITY && other.end == Float::INFINITY
-          Nodes::NotIn.new self, []
+        if other.begin == -Float::INFINITY
+          if other.end == Float::INFINITY
+            Nodes::NotIn.new self, [] 
+          elsif other.exclude_end?
+            Nodes::LessThan.new(self, Nodes.build_quoted(other.end, self))
+          else
+            Nodes::LessThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
+          end
         elsif other.end == Float::INFINITY
           Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.begin, self))
-        elsif other.begin == -Float::INFINITY && other.exclude_end?
-          Nodes::LessThan.new(self, Nodes.build_quoted(other.end, self))
-        elsif other.begin == -Float::INFINITY
-          Nodes::LessThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
         elsif other.exclude_end?
           left  = Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.begin, self))
           right = Nodes::LessThan.new(self, Nodes.build_quoted(other.end, self))
@@ -64,21 +66,23 @@ module Arel
       when Arel::SelectManager
         Arel::Nodes::NotIn.new(self, other.ast)
       when Range
-        if other.begin == -Float::INFINITY && other.end == Float::INFINITY
-          Nodes::In.new self, []
-        elsif other.end == Float::INFINITY
+        if other.begin == -Float::INFINITY # The range begins with negative infinity
+          if other.end == Float::INFINITY 
+            Nodes::In.new self, [] # The range is infinite, so return an empty range
+          elsif other.exclude_end?
+            Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
+          else
+            Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
+          end
+        elsif other.end == Float::INFINITY 
           Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
-        elsif other.begin == -Float::INFINITY && other.exclude_end?
-          Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
-        elsif other.begin == -Float::INFINITY
-          Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
-        elsif other.exclude_end?
-          left  = Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
-          right = Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
-          Nodes::Or.new left, right
         else
           left  = Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
-          right = Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
+          if other.exclude_end?
+            right = Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
+          else 
+            right = Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
+          end
           Nodes::Or.new left, right
         end
       when Array
