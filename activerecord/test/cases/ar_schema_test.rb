@@ -66,5 +66,12 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
       assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
     end
+
+    def test_normalize_version
+      assert_equal "118", ActiveRecord::SchemaMigration.normalize_migration_number("0000118")
+      assert_equal "002", ActiveRecord::SchemaMigration.normalize_migration_number("2")
+      assert_equal "017", ActiveRecord::SchemaMigration.normalize_migration_number("0017")
+      assert_equal "20131219224947", ActiveRecord::SchemaMigration.normalize_migration_number("20131219224947")
+    end
   end
 end

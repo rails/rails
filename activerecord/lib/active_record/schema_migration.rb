@@ -36,6 +36,10 @@ module ActiveRecord
           connection.drop_table(table_name)
         end
       end
+
+      def normalize_migration_number(number)
+        "%.3d" % number.to_i
+      end
     end
 
     def version

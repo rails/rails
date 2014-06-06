@@ -86,14 +86,15 @@ db_namespace = namespace :db do
         abort 'Schema migrations table does not exist yet.'
       end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
-      db_list.map! { |version| "%.3d" % version }
+      db_list.map! { |version| ActiveRecord::SchemaMigration.normalize_migration_number(version) }
       file_list = []
       ActiveRecord::Migrator.migrations_paths.each do |path|
         Dir.foreach(path) do |file|
           # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
           if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
-            status = db_list.delete(match_data[1]) ? 'up' : 'down'
-            file_list << [status, match_data[1], match_data[2].humanize]
+            version = ActiveRecord::SchemaMigration.normalize_migration_number(match_data[1])
+            status = db_list.delete(version) ? 'up' : 'down'
+            file_list << [status, version, match_data[2].humanize]
           end
         end
       end

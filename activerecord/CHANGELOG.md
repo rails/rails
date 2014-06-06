@@ -1,3 +1,9 @@
+*   `rake db:migrate:status` works with legacy migration numbers like `00018_xyz.rb`.
+
+    Fixes #15538.
+
+    *Yves Senn*
+
 *   Baseclass becomes! subclass.
 
     Before this change, a record which changed its STI type, could not be
