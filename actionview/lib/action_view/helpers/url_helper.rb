@@ -462,7 +462,7 @@ module ActionView
       #          <strong>Email me:</strong> <span>me@domain.com</span>
       #        </a>
       def mail_to(email_address, name = nil, html_options = {}, &block)
-        email_address = ERB::Util.html_escape(email_address)
+        email_address = ERB::Util.unwrapped_html_escape(email_address)
 
         html_options, name = name, nil if block_given?
         html_options = (html_options || {}).stringify_keys
@@ -471,7 +471,7 @@ module ActionView
           option = html_options.delete(item) || next
           "#{item}=#{Rack::Utils.escape_path(option)}"
         }.compact
-        extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
+        extras = extras.empty? ? '' : '?' + ERB::Util.unwrapped_html_escape(extras.join('&'))
 
         html_options["href"] = "mailto:#{email_address}#{extras}".html_safe
 
