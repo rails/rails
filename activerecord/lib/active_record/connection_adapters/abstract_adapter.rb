@@ -233,6 +233,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating foreign key constraints?
+      def supports_foreign_keys?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end

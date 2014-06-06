@@ -448,6 +448,33 @@ module ActiveRecord
           execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
         end
 
+        def add_foreign_key(from_table, to_table, options = {})
+          foreign_key_column = options.fetch(:column)
+          referenced_column = "id"
+          foreign_key_name = foreign_key_name(from_table, options)
+          execute <<-SQL
+ALTER TABLE #{quote_table_name(from_table)}
+ADD CONSTRAINT #{foreign_key_name}
+  FOREIGN KEY (#{quote_column_name(foreign_key_column)})
+  REFERENCES #{quote_table_name(to_table)} (#{quote_column_name(referenced_column)})
+          SQL
+        end
+
+        def remove_foreign_key(from_table, options = {})
+          foreign_key_name = foreign_key_name(from_table, options)
+          execute <<-SQL
+ALTER TABLE #{quote_table_name(from_table)}
+DROP CONSTRAINT #{foreign_key_name}
+          SQL
+        end
+
+        def foreign_key_name(table_name, options)
+          options.fetch(:name) do
+            column_name = options.fetch(:column)
+            "#{table_name}_#{column_name}_fk"
+          end
+        end
+
         def index_name_length
           63
         end
