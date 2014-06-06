@@ -91,6 +91,14 @@ module AbstractControllerTests
       end
     end
 
+    class AbstractWithStringChildDefaultsToInherited < AbstractWithString
+      layout nil
+
+      def index
+        render :template => ActionView::Template::Text.new("Hello abstract child!")
+      end
+    end
+
     class WithProc < Base
       layout proc { "overwrite" }
 
@@ -214,6 +222,14 @@ module AbstractControllerTests
       end
     end
 
+    class WithOnlyConditionalFlipped < WithOnlyConditional
+      layout "hello_override", :only => :index
+    end
+
+    class WithOnlyConditionalFlippedAndInheriting < WithOnlyConditional
+      layout nil, :only => :index
+    end
+
     class WithExceptConditional < WithStringImpliedChild
       layout "overwrite", :except => :show
 
@@ -224,6 +240,26 @@ module AbstractControllerTests
       def show
         render :template => ActionView::Template::Text.new("Hello show!")
       end
+    end
+
+    class WithConditionalOverride < WithString
+      layout "overwrite", :only => :overwritten
+
+      def non_overwritten
+        render :template => ActionView::Template::Text.new("Hello non overwritten!")
+      end
+
+      def overwritten
+        render :template => ActionView::Template::Text.new("Hello overwritten!")
+      end
+    end
+
+    class WithConditionalOverrideFlipped < WithConditionalOverride
+      layout "hello_override", :only => :non_overwritten
+    end
+
+    class WithConditionalOverrideFlippedAndInheriting < WithConditionalOverride
+      layout nil, :only => :non_overwritten
     end
 
     class TestBase < ActiveSupport::TestCase
@@ -371,6 +407,12 @@ module AbstractControllerTests
         assert_equal "With String Hello abstract child!", controller.response_body
       end
 
+      test "a child inherits layout from abstract controller2" do
+        controller = AbstractWithStringChildDefaultsToInherited.new
+        controller.process(:index)
+        assert_equal "With String Hello abstract child!", controller.response_body
+      end
+
       test "raises an exception when specifying layout true" do
         assert_raises ArgumentError do
           Object.class_eval do
@@ -393,6 +435,30 @@ module AbstractControllerTests
         assert_equal "With Implied Hello index!", controller.response_body
       end
 
+      test "when specify an :only option which match current action name and is opposite from parent controller" do
+        controller = WithOnlyConditionalFlipped.new
+        controller.process(:show)
+        assert_equal "With Implied Hello show!", controller.response_body
+      end
+
+      test "when specify an :only option which does not match current action name and is opposite from parent controller" do
+        controller = WithOnlyConditionalFlipped.new
+        controller.process(:index)
+        assert_equal "With Override Hello index!", controller.response_body
+      end
+
+      test "when specify to inherit and an :only option which match current action name and is opposite from parent controller" do
+        controller = WithOnlyConditionalFlippedAndInheriting.new
+        controller.process(:show)
+        assert_equal "With Implied Hello show!", controller.response_body
+      end
+
+      test "when specify to inherit and an :only option which does not match current action name and is opposite from parent controller" do
+        controller = WithOnlyConditionalFlippedAndInheriting.new
+        controller.process(:index)
+        assert_equal "Overwrite Hello index!", controller.response_body
+      end
+
       test "when specify an :except option which match current action name" do
         controller = WithExceptConditional.new
         controller.process(:show)
@@ -403,6 +469,42 @@ module AbstractControllerTests
         controller = WithExceptConditional.new
         controller.process(:index)
         assert_equal "Overwrite Hello index!", controller.response_body
+      end
+
+      test "when specify overwrite as an :only option which match current action name" do
+        controller = WithConditionalOverride.new
+        controller.process(:overwritten)
+        assert_equal "Overwrite Hello overwritten!", controller.response_body
+      end
+
+      test "when specify overwrite as an :only option which does not match current action name" do
+        controller = WithConditionalOverride.new
+        controller.process(:non_overwritten)
+        assert_equal "Hello non overwritten!", controller.response_body
+      end
+
+      test "when specify overwrite as an :only option which match current action name and is opposite from parent controller" do
+        controller = WithConditionalOverrideFlipped.new
+        controller.process(:overwritten)
+        assert_equal "Hello overwritten!", controller.response_body
+      end
+
+      test "when specify overwrite as an :only option which does not match current action name and is opposite from parent controller" do
+        controller = WithConditionalOverrideFlipped.new
+        controller.process(:non_overwritten)
+        assert_equal "With Override Hello non overwritten!", controller.response_body
+      end
+
+      test "when specify to inherit and overwrite as an :only option which match current action name and is opposite from parent controller" do
+        controller = WithConditionalOverrideFlippedAndInheriting.new
+        controller.process(:overwritten)
+        assert_equal "Hello overwritten!", controller.response_body
+      end
+
+      test "when specify to inherit and overwrite as an :only option which does not match current action name and is opposite from parent controller" do
+        controller = WithConditionalOverrideFlippedAndInheriting.new
+        controller.process(:non_overwritten)
+        assert_equal "Overwrite Hello non overwritten!", controller.response_body
       end
 
       test "layout for anonymous controller" do
