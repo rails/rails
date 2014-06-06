@@ -1,3 +1,10 @@
+*   `ActiveRecord::SchemaMigration` has no primary key regardless of the
+    `primary_key_prefix_type` configuration.
+
+    Fixes #15051.
+
+    *Yves Senn*
+
 *   `rake db:migrate:status` works with legacy migration numbers like `00018_xyz.rb`.
 
     Fixes #15538.

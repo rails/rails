@@ -17,6 +17,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::SchemaMigration.delete_all rescue nil
     end
 
+    def test_has_no_primary_key
+      old_primary_key_prefix_type = ActiveRecord::Base.primary_key_prefix_type
+      ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
+      assert_nil ActiveRecord::SchemaMigration.primary_key
+
+      ActiveRecord::SchemaMigration.create_table
+      assert_difference "ActiveRecord::SchemaMigration.count", 1 do
+        ActiveRecord::SchemaMigration.create version: 12
+      end
+    ensure
+      ActiveRecord::SchemaMigration.drop_table
+      ActiveRecord::Base.primary_key_prefix_type = old_primary_key_prefix_type
+    end
+
     def test_schema_define
       ActiveRecord::Schema.define(:version => 7) do
         create_table :fruits do |t|
