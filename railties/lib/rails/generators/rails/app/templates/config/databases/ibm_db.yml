@@ -1,7 +1,7 @@
 # IBM Dataservers
 #
 # Home Page
-#   http://rubyforge.org/projects/rubyibm/
+#   https://github.com/dparnell/ibm_db
 #
 # To install the ibm_db gem:
 #
@@ -31,8 +31,6 @@
 # Configure Using Gemfile
 # gem 'ibm_db'
 #
-# For more details on the installation and the connection parameters below,
-# please refer to the latest documents at http://rubyforge.org/docman/?group_id=2361
 #
 default: &default
   adapter: ibm_db

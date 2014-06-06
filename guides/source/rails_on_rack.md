@@ -18,7 +18,7 @@ Introduction to Rack
 
 Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
 
-- [Rack API Documentation](http://rack.rubyforge.org/doc/)
+* [Rack API Documentation](http://rack.github.io/)
 
 Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the [Resources](#resources) section below.
 

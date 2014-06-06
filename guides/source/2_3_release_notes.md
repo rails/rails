@@ -8,7 +8,7 @@ Rails 2.3 delivers a variety of new and improved features, including pervasive R
 Application Architecture
 ------------------------
 
-There are two major changes in the architecture of Rails applications: complete integration of the [Rack](http://rack.rubyforge.org/) modular web server interface, and renewed support for Rails Engines.
+There are two major changes in the architecture of Rails applications: complete integration of the [Rack](http://rack.github.io/) modular web server interface, and renewed support for Rails Engines.
 
 ### Rack Integration
 

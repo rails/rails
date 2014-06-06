@@ -1,7 +1,7 @@
 # Oracle/OCI 8i, 9, 10g
 #
 # Requires Ruby/OCI8:
-#  http://rubyforge.org/projects/ruby-oci8/
+#  https://github.com/kubo/ruby-oci8
 #
 # Specify your database using any valid connection syntax, such as a
 # tnsnames.ora service name, or an SQL connect string of the form:
