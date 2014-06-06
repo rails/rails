@@ -6,14 +6,27 @@ module ActionDispatch
     #   headers = ActionDispatch::Http::Headers.new(env)
     #   headers["Content-Type"] # => "text/plain"
     class Headers
-      CGI_VARIABLES = %w(
-        CONTENT_TYPE CONTENT_LENGTH
-        HTTPS AUTH_TYPE GATEWAY_INTERFACE
-        PATH_INFO PATH_TRANSLATED QUERY_STRING
-        REMOTE_ADDR REMOTE_HOST REMOTE_IDENT REMOTE_USER
-        REQUEST_METHOD SCRIPT_NAME
-        SERVER_NAME SERVER_PORT SERVER_PROTOCOL SERVER_SOFTWARE
-      )
+      CGI_VARIABLES = Set.new(%W[
+        AUTH_TYPE
+        CONTENT_LENGTH
+        CONTENT_TYPE
+        GATEWAY_INTERFACE
+        HTTPS
+        PATH_INFO
+        PATH_TRANSLATED
+        QUERY_STRING
+        REMOTE_ADDR
+        REMOTE_HOST
+        REMOTE_IDENT
+        REMOTE_USER
+        REQUEST_METHOD
+        SCRIPT_NAME
+        SERVER_NAME
+        SERVER_PORT
+        SERVER_PROTOCOL
+        SERVER_SOFTWARE
+      ]).freeze
+
       HTTP_HEADER = /\A[A-Za-z0-9-]+\z/
 
       include Enumerable
