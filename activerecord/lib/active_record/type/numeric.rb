@@ -5,13 +5,14 @@ module ActiveRecord
         true
       end
 
-      def type_cast_for_write(value)
-        case value
-        when true then 1
-        when false then 0
-        when ::String then value.presence
-        else super
-        end
+      def type_cast(value)
+        value = case value
+                when true then 1
+                when false then 0
+                when ::String then value.presence
+                else value
+                end
+        super(value)
       end
 
       def changed?(old_value, new_value) # :nodoc:

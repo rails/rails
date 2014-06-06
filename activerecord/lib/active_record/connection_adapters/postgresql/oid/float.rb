@@ -5,9 +5,8 @@ module ActiveRecord
         class Float < Type::Float
           include Infinity
 
-          def type_cast(value)
+          def cast_value(value)
             case value
-            when nil then         nil
             when 'Infinity' then  ::Float::INFINITY
             when '-Infinity' then -::Float::INFINITY
             when 'NaN' then       ::Float::NAN
