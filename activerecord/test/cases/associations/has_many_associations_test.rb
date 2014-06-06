@@ -1904,4 +1904,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [], authors(:david).posts_with_signature.map(&:title)
   end
+
+  test "eager loading an association with a join does not omit the join" do
+    authors = Author.where(name: "David")
+
+    assert authors.includes(:posts_with_comments_sorted_by_comment_id_via_join).first
+  end
 end
