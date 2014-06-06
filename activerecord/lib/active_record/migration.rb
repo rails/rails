@@ -711,7 +711,7 @@ module ActiveRecord
       if ActiveRecord::Base.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
-        "%.3d" % number
+        SchemaMigration.normalize_migration_number(number)
       end
     end
 

@@ -1,3 +1,9 @@
+*   `rake db:migrate:status` works with legacy migration numbers like `00018_xyz.rb`.
+
+    Fixes #15538.
+
+    *Yves Senn*
+
 *   Fix regression on eager loading association based on SQL query rather than
     existing column.
 
