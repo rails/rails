@@ -251,8 +251,6 @@ module ActionView
         end
       end
 
-      private
-
       # Specify the layout to use for this class.
       #
       # If the specified layout is a:
@@ -279,6 +277,8 @@ module ActionView
 
         self._layout_proc = layout
       end
+
+      private
 
       def _conditional_layout?(*)
         true
@@ -346,7 +346,7 @@ module ActionView
     end
 
     # Creates a _layout method to be called by _default_layout .
-    module LayoutMethod
+    module LayoutMethod # :nodoc:
       private
       def _layout # reader, called in #_default_layout.
         self.class._layout_for(action_name, lookup_context, self)
