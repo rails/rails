@@ -12,6 +12,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
       @connection.create_table('pg_arrays') do |t|
         t.string 'tags', array: true
         t.integer 'ratings', array: true
+        t.datetime :datetimes, array: true, default: []
+        t.timestamp :timestamps, array: true, default: []
       end
     end
     @column = PgArray.columns_hash['tags']
@@ -193,6 +195,24 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     ar = PgArray.create!(tags: tags)
     ar.reload
     assert_equal tags, ar.tags
+  end
+
+  def test_datetime_with_timezone_awareness
+    with_timezone_config aware_attributes: true do
+      PgArray.reset_column_information
+      current_time = [Time.current]
+      record = PgArray.create!(datetimes: current_time)
+      assert_equal current_time, record.datetimes
+    end
+  end
+
+  def test_timestamp_with_timezone_awareness
+    with_timezone_config aware_attributes: true do
+      PgArray.reset_column_information
+      current_time = [Time.current]
+      record = PgArray.create!(timestamps: current_time)
+      assert_equal current_time, record.timestamps
+    end
   end
 
   private

@@ -4,7 +4,7 @@ module ActiveRecord
       module OID # :nodoc:
         class Array < Type::Value
           attr_reader :subtype
-          delegate :type, to: :subtype
+          delegate :type, :time_with_zone, to: :subtype
 
           def initialize(subtype)
             @subtype = subtype

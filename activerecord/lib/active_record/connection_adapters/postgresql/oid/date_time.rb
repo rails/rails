@@ -20,6 +20,14 @@ module ActiveRecord
               value
             end
           end
+
+          def time_with_zone(value)
+            if value.is_a? ::Array
+              value.map(&method(:time_with_zone))
+            else
+              super
+            end
+          end
         end
       end
     end

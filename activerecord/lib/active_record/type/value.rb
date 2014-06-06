@@ -31,6 +31,10 @@ module ActiveRecord
         value.inspect
       end
 
+      def time_with_zone(value)
+        nil
+      end
+
       def text?
         false
       end

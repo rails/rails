@@ -18,7 +18,7 @@ module ActiveRecord
       delegate :type, :precision, :scale, :limit, :klass, :accessor,
         :text?, :number?, :binary?, :serialized?, :changed?,
         :type_cast, :type_cast_for_write, :type_cast_for_database,
-        :type_cast_for_schema,
+        :type_cast_for_schema, :time_with_zone,
         to: :cast_type
 
       # Instantiates a new column in the table.
