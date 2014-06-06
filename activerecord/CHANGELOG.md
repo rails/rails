@@ -1,3 +1,9 @@
+*   `rake db:migrate:status` works with legacy migration numbers like `00018_xyz.rb`.
+
+    Fixes #15538.
+
+    *Yves Senn*
+
 *   Fixed `columns_for_distinct` of postgresql adapter to work correctly
     with orders without sort direction modifiers.
 

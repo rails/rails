@@ -32,6 +32,10 @@ module ActiveRecord
       end
     end
 
+    def self.normalize_migration_number(number)
+      "%.3d" % number.to_i
+    end
+
     def version
       super.to_i
     end
