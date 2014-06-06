@@ -37,7 +37,7 @@ module ActionDispatch
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
 
-        body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
+        body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
           'Location' => uri.to_s,
