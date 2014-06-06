@@ -1,3 +1,12 @@
+*   Baseclass becomes! subclass.
+
+    Before this change, a record which changed its STI type, could not be
+    updated.
+
+    Fixes #14785.
+
+    *Matthew Draper*, *Earl St Sauver*, *Edo Balvers*
+
 *   Remove deprecated `ActiveRecord::Migrator.proper_table_name`. Use the
     `proper_table_name` instance method on `ActiveRecord::Migration` instead.
 

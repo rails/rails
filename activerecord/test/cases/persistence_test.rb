@@ -333,6 +333,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "Reply", topic.type
   end
 
+  def test_update_sti_subclass_type
+    assert_instance_of Topic, topics(:first)
+
+    reply = topics(:first).becomes!(Reply)
+    assert_instance_of Reply, reply
+    reply.save!
+    assert_instance_of Reply, Reply.find(reply.id)
+  end
+
   def test_update_after_create
     klass = Class.new(Topic) do
       def self.name; 'Topic'; end
