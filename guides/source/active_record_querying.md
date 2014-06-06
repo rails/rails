@@ -1160,10 +1160,11 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 However if you must do this, you may use `where` as you would normally.
 
 ```ruby
-Article.includes(:comments).where("comments.visible" => true)
+Article.includes(:comments).where(comments: { visible: true })
 ```
 
-This would generate a query which contains a `LEFT OUTER JOIN` whereas the `joins` method would generate one using the `INNER JOIN` function instead.
+This would generate a query which contains a `LEFT OUTER JOIN` whereas the
+`joins` method would generate one using the `INNER JOIN` function instead.
 
 ```ruby
   SELECT "articles"."id" AS t0_r0, ... "comments"."updated_at" AS t1_r5 FROM "articles" LEFT OUTER JOIN "comments" ON "comments"."article_id" = "articles"."id" WHERE (comments.visible = 1)
@@ -1171,7 +1172,19 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the `join
 
 If there was no `where` condition, this would generate the normal set of two queries.
 
-If, in the case of this `includes` query, there were no comments for any articles, all the articles would still be loaded. By using `joins` (an INNER JOIN), the join conditions **must** match, otherwise no records will be returned.
+NOTE: Using `where` like this will only work when you pass it a Hash. For
+SQL-fragments you need use `references` to force joined tables:
+
+```ruby
+Article.includes(:comments).where("comments.visible = true").references(:comments)
+```
+
+If, in the case of this `includes` query, there were no comments for any
+articles, all the articles would still be loaded. By using `joins` (an INNER
+JOIN), the join conditions **must** match, otherwise no records will be
+returned.
+
+
 
 Scopes
 ------
