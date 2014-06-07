@@ -631,7 +631,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     model_class = Class.new(ActiveRecord::Base) do
       self.table_name = 'numeric_data'
-      property :foo, type.new, default: 1
+      attribute :foo, type.new, default: 1
     end
 
     model = model_class.new

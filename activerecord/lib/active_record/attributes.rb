@@ -1,5 +1,5 @@
 module ActiveRecord
-  module Properties # :nodoc:
+  module Attributes # :nodoc:
     extend ActiveSupport::Concern
 
     Type = ActiveRecord::Type
@@ -10,7 +10,7 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Defines or overrides a property on this model. This allows customization of
+      # Defines or overrides a attribute on this model. This allows customization of
       # Active Record's type casting behavior, as well as adding support for user defined
       # types.
       #
@@ -44,7 +44,7 @@ module ActiveRecord
       #   store_listing.price_in_cents # => BigDecimal.new(10.1)
       #
       #   class StoreListing < ActiveRecord::Base
-      #     property :price_in_cents, Type::Integer.new
+      #     attribute :price_in_cents, Type::Integer.new
       #   end
       #
       #   # after
@@ -53,7 +53,7 @@ module ActiveRecord
       # Users may also define their own custom types, as long as they respond to the methods
       # defined on the value type. The `type_cast` method on your type object will be called
       # with values both from the database, and from your controllers. See
-      # `ActiveRecord::Properties::Type::Value` for the expected API. It is recommended that your
+      # `ActiveRecord::Attributes::Type::Value` for the expected API. It is recommended that your
       # type objects inherit from an existing type, or the base value type.
       #
       #   class MoneyType < ActiveRecord::Type::Integer
@@ -68,12 +68,12 @@ module ActiveRecord
       #   end
       #
       #   class StoreListing < ActiveRecord::Base
-      #     property :price_in_cents, MoneyType.new
+      #     attribute :price_in_cents, MoneyType.new
       #   end
       #
       #   store_listing = StoreListing.new(price_in_cents: '$10.00')
       #   store_listing.price_in_cents # => 1000
-      def property(name, cast_type, options = {})
+      def attribute(name, cast_type, options = {})
         name = name.to_s
         clear_caches_calculated_from_columns
         # Assign a new hash to ensure that subclasses do not share a hash
