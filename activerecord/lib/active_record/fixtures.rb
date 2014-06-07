@@ -33,7 +33,7 @@ module ActiveRecord
   # is followed by an indented list of key/value pairs in the "key: value" format. Records are
   # separated by a blank line for your viewing pleasure.
   #
-  # Note that fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
+  # Note: Fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
   # See http://yaml.org/type/omap.html
   # for the specification. You will need ordered fixtures when you have foreign key constraints
   # on keys in the same table. This is commonly needed for tree structures. Example:
@@ -374,8 +374,9 @@ module ActiveRecord
   #
   # == Support for YAML defaults
   #
-  # You probably already know how to use YAML to set and reuse defaults in
-  # your <tt>database.yml</tt> file. You can use the same technique in your fixtures:
+  # You can set and reuse defaults in your fixtures YAML file.
+  # This is the same technique used in the <tt>database.yml</tt> file
+  # to specify defaults:
   #
   #   DEFAULTS: &DEFAULTS
   #     created_on: <%= 3.weeks.ago.to_s(:db) %>
