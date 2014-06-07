@@ -546,5 +546,11 @@ module ActiveRecord
     def init_attributes(attributes, options)
       assign_attributes(attributes)
     end
+
+    def thaw
+      if frozen?
+        @raw_attributes = @raw_attributes.dup
+      end
+    end
   end
 end
