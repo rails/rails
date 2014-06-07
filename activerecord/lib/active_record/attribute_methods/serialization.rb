@@ -58,11 +58,9 @@ module ActiveRecord
                     Coders::YAMLColumn.new(class_name_or_coder)
                   end
 
-          type = columns_hash[attr_name.to_s].cast_type
-          if type.serialized?
-            type = type.subtype
+          decorate_attribute_type(attr_name, :serialize) do |type|
+            Type::Serialized.new(type, coder)
           end
-          property attr_name, Type::Serialized.new(type, coder)
 
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
           # has its own hash of own serialized attributes

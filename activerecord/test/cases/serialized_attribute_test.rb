@@ -14,6 +14,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     Topic.serialize("content")
   end
 
+  def test_serialize_does_not_eagerly_load_columns
+    assert_no_queries do
+      Topic.reset_column_information
+      Topic.serialize(:content)
+    end
+  end
+
   def test_list_of_serialized_attributes
     assert_equal %w(content), Topic.serialized_attributes.keys
   end

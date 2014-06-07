@@ -15,6 +15,7 @@ require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/class/subclasses'
 require 'arel'
+require 'active_record/attribute_decorators'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
 require 'active_record/explain_subscriber'
@@ -323,6 +324,7 @@ module ActiveRecord #:nodoc:
     include Serialization
     include Store
     include Properties
+    include AttributeDecorators
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)
