@@ -49,7 +49,7 @@ module ActiveRecord
     end
 
     test "undecorated columns are not touched" do
-      Model.property :another_string, Type::String.new, default: 'something or other'
+      Model.attribute :another_string, Type::String.new, default: 'something or other'
       Model.decorate_attribute_type(:a_string, :test) { |t| StringDecorator.new(t) }
 
       assert_equal 'something or other', Model.new.another_string
@@ -84,7 +84,7 @@ module ActiveRecord
     end
 
     test "decorating attributes does not modify parent classes" do
-      Model.property :another_string, Type::String.new, default: 'whatever'
+      Model.attribute :another_string, Type::String.new, default: 'whatever'
       Model.decorate_attribute_type(:a_string, :test) { |t| StringDecorator.new(t) }
       child_class = Class.new(Model)
       child_class.decorate_attribute_type(:another_string, :test) { |t| StringDecorator.new(t) }
@@ -101,7 +101,7 @@ module ActiveRecord
     end
 
     test "defaults are decorated on the column" do
-      Model.property :a_string, Type::String.new, default: 'whatever'
+      Model.attribute :a_string, Type::String.new, default: 'whatever'
       Model.decorate_attribute_type(:a_string, :test) { |t| StringDecorator.new(t) }
 
       column = Model.columns_hash['a_string']
