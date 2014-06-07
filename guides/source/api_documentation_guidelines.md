@@ -19,7 +19,7 @@ The [Rails API documentation](http://api.rubyonrails.org) is generated with RDoc
   bundle exec rake rdoc
 ```
 
-Resulting HTML files can be found and browsed at ./doc/rdoc directory. Just open index.html file in the browser and you're done.
+Resulting HTML files can be found in the ./doc/rdoc directory.
 
 Wording
 -------

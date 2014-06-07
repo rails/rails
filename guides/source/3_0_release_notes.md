@@ -521,7 +521,7 @@ A large effort was made in Active Support to make it cherry pickable, that is, y
 These are the main changes in Active Support:
 
 * Large clean up of the library removing unused methods throughout.
-* Active Support no longer provides vendored versions of TZInfo, Memcache Client and Builder these are all included as dependencies and installed via the `bundle install` command.
+* Active Support no longer provides vendored versions of TZInfo, Memcache Client and Builder. These are all included as dependencies and installed via the `bundle install` command.
 * Safe buffers are implemented in `ActiveSupport::SafeBuffer`.
 * Added `Array.uniq_by` and `Array.uniq_by!`.
 * Removed `Array#rand` and backported `Array#sample` from Ruby 1.9.
