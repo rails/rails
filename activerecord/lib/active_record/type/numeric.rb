@@ -15,11 +15,11 @@ module ActiveRecord
         super(value)
       end
 
-      def changed?(old_value, new_value) # :nodoc:
+      def changed?(old_value, _new_value, new_value_before_type_cast) # :nodoc:
         # 0 => 'wibble' should mark as changed so numericality validations run
-        if nil_or_zero?(old_value) && non_numeric_string?(new_value)
+        if nil_or_zero?(old_value) && non_numeric_string?(new_value_before_type_cast)
           # nil => '' should not mark as changed
-          old_value != new_value.presence
+          old_value != new_value_before_type_cast.presence
         else
           super
         end

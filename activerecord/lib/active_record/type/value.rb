@@ -59,8 +59,8 @@ module ActiveRecord
       # or from assignment, so it could be anything. Types
       # which cannot typecast arbitrary values should override
       # this method.
-      def changed?(old_value, new_value) # :nodoc:
-        old_value != type_cast(new_value)
+      def changed?(old_value, new_value, _new_value_before_type_cast) # :nodoc:
+        old_value != new_value
       end
 
       private
