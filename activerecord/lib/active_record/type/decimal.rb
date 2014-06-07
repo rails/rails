@@ -7,10 +7,6 @@ module ActiveRecord
         :decimal
       end
 
-      def klass
-        ::BigDecimal
-      end
-
       def type_cast_for_schema(value)
         value.to_s
       end
