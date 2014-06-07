@@ -176,7 +176,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   # Strong params has an internal cache to avoid duplicated loops in the most
-  # common usage pattern. See the docs of the method `coverted_array`.
+  # common usage pattern. See the docs of the method `converted_arrays`.
   #
   # This test checks that if we push a hash to an array (in-place modification)
   # the cache does not get fooled, the hash is still wrapped as strong params,

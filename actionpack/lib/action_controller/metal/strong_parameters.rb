@@ -129,6 +129,10 @@ module ActionController
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
+    #
+    # Testing membership still loops, but it's going to be faster than our own
+    # loop that converts values. Also, we are not going to build a new array
+    # object per fetch.
     def converted_arrays
       @converted_arrays ||= Set.new
     end
