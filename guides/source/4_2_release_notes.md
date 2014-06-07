@@ -61,9 +61,9 @@ Please refer to the
 [Changelog](https://github.com/rails/rails/blob/4-2-stable/actionpack/CHANGELOG.md)
 for detailed changes.
 
-### Removals
+### Deprecations
 
-* Removed support for setting the `to:` option of a router to a symbol or a
+* Deprecated support for setting the `to:` option of a router to a symbol or a
   string that does not contain a `#` character:
 
       get '/posts', to: MyRackApp    => (No change necessary)
