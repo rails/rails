@@ -208,11 +208,13 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
       record = PgArray.new(datetimes: [time_string])
       assert_equal [time], record.datetimes
+      assert_equal ActiveSupport::TimeZone[tz], record.datetimes.first.time_zone
 
       record.save!
       record.reload
 
       assert_equal [time], record.datetimes
+      assert_equal ActiveSupport::TimeZone[tz], record.datetimes.first.time_zone
     end
   end
 

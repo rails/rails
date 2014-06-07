@@ -10,7 +10,17 @@ module ActiveRecord
 
         def type_cast(value)
           value = @column.type_cast(value)
-          value.acts_like?(:time) ? value.in_time_zone : value
+          convert_value_to_time_zone(value)
+        end
+
+        def convert_value_to_time_zone(value)
+          if value.is_a?(Array)
+            value.map { |v| convert_value_to_time_zone(v) }
+          elsif value.acts_like?(:time)
+            value.in_time_zone
+          else
+            value
+          end
         end
       end
 
