@@ -1,3 +1,9 @@
+*   Make timezone aware attributes work with PostgreSQL array columns.
+
+    Fixes #13402.
+
+    *Kuldeep Aggarwal*, *Sean Griffin*
+
 *   `ActiveRecord::SchemaMigration` has no primary key regardless of the
     `primary_key_prefix_type` configuration.
 

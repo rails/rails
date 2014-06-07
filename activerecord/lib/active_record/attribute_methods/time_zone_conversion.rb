@@ -60,8 +60,6 @@ module ActiveRecord
           value.map { |v| convert_value_to_time_zone(v) }
         elsif value.respond_to?(:in_time_zone)
           value.in_time_zone
-        else
-          nil
         end
       end
     end
