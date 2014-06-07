@@ -357,6 +357,9 @@ module ActiveSupport
 
       return Regexp.escape(camel_cased_word) if parts.blank?
 
+      # this is done because Object::ABC is essentially same as ABC.
+      parts.delete("Object") if parts.include?("Object")
+
       last  = parts.pop
 
       parts.reverse.inject(last) do |acc, part|

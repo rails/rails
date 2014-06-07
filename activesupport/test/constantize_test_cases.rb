@@ -60,6 +60,7 @@ module ConstantizeTestCases
     assert_equal ConstantizeTestCases, yield("::ConstantizeTestCases")
     assert_nil yield("")
     assert_nil yield("::")
+    assert_nil yield("Object::UnknownClass")
     assert_nil yield("UnknownClass")
     assert_nil yield("UnknownClass::Ace")
     assert_nil yield("UnknownClass::Ace::Base")
