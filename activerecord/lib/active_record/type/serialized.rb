@@ -36,10 +36,6 @@ module ActiveRecord
 
       private
 
-      def changed?(old_value, new_value) # :nodoc:
-        old_value != new_value
-      end
-
       def is_default_value?(value)
         value == coder.load(nil)
       end

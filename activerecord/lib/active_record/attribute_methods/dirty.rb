@@ -55,7 +55,7 @@ module ActiveRecord
         # optimistic locking) won't get written unless they get marked as changed
         self.class.columns.each do |c|
           attr, orig_value = c.name, c.default
-          changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @raw_attributes[attr])
+          changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value)
         end
       end
 
@@ -63,19 +63,26 @@ module ActiveRecord
       def write_attribute(attr, value)
         attr = attr.to_s
 
-        save_changed_attribute(attr, value)
+        old_value = old_attribute_value(attr)
 
-        super(attr, value)
+        result = super(attr, value)
+        save_changed_attribute(attr, old_value)
+        result
       end
 
-      def save_changed_attribute(attr, value)
-        # The attribute already has an unsaved change.
+      def save_changed_attribute(attr, old_value)
         if attribute_changed?(attr)
-          old = changed_attributes[attr]
-          changed_attributes.delete(attr) unless _field_changed?(attr, old, value)
+          changed_attributes.delete(attr) unless _field_changed?(attr, old_value)
         else
-          old = clone_attribute_value(:read_attribute, attr)
-          changed_attributes[attr] = old if _field_changed?(attr, old, value)
+          changed_attributes[attr] = old_value if _field_changed?(attr, old_value)
+        end
+      end
+
+      def old_attribute_value(attr)
+        if attribute_changed?(attr)
+          changed_attributes[attr]
+        else
+          clone_attribute_value(:read_attribute, attr)
         end
       end
 
@@ -93,8 +100,10 @@ module ActiveRecord
         changed
       end
 
-      def _field_changed?(attr, old, value)
-        column_for_attribute(attr).changed?(old, value)
+      def _field_changed?(attr, old_value)
+        new_value = read_attribute(attr)
+        raw_value = read_attribute_before_type_cast(attr)
+        column_for_attribute(attr).changed?(old_value, new_value, raw_value)
       end
     end
   end
