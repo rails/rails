@@ -10,12 +10,13 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-      @connection.transaction do
-        @connection.create_table('pg_arrays') do |t|
-          t.string 'tags', array: true
-          t.integer 'ratings', array: true
-        end
+    @connection.transaction do
+      @connection.create_table('pg_arrays') do |t|
+        t.string 'tags', array: true
+        t.integer 'ratings', array: true
+        t.datetime :datetimes, array: true
       end
+    end
     @column = PgArray.columns.find { |c| c.name == 'tags' }
   end
 
@@ -160,6 +161,24 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
     PgArray.update_all tags: []
     assert_equal [], pg_array.reload.tags
+  end
+
+  def test_datetime_with_timezone_awareness
+    old_awareness = ActiveRecord::Base.time_zone_aware_attributes
+    ActiveRecord::Base.time_zone_aware_attributes = true
+
+    PgArray.reset_column_information
+    current_time = [Time.current]
+
+    record = PgArray.new(datetimes: current_time)
+    assert_equal current_time, record.datetimes
+
+    record.save!
+    record.reload
+
+    assert_equal current_time, record.datetimes
+  ensure
+    ActiveRecord::Base.time_zone_aware_attributes = old_awareness
   end
 
   private
