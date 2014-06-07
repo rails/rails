@@ -130,7 +130,7 @@ module ActionController
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
     def converted_arrays
-      @converted_arrays ||= {}
+      @converted_arrays ||= Set.new
     end
 
     # Returns +true+ if the parameter is permitted, +false+ otherwise.
@@ -333,15 +333,15 @@ module ActionController
 
     private
       def convert_hashes_to_parameters(key, value, assign_if_converted=true)
-        converted = convert_value_to_parameters(key, value)
+        converted = convert_value_to_parameters(value)
         self[key] = converted if assign_if_converted && !converted.equal?(value)
         converted
       end
 
-      def convert_value_to_parameters(key, value)
-        if value.is_a?(Array) && !converted_arrays.member?(key)
-          converted = value.map { |v| convert_value_to_parameters(nil, v) }
-          converted_arrays[key] = converted if key
+      def convert_value_to_parameters(value)
+        if value.is_a?(Array) && !converted_arrays.member?(value)
+          converted = value.map { |_| convert_value_to_parameters(_) }
+          converted_arrays << converted
           converted
         elsif value.is_a?(Parameters) || !value.is_a?(Hash)
           value
