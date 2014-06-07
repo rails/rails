@@ -123,19 +123,18 @@ Usage: rails generate controller NAME [action action] [options]
 Description:
     ...
 
-    To create a controller within a module, specify the controller name as a
-    path like 'parent_module/controller_name'.
+    To create a controller within a module, specify the controller name as a path like 'parent_module/controller_name'.
 
     ...
 
 Example:
-    `rails generate controller CreditCard open debit credit close`
+    `rails generate controller CreditCards open debit credit close`
 
-    Credit card controller with URLs like /credit_card/debit.
+    Credit card controller with URLs like /credit_cards/debit.
         Controller: app/controllers/credit_card_controller.rb
-        Test:       test/controllers/credit_card_controller_test.rb
-        Views:      app/views/credit_card/debit.html.erb [...]
-        Helper:     app/helpers/credit_card_helper.rb
+        Test:       test/controllers/credit_cards_controller_test.rb
+        Views:      app/views/credit_cards/debit.html.erb [...]
+        Helper:     app/helpers/credit_cards_helper.rb
 ```
 
 The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of **hello**, which will say something nice to us.
