@@ -19,7 +19,7 @@ require 'active_record/errors'
 require 'active_record/log_subscriber'
 require 'active_record/explain_subscriber'
 require 'active_record/relation/delegation'
-require 'active_record/properties'
+require 'active_record/attributes'
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -322,7 +322,7 @@ module ActiveRecord #:nodoc:
     include Reflection
     include Serialization
     include Store
-    include Properties
+    include Attributes
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

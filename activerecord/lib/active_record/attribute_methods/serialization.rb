@@ -62,7 +62,7 @@ module ActiveRecord
           if type.serialized?
             type = type.subtype
           end
-          property attr_name, Type::Serialized.new(type, coder)
+          attribute attr_name, Type::Serialized.new(type, coder)
 
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
           # has its own hash of own serialized attributes

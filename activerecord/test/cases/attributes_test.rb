@@ -1,17 +1,17 @@
 require 'cases/helper'
 
 class OverloadedType < ActiveRecord::Base
-  property :overloaded_float, Type::Integer.new
-  property :overloaded_string_with_limit, Type::String.new(limit: 50)
-  property :non_existent_decimal, Type::Decimal.new
-  property :string_with_default, Type::String.new, default: 'the overloaded default'
+  attribute :overloaded_float, Type::Integer.new
+  attribute :overloaded_string_with_limit, Type::String.new(limit: 50)
+  attribute :non_existent_decimal, Type::Decimal.new
+  attribute :string_with_default, Type::String.new, default: 'the overloaded default'
 end
 
 class ChildOfOverloadedType < OverloadedType
 end
 
 class GrandchildOfOverloadedType < ChildOfOverloadedType
-  property :overloaded_float, Type::Float.new
+  attribute :overloaded_float, Type::Float.new
 end
 
 class UnoverloadedType < ActiveRecord::Base
@@ -54,7 +54,7 @@ module ActiveRecord
       assert_equal 255, UnoverloadedType.columns_hash['overloaded_string_with_limit'].limit
     end
 
-    def test_nonexistent_property
+    def test_nonexistent_attribute
       data = OverloadedType.new(non_existent_decimal: 1)
 
       assert_equal BigDecimal.new(1), data.non_existent_decimal
@@ -98,7 +98,7 @@ module ActiveRecord
       assert_not klass.column_names.include?('wibble')
       assert_equal 5, klass.content_columns.length
 
-      klass.property :wibble, Type::Value.new
+      klass.attribute :wibble, Type::Value.new
 
       assert_equal 7, klass.columns.length
       assert klass.columns_hash.key?('wibble')
