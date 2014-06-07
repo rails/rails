@@ -550,8 +550,6 @@ module Arel
       end
 
       describe '#not_in' do
-        it 'can be constructed with a list' do
-        end
 
         it 'should return a NotIn node' do
           attribute = Attribute.new nil, nil
