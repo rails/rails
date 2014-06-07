@@ -189,7 +189,6 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal @john, loaded
 
     second_dump = YAML.dump(loaded)
-    assert_equal dumped, second_dump
     assert_equal @john, YAML.load(second_dump)
   end
 end

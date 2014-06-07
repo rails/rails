@@ -249,10 +249,13 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = self.class.raw_column_defaults.dup
-      defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
+      defaults = {}
+      self.class.raw_column_defaults.each do |k, v|
+        default = v.duplicable? ? v.dup : v
+        defaults[k] = Attribute.from_database(default, type_for_attribute(k))
+      end
 
-      @raw_attributes = defaults
+      @attributes = defaults
       @column_types_override = nil
       @column_types = self.class.column_types
 
@@ -278,13 +281,12 @@ module ActiveRecord
     #   post.init_with('attributes' => { 'title' => 'hello world' })
     #   post.title # => 'hello world'
     def init_with(coder)
-      @raw_attributes = coder['raw_attributes']
+      @attributes = coder['attributes']
       @column_types_override = coder['column_types']
       @column_types = self.class.column_types
 
       init_internals
 
-      @attributes = coder['attributes'] if coder['attributes']
       @new_record = coder['new_record']
 
       self.class.define_attribute_methods
@@ -323,12 +325,9 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
-
-      @raw_attributes = cloned_attributes
-      @raw_attributes[self.class.primary_key] = nil
-      @attributes = other.clone_attributes(:read_attribute)
-      @attributes[self.class.primary_key] = nil
+      pk = self.class.primary_key
+      @attributes = other.clone_attributes
+      @attributes[pk] = Attribute.from_database(nil, type_for_attribute(pk))
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
@@ -354,7 +353,8 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      coder['raw_attributes'] = @raw_attributes
+      # FIXME: Remove this when we better serialize attributes
+      coder['raw_attributes'] = attributes_before_type_cast
       coder['attributes'] = @attributes
       coder['column_types'] = @column_types_override
       coder['new_record'] = new_record?
@@ -387,13 +387,13 @@ module ActiveRecord
     # accessible, even on destroyed records, but cloned models will not be
     # frozen.
     def freeze
-      @raw_attributes = @raw_attributes.clone.freeze
+      @attributes = @attributes.clone.freeze
       self
     end
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
-      @raw_attributes.frozen?
+      @attributes.frozen?
     end
 
     # Allows sort on objects
@@ -422,9 +422,9 @@ module ActiveRecord
 
     # Returns the contents of the record as a nicely formatted string.
     def inspect
-      # We check defined?(@raw_attributes) not to issue warnings if the object is
+      # We check defined?(@attributes) not to issue warnings if the object is
       # allocated but not initialized.
-      inspection = if defined?(@raw_attributes) && @raw_attributes
+      inspection = if defined?(@attributes) && @attributes
                      self.class.column_names.collect { |name|
                        if has_attribute?(name)
                          "#{name}: #{attribute_for_inspect(name)}"
@@ -523,11 +523,10 @@ module ActiveRecord
 
     def init_internals
       pk = self.class.primary_key
-      @raw_attributes[pk] = nil unless @raw_attributes.key?(pk)
+      @attributes[pk] ||= Attribute.from_database(nil, type_for_attribute(pk))
 
       @aggregation_cache        = {}
       @association_cache        = {}
-      @attributes               = {}
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false
@@ -550,7 +549,7 @@ module ActiveRecord
 
     def thaw
       if frozen?
-        @raw_attributes = @raw_attributes.dup
+        @attributes = @attributes.dup
       end
     end
   end

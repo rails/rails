@@ -48,8 +48,14 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {})
         klass = discriminate_class_for_record(attributes)
+
+        attributes = attributes.each_with_object({}) do |(name, value), h|
+          type = column_types.fetch(name) { klass.type_for_attribute(name) }
+          h[name] = Attribute.from_database(value, type)
+        end
+
         klass.allocate.init_with(
-          'raw_attributes' => attributes,
+          'attributes' => attributes,
           'column_types' => column_types,
           'new_record' => false,
         )
@@ -182,7 +188,6 @@ module ActiveRecord
     # So any change to the attributes in either instance will affect the other.
     def becomes(klass)
       became = klass.new
-      became.instance_variable_set("@raw_attributes", @raw_attributes)
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@changed_attributes", @changed_attributes) if defined?(@changed_attributes)
       became.instance_variable_set("@new_record", new_record?)
@@ -399,11 +404,10 @@ module ActiveRecord
           self.class.unscoped { self.class.find(id) }
         end
 
-      @raw_attributes.update(fresh_object.instance_variable_get('@raw_attributes'))
+      @attributes.update(fresh_object.instance_variable_get('@attributes'))
 
       @column_types           = self.class.column_types
       @column_types_override  = fresh_object.instance_variable_get('@column_types_override')
-      @attributes             = {}
       self
     end
 

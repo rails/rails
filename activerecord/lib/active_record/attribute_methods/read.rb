@@ -82,25 +82,16 @@ module ActiveRecord
       # it has been typecast (for example, "2004-12-12" in a date column is cast
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        # If it's cached, just return it
-        # We use #[] first as a perf optimization for non-nil values. See https://gist.github.com/jonleighton/3552829.
         name = attr_name.to_s
-        @attributes[name] || @attributes.fetch(name) {
-          column = @column_types_override[name] if @column_types_override
-          column ||= @column_types[name]
-
-          return @raw_attributes.fetch(name) {
-            if name == 'id' && self.class.primary_key != name
-              read_attribute(self.class.primary_key)
-            end
-          } unless column
-
-          value = @raw_attributes.fetch(name) {
-            return block_given? ? yield(name) : nil
-          }
-
-          @attributes[name] = column.type_cast_from_database(value)
-        }
+        @attributes.fetch(name) {
+          if name == 'id'
+            return read_attribute(self.class.primary_key)
+          elsif block_given? && self.class.columns_hash.key?(name)
+            return yield(name)
+          else
+            return nil
+          end
+        }.value
       end
 
       private

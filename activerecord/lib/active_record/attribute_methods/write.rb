@@ -69,22 +69,19 @@ module ActiveRecord
       def write_attribute_with_type_cast(attr_name, value, should_type_cast)
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
-        @attributes.delete(attr_name)
-        column = type_for_attribute(attr_name)
+        type = type_for_attribute(attr_name)
 
         unless has_attribute?(attr_name) || self.class.columns_hash.key?(attr_name)
           raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
         end
 
-        # If we're dealing with a binary column, write the data to the cache
-        # so we don't attempt to typecast multiple times.
-        if column.binary?
-          @attributes[attr_name] = value
-        elsif should_type_cast
-          @attributes[attr_name] = column.type_cast_from_user(value)
+        if should_type_cast
+          @attributes[attr_name] = Attribute.from_user(value, type)
+        else
+          @attributes[attr_name] = Attribute.from_database(value, type)
         end
 
-        @raw_attributes[attr_name] = value
+        value
       end
     end
   end
