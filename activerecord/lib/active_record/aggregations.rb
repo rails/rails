@@ -129,10 +129,10 @@ module ActiveRecord
     # is an instance of the value class. Specifying a custom converter allows the new value to be automatically
     # converted to an instance of value class if necessary.
     #
-    # For example, the NetworkResource model has +network_address+ and +cidr_range+ attributes that
-    # should be aggregated using the NetAddr::CIDR value class (http://netaddr.rubyforge.org). The constructor
-    # for the value class is called +create+ and it expects a CIDR address string as a parameter. New
-    # values can be assigned to the value object using either another NetAddr::CIDR object, a string
+    # For example, the NetworkResource model has +network_address+ and +cidr_range+ attributes that should be
+    # aggregated using the NetAddr::CIDR value class (http://www.ruby-doc.org/gems/docs/n/netaddr-1.5.0/NetAddr/CIDR.html).
+    # The constructor for the value class is called +create+ and it expects a CIDR address string as a parameter.
+    # New values can be assigned to the value object using either another NetAddr::CIDR object, a string
     # or an array. The <tt>:constructor</tt> and <tt>:converter</tt> options can be used to meet
     # these requirements:
     #
