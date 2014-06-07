@@ -4,6 +4,8 @@ require 'active_record/base'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlArrayTest < ActiveRecord::TestCase
+  include InTimeZone
+
   class PgArray < ActiveRecord::Base
     self.table_name = 'pg_arrays'
   end
@@ -182,17 +184,20 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   def test_datetime_with_timezone_awareness
-    with_timezone_config aware_attributes: true do
-      PgArray.reset_column_information
-      current_time = [Time.current]
+    tz = "Pacific Time (US & Canada)"
 
-      record = PgArray.new(datetimes: current_time)
-      assert_equal current_time, record.datetimes
+    in_time_zone tz do
+      PgArray.reset_column_information
+      time_string = Time.current.to_s
+      time = Time.zone.parse(time_string)
+
+      record = PgArray.new(datetimes: [time_string])
+      assert_equal [time], record.datetimes
 
       record.save!
       record.reload
 
-      assert_equal current_time, record.datetimes
+      assert_equal [time], record.datetimes
     end
   end
 
