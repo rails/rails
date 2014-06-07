@@ -167,9 +167,26 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
+  # Strong params has an optimization to avoid looping every time you read
+  # a key whose value is an array and building a new object. We check that
+  # optimization here.
   test 'arrays are converted at most once' do
     params = ActionController::Parameters.new(foo: [{}])
-    assert params[:foo].equal?(params[:foo])
+    assert_same params[:foo], params[:foo]
+  end
+
+  # Strong params has an internal cache to avoid duplicated loops in the most
+  # common usage pattern. See the docs of the method `coverted_array`.
+  #
+  # This test checks that if we push a hash to an array (in-place modification)
+  # the cache does not get fooled, the hash is still wrapped as strong params,
+  # and not permitted.
+  test 'mutated arrays are detected' do
+    params = ActionController::Parameters.new(users: [{id: 1}])
+
+    permitted = params.permit(users: [:id])
+    permitted[:users] << {injected: 1}
+    assert_not permitted[:users].last.permitted?
   end
 
   test "fetch doesnt raise ParameterMissing exception if there is a default" do
