@@ -131,18 +131,26 @@ module ActionDispatch
       # take the list of IPs, remove known and trusted proxies, and then take
       # the last address left, which was presumably set by one of those proxies.
       def calculate_ip
-        # Set by the Rack web server, this is a single value.
+        # We assume these things about the IP headers:
+        #
+        #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank
+        #   - Client-Ip is propagated from the outermost proxy, or is blank
+        #   - either of the above could be a CSV list and/or repeated headers
+        #       that were concatenated.
+        #   - REMOTE_ADDR will be the IP that made the request to Rack
+
         remote_addr = ips_from('REMOTE_ADDR').last
 
-        # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from('HTTP_CLIENT_IP').reverse
-        forwarded_ips = ips_from('HTTP_X_FORWARDED_FOR').reverse
+        # Filter out trusted proxy IPs from forwarding headers here
+        client_ips    = filter_proxies(ips_from('HTTP_CLIENT_IP')).reverse
+        forwarded_ips = filter_proxies(ips_from('HTTP_X_FORWARDED_FOR')).reverse
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
         # If they are both set, it means that this request passed through two
         # proxies with incompatible IP header conventions, and there is no way
         # for us to determine which header is the right one after the fact.
-        # Since we have no idea, we give up and explode.
+        # Since we have no idea, we give up and explode if they don't match after
+        # filtering out trusted proxy IPs.
         should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user
@@ -151,15 +159,8 @@ module ActionDispatch
             "HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}"
         end
 
-        # We assume these things about the IP headers:
-        #
-        #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank
-        #   - Client-Ip is propagated from the outermost proxy, or is blank
-        #   - REMOTE_ADDR will be the IP that made the request to Rack
-        ips = [forwarded_ips, client_ips, remote_addr].flatten.compact
-
         # If every single IP option is in the trusted list, just return REMOTE_ADDR
-        filter_proxies(ips).first || remote_addr
+        [forwarded_ips, client_ips, remote_addr].flatten.compact.first
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for
