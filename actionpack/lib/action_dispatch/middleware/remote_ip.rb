@@ -112,11 +112,12 @@ module ActionDispatch
         remote_addr = ips_from(@req.remote_addr).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from(@req.client_ip).reverse
-        forwarded_ips = ips_from(@req.x_forwarded_for).reverse
+        # We filter trusted IPs from forwarding headers here
+        client_ips    = filter_proxies(ips_from(@req.client_ip)).reverse
+        forwarded_ips = filter_proxies(ips_from(@req.x_forwarded_for)).reverse
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
-        # If they are both set, it means that either:
+        # If they are both set (with untrusted values), it means that either:
         #
         # 1) This request passed through two proxies with incompatible IP header
         #    conventions.
@@ -136,15 +137,8 @@ module ActionDispatch
             "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
         end
 
-        # We assume these things about the IP headers:
-        #
-        #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank
-        #   - Client-Ip is propagated from the outermost proxy, or is blank
-        #   - REMOTE_ADDR will be the IP that made the request to Rack
-        ips = [forwarded_ips, client_ips, remote_addr].flatten.compact
-
         # If every single IP option is in the trusted list, just return REMOTE_ADDR
-        filter_proxies(ips).first || remote_addr
+        [forwarded_ips, client_ips, remote_addr].flatten.compact.first
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for

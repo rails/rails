@@ -129,6 +129,25 @@ class RequestIP < BaseRequestTest
     assert_equal '1.1.1.1', request.remote_ip
   end
 
+  test "remote ip spoof protection ignores the case where different header conventions yield the same IP" do
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '10.3.2.1, 4.4.4.4, 192.168.1.3',
+                           'HTTP_CLIENT_IP'       => '4.4.4.4',
+                           'REMOTE_ADDR'          => '1.1.1.1'
+    assert_equal '4.4.4.4', request.remote_ip
+  end
+
+  test "remote ip spoof protection ignores internal (private/trusted) proxies" do
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '10.1.2.3, 192.168.1.1',
+                           'HTTP_CLIENT_IP'       => '2.2.2.2',
+                           'REMOTE_ADDR'          => '1.1.1.1'
+    assert_equal '2.2.2.2', request.remote_ip
+
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '3.3.3.3, 192.168.1.2',
+                           'HTTP_CLIENT_IP'       => '172.18.0.1',
+                           'REMOTE_ADDR'          => '1.1.1.1'
+    assert_equal '3.3.3.3', request.remote_ip
+  end
+
   test "remote ip v6" do
     request = stub_request 'REMOTE_ADDR' => '2001:0db8:85a3:0000:0000:8a2e:0370:7334'
     assert_equal '2001:0db8:85a3:0000:0000:8a2e:0370:7334', request.remote_ip
