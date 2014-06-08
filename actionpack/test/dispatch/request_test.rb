@@ -127,6 +127,11 @@ class RequestIP < BaseRequestTest
                            'REMOTE_ADDR'          => '1.1.1.1',
                            'HTTP_X_BLUECOAT_VIA'  => 'de462e07a2db325e'
     assert_equal '1.1.1.1', request.remote_ip
+
+    request = stub_request 'HTTP_X_FORWARDED_FOR' => '192.168.1.103',
+                           'HTTP_CLIENT_IP'       => '10.1.1.232',
+                           'REMOTE_ADDR'          => '1.1.1.1'
+    assert_equal '1.1.1.1', request.remote_ip
   end
 
   test "remote ip spoof protection ignores the case where different header conventions yield the same IP" do
