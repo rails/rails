@@ -1230,19 +1230,21 @@ module AutosaveAssociationOnACollectionAssociationTests
   end
 
   def test_should_automatically_validate_the_associated_models
-    @pirate.send(@association_name).each { |child| child.name = '' }
+    association = @pirate.send(@association_name)
+    association.each { |child| child.name = '' }
 
     assert !@pirate.valid?
     assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
-    assert @pirate.errors[@association_name].empty?
+    assert_equal association.map(&:errors).map(&:messages), @pirate.errors[@association_name]
   end
 
   def test_should_not_use_default_invalid_error_on_associated_models
-    @pirate.send(@association_name).build(:name => '')
+    association = @pirate.send(@association_name)
+    association.build(:name => '')
 
     assert !@pirate.valid?
     assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
-    assert @pirate.errors[@association_name].empty?
+    assert_equal association.map(&:errors).map(&:messages).select(&:present?), @pirate.errors[@association_name]
   end
 
   def test_should_default_invalid_error_from_i18n
@@ -1250,12 +1252,13 @@ module AutosaveAssociationOnACollectionAssociationTests
       { @associated_model_name.to_s.to_sym => { blank: "cannot be blank" } }
     }})
 
-    @pirate.send(@association_name).build(name: '')
+    association = @pirate.send(@association_name)
+    association.build(name: '')
 
     assert !@pirate.valid?
     assert_equal ["cannot be blank"], @pirate.errors["#{@association_name}.name"]
     assert_equal ["#{@association_name.to_s.humanize} name cannot be blank"], @pirate.errors.full_messages
-    assert @pirate.errors[@association_name].empty?
+    assert_equal association.map(&:errors).map(&:messages).select(&:present?), @pirate.errors[@association_name]
   ensure
     I18n.backend = I18n::Backend::Simple.new
   end

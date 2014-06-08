@@ -308,6 +308,13 @@ module ActiveRecord
         validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
         unless valid = record.valid?(validation_context)
           if reflection.options[:autosave]
+            if reflection.collection?
+              errors.messages[reflection.name] ||= []
+              errors.messages[reflection.name] << record.errors.messages
+            else
+              errors.messages[reflection.name] = record.errors.messages
+            end
+
             record.errors.each do |attribute, message|
               attribute = "#{reflection.name}.#{attribute}"
               errors[attribute] << message
