@@ -18,6 +18,8 @@ env:
   - "GEM=ar:postgresql"
 matrix:
   allow_failures:
+    - rvm: 1.9.3
+      env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
     - rvm: ruby-head
