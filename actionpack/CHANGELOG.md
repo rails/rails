@@ -1,3 +1,8 @@
+*   Ensure the controller is always notified as soon as the client disconnects
+    during live streaming, even when the controller is blocked on a write.
+
+    *Nicholas Jakobsen*, *Matthew Draper*
+
 *   Routes specifying 'to:' must be a string that contains a "#" or a rack
     application.  Use of a symbol should be replaced with `action: symbol`.
     Use of a string without a "#" should be replaced with `controller: string`.

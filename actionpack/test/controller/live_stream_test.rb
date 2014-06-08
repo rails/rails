@@ -202,6 +202,39 @@ module ActionController
         response.stream.write ''
         response.stream.write params[:widget][:didnt_check_for_nil]
       end
+
+      def overfill_buffer_and_die
+        # Write until the buffer is full. It doesn't expose that
+        # information directly, so we must hard-code its size:
+        10.times do
+          response.stream.write '.'
+        end
+        # .. plus one more, because the #each frees up a slot:
+        response.stream.write '.'
+
+        latch.release
+
+        # This write will block, and eventually raise
+        response.stream.write 'x'
+
+        20.times do
+          response.stream.write '.'
+        end
+      end
+
+      def ignore_client_disconnect
+        response.stream.ignore_disconnect = true
+
+        response.stream.write '' # commit
+
+        # These writes will be ignored
+        15.times do
+          response.stream.write 'x'
+        end
+
+        logger.info 'Work complete'
+        latch.release
+      end
     end
 
     tests TestController
@@ -262,6 +295,62 @@ module ActionController
       @controller.process :blocking_stream
 
       assert t.join(3), 'timeout expired before the thread terminated'
+    end
+
+    def test_abort_with_full_buffer
+      @controller.latch = ActiveSupport::Concurrency::Latch.new
+
+      @request.parameters[:format] = 'plain'
+      @controller.request  = @request
+      @controller.response = @response
+
+      got_error = ActiveSupport::Concurrency::Latch.new
+      @response.stream.on_error do
+        ActionController::Base.logger.warn 'Error while streaming'
+        got_error.release
+      end
+
+      t = Thread.new(@response) { |resp|
+        resp.await_commit
+        _, _, body = resp.to_a
+        body.each do |part|
+          @controller.latch.await
+          body.close
+          break
+        end
+      }
+
+      capture_log_output do |output|
+        @controller.process :overfill_buffer_and_die
+        t.join
+        got_error.await
+        assert_match 'Error while streaming', output.rewind && output.read
+      end
+    end
+
+    def test_ignore_client_disconnect
+      @controller.latch = ActiveSupport::Concurrency::Latch.new
+
+      @controller.request  = @request
+      @controller.response = @response
+
+      t = Thread.new(@response) { |resp|
+        resp.await_commit
+        _, _, body = resp.to_a
+        body.each do |part|
+          body.close
+          break
+        end
+      }
+
+      capture_log_output do |output|
+        @controller.process :ignore_client_disconnect
+        t.join
+        Timeout.timeout(3) do
+          @controller.latch.await
+        end
+        assert_match 'Work complete', output.rewind && output.read
+      end
     end
 
     def test_thread_locals_get_copied
