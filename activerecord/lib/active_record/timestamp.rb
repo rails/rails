@@ -99,7 +99,7 @@ module ActiveRecord
     end
 
     def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
-      if (timestamps = timestamp_names.map { |attr| self[attr] }.compact).present?
+      if (timestamps = timestamp_names.map { |attr| read_attribute(attr) }.compact).present?
         timestamps.map { |ts| ts.to_time }.max
       end
     end

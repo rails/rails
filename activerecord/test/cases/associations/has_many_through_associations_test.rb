@@ -996,7 +996,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert post.author_addresses.include?(address)
     post.author_addresses.delete(address)
-    assert post[:author_count].nil?
+    assert_raises(ActiveModel::MissingAttributeError) { post[:author_count] }
   end
 
   def test_primary_key_option_on_source

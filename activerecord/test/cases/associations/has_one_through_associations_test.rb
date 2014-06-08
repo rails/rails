@@ -43,6 +43,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:moustache_club), new_member.club
     assert new_member.save
     assert_equal clubs(:moustache_club), new_member.club
+    assert new_member.current_membership.id
   end
 
   def test_replace_target_record

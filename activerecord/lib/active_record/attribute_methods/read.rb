@@ -110,16 +110,20 @@ module ActiveRecord
         name = attr_name.to_s
         @attributes[name] || @attributes.fetch(name) {
           column = @column_types_override[name] if @column_types_override
-          column ||= @column_types[name]
-
-          return @raw_attributes.fetch(name) {
-            if name == 'id' && self.class.primary_key != name
-              read_attribute(self.class.primary_key)
-            end
-          } unless column
+          column ||= type_for_attribute(name)
 
           value = @raw_attributes.fetch(name) {
-            return block_given? ? yield(name) : nil
+            # We have a non-standard pk and `id` was not present in a custom
+            # select clause
+            if name == 'id'
+              return read_attribute(self.class.primary_key)
+            # Accessed through #[]
+            elsif block_given?
+              return yield(name)
+            # read_attribute called directly
+            else
+              return nil
+            end
           }
 
           if self.class.cache_attribute?(name)

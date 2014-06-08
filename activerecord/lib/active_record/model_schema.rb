@@ -51,6 +51,8 @@ module ActiveRecord
       self.pluralize_table_names = true
 
       self.inheritance_column = 'type'
+
+      delegate :type_for_attribute, to: :class
     end
 
     module ClassMethods
@@ -219,6 +221,10 @@ module ActiveRecord
 
       def column_types # :nodoc:
         @column_types ||= decorate_columns(columns_hash.dup)
+      end
+
+      def type_for_attribute(attr_name) # :nodoc:
+        column_types.fetch(attr_name) { column_for_attribute(attr_name) }
       end
 
       def decorate_columns(columns_hash) # :nodoc:

@@ -380,6 +380,8 @@ module ActiveRecord
       # This all happens inside a transaction, _if_ the Transactions module is included into
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
       def save_has_one_association(reflection)
+        return if reflection.through_reflection
+
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
 
@@ -392,9 +394,7 @@ module ActiveRecord
             key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
 
             if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
-              unless reflection.through_reflection
-                record[reflection.foreign_key] = key
-              end
+              record[reflection.foreign_key] = key
 
               saved = record.save(:validate => !autosave)
               raise ActiveRecord::Rollback if !saved && autosave
