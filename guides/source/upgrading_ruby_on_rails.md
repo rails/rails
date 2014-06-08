@@ -707,10 +707,10 @@ Active Record Observer and Action Controller Sweeper have been extracted to the 
 ### sprockets-rails
 
 * `assets:precompile:primary` and `assets:precompile:all` have been removed. Use `assets:precompile` instead.
-* The `config.assets.compress` option should be changed to `config.assets.js_compressor` like so for instance:
+* The `config.assets.compress` option defaults to `:uglifier` but can be changed like so:
 
 ```ruby
-config.assets.js_compressor = :uglifier
+config.assets.js_compressor = :yui
 ```
 
 ### sass-rails
