@@ -303,6 +303,7 @@ braces. You can use the following modifiers:
 * `scale`        Defines the scale for the `decimal` fields, representing the number of digits after the decimal point.
 * `polymorphic`  Adds a `type` column for `belongs_to` associations.
 * `null`         Allows or disallows `NULL` values in the column.
+* `default`      Allows to set a default value on the column. NOTE: If using a dynamic value (such as date), the default will only be calculated the first time (e.g. on the date the migration is applied.)
 
 For instance, running:
 
