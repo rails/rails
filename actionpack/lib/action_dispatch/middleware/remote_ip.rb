@@ -138,7 +138,7 @@ module ActionDispatch
         end
 
         # If every single IP option is in the trusted list, just return REMOTE_ADDR
-        [forwarded_ips, client_ips, remote_addr].flatten.compact.first
+        forwarded_ips.first || client_ips.first || remote_addr
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for
