@@ -858,3 +858,4 @@ References
 * [Ryan Bates' stack trace screencast](http://railscasts.com/episodes/24-the-stack-trace)
 * [Ryan Bates' logger screencast](http://railscasts.com/episodes/56-the-logger)
 * [Debugging with ruby-debug](http://bashdb.sourceforge.net/ruby-debug.html)
+* [A Comprehensive Guide To Debugging Rails](http://www.jackkinsella.ie/2014/06/06/a-comprehensive-guide-to-debugging-rails.html)
