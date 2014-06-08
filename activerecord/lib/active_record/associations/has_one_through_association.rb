@@ -11,6 +11,19 @@ module ActiveRecord
 
       private
 
+        def get_records
+          if proxy_assoc = get_through_proxy_assoc_if_loaded_and_not_stale
+            through_proxy = proxy_assoc.target
+            if !through_proxy || ((target_assoc = association_if_loaded_and_not_stale(through_proxy, source_reflection.name)) &&
+                                  # if either no record or record is of the wrong polymorphic type
+                                  (!(record = target_assoc.target) || !throught_proxy_target_source_type_matches?(record)))
+              []
+            elsif record
+              [record]
+            end
+          end || super
+        end
+
         def create_through_record(record)
           ensure_not_nested
 

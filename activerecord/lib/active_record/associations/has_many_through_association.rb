@@ -69,6 +69,40 @@ module ActiveRecord
 
       private
 
+        def get_records
+          if proxies_assoc = get_through_proxy_assoc_if_loaded_and_not_stale
+            if !(through_proxies = proxies_assoc.target)
+              []
+            elsif through_proxies.kind_of?(ActiveRecord::Base) # if SingularAssociation
+              if target_assoc = association_if_loaded_and_not_stale(through_proxies, source_reflection.name)
+                target_assoc.target
+              end
+            else # else CollectionAssociation
+              try_get_records_from_through_proxies_collection(through_proxies)
+            end
+          end || super
+        end
+
+        def try_get_records_from_through_proxies_collection(through_proxies)
+          records                = []
+          source_reflection_name = source_reflection.name
+          is_collection          = source_reflection.macro == :has_many
+          through_proxies.each do |through_proxy|
+            if target_assoc = association_if_loaded_and_not_stale(through_proxy, source_reflection_name)
+              targets = target_assoc.target
+              if is_collection
+                records.concat(targets)
+              elsif targets && throught_proxy_target_source_type_matches?(targets)
+                records << targets
+              end
+            else
+              records = nil
+              break
+            end
+          end
+          records
+        end
+
         def through_association
           @through_association ||= owner.association(through_reflection.name)
         end

@@ -135,6 +135,46 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:crazy_club), members[0].sponsor_club
   end
 
+  def test_has_one_through_loaded_associations_in_memory_traversal
+    assert_not_nil(member = Member.joins(:current_membership => :club).includes(:current_membership => :club).first)
+    assert_no_queries do
+      assert_not_nil member.club
+    end
+    assert_queries 1 do # if association has scoping, hitting db can't be reasonably avoided
+      member.favourite_club
+    end
+  end
+
+  def test_has_one_through_loaded_associations_in_memory_traversal_work_with_nils
+    assert_not_nil(member = Member.joins(:current_membership => :club).includes(:current_membership => :club).first)
+    member.current_membership.club = nil
+    assert_no_queries do
+      assert_nil member.club
+    end
+    member.reload
+    member.current_membership = nil
+    assert_no_queries do
+      assert_nil member.club
+    end
+    assert_queries 1 do # if association has scoping, hitting db can't be reasonably avoided
+      member.favourite_club
+    end
+  end
+
+  def test_has_one_through_and_polymorphic_loaded_associations_in_memory_traversal
+    assert_not_nil(sponsor = Sponsor.all.detect {|sponsor| sponsor.sponsorable.kind_of?(Member)})
+    assert_not_nil(club    = sponsor.inverseable_sponsor_club)
+    assert_no_queries do
+      assert_not_nil club.sponsored_member
+    end
+    sponsor.reload
+    sponsor.sponsorable = Organization.first
+    assert_not_nil(club = sponsor.inverseable_sponsor_club)
+    assert_queries 0 do # mismatched polymorphic type (sponsorable_type) is detected
+      assert_nil club.sponsored_member
+    end
+  end
+
   def test_uninitialized_has_one_through_should_return_nil_for_unsaved_record
     assert_nil Member.new.club
   end

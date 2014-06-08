@@ -83,6 +83,20 @@ module ActiveRecord
             raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
           end
         end
+
+        def association_if_loaded_and_not_stale(source, association_name)
+          if (association = source.association(association_name)).loaded? && !association.stale_target?
+            association
+          end
+        end
+
+        def get_through_proxy_assoc_if_loaded_and_not_stale
+          !reflection.scope && association_if_loaded_and_not_stale(owner, through_reflection.name)
+        end
+
+        def throught_proxy_target_source_type_matches?(proxy_target)
+          !(source_type = options[:source_type]) || source_type == proxy_target.class.base_class.name
+        end
     end
   end
 end

@@ -1126,4 +1126,63 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, post.lazy_readers_unscope_skimmers.to_a.size
     assert_equal 2, post.lazy_people_unscope_skimmers.to_a.size
   end
+
+  # test has_many -> has_one
+  def test_has_many_through_has_one_in_memory_traversal
+    assert_not_nil(author = Author.includes(:posts => :very_special_comment).first)
+    # check that at least one post has no very_special_comment (otherwise not all code paths will be exercised)
+    assert(author.posts.detect {|post| !post.very_special_comment})
+    # check that at least one post has a very_special_comment (otherwise not all code paths will be exercised)
+    assert(author.posts.detect {|post| post.very_special_comment})
+    very_special_comments_via_sql = Author.includes(:very_special_comments).references(:posts).first.very_special_comments.to_a
+    assert_no_queries do
+      assert_equal very_special_comments_via_sql, author.very_special_comments.to_a
+    end
+  end
+
+  # test belongs_to -> has_many
+  def test_belongs_to_through_has_many_in_memory_traversal
+    assert_not_nil(post = Post.joins(:author).includes(:author).first)
+    # fixtures don't have any authors with a post and author_favorites
+    post.author.author_favorites.create(:favorite_author_id => 1)
+    assert_not_nil(post = Post.joins(:author => :author_favorites).includes(:author => :author_favorites).first)
+    author_favorites_via_sql = Post.joins(:author_favorites).references(:authors).first.author_favorites.to_a
+    assert_no_queries do
+      assert_equal author_favorites_via_sql.to_a, post.author_favorites.to_a
+    end
+  end
+
+  # test has_one -> has_many
+  def test_has_one_through_has_many_in_memory_traversal
+    assert_not_nil(author = Author.includes(:post => :comments).first)
+    post_comments_via_sql = Author.find(author.id).post.comments.to_a
+    assert_no_queries do
+      assert_equal post_comments_via_sql, author.post_comments.to_a
+    end
+  end
+
+  # test has_one -> has_many
+  def test_has_one_through_has_many_in_memory_traversal_when_has_one_is_nil
+    assert_not_nil(author = Author.includes(:post => :comments).first)
+    author.post = nil
+    assert_no_queries do
+      assert_equal [], author.post_comments.to_a
+    end
+  end
+
+  # test has_many -> belongs_to
+  def test_has_many_through_belongs_to_polymorphic_in_memory_traversal
+    # Post.first's tags have taggings with invalid taggable_type values (we would like to avoid those as
+    # preloading them would throw NameErrors at us)
+    assert_not_nil(post = Post.last)
+    assert_not_nil(tag  = post.tags.includes(:taggings => :taggable).first)
+    # ensure at least 1 mismatched taggable_type tagging exists
+    tag.taggings.create! do |tagging|
+      tagging.taggable = SpecialPost.first
+    end
+    tagged_posts_via_sql = Tag.find(tag.id).tagged_posts.to_a
+    assert_no_queries do
+      assert_equal tagged_posts_via_sql, tag.tagged_posts.to_a
+    end
+  end
 end

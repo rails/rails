@@ -1,3 +1,36 @@
+*   Add in-memory traversal for `:through` associations.
+
+    If the `:through` association is loaded and its `:source` association
+    is also loaded, AR can retrieve `has_one/has_many :through` records
+    without querying DB.
+
+    Example:
+
+      class Author
+        has_many :posts
+        has_many :comments, :through => :posts
+      end
+
+      class Post
+        belongs_to :author
+        has_many :comments
+      end
+
+      class Comment
+        belongs_to :post
+      end
+
+      author = Author.includes(:posts => :comments).first
+      # previously `author.comments.to_a` would issue an additional
+      # redundant SQL query (to load comments again), now instead
+      # since both `author.posts` and `author.posts.comments` are
+      # loaded, AR is smart enough to traverse in memory object graph
+      # to avoid hitting DB. Essentially it will now do
+      # `author.posts.map(&:comments).compact`.
+      author.comments.to_a # this will now not issue an SQL query
+
+    *thedarkone*
+
 *   Make timezone aware attributes work with PostgreSQL array columns.
 
     Fixes #13402.
