@@ -57,7 +57,7 @@ module ActiveSupport
     def initialize(constructor = {})
       if constructor.respond_to?(:to_hash)
         super()
-        update(constructor.to_hash)
+        update(constructor)
       else
         super(constructor)
       end
