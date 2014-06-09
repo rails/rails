@@ -228,7 +228,7 @@ module ActiveRecord
 
       def initialize(macro, name, scope, options, active_record)
         super
-        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
+        @collection = macro == :has_many
         @automatic_inverse_of = nil
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
@@ -536,6 +536,13 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
+    end
+
+    class HABTMReflection < AssociationReflection #:nodoc:
+      def initialize(macro, name, scope, options, active_record)
+        super
+        @collection = true
+      end
     end
 
     # Holds all the meta-data about a :through association as it was specified
