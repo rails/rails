@@ -188,7 +188,7 @@ module ActionView
           end
         end
 
-        first_part, second_part = text.split(regex, 2)
+        first_part, second_part = text.split(phrase, 2)
 
         prefix, first_part   = cut_excerpt_part(:first, first_part, separator, options)
         postfix, second_part = cut_excerpt_part(:second, second_part, separator, options)
