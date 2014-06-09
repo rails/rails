@@ -51,11 +51,13 @@ Document.create payload: data
 
 ```ruby
 # db/migrate/20140207133952_create_books.rb
-create_table :book do |t|
+create_table :books do |t|
   t.string 'title'
   t.string 'tags', array: true
   t.integer 'ratings', array: true
 end
+add_index :books, :tags, using: 'gin'
+add_index :books, :ratings, using: 'gin'
 
 # app/models/book.rb
 class Book < ActiveRecord::Base
