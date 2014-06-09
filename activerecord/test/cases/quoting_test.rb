@@ -93,12 +93,16 @@ module ActiveRecord
 
       def test_quote_true
         assert_equal @quoter.quoted_true, @quoter.quote(true, nil)
-        assert_equal '1', @quoter.quote(true, Type::Integer.new)
+        assert_deprecated do
+          assert_equal '1', @quoter.quote(true, Type::Integer.new)
+        end
       end
 
       def test_quote_false
         assert_equal @quoter.quoted_false, @quoter.quote(false, nil)
-        assert_equal '0', @quoter.quote(false, Type::Integer.new)
+        assert_deprecated do
+          assert_equal '0', @quoter.quote(false, Type::Integer.new)
+        end
       end
 
       def test_quote_float

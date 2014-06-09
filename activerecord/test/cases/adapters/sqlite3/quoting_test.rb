@@ -47,15 +47,21 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 't', @conn.type_cast(true, nil)
-          assert_equal 1, @conn.type_cast(true, c)
+
+          assert_deprecated do
+            c = Column.new(nil, 1, Type::Integer.new)
+            assert_equal 1, @conn.type_cast(true, c)
+          end
         end
 
         def test_type_cast_false
-          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 'f', @conn.type_cast(false, nil)
-          assert_equal 0, @conn.type_cast(false, c)
+
+          assert_deprecated do
+            c = Column.new(nil, 1, Type::Integer.new)
+            assert_equal 0, @conn.type_cast(false, c)
+          end
         end
 
         def test_type_cast_string

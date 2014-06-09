@@ -50,8 +50,10 @@ module ActiveRecord
         assert_equal 0, type.type_cast('bad1')
         assert_equal 0, type.type_cast('bad')
         assert_equal 1, type.type_cast(1.7)
-        assert_equal 0, type.type_cast(false)
-        assert_equal 1, type.type_cast(true)
+        assert_deprecated do
+          assert_equal 0, type.type_cast(false)
+          assert_equal 1, type.type_cast(true)
+        end
         assert_nil type.type_cast(nil)
       end
 

@@ -13,8 +13,13 @@ module ActiveRecord
 
       def cast_value(value)
         case value
-        when true then 1
-        when false then 0
+        when true, false
+          ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
+            Typecasting of booleans on integer columns is deprecated, and will be removed in a
+            future version of rails. If your database does not support boolean columns, check
+            your adapter's documentation for boolean emulation.
+          WARNING
+          value ? 1 : 0
         else value.to_i rescue nil
         end
       end
