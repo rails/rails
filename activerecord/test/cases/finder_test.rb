@@ -38,7 +38,7 @@ class FinderTest < ActiveRecord::TestCase
       Topic.all.find(lambda { raise ActiveRecord::RecordNotFound }, &->(e){ e.title == Topic.new.title })
     end
 
-    assert_nothing_raises(ActiveRecord::RecordNotFound) do
+    assert_nothing_raised(ActiveRecord::RecordNotFound) do
       Topic.all.find(lambda { raise ActiveRecord::RecordNotFound }, &->(e){ e.title == topics(:first).title })
     end
   end
