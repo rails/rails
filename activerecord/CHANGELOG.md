@@ -1,3 +1,10 @@
+*   `ActiveRecord::FinderMethods.find` with block can handle proc parameter as
+    `Enumerable#find` does.
+
+    Fixes #15382.
+
+    *James Yang*
+
 *   Make timezone aware attributes work with PostgreSQL array columns.
 
     Fixes #13402.

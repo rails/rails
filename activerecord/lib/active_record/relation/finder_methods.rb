@@ -65,7 +65,7 @@ module ActiveRecord
     #   # returns an Array of the required fields, available since Rails 3.1.
     def find(*args)
       if block_given?
-        to_a.find { |*block_args| yield(*block_args) }
+        to_a.find(*args) { |*block_args| yield(*block_args) }
       else
         find_with_ids(*args)
       end
