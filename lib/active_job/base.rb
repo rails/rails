@@ -9,8 +9,8 @@ require 'active_job/logging'
 module ActiveJob
   class Base
     extend QueueAdapter
-    extend QueueName
 
+    include QueueName
     include Enqueuing
     include Execution
     include Callbacks
