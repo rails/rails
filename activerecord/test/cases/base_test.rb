@@ -1489,7 +1489,7 @@ class BasicsTest < ActiveRecord::TestCase
     attrs.delete 'id'
 
     typecast = Class.new {
-      def type_cast value
+      def type_cast_from_database value
         "t.lo"
       end
     }

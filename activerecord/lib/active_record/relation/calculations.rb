@@ -179,7 +179,7 @@ module ActiveRecord
         result = result.map do |attributes|
           values = attributes.values
 
-          columns.zip(values).map { |column, value| column.type_cast value }
+          columns.zip(values).map { |column, value| column.type_cast_from_database value }
         end
         columns.one? ? result.map!(&:first) : result
       end
@@ -379,7 +379,7 @@ module ActiveRecord
     end
 
     def type_cast_using_column(value, column)
-      column ? column.type_cast(value) : value
+      column ? column.type_cast_from_database(value) : value
     end
 
     # TODO: refactor to allow non-string `select_values` (eg. Arel nodes).

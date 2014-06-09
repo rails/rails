@@ -9,7 +9,7 @@ module ActiveRecord
         super(subtype)
       end
 
-      def type_cast(value)
+      def type_cast_from_database(value)
         if is_default_value?(value)
           value
         else
@@ -18,7 +18,7 @@ module ActiveRecord
       end
 
       def type_cast_from_user(value)
-        type_cast(type_cast_for_database(value))
+        type_cast_from_database(type_cast_for_database(value))
       end
 
       def type_cast_for_database(value)

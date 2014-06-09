@@ -8,15 +8,15 @@ module ActiveRecord
           end
 
           def type_cast_from_user(value)
-            type_cast(type_cast_for_database(value))
+            type_cast_from_database(type_cast_for_database(value))
+          end
+
+          def type_cast_from_database(value)
+            ConnectionAdapters::PostgreSQLColumn.string_to_json(value)
           end
 
           def type_cast_for_database(value)
             ConnectionAdapters::PostgreSQLColumn.json_to_string(value)
-          end
-
-          def cast_value(value)
-            ConnectionAdapters::PostgreSQLColumn.string_to_json value
           end
 
           def accessor

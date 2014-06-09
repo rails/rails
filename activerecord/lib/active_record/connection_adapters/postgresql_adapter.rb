@@ -348,14 +348,14 @@ module ActiveRecord
         if supports_extensions?
           res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled",
             'SCHEMA'
-          res.column_types['enabled'].type_cast res.rows.first.first
+          res.column_types['enabled'].type_cast_from_database res.rows.first.first
         end
       end
 
       def extensions
         if supports_extensions?
           res = exec_query "SELECT extname from pg_extension", "SCHEMA"
-          res.rows.map { |r| res.column_types['extname'].type_cast r.first }
+          res.rows.map { |r| res.column_types['extname'].type_cast_from_database r.first }
         else
           super
         end

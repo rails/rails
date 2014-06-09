@@ -90,9 +90,9 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   def test_type_cast_array
-    assert_equal(['1', '2', '3'], @column.type_cast('{1,2,3}'))
-    assert_equal([], @column.type_cast('{}'))
-    assert_equal([nil], @column.type_cast('{NULL}'))
+    assert_equal(['1', '2', '3'], @column.type_cast_from_database('{1,2,3}'))
+    assert_equal([], @column.type_cast_from_database('{}'))
+    assert_equal([nil], @column.type_cast_from_database('{NULL}'))
   end
 
   def test_type_cast_integers

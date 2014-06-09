@@ -118,11 +118,11 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       data = "\"1\"=>\"2\""
       hash = @column.class.string_to_hstore data
       assert_equal({'1' => '2'}, hash)
-      assert_equal({'1' => '2'}, @column.type_cast(data))
+      assert_equal({'1' => '2'}, @column.type_cast_from_database(data))
 
-      assert_equal({}, @column.type_cast(""))
-      assert_equal({'key'=>nil}, @column.type_cast('key => NULL'))
-      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast(%q(c=>"}", "\"a\""=>"b \"a b")))
+      assert_equal({}, @column.type_cast_from_database(""))
+      assert_equal({'key'=>nil}, @column.type_cast_from_database('key => NULL'))
+      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast_from_database(%q(c=>"}", "\"a\""=>"b \"a b")))
     end
 
     def test_with_store_accessors
@@ -180,31 +180,31 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     end
 
     def test_parse1
-      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @column.type_cast('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
+      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @column.type_cast_from_database('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
     end
 
     def test_parse2
-      assert_equal({" " => " "},  @column.type_cast("\\ =>\\ "))
+      assert_equal({" " => " "},  @column.type_cast_from_database("\\ =>\\ "))
     end
 
     def test_parse3
-      assert_equal({"=" => ">"},  @column.type_cast("==>>"))
+      assert_equal({"=" => ">"},  @column.type_cast_from_database("==>>"))
     end
 
     def test_parse4
-      assert_equal({"=a"=>"q=w"},   @column.type_cast('\=a=>q=w'))
+      assert_equal({"=a"=>"q=w"},   @column.type_cast_from_database('\=a=>q=w'))
     end
 
     def test_parse5
-      assert_equal({"=a"=>"q=w"},   @column.type_cast('"=a"=>q\=w'))
+      assert_equal({"=a"=>"q=w"},   @column.type_cast_from_database('"=a"=>q\=w'))
     end
 
     def test_parse6
-      assert_equal({"\"a"=>"q>w"},  @column.type_cast('"\"a"=>q>w'))
+      assert_equal({"\"a"=>"q>w"},  @column.type_cast_from_database('"\"a"=>q>w'))
     end
 
     def test_parse7
-      assert_equal({"\"a"=>"q\"w"}, @column.type_cast('\"a=>q"w'))
+      assert_equal({"\"a"=>"q\"w"}, @column.type_cast_from_database('\"a=>q"w'))
     end
 
     def test_rewrite

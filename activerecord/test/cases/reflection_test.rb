@@ -95,7 +95,7 @@ class ReflectionTest < ActiveRecord::TestCase
     column = @first.column_for_attribute("attribute_that_doesnt_exist")
     object = Object.new
 
-    assert_equal object, column.type_cast(object)
+    assert_equal object, column.type_cast_from_database(object)
     assert_equal object, column.type_cast_from_user(object)
     assert_equal object, column.type_cast_for_database(object)
   end

@@ -29,7 +29,7 @@ module ActiveRecord
           end
 
           def type_cast_single(value)
-            infinity?(value) ? value : @subtype.type_cast(value)
+            infinity?(value) ? value : @subtype.type_cast_from_database(value)
           end
 
           def cast_value(value)
