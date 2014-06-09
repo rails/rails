@@ -107,7 +107,7 @@ module ActiveRecord
           if inverse
             if inverse.macro == :has_many
               record.send(inverse.name) << build_through_record(record)
-            elsif inverse.macro == :has_one
+            elsif inverse.has_one?
               record.send("#{inverse.name}=", build_through_record(record))
             end
           end

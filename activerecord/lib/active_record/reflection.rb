@@ -400,6 +400,10 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         macro == :belongs_to
       end
 
+      def has_one?
+        macro == :has_one
+      end
+
       def association_class
         case macro
         when :belongs_to
@@ -746,7 +750,7 @@ directive on your declaration like:
           raise HasManyThroughAssociationPolymorphicSourceError.new(active_record.name, self, source_reflection)
         end
 
-        if macro == :has_one && through_reflection.collection?
+        if has_one? && through_reflection.collection?
           raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
         end
 

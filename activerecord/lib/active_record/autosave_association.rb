@@ -187,7 +187,7 @@ module ActiveRecord
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
             after_create save_method
             after_update save_method
-          elsif reflection.macro == :has_one
+          elsif reflection.has_one?
             define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
             # Configures two callbacks instead of a single after_save so that
             # the model may rely on their execution order relative to its
