@@ -295,24 +295,18 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       assert_equal({ }, hstore.reload.tags)
     end
 
-    # FIXME: remove this lambda once `serialize` no longer issues a db connection.
-    LAZY_MODELS = lambda do
-      return if defined?(TagCollection)
+    class TagCollection
+      def initialize(hash); @hash = hash end
+      def to_hash; @hash end
+      def self.load(hash); new(hash) end
+      def self.dump(object); object.to_hash end
+    end
 
-      class TagCollection
-        def initialize(hash); @hash = hash end
-        def to_hash; @hash end
-        def self.load(hash); new(hash) end
-        def self.dump(object); object.to_hash end
-      end
-
-      class HstoreWithSerialize < Hstore
-        serialize :tags, TagCollection
-      end
+    class HstoreWithSerialize < Hstore
+      serialize :tags, TagCollection
     end
 
     def test_hstore_with_serialized_attributes
-      LAZY_MODELS.call
       HstoreWithSerialize.create! tags: TagCollection.new({"one" => "two"})
       record = HstoreWithSerialize.first
       assert_instance_of TagCollection, record.tags
@@ -323,7 +317,6 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     end
 
     def test_clone_hstore_with_serialized_attributes
-      LAZY_MODELS.call
       HstoreWithSerialize.create! tags: TagCollection.new({"one" => "two"})
       record = HstoreWithSerialize.first
       dupe = record.dup
