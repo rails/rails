@@ -99,9 +99,11 @@ module ActiveRecord
     end
 
     def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
-      if (timestamps = timestamp_names.map { |attr| self[attr] }.compact).present?
-        timestamps.map { |ts| ts.to_time }.max
-      end
+      timestamp_names
+        .map { |attr| self[attr] }
+        .compact
+        .map(&:to_time)
+        .max
     end
 
     def current_time_from_proper_timezone
