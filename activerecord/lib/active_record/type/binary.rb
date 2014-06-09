@@ -9,7 +9,16 @@ module ActiveRecord
         true
       end
 
+      def type_cast(value)
+        if value.is_a?(Data)
+          value.to_s
+        else
+          super
+        end
+      end
+
       def type_cast_for_database(value)
+        return if value.nil?
         Data.new(super)
       end
 

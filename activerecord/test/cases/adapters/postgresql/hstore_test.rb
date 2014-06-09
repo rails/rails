@@ -106,6 +106,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
     def test_cast_value_on_write
       x = Hstore.new tags: {"bool" => true, "number" => 5}
+      assert_equal({"bool" => true, "number" => 5}, x.tags_before_type_cast)
       assert_equal({"bool" => "true", "number" => "5"}, x.tags)
       x.save
       assert_equal({"bool" => "true", "number" => "5"}, x.reload.tags)

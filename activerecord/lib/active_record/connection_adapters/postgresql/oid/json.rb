@@ -7,7 +7,11 @@ module ActiveRecord
             :json
           end
 
-          def type_cast_for_write(value)
+          def type_cast_from_user(value)
+            type_cast(type_cast_for_database(value))
+          end
+
+          def type_cast_for_database(value)
             ConnectionAdapters::PostgreSQLColumn.json_to_string(value)
           end
 

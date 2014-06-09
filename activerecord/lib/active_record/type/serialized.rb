@@ -17,14 +17,16 @@ module ActiveRecord
         end
       end
 
-      def type_cast_for_write(value)
+      def type_cast_from_user(value)
+        type_cast(type_cast_for_database(value))
+      end
+
+      def type_cast_for_database(value)
         return if value.nil?
         unless is_default_value?(value)
           super coder.dump(value)
         end
       end
-
-      alias type_cast_for_database type_cast_for_write
 
       def serialized?
         true
