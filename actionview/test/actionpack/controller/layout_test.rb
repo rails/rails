@@ -1,13 +1,11 @@
 require 'abstract_unit'
 require 'rbconfig'
 require 'active_support/core_ext/array/extract_options'
+require 'support/template_handler_helper'
 
 # The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
 # method has access to the view_paths array when looking for a layout to automatically assign.
 old_load_paths = ActionController::Base.view_paths
-
-ActionView::Template::register_template_handler :mab,
-  lambda { |template| template.source.inspect }
 
 ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../../fixtures/actionpack/layout_tests/' ]
 
@@ -39,6 +37,8 @@ class MultipleExtensions < LayoutTest
 end
 
 class LayoutAutoDiscoveryTest < ActionController::TestCase
+  include TemplateHandlerHelper
+
   def setup
     super
     @request.host = "www.nextangle.com"
@@ -57,10 +57,12 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   end
 
   def test_third_party_template_library_auto_discovers_layout
-    @controller = ThirdPartyTemplateLibraryController.new
-    get :hello
-    assert_response :success
-    assert_equal 'layouts/third_party_template_library.mab', @response.body
+    with_template_handler :mab, lambda { |template| template.source.inspect } do
+      @controller = ThirdPartyTemplateLibraryController.new
+      get :hello
+      assert_response :success
+      assert_equal 'layouts/third_party_template_library.mab', @response.body
+    end
   end
 
   def test_namespaced_controllers_auto_detect_layouts1
@@ -135,6 +137,7 @@ end
 
 class LayoutSetInResponseTest < ActionController::TestCase
   include ActionView::Template::Handlers
+  include TemplateHandlerHelper
 
   def test_layout_set_when_using_default_layout
     @controller = DefaultLayoutController.new
@@ -191,9 +194,11 @@ class LayoutSetInResponseTest < ActionController::TestCase
   end
 
   def test_layout_set_when_using_render
-    @controller = SetsLayoutInRenderController.new
-    get :hello
-    assert_template :layout => "layouts/third_party_template_library"
+    with_template_handler :mab, lambda { |template| template.source.inspect } do
+      @controller = SetsLayoutInRenderController.new
+      get :hello
+      assert_template :layout => "layouts/third_party_template_library"
+    end
   end
 
   def test_layout_is_not_set_when_none_rendered

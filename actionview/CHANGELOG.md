@@ -1,3 +1,9 @@
+*   Add `ActionView::Template::Handler.unregister_template_handler`.
+    
+    It performs the opposite of `ActionView::Template::Handler.register_template_handler`.
+    
+    *Zuhao Wan*
+
 *   Allow custom `:host` option to be passed to `asset_url` helper that
     overwrites `config.action_controller.asset_host` for particular asset.
 
