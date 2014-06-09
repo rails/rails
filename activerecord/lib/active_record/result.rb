@@ -31,7 +31,7 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    IDENTITY_TYPE = Class.new { def type_cast(v); v; end }.new # :nodoc:
+    IDENTITY_TYPE = Type::Value.new # :nodoc:
 
     attr_reader :columns, :rows, :column_types
 
