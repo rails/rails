@@ -15,6 +15,8 @@ module ActiveRecord
       def type_cast(value)
         "#{super} #{@decoration}"
       end
+
+      alias type_cast_from_user type_cast
     end
 
     setup do

@@ -96,7 +96,7 @@ class ReflectionTest < ActiveRecord::TestCase
     object = Object.new
 
     assert_equal object, column.type_cast(object)
-    assert_equal object, column.type_cast_for_write(object)
+    assert_equal object, column.type_cast_from_user(object)
     assert_equal object, column.type_cast_for_database(object)
   end
 

@@ -1,21 +1,22 @@
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
-      class Type # :nodoc:
-        delegate :type, :type_cast_for_database, to: :@column
-
-        def initialize(column)
-          @column = column
-        end
-
+      class Type < SimpleDelegator # :nodoc:
         def type_cast(value)
-          value = @column.type_cast(value)
-          convert_value_to_time_zone(value)
+          convert_time_to_time_zone(super)
         end
 
-        def convert_value_to_time_zone(value)
+        def type_cast_from_user(value)
           if value.is_a?(Array)
-            value.map { |v| convert_value_to_time_zone(v) }
+            value.map { |v| type_cast_from_user(v) }
+          elsif value.respond_to?(:in_time_zone)
+            value.in_time_zone
+          end
+        end
+
+        def convert_time_to_time_zone(value)
+          if value.is_a?(Array)
+            value.map { |v| convert_time_to_time_zone(v) }
           elsif value.acts_like?(:time)
             value.in_time_zone
           else
@@ -35,41 +36,11 @@ module ActiveRecord
       end
 
       module ClassMethods
-        protected
-        # Defined for all +datetime+ attributes when +time_zone_aware_attributes+ are enabled.
-        # This enhanced write method will automatically convert the time passed to it to the zone stored in Time.zone.
-        def define_method_attribute=(attr_name)
-          if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
-            method_body, line = <<-EOV, __LINE__ + 1
-              def #{attr_name}=(time)
-                time_with_zone = convert_value_to_time_zone(time)
-                previous_time = attribute_changed?("#{attr_name}") ? changed_attributes["#{attr_name}"] : read_attribute(:#{attr_name})
-                write_attribute(:#{attr_name}, time)
-                #{attr_name}_will_change! if previous_time != time_with_zone
-                @attributes["#{attr_name}"] = time_with_zone
-              end
-            EOV
-            generated_attribute_methods.module_eval(method_body, __FILE__, line)
-          else
-            super
-          end
-        end
-
         private
         def create_time_zone_conversion_attribute?(name, column)
           time_zone_aware_attributes &&
             !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) &&
             (:datetime == column.type)
-        end
-      end
-
-      private
-
-      def convert_value_to_time_zone(value)
-        if value.is_a?(Array)
-          value.map { |v| convert_value_to_time_zone(v) }
-        elsif value.respond_to?(:in_time_zone)
-          value.in_time_zone
         end
       end
     end

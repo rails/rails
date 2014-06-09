@@ -23,8 +23,12 @@ module ActiveRecord
         cast_value(value) unless value.nil?
       end
 
+      def type_cast_from_user(value)
+        type_cast(value)
+      end
+
       def type_cast_for_database(value)
-        type_cast_for_write(value)
+        value
       end
 
       def type_cast_for_schema(value)
@@ -48,10 +52,6 @@ module ActiveRecord
       end
 
       def klass # :nodoc:
-      end
-
-      def type_cast_for_write(value) # :nodoc:
-        value
       end
 
       # +old_value+ will always be type-cast.

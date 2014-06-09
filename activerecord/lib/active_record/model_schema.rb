@@ -51,6 +51,8 @@ module ActiveRecord
       self.pluralize_table_names = true
 
       self.inheritance_column = 'type'
+
+      delegate :type_for_attribute, to: :class
     end
 
     module ClassMethods
@@ -221,6 +223,10 @@ module ActiveRecord
         @column_types ||= decorate_columns(columns_hash.dup)
       end
 
+      def type_for_attribute(attr_name) # :nodoc:
+        column_types.fetch(attr_name) { column_for_attribute(attr_name) }
+      end
+
       def decorate_columns(columns_hash) # :nodoc:
         return if columns_hash.empty?
 
@@ -245,7 +251,7 @@ module ActiveRecord
       # are the default values suitable for use in `@raw_attriubtes`
       def raw_column_defaults # :nodoc:
         @raw_column_defauts ||= Hash[column_defaults.map { |name, default|
-          [name, columns_hash[name].type_cast_for_write(default)]
+          [name, columns_hash[name].type_cast_for_database(default)]
         }]
       end
 

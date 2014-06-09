@@ -616,17 +616,15 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  test "defaults with type that implements `type_cast_for_write`" do
+  test "defaults with type that implements `type_cast_for_database`" do
     type = Class.new(ActiveRecord::Type::Value) do
       def type_cast(value)
         value.to_i
       end
 
-      def type_cast_for_write(value)
+      def type_cast_for_database(value)
         value.to_s
       end
-
-      alias type_cast_for_database type_cast_for_write
     end
 
     model_class = Class.new(ActiveRecord::Base) do
