@@ -657,6 +657,14 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, h['first']
   end
 
+  def test_to_options_on_indifferent_preserves_works_as_hash_with_dup
+    h = HashWithIndifferentAccess.new({ a: { b: 'b' } })
+    dup = h.dup
+
+    dup[:a][:c] = 'c'
+    assert_equal 'c', h[:a][:c]
+  end
+
   def test_indifferent_subhashes
     h = {'user' => {'id' => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
