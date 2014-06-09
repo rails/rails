@@ -529,6 +529,7 @@ ActiveRecord::Schema.define do
     t.references :best_friend
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0
+    t.timestamp :born_at
     t.timestamps
   end
 
