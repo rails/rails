@@ -108,7 +108,7 @@ module ActiveRecord
             if ::Array === value
               value.map {|item| type_cast_array(oid, item)}
             else
-              oid.type_cast value
+              oid.type_cast_from_database value
             end
           end
       end

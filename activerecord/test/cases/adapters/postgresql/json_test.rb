@@ -80,11 +80,11 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     data = "{\"a_key\":\"a_value\"}"
     hash = column.class.string_to_json data
     assert_equal({'a_key' => 'a_value'}, hash)
-    assert_equal({'a_key' => 'a_value'}, column.type_cast(data))
+    assert_equal({'a_key' => 'a_value'}, column.type_cast_from_database(data))
 
-    assert_equal({}, column.type_cast("{}"))
-    assert_equal({'key'=>nil}, column.type_cast('{"key": null}'))
-    assert_equal({'c'=>'}','"a"'=>'b "a b'}, column.type_cast(%q({"c":"}", "\"a\"":"b \"a b"})))
+    assert_equal({}, column.type_cast_from_database("{}"))
+    assert_equal({'key'=>nil}, column.type_cast_from_database('{"key": null}'))
+    assert_equal({'c'=>'}','"a"'=>'b "a b'}, column.type_cast_from_database(%q({"c":"}", "\"a\"":"b \"a b"})))
   end
 
   def test_rewrite

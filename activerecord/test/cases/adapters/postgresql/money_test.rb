@@ -49,10 +49,10 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
 
   def test_money_type_cast
     column = PostgresqlMoney.columns_hash['wealth']
-    assert_equal(12345678.12, column.type_cast("$12,345,678.12"))
-    assert_equal(12345678.12, column.type_cast("$12.345.678,12"))
-    assert_equal(-1.15, column.type_cast("-$1.15"))
-    assert_equal(-2.25, column.type_cast("($2.25)"))
+    assert_equal(12345678.12, column.type_cast_from_user("$12,345,678.12"))
+    assert_equal(12345678.12, column.type_cast_from_user("$12.345.678,12"))
+    assert_equal(-1.15, column.type_cast_from_user("-$1.15"))
+    assert_equal(-2.25, column.type_cast_from_user("($2.25)"))
   end
 
   def test_schema_dumping

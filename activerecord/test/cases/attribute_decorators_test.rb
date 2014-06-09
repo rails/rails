@@ -12,11 +12,11 @@ module ActiveRecord
         super(delegate)
       end
 
-      def type_cast(value)
+      def type_cast_from_user(value)
         "#{super} #{@decoration}"
       end
 
-      alias type_cast_from_user type_cast
+      alias type_cast_from_database type_cast_from_user
     end
 
     setup do

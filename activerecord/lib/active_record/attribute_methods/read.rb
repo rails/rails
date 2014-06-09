@@ -123,9 +123,9 @@ module ActiveRecord
           }
 
           if self.class.cache_attribute?(name)
-            @attributes[name] = column.type_cast(value)
+            @attributes[name] = column.type_cast_from_database(value)
           else
-            column.type_cast value
+            column.type_cast_from_database value
           end
         }
       end

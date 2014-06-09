@@ -16,11 +16,8 @@ module ActiveRecord
       # must override this method.
       def type; end
 
-      # Takes an input from the database, or from attribute setters,
-      # and casts it to a type appropriate for this object. This method
-      # should not be overriden by subclasses. Instead, override `cast_value`.
-      def type_cast(value)
-        cast_value(value) unless value.nil?
+      def type_cast_from_database(value)
+        type_cast(value)
       end
 
       def type_cast_from_user(value)
@@ -64,6 +61,12 @@ module ActiveRecord
       end
 
       private
+      # Takes an input from the database, or from attribute setters,
+      # and casts it to a type appropriate for this object. This method
+      # should not be overriden by subclasses. Instead, override `cast_value`.
+      def type_cast(value) # :api: public
+        cast_value(value) unless value.nil?
+      end
 
       # Responsible for casting values from external sources to the appropriate
       # type. Called by `type_cast` for all values except `nil`.

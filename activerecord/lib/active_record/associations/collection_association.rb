@@ -57,7 +57,7 @@ module ActiveRecord
       def ids_writer(ids)
         pk_column = reflection.primary_key_column
         ids = Array(ids).reject { |id| id.blank? }
-        ids.map! { |i| pk_column.type_cast(i) }
+        ids.map! { |i| pk_column.type_cast_from_user(i) }
         replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
       end
 
