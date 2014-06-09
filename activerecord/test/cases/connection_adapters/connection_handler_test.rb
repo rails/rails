@@ -9,6 +9,12 @@ module ActiveRecord
 
         @handler = ConnectionHandler.new
         @pool    = @handler.establish_connection(@klass, Base.connection_pool.spec)
+
+        @default_pool_class = ConnectionHandler.connection_pool_class
+      end
+
+      def teardown
+        ConnectionHandler.connection_pool_class = @default_pool_class
       end
 
       def test_retrieve_connection
@@ -48,6 +54,22 @@ module ActiveRecord
           assert_equal({ Base.connection_pool.spec => @pool }, @handler.connection_pools)
         end
       end
+
+      def test_change_connection_pool_class
+        ConnectionHandler.connection_pool_class = WhirlPool
+
+        handler = ConnectionHandler.new
+        pool    = handler.establish_connection(@klass, Base.connection_pool.spec)
+        assert_instance_of WhirlPool, pool
+        assert_equal 42, handler.retrieve_connection(@klass)
+      end
+
+      class WhirlPool < ConnectionAdapters::ConnectionPool
+
+        def connection; 42 end
+
+      end
+
     end
   end
 end

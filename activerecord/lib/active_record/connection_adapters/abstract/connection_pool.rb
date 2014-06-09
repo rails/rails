@@ -492,6 +492,26 @@ module ActiveRecord
         end
       end
 
+      @@connection_pool_class = ConnectionAdapters::ConnectionPool
+
+      # Returns the connection pool class used when establishing a connection.
+      def self.connection_pool_class 
+        @@connection_pool_class
+      end
+
+      # Allows for changing the connection pool implementation e.g. in a initializer
+      #
+      #   ActiveRecord::ConnectionAdapters::ConnectionHandler.connection_pool_class = MyPool
+      #
+      def self.connection_pool_class=(klass) 
+        @@connection_pool_class = klass
+      end
+
+      # Returns the connection pool class used when establishing a connection.
+      def connection_pool_class
+        @@connection_pool_class
+      end
+
       def connection_pool_list
         owner_to_pool.values.compact
       end
@@ -507,8 +527,9 @@ module ActiveRecord
       def establish_connection(owner, spec)
         @class_to_pool.clear
         raise RuntimeError, "Anonymous class is not allowed." unless owner.name
-        owner_to_pool[owner.name] = ConnectionAdapters::ConnectionPool.new(spec)
+        owner_to_pool[owner.name] = connection_pool_class.new(spec)
       end
+
 
       # Returns true if there are any active connections among the connection
       # pools that the ConnectionHandler is managing.
