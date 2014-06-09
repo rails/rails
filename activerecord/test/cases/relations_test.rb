@@ -1389,6 +1389,8 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal count, comments.update_all(:post_id => posts(:thinking).id)
     assert_equal posts(:thinking), comments(:greetings).post
+
+    assert_equal 10, Post.joins(:author).update_all('title = authors.name')
   end
 
   def test_update_all_with_joins_and_limit

@@ -72,6 +72,17 @@ module ActiveRecord
         binary:       { name: "blob" },
         boolean:      { name: "boolean" }
       }
+      # updates with JOIN won't work in PostgreSQL unless we use the following structure:
+      # UPDATE "posts" SET title = (
+      #   SELECT authors.name FROM "authors" where "authors"."id" = "posts"."author_id" )
+      # WHERE EXISTS (SELECT authors.name FROM "authors" where "authors"."id" = "posts"."author_id")
+      def fix_update_sql_for_join stmt, arel
+        select = Arel::SelectManager.new arel.engine
+        select.project stmt.ast.values.first.split('=')[1]
+        select.from arel.join_sources.first.left
+        select.where arel.join_sources.first.left[arel.join_sources.first.right.expr.left.name].eq(arel.join_sources.first.right.expr.right.relation[arel.join_sources.first.right.expr.right.name])
+        stmt.to_sql.gsub(/#{stmt.ast.values.first.split('=')[1]}/, "(#{select.to_sql}) WHERE EXISTS (#{select.to_sql})")
+      end
 
       class Version
         include Comparable

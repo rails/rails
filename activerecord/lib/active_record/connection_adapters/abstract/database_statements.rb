@@ -343,7 +343,6 @@ module ActiveRecord
       def join_to_update(update, select) #:nodoc:
         key = update.key
         subselect = subquery_for(key, select)
-
         update.where key.in(subselect)
       end
 

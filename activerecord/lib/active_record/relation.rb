@@ -320,10 +320,15 @@ module ActiveRecord
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
       stmt = Arel::UpdateManager.new(arel.engine)
-
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
       stmt.table(table)
       stmt.key = table[primary_key]
+
+      if @klass.connection.adapter_name=='PostgreSQL' && !arel.source.right.empty? && stmt.to_sql.match(/#{arel.source.right.first.left.name}/)
+        return @klass.connection.exec_update(@klass.connection.fix_update_sql_for_join(stmt, arel), 'SQL')
+      elsif @klass.connection.adapter_name=='SQLite' && !arel.source.right.empty? && stmt.to_sql.match(/#{arel.source.right.first.left.name}/)
+        return @klass.connection.exec_update(@klass.connection.fix_update_sql_for_join(stmt, arel), 'SQL')
+      end
 
       if joins_values.any?
         @klass.connection.join_to_update(stmt, arel)

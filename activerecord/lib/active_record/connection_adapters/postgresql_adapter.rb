@@ -163,6 +163,15 @@ module ActiveRecord
         { concurrently: 'CONCURRENTLY' }
       end
 
+      # updates with JOIN won't work in PostgreSQL unless we use the following structure:
+      # UPDATE "posts" SET title = authors.name 
+      # FROM authors 
+      # WHERE "posts"."author_id" = "authors"."id"
+      def fix_update_sql_for_join stmt, arel
+        stmt.where arel.join_sources.first.right.expr.right.relation[arel.join_sources.first.right.expr.right.name].eq(arel.join_sources.first.left[arel.join_sources.first.right.expr.left.name])
+        stmt.to_sql.gsub(/WHERE/, "FROM #{arel.source.right.first.left.name} WHERE")
+      end
+
       class StatementPool < ConnectionAdapters::StatementPool
         def initialize(connection, max)
           super
