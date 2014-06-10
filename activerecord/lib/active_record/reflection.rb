@@ -542,7 +542,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         end
     end
 
-    class HABTMReflection < AssociationReflection #:nodoc:
+    class HasAndBelongsToManyReflection < AssociationReflection #:nodoc:
       def initialize(macro, name, scope, options, active_record)
         super
         @collection = true
