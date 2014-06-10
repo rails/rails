@@ -1,3 +1,7 @@
+*   Bring `cache_digest` rake tasks up-to-date with the latest API changes
+
+    *Jiri Pospisil*
+
 *   Allow custom `:host` option to be passed to `asset_url` helper that
     overwrites `config.action_controller.asset_host` for particular asset.
 
