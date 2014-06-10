@@ -46,7 +46,21 @@ module ActiveRecord
         assert_equal "fk_name", fk.name
       end
 
-      def test_add_foreign_key
+      def test_add_foreign_key_inferes_column
+        @connection.add_foreign_key :astronauts, :rockets
+
+        foreign_keys = @connection.foreign_keys("astronauts")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_equal "astronauts", fk.from_table
+        assert_equal "rockets", fk.to_table
+        assert_equal "rocket_id", fk.column
+        assert_equal "id", fk.primary_key
+        assert_equal "astronauts_rocket_id_fk", fk.name
+      end
+
+      def test_add_foreign_key_with_column
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
 
         foreign_keys = @connection.foreign_keys("astronauts")
@@ -112,7 +126,15 @@ module ActiveRecord
         assert_equal :nullify, fk.dependent
       end
 
-      def test_remove_foreign_key
+      def test_remove_foreign_key_inferes_column
+        @connection.add_foreign_key :astronauts, :rockets
+
+        assert_equal 1, @connection.foreign_keys("astronauts").size
+        @connection.remove_foreign_key :astronauts, :rockets
+        assert_equal [], @connection.foreign_keys("astronauts")
+      end
+
+      def test_remove_foreign_key_by_column
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
 
         assert_equal 1, @connection.foreign_keys("astronauts").size

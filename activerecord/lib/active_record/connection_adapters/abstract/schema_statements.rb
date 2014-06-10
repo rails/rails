@@ -647,10 +647,11 @@ module ActiveRecord
       end
 
       def add_foreign_key(from_table, to_table, options = {})
+        options[:column] ||= foreign_key_column_for(to_table)
         primary_key = options.fetch(:primary_key, "id")
 
         options = {
-          column: options.fetch(:column),
+          column: options[:column],
           primary_key: primary_key,
           name: foreign_key_name(from_table, options),
           dependent: options.fetch(:dependent, nil)
@@ -661,17 +662,26 @@ module ActiveRecord
         execute schema_creation.accept at
       end
 
-      def remove_foreign_key(from_table, options = {})
+      def remove_foreign_key(from_table, options_or_to_table = {})
+        if options_or_to_table.is_a?(Hash)
+          options = options_or_to_table
+        else
+          options = { column: foreign_key_column_for(options_or_to_table) }
+        end
+
         at = create_alter_table from_table
         at.drop_foreign_key foreign_key_name(from_table, options)
 
         execute schema_creation.accept at
       end
 
+      def foreign_key_column_for(table_name) # :nodoc:
+        "#{table_name.to_s.singularize}_id"
+      end
+
       def foreign_key_name(table_name, options) # :nodoc:
         options.fetch(:name) do
-          column_name = options.fetch(:column)
-          "#{table_name}_#{column_name}_fk"
+          "#{table_name}_#{options.fetch(:column)}_fk"
         end
       end
 
