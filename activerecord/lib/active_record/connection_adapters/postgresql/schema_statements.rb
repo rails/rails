@@ -492,13 +492,6 @@ DROP CONSTRAINT #{foreign_key_name}
           SQL
         end
 
-        def foreign_key_name(table_name, options)
-          options.fetch(:name) do
-            column_name = options.fetch(:column)
-            "#{table_name}_#{column_name}_fk"
-          end
-        end
-
         def index_name_length
           63
         end

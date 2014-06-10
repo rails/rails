@@ -192,6 +192,10 @@ module ActiveRecord
         true
       end
 
+      def supports_foreign_keys?
+        true
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
@@ -499,6 +503,46 @@ module ActiveRecord
       def add_index(table_name, column_name, options = {}) #:nodoc:
         index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options} #{index_algorithm}"
+      end
+
+      def foreign_keys(table_name)
+        fk_info = select_all %{
+          SELECT fk.referenced_table_name as 'to_table'
+                ,fk.referenced_column_name as 'primary_key'
+                ,fk.column_name as 'column'
+                ,fk.constraint_name as 'name'
+          FROM information_schema.key_column_usage fk
+          WHERE fk.referenced_column_name is not null
+            AND fk.table_schema = '#{@config[:database]}'
+            AND fk.table_name = '#{table_name}'
+        }
+
+        create_table_info = select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+
+        fk_info.map do |row|
+          options = {column: row['column'], name: row['name'], primary_key: row['primary_key']}
+          ForeignKeyDefinition.new(table_name, row['to_table'], options)
+        end
+      end
+
+      def add_foreign_key(from_table, to_table, options = {})
+        foreign_key_column = options.fetch(:column)
+        referenced_column = "id"
+        foreign_key_name = foreign_key_name(from_table, options)
+        execute <<-SQL
+ALTER TABLE #{quote_table_name(from_table)}
+ADD CONSTRAINT #{foreign_key_name}
+FOREIGN KEY (#{quote_column_name(foreign_key_column)})
+REFERENCES #{quote_table_name(to_table)} (#{quote_column_name(referenced_column)})
+        SQL
+      end
+
+      def remove_foreign_key(from_table, options = {})
+        foreign_key_name = foreign_key_name(from_table, options)
+        execute <<-SQL
+ALTER TABLE #{quote_table_name(from_table)}
+DROP FOREIGN KEY #{foreign_key_name}
+        SQL
       end
 
       # Maps logical Rails types to MySQL-specific data types.

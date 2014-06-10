@@ -22,6 +22,11 @@ module ActiveRecord
         end
       end
 
+      teardown do
+        @connection.execute "DROP TABLE IF EXISTS astronauts"
+        @connection.execute "DROP TABLE IF EXISTS rockets"
+      end
+
       def test_foreign_keys
         foreign_keys = @connection.foreign_keys("fk_test_has_fk")
         assert_equal 1, foreign_keys.size

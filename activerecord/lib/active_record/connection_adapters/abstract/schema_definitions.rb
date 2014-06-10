@@ -25,6 +25,20 @@ module ActiveRecord
     class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
     end
 
+    class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options)
+      def name
+        options[:name]
+      end
+
+      def column
+        options[:column]
+      end
+
+      def primary_key
+        options[:primary_key]
+      end
+    end
+
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #

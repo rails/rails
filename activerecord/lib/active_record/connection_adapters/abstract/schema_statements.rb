@@ -625,6 +625,13 @@ module ActiveRecord
       end
       alias :add_belongs_to :add_reference
 
+      def foreign_key_name(table_name, options)
+        options.fetch(:name) do
+          column_name = options.fetch(:column)
+          "#{table_name}_#{column_name}_fk"
+        end
+      end
+
       # Removes the reference(s). Also removes a +type+ column if one exists.
       # <tt>remove_reference</tt>, <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
       #
