@@ -151,12 +151,6 @@ module ActiveRecord
           @locking_column
         end
 
-        # Quote the column name used for optimistic locking.
-        def quoted_locking_column
-          ActiveSupport::Deprecation.warn "ActiveRecord::Base.quoted_locking_column is deprecated and will be removed in Rails 4.2 or later."
-          connection.quote_column_name(locking_column)
-        end
-
         # Reset the column used for optimistic locking back to the +lock_version+ default.
         def reset_locking_column
           self.locking_column = DEFAULT_LOCKING_COLUMN
