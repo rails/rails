@@ -17,7 +17,10 @@ After reading this guide, you will know:
 Introduction
 ------------
 
-Action Mailer allows you to send emails from your application using mailer classes and views. Mailers work very similarly to controllers. They inherit from `ActionMailer::Base` and live in `app/mailers`, and they have associated views that appear in `app/views`.
+Action Mailer allows you to send emails from your application using mailer classes
+and views. Mailers work very similarly to controllers. They inherit from
+`ActionMailer::Base` and live in `app/mailers`, and they have associated views
+that appear in `app/views`.
 
 Sending Emails
 --------------
@@ -84,8 +87,11 @@ Here is a quick explanation of the items presented in the preceding method. For
 a full list of all available options, please have a look further down at the
 Complete List of Action Mailer user-settable attributes section.
 
-* `default Hash` - This is a hash of default values for any email you send from this mailer. In this case we are setting the `:from` header to a value for all messages in this class. This can be overridden on a per-email basis.
-* `mail` - The actual email message, we are passing the `:to` and `:subject` headers in.
+* `default Hash` - This is a hash of default values for any email you send from
+this mailer. In this case we are setting the `:from` header to a value for all
+messages in this class. This can be overridden on a per-email basis.
+* `mail` - The actual email message, we are passing the `:to` and `:subject`
+headers in.
 
 Just like controllers, any instance variables we define in the method become
 available for use in the views.
@@ -151,7 +157,7 @@ $ bin/rake db:migrate
 ```
 
 Now that we have a user model to play with, we will just edit the
-`app/controllers/users_controller.rb` make it instruct the UserMailer to deliver
+`app/controllers/users_controller.rb` make it instruct the `UserMailer` to deliver
 an email to the newly created user by editing the create action and inserting a
 call to `UserMailer.welcome_email` right after the user is successfully saved:
 
@@ -230,9 +236,11 @@ different, encode your content and pass in the encoded content and encoding in a
 
     ```ruby
     encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
-    attachments['filename.jpg'] = {mime_type: 'application/x-gzip',
-                                   encoding: 'SpecialEncoding',
-                                   content: encoded_content }
+    attachments['filename.jpg'] = {
+      mime_type: 'application/x-gzip',
+      encoding: 'SpecialEncoding',
+      content: encoded_content
+    }
     ```
 
 NOTE: If you specify an encoding, Mail will assume that your content is already
@@ -608,7 +616,7 @@ files (environment.rb, production.rb, etc...)
 | Configuration | Description |
 |---------------|-------------|
 |`logger`|Generates information on the mailing run if available. Can be set to `nil` for no logging. Compatible with both Ruby's own `Logger` and `Log4r` loggers.|
-|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>`:port` - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
+|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default `"localhost"` setting.</li><li>`:port` - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
 |`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i -t`.</li></ul>|
 |`raise_delivery_errors`|Whether or not errors should be raised if the email fails to be delivered. This only works if the external email server is configured for immediate delivery.|
 |`delivery_method`|Defines a delivery method. Possible values are:<ul><li>`:smtp` (default), can be configured by using `config.action_mailer.smtp_settings`.</li><li>`:sendmail`, can be configured by using `config.action_mailer.sendmail_settings`.</li><li>`:file`: save emails to files; can be configured by using `config.action_mailer.file_settings`.</li><li>`:test`: save emails to `ActionMailer::Base.deliveries` array.</li></ul>See [API docs](http://api.rubyonrails.org/classes/ActionMailer/Base.html) for more info.|
@@ -617,7 +625,7 @@ files (environment.rb, production.rb, etc...)
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 
 For a complete writeup of possible configurations see the
-[Action Mailer section](configuring.html#configuring-action-mailer) in
+[Configuring Action Mailer](configuring.html#configuring-action-mailer) in
 our Configuring Rails Applications guide.
 
 ### Example Action Mailer Configuration
@@ -662,6 +670,7 @@ You can find detailed instructions on how to test your mailers in the
 
 Intercepting Emails
 -------------------
+
 There are situations where you need to edit an email before it's
 delivered. Fortunately Action Mailer provides hooks to intercept every
 email. You can register an interceptor to make modifications to mail messages
@@ -685,5 +694,5 @@ ActionMailer::Base.register_interceptor(SandboxEmailInterceptor) if Rails.env.st
 
 NOTE: The example above uses a custom environment called "staging" for a
 production like server but for testing purposes. You can read
-[Creating Rails environments](./configuring.html#creating-rails-environments)
+[Creating Rails environments](configuring.html#creating-rails-environments)
 for more information about custom Rails environments.
