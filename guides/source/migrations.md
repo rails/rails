@@ -303,6 +303,8 @@ braces. You can use the following modifiers:
 * `polymorphic`  Adds a `type` column for `belongs_to` associations.
 * `null`         Allows or disallows `NULL` values in the column.
 
+NOTE: `null` and `default` cannot be specified via command line.
+
 For instance, running:
 
 ```bash
