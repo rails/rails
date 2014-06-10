@@ -1,3 +1,9 @@
+*   ActiveModel::Dirty now detects in-place changes to mutable values.
+    Serialized attributes on ActiveRecord models will no longer save
+    when unchanged. Fixes #8328.
+
+    *Sean Griffin*
+
 *   Make timezone aware attributes work with PostgreSQL array columns.
 
     Fixes #13402.

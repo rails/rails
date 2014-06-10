@@ -176,4 +176,20 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
   end
+
+  test "mutable attributes changed in place are detected" do
+    @model.name = 'Sean'
+    @model.save
+
+    assert_not @model.changed?
+
+    @model.name << ' Griffin'
+
+    assert @model.changed?
+    assert @model.name_changed?
+    assert_equal ['name'], @model.changed
+    # We cannot detect the values changed to/from
+    assert_equal [nil, 'Sean Griffin'], @model.changes['name']
+    assert_not @model.name_changed?(from: 'Sean')
+  end
 end

@@ -186,6 +186,7 @@ module ActiveRecord
       became.instance_variable_set("@raw_attributes", @raw_attributes)
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@changed_attributes", @changed_attributes) if defined?(@changed_attributes)
+      became.instance_variable_set("@original_attribute_hashes", @original_attribute_hashes) if defined?(@original_attribute_hashes)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
