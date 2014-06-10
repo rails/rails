@@ -305,6 +305,8 @@ braces. You can use the following modifiers:
 * `null`         Allows or disallows `NULL` values in the column.
 * `default`      Allows to set a default value on the column. NOTE: If using a dynamic value (such as date), the default will only be calculated the first time (e.g. on the date the migration is applied.)
 
+NOTE: `null` and `default` cannot be specified via command line.
+
 For instance, running:
 
 ```bash
