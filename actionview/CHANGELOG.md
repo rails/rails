@@ -1,3 +1,8 @@
+*   Bring `cache_digest` rake tasks up-to-date with the latest API changes
+
+    *Jiri Pospisil*
+
+
 ## Rails 4.1.2 (unreleased) ##
 
 *   Change `asset_path` to use File.join to create proper paths.
