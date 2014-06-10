@@ -1,3 +1,6 @@
+*   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
+    *Adam Panzer / Michael Grosser* 
+
 *   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
     when working with objects with a nanosecond component.
 
