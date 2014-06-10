@@ -692,6 +692,11 @@ class FileStoreTest < ActiveSupport::TestCase
     assert File.exist?(filepath)
   end
 
+  def test_long_keys
+    @cache.write("a"*10000, 1)
+    assert_equal 1, @cache.read("a"*10000)
+  end
+
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
