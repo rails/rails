@@ -33,6 +33,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
 
+  def test_find_with_proc_parameter_and_block
+    e = assert_raises(RuntimeError) do
+      Topic.all.find(-> { raise "should happen" }) { |e| e.title == "non-existing-title" }
+    end
+    assert_equal "should happen", e.message
+
+    assert_nothing_raised(RuntimeError) do
+      Topic.all.find(-> { raise "should not happen" }) { |e| e.title == topics(:first).title }
+    end
+  end
+
   def test_symbols_table_ref
     Post.first # warm up
     x = Symbol.all_symbols.count
