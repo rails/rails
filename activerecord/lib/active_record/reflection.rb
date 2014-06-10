@@ -392,7 +392,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       # * you use autosave; <tt>autosave: true</tt>
       # * the association is a +has_many+ association
       def validate?
-        !options[:validate].nil? ? options[:validate] : (options[:autosave] == true || macro == :has_many)
+        !options[:validate].nil? ? options[:validate] : (options[:autosave] == true || collection?)
       end
 
       # Returns +true+ if +self+ is a +belongs_to+ reflection.
