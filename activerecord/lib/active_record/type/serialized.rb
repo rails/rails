@@ -36,6 +36,17 @@ module ActiveRecord
         ActiveRecord::Store::IndifferentHashAccessor
       end
 
+      def init_with(coder)
+        @subtype = coder['subtype']
+        @coder = coder['coder']
+        __setobj__(@subtype)
+      end
+
+      def encode_with(coder)
+        coder['subtype'] = @subtype
+        coder['coder'] = @coder
+      end
+
       private
 
       def is_default_value?(value)

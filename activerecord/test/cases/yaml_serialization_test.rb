@@ -1,8 +1,10 @@
 require 'cases/helper'
 require 'models/topic'
+require 'models/post'
+require 'models/author'
 
 class YamlSerializationTest < ActiveRecord::TestCase
-  fixtures :topics
+  fixtures :topics, :authors, :posts
 
   def test_to_yaml_with_time_with_zone_should_not_raise_exception
     with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
@@ -68,5 +70,16 @@ class YamlSerializationTest < ActiveRecord::TestCase
 
     assert_not topic.new_record?, "Loaded records without ID are not new"
     assert_not YAML.load(YAML.dump(topic)).new_record?, "Record should not be new after deserialization"
+  end
+
+  def test_types_of_virtual_columns_are_not_changed_on_round_trip
+    author = Author.select('authors.*, count(posts.id) as posts_count')
+      .joins(:posts)
+      .group('authors.id')
+      .first
+    dumped = YAML.load(YAML.dump(author))
+
+    assert_equal 5, author.posts_count
+    assert_equal 5, dumped.posts_count
   end
 end

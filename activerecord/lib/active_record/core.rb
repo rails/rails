@@ -356,6 +356,7 @@ module ActiveRecord
     def encode_with(coder)
       coder['raw_attributes'] = @raw_attributes
       coder['attributes'] = @attributes
+      coder['column_types'] = @column_types_override
       coder['new_record'] = new_record?
     end
 

@@ -13,7 +13,7 @@ module ActiveRecord
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
       end
 
-      attr_reader :name, :cast_type, :null, :sql_type, :default_function
+      attr_reader :name, :cast_type, :sql_type, :default_function
 
       delegate :type, :precision, :scale, :limit, :klass, :accessor,
         :text?, :number?, :binary?, :serialized?, :changed?,
@@ -34,7 +34,7 @@ module ActiveRecord
         @name             = name
         @cast_type        = cast_type
         @sql_type         = sql_type
-        @null             = null
+        @nullable         = null
         @original_default = default
         @default_function = nil
       end
@@ -60,6 +60,10 @@ module ActiveRecord
           clone.instance_variable_set('@default', nil)
           clone.instance_variable_set('@cast_type', type)
         end
+      end
+
+      def null
+        @nullable
       end
     end
 
