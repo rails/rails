@@ -22,26 +22,46 @@ module ActiveRecord
         end
       end
 
+      def test_foreign_keys
+        foreign_keys = @connection.foreign_keys("fk_test_has_fk")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_equal "fk_test_has_fk", fk.from_table
+        assert_equal "fk_test_has_pk", fk.to_table
+        assert_equal "fk_id", fk.column
+        assert_equal "id", fk.primary_key
+        assert_equal "fk_name", fk.name
+      end
+
       def test_add_foreign_key
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
 
-        assert_raises ActiveRecord::InvalidForeignKey do
-          Astronaut.create rocket_id: 33
-        end
+        foreign_keys = @connection.foreign_keys("astronauts")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_equal "astronauts", fk.from_table
+        assert_equal "rockets", fk.to_table
+        assert_equal "rocket_id", fk.column
+        assert_equal "id", fk.primary_key
+        assert_equal "astronauts_rocket_id_fk", fk.name
       end
 
       def test_remove_foreign_key
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
-        @connection.remove_foreign_key :astronauts, column: "rocket_id"
 
-        Astronaut.create rocket_id: 33
+        assert_equal 1, @connection.foreign_keys("astronauts").size
+        @connection.remove_foreign_key :astronauts, column: "rocket_id"
+        assert_equal [], @connection.foreign_keys("astronauts")
       end
 
       def test_remove_foreign_key_by_name
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
-        @connection.remove_foreign_key :astronauts, name: "fancy_named_fk"
 
-        Astronaut.create rocket_id: 33
+        assert_equal 1, @connection.foreign_keys("astronauts").size
+        @connection.remove_foreign_key :astronauts, name: "fancy_named_fk"
+        assert_equal [], @connection.foreign_keys("astronauts")
       end
     end
   end

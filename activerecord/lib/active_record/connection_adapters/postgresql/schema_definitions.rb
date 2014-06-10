@@ -89,6 +89,20 @@ module ActiveRecord
         attr_accessor :array
       end
 
+      class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options)
+        def name
+          options[:name]
+        end
+
+        def column
+          options[:column]
+        end
+
+        def primary_key
+          options[:primary_key]
+        end
+      end
+
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
