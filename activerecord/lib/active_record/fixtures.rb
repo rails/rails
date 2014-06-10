@@ -462,13 +462,7 @@ module ActiveRecord
         @config      = config
 
         # Remove string values that aren't constants or subclasses of AR
-        @class_names.delete_if { |k,klass|
-          unless klass.is_a? Class
-            klass = klass.safe_constantize
-            ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name to `set_fixture_class` will be removed in Rails 4.2. Use the class itself instead.")
-          end
-          !insert_class(@class_names, k, klass)
-        }
+        @class_names.delete_if { |klass_name, klass| !insert_class(@class_names, klass_name, klass) }
       end
 
       def [](fs_name)
