@@ -394,7 +394,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     output = standard_dump
     assert_no_match %r{create_table "foo_.+_bar"}, output
-    assert_no_match %r{create_index "foo_.+_bar"}, output
+    assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
   ensure
     migration.migrate(:down)
