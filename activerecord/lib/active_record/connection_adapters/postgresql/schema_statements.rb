@@ -467,7 +467,14 @@ ORDER BY c.conname
             options = {
               column: row['column'],
               name: row['name'],
-              primary_key: row['primary_key'] }
+              primary_key: row['primary_key']
+            }
+
+            options[:dependent] = case row['dependency']
+              when 'c'; :delete
+              when 'n'; :nullify
+              when 'r'; :restrict
+              end
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
           end
         end

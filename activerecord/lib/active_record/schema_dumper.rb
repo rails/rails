@@ -226,6 +226,8 @@ HEADER
                      'primary_key: ' + foreign_key.primary_key.inspect,
                      'name: ' + foreign_key.name.inspect
                     ]
+            parts << ('dependent: ' + foreign_key.dependent.inspect) if foreign_key.dependent
+
             '  ' + parts.join(', ')
           end
 

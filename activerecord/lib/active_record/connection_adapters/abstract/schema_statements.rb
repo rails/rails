@@ -652,7 +652,8 @@ module ActiveRecord
         options = {
           column: options.fetch(:column),
           primary_key: primary_key,
-          name: foreign_key_name(from_table, options)
+          name: foreign_key_name(from_table, options),
+          dependent: options.fetch(:dependent, nil)
         }
         at = create_alter_table from_table
         at.add_foreign_key to_table, options

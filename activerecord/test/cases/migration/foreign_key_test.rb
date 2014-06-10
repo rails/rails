@@ -77,6 +77,41 @@ module ActiveRecord
         end
       end
 
+      def test_add_dependent_restrict_foreign_key
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", dependent: :restrict
+
+        foreign_keys = @connection.foreign_keys("astronauts")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+          # ON DELETE RESTRICT is the default on MySQL
+          assert_equal nil, fk.dependent
+        else
+          assert_equal :restrict, fk.dependent
+        end
+      end
+
+      def test_add_dependent_delete_foreign_key
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", dependent: :delete
+
+        foreign_keys = @connection.foreign_keys("astronauts")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_equal :delete, fk.dependent
+      end
+
+      def test_add_dependent_nullify_foreign_key
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", dependent: :nullify
+
+        foreign_keys = @connection.foreign_keys("astronauts")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_equal :nullify, fk.dependent
+      end
+
       def test_remove_foreign_key
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
 
@@ -96,6 +131,13 @@ module ActiveRecord
       def test_schema_dumping
         output = dump_table_schema "fk_test_has_fk"
         assert_match %r{\s+add_foreign_key "fk_test_has_fk", "fk_test_has_pk", column: "fk_id", primary_key: "id", name: "fk_name"$}, output
+      end
+
+      def test_schema_dumping_dependent_option
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", dependent: :nullify
+
+        output = dump_table_schema "astronauts"
+        assert_match %r{\s+add_foreign_key "astronauts",.+dependent: :nullify$}, output
       end
     end
   end

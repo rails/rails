@@ -19,11 +19,13 @@ module ActiveRecord
         end
 
         def visit_AddForeignKey(o)
-          <<-SQL
+          sql = <<-SQL
 ADD CONSTRAINT #{quote_column_name(o.name)}
 FOREIGN KEY (#{quote_column_name(o.column)})
   REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
           SQL
+          sql << " #{dependency_sql(o.dependent)}" if o.dependent
+          sql
         end
 
         def visit_DropForeignKey(name)
@@ -97,6 +99,15 @@ FOREIGN KEY (#{quote_column_name(o.column)})
 
           def options_include_default?(options)
             options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+          end
+
+          def dependency_sql(dependency)
+            case dependency
+              when :nullify then "ON DELETE SET NULL"
+              when :delete  then "ON DELETE CASCADE"
+              when :restrict then "ON DELETE RESTRICT"
+              else ""
+            end
           end
       end
     end

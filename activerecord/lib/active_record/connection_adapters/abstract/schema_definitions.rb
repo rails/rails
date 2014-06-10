@@ -37,6 +37,10 @@ module ActiveRecord
       def primary_key
         options[:primary_key]
       end
+
+      def dependent
+        options[:dependent]
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
