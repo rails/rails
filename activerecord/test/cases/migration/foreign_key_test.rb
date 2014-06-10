@@ -1,11 +1,13 @@
 require 'cases/helper'
 require 'support/ddl_helper'
+require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_foreign_keys?
 module ActiveRecord
   class Migration
     class ForeignKeyTest < ActiveRecord::TestCase
       include DdlHelper
+      include SchemaDumpingHelper
 
       class Rocket < ActiveRecord::Base
       end
@@ -89,6 +91,11 @@ module ActiveRecord
         assert_equal 1, @connection.foreign_keys("astronauts").size
         @connection.remove_foreign_key :astronauts, name: "fancy_named_fk"
         assert_equal [], @connection.foreign_keys("astronauts")
+      end
+
+      def test_schema_dumping
+        output = dump_table_schema "fk_test_has_fk"
+        assert_match %r{\s+add_foreign_key "fk_test_has_fk", "fk_test_has_pk", column: "fk_id", primary_key: "id", name: "fk_name"$}, output
       end
     end
   end

@@ -374,13 +374,19 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   class CreateDogMigration < ActiveRecord::Migration
     def up
+      create_table("dog_owners") do |t|
+      end
+
       create_table("dogs") do |t|
         t.column :name, :string
+        t.column :owner_id, :integer
       end
       add_index "dogs", [:name]
+      add_foreign_key :dogs, :dog_owners, column: "owner_id" if supports_foreign_keys?
     end
     def down
       drop_table("dogs")
+      drop_table("dog_owners")
     end
   end
 
@@ -396,13 +402,17 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "foo_.+_bar"}, output
     assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
+
+    if ActiveRecord::Base.connection.supports_foreign_keys?
+      assert_no_match %r{add_foreign_key "foo_.+_bar"}, output
+      assert_no_match %r{add_foreign_key "[^"]+", "foo_.+_bar"}, output
+    end
   ensure
     migration.migrate(:down)
 
     ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ''
     $stdout = original
   end
-
 end
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase

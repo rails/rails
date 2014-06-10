@@ -171,6 +171,8 @@ HEADER
 
           indexes(table, tbl)
 
+          foreign_keys(table, tbl)
+
           tbl.rewind
           stream.print tbl.read
         rescue => e
@@ -208,6 +210,26 @@ HEADER
           end
 
           stream.puts add_index_statements.sort.join("\n")
+          stream.puts
+        end
+      end
+
+      def foreign_keys(table, stream)
+        return unless @connection.supports_foreign_keys?
+
+        if (foreign_keys = @connection.foreign_keys(table)).any?
+          add_foreign_key_statements = foreign_keys.map do |foreign_key|
+            parts = [
+                     'add_foreign_key ' + remove_prefix_and_suffix(foreign_key.from_table).inspect,
+                     remove_prefix_and_suffix(foreign_key.to_table).inspect,
+                     'column: ' + foreign_key.column.inspect,
+                     'primary_key: ' + foreign_key.primary_key.inspect,
+                     'name: ' + foreign_key.name.inspect
+                    ]
+            '  ' + parts.join(', ')
+          end
+
+          stream.puts add_foreign_key_statements.sort.join("\n")
           stream.puts
         end
       end
