@@ -74,9 +74,8 @@ literally follow along step by step. You can get the complete code
 [here](https://github.com/rails/docrails/tree/master/guides/code/getting_started).
 
 By following along with this guide, you'll create a Rails project called
-`blog`, a
-(very) simple weblog. Before you can start building the application, you need to
-make sure that you have Rails itself installed.
+`blog`, a (very) simple weblog. Before you can start building the application, 
+you need to make sure that you have Rails itself installed.
 
 TIP: The examples below use `$` to represent your terminal prompt in a UNIX-like OS,
 though it may have been customized to appear differently. If you are using Windows,
@@ -167,7 +166,7 @@ of the files and folders that Rails created by default:
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
-|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com).|
+|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://bundler.io).|
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|The only folder seen by the world as-is. Contains static files and compiled assets.|
