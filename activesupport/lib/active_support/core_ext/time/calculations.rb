@@ -3,6 +3,7 @@ require 'active_support/core_ext/time/conversions'
 require 'active_support/time_with_zone'
 require 'active_support/core_ext/time/zones'
 require 'active_support/core_ext/date_and_time/calculations'
+require 'active_support/core_ext/time/time_changer'
 
 class Time
   include DateAndTime::Calculations
@@ -74,21 +75,7 @@ class Time
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => Time.new(1981, 8, 29, 0, 0, 0)
   def change(options)
-    new_year  = options.fetch(:year, year)
-    new_month = options.fetch(:month, month)
-    new_day   = options.fetch(:day, day)
-    new_hour  = options.fetch(:hour, hour)
-    new_min   = options.fetch(:min, options[:hour] ? 0 : min)
-    new_sec   = options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
-    new_usec  = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
-
-    if utc?
-      ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
-    elsif zone
-      ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
-    else
-      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
-    end
+    ActiveSupport::TimeChanger.new(self, options).change
   end
 
   # Uses Date to provide precise Time calculations for years, months, and days
