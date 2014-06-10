@@ -293,19 +293,10 @@ end
 
 You can append as many column name/type pairs as you want.
 
-### Supported Type Modifiers
+### Passing Modifiers
 
-You can also specify some options just after the field type between curly
-braces. You can use the following modifiers:
-
-* `limit`        Sets the maximum size of the `string/text/binary/integer` fields.
-* `precision`    Defines the precision for the `decimal` fields, representing the total number of digits in the number.
-* `scale`        Defines the scale for the `decimal` fields, representing the number of digits after the decimal point.
-* `polymorphic`  Adds a `type` column for `belongs_to` associations.
-* `null`         Allows or disallows `NULL` values in the column.
-* `default`      Allows to set a default value on the column. NOTE: If using a dynamic value (such as date), the default will only be calculated the first time (e.g. on the date the migration is applied.)
-
-NOTE: `null` and `default` cannot be specified via command line.
+Some commonly used [type modifiers](#column-modifiers) can be passed directly on
+the command line. They are enclosed by curly braces and follow the field type:
 
 For instance, running:
 
@@ -323,6 +314,8 @@ class AddDetailsToProducts < ActiveRecord::Migration
   end
 end
 ```
+
+TIP: Have a look at the generators help output for further details.
 
 Writing a Migration
 -------------------
@@ -440,6 +433,21 @@ change_column_default :products, :approved, false
 
 This sets `:name` field on products to a `NOT NULL` column and the default
 value of the `:approved` field to false.
+
+### Column Modifiers
+
+Column modifiers can be applied when creating or changing a column:
+
+* `limit`        Sets the maximum size of the `string/text/binary/integer` fields.
+* `precision`    Defines the precision for the `decimal` fields, representing the total number of digits in the number.
+* `scale`        Defines the scale for the `decimal` fields, representing the number of digits after the decimal point.
+* `polymorphic`  Adds a `type` column for `belongs_to` associations.
+* `null`         Allows or disallows `NULL` values in the column.
+* `default`      Allows to set a default value on the column. NOTE: If using a dynamic value (such as date), the default will only be calculated the first time (e.g. on the date the migration is applied.)
+* `index`        Adds an index for the column.
+
+Some adapters may support additional options; see the adapter specific API docs
+for further information.
 
 ### When Helpers aren't Enough
 
