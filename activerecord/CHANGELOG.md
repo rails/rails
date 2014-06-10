@@ -1,3 +1,7 @@
+*   Remove deprecated method `ActiveRecord::Base.quoted_locking_column`.
+
+    *Akshay Vishnoi*
+
 *   `ActiveRecord::FinderMethods.find` with block can handle proc parameter as
     `Enumerable#find` does.
 
