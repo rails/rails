@@ -67,10 +67,6 @@ module ActiveRecord
           end
         end
 
-        def string_to_array(string, oid) # :nodoc:
-          parse_pg_array(string).map {|val| type_cast_array(oid, val)}
-        end
-
         private
 
           HstorePair = begin
@@ -101,14 +97,6 @@ module ActiveRecord
               value = value.gsub(/\\/, ARRAY_ESCAPE)
               value.gsub!(/"/,"\\\"")
               "\"#{value}\""
-            end
-          end
-
-          def type_cast_array(oid, value)
-            if ::Array === value
-              value.map {|item| type_cast_array(oid, item)}
-            else
-              oid.type_cast_from_database value
             end
           end
       end
