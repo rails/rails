@@ -33,6 +33,16 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
 
+  def test_find_with_proc_parameter_and_block
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.all.find(lambda { raise ActiveRecord::RecordNotFound }, &->(e){ e.title == Topic.new.title })
+    end
+
+    assert_nothing_raised(ActiveRecord::RecordNotFound) do
+      Topic.all.find(lambda { raise ActiveRecord::RecordNotFound }, &->(e){ e.title == topics(:first).title })
+    end
+  end
+
   def test_find_passing_active_record_object_is_deprecated
     assert_deprecated do
       Topic.find(Topic.last)
