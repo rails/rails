@@ -410,6 +410,29 @@ end
 removes the `description` and `name` columns, creates a `part_number` string
 column and adds an index on it. Finally it renames the `upccode` column.
 
+### Changing Columns
+
+Like the `remove_column` and `add_column` Rails provides the `change_column`
+migration method.
+
+```ruby
+change_column :products, :part_number, :text
+```
+
+This changes the column `part_number` on products table to be a `:text` field.
+
+Besides `change_column`, the `change_column_null` and `change_column_default`
+methods are used specifically to change the null and default values of a
+column.
+
+```ruby
+change_column_null :products, :name, false
+change_column_default :products, :approved, false
+```
+
+This sets `:name` field on products to a `NOT NULL` column and the default
+value of the `:approved` field to false.
+
 ### Column Modifiers
 
 Column modifiers can be applied when creating or changing a column:
