@@ -23,8 +23,10 @@ module ActiveRecord
       end
 
       teardown do
-        @connection.execute "DROP TABLE IF EXISTS astronauts"
-        @connection.execute "DROP TABLE IF EXISTS rockets"
+        if defined?(@connection)
+          @connection.execute "DROP TABLE IF EXISTS astronauts"
+          @connection.execute "DROP TABLE IF EXISTS rockets"
+        end
       end
 
       def test_foreign_keys

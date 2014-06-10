@@ -625,13 +625,6 @@ module ActiveRecord
       end
       alias :add_belongs_to :add_reference
 
-      def foreign_key_name(table_name, options)
-        options.fetch(:name) do
-          column_name = options.fetch(:column)
-          "#{table_name}_#{column_name}_fk"
-        end
-      end
-
       # Removes the reference(s). Also removes a +type+ column if one exists.
       # <tt>remove_reference</tt>, <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
       #
@@ -648,6 +641,36 @@ module ActiveRecord
         remove_column(table_name, "#{ref_name}_type") if options[:polymorphic]
       end
       alias :remove_belongs_to :remove_reference
+
+      def foreign_keys(table_name)
+        raise NotImplementedError, "foreign_keys is not implemented"
+      end
+
+      def add_foreign_key(from_table, to_table, options = {})
+        options = {
+          column: options.fetch(:column),
+          primary_key: "id",
+          name: foreign_key_name(from_table, options)
+        }
+        at = create_alter_table from_table
+        at.add_foreign_key to_table, options
+
+        execute schema_creation.accept at
+      end
+
+      def remove_foreign_key(from_table, options = {})
+        at = create_alter_table from_table
+        at.drop_foreign_key foreign_key_name(from_table, options)
+
+        execute schema_creation.accept at
+      end
+
+      def foreign_key_name(table_name, options) # :nodoc:
+        options.fetch(:name) do
+          column_name = options.fetch(:column)
+          "#{table_name}_#{column_name}_fk"
+        end
+      end
 
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name

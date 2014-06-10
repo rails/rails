@@ -10,6 +10,10 @@ module ActiveRecord
           add_column_position!(super, column_options(o))
         end
 
+        def visit_DropForeignKey(name)
+          "DROP FOREIGN KEY #{name}"
+        end
+
         private
 
         def visit_TableDefinition(o)
@@ -523,26 +527,6 @@ module ActiveRecord
           options = {column: row['column'], name: row['name'], primary_key: row['primary_key']}
           ForeignKeyDefinition.new(table_name, row['to_table'], options)
         end
-      end
-
-      def add_foreign_key(from_table, to_table, options = {})
-        foreign_key_column = options.fetch(:column)
-        referenced_column = "id"
-        foreign_key_name = foreign_key_name(from_table, options)
-        execute <<-SQL
-ALTER TABLE #{quote_table_name(from_table)}
-ADD CONSTRAINT #{foreign_key_name}
-FOREIGN KEY (#{quote_column_name(foreign_key_column)})
-REFERENCES #{quote_table_name(to_table)} (#{quote_column_name(referenced_column)})
-        SQL
-      end
-
-      def remove_foreign_key(from_table, options = {})
-        foreign_key_name = foreign_key_name(from_table, options)
-        execute <<-SQL
-ALTER TABLE #{quote_table_name(from_table)}
-DROP FOREIGN KEY #{foreign_key_name}
-        SQL
       end
 
       # Maps logical Rails types to MySQL-specific data types.

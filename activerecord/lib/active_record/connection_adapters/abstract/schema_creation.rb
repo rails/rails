@@ -18,11 +18,25 @@ module ActiveRecord
           add_column_options!(sql, column_options(o))
         end
 
+        def visit_AddForeignKey(o)
+          <<-SQL
+ADD CONSTRAINT #{quote_column_name(o.name)}
+FOREIGN KEY (#{quote_column_name(o.column)})
+  REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
+          SQL
+        end
+
+        def visit_DropForeignKey(name)
+          "DROP CONSTRAINT #{name}"
+        end
+
         private
 
           def visit_AlterTable(o)
             sql = "ALTER TABLE #{quote_table_name(o.name)} "
             sql << o.adds.map { |col| visit_AddColumn col }.join(' ')
+            sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(' ')
+            sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(' ')
           end
 
           def visit_ColumnDefinition(o)

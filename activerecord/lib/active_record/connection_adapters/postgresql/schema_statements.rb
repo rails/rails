@@ -472,26 +472,6 @@ ORDER BY c.conname
           end
         end
 
-        def add_foreign_key(from_table, to_table, options = {})
-          foreign_key_column = options.fetch(:column)
-          referenced_column = "id"
-          foreign_key_name = foreign_key_name(from_table, options)
-          execute <<-SQL
-ALTER TABLE #{quote_table_name(from_table)}
-ADD CONSTRAINT #{foreign_key_name}
-  FOREIGN KEY (#{quote_column_name(foreign_key_column)})
-  REFERENCES #{quote_table_name(to_table)} (#{quote_column_name(referenced_column)})
-          SQL
-        end
-
-        def remove_foreign_key(from_table, options = {})
-          foreign_key_name = foreign_key_name(from_table, options)
-          execute <<-SQL
-ALTER TABLE #{quote_table_name(from_table)}
-DROP CONSTRAINT #{foreign_key_name}
-          SQL
-        end
-
         def index_name_length
           63
         end
