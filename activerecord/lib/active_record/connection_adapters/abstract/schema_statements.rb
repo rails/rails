@@ -647,9 +647,11 @@ module ActiveRecord
       end
 
       def add_foreign_key(from_table, to_table, options = {})
+        primary_key = options.fetch(:primary_key, "id")
+
         options = {
           column: options.fetch(:column),
-          primary_key: "id",
+          primary_key: primary_key,
           name: foreign_key_name(from_table, options)
         }
         at = create_alter_table from_table

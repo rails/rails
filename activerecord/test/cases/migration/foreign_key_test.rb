@@ -1,9 +1,12 @@
 require 'cases/helper'
+require 'support/ddl_helper'
 
 if ActiveRecord::Base.connection.supports_foreign_keys?
 module ActiveRecord
   class Migration
     class ForeignKeyTest < ActiveRecord::TestCase
+      include DdlHelper
+
       class Rocket < ActiveRecord::Base
       end
 
@@ -53,6 +56,23 @@ module ActiveRecord
         assert_equal "rocket_id", fk.column
         assert_equal "id", fk.primary_key
         assert_equal "astronauts_rocket_id_fk", fk.name
+      end
+
+      def test_add_foreign_key_with_non_standard_primary_key
+        with_example_table @connection, "space_shuttles", "pk integer PRIMARY KEY" do
+          @connection.add_foreign_key(:astronauts, :space_shuttles,
+                                      column: "rocket_id", primary_key: "pk", name: "custom_pk")
+
+          foreign_keys = @connection.foreign_keys("astronauts")
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "astronauts", fk.from_table
+          assert_equal "space_shuttles", fk.to_table
+          assert_equal "pk", fk.primary_key
+
+          @connection.remove_foreign_key :astronauts, name: "custom_pk"
+        end
       end
 
       def test_remove_foreign_key
