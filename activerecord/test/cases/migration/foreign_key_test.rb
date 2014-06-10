@@ -139,6 +139,25 @@ module ActiveRecord
         output = dump_table_schema "astronauts"
         assert_match %r{\s+add_foreign_key "astronauts",.+dependent: :nullify$}, output
       end
+
+      class CreateCitiesAndHousesMigration < ActiveRecord::Migration
+        def change
+          create_table("cities") { |t| }
+
+          create_table("houses") do |t|
+            t.column :city_id, :integer
+          end
+          add_foreign_key :houses, :cities, column: "city_id"
+        end
+      end
+
+      def test_add_foreign_key_is_reversible
+        migration = CreateCitiesAndHousesMigration.new
+        silence_stream($stdout) { migration.migrate(:up) }
+        assert_equal ["houses_city_id_fk"], @connection.foreign_keys("houses").map(&:name)
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) }
+      end
     end
   end
 end
