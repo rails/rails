@@ -31,7 +31,7 @@ module ActiveRecord
     #   end
     def find(*args)
       if block_given?
-        to_a.find { |*block_args| yield(*block_args) }
+        to_a.find(*args) { |*block_args| yield(*block_args) }
       else
         find_with_ids(*args)
       end
