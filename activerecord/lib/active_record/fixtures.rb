@@ -568,10 +568,6 @@ module ActiveRecord
       @config   = config
       @model_class = nil
 
-      if class_name.is_a?(String)
-        ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name to `FixtureSet.new` will be removed in Rails 4.2. Use the class itself instead.")
-      end
-
       if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
         @model_class = class_name
       else
