@@ -202,4 +202,28 @@ module ActiveRecord
     end
   end
 end
+else
+module ActiveRecord
+  class Migration
+    class NoForeignKeySupportTest < ActiveRecord::TestCase
+      setup do
+        @connection = ActiveRecord::Base.connection
+      end
+
+      def test_add_foreign_key_should_be_noop
+        @connection.add_foreign_key :clubs, :categories
+      end
+
+      def test_remove_foreign_key_should_be_noop
+        @connection.remove_foreign_key :clubs, :categories
+      end
+
+      def test_foreign_keys_should_raise_not_implemented
+        assert_raises NotImplementedError do
+          @connection.foreign_keys("clubs")
+        end
+      end
+    end
+  end
+end
 end

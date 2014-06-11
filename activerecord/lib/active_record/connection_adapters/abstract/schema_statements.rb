@@ -647,6 +647,8 @@ module ActiveRecord
       end
 
       def add_foreign_key(from_table, to_table, options = {})
+        return unless supports_foreign_keys?
+
         options[:column] ||= foreign_key_column_for(to_table)
         primary_key = options.fetch(:primary_key, "id")
 
@@ -664,6 +666,8 @@ module ActiveRecord
       end
 
       def remove_foreign_key(from_table, options_or_to_table = {})
+        return unless supports_foreign_keys?
+
         if options_or_to_table.is_a?(Hash)
           options = options_or_to_table
         else
