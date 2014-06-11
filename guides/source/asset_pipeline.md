@@ -793,10 +793,10 @@ For Apache:
 # `mod_expires` to be enabled.
 <Location /assets/>
   # Use of ETag is discouraged when Last-Modified is present
-  Header unset ETag 
+  Header unset ETag
   FileETag None
   # RFC says only cache for 1 year
-  ExpiresActive On 
+  ExpiresActive On
   ExpiresDefault "access plus 1 year"
 </Location>
 ```
@@ -945,7 +945,7 @@ gem.
 ```ruby
 config.assets.css_compressor = :yui
 ```
-The other option for compressing CSS if you have the sass-rails gem installed is 
+The other option for compressing CSS if you have the sass-rails gem installed is
 
 ```ruby
 config.assets.css_compressor = :sass
@@ -1020,7 +1020,7 @@ The X-Sendfile header is a directive to the web server to ignore the response
 from the application, and instead serve a specified file from disk. This option
 is off by default, but can be enabled if your server supports it. When enabled,
 this passes responsibility for serving the file to the web server, which is
-faster. Have a look at [send_file](http://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file) 
+faster. Have a look at [send_file](http://api.rubyonrails.org/classes/ActionController/DataStreaming.html#method-i-send_file)
 on how to use this feature.
 
 Apache and nginx support this option, which can be enabled in
