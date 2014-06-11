@@ -136,6 +136,15 @@ module ActiveRecord
         assert_equal :nullify, fk.on_update
       end
 
+      def test_add_foreign_key_with_too_long_identifier
+        with_example_table @connection, "long_table_name_will_result_in_a_long_foreign_key_name", "rocket_id integer" do
+          e = assert_raises(ArgumentError) do
+            @connection.add_foreign_key "long_table_name_will_result_in_a_long_foreign_key_name", "rockets"
+          end
+          assert_match(/^Foreign key name 'long_table_name_will_result_in_a_long_foreign_key_name_rocket_id_fk' is too long;/, e.message)
+        end
+      end
+
       def test_remove_foreign_key_inferes_column
         @connection.add_foreign_key :astronauts, :rockets
 

@@ -682,7 +682,11 @@ module ActiveRecord
 
       def foreign_key_name(table_name, options) # :nodoc:
         options.fetch(:name) do
-          "#{table_name}_#{options.fetch(:column)}_fk"
+          identifier = "#{table_name}_#{options.fetch(:column)}_fk"
+          if identifier.length > allowed_index_name_length
+            raise ArgumentError, "Foreign key name '#{identifier}' is too long; the limit is #{allowed_index_name_length} characters"
+          end
+          identifier
         end
       end
 
