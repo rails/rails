@@ -121,7 +121,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_time_attributes_changes_without_time_zone
+  def test_datetime_attributes_changes_without_time_zone
 
     target = Class.new(ActiveRecord::Base)
     target.table_name = 'pirates'
