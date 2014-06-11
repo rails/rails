@@ -530,14 +530,19 @@ module ActiveRecord
             primary_key: row['primary_key']
           }
 
-          if create_table_info =~ /CONSTRAINT #{quote_column_name(row['name'])} FOREIGN KEY .* REFERENCES .* ON DELETE (CASCADE|SET NULL|RESTRICT)/
-            options[:on_delete] = case $1
-              when 'CASCADE'  then :cascade
-              when 'SET NULL' then :nullify
-              end
-          end
+          options[:on_update] = extract_foreign_key_action(create_table_info, row['name'], "UPDATE")
+          options[:on_delete] = extract_foreign_key_action(create_table_info, row['name'], "DELETE")
 
           ForeignKeyDefinition.new(table_name, row['to_table'], options)
+        end
+      end
+
+      def extract_foreign_key_action(structure, name, action) # :nodoc:
+        if structure =~ /CONSTRAINT #{quote_column_name(name)} FOREIGN KEY .* REFERENCES .* ON #{action} (CASCADE|SET NULL|RESTRICT)/
+          case $1
+          when 'CASCADE'; :cascade
+          when 'SET NULL'; :nullify
+          end
         end
       end
 

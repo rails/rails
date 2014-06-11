@@ -450,7 +450,7 @@ module ActiveRecord
 
         def foreign_keys(table_name)
           fk_info = select_all <<-SQL
-SELECT t2.relname AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confdeltype AS dependency
+SELECT t2.relname AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
 FROM pg_constraint c
 JOIN pg_class t1 ON c.conrelid = t1.oid
 JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -470,12 +470,17 @@ ORDER BY c.conname
               primary_key: row['primary_key']
             }
 
-            options[:on_delete] = case row['dependency']
-              when 'c'; :cascade
-              when 'n'; :nullify
-              when 'r'; :restrict
-              end
-            ForeignKeyDefinition.new(table_name, row["to_table"], options)
+            options[:on_delete] = extract_foreign_key_action(row['on_delete'])
+            options[:on_update] = extract_foreign_key_action(row['on_update'])
+            ForeignKeyDefinition.new(table_name, row['to_table'], options)
+          end
+        end
+
+        def extract_foreign_key_action(specifier) # :nodoc:
+          case specifier
+          when 'c'; :cascade
+          when 'n'; :nullify
+          when 'r'; :restrict
           end
         end
 

@@ -41,6 +41,10 @@ module ActiveRecord
       def on_delete
         options[:on_delete]
       end
+
+      def on_update
+        options[:on_update]
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class

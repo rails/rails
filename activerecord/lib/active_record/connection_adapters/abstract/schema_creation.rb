@@ -24,7 +24,8 @@ ADD CONSTRAINT #{quote_column_name(o.name)}
 FOREIGN KEY (#{quote_column_name(o.column)})
   REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
           SQL
-          sql << " #{action_sql(o.on_delete)}" if o.on_delete
+          sql << " #{action_sql('DELETE', o.on_delete)}" if o.on_delete
+          sql << " #{action_sql('UPDATE', o.on_update)}" if o.on_update
           sql
         end
 
@@ -101,7 +102,7 @@ FOREIGN KEY (#{quote_column_name(o.column)})
             options.include?(:default) && !(options[:null] == false && options[:default].nil?)
           end
 
-          def action_sql(action = "DELETE", dependency)
+          def action_sql(action, dependency)
             case dependency
               when :nullify then "ON #{action} SET NULL"
               when :cascade  then "ON #{action} CASCADE"

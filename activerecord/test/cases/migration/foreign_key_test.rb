@@ -126,6 +126,16 @@ module ActiveRecord
         assert_equal :nullify, fk.on_delete
       end
 
+      def test_add_foreign_key_with_on_update
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_update: :nullify
+
+        foreign_keys = @connection.foreign_keys("astronauts")
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_equal :nullify, fk.on_update
+      end
+
       def test_remove_foreign_key_inferes_column
         @connection.add_foreign_key :astronauts, :rockets
 
@@ -155,11 +165,11 @@ module ActiveRecord
         assert_match %r{\s+add_foreign_key "fk_test_has_fk", "fk_test_has_pk", column: "fk_id", primary_key: "id", name: "fk_name"$}, output
       end
 
-      def test_schema_dumping_on_delete_option
-        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_delete: :nullify
+      def test_schema_dumping_on_delete_and_on_update_options
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_delete: :nullify, on_update: :cascade
 
         output = dump_table_schema "astronauts"
-        assert_match %r{\s+add_foreign_key "astronauts",.+on_delete: :nullify$}, output
+        assert_match %r{\s+add_foreign_key "astronauts",.+on_update: :cascade,.+on_delete: :nullify$}, output
       end
 
       class CreateCitiesAndHousesMigration < ActiveRecord::Migration

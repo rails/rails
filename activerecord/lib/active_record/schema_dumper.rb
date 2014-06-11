@@ -226,6 +226,7 @@ HEADER
                      'primary_key: ' + foreign_key.primary_key.inspect,
                      'name: ' + foreign_key.name.inspect
                     ]
+            parts << ('on_update: ' + foreign_key.on_update.inspect) if foreign_key.on_update
             parts << ('on_delete: ' + foreign_key.on_delete.inspect) if foreign_key.on_delete
 
             '  ' + parts.join(', ')
