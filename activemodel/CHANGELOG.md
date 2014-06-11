@@ -1,3 +1,9 @@
+*   Remove deprecated `Validatior#setup` without replacement.
+
+    See #10716.
+
+    *Kuldeep Aggarwal*
+
 *   Add plural and singular form for length validator's default messages.
 
     *Abd ar-Rahman Hamid*
