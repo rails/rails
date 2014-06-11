@@ -74,14 +74,15 @@ module ActionDispatch
 
         def build_host_url(options)
           protocol = options[:protocol]
-          if match = options[:host].match(HOST_REGEXP)
+          host     = options[:host]
+          if match = host.match(HOST_REGEXP)
             protocol           ||= match[1] unless protocol == false
-            options[:host]       = match[2]
+            host                 = match[2]
             options[:port]       = match[3] unless options.key?(:port)
           end
 
           protocol       = normalize_protocol protocol
-          options[:host] = normalize_host(options)
+          host           = normalize_host(host, options)
 
           result = protocol.dup
 
@@ -89,7 +90,7 @@ module ActionDispatch
             result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
           end
 
-          result << options[:host]
+          result << host
           normalize_port(options[:port], protocol) { |port|
             result << ":#{port}"
           }
@@ -118,19 +119,19 @@ module ActionDispatch
           end
         end
 
-        def normalize_host(options)
-          return options[:host] if !named_host?(options[:host]) || same_host?(options)
+        def normalize_host(_host, options)
+          return _host if !named_host?(_host) || same_host?(options)
 
           tld_length = options[:tld_length] || @@tld_length
 
           host = ""
           if options[:subdomain] == true || !options.key?(:subdomain)
-            host << extract_subdomain(options[:host], tld_length).to_param
+            host << extract_subdomain(_host, tld_length).to_param
           elsif options[:subdomain].present?
             host << options[:subdomain].to_param
           end
           host << "." unless host.empty?
-          host << (options[:domain] || extract_domain(options[:host], tld_length))
+          host << (options[:domain] || extract_domain(_host, tld_length))
           host
         end
 
