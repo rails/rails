@@ -220,25 +220,25 @@ module ActiveRecord
       end
 
       def column_types # :nodoc:
-        @column_types ||= decorate_columns(columns_hash.dup)
+        @column_types ||= decorate_types(build_types_hash)
       end
 
       def type_for_attribute(attr_name) # :nodoc:
-        column_types.fetch(attr_name) { column_for_attribute(attr_name) }
+        column_types.fetch(attr_name) { Type::Value.new }
       end
 
-      def decorate_columns(columns_hash) # :nodoc:
-        return if columns_hash.empty?
+      def decorate_types(types) # :nodoc:
+        return if types.empty?
 
         @time_zone_column_names ||= self.columns_hash.find_all do |name, col|
           create_time_zone_conversion_attribute?(name, col)
         end.map!(&:first)
 
         @time_zone_column_names.each do |name|
-          columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(columns_hash[name])
+          types[name] = AttributeMethods::TimeZoneConversion::Type.new(types[name])
         end
 
-        columns_hash
+        types
       end
 
       # Returns a hash where the keys are column names and the values are
@@ -334,6 +334,10 @@ module ActiveRecord
           # STI subclasses always use their superclass' table.
           base.table_name
         end
+      end
+
+      def build_types_hash
+        Hash[columns.map { |column| [column.name, column.cast_type] }]
       end
     end
   end
