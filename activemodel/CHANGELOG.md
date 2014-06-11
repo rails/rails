@@ -1,4 +1,4 @@
-*   Remove deprecated `Validatior#setup` without replacement.
+*   Remove deprecated `Validator#setup` without replacement.
 
     See #10716.
 
