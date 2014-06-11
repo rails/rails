@@ -105,18 +105,9 @@ module ActiveRecord
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
 
-          if reflection.source_macro == :belongs_to
-            if reflection.polymorphic?
-              key = reflection.association_primary_key(assoc_klass)
-            else
-              key = reflection.association_primary_key
-            end
-
-            foreign_key = reflection.foreign_key
-          else
-            key         = reflection.foreign_key
-            foreign_key = reflection.active_record_primary_key
-          end
+          join_keys = reflection.join_keys(assoc_klass)
+          key = join_keys.key
+          foreign_key = join_keys.foreign_key
 
           if reflection == chain.last
             bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key], tracker
