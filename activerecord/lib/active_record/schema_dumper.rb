@@ -91,7 +91,8 @@ HEADER
       end
 
       def tables(stream)
-        @connection.tables.sort.each do |tbl|
+        sorted_tables = @connection.tables.sort
+        sorted_tables.each do |tbl|
           next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
             case ignored
             when String; remove_prefix_and_suffix(tbl) == ignored
@@ -101,6 +102,13 @@ HEADER
             end
           end
           table(tbl, stream)
+        end
+
+        # dump foreign keys at the end to make sure all dependent tables exist.
+        if @connection.supports_foreign_keys?
+          sorted_tables.each do |tbl|
+            foreign_keys(tbl, stream)
+          end
         end
       end
 
@@ -171,8 +179,6 @@ HEADER
 
           indexes(table, tbl)
 
-          foreign_keys(table, tbl)
-
           tbl.rewind
           stream.print tbl.read
         rescue => e
@@ -215,8 +221,6 @@ HEADER
       end
 
       def foreign_keys(table, stream)
-        return unless @connection.supports_foreign_keys?
-
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
             parts = [
@@ -233,7 +237,6 @@ HEADER
           end
 
           stream.puts add_foreign_key_statements.sort.join("\n")
-          stream.puts
         end
       end
 

@@ -372,6 +372,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "subscribers", id: false}, output
   end
 
+  if ActiveRecord::Base.connection.supports_foreign_keys?
+    def test_foreign_keys_are_dumped_at_the_bottom_to_circumvent_dependency_issues
+      output = standard_dump
+      assert_match(/^\s+add_foreign_key "fk_test_has_fk"[^\n]+\n\s+add_foreign_key "lessons_students"/, output)
+    end
+  end
+
   class CreateDogMigration < ActiveRecord::Migration
     def up
       create_table("dog_owners") do |t|
