@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'active_record/tasks/database_tasks'
 
 module ActiveRecord
   class PostgreSQLDBCreateTest < ActiveRecord::TestCase
@@ -59,7 +60,9 @@ module ActiveRecord
       $stderr.expects(:puts).
         with("Couldn't create database for #{@configuration.inspect}")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      assert_raises(Exception) do
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      end
     end
 
     def test_create_when_database_exists_outputs_info_to_stderr
@@ -69,7 +72,9 @@ module ActiveRecord
         ActiveRecord::StatementInvalid.new('database "my-app-db" already exists')
       )
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      assert_raises(ActiveRecord::Tasks::DatabaseAlreadyExists) do
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      end
     end
   end
 

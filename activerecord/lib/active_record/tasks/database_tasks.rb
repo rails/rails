@@ -88,9 +88,11 @@ module ActiveRecord
         class_for_adapter(configuration['adapter']).new(*arguments).create
       rescue DatabaseAlreadyExists
         $stderr.puts "#{configuration['database']} already exists"
+        raise
       rescue Exception => error
         $stderr.puts error, *(error.backtrace)
         $stderr.puts "Couldn't create database for #{configuration.inspect}"
+        raise
       end
 
       def create_all
@@ -110,6 +112,7 @@ module ActiveRecord
       rescue Exception => error
         $stderr.puts error, *(error.backtrace)
         $stderr.puts "Couldn't drop #{configuration['database']}"
+        raise
       end
 
       def drop_all

@@ -8,24 +8,53 @@ db_namespace = namespace :db do
 
   namespace :create do
     task :all => :load_config do
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      begin
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      rescue
+        exit(1)
+      end
     end
   end
 
   desc 'Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV it defaults to creating the development and test databases.'
-  task :create => [:load_config] do
+  task :create! => [:load_config] do
     ActiveRecord::Tasks::DatabaseTasks.create_current
+  end
+
+  task :try_create => [:load_config] do
+    begin
+      db_namespace[:create!].invoke
+    rescue
+      # NOOP - gobbling up the exceptions will allow subsequent tasks to run
+    end
+  end
+
+  desc 'Create the database from DATABASE_URL or config/database.yml for the current Rails.env (use db:create:all to create all databases in the config)'
+  task :create => [:load_config] do
+    begin
+      db_namespace[:create!].invoke
+    rescue
+      exit(1)
+    end
   end
 
   namespace :drop do
     task :all => :load_config do
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      begin
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      rescue
+        exit(1)
+      end
     end
   end
 
   desc 'Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV it defaults to dropping the development and test databases.'
   task :drop => [:load_config] do
-    ActiveRecord::Tasks::DatabaseTasks.drop_current
+    begin
+      ActiveRecord::Tasks::DatabaseTasks.drop_current
+    rescue
+      exit(1)
+    end
   end
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
@@ -237,7 +266,7 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.load_schema(:ruby, ENV['SCHEMA'])
     end
 
-    task :load_if_ruby => ['db:create', :environment] do
+    task :load_if_ruby => ['db:try_create', :environment] do
       db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
@@ -283,7 +312,7 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.load_schema(:sql, ENV['DB_STRUCTURE'])
     end
 
-    task :load_if_sql => ['db:create', :environment] do
+    task :load_if_sql => ['db:try_create', :environment] do
       db_namespace["structure:load"].invoke if ActiveRecord::Base.schema_format == :sql
     end
   end
