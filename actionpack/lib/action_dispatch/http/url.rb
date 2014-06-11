@@ -12,11 +12,11 @@ module ActionDispatch
       self.tld_length = 1
 
       class << self
-        def extract_domain(host, tld_length = @@tld_length)
+        def extract_domain(host, tld_length)
           host.split('.').last(1 + tld_length).join('.') if named_host?(host)
         end
 
-        def extract_subdomains(host, tld_length = @@tld_length)
+        def extract_subdomains(host, tld_length)
           if named_host?(host)
             parts = host.split('.')
             parts[0..-(tld_length + 2)]
@@ -25,7 +25,7 @@ module ActionDispatch
           end
         end
 
-        def extract_subdomain(host, tld_length = @@tld_length)
+        def extract_subdomain(host, tld_length)
           extract_subdomains(host, tld_length).join('.')
         end
 
