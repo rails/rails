@@ -176,9 +176,7 @@ module ActiveRecord
           }
         end
 
-        result = result.map do |attributes|
-          values = attributes.values
-
+        result = result.rows.map do |values|
           columns.zip(values).map { |column, value| column.type_cast_from_database value }
         end
         columns.one? ? result.map!(&:first) : result
