@@ -126,7 +126,7 @@ module ActionDispatch
           if subdomain == true || !options.key?(:subdomain)
             return _host if options[:domain].nil?
 
-            host << extract_subdomain(_host, tld_length).to_param
+            host << extract_subdomain(_host, tld_length)
           elsif subdomain
             host << subdomain.to_param
           end
