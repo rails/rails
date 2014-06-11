@@ -102,6 +102,10 @@ module ActionDispatch
           host && IP_HOST_REGEXP !~ host
         end
 
+        def same_host?(options)
+          (options[:subdomain] == true || !options.key?(:subdomain)) && options[:domain].nil?
+        end
+
         def normalize_protocol(protocol)
           case protocol
           when nil
@@ -116,16 +120,15 @@ module ActionDispatch
         end
 
         def normalize_host(_host, options)
-          return _host unless named_host?(_host)
+          return _host if !named_host?(_host) || same_host?(options)
 
           tld_length = options[:tld_length] || @@tld_length
 
-          host = nil
+          host = ""
           if options[:subdomain] == true || !options.key?(:subdomain)
-            return _host if options[:domain].nil?
-            host = extract_subdomain(_host, tld_length).to_param
+            host << extract_subdomain(_host, tld_length).to_param
           elsif options[:subdomain].present?
-            host = options[:subdomain].to_param
+            host << options[:subdomain].to_param
           end
           host << "." unless host.empty?
           host << (options[:domain] || extract_domain(_host, tld_length))
