@@ -75,10 +75,11 @@ module ActionDispatch
         def build_host_url(options)
           protocol = options[:protocol]
           host     = options[:host]
+          port     = options[:port]
           if match = host.match(HOST_REGEXP)
             protocol           ||= match[1] unless protocol == false
             host                 = match[2]
-            options[:port]       = match[3] unless options.key?(:port)
+            port                 = match[3] unless options.key? :port
           end
 
           protocol       = normalize_protocol protocol
@@ -91,7 +92,7 @@ module ActionDispatch
           end
 
           result << host
-          normalize_port(options[:port], protocol) { |port|
+          normalize_port(port, protocol) { |port|
             result << ":#{port}"
           }
 
