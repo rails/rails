@@ -24,6 +24,10 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal "1", Contact.new(id: 1).to_param
   end
 
+  test "to_param returns the string joined by '-'" do
+    assert_equal "abc-xyz", Contact.new(id: ["abc", "xyz"]).to_param
+  end
+
   test "to_param returns nil if to_key is nil" do
     klass = Class.new(Contact) do
       def persisted?
