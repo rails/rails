@@ -400,6 +400,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         macro == :belongs_to
       end
 
+      # Returns +true+ if +self+ is a +has_one+ reflection.
       def has_one?
         macro == :has_one
       end
