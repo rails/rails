@@ -176,8 +176,11 @@ module ActiveRecord
           }
         end
 
-        result = result.map do |attributes|
-          values = klass.initialize_attributes(attributes).values
+        result = result.rows.map do |values|
+          values = result.columns.zip(values).map do |column_name, value|
+            single_attr_hash = { column_name => value }
+            klass.initialize_attributes(single_attr_hash).values.first
+          end
 
           columns.zip(values).map { |column, value| column.type_cast value }
         end
