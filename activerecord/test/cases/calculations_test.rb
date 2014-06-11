@@ -606,4 +606,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1,2,3,4,5], taks_relation.pluck(:id)
     assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
   end
+
+  def test_pluck_columns_with_same_name
+    expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
+    actual = Topic.joins(:replies)
+      .pluck('topics.title', 'replies_topics.title')
+    assert_equal expected, actual
+  end
 end
