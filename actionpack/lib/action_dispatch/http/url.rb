@@ -81,16 +81,16 @@ module ActionDispatch
 
           options[:protocol] = normalize_protocol(options)
           options[:host]     = normalize_host(options)
-          options[:port]     = normalize_port(options)
 
-          result = options[:protocol]
+          result = options[:protocol].dup
 
           if options[:user] && options[:password]
             result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
           end
 
           result << options[:host]
-          result << ":#{options[:port]}" if options[:port]
+          port  = normalize_port(options[:port], options[:protocol])
+          result << ":#{port}" if port
 
           result
         end
@@ -132,16 +132,16 @@ module ActionDispatch
           host
         end
 
-        def normalize_port(options)
-          return nil if options[:port].nil? || options[:port] == false
+        def normalize_port(port, protocol)
+          return nil if port.nil? || port == false
 
-          case options[:protocol]
+          case protocol
           when "//"
-            options[:port]
+            port
           when "https://"
-            options[:port].to_i == 443 ? nil : options[:port]
+            port.to_i == 443 ? nil : port
           else
-            options[:port].to_i == 80 ? nil : options[:port]
+            port.to_i == 80 ? nil : port
           end
         end
       end
