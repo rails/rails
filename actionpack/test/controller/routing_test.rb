@@ -256,7 +256,6 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   end
 
   def test_scoped_lambda_with_get_lambda
-    scope_called = false
     inner_called = false
 
     rs.draw do

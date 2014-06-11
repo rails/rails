@@ -213,8 +213,6 @@ module ActionDispatch
         route_set = Routing::RouteSet.new
         mapper = Routing::Mapper.new route_set
 
-        strexp = Router::Strexp.build("/", {}, ['/', '.', '?'], false)
-        path   = Path::Pattern.new strexp
         app    = lambda { |env| [200, {}, ['success!']] }
         mapper.get '/weblog', :to => app
 
