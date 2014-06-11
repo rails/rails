@@ -35,34 +35,21 @@ module ActiveRecord
 
       extend ActiveSupport::Concern
 
-      ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :time, :date]
-
-      included do
-        class_attribute :attribute_types_cached_by_default, instance_writer: false
-        self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-      end
-
       module ClassMethods
-        # +cache_attributes+ allows you to declare which converted attribute
-        # values should be cached. Usually caching only pays off for attributes
-        # with expensive conversion methods, like time related columns (e.g.
-        # +created_at+, +updated_at+).
-        def cache_attributes(*attribute_names)
-          cached_attributes.merge attribute_names.map { |attr| attr.to_s }
-        end
-
-        # Returns the attributes which are cached. By default time related columns
-        # with datatype <tt>:datetime, :time, :date</tt> are cached.
-        def cached_attributes
-          @cached_attributes ||= columns.select { |c| cacheable_column?(c) }.map { |col| col.name }.to_set
-        end
-
-        # Returns +true+ if the provided attribute is being cached.
-        def cache_attribute?(attr_name)
-          cached_attributes.include?(attr_name)
+        [:cache_attributes, :cached_attributes, :cache_attribute?].each do |method_name|
+          define_method method_name do |*|
+            cached_attributes_deprecation_warning(method_name)
+            true
+          end
         end
 
         protected
+
+        def cached_attributes_deprecation_warning(method_name)
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            Calling `#{method_name}` is no longer necessary. All attributes are cached.
+          MESSAGE
+        end
 
         if Module.methods_transplantable?
           def define_method_attribute(name)
@@ -89,16 +76,6 @@ module ActiveRecord
             end
           end
         end
-
-        private
-
-        def cacheable_column?(column)
-          if attribute_types_cached_by_default == ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
-            true
-          else
-            attribute_types_cached_by_default.include?(column.type)
-          end
-        end
       end
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after
@@ -122,11 +99,7 @@ module ActiveRecord
             return block_given? ? yield(name) : nil
           }
 
-          if self.class.cache_attribute?(name)
-            @attributes[name] = column.type_cast_from_database(value)
-          else
-            column.type_cast_from_database value
-          end
+          @attributes[name] = column.type_cast_from_database(value)
         }
       end
 

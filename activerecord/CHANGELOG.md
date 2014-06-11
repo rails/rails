@@ -1,3 +1,7 @@
+*   Remove `cache_attributes` and friends. All attributes are cached.
+
+    *Sean Griffin*
+
 *   Remove deprecated method `ActiveRecord::Base.quoted_locking_column`.
 
     *Akshay Vishnoi*
