@@ -788,9 +788,11 @@ For Apache:
 # `mod_expires` to be enabled.
 <Location /assets/>
   # Use of ETag is discouraged when Last-Modified is present
-  Header unset ETag FileETag None
+  Header unset ETag 
+  FileETag None
   # RFC says only cache for 1 year
-  ExpiresActive On ExpiresDefault "access plus 1 year"
+  ExpiresActive On 
+  ExpiresDefault "access plus 1 year"
 </Location>
 ```
 
