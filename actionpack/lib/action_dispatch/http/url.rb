@@ -99,7 +99,7 @@ module ActionDispatch
         end
 
         def named_host?(host)
-          host && IP_HOST_REGEXP !~ host
+          IP_HOST_REGEXP !~ host
         end
 
         def normalize_protocol(protocol)
@@ -116,7 +116,7 @@ module ActionDispatch
         end
 
         def normalize_host(_host, options)
-          return _host if !named_host?(_host)
+          return _host unless named_host?(_host)
 
           tld_length = options[:tld_length] || @@tld_length
 
