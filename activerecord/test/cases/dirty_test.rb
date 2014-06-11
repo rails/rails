@@ -565,6 +565,19 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_time_attributes_do_not_convert_zone
+    in_time_zone 'Paris' do
+      topic = Topic.new(:bonus_time => Time.now)
+      original_bonus_time = topic.bonus_time
+      topic.save!
+
+      topic.bonus_time = Time.now + 1.day
+      assert topic.bonus_time_changed?
+      assert_equal original_bonus_time, topic.bonus_time_was
+      assert_equal original_bonus_time.zone, topic.bonus_time_was.zone
+    end
+  end
+
   private
     def with_partial_updates(klass, on = true)
       old = klass.partial_updates?
