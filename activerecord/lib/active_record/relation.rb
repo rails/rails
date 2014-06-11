@@ -324,12 +324,6 @@ module ActiveRecord
       stmt.table(table)
       stmt.key = table[primary_key]
 
-      if @klass.connection.adapter_name=='PostgreSQL' && !arel.source.right.empty? && stmt.to_sql.match(/#{arel.source.right.first.left.name}/)
-        return @klass.connection.exec_update(@klass.connection.fix_update_sql_for_join(stmt, arel), 'SQL')
-      elsif @klass.connection.adapter_name=='SQLite' && !arel.source.right.empty? && stmt.to_sql.match(/#{arel.source.right.first.left.name}/)
-        return @klass.connection.exec_update(@klass.connection.fix_update_sql_for_join(stmt, arel), 'SQL')
-      end
-
       if joins_values.any?
         @klass.connection.join_to_update(stmt, arel)
       else

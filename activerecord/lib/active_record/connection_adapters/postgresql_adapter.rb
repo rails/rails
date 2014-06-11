@@ -74,6 +74,7 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
+      attr_accessor :noop
       ADAPTER_NAME = 'PostgreSQL'
 
       NATIVE_DATABASE_TYPES = {
@@ -163,13 +164,30 @@ module ActiveRecord
         { concurrently: 'CONCURRENTLY' }
       end
 
+      def join_to_update update, select
+        @noop = false
+        if !select.source.right.empty? && update.to_sql.match(/#{select.source.right.first.left.name}/)
+          @noop =  exec_update(fix_update_sql_for_join(update, select), 'SQL')
+        else
+          super
+        end
+      end
       # updates with JOIN won't work in PostgreSQL unless we use the following structure:
       # UPDATE "posts" SET title = authors.name 
       # FROM authors 
       # WHERE "posts"."author_id" = "authors"."id"
       def fix_update_sql_for_join stmt, arel
-        stmt.where arel.join_sources.first.right.expr.right.relation[arel.join_sources.first.right.expr.right.name].eq(arel.join_sources.first.left[arel.join_sources.first.right.expr.left.name])
+        expr_right = arel.join_sources.first.right.expr.right
+        equality_right = expr_right.relation[expr_right.name]
+        expr_left = arel.join_sources.first.left
+        expr_left_name = arel.join_sources.first.right.expr.left.name
+        stmt.where equality_right.eq(expr_left[expr_left_name])
         stmt.to_sql.gsub(/WHERE/, "FROM #{arel.source.right.first.left.name} WHERE")
+      end
+
+      def update(arel, name = nil, binds = [])
+        return super unless @noop
+        @noop
       end
 
       class StatementPool < ConnectionAdapters::StatementPool
