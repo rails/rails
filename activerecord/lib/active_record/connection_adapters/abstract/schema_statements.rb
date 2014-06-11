@@ -654,7 +654,7 @@ module ActiveRecord
           column: options[:column],
           primary_key: primary_key,
           name: foreign_key_name(from_table, options),
-          dependent: options.fetch(:dependent, nil)
+          on_delete: options.fetch(:on_delete, nil)
         }
         at = create_alter_table from_table
         at.add_foreign_key to_table, options

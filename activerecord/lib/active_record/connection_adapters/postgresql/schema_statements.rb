@@ -470,8 +470,8 @@ ORDER BY c.conname
               primary_key: row['primary_key']
             }
 
-            options[:dependent] = case row['dependency']
-              when 'c'; :delete
+            options[:on_delete] = case row['dependency']
+              when 'c'; :cascade
               when 'n'; :nullify
               when 'r'; :restrict
               end

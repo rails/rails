@@ -91,8 +91,8 @@ module ActiveRecord
         end
       end
 
-      def test_add_dependent_restrict_foreign_key
-        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", dependent: :restrict
+      def test_add_on_delete_restrict_foreign_key
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_delete: :restrict
 
         foreign_keys = @connection.foreign_keys("astronauts")
         assert_equal 1, foreign_keys.size
@@ -100,30 +100,30 @@ module ActiveRecord
         fk = foreign_keys.first
         if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
           # ON DELETE RESTRICT is the default on MySQL
-          assert_equal nil, fk.dependent
+          assert_equal nil, fk.on_delete
         else
-          assert_equal :restrict, fk.dependent
+          assert_equal :restrict, fk.on_delete
         end
       end
 
-      def test_add_dependent_delete_foreign_key
-        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", dependent: :delete
+      def test_add_on_delete_cascade_foreign_key
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_delete: :cascade
 
         foreign_keys = @connection.foreign_keys("astronauts")
         assert_equal 1, foreign_keys.size
 
         fk = foreign_keys.first
-        assert_equal :delete, fk.dependent
+        assert_equal :cascade, fk.on_delete
       end
 
-      def test_add_dependent_nullify_foreign_key
-        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", dependent: :nullify
+      def test_add_on_delete_nullify_foreign_key
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_delete: :nullify
 
         foreign_keys = @connection.foreign_keys("astronauts")
         assert_equal 1, foreign_keys.size
 
         fk = foreign_keys.first
-        assert_equal :nullify, fk.dependent
+        assert_equal :nullify, fk.on_delete
       end
 
       def test_remove_foreign_key_inferes_column
@@ -155,11 +155,11 @@ module ActiveRecord
         assert_match %r{\s+add_foreign_key "fk_test_has_fk", "fk_test_has_pk", column: "fk_id", primary_key: "id", name: "fk_name"$}, output
       end
 
-      def test_schema_dumping_dependent_option
-        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", dependent: :nullify
+      def test_schema_dumping_on_delete_option
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_delete: :nullify
 
         output = dump_table_schema "astronauts"
-        assert_match %r{\s+add_foreign_key "astronauts",.+dependent: :nullify$}, output
+        assert_match %r{\s+add_foreign_key "astronauts",.+on_delete: :nullify$}, output
       end
 
       class CreateCitiesAndHousesMigration < ActiveRecord::Migration

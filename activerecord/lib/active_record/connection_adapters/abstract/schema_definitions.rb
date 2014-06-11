@@ -38,8 +38,8 @@ module ActiveRecord
         options[:primary_key]
       end
 
-      def dependent
-        options[:dependent]
+      def on_delete
+        options[:on_delete]
       end
     end
 

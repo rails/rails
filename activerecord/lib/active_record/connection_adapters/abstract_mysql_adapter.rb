@@ -531,8 +531,8 @@ module ActiveRecord
           }
 
           if create_table_info =~ /CONSTRAINT #{quote_column_name(row['name'])} FOREIGN KEY .* REFERENCES .* ON DELETE (CASCADE|SET NULL|RESTRICT)/
-            options[:dependent] = case $1
-              when 'CASCADE'  then :delete
+            options[:on_delete] = case $1
+              when 'CASCADE'  then :cascade
               when 'SET NULL' then :nullify
               end
           end
