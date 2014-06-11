@@ -89,8 +89,9 @@ module ActionDispatch
           end
 
           result << options[:host]
-          port  = normalize_port(options[:port], options[:protocol])
-          result << ":#{port}" if port
+          normalize_port(options[:port], options[:protocol]) { |port|
+            result << ":#{port}"
+          }
 
           result
         end
@@ -133,15 +134,14 @@ module ActionDispatch
         end
 
         def normalize_port(port, protocol)
-          return nil if port.nil? || port == false
+          return unless port
 
           case protocol
-          when "//"
-            port
+          when "//" then yield port
           when "https://"
-            port.to_i == 443 ? nil : port
+            yield port unless port.to_i == 443
           else
-            port.to_i == 80 ? nil : port
+            yield port unless port.to_i == 80
           end
         end
       end
