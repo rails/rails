@@ -79,17 +79,17 @@ module ActionDispatch
             options[:port]       = match[3] unless options.key?(:port)
           end
 
-          options[:protocol] = normalize_protocol(options)
-          options[:host]     = normalize_host(options)
+          protocol       = normalize_protocol options[:protocol]
+          options[:host] = normalize_host(options)
 
-          result = options[:protocol].dup
+          result = protocol.dup
 
           if options[:user] && options[:password]
             result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
           end
 
           result << options[:host]
-          normalize_port(options[:port], options[:protocol]) { |port|
+          normalize_port(options[:port], protocol) { |port|
             result << ":#{port}"
           }
 
@@ -104,8 +104,8 @@ module ActionDispatch
           (options[:subdomain] == true || !options.key?(:subdomain)) && options[:domain].nil?
         end
 
-        def normalize_protocol(options)
-          case options[:protocol]
+        def normalize_protocol(protocol)
+          case protocol
           when nil
             "http://"
           when false, "//"
@@ -113,7 +113,7 @@ module ActionDispatch
           when PROTOCOL_REGEXP
             "#{$1}://"
           else
-            raise ArgumentError, "Invalid :protocol option: #{options[:protocol].inspect}"
+            raise ArgumentError, "Invalid :protocol option: #{protocol.inspect}"
           end
         end
 
