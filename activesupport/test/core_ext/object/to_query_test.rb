@@ -63,6 +63,6 @@ class ToQueryTest < ActiveSupport::TestCase
 
   private
     def assert_query_equal(expected, actual)
-      assert_equal expected.split('&'), actual.to_query.split('&')
+      assert_equal expected, actual.to_query
     end
 end
