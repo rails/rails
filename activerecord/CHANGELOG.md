@@ -1,3 +1,10 @@
+*   Pluck now works when selecting columns from different tables with the same
+    name.
+
+    Fixes #15649
+
+    *Sean Griffin*
+
 *   Remove `cache_attributes` and friends. All attributes are cached.
 
     *Sean Griffin*
