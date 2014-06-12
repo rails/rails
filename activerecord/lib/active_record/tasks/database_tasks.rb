@@ -3,17 +3,16 @@ module ActiveRecord
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
-    # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is a utility class, which encapsulates
+    # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is an utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used in rake tasks provided by Active Record.
+    # The tasks defined here are used with rake tasks provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
     # config values are set by Rails already, so it's necessary to do it only if you
     # want to change the defaults or when you want to use Active Record outside of Rails
     # (in such case after configuring the database tasks, you can also use the rake tasks
     # defined in Active Record).
-    #
     #
     # The possible config values are:
     #
@@ -39,7 +38,7 @@ module ActiveRecord
       attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
-      LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
+      LOCAL_HOSTS = ['127.0.0.1', 'localhost']
 
       def register_task(pattern, task)
         @tasks ||= {}

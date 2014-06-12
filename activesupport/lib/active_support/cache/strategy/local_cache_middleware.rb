@@ -12,7 +12,7 @@ module ActiveSupport
 
           def initialize(name, local_cache_key)
             @name             = name
-            @local_cache_key = local_cache_key
+            @local_cache_key  = local_cache_key
             @app              = nil
           end
 
