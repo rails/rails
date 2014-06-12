@@ -1,3 +1,13 @@
+*   Flatten the array parameter in `safe_join`, so it behaves consistently with
+    `Array#join`.
+
+    *Paul Grayson*
+
+*   Honor `html_safe` on array elements in tag values, as we do for plain string
+    values.
+
+    *Paul Grayson*
+
 *   Add `ActionView::Template::Handler.unregister_template_handler`.
 
     It performs the opposite of `ActionView::Template::Handler.register_template_handler`.
