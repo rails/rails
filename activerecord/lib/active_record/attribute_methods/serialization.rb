@@ -50,8 +50,6 @@ module ActiveRecord
         #     serialize :preferences, Hash
         #   end
         def serialize(attr_name, class_name_or_coder = Object)
-          include Behavior
-
           coder = if [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
                     class_name_or_coder
                   else
@@ -65,21 +63,6 @@ module ActiveRecord
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
           # has its own hash of own serialized attributes
           self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
-        end
-      end
-
-
-      # This is only added to the model when serialize is called, which
-      # ensures we do not make things slower when serialization is not used.
-      module Behavior # :nodoc:
-        extend ActiveSupport::Concern
-
-        def should_record_timestamps?
-          super || (self.record_timestamps && (attributes.keys & self.class.serialized_attributes.keys).present?)
-        end
-
-        def keys_for_partial_write
-          super | (attributes.keys & self.class.serialized_attributes.keys)
         end
       end
     end

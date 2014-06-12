@@ -1,3 +1,9 @@
+*   `ActiveRecord::Dirty` now detects in-place changes to mutable values.
+    Serialized attributes on ActiveRecord models will no longer save when
+    unchanged. Fixes #8328.
+
+    Sean Griffin
+
 *   Fixed automatic maintaining test schema to properly handle sql structure
     schema format.
 

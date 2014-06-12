@@ -60,6 +60,10 @@ module ActiveRecord
         old_value != new_value
       end
 
+      def changed_in_place?(*) # :nodoc:
+        false
+      end
+
       private
       # Takes an input from the database, or from attribute setters,
       # and casts it to a type appropriate for this object. This method
