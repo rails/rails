@@ -67,7 +67,7 @@ module ApplicationTests
       assert_match %r{/app/test/unit/failing_test\.rb}, output
     end
 
-    test "migrations" do
+    test "ruby schema migrations" do
       output  = script('generate model user name:string')
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
@@ -102,6 +102,95 @@ module ApplicationTests
 
       result = assert_successful_test_run('models/user_test.rb')
       assert !result.include?("create_table(:users)")
+    end
+
+    test "sql structure migrations" do
+      output  = script('generate model user name:string')
+      version = output.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file 'test/models/user_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class UserTest < ActiveSupport::TestCase
+          test "user" do
+            User.create! name: "Jon"
+          end
+        end
+      RUBY
+
+      app_file 'db/structure.sql', ''
+      app_file 'config/initializers/enable_sql_schema_format.rb', <<-RUBY
+        Rails.application.config.active_record.schema_format = :sql
+      RUBY
+
+      assert_unsuccessful_run "models/user_test.rb", "Migrations are pending"
+
+      app_file 'db/structure.sql', <<-SQL
+        CREATE TABLE "schema_migrations" ("version" varchar(255) NOT NULL);
+        CREATE UNIQUE INDEX "unique_schema_migrations" ON "schema_migrations" ("version");
+        CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
+        INSERT INTO schema_migrations (version) VALUES ('#{version}');
+      SQL
+
+      app_file 'config/initializers/disable_maintain_test_schema.rb', <<-RUBY
+        Rails.application.config.active_record.maintain_test_schema = false
+      RUBY
+
+      assert_unsuccessful_run "models/user_test.rb", "Could not find table 'users'"
+
+      File.delete "#{app_path}/config/initializers/disable_maintain_test_schema.rb"
+
+      assert_successful_test_run('models/user_test.rb')
+    end
+
+    test "sql structure migrations when adding column to existing table" do
+      output_1  = script('generate model user name:string')
+      version_1 = output_1.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file 'test/models/user_test.rb', <<-RUBY
+        require 'test_helper'
+        class UserTest < ActiveSupport::TestCase
+          test "user" do
+            User.create! name: "Jon"
+          end
+        end
+      RUBY
+
+      app_file 'config/initializers/enable_sql_schema_format.rb', <<-RUBY
+        Rails.application.config.active_record.schema_format = :sql
+      RUBY
+
+      app_file 'db/structure.sql', <<-SQL
+        CREATE TABLE "schema_migrations" ("version" varchar(255) NOT NULL);
+        CREATE UNIQUE INDEX "unique_schema_migrations" ON "schema_migrations" ("version");
+        CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
+        INSERT INTO schema_migrations (version) VALUES ('#{version_1}');
+      SQL
+
+      assert_successful_test_run('models/user_test.rb')
+
+      output_2  = script('generate migration add_email_to_users')
+      version_2 = output_2.match(/(\d+)_add_email_to_users\.rb/)[1]
+
+      app_file 'test/models/user_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class UserTest < ActiveSupport::TestCase
+          test "user" do
+            User.create! name: "Jon", email: "jon@doe.com"
+          end
+        end
+      RUBY
+
+      app_file 'db/structure.sql', <<-SQL
+        CREATE TABLE "schema_migrations" ("version" varchar(255) NOT NULL);
+        CREATE UNIQUE INDEX "unique_schema_migrations" ON "schema_migrations" ("version");
+        CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255), "email" varchar(255));
+        INSERT INTO schema_migrations (version) VALUES ('#{version_1}');
+        INSERT INTO schema_migrations (version) VALUES ('#{version_2}');
+      SQL
+
+      assert_successful_test_run('models/user_test.rb')
     end
 
     private
