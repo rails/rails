@@ -1,3 +1,9 @@
+*   Add `ActionView::Template::Handler.unregister_template_handler`.
+
+    It performs the opposite of `ActionView::Template::Handler.register_template_handler`.
+
+    *Zuhao Wan*
+
 *   Bring `cache_digest` rake tasks up-to-date with the latest API changes
 
     *Jiri Pospisil*

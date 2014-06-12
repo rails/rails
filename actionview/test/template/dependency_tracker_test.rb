@@ -31,6 +31,7 @@ class DependencyTrackerTest < ActionView::TestCase
   end
 
   def teardown
+    ActionView::Template.unregister_template_handler :neckbeard
     tracker.remove_tracker(:neckbeard)
   end
 
