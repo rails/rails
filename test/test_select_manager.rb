@@ -330,6 +330,20 @@ module Arel
     end
 
     describe 'with' do
+      it 'should support basic WITH' do
+        users          = Table.new(:users)
+        users_top      = Table.new(:users_top)
+        comments       = Table.new(:comments)
+
+        top            = users.project(users[:id]).where(users[:karma].gt(100))
+        users_as       = Arel::Nodes::As.new(users_top, top)
+        select_manager = comments.project(Arel.star).with(users_as)
+                          .where(comments[:author_id].in(users_top.project(users_top[:id])))
+
+        select_manager.to_sql.must_be_like %{
+          WITH "users_top" AS (SELECT "users"."id" FROM "users" WHERE "users"."karma" > 100) SELECT * FROM "comments" WHERE "comments"."author_id" IN (SELECT "users_top"."id" FROM "users_top")
+        }
+      end
 
       it "should support WITH RECURSIVE" do
         comments           = Table.new(:comments)
