@@ -78,7 +78,7 @@ module Arel
 
     def self.build_quoted other, attribute = nil
       case other
-      when Arel::Nodes::Node, Arel::Attributes::Attribute, Arel::Nodes::SelectStatement, Arel::Table, Arel::Nodes::BindParam, Arel::SelectManager
+      when Arel::Nodes::Node, Arel::Attributes::Attribute, Arel::Table, Arel::Nodes::BindParam, Arel::SelectManager
         other
       else
         case attribute
