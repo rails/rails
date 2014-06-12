@@ -36,13 +36,13 @@ module ActionDispatch
           path  = options[:script_name].to_s.chomp("/")
           path << options[:path].to_s
 
-          add_trailing_slash(path) if options[:trailing_slash]
+          path = add_trailing_slash(path) if options[:trailing_slash]
 
-          result = path
-
-          unless options[:only_path]
-            result.prepend build_host_url(options)
-          end
+          result = if options[:only_path]
+                     path
+                   else
+                     build_host_url(options).concat path
+                   end
 
           if options.key? :params
             params = options[:params].is_a?(Hash) ?
