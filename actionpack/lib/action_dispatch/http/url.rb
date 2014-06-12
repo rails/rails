@@ -13,7 +13,7 @@ module ActionDispatch
 
       class << self
         def extract_domain(host, tld_length)
-          host.split('.').last(1 + tld_length).join('.') if named_host?(host)
+          extract_domain_from(host, tld_length) if named_host?(host)
         end
 
         def extract_subdomains(host, tld_length)
@@ -59,6 +59,10 @@ module ActionDispatch
         end
 
         private
+
+        def extract_domain_from(host, tld_length)
+          host.split('.').last(1 + tld_length).join('.')
+        end
 
         def add_trailing_slash(path)
           # includes querysting
@@ -131,7 +135,7 @@ module ActionDispatch
             host << subdomain.to_param
           end
           host << "." unless host.empty?
-          host << (options[:domain] || extract_domain(_host, tld_length))
+          host << (options[:domain] || extract_domain_from(_host, tld_length))
           host
         end
 
