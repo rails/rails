@@ -280,7 +280,7 @@ module ActiveRecord
     #   person.has_attribute?('age')    # => true
     #   person.has_attribute?(:nothing) # => false
     def has_attribute?(attr_name)
-      @raw_attributes.has_key?(attr_name.to_s)
+      @raw_attributes.has_key?(attr_name)
     end
 
     # Returns an array of names for the attributes available on this object.
