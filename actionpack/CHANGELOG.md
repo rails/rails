@@ -1,3 +1,7 @@
+*   In `ActionDispatch::Session::DestroyableSession`: instead of setting it to nil, assign the newly generated session-ID to the `Rack::Session::Abstract::SessionHash` after destroying it.
+
+    *Michael Berg*
+
 *   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
     `options[:raise]`.
 

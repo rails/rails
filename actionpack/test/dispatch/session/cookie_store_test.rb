@@ -30,6 +30,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       render :text => "id: #{request.session_options[:id]}"
     end
 
+    def get_session_id_after_reset_session
+      reset_session
+      render :text => "id: #{request.session_options[:id]}"
+    end
+
     def call_session_clear
       session.clear
       head :ok
@@ -247,6 +252,15 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
       get "/change_session_id"
       assert_not_equal sid, response.body
+    end
+  end
+
+  def test_getting_session_id_after_session_reset
+    with_test_route_set do
+      get "/get_session_id_after_reset_session"
+
+      assert_response :success
+      assert_not_equal "", response.body, "session_id hasn't been set after reset_session"
     end
   end
 
