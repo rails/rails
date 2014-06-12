@@ -14,6 +14,11 @@ class AdapterTest < ActiveSupport::TestCase
     assert_equal ActiveJob::QueueAdapters::DelayedJobAdapter, ActiveJob::Base.queue_adapter
   end
 
+  test 'should load Qu adapter' do
+    ActiveJob::Base.queue_adapter = :qu
+    assert_equal ActiveJob::QueueAdapters::QuAdapter, ActiveJob::Base.queue_adapter
+  end
+
   test 'should load Que adapter' do
     ActiveJob::Base.queue_adapter = :que
     assert_equal ActiveJob::QueueAdapters::QueAdapter, ActiveJob::Base.queue_adapter

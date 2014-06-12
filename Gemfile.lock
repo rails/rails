@@ -1,3 +1,16 @@
+GIT
+  remote: git://github.com/bkeepers/qu.git
+  revision: 2175633a834504423368d71cb10fb9f072d76cd2
+  branch: master
+  specs:
+    qu (0.2.0)
+    qu-rails (0.2.0)
+      qu (= 0.2.0)
+      railties (>= 3.2, < 5)
+    qu-redis (0.2.0)
+      qu (= 0.2.0)
+      redis-namespace
+
 PATH
   remote: .
   specs:
@@ -8,6 +21,15 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    actionpack (4.1.1)
+      actionview (= 4.1.1)
+      activesupport (= 4.1.1)
+      rack (~> 1.5.2)
+      rack-test (~> 0.6.2)
+    actionview (4.1.1)
+      activesupport (= 4.1.1)
+      builder (~> 3.1)
+      erubis (~> 2.7.0)
     activemodel (4.1.1)
       activesupport (= 4.1.1)
       builder (~> 3.1)
@@ -34,6 +56,7 @@ GEM
     dante (0.1.5)
     delayed_job (4.0.1)
       activesupport (>= 3.0, < 4.2)
+    erubis (2.7.0)
     i18n (0.6.9)
     json (1.8.1)
     minitest (5.3.4)
@@ -46,6 +69,13 @@ GEM
     rack (1.5.2)
     rack-protection (1.5.2)
       rack
+    rack-test (0.6.2)
+      rack (>= 1.0)
+    railties (4.1.1)
+      actionpack (= 4.1.1)
+      activesupport (= 4.1.1)
+      rake (>= 0.8.7)
+      thor (>= 0.18.1, < 2.0)
     rake (10.3.2)
     redis (3.0.7)
     redis-namespace (1.4.1)
@@ -99,6 +129,8 @@ DEPENDENCIES
   activejob!
   backburner
   delayed_job
+  qu-rails!
+  qu-redis
   que
   queue_classic
   rake

@@ -12,3 +12,5 @@ gem 'queue_classic'
 gem 'sneakers', '0.1.1.pre'
 gem 'que'
 gem 'backburner'
+gem 'qu-rails', github: "bkeepers/qu", branch: "master"
+gem 'qu-redis'
