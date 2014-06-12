@@ -3,6 +3,9 @@ require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
 
+require 'loofah'
+require 'rails-dom-testing'
+
 module ActionView
   # = Action View Test Case
   class TestCase < ActiveSupport::TestCase
@@ -34,6 +37,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include ActionDispatch::Assertions, ActionDispatch::TestProcess
+      include Rails::Dom::Testing::Assertions
       include ActionController::TemplateAssertions
       include ActionView::Context
 
@@ -99,7 +103,9 @@ module ActionView
       def setup_with_controller
         @controller = ActionView::TestCase::TestController.new
         @request = @controller.request
-        @output_buffer = ActiveSupport::SafeBuffer.new
+        # empty string ensures buffer has UTF-8 encoding as
+        # new without arguments returns ASCII-8BIT encoded buffer like String#new
+        @output_buffer = ActiveSupport::SafeBuffer.new ''
         @rendered = ''
 
         make_test_case_available_to_view!
@@ -151,11 +157,10 @@ module ActionView
 
     private
 
-      # Support the selector assertions
-      #
       # Need to experiment if this priority is the best one: rendered => output_buffer
-      def response_from_page
-        HTML::Document.new(@rendered.blank? ? @output_buffer : @rendered).root
+      def document_root_element
+        @html_document ||= Loofah.document(@rendered.blank? ? @output_buffer : @rendered)
+        @html_document.root
       end
 
       def say_no_to_protect_against_forgery!
@@ -236,7 +241,8 @@ module ActionView
         :@test_passed,
         :@view,
         :@view_context_class,
-        :@_subscribers
+        :@_subscribers,
+        :@html_document
       ]
 
       def _user_defined_ivars

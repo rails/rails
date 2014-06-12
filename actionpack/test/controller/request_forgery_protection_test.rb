@@ -389,7 +389,8 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
     SecureRandom.stubs(:base64).returns(@token + '<=?')
     get :meta
     assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
-    assert_select 'meta[name=?][content=?]', 'csrf-token', 'cf50faa3fe97702ca1ae&lt;=?'
+    assert_select 'meta[name=?]', 'csrf-token'
+    assert_match(/cf50faa3fe97702ca1ae&lt;=\?/, @response.body)
   end
 end
 
