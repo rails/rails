@@ -74,6 +74,17 @@ module Arel
             SELECT "users"."id" FROM "users" WHERE "users"."id" > 10
           }
         end
+
+        it 'should handle comparing with a subquery' do
+          users = Table.new(:users)
+
+          avg = users.project(users[:karma].average)
+          mgr = users.project(Arel.star).where(users[:karma].gt(avg))
+
+          mgr.to_sql.must_be_like %{
+            SELECT * FROM "users" WHERE "users"."karma" > (SELECT AVG("users"."karma") AS avg_id FROM "users")
+          }
+        end
       end
 
       describe '#gt_any' do
