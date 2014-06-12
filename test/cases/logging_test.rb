@@ -46,7 +46,7 @@ class AdapterTest < ActiveSupport::TestCase
 
   def test_enqueue_job_logging
     HelloJob.enqueue "Cristian"
-    assert_match(/Enqueued HelloJob to .*?:.*Cristian/, @logger.messages)
+    assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
   end
 
   def test_perform_job_logging
@@ -69,9 +69,9 @@ class AdapterTest < ActiveSupport::TestCase
   def test_perform_nested_jobs_logging
     NestedJob.enqueue
     assert_match(/\[LoggingJob\] \[.*?\]/, @logger.messages)
-    assert_match(/\[ActiveJob\] Enqueued NestedJob to/, @logger.messages)
+    assert_match(/\[ActiveJob\] Enqueued NestedJob \(Job ID: .*\) to/, @logger.messages)
     assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Performing NestedJob from/, @logger.messages)
-    assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Enqueued LoggingJob to .* with arguments: "NestedJob"/, @logger.messages)
+    assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Enqueued LoggingJob \(Job ID: .*?\) to .* with arguments: "NestedJob"/, @logger.messages)
     assert_match(/\[ActiveJob\].*\[LoggingJob\] \[LOGGING-JOB-ID\] Performing LoggingJob from .* with arguments: "NestedJob"/, @logger.messages)
     assert_match(/\[ActiveJob\].*\[LoggingJob\] \[LOGGING-JOB-ID\] Dummy, here is it: NestedJob/, @logger.messages)
     assert_match(/\[ActiveJob\].*\[LoggingJob\] \[LOGGING-JOB-ID\] Performed LoggingJob from .* in/, @logger.messages)
@@ -80,14 +80,14 @@ class AdapterTest < ActiveSupport::TestCase
 
   def test_enqueue_at_job_logging
     HelloJob.enqueue_at 1, "Cristian"
-    assert_match(/Enqueued HelloJob to .*? at.*Cristian/, @logger.messages)
+    assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
   rescue NotImplementedError
     skip
   end
 
   def test_enqueue_in_job_logging
     HelloJob.enqueue_in 2, "Cristian"
-    assert_match(/Enqueued HelloJob to .*? at.*Cristian/, @logger.messages)
+    assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
   rescue NotImplementedError
     skip
   end

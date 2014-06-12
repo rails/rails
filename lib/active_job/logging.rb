@@ -26,10 +26,10 @@ module ActiveJob
       before_enqueue do |job|
         if job.enqueued_at
           ActiveSupport::Notifications.instrument "enqueue_at.active_job",
-            adapter: job.class.queue_adapter, job: job.class, args: job.arguments, timestamp: job.enqueued_at
+            adapter: job.class.queue_adapter, job: job.class, job_id: job.job_id, args: job.arguments, timestamp: job.enqueued_at
         else
           ActiveSupport::Notifications.instrument "enqueue.active_job",
-            adapter: job.class.queue_adapter, job: job.class, args: job.arguments
+            adapter: job.class.queue_adapter, job: job.class, job_id: job.job_id, args: job.arguments
         end
       end
     end
@@ -50,11 +50,11 @@ module ActiveJob
 
     class LogSubscriber < ActiveSupport::LogSubscriber
       def enqueue(event)
-        info "Enqueued #{event.payload[:job].name} to #{queue_name(event)}" + args_info(event)
+        info "Enqueued #{event.payload[:job].name} (Job ID: #{event.payload[:job_id]}) to #{queue_name(event)}" + args_info(event)
       end
 
       def enqueue_at(event)
-        info "Enqueued #{event.payload[:job].name} to #{queue_name(event)} at #{enqueued_at(event)}" + args_info(event)
+        info "Enqueued #{event.payload[:job].name} (Job ID: #{event.payload[:job_id]}) to #{queue_name(event)} at #{enqueued_at(event)}" + args_info(event)
       end
 
       def perform_start(event)
@@ -67,7 +67,7 @@ module ActiveJob
 
       private
         def queue_name(event)
-          event.payload[:adapter].name.demodulize.remove('Adapter')
+          event.payload[:adapter].name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
         end
 
         def args_info(event)
