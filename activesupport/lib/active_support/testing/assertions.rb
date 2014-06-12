@@ -9,7 +9,7 @@ module ActiveSupport
       #
       #   assert_not nil    # => true
       #   assert_not false  # => true
-      #   assert_not 'foo'  # => 'foo' is not nil or false
+      #   assert_not 'foo'  # => Expected "foo" to be nil or false
       #
       # An error message can be specified.
       #
