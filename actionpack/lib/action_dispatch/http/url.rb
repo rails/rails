@@ -124,18 +124,19 @@ module ActionDispatch
           return _host unless named_host?(_host)
 
           tld_length = options[:tld_length] || @@tld_length
+          subdomain  = options[:subdomain]
+          domain     = options[:domain]
 
           host = ""
-          subdomain = options[:subdomain]
           if subdomain == true || !options.key?(:subdomain)
-            return _host if options[:domain].nil?
+            return _host if domain.nil?
 
             host << extract_subdomain(_host, tld_length)
           elsif subdomain
             host << subdomain.to_param
           end
           host << "." unless host.empty?
-          host << (options[:domain] || extract_domain_from(_host, tld_length))
+          host << (domain || extract_domain_from(_host, tld_length))
           host
         end
 
