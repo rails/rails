@@ -380,7 +380,7 @@ module ActiveRecord
     # Delegates to id in order to allow two records of the same type and id to work with something like:
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
-      id.hash
+      (id || object_id).hash
     end
 
     # Clone and freeze the attributes hash such that associations are still
