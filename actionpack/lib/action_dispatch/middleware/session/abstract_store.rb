@@ -14,8 +14,7 @@ module ActionDispatch
         clear
         options = @env[Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY] if @env
         options ||= {}
-        @by.send(:destroy_session, @env, options[:id], options) if @by
-        options[:id] = nil
+        options[:id] = @by.send(:destroy_session, @env, options[:id], options) if @by
         @loaded = false
       end
     end
