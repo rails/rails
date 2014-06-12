@@ -18,8 +18,7 @@ module ActionDispatch
 
         def extract_subdomains(host, tld_length)
           if named_host?(host)
-            parts = host.split('.')
-            parts[0..-(tld_length + 2)]
+            extract_subdomains_from(host, tld_length)
           else
             []
           end
@@ -62,6 +61,11 @@ module ActionDispatch
 
         def extract_domain_from(host, tld_length)
           host.split('.').last(1 + tld_length).join('.')
+        end
+
+        def extract_subdomains_from(host, tld_length)
+          parts = host.split('.')
+          parts[0..-(tld_length + 2)]
         end
 
         def add_trailing_slash(path)
@@ -131,7 +135,7 @@ module ActionDispatch
           if subdomain == true
             return _host if domain.nil?
 
-            host << extract_subdomain(_host, tld_length)
+            host << extract_subdomains_from(_host, tld_length).join('.')
           elsif subdomain
             host << subdomain.to_param
           end
