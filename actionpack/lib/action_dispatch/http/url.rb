@@ -92,8 +92,8 @@ module ActionDispatch
           end
 
           result << host
-          normalize_port(port, protocol) { |port|
-            result << ":#{port}"
+          normalize_port(port, protocol) { |normalized_port|
+            result << ":#{normalized_port}"
           }
 
           result
