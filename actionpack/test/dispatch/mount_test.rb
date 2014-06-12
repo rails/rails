@@ -31,6 +31,8 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     resources :users do
       mount FakeEngine, :at => "/fakeengine", :as => :fake_mounted_at_resource
     end
+
+    mount SprocketsApp, :at => "/", :via => :get
   end
 
   def app
@@ -42,6 +44,11 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
           "A mounted helper should be defined with a parent's prefix"
     assert Router.named_routes.routes[:user_fake_mounted_at_resource],
           "A named route should be defined with a parent's prefix"
+  end
+
+  def test_mounting_at_root_path
+    get "/omg"
+    assert_equal " -- /omg", response.body
   end
 
   def test_mounting_sets_script_name

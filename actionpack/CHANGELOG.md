@@ -1,3 +1,9 @@
+*   Fix env['PATH_INFO'] missing leading slash when a rack app mounted at '/'.
+
+    Fixes #15511.
+
+    *Larry Lv*
+
 *   ActionController::Parameters#require now accepts `false` values.
 
     Fixes #15685.
