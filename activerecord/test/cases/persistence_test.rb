@@ -514,14 +514,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update_column("content", "Have a nice day")
+    topic.update_column("content", "--- Have a nice day\n...\n")
 
     topic.reload
-    topic.update_column(:content, "You too")
+    topic.update_column(:content, "--- You too\n...\n")
     assert_equal [], topic.changed
 
     topic.reload
-    topic.update_column("content", "Have a nice day")
+    topic.update_column("content", "--- Have a nice day\n...\n")
     assert_equal [], topic.changed
   end
 
@@ -605,14 +605,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update({ "content" => "Have a nice day", :author_name => "Jose" })
+    topic.update({ "content" => "--- Have a nice day\n...\n", :author_name => "Jose" })
 
     topic.reload
-    topic.update_columns({ content: "You too", "author_name" => "Sebastian" })
+    topic.update_columns({ content: "--- You too\n...\n", "author_name" => "Sebastian" })
     assert_equal [], topic.changed
 
     topic.reload
-    topic.update_columns({ content: "Have a nice day", author_name: "Jose" })
+    topic.update_columns({ content: "--- Have a nice day\n...\n", author_name: "Jose" })
     assert_equal [], topic.changed
   end
 
