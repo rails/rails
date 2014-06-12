@@ -1,3 +1,15 @@
+*   Support for adding and removing foreign keys. Foreign keys are now
+    a part of `schema.rb`. This is supported by Mysql2Adapter, MysqlAdapter
+    and PostgreSQLAdapter.
+
+    Example:
+
+        # within your migrations:
+        add_foreign_key :articles, :authors
+        remove_foreign_key :articles, :authors
+
+    *Yves Senn*
+
 *   Fix subtle bugs regarding attribute assignment on models with no primary
     key. `'id'` will no longer be part of the attributes hash.
 

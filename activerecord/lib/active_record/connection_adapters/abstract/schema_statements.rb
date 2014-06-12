@@ -642,10 +642,54 @@ module ActiveRecord
       end
       alias :remove_belongs_to :remove_reference
 
+      # Returns an array of foreign keys for the given table.
+      # The foreign keys are represented as +ForeignKeyDefinition+ objects.
       def foreign_keys(table_name)
         raise NotImplementedError, "foreign_keys is not implemented"
       end
 
+      # Adds a new foreign key. +from_table+ is the table with the key column,
+      # +to_table+ contains the referenced primary key.
+      #
+      # The foreign key will be named after the following pattern: <tt>fk_rails_<identifier></tt>.
+      # +identifier+ is a 10 character long random string. A custom name can be specified with
+      # the <tt>:name</tt> option.
+      #
+      # ====== Creating a simple foreign key
+      #
+      #   add_foreign_key :articles, :authors
+      #
+      # generates:
+      #
+      #   ALTER TABLE "articles" ADD CONSTRAINT articles_author_id_fk FOREIGN KEY ("author_id") REFERENCES "authors" ("id")
+      #
+      # ====== Creating a foreign key on a specific column
+      #
+      #   add_foreign_key :articles, :users, column: :author_id, primary_key: "lng_id"
+      #
+      # generates:
+      #
+      #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_58ca3d3a82 FOREIGN KEY ("author_id") REFERENCES "users" ("lng_id")
+      #
+      # ====== Creating a cascading foreign key
+      #
+      #   add_foreign_key :articles, :authors, on_delete: :cascade
+      #
+      # generates:
+      #
+      #   ALTER TABLE "articles" ADD CONSTRAINT articles_author_id_fk FOREIGN KEY ("author_id") REFERENCES "authors" ("id") ON DELETE CASCADE
+      #
+      # The +options+ hash can include the following keys:
+      # [<tt>:column</tt>]
+      #   The foreign key column name on +from_table+. Defaults to <tt>to_table.singularize + "_id"</tt>
+      # [<tt>:primary_key</tt>]
+      #   The primary key column name on +to_table+. Defaults to +id+.
+      # [<tt>:name</tt>]
+      #   The constraint name. Defaults to <tt>fk_rails_<identifier></tt>.
+      # [<tt>:on_delete</tt>]
+      #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade:+ and +:restrict+
+      # [<tt>:on_update</tt>]
+      #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade:+ and +:restrict+
       def add_foreign_key(from_table, to_table, options = {})
         return unless supports_foreign_keys?
 
@@ -664,6 +708,20 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
+      # Removes the given foreign key from the table.
+      #
+      # Removes the foreign key on +accounts.branch_id+.
+      #
+      #   remove_foreign_key :accounts, :branches
+      #
+      # Removes the foreign key on +accounts.owner_id+.
+      #
+      #   remove_foreign_key :accounts, column: :owner_id
+      #
+      # Removes the foreign key named +special_fk_name+ on the +accounts+ table.
+      #
+      #   remove_foreign_key :accounts, name: :special_fk_name
+      #
       def remove_foreign_key(from_table, options_or_to_table = {})
         return unless supports_foreign_keys?
 
