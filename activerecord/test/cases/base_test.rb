@@ -1290,18 +1290,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert !SubStiPost.descends_from_active_record?
   end
 
-  def test_find_on_abstract_base_class_doesnt_use_type_condition
-    old_class = LooseDescendant
-    Object.send :remove_const, :LooseDescendant
-
-    descendant = old_class.create! :first_name => 'bob'
-    assert_not_nil LoosePerson.find(descendant.id), "Should have found instance of LooseDescendant when finding abstract LoosePerson: #{descendant.inspect}"
-  ensure
-    unless Object.const_defined?(:LooseDescendant)
-      Object.const_set :LooseDescendant, old_class
-    end
-  end
-
   def test_assert_queries
     query = lambda { ActiveRecord::Base.connection.execute 'select count(*) from developers' }
     assert_queries(2) { 2.times { query.call } }
@@ -1495,8 +1483,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
 
     types = { 'author_name' => typecast.new }
-    topic = Topic.allocate.init_with 'raw_attributes' => attrs,
-                                     'column_types' => types
+    topic = Topic.instantiate(attrs, types)
 
     assert_equal 't.lo', topic.author_name
   end

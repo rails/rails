@@ -249,22 +249,32 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = self.class.raw_column_defaults.dup
-      defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
-
-      @raw_attributes = defaults
-      @column_types_override = nil
+      @column_types_override = options[:column_types]
       @column_types = self.class.column_types
+      @new_record = !!options[:existing_record]
 
-      init_internals
-      initialize_internals_callback
+      if options[:existing_record]
+        @raw_attributes = attributes
 
-      # +options+ argument is only needed to make protected_attributes gem easier to hook.
-      # Remove it when we drop support to this gem.
-      init_attributes(attributes, options) if attributes
+        init_internals
+
+        run_callbacks :find
+      else
+        defaults = self.class.raw_column_defaults.dup
+        defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
+
+        @raw_attributes = defaults
+
+        init_internals
+        initialize_internals_callback
+
+        # +options+ argument is only needed to make protected_attributes gem easier to hook.
+        # Remove it when we drop support to this gem.
+        init_attributes(attributes, options) if attributes
+      end
 
       yield self if block_given?
-      run_callbacks :initialize unless _initialize_callbacks.empty?
+      run_callbacks :initialize
     end
 
     # Initialize an empty model object from +coder+. +coder+ must contain
@@ -281,18 +291,14 @@ module ActiveRecord
       @raw_attributes = coder['raw_attributes']
       @column_types_override = coder['column_types']
       @column_types = self.class.column_types
+      @new_record = coder['new_record']
 
       init_internals
 
-      @attributes = coder['attributes'] if coder['attributes']
-      @new_record = coder['new_record']
-
-      self.class.define_attribute_methods
+      @attributes = coder['attributes']
 
       run_callbacks :find
       run_callbacks :initialize
-
-      self
     end
 
     ##
@@ -536,11 +542,12 @@ module ActiveRecord
       @destroyed                = false
       @marked_for_destruction   = false
       @destroyed_by_association = nil
-      @new_record               = true
       @txn                      = nil
       @_start_transaction_state = {}
       @transaction_state        = nil
       @reflects_state           = [false]
+
+      self.class.define_attribute_methods
     end
 
     def initialize_internals_callback

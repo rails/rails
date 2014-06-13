@@ -73,6 +73,9 @@ class SerializationTest < ActiveRecord::TestCase
     klazz = Class.new(ActiveRecord::Base)
     klazz.table_name = 'books'
 
+    book = klazz.new
+    assert_nil book.read_attribute_for_serialization(:format)
+
     book = klazz.new(format: 'paperback')
     assert_equal 'paperback', book.read_attribute_for_serialization(:format)
   end

@@ -37,7 +37,7 @@ sti_post_and_comments:
   author_id: 1
   title: sti me
   body: hello
-  type: StiPost
+  type: SubStiPost
 
 sti_habtm:
   id: 6

@@ -37,8 +37,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_init_with
-    topic = Topic.allocate
-    topic.init_with('raw_attributes' => { 'content' => '--- foo' })
+    topic = Topic.instantiate('content' => '--- foo')
     assert_equal 'foo', topic.content
   end
 
