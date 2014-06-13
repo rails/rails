@@ -569,7 +569,13 @@ module ActiveRecord
       @path     = path
       @config   = config
       @model_class = nil
-      @model_class = class_name
+
+      if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
+        @model_class = class_name
+      else
+        @model_class = class_name.safe_constantize if class_name
+      end
+
       @connection  = connection
 
       @table_name = ( model_class.respond_to?(:table_name) ?
