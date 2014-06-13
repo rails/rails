@@ -156,16 +156,6 @@ module ActiveRecord
         end
       end
 
-      def find_generated_attribute_method(method_name) # :nodoc:
-        klass = self
-        until klass == Base
-          gen_methods = klass.generated_attribute_methods
-          return gen_methods.instance_method(method_name) if method_defined_within?(method_name, gen_methods, Object)
-          klass = klass.superclass
-        end
-        nil
-      end
-
       # Returns +true+ if +attribute+ is an attribute method and table exists,
       # +false+ otherwise.
       #
@@ -216,25 +206,6 @@ module ActiveRecord
       end
     end
 
-    # If we haven't generated any methods yet, generate them, then
-    # see if we've created the method we're looking for.
-    def method_missing(method, *args, &block) # :nodoc:
-      self.class.define_attribute_methods
-      if respond_to_without_attributes?(method)
-        # make sure to invoke the correct attribute method, as we might have gotten here via a `super`
-        # call in a overwritten attribute method
-        if attribute_method = self.class.find_generated_attribute_method(method)
-          # this is probably horribly slow, but should only happen at most once for a given AR class
-          attribute_method.bind(self).call(*args, &block)
-        else
-          return super unless respond_to_missing?(method, true)
-          send(method, *args, &block)
-        end
-      else
-        super
-      end
-    end
-
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
     # <tt>person.respond_to?(:name=)</tt>, and <tt>person.respond_to?(:name?)</tt>
     # which will all return +true+. It also define the attribute methods if they have
@@ -252,12 +223,8 @@ module ActiveRecord
     #   person.respond_to('age?')   # => true
     #   person.respond_to(:nothing) # => false
     def respond_to?(name, include_private = false)
+      return false unless super
       name = name.to_s
-      self.class.define_attribute_methods
-      result = super
-
-      # If the result is false the answer is false.
-      return false unless result
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
