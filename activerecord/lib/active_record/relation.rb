@@ -320,7 +320,6 @@ module ActiveRecord
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
       stmt = Arel::UpdateManager.new(arel.engine)
-
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
       stmt.table(table)
       stmt.key = table[primary_key]
