@@ -1597,4 +1597,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal after_handler, new_handler
     assert_equal orig_handler, klass.connection_handler
   end
+
+  # Note: This is a performance optimization for Array#uniq and Hash#[] with
+  # AR::Base objects. If the future has made this irrelevant, feel free to
+  # delete this.
+  test "records without an id have unique hashes" do
+    assert_not_equal Post.new.hash, Post.new.hash
+  end
 end
