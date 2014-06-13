@@ -1,3 +1,8 @@
+*   Ensure both parent IDs are set on join records when both sides of a
+    through association are new.
+
+    *Sean Griffin*
+
 *   Pluck now works when selecting columns from different tables with the same
     name.
 

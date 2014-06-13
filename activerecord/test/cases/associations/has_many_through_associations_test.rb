@@ -330,6 +330,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert post.single_people.include?(person)
   end
 
+  def test_both_parent_ids_set_when_saving_new
+    post = Post.new(title: 'Hello', body: 'world')
+    person = Person.new(first_name: 'Sean')
+
+    post.people = [person]
+    post.save
+
+    assert post.id
+    assert person.id
+    assert_equal post.id, post.readers.first.post_id
+    assert_equal person.id, post.readers.first.person_id
+  end
+
   def test_delete_association
     assert_queries(2){posts(:welcome);people(:michael); }
 
