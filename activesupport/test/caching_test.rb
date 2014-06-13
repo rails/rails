@@ -713,17 +713,8 @@ class FileStoreTest < ActiveSupport::TestCase
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
     path = @cache.send(:key_file_path, key)
     Dir::Tmpname.create(path) do |tmpname, n, opts|
-      assert File.basename(tmpname+'.lock').length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+      assert File.basename(tmpname+'.lock').length <= 140, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
     end
-  end
-
-  # Because file systems have a maximum filename size, filenames > max size should be split in to directories
-  # If filename is 'AAAAB', where max size is 4, the returned path should be AAAA/B
-  def test_key_transformation_max_filename_size
-    key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}B"
-    path = @cache.send(:key_file_path, key)
-    assert path.split('/').all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}
-    assert_equal 'B', File.basename(path)
   end
 
   # If nothing has been stored in the cache, there is a chance the cache directory does not yet exist

@@ -1,3 +1,6 @@
+*   Simplify `ActiveSupport::Cache::FileStore` long path handling.
+    *Michael Grosser*
+
 *   Make the `apply_inflections` method case-insensitive when checking
     whether a word is uncountable or not.
 
