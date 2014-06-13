@@ -1,6 +1,8 @@
 module ActiveRecord
   module Type
     class Serialized < SimpleDelegator # :nodoc:
+      include Mutable
+
       attr_reader :subtype, :coder
 
       def initialize(subtype, coder)
@@ -15,10 +17,6 @@ module ActiveRecord
         else
           coder.load(super)
         end
-      end
-
-      def type_cast_from_user(value)
-        type_cast_from_database(type_cast_for_database(value))
       end
 
       def type_cast_for_database(value)

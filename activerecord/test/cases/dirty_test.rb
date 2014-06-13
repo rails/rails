@@ -445,11 +445,20 @@ class DirtyTest < ActiveRecord::TestCase
   def test_save_should_store_serialized_attributes_even_with_partial_writes
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
+
+      assert_not topic.changed?
+
       topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
+
+      assert topic.changed?
+
       topic.save!
+
+      assert_not topic.changed?
       assert_equal "b", topic.content[:b]
+
       topic.reload
+
       assert_equal "b", topic.content[:b]
     end
   end
