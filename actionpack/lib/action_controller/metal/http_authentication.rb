@@ -121,8 +121,8 @@ module ActionController
 
       def authentication_request(controller, realm)
         controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.gsub(/"/, "")}")
-        controller.response_body = "HTTP Basic: Access denied.\n"
         controller.status = 401
+        controller.response_body = "HTTP Basic: Access denied.\n"
       end
     end
 
@@ -256,8 +256,8 @@ module ActionController
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Digest: Access denied.\n"
         authentication_header(controller, realm)
-        controller.response_body = message
         controller.status = 401
+        controller.response_body = message
       end
 
       def secret_token(request)
