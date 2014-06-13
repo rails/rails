@@ -330,4 +330,28 @@ A `:nodoc:` should never be added simply because a method or class is missing do
 
 To summarize, the Rails team uses `:nodoc:` to mark publicly visible methods and classes for internal use; changes to the visibility of API should be considered carefully and discussed over a pull request first.
 
+Regarding the Rails Stack
+-------------------------
+
+When documenting parts of Rails API, it's important to remember all of the
+pieces that go into the Rails stack.
+
+This means that behavior may change depending on the scope or context of the
+method or class you're trying to document.
+
+In various places there is different behavior when you take the entire stack
+into account, one such example is
+`ActionView::Helpers::AssetTagHelper.image_tag`:
+
+```ruby
+# image_tag("icon.png")
+#   # => <img alt="Icon" src="/assets/icon.png" />
+```
+
+Although the default behavior for `image_tag` is `/images/icon.png`, because
+the Rails stack includes Sprockets when using the Rails Asset Pipeline.
+
+In this case, we want to document the behavior of the _framework_, and not just
+this specific method.
+
 If you have a question on how the Rails team handles certain API, don't hesitate to open a ticket or send a patch to the [issue tracker](https://github.com/rails/rails/issues).
