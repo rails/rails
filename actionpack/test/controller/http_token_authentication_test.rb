@@ -132,13 +132,30 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal(expected, actual)
   end
 
+  test "token_and_options returns empty string with empty token" do
+    token = ''
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
+
+  test "token_and_options returns nil with no value after the equal sign" do
+    actual = ActionController::HttpAuthentication::Token.token_and_options(malformed_request).first
+    expected = nil
+    assert_equal(expected, actual)
+  end
+
   private
 
-  def sample_request(token)
-    @sample_request ||= OpenStruct.new authorization: %{Token token="#{token}"}
-  end
+    def sample_request(token)
+      @sample_request ||= OpenStruct.new authorization: %{Token token="#{token}", nonce="def"}
+    end
 
-  def encode_credentials(token, options = {})
-    ActionController::HttpAuthentication::Token.encode_credentials(token, options)
-  end
+    def malformed_request
+      @malformed_request ||= OpenStruct.new authorization: %{Token token=}
+    end
+
+    def encode_credentials(token, options = {})
+      ActionController::HttpAuthentication::Token.encode_credentials(token, options)
+    end
 end

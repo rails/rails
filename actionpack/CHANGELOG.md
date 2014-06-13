@@ -1,3 +1,10 @@
+*   With authorization header `Authorization: Token token=`, `authenticate` now
+    recognize token as nil, instead of "token".
+
+    Fixes #14846.
+
+    *Larry Lv*
+
 *   Ensure the controller is always notified as soon as the client disconnects
     during live streaming, even when the controller is blocked on a write.
 
