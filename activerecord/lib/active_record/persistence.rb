@@ -48,10 +48,10 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {})
         klass = discriminate_class_for_record(attributes)
-        klass.allocate.init_with(
-          'raw_attributes' => attributes,
-          'column_types' => column_types,
-          'new_record' => false,
+        klass.new(
+          attributes,
+          column_types: column_types,
+          existing_record: true,
         )
       end
 

@@ -296,7 +296,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     xml = authors(:david).to_xml :include=>:hello_posts, :indent => 0
     assert_match %r{<hello-posts type="array">}, xml
     assert_match %r{<hello-post type="Post">}, xml
-    assert_match %r{<hello-post type="StiPost">}, xml
+    assert_match %r{<hello-post type="SubStiPost">}, xml
   end
 
   def test_included_associations_should_skip_types
@@ -398,12 +398,12 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     assert Hash.from_xml(xml)
     assert_match %r{^  <posts-with-comments type="array">}, xml
     assert_match %r{^    <posts-with-comment type="Post">}, xml
-    assert_match %r{^    <posts-with-comment type="StiPost">}, xml
+    assert_match %r{^    <posts-with-comment type="SubStiPost">}, xml
 
     types = Hash.from_xml(xml)['author']['posts_with_comments'].collect {|t| t['type'] }
     assert types.include?('SpecialPost')
     assert types.include?('Post')
-    assert types.include?('StiPost')
+    assert types.include?('SubStiPost')
   end
 
   def test_should_produce_xml_for_methods_returning_array

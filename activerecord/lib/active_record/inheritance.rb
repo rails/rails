@@ -183,7 +183,7 @@ module ActiveRecord
       def subclass_from_attributes(attrs)
         subclass_name = attrs.with_indifferent_access[inheritance_column]
 
-        if subclass_name.present? && subclass_name != self.name
+        if subclass_name.present? && subclass_name != self.sti_name
           subclass = subclass_name.safe_constantize
 
           unless descendants.include?(subclass)
