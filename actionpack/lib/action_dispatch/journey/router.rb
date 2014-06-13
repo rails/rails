@@ -35,6 +35,7 @@ module ActionDispatch
           unless route.path.anchored
             req.script_name = (script_name.to_s + match.to_s).chomp('/')
             req.path_info = match.post_match
+            req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
 
           req.path_parameters = set_params.merge parameters
