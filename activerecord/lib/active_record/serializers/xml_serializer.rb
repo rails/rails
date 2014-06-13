@@ -182,11 +182,7 @@ module ActiveRecord #:nodoc:
         klass = @serializable.class
         column = klass.columns_hash[name] || Type::Value.new
 
-        type = if column.serialized?
-                 super
-               else
-                 column.type
-               end
+        type = ActiveSupport::XmlMini::TYPE_NAMES[value.class.name] || column.type
 
         { :text => :string,
           :time => :datetime }[type] || type

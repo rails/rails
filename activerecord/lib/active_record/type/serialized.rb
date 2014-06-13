@@ -26,10 +26,6 @@ module ActiveRecord
         end
       end
 
-      def serialized?
-        true
-      end
-
       def accessor
         ActiveRecord::Store::IndifferentHashAccessor
       end
