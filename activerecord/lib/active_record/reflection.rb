@@ -487,7 +487,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         # returns either nil or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
-            inverse_name = ActiveSupport::Inflector.underscore(active_record.name).to_sym
+            inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name).to_sym
 
             begin
               reflection = klass._reflect_on_association(inverse_name)
