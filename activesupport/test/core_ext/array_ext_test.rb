@@ -118,6 +118,31 @@ class ArrayExtToSTests < ActiveSupport::TestCase
   end
 end
 
+class ArrayExtColumningTests < ActiveSupport::TestCase
+  def test_in_columns_of_without_start_at_index
+    array = (1..10).to_a
+    assert_equal [[1,5,9],[2,6,10],[3,7],[4,8]], array.in_columns_of(4)
+  end
+
+  def test_in_columns_of_with_start_at_index
+    array = (1..10).to_a
+    assert_equal [[3,7],[4,8],[1,5,9],[2,6,10]], array.in_columns_of(4,2)
+  end
+
+  def test_in_columns_of_with_start_at_index_out_of_range
+    array = (1..10).to_a
+    assert_equal [[1,5,9],[2,6,10],[3,7],[4,8]], array.in_columns_of(4,10_000)
+  end
+
+  def test_in_columns_of_block
+    array = (1..10).to_a
+    collection =  array.in_columns_of(4).map do |column|
+                    column.join(',')
+                  end
+    assert_equal ["1,5,9","2,6,10","3,7","4,8"], collection
+  end
+end
+
 class ArrayExtGroupingTests < ActiveSupport::TestCase
   def setup
     Fixnum.send :private, :/  # test we avoid Integer#/ (redefined by mathn)
