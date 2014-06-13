@@ -1,3 +1,9 @@
+*   Don't error when quoting user defined types in PostgreSQL.
+
+    Fixes #15697.
+
+    *Sean Griffin*
+
 *   Ensure both parent IDs are set on join records when both sides of a
     through association are new.
 
