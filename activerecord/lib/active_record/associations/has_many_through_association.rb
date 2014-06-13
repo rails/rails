@@ -82,10 +82,14 @@ module ActiveRecord
           @through_records[record.object_id] ||= begin
             ensure_mutable
 
-            through_record = through_association.build through_scope_attributes
+            through_record = through_association.build(*options_for_through_record)
             through_record.send("#{source_reflection.name}=", record)
             through_record
           end
+        end
+
+        def options_for_through_record
+          [through_scope_attributes]
         end
 
         def through_scope_attributes
