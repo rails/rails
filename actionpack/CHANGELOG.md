@@ -1,3 +1,11 @@
+*   With authorization header `Authorization: Token token=`, `authenticate` now
+    recognize token as nil, instead of "token".
+
+    Fixes #14846.
+
+    *Larry Lv*
+
+
 ## Rails 4.1.2 (unreleased) ##
 
 *   Fix URL generation with `:trailing_slash` such that it does not add

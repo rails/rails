@@ -449,7 +449,7 @@ module ActionController
         authorization_request = request.authorization.to_s
         if authorization_request[TOKEN_REGEX]
           params = token_params_from authorization_request
-          [params.shift.last, Hash[params].with_indifferent_access]
+          [params.shift[1], Hash[params].with_indifferent_access]
         end
       end
 
@@ -464,7 +464,7 @@ module ActionController
 
       # This removes the `"` characters wrapping the value.
       def rewrite_param_values(array_params)
-        array_params.each { |param| param.last.gsub! %r/^"|"$/, '' }
+        array_params.each { |param| (param[1] || "").gsub! %r/^"|"$/, '' }
       end
 
       # This method takes an authorization body and splits up the key-value
