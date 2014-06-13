@@ -451,10 +451,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_declared_suffixed_attribute_method_affects_respond_to_and_method_missing
-    topic = @target.new(:title => 'Budget')
     %w(_default _title_default _it! _candidate= able?).each do |suffix|
       @target.class_eval "def attribute#{suffix}(*args) args end"
       @target.attribute_method_suffix suffix
+      topic = @target.new(:title => 'Budget')
 
       meth = "title#{suffix}"
       assert topic.respond_to?(meth)
@@ -465,10 +465,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_declared_affixed_attribute_method_affects_respond_to_and_method_missing
-    topic = @target.new(:title => 'Budget')
     [['mark_', '_for_update'], ['reset_', '!'], ['default_', '_value?']].each do |prefix, suffix|
       @target.class_eval "def #{prefix}attribute#{suffix}(*args) args end"
       @target.attribute_method_affix({ :prefix => prefix, :suffix => suffix })
+      topic = @target.new(:title => 'Budget')
 
       meth = "#{prefix}title#{suffix}"
       assert topic.respond_to?(meth)
