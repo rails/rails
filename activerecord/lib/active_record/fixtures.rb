@@ -15,9 +15,10 @@ module ActiveRecord
   # They are stored in YAML files, one file per model, which are placed in the directory
   # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically
   # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
-  # The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
-  # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>). The format of a fixture file looks
-  # like this:
+  # The fixture file ends with the +.yml+ file extension, for example:
+  # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>).
+  #
+  # The format of a fixture file looks like this:
   #
   #   rubyonrails:
   #     id: 1
@@ -61,8 +62,8 @@ module ActiveRecord
   #     end
   #   end
   #
-  # By default, <tt>test_helper.rb</tt> will load all of your fixtures into your test database,
-  # so this test will succeed.
+  # By default, +test_helper.rb+ will load all of your fixtures into your test
+  # database, so this test will succeed.
   #
   # The testing environment will automatically load the all fixtures into the database before each
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
@@ -375,8 +376,8 @@ module ActiveRecord
   # == Support for YAML defaults
   #
   # You can set and reuse defaults in your fixtures YAML file.
-  # This is the same technique used in the <tt>database.yml</tt> file
-  # to specify defaults:
+  # This is the same technique used in the +database.yml+ file to specify
+  # defaults:
   #
   #   DEFAULTS: &DEFAULTS
   #     created_on: <%= 3.weeks.ago.to_s(:db) %>
@@ -392,7 +393,8 @@ module ActiveRecord
   # Any fixture labeled "DEFAULTS" is safely ignored.
   class FixtureSet
     #--
-    # An instance of FixtureSet is normally stored in a single YAML file and possibly in a folder with the same name.
+    # An instance of FixtureSet is normally stored in a single YAML file and
+    # possibly in a folder with the same name.
     #++
 
     MAX_ID = 2 ** 30 - 1
@@ -567,13 +569,7 @@ module ActiveRecord
       @path     = path
       @config   = config
       @model_class = nil
-
-      if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
-        @model_class = class_name
-      else
-        @model_class = class_name.safe_constantize if class_name
-      end
-
+      @model_class = class_name
       @connection  = connection
 
       @table_name = ( model_class.respond_to?(:table_name) ?

@@ -30,17 +30,18 @@ module ActiveRecord
   class SerializationTypeMismatch < ActiveRecordError
   end
 
-  # Raised when adapter not specified on connection (or configuration file <tt>config/database.yml</tt>
-  # misses adapter field).
+  # Raised when adapter not specified on connection (or configuration file
+  # +config/database.yml+ misses adapter field).
   class AdapterNotSpecified < ActiveRecordError
   end
 
-  # Raised when Active Record cannot find database adapter specified in <tt>config/database.yml</tt> or programmatically.
+  # Raised when Active Record cannot find database adapter specified in
+  # +config/database.yml+ or programmatically.
   class AdapterNotFound < ActiveRecordError
   end
 
-  # Raised when connection to the database could not been established (for example when <tt>connection=</tt>
-  # is given a nil object).
+  # Raised when connection to the database could not been established (for
+  # example when +connection=+ is given a nil object).
   class ConnectionNotEstablished < ActiveRecordError
   end
 
@@ -82,19 +83,19 @@ module ActiveRecord
   class InvalidForeignKey < WrappedDatabaseException
   end
 
-  # Raised when number of bind variables in statement given to <tt>:condition</tt> key (for example,
-  # when using +find+ method)
-  # does not match number of expected variables.
+  # Raised when number of bind variables in statement given to +:condition+ key
+  # (for example, when using +find+ method) does not match number of expected
+  # variables.
   #
   # For example, in
   #
   #   Location.where("lat = ? AND lng = ?", 53.7362)
   #
-  # two placeholders are given but only one variable to fill them.
+  # Two placeholders are given with only one variable to fill them both.
   class PreparedStatementInvalid < ActiveRecordError
   end
 
-  # Raised when a given database does not exist
+  # Raised when a given database does not exist.
   class NoDatabaseError < StatementInvalid
   end
 
@@ -102,7 +103,8 @@ module ActiveRecord
   # instantiation, for example, when two users edit the same wiki page and one starts editing and saves
   # the page before the other.
   #
-  # Read more about optimistic locking in ActiveRecord::Locking module RDoc.
+  # Read more about optimistic locking in ActiveRecord::Locking module
+  # documentation.
   class StaleObjectError < ActiveRecordError
     attr_reader :record, :attempted_action
 
@@ -114,8 +116,9 @@ module ActiveRecord
 
   end
 
-  # Raised when association is being configured improperly or
-  # user tries to use offset and limit together with has_many or has_and_belongs_to_many associations.
+  # Raised when association is being configured improperly or user tries to use
+  # offset and limit together with +has_many+ or +has_and_belongs_to_many+
+  # associations.
   class ConfigurationError < ActiveRecordError
   end
 
@@ -153,7 +156,8 @@ module ActiveRecord
   class Rollback < ActiveRecordError
   end
 
-  # Raised when attribute has a name reserved by Active Record (when attribute has name of one of Active Record instance methods).
+  # Raised when attribute has a name reserved by Active Record (when attribute
+  # has name of one of Active Record instance methods).
   class DangerousAttributeError < ActiveRecordError
   end
 
@@ -171,7 +175,7 @@ module ActiveRecord
   end
 
   # Raised when an error occurred while doing a mass assignment to an attribute through the
-  # <tt>attributes=</tt> method. The exception has an +attribute+ property that is the name of the
+  # +attributes=+ method. The exception has an +attribute+ property that is the name of the
   # offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
