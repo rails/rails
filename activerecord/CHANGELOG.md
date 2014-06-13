@@ -1,3 +1,9 @@
+*   Don't error when quoting user defined types in PostgreSQL.
+
+    Fixes #15697.
+
+    *Sean Griffin*
+
 *   `ActiveRecord::FinderMethods.find` with block can handle proc parameter as
     `Enumerable#find` does.
 
