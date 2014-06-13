@@ -1,3 +1,8 @@
+*   Ensure both parent IDs are set on join records when both sides of a
+    through association are new.
+
+    *Sean Griffin*
+
 *   `ActiveRecord::Dirty` now detects in-place changes to mutable values.
     Serialized attributes on ActiveRecord models will no longer save when
     unchanged. Fixes #8328.

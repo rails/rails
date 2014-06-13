@@ -180,7 +180,11 @@ module ActiveRecord
         def through_records_for(record)
           attributes = construct_join_attributes(record)
           candidates = Array.wrap(through_association.target)
-          candidates.find_all { |c| c.attributes.slice(*attributes.keys) == attributes }
+          candidates.find_all do |c|
+            attributes.all? do |key, value|
+              c.public_send(key) == value
+            end
+          end
         end
 
         def delete_through_records(records)

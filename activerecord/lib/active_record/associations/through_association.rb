@@ -41,12 +41,16 @@ module ActiveRecord
         def construct_join_attributes(*records)
           ensure_mutable
 
-          join_attributes = {
-            source_reflection.foreign_key =>
-              records.map { |record|
-                record.send(source_reflection.association_primary_key(reflection.klass))
-              }
-          }
+          if source_reflection.association_primary_key(reflection.klass) == reflection.klass.primary_key
+            join_attributes = { source_reflection.name => records }
+          else
+            join_attributes = {
+              source_reflection.foreign_key =>
+                records.map { |record|
+                  record.send(source_reflection.association_primary_key(reflection.klass))
+                }
+            }
+          end
 
           if options[:source_type]
             join_attributes[source_reflection.foreign_type] =
