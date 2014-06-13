@@ -252,6 +252,13 @@ module ActionView
         end
       end
 
+      ##
+      # :method: local_assigns
+      #
+      # Returns a hash with the defined local variables
+      #
+      #   local_assigns[:full] # => true
+
       # Among other things, this method is responsible for properly setting
       # the encoding of the compiled template.
       #
