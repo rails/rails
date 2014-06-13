@@ -13,13 +13,19 @@ After reading this guide, you will know:
 RDoc
 ----
 
-The [Rails API documentation](http://api.rubyonrails.org) is generated with RDoc.
+The [Rails API documentation](http://api.rubyonrails.org) is generated with
+[RDoc](http://docs.seattlerb.org/rdoc/).
 
 ```bash
   bundle exec rake rdoc
 ```
 
 Resulting HTML files can be found in the ./doc/rdoc directory.
+
+Please consult the RDoc documentation for help with the
+[markup](http://docs.seattlerb.org/rdoc/RDoc/Markup.html),
+and also take into account these [additional
+directives](http://docs.seattlerb.org/rdoc/RDoc/Parser/Ruby.html).
 
 Wording
 -------
