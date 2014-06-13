@@ -15,6 +15,7 @@ module ActiveRecord
 
       # Returns the primary key value.
       def id
+        return unless self.class.primary_key
         sync_with_transaction_state
         read_attribute(self.class.primary_key)
       end
