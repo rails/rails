@@ -85,13 +85,12 @@ module ActiveRecord
 
   # Raised when number of bind variables in statement given to +:condition+ key
   # (for example, when using +find+ method) does not match number of expected
-  # variables.
+  # values supplied.
   #
-  # For example, in
+  # For example, when there are two placeholders with only one variable
+  # supplied:
   #
   #   Location.where("lat = ? AND lng = ?", 53.7362)
-  #
-  # Two placeholders are given with only one variable to fill them both.
   class PreparedStatementInvalid < ActiveRecordError
   end
 
