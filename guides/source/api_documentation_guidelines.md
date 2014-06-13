@@ -341,15 +341,19 @@ method or class you're trying to document.
 
 In various places there is different behavior when you take the entire stack
 into account, one such example is
-`ActionView::Helpers::AssetTagHelper.image_tag`:
+`ActionView::Helpers::AssetTagHelper#image_tag`:
 
 ```ruby
 # image_tag("icon.png")
 #   # => <img alt="Icon" src="/assets/icon.png" />
 ```
 
-Although the default behavior for `image_tag` is `/images/icon.png`, because
-the Rails stack includes Sprockets when using the Rails Asset Pipeline.
+Although the default behavior for `#image_tag` is to always return
+`/images/icon.png`, we take into account the full Rails stack (including the
+Asset Pipeline) we may see the result seen above.
+
+We're only concerned with the behavior experienced when using the full default
+Rails stack.
 
 In this case, we want to document the behavior of the _framework_, and not just
 this specific method.
