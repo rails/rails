@@ -12,10 +12,14 @@ module ActiveRecord
 
           def type_cast_from_database(value)
             if value.is_a?(::String)
-              type_cast_array(parse_pg_array(value))
+              type_cast_array(parse_pg_array(value), :type_cast_from_database)
             else
               super
             end
+          end
+
+          def type_cast_from_user(value)
+            type_cast_array(value, :type_cast_from_user)
           end
 
           # Loads pg_array_parser if available. String parsing can be
@@ -32,11 +36,11 @@ module ActiveRecord
 
           private
 
-          def type_cast_array(value)
+          def type_cast_array(value, method)
             if value.is_a?(::Array)
-              value.map { |item| type_cast_array(item) }
+              value.map { |item| type_cast_array(item, method) }
             else
-              @subtype.type_cast_from_database(value)
+              @subtype.public_send(method, value)
             end
           end
         end
