@@ -1,3 +1,9 @@
+*   ActionController::Parameters#require now accepts `false` values.
+
+    Fixes #15685.
+
+    *Sergio Romano*
+
 *   With authorization header `Authorization: Token token=`, `authenticate` now
     recognize token as nil, instead of "token".
 

@@ -180,7 +180,12 @@ module ActionController
     #   ActionController::Parameters.new(person: {}).require(:person)
     #   # => ActionController::ParameterMissing: param not found: person
     def require(key)
-      self[key].presence || raise(ParameterMissing.new(key))
+      value = self[key]
+      if value.present? || value == false
+        value
+      else
+        raise ParameterMissing.new(key)
+      end
     end
 
     # Alias of #require.
