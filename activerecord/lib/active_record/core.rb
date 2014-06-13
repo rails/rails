@@ -262,6 +262,7 @@ module ActiveRecord
       init_internals
       initialize_internals_callback
 
+      self.class.define_attribute_methods
       # +options+ argument is only needed to make protected_attributes gem easier to hook.
       # Remove it when we drop support to this gem.
       init_attributes(attributes, options) if attributes

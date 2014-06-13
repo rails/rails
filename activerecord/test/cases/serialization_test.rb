@@ -69,6 +69,14 @@ class SerializationTest < ActiveRecord::TestCase
     ActiveRecord::Base.include_root_in_json = original_root_in_json
   end
 
+  def test_read_attribute_for_serialization_with_format_without_method_missing
+    klazz = Class.new(ActiveRecord::Base)
+    klazz.table_name = 'books'
+
+    book = klazz.new
+    assert_nil book.read_attribute_for_serialization(:format)
+  end
+
   def test_read_attribute_for_serialization_with_format_after_init
     klazz = Class.new(ActiveRecord::Base)
     klazz.table_name = 'books'
