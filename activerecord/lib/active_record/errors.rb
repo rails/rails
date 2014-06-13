@@ -87,8 +87,7 @@ module ActiveRecord
   # (for example, when using +find+ method) does not match number of expected
   # values supplied.
   #
-  # For example, when there are two placeholders with only one variable
-  # supplied:
+  # For example, when there are two placeholders with only one value supplied:
   #
   #   Location.where("lat = ? AND lng = ?", 53.7362)
   class PreparedStatementInvalid < ActiveRecordError
