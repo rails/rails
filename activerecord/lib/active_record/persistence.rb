@@ -53,12 +53,7 @@ module ActiveRecord
           type = column_types.fetch(name) { klass.type_for_attribute(name) }
           h[name] = Attribute.from_database(value, type)
         end
-
-        klass.allocate.init_with(
-          'attributes' => attributes,
-          'column_types' => column_types,
-          'new_record' => false,
-        )
+        klass.allocate.init_with('attributes' => attributes, 'new_record' => false)
       end
 
       private
@@ -406,8 +401,7 @@ module ActiveRecord
 
       @attributes.update(fresh_object.instance_variable_get('@attributes'))
 
-      @column_types           = self.class.column_types
-      @column_types_override  = fresh_object.instance_variable_get('@column_types_override')
+      @column_types = self.class.column_types
       self
     end
 

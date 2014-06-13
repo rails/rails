@@ -256,7 +256,6 @@ module ActiveRecord
       end
 
       @attributes = defaults
-      @column_types_override = nil
       @column_types = self.class.column_types
 
       init_internals
@@ -283,7 +282,6 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = coder['attributes']
-      @column_types_override = coder['column_types']
       @column_types = self.class.column_types
 
       init_internals
@@ -357,7 +355,6 @@ module ActiveRecord
       # FIXME: Remove this when we better serialize attributes
       coder['raw_attributes'] = attributes_before_type_cast
       coder['attributes'] = @attributes
-      coder['column_types'] = @column_types_override
       coder['new_record'] = new_record?
     end
 
