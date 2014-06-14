@@ -1,3 +1,10 @@
+*   Correctly extract IPv6 addresses from `DATABASE_URI`: the square brackets
+    are part of the URI structure, not the actual host.
+
+    Fixes #15705.
+
+    *Andy Bakun*, *Aaron Stone*
+
 *   Don't error when quoting user defined types in PostgreSQL.
 
     Fixes #15697.

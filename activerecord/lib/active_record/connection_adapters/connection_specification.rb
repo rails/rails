@@ -86,7 +86,7 @@ module ActiveRecord
               "password" => uri.password,
               "port"     => uri.port,
               "database" => database_from_path,
-              "host"     => uri.host })
+              "host"     => uri.hostname })
           end
         end
 

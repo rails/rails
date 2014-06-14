@@ -150,6 +150,18 @@ module ActiveRecord
         assert_equal nil,      actual[:test]
       end
 
+      def test_database_url_with_ipv6_host_and_port
+        ENV['DATABASE_URL'] = "postgres://[::1]:5454/foo"
+
+        config   = {}
+        actual   = klass.new(config).resolve
+        expected = { "adapter"  => "postgresql",
+                     "database" => "foo",
+                     "host"     => "::1",
+                     "port"     => 5454 }
+        assert_equal expected, actual["default_env"]
+      end
+
       def test_url_sub_key_with_database_url
         ENV['DATABASE_URL'] = "NOT-POSTGRES://localhost/NOT_FOO"
 
