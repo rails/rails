@@ -86,4 +86,26 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/resources :accounts$/, route)
     end
   end
+
+  # Collection resources
+  def test_collection_resources
+    content = run_generator ["Users", "--collection"]
+
+    assert_match(/resources :users, collection: true$/, content)
+  end
+
+  def test_false_collection_resource_option
+    content = run_generator ["Users", "--collection=false"]
+
+    assert_match(/resources :users$/, content)
+  end
+
+  def test_route_is_removed_on_revoke
+    run_generator
+    run_generator ["account", "--collection"], behavior: :revoke
+
+    assert_file "config/routes.rb" do |route|
+      assert_no_match(/resources :accounts$/, route)
+    end
+  end
 end

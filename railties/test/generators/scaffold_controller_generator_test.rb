@@ -168,4 +168,32 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_collection_routes
+    run_generator ["User", "--collection"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_instance_method :index, content do |m|
+        assert_match(/@users = user_ids \? User\.find\(user_ids\) : User\.all/, m)
+      end
+
+      assert_instance_method :user_ids, content do |m|
+        assert_match(/@user_ids ||= params\.permit\(ids: 1\.\.2\*\*32-1\)/, m)
+      end
+
+      assert_instance_method :update_many, content do |m|
+        assert_match(/User\.find\(user_ids\)\.each do \|user\|/, m)
+        assert_match(/ser\.update\(params\[:users\]\[:"\#{user.id}"\]/, m)
+      end
+
+      assert_instance_method :replace, content do |m|
+        assert_match(/User\.destroy_all/, m)
+        assert_match(/create/, m)
+      end
+
+      assert_instance_method :destroy_many, content do |m|
+        assert_match(/@users = User\.destroy\(users_ids\)/, m)
+      end
+    end
+  end
 end
