@@ -657,7 +657,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_setting_time_zone_aware_attribute_in_current_time_zone
+  def test_setting_time_zone_aware_datetime_in_current_time_zone
     utc_time = Time.utc(2008, 1, 1)
     in_time_zone "Pacific Time (US & Canada)" do
       record   = @target.new
@@ -673,6 +673,47 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record = Topic.new(id: 1)
       record.written_on = "Jan 01 00:00:00 2014"
       assert_equal record, YAML.load(YAML.dump(record))
+    end
+  end
+
+  def test_setting_time_zone_aware_time_in_current_time_zone
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      time_string = "10:00:00"
+      expected_time = Time.zone.parse("2000-01-01 #{time_string}")
+
+      record.bonus_time = time_string
+      assert_equal expected_time, record.bonus_time
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.bonus_time.time_zone
+
+      record.bonus_time = ''
+      assert_nil record.bonus_time
+    end
+  end
+
+  def test_setting_time_zone_aware_time_with_dst
+    in_time_zone "Pacific Time (US & Canada)" do
+      current_time = Time.zone.local(2014, 06, 15, 10)
+      record = @target.new(bonus_time: current_time)
+      time_before_save = record.bonus_time
+
+      record.save
+      record.reload
+
+      assert_equal time_before_save, record.bonus_time
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.bonus_time.time_zone
+    end
+  end
+
+  def test_removing_time_zone_aware_types
+    with_time_zone_aware_types(:datetime) do
+      in_time_zone "Pacific Time (US & Canada)" do
+        record = @target.new(bonus_time: "10:00:00")
+        expected_time = Time.utc(2000, 01, 01, 10)
+
+        assert_equal expected_time, record.bonus_time
+        assert record.bonus_time.utc?
+      end
     end
   end
 
@@ -906,6 +947,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_empty klass.generated_attribute_methods.instance_methods(false)
     klass
+  end
+
+  def with_time_zone_aware_types(*types)
+    old_types = ActiveRecord::Base.time_zone_aware_types
+    ActiveRecord::Base.time_zone_aware_types = types
+    yield
+  ensure
+    ActiveRecord::Base.time_zone_aware_types = old_types
   end
 
   def cached_columns

@@ -30,6 +30,9 @@ ARTest.connect
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
 
+# FIXME: Remove this when the deprecation cycle on TZ aware types by default ends.
+ActiveRecord::Base.time_zone_aware_types << :time
+
 def current_adapter?(*types)
   types.any? do |type|
     ActiveRecord::ConnectionAdapters.const_defined?(type) &&

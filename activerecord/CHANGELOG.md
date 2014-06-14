@@ -1,3 +1,17 @@
+*   `time` columns can now affected by `time_zone_aware_attributes`. If you have
+    set `config.time_zone` to a value other than `'UTC'`, they will be treated
+    as in that time zone by default in Rails 5.0. If this is not the desired
+    behavior, you can set
+
+        ActiveRecord::Base.time_zone_aware_types = [:datetime]
+
+    A deprecation warning will be emitted if you have a `:time` column, and have
+    not explicitly opted out.
+
+    Fixes #3145
+
+    *Sean Griffin*
+
 *   `nil` as a value for a binary column in a query no longer logs as
     "<NULL binary data>", and instead logs as just "nil".
 
