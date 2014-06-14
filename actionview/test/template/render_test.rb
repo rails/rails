@@ -12,7 +12,6 @@ module RenderTestCases
     @controller_view = TestController.new.view_context
 
     # Reload and register danish language for testing
-    I18n.reload!
     I18n.backend.store_translations 'da', {}
     I18n.backend.store_translations 'pt-BR', {}
 
@@ -513,6 +512,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
 
   def teardown
     GC.start
+    I18n.reload!
   end
 end
 
@@ -530,6 +530,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def teardown
     GC.start
+    I18n.reload!
   end
 
   def test_render_utf8_template_with_magic_comment
