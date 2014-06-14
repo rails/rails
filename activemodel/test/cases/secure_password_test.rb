@@ -92,15 +92,15 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "update an existing user with validations and valid password/confirmation" do
-    @user.password = 'password'
-    @user.password_confirmation = 'password'
+    @existing_user.password = 'password'
+    @existing_user.password_confirmation = 'password'
 
-    assert @user.valid?(:update), 'user should be valid'
+    assert @existing_user.valid?(:update), 'user should be valid'
 
-    @user.password = 'a' * 72
-    @user.password_confirmation = 'a' * 72
+    @existing_user.password = 'a' * 72
+    @existing_user.password_confirmation = 'a' * 72
 
-    assert @user.valid?(:update), 'user should be valid'
+    assert @existing_user.valid?(:update), 'user should be valid'
   end
 
   test "updating an existing user with validation and a blank password" do
