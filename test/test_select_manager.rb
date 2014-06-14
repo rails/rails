@@ -140,7 +140,7 @@ module Arel
           mgr.to_sql.must_be_like %{ SELECT  FROM "users" INNER JOIN "users" "users_2" ON omg }
         end
 
-        it 'converts to sqlliterals' do
+        it 'converts to sqlliterals with multiple items' do
           table = Table.new :users
           right = table.alias
           mgr   = table.from table
