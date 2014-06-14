@@ -74,7 +74,7 @@ module ActiveRecord
                    :password => config.password,
                    :port     => config.port,
                    :database => config.path.sub(%r{^/},""),
-                   :host     => config.host }
+                   :host     => config.hostname }
 
           spec.reject!{ |_,value| value.blank? }
 
