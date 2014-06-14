@@ -1,3 +1,10 @@
+*   Change middlewares stack order so that managing cookies in custome exception
+    is possible.
+
+    Fixes #11679.
+
+    *Larry Lv*
+
 *   Invalid `bin/rails generate` commands will now show spelling suggestions.
 
     *Richard Schneeman*
