@@ -5,11 +5,15 @@ require 'active_support/deprecation'
 module ActionDispatch
   module Http
     module Parameters
-      PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
+      module Strings #:nodoc:
+        ACTION_DISPATCH_REQUEST_PARAMETERS = 'action_dispatch.request.parameters'.freeze
+        ACTION_DISPATCH_REQUEST_PATH_PARAMETERS = 'action_dispatch.request.path_parameters'.freeze
+      end
+      private_constant :Strings
 
       # Returns both GET and POST \parameters in a single hash.
       def parameters
-        @env["action_dispatch.request.parameters"] ||= begin
+        @env[Strings::ACTION_DISPATCH_REQUEST_PARAMETERS] ||= begin
           params = begin
             request_parameters.merge(query_parameters)
           rescue EOFError
@@ -21,8 +25,8 @@ module ActionDispatch
       alias :params :parameters
 
       def path_parameters=(parameters) #:nodoc:
-        @env.delete('action_dispatch.request.parameters')
-        @env[PARAMETERS_KEY] = parameters
+        @env.delete(Strings::ACTION_DISPATCH_REQUEST_PARAMETERS)
+        @env[Strings::ACTION_DISPATCH_REQUEST_PATH_PARAMETERS] = parameters
       end
 
       def symbolized_path_parameters
@@ -37,7 +41,7 @@ module ActionDispatch
       #
       #   {'action' => 'my_action', 'controller' => 'my_controller'}
       def path_parameters
-        @env[PARAMETERS_KEY] ||= {}
+        @env[Strings::ACTION_DISPATCH_REQUEST_PATH_PARAMETERS] ||= {}
       end
 
     private

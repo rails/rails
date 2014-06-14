@@ -9,14 +9,18 @@ module ActiveSupport
   #
   #   Rails.env.production?
   class StringInquirer < String
-    private
+    module Strings #:nodoc:
+      QUESTION_MARK = '?'.freeze
+    end
+    private_constant :Strings
 
+    private
       def respond_to_missing?(method_name, include_private = false)
-        method_name[-1] == '?'
+        method_name[-1] == Strings::QUESTION_MARK
       end
 
       def method_missing(method_name, *arguments)
-        if method_name[-1] == '?'
+        if method_name[-1] == Strings::QUESTION_MARK
           self == method_name[0..-2]
         else
           super

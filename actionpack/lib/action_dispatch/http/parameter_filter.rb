@@ -2,6 +2,7 @@ module ActionDispatch
   module Http
     class ParameterFilter
       FILTERED = '[FILTERED]'.freeze # :nodoc:
+      private_constant :FILTERED
 
       def initialize(filters = [])
         @filters = filters

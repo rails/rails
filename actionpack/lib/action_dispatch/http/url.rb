@@ -1,12 +1,16 @@
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
+require 'action_dispatch/internal/constants'
 
 module ActionDispatch
   module Http
     module URL
-      IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
-      HOST_REGEXP     = /(^[^:]+:\/\/)?([^:]+)(?::(\d+$))?/
-      PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
+      module Regexps #:nodoc:
+        IP_HOST = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+        HOST = /(^[^:]+:\/\/)?([^:]+)(?::(\d+$))?/
+        PROTOCOL = /^([^:]+)(:)?(\/\/)?$/
+      end
+      private_constant :Regexps
 
       mattr_accessor :tld_length
       self.tld_length = 1
@@ -25,7 +29,7 @@ module ActionDispatch
         end
 
         def extract_subdomain(host, tld_length)
-          extract_subdomains(host, tld_length).join('.')
+          extract_subdomains(host, tld_length).join(Strings::PERIOD)
         end
 
         def url_for(options)
@@ -49,7 +53,7 @@ module ActionDispatch
         end
 
         def path_for(options)
-          path  = options[:script_name].to_s.chomp("/")
+          path  = options[:script_name].to_s.chomp(Strings::SLASH)
           path << options[:path] if options.key?(:path)
 
           add_trailing_slash(path) if options[:trailing_slash]
@@ -72,26 +76,26 @@ module ActionDispatch
         end
 
         def extract_domain_from(host, tld_length)
-          host.split('.').last(1 + tld_length).join('.')
+          host.split(Strings::PERIOD).last(1 + tld_length).join(Strings::PERIOD)
         end
 
         def extract_subdomains_from(host, tld_length)
-          parts = host.split('.')
+          parts = host.split(Strings::PERIOD)
           parts[0..-(tld_length + 2)]
         end
 
         def add_trailing_slash(path)
           # includes querysting
-          if path.include?('?')
+          if path.include?(Strings::QUESTION_MARK)
             path.sub!(/\?/, '/\&')
           # does not have a .format
-          elsif !path.include?(".")
+          elsif !path.include?(Strings::PERIOD)
             path.sub!(/[^\/]\z|\A\z/, '\&/')
           end
         end
 
         def build_host_url(host, port, protocol, options, path)
-          if match = host.match(HOST_REGEXP)
+          if match = host.match(Regexps::HOST)
             protocol ||= match[1] unless protocol == false
             host       = match[2]
             port       = match[3] unless options.key? :port
@@ -115,16 +119,16 @@ module ActionDispatch
         end
 
         def named_host?(host)
-          IP_HOST_REGEXP !~ host
+          Regexps::IP_HOST !~ host
         end
 
         def normalize_protocol(protocol)
           case protocol
           when nil
-            "http://"
-          when false, "//"
-            "//"
-          when PROTOCOL_REGEXP
+            "http://".freeze
+          when false, "//".freeze
+            "//".freeze
+          when Regexps::PROTOCOL
             "#{$1}://"
           else
             raise ArgumentError, "Invalid :protocol option: #{protocol.inspect}"
@@ -142,11 +146,11 @@ module ActionDispatch
           if subdomain == true
             return _host if domain.nil?
 
-            host << extract_subdomains_from(_host, tld_length).join('.')
+            host << extract_subdomains_from(_host, tld_length).join(Strings::PERIOD)
           elsif subdomain
             host << subdomain.to_param
           end
-          host << "." unless host.empty?
+          host << Strings::PERIOD unless host.empty?
           host << (domain || extract_domain_from(_host, tld_length))
           host
         end
@@ -155,8 +159,8 @@ module ActionDispatch
           return unless port
 
           case protocol
-          when "//" then yield port
-          when "https://"
+          when "//".freeze then yield port
+          when "https://".freeze
             yield port unless port.to_i == 443
           else
             yield port unless port.to_i == 80
@@ -177,21 +181,21 @@ module ActionDispatch
 
       # Returns 'https://' if this is an SSL request and 'http://' otherwise.
       def protocol
-        @protocol ||= ssl? ? 'https://' : 'http://'
+        @protocol ||= ssl? ? 'https://'.freeze : 'http://'.freeze
       end
 
       # Returns the \host for this request, such as "example.com".
       def raw_host_with_port
-        if forwarded = env["HTTP_X_FORWARDED_HOST"]
+        if forwarded = env["HTTP_X_FORWARDED_HOST".freeze]
           forwarded.split(/,\s?/).last
         else
-          env['HTTP_HOST'] || "#{env['SERVER_NAME'] || env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
+          env['HTTP_HOST'.freeze] || "#{env['SERVER_NAME'.freeze] || env['SERVER_ADDR'.freeze]}:#{env['SERVER_PORT'.freeze]}"
         end
       end
 
       # Returns the host for this request, such as example.com.
       def host
-        raw_host_with_port.sub(/:\d+$/, '')
+        raw_host_with_port.sub(/:\d+$/, Strings::EMPTY)
       end
 
       # Returns a \host:\port string for this request, such as "example.com" or
@@ -214,7 +218,7 @@ module ActionDispatch
       # Returns the standard \port number for this request's protocol.
       def standard_port
         case protocol
-          when 'https://' then 443
+          when 'https://'.freeze then 443
           else 80
         end
       end
@@ -233,11 +237,11 @@ module ActionDispatch
       # Returns a string \port suffix, including colon, like ":8080" if the \port
       # number of this request is not the default HTTP \port 80 or HTTPS \port 443.
       def port_string
-        standard_port? ? '' : ":#{port}"
+        standard_port? ? Strings::EMPTY : ":#{port}"
       end
 
       def server_port
-        @env['SERVER_PORT'].to_i
+        @env['SERVER_PORT'.freeze].to_i
       end
 
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify

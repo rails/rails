@@ -57,6 +57,8 @@ module ActiveRecord
         NORMAL_VALUES
       end
 
+      MERGE_BANG_METHODS = Hash.new { |h, k| h[k] = :"#{k}!" }
+
       def merge
         normal_values.each do |name|
           value = values[name]
@@ -68,7 +70,7 @@ module ActiveRecord
             if name == :select
               relation._select!(*value)
             else
-              relation.send("#{name}!", *value)
+              relation.send(MERGE_BANG_METHODS[name], *value)
             end
           end
         end

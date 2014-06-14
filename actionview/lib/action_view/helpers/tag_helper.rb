@@ -18,13 +18,19 @@ module ActionView
                            itemscope allowfullscreen default inert sortable
                            truespeed typemustmatch).to_set
 
-      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
+      BOOLEAN_ATTRIBUTES.merge BOOLEAN_ATTRIBUTES.map(&:to_sym)
 
       TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
 
       PRE_CONTENT_STRINGS = {
-        :textarea => "\n"
+        :textarea => "\n".freeze
       }
+
+      module Strings #:nodoc:
+        SPACE = ' '.freeze
+        DATA_STRING = 'data'.freeze
+      end
+      private_constant :Strings
 
       # Returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
@@ -139,11 +145,15 @@ module ActionView
       end
 
       private
+        CONTENT_TAG_TEMPLATES = Hash.new do |hash, tag|
+          hash[tag] = "<#{tag}%s>#{PRE_CONTENT_STRINGS[tag]}%s</#{tag}>"
+        end
+        private_constant :CONTENT_TAG_TEMPLATES
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
           content     = ERB::Util.unwrapped_html_escape(content) if escape
-          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
+          (CONTENT_TAG_TEMPLATES[name.to_sym] % [tag_options, content]).html_safe
         end
 
         def tag_options(options, escape = true)
@@ -160,7 +170,7 @@ module ActionView
               attrs << tag_option(key, value, escape)
             end
           end
-          " #{attrs.sort! * ' '}" unless attrs.empty?
+          " #{attrs.sort! * Strings::SPACE}" unless attrs.empty?
         end
 
         def prefix_tag_option(prefix, key, value, escape)
@@ -177,7 +187,7 @@ module ActionView
 
         def tag_option(key, value, escape)
           if value.is_a?(Array)
-            value = escape ? safe_join(value, " ") : value.join(" ")
+            value = escape ? safe_join(value, Strings::SPACE) : value.join(Strings::SPACE)
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value
           end
