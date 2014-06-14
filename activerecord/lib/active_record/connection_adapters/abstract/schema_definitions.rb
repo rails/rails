@@ -15,7 +15,7 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key) #:nodoc:
+    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key, :sql_type) #:nodoc:
 
       def primary_key?
         primary_key || type.to_sym == :primary_key
@@ -99,9 +99,11 @@ module ActiveRecord
       #   Specifies the precision for a <tt>:decimal</tt> column.
       # * <tt>:scale</tt> -
       #   Specifies the scale for a <tt>:decimal</tt> column.
+      # * <tt>:index</tt> -
+      #   Create an index for the column. Can be either <tt>true</tt> or an options hash.
       #
-      # For clarity's sake: the precision is the number of significant digits,
-      # while the scale is the number of digits that can be stored following
+      # Note: The precision is the total number of significant digits
+      # and the scale is the number of digits that can be stored following
       # the decimal point. For example, the number 123.45 has a precision of 5
       # and a scale of 2. A decimal with a precision of 5 and a scale of 2 can
       # range from -999.99 to 999.99.
@@ -123,17 +125,8 @@ module ActiveRecord
       #   Default is (38,0).
       # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
       #   Default unknown.
-      # * Firebird: <tt>:precision</tt> [1..18], <tt>:scale</tt> [0..18].
-      #   Default (9,0). Internal types NUMERIC and DECIMAL have different
-      #   storage rules, decimal being better.
-      # * FrontBase?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
-      #   Default (38,0). WARNING Max <tt>:precision</tt>/<tt>:scale</tt> for
-      #   NUMERIC is 19, and DECIMAL is 38.
       # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0).
-      # * Sybase: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
-      #   Default (38,0).
-      # * OpenBase?: Documentation unclear. Claims storage in <tt>double</tt>.
       #
       # This method returns <tt>self</tt>.
       #
@@ -172,18 +165,21 @@ module ActiveRecord
       # What can be written like this with the regular calls to column:
       #
       #   create_table :products do |t|
-      #     t.column :shop_id,    :integer
-      #     t.column :creator_id, :integer
-      #     t.column :name,       :string, default: "Untitled"
-      #     t.column :value,      :string, default: "Untitled"
-      #     t.column :created_at, :datetime
-      #     t.column :updated_at, :datetime
+      #     t.column :shop_id,     :integer
+      #     t.column :creator_id,  :integer
+      #     t.column :item_number, :string
+      #     t.column :name,        :string, default: "Untitled"
+      #     t.column :value,       :string, default: "Untitled"
+      #     t.column :created_at,  :datetime
+      #     t.column :updated_at,  :datetime
       #   end
+      #   add_index :products, :item_number
       #
       # can also be written as follows using the short-hand:
       #
       #   create_table :products do |t|
       #     t.integer :shop_id, :creator_id
+      #     t.string  :item_number, index: true
       #     t.string  :name, :value, default: "Untitled"
       #     t.timestamps
       #   end
@@ -219,6 +215,8 @@ module ActiveRecord
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
+        index_options = options.delete(:index)
+        index(name, index_options.is_a?(Hash) ? index_options : {}) if index_options
         @columns_hash[name] = new_column_definition(name, type, options)
         self
       end
@@ -264,6 +262,7 @@ module ActiveRecord
       alias :belongs_to :references
 
       def new_column_definition(name, type, options) # :nodoc:
+        type = aliased_types[type] || type
         column = create_column_definition name, type
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
@@ -293,6 +292,12 @@ module ActiveRecord
 
       def native
         @native
+      end
+
+      def aliased_types
+        HashWithIndifferentAccess.new(
+          timestamp: :datetime,
+        )
       end
     end
 

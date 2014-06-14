@@ -14,7 +14,6 @@ module Rails
       DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
-      attr_accessor :app_template
       add_shebang_option!
 
       argument :app_path, type: :string
@@ -25,9 +24,6 @@ module Rails
 
       def self.add_shared_options_for(name)
         class_option :template,           type: :string, aliases: '-m',
-                                          desc: "Path to some #{name} template (can be a filesystem path or URL)"
-
-        class_option :app_template,       type: :string, aliases: '-n',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
@@ -83,7 +79,6 @@ module Rails
       end
 
       def initialize(*args)
-        @original_wd   = Dir.pwd
         @gem_filter    = lambda { |gem| true }
         @extra_entries = []
         super
@@ -115,7 +110,6 @@ module Rails
           javascript_gemfile_entry,
           jbuilder_gemfile_entry,
           sdoc_gemfile_entry,
-          platform_dependent_gemfile_entry,
           spring_gemfile_entry,
           @extra_entries].flatten.find_all(&@gem_filter)
       end
@@ -124,10 +118,6 @@ module Rails
         @gem_filter = lambda { |next_filter, entry|
           yield(entry) && next_filter.call(entry)
         }.curry[@gem_filter]
-      end
-
-      def remove_gem(name)
-        add_gem_entry_filter { |gem| gem.name != name }
       end
 
       def builder
@@ -149,92 +139,21 @@ module Rails
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
-      class TemplateRecorder < ::BasicObject # :nodoc:
-        attr_reader :gems
-
-        def initialize(target)
-          @target         = target
-          # unfortunately, instance eval has access to these ivars
-          @app_const      = target.send :app_const if target.respond_to?(:app_const, true)
-          @app_const_base = target.send :app_const_base if target.respond_to?(:app_const_base, true)
-          @app_name       = target.send :app_name if target.respond_to?(:app_name, true)
-          @commands       = []
-          @gems           = []
-        end
-
-        def gemfile_entry(*args)
-          @target.send :gemfile_entry, *args
-        end
-
-        def add_gem_entry_filter(*args, &block)
-          @target.send :add_gem_entry_filter, *args, &block
-        end
-
-        def remove_gem(*args, &block)
-          @target.send :remove_gem, *args, &block
-        end
-
-        def method_missing(name, *args, &block)
-          @commands << [name, args, block]
-        end
-
-        def respond_to_missing?(method, priv = false)
-          super || @target.respond_to?(method, priv)
-        end
-
-        def replay!
-          @commands.each do |name, args, block|
-            @target.send name, *args, &block
-          end
-        end
-      end
-
       def apply_rails_template
-        @recorder = TemplateRecorder.new self
-
-        apply(rails_template, target: self) if rails_template
-        apply(app_template, target: @recorder) if app_template
+        apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
 
-      def replay_template
-        @recorder.replay! if @recorder
-      end
-
-      def apply(path, config={})
-        verbose = config.fetch(:verbose, true)
-        target  = config.fetch(:target, self)
-        is_uri  = path =~ /^https?\:\/\//
-        path    = find_in_source_paths(path) unless is_uri
-
-        say_status :apply, path, verbose
-        shell.padding += 1 if verbose
-
-        if is_uri
-          contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-        else
-          contents = open(path) {|io| io.read }
-        end
-
-        target.instance_eval(contents, path)
-        shell.padding -= 1 if verbose
-      end
-
       def set_default_accessors!
         self.destination_root = File.expand_path(app_path, destination_root)
-        self.rails_template = expand_template options[:template]
-        self.app_template = expand_template options[:app_template]
-      end
-
-      def expand_template(name)
-        case name
-        when /^https?:\/\//
-          name
-        when String
-          File.expand_path(name, Dir.pwd)
-        else
-          name
+        self.rails_template = case options[:template]
+          when /^https?:\/\//
+            options[:template]
+          when String
+            File.expand_path(options[:template], Dir.pwd)
+          else
+            options[:template]
         end
       end
 
@@ -250,6 +169,10 @@ module Rails
 
       def comment_if(value)
         options[value] ? '# ' : ''
+      end
+
+      def sqlite3?
+        !options[:skip_active_record] && options[:database] == 'sqlite3'
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -326,7 +249,7 @@ module Rails
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails',
-                                     '~> 4.0.1',
+                                     '~> 4.0.3',
                                      'Use SCSS for stylesheets')
         end
 
@@ -334,14 +257,6 @@ module Rails
                                    '>= 1.3.0',
                                    'Use Uglifier as compressor for JavaScript assets')
 
-        gems
-      end
-
-      def platform_dependent_gemfile_entry
-        gems = []
-        if RUBY_ENGINE == 'rbx'
-          gems << GemfileEntry.version('rubysl', nil)
-        end
         gems
       end
 
@@ -389,7 +304,7 @@ module Rails
 
       def spring_gemfile_entry
         return [] unless spring_install?
-        comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/jonleighton/spring'
+        comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring'
         GemfileEntry.new('spring', nil, comment, group: :development)
       end
 
@@ -412,7 +327,8 @@ module Rails
 
         require 'bundler'
         Bundler.with_clean_env do
-          print `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
+          output = `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
+          print output unless options[:quiet]
         end
       end
 

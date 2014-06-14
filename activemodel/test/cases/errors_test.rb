@@ -51,7 +51,12 @@ class ErrorsTest < ActiveModel::TestCase
   def test_has_key?
     errors = ActiveModel::Errors.new(self)
     errors[:foo] = 'omg'
-    assert errors.has_key?(:foo), 'errors should have key :foo'
+    assert_equal true, errors.has_key?(:foo), 'errors should have key :foo'
+  end
+
+  def test_has_no_key
+    errors = ActiveModel::Errors.new(self)
+    assert_equal false, errors.has_key?(:name), 'errors should not have key :name'
   end
 
   test "clear errors" do
@@ -75,6 +80,13 @@ class ErrorsTest < ActiveModel::TestCase
     errors.set(:foo, "omg")
 
     assert_equal({ foo: "omg" }, errors.messages)
+  end
+
+  test "error access is indifferent" do
+    errors = ActiveModel::Errors.new(self)
+    errors[:foo] = "omg"
+
+    assert_equal ["omg"], errors["foo"]
   end
 
   test "values returns an array of messages" do

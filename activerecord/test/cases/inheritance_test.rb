@@ -1,10 +1,11 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/company'
 require 'models/person'
 require 'models/post'
 require 'models/project'
 require 'models/subscriber'
 require 'models/vegetables'
+require 'models/shop'
 
 class InheritanceTest < ActiveRecord::TestCase
   fixtures :companies, :projects, :subscribers, :accounts, :vegetables
@@ -94,16 +95,8 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_a_bad_type_column
-    #SQLServer need to turn Identity Insert On before manually inserting into the Identity column
-    if current_adapter?(:SybaseAdapter)
-      Company.connection.execute "SET IDENTITY_INSERT companies ON"
-    end
     Company.connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
 
-    #We then need to turn it back Off before continuing.
-    if current_adapter?(:SybaseAdapter)
-      Company.connection.execute "SET IDENTITY_INSERT companies OFF"
-    end
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
 
@@ -221,9 +214,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_condition
-    assert_equal 10, Company.count
+    assert_equal 11, Company.count
     assert_equal 2, Firm.count
-    assert_equal 4, Client.count
+    assert_equal 5, Client.count
   end
 
   def test_alt_inheritance_condition
@@ -338,7 +331,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     ActiveSupport::Dependencies.log_activity = true
   end
 
-  def teardown
+  teardown do
     ActiveSupport::Dependencies.log_activity = false
     self.class.const_remove :FirmOnTheFly rescue nil
     Firm.const_remove :FirmOnTheFly rescue nil
@@ -366,5 +359,11 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
   ensure
     ActiveRecord::Base.store_full_sti_class = true
+  end
+
+  def test_sti_type_from_attributes_disabled_in_non_sti_class
+    phone = Shop::Product::Type.new(name: 'Phone')
+    product = Shop::Product.new(:type => phone)
+    assert product.save
   end
 end

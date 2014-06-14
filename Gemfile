@@ -8,10 +8,17 @@ gemspec
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
-gem 'bcrypt-ruby', '~> 3.1.2'
-gem 'jquery-rails', '~> 2.2.0'
+gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks'
 gem 'coffee-rails', '~> 4.0.0'
+gem 'arel', github: 'rails/arel', branch: 'master'
+gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
+gem 'i18n', github: 'svenfuchs/i18n', branch: 'master'
+
+# require: false so bcrypt is loaded only when has_secure_password is used.
+# This is to avoid ActiveModel (and by extension the entire framework)
+# being dependent on a binary library.
+gem 'bcrypt', '~> 3.1.7', require: false
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
@@ -19,7 +26,7 @@ gem 'uglifier', '>= 1.3.0', require: false
 
 group :doc do
   gem 'sdoc', '~> 0.4.0'
-  gem 'redcarpet', '~> 2.2.2', platforms: :ruby
+  gem 'redcarpet', '~> 3.1.2', platforms: :ruby
   gem 'w3c_validators'
   gem 'kindlerb'
 end
@@ -32,6 +39,9 @@ local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
+  # FIX: Our test suite isn't ready to run in random order yet
+  gem 'minitest', '< 5.3.4'
+
   platforms :mri_19 do
     gem 'ruby-prof', '~> 0.11.2'
   end
@@ -76,15 +86,10 @@ platforms :jruby do
   end
 end
 
-platforms :rbx do
-  gem 'psych', '~> 2.0'
-  gem 'rubysl', '~> 2.0'
-end
-
 # gems that are necessary for ActiveRecord tests with Oracle database
 if ENV['ORACLE_ENHANCED']
   platforms :ruby do
-    gem 'ruby-oci8', '>= 2.0.4'
+    gem 'ruby-oci8', '~> 2.1'
   end
   gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'master'
 end

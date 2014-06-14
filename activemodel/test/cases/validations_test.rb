@@ -10,17 +10,10 @@ require 'active_support/json'
 require 'active_support/xml_mini'
 
 class ValidationsTest < ActiveModel::TestCase
-
   class CustomStrictValidationException < StandardError; end
 
-  def setup
-    Topic._validators.clear
-  end
-
-  # Most of the tests mess with the validations of Topic, so lets repair it all the time.
-  # Other classes we mess with will be dealt with in the specific tests
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_single_field_validation
@@ -146,6 +139,8 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 4, hits
     assert_equal %w(gotcha gotcha), t.errors[:title]
     assert_equal %w(gotcha gotcha), t.errors[:content]
+  ensure
+    CustomReader.clear_validators!
   end
 
   def test_validate_block
@@ -291,12 +286,22 @@ class ValidationsTest < ActiveModel::TestCase
     auto = Automobile.new
 
     assert          auto.invalid?
-    assert_equal 2, auto.errors.size
+    assert_equal 3, auto.errors.size
 
     auto.make  = 'Toyota'
     auto.model = 'Corolla'
+    auto.approved = '1'
 
     assert auto.valid?
+  end
+
+  def test_validate
+    auto = Automobile.new
+
+    assert_empty auto.errors
+
+    auto.validate
+    assert_not_empty auto.errors
   end
 
   def test_strict_validation_in_validates
@@ -373,25 +378,4 @@ class ValidationsTest < ActiveModel::TestCase
     assert topic.invalid?
     assert duped.valid?
   end
-
-   # validator test:
-  def test_setup_is_deprecated_but_still_receives_klass # TODO: remove me in 4.2.
-    validator_class = Class.new(ActiveModel::Validator) do
-      def setup(klass)
-        @old_klass = klass
-      end
-
-      def validate(*)
-        @old_klass == Topic or raise "#setup didn't work"
-      end
-    end
-
-    assert_deprecated do
-      Topic.validates_with validator_class
-    end
-
-    t = Topic.new
-    t.valid?
-  end
-
 end

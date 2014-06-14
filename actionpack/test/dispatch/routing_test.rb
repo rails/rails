@@ -99,6 +99,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_namespace_without_controller_segment
+    draw do
+      namespace :admin do
+        get 'hello/:controllers/:action'
+      end
+    end
+    get '/admin/hello/foo/new'
+    assert_equal 'foo', @request.params["controllers"]
+  end
+
   def test_session_singleton_resource
     draw do
       resource :session do
@@ -351,8 +361,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       controller(:global) do
         get 'global/hide_notice'
-        get 'global/export',      :to => :export, :as => :export_request
-        get '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
+        get 'global/export',      :action => :export, :as => :export_request
+        get '/export/:id/:file',  :action => :export, :as => :export_download, :constraints => { :file => /.*/ }
         get 'global/:action'
       end
     end
@@ -720,8 +730,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       resources :replies do
         member do
-          put :answer, :to => :mark_as_answer
-          delete :answer, :to => :unmark_as_answer
+          put :answer, :action => :mark_as_answer
+          delete :answer, :action => :unmark_as_answer
         end
       end
     end
@@ -1031,6 +1041,136 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'users/home#index', @response.body
   end
 
+  def test_namespaced_shallow_routes_with_module_option
+    draw do
+      namespace :foo, module: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/foo/posts'
+    assert_equal '/foo/posts', foo_posts_path
+    assert_equal 'bar/posts#index', @response.body
+
+    get '/foo/posts/1'
+    assert_equal '/foo/posts/1', foo_post_path('1')
+    assert_equal 'bar/posts#show', @response.body
+
+    get '/foo/posts/1/comments'
+    assert_equal '/foo/posts/1/comments', foo_post_comments_path('1')
+    assert_equal 'bar/comments#index', @response.body
+
+    get '/foo/comments/2'
+    assert_equal '/foo/comments/2', foo_comment_path('2')
+    assert_equal 'bar/comments#show', @response.body
+  end
+
+  def test_namespaced_shallow_routes_with_path_option
+    draw do
+      namespace :foo, path: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/bar/posts'
+    assert_equal '/bar/posts', foo_posts_path
+    assert_equal 'foo/posts#index', @response.body
+
+    get '/bar/posts/1'
+    assert_equal '/bar/posts/1', foo_post_path('1')
+    assert_equal 'foo/posts#show', @response.body
+
+    get '/bar/posts/1/comments'
+    assert_equal '/bar/posts/1/comments', foo_post_comments_path('1')
+    assert_equal 'foo/comments#index', @response.body
+
+    get '/bar/comments/2'
+    assert_equal '/bar/comments/2', foo_comment_path('2')
+    assert_equal 'foo/comments#show', @response.body
+  end
+
+  def test_namespaced_shallow_routes_with_as_option
+    draw do
+      namespace :foo, as: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/foo/posts'
+    assert_equal '/foo/posts', bar_posts_path
+    assert_equal 'foo/posts#index', @response.body
+
+    get '/foo/posts/1'
+    assert_equal '/foo/posts/1', bar_post_path('1')
+    assert_equal 'foo/posts#show', @response.body
+
+    get '/foo/posts/1/comments'
+    assert_equal '/foo/posts/1/comments', bar_post_comments_path('1')
+    assert_equal 'foo/comments#index', @response.body
+
+    get '/foo/comments/2'
+    assert_equal '/foo/comments/2', bar_comment_path('2')
+    assert_equal 'foo/comments#show', @response.body
+  end
+
+  def test_namespaced_shallow_routes_with_shallow_path_option
+    draw do
+      namespace :foo, shallow_path: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/foo/posts'
+    assert_equal '/foo/posts', foo_posts_path
+    assert_equal 'foo/posts#index', @response.body
+
+    get '/foo/posts/1'
+    assert_equal '/foo/posts/1', foo_post_path('1')
+    assert_equal 'foo/posts#show', @response.body
+
+    get '/foo/posts/1/comments'
+    assert_equal '/foo/posts/1/comments', foo_post_comments_path('1')
+    assert_equal 'foo/comments#index', @response.body
+
+    get '/bar/comments/2'
+    assert_equal '/bar/comments/2', foo_comment_path('2')
+    assert_equal 'foo/comments#show', @response.body
+  end
+
+  def test_namespaced_shallow_routes_with_shallow_prefix_option
+    draw do
+      namespace :foo, shallow_prefix: 'bar' do
+        resources :posts, only: [:index, :show] do
+          resources :comments, only: [:index, :show], shallow: true
+        end
+      end
+    end
+
+    get '/foo/posts'
+    assert_equal '/foo/posts', foo_posts_path
+    assert_equal 'foo/posts#index', @response.body
+
+    get '/foo/posts/1'
+    assert_equal '/foo/posts/1', foo_post_path('1')
+    assert_equal 'foo/posts#show', @response.body
+
+    get '/foo/posts/1/comments'
+    assert_equal '/foo/posts/1/comments', foo_post_comments_path('1')
+    assert_equal 'foo/comments#index', @response.body
+
+    get '/foo/comments/2'
+    assert_equal '/foo/comments/2', bar_comment_path('2')
+    assert_equal 'foo/comments#show', @response.body
+  end
+
   def test_namespace_containing_numbers
     draw do
       namespace :v2 do
@@ -1048,7 +1188,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       controller :articles do
         scope '/articles', :as => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
-            get '/:id', :to => :with_id, :as => ""
+            get '/:id', :action => :with_id, :as => ""
           end
         end
       end
@@ -1295,7 +1435,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_scoped_controller_with_namespace_and_action
     draw do
       namespace :account do
-        get ':action/callback', :action => /twitter|github/, :to => "callbacks", :as => :callback
+        get ':action/callback', :action => /twitter|github/, :controller => "callbacks", :as => :callback
       end
     end
 
@@ -1352,7 +1492,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_normalize_namespaced_matches
     draw do
       namespace :account do
-        get 'description', :to => :description, :as => "description"
+        get 'description', :action => :description, :as => "description"
       end
     end
 
@@ -1593,7 +1733,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "whatever/:controller(/:action(/:id))"
     end
 
-    get 'whatever/foo/bar'
+    get '/whatever/foo/bar'
     assert_equal 'foo#bar', @response.body
 
     assert_equal 'http://www.example.com/whatever/foo/bar/1',
@@ -1605,10 +1745,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "whatever/:controller(/:action(/:id))", :id => /\d+/
     end
 
-    get 'whatever/foo/bar/show'
+    get '/whatever/foo/bar/show'
     assert_equal 'foo/bar#show', @response.body
 
-    get 'whatever/foo/bar/show/1'
+    get '/whatever/foo/bar/show/1'
     assert_equal 'foo/bar#show', @response.body
 
     assert_equal 'http://www.example.com/whatever/foo/bar/show',
@@ -1828,6 +1968,60 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/comments/3/preview', preview_comment_path(:id => '3')
   end
 
+  def test_shallow_nested_resources_inside_resource
+    draw do
+      resource :membership, shallow: true do
+        resources :cards
+      end
+    end
+
+    get '/membership/cards'
+    assert_equal 'cards#index', @response.body
+    assert_equal '/membership/cards', membership_cards_path
+
+    get '/membership/cards/new'
+    assert_equal 'cards#new', @response.body
+    assert_equal '/membership/cards/new', new_membership_card_path
+
+    post '/membership/cards'
+    assert_equal 'cards#create', @response.body
+
+    get '/cards/1'
+    assert_equal 'cards#show', @response.body
+    assert_equal '/cards/1', card_path('1')
+
+    get '/cards/1/edit'
+    assert_equal 'cards#edit', @response.body
+    assert_equal '/cards/1/edit', edit_card_path('1')
+
+    put '/cards/1'
+    assert_equal 'cards#update', @response.body
+
+    patch '/cards/1'
+    assert_equal 'cards#update', @response.body
+
+    delete '/cards/1'
+    assert_equal 'cards#destroy', @response.body
+  end
+
+  def test_shallow_deeply_nested_resources
+    draw do
+      resources :blogs do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    get '/comments/1'
+    assert_equal 'comments#show', @response.body
+
+    assert_equal '/comments/1', comment_path('1')
+    assert_equal '/blogs/new', new_blog_path
+    assert_equal '/blogs/1/posts/new', new_blog_post_path(:blog_id => 1)
+    assert_equal '/blogs/1/posts/2/comments/new', new_blog_post_comment_path(:blog_id => 1, :post_id => 2)
+  end
+
   def test_shallow_nested_resources_within_scope
     draw do
       scope '/hello' do
@@ -1835,6 +2029,65 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           resources :notes do
             resources :trackbacks
           end
+        end
+      end
+    end
+
+    get '/hello/notes/1/trackbacks'
+    assert_equal 'trackbacks#index', @response.body
+    assert_equal '/hello/notes/1/trackbacks', note_trackbacks_path(:note_id => 1)
+
+    get '/hello/notes/1/edit'
+    assert_equal 'notes#edit', @response.body
+    assert_equal '/hello/notes/1/edit', edit_note_path(:id => '1')
+
+    get '/hello/notes/1/trackbacks/new'
+    assert_equal 'trackbacks#new', @response.body
+    assert_equal '/hello/notes/1/trackbacks/new', new_note_trackback_path(:note_id => 1)
+
+    get '/hello/trackbacks/1'
+    assert_equal 'trackbacks#show', @response.body
+    assert_equal '/hello/trackbacks/1', trackback_path(:id => '1')
+
+    get '/hello/trackbacks/1/edit'
+    assert_equal 'trackbacks#edit', @response.body
+    assert_equal '/hello/trackbacks/1/edit', edit_trackback_path(:id => '1')
+
+    put '/hello/trackbacks/1'
+    assert_equal 'trackbacks#update', @response.body
+
+    post '/hello/notes/1/trackbacks'
+    assert_equal 'trackbacks#create', @response.body
+
+    delete '/hello/trackbacks/1'
+    assert_equal 'trackbacks#destroy', @response.body
+
+    get '/hello/notes'
+    assert_equal 'notes#index', @response.body
+
+    post '/hello/notes'
+    assert_equal 'notes#create', @response.body
+
+    get '/hello/notes/new'
+    assert_equal 'notes#new', @response.body
+    assert_equal '/hello/notes/new', new_note_path
+
+    get '/hello/notes/1'
+    assert_equal 'notes#show', @response.body
+    assert_equal '/hello/notes/1', note_path(:id => 1)
+
+    put '/hello/notes/1'
+    assert_equal 'notes#update', @response.body
+
+    delete '/hello/notes/1'
+    assert_equal 'notes#destroy', @response.body
+  end
+
+  def test_shallow_option_nested_resources_within_scope
+    draw do
+      scope '/hello' do
+        resources :notes, :shallow => true do
+          resources :trackbacks
         end
       end
     end
@@ -1901,7 +2154,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
         resources :invoices do
           get "outstanding" => "invoices#outstanding", :on => :collection
-          get "overdue", :to => :overdue, :on => :collection
+          get "overdue", :action => :overdue, :on => :collection
           get "print" => "invoices#print", :as => :print, :on => :member
           post "preview" => "invoices#preview", :as => :preview, :on => :new
         end
@@ -1989,6 +2242,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
   end
 
+  def test_match_without_via
+    assert_raises(ArgumentError) do
+      draw do
+        match '/foo/bar', :to => 'files#show'
+      end
+    end
+  end
+
+  def test_match_with_empty_via
+    assert_raises(ArgumentError) do
+      draw do
+        match '/foo/bar', :to => 'files#show', :via => []
+      end
+    end
+  end
+
   def test_glob_parameter_accepts_regexp
     draw do
       get '/:locale/*file.:format', :to => 'files#show', :file => /path\/to\/existing\/file/
@@ -2044,12 +2313,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "(/user/:username)/photos" => "photos#index"
     end
 
-    get 'user/bob/photos'
+    get '/user/bob/photos'
     assert_equal 'photos#index', @response.body
     assert_equal 'http://www.example.com/user/bob/photos',
       url_for(:controller => "photos", :action => "index", :username => "bob")
 
-    get 'photos'
+    get '/photos'
     assert_equal 'photos#index', @response.body
     assert_equal 'http://www.example.com/photos',
       url_for(:controller => "photos", :action => "index", :username => nil)
@@ -2727,7 +2996,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_raise(ArgumentError) do
-      draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      assert_deprecated do
+        draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      end
     end
 
     assert_raise(ArgumentError) do
@@ -2894,6 +3165,258 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/foo', foo_root_path
   end
 
+  def test_namespace_as_controller
+    draw do
+      namespace :foo do
+        get '/', to: '/bar#index', as: 'root'
+      end
+    end
+
+    get '/foo'
+    assert_equal 'bar#index', @response.body
+    assert_equal '/foo', foo_root_path
+  end
+
+  def test_trailing_slash
+    draw do
+      resources :streams
+    end
+
+    get '/streams'
+    assert @response.ok?, 'route without trailing slash should work'
+
+    get '/streams/'
+    assert @response.ok?, 'route with trailing slash should work'
+
+    get '/streams?foobar'
+    assert @response.ok?, 'route without trailing slash and with QUERY_STRING should work'
+
+    get '/streams/?foobar'
+    assert @response.ok?, 'route with trailing slash and with QUERY_STRING should work'
+  end
+
+  def test_route_with_dashes_in_path
+    draw do
+      get '/contact-us', to: 'pages#contact_us'
+    end
+
+    get '/contact-us'
+    assert_equal 'pages#contact_us', @response.body
+    assert_equal '/contact-us', contact_us_path
+  end
+
+  def test_shorthand_route_with_dashes_in_path
+    draw do
+      get '/about-us/index'
+    end
+
+    get '/about-us/index'
+    assert_equal 'about_us#index', @response.body
+    assert_equal '/about-us/index', about_us_index_path
+  end
+
+  def test_resource_routes_with_dashes_in_path
+    draw do
+      resources :photos, only: [:show] do
+        get 'user-favorites', on: :collection
+        get 'preview-photo', on: :member
+        get 'summary-text'
+      end
+    end
+
+    get '/photos/user-favorites'
+    assert_equal 'photos#user_favorites', @response.body
+    assert_equal '/photos/user-favorites', user_favorites_photos_path
+
+    get '/photos/1/preview-photo'
+    assert_equal 'photos#preview_photo', @response.body
+    assert_equal '/photos/1/preview-photo', preview_photo_photo_path('1')
+
+    get '/photos/1/summary-text'
+    assert_equal 'photos#summary_text', @response.body
+    assert_equal '/photos/1/summary-text', photo_summary_text_path('1')
+
+    get '/photos/1'
+    assert_equal 'photos#show', @response.body
+    assert_equal '/photos/1', photo_path('1')
+  end
+
+  def test_shallow_path_inside_namespace_is_not_added_twice
+    draw do
+      namespace :admin do
+        shallow do
+          resources :posts do
+            resources :comments
+          end
+        end
+      end
+    end
+
+    get '/admin/posts/1/comments'
+    assert_equal 'admin/comments#index', @response.body
+    assert_equal '/admin/posts/1/comments', admin_post_comments_path('1')
+  end
+
+  def test_mix_string_to_controller_action
+    draw do
+      get '/projects', controller: 'project_files',
+                       action: 'index',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_string_to_controller
+    draw do
+      get '/projects', controller: 'project_files',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_string_to_action
+    draw do
+      get '/projects', action: 'index',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_symbol_to_controller_action
+    assert_deprecated do
+      draw do
+        get '/projects', controller: 'project_files',
+                         action: 'index',
+                         to: :show
+      end
+    end
+    get '/projects'
+    assert_equal 'project_files#show', @response.body
+  end
+
+  def test_mix_string_to_controller_action_no_hash
+    assert_deprecated do
+      draw do
+        get '/projects', controller: 'project_files',
+                         action: 'index',
+                         to: 'show'
+      end
+    end
+    get '/projects'
+    assert_equal 'show#index', @response.body
+  end
+
+  def test_shallow_path_and_prefix_are_not_added_to_non_shallow_routes
+    draw do
+      scope shallow_path: 'projects', shallow_prefix: 'project' do
+        resources :projects do
+          resources :files, controller: 'project_files', shallow: true
+        end
+      end
+    end
+
+    get '/projects'
+    assert_equal 'projects#index', @response.body
+    assert_equal '/projects', projects_path
+
+    get '/projects/new'
+    assert_equal 'projects#new', @response.body
+    assert_equal '/projects/new', new_project_path
+
+    post '/projects'
+    assert_equal 'projects#create', @response.body
+
+    get '/projects/1'
+    assert_equal 'projects#show', @response.body
+    assert_equal '/projects/1', project_path('1')
+
+    get '/projects/1/edit'
+    assert_equal 'projects#edit', @response.body
+    assert_equal '/projects/1/edit', edit_project_path('1')
+
+    patch '/projects/1'
+    assert_equal 'projects#update', @response.body
+
+    delete '/projects/1'
+    assert_equal 'projects#destroy', @response.body
+
+    get '/projects/1/files'
+    assert_equal 'project_files#index', @response.body
+    assert_equal '/projects/1/files', project_files_path('1')
+
+    get '/projects/1/files/new'
+    assert_equal 'project_files#new', @response.body
+    assert_equal '/projects/1/files/new', new_project_file_path('1')
+
+    post '/projects/1/files'
+    assert_equal 'project_files#create', @response.body
+
+    get '/projects/files/2'
+    assert_equal 'project_files#show', @response.body
+    assert_equal '/projects/files/2', project_file_path('2')
+
+    get '/projects/files/2/edit'
+    assert_equal 'project_files#edit', @response.body
+    assert_equal '/projects/files/2/edit', edit_project_file_path('2')
+
+    patch '/projects/files/2'
+    assert_equal 'project_files#update', @response.body
+
+    delete '/projects/files/2'
+    assert_equal 'project_files#destroy', @response.body
+  end
+
+  def test_scope_path_is_copied_to_shallow_path
+    draw do
+      scope path: 'foo' do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    assert_equal '/foo/comments/1', comment_path('1')
+  end
+
+  def test_scope_as_is_copied_to_shallow_prefix
+    draw do
+      scope as: 'foo' do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    assert_equal '/comments/1', foo_comment_path('1')
+  end
+
+  def test_scope_shallow_prefix_is_not_overwritten_by_as
+    draw do
+      scope as: 'foo', shallow_prefix: 'bar' do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    assert_equal '/comments/1', bar_comment_path('1')
+  end
+
+  def test_scope_shallow_path_is_not_overwritten_by_path
+    draw do
+      scope path: 'foo', shallow_path: 'bar' do
+        resources :posts do
+          resources :comments, shallow: true
+        end
+      end
+    end
+
+    assert_equal '/bar/comments/1', comment_path('1')
+  end
+
 private
 
   def draw(&block)
@@ -2937,12 +3460,14 @@ end
 
 class TestAltApp < ActionDispatch::IntegrationTest
   class AltRequest
-    def initialize(env)
-      @env = env
-    end
+    attr_accessor :path_parameters, :path_info, :script_name
+    attr_reader :env
 
-    def path_info
-      "/"
+    def initialize(env)
+      @path_parameters = {}
+      @env = env
+      @path_info = "/"
+      @script_name = ""
     end
 
     def request_method
@@ -3045,6 +3570,35 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     @app.draw(&block)
   end
 
+  def test_missing_controller
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get '/foo/bar', :action => :index
+      end
+    }
+    assert_match(/Missing :controller/, ex.message)
+  end
+
+  def test_missing_action
+    ex = assert_raises(ArgumentError) {
+      assert_deprecated do
+        draw do
+          get '/foo/bar', :to => 'foo'
+        end
+      end
+    }
+    assert_match(/Missing :action/, ex.message)
+  end
+
+  def test_missing_action_on_hash
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get '/foo/bar', :to => 'foo#'
+      end
+    }
+    assert_match(/Missing :action/, ex.message)
+  end
+
   def test_valid_controller_options_inside_namespace
     draw do
       namespace :admin do
@@ -3061,7 +3615,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
       resources :storage_files, :controller => 'admin/storage_files'
     end
 
-    get 'storage_files'
+    get '/storage_files'
     assert_equal "admin/storage_files#index", @response.body
   end
 
@@ -3085,6 +3639,16 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     end
 
     assert_match "'Admin::StorageFiles' is not a supported controller name", e.message
+  end
+
+  def test_warn_with_ruby_constant_syntax_no_colons
+    e = assert_raise(ArgumentError) do
+      draw do
+        resources :storage_files, :controller => 'Admin'
+      end
+    end
+
+    assert_match "'Admin' is not a supported controller name", e.message
   end
 end
 
@@ -3122,6 +3686,7 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
   RFC3648 = %w(ORDERPATCH)
   RFC3744 = %w(ACL)
   RFC5323 = %w(SEARCH)
+  RFC4791 = %w(MKCALENDAR)
   RFC5789 = %w(PATCH)
 
   def simple_app(response)
@@ -3133,13 +3698,13 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
     @app = ActionDispatch::Routing::RouteSet.new
 
     @app.draw do
-      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789).each do |method|
+      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
         match '/' => s.simple_app(method), :via => method.underscore.to_sym
       end
     end
   end
 
-  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789).each do |method|
+  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
     test "request method #{method.underscore} can be matched" do
       get '/', nil, 'REQUEST_METHOD' => method
       assert_equal method, @response.body
@@ -3165,8 +3730,8 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
   include Routes.url_helpers
   def app; Routes end
 
-  test 'escapes generated path segment' do
-    assert_equal '/a%20b/c+d', segment_path(:segment => 'a b/c+d')
+  test 'escapes slash in generated path segment' do
+    assert_equal '/a%20b%2Fc+d', segment_path(:segment => 'a b/c+d')
   end
 
   test 'unescapes recognized path segment' do
@@ -3174,7 +3739,7 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
     assert_equal 'a b/c+d', @response.body
   end
 
-  test 'escapes generated path splat' do
+  test 'does not escape slash in generated path splat' do
     assert_equal '/a%20b/c+d', splat_path(:splat => 'a b/c+d')
   end
 
@@ -3359,6 +3924,8 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       get '/post(/:action(/:id))' => ok, as: :posts
       get '/:foo/:foo_type/bars/:id' => ok, as: :bar
       get '/projects/:id.:format' => ok, as: :project
+      get '/pages/:id' => ok, as: :page
+      get '/wiki/*page' => ok, as: :wiki
     end
   end
 
@@ -3390,6 +3957,26 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   test 'segments separated with a period are replaced correctly' do
     assert_equal '/projects/1.json', Routes.url_helpers.project_path(1, :json)
     assert_equal '/projects/1.json', project_path(1, :json)
+  end
+
+  test 'segments with question marks are escaped' do
+    assert_equal '/pages/foo%3Fbar', Routes.url_helpers.page_path('foo?bar')
+    assert_equal '/pages/foo%3Fbar', page_path('foo?bar')
+  end
+
+  test 'segments with slashes are escaped' do
+    assert_equal '/pages/foo%2Fbar', Routes.url_helpers.page_path('foo/bar')
+    assert_equal '/pages/foo%2Fbar', page_path('foo/bar')
+  end
+
+  test 'glob segments with question marks are escaped' do
+    assert_equal '/wiki/foo%3Fbar', Routes.url_helpers.wiki_path('foo?bar')
+    assert_equal '/wiki/foo%3Fbar', wiki_path('foo?bar')
+  end
+
+  test 'glob segments with slashes are not escaped' do
+    assert_equal '/wiki/foo/bar', Routes.url_helpers.wiki_path('foo/bar')
+    assert_equal '/wiki/foo/bar', wiki_path('foo/bar')
   end
 end
 
@@ -3504,7 +4091,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       set.draw do
         get "/bar/:id", :to => redirect("/foo/show/%{id}")
         get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
-        get "/foo(/:action(/:id))", :to => "test_invalid_urls/foo"
+        get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
         get "/:controller(/:action(/:id))"
       end
 
@@ -3655,6 +4242,19 @@ class TestFormatConstraints < ActionDispatch::IntegrationTest
 
     get 'http://www.example.com/xml_only.json'
     assert_response :not_found
+  end
+end
+
+class TestCallableConstraintValidation < ActionDispatch::IntegrationTest
+  def test_constraint_with_object_not_callable
+    assert_raises(ArgumentError) do
+      ActionDispatch::Routing::RouteSet.new.tap do |app|
+        app.draw do
+          ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+          get '/test', to: ok, constraints: Object.new
+        end
+      end
+    end
   end
 end
 

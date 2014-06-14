@@ -14,9 +14,11 @@ module ActiveRecord
         def target_scope
           scope = super
           chain.drop(1).each do |reflection|
+            relation = reflection.klass.all
+            relation.merge!(reflection.scope) if reflection.scope
+
             scope.merge!(
-              reflection.klass.all.
-                except(:select, :create_with, :includes, :preload, :joins, :eager_load)
+              relation.except(:select, :create_with, :includes, :preload, :joins, :eager_load)
             )
           end
           scope
@@ -39,12 +41,16 @@ module ActiveRecord
         def construct_join_attributes(*records)
           ensure_mutable
 
-          join_attributes = {
-            source_reflection.foreign_key =>
-              records.map { |record|
-                record.send(source_reflection.association_primary_key(reflection.klass))
-              }
-          }
+          if source_reflection.association_primary_key(reflection.klass) == reflection.klass.primary_key
+            join_attributes = { source_reflection.name => records }
+          else
+            join_attributes = {
+              source_reflection.foreign_key =>
+                records.map { |record|
+                  record.send(source_reflection.association_primary_key(reflection.klass))
+                }
+            }
+          end
 
           if options[:source_type]
             join_attributes[source_reflection.foreign_type] =
@@ -61,14 +67,13 @@ module ActiveRecord
         # Note: this does not capture all cases, for example it would be crazy to try to
         # properly support stale-checking for nested associations.
         def stale_state
-          if through_reflection.macro == :belongs_to
+          if through_reflection.belongs_to?
             owner[through_reflection.foreign_key] && owner[through_reflection.foreign_key].to_s
           end
         end
 
         def foreign_key_present?
-          through_reflection.macro == :belongs_to &&
-          !owner[through_reflection.foreign_key].nil?
+          through_reflection.belongs_to? && !owner[through_reflection.foreign_key].nil?
         end
 
         def ensure_mutable

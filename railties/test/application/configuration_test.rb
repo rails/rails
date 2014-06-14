@@ -336,6 +336,14 @@ module ApplicationTests
       assert_equal 'myamazonsecretaccesskey', app.secrets.aws_secret_access_key
     end
 
+    test "blank config/secrets.yml does not crash the loading process" do
+      app_file 'config/secrets.yml', <<-YAML
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_nil app.secrets.not_defined
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 
@@ -352,7 +360,7 @@ module ApplicationTests
     test "default method for update can be changed" do
       app_file 'app/models/post.rb', <<-RUBY
       class Post
-        extend ActiveModel::Naming
+        include ActiveModel::Model
         def to_key; [1]; end
         def persisted?; true; end
       end
@@ -481,7 +489,7 @@ module ApplicationTests
     test "valid timezone is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.time_zone = "Wellington"
+        config.time_zone = "Wellington"
       RUBY
 
       require "#{app_path}/config/environment"
@@ -492,7 +500,7 @@ module ApplicationTests
     test "raises when an invalid timezone is defined in the config" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.time_zone = "That big hill over yonder hill"
+        config.time_zone = "That big hill over yonder hill"
       RUBY
 
       assert_raise(ArgumentError) do
@@ -503,7 +511,7 @@ module ApplicationTests
     test "valid beginning of week is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.beginning_of_week = :wednesday
+        config.beginning_of_week = :wednesday
       RUBY
 
       require "#{app_path}/config/environment"
@@ -514,7 +522,7 @@ module ApplicationTests
     test "raises when an invalid beginning of week is defined in the config" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.beginning_of_week = :invalid
+        config.beginning_of_week = :invalid
       RUBY
 
       assert_raise(ArgumentError) do
@@ -754,7 +762,7 @@ module ApplicationTests
       end
     end
 
-    test "lookup config.log_level with custom logger (stdlib Logger)" do
+    test "config.log_level with custom logger" do
       make_basic_app do |app|
         app.config.logger = Logger.new(STDOUT)
         app.config.log_level = :info
@@ -762,24 +770,130 @@ module ApplicationTests
       assert_equal Logger::INFO, Rails.logger.level
     end
 
-    test "assign log_level as is with custom logger (third party logger)" do
-      logger_class = Class.new do
-        attr_accessor :level
-      end
-      logger_instance = logger_class.new
-      make_basic_app do |app|
-        app.config.logger = logger_instance
-        app.config.log_level = :info
-      end
-      assert_equal logger_instance, Rails.logger
-      assert_equal :info, Rails.logger.level
-    end
-
     test "respond_to? accepts include_private" do
       make_basic_app
 
       assert_not Rails.configuration.respond_to?(:method_missing)
       assert Rails.configuration.respond_to?(:method_missing, true)
+    end
+
+    test "config.active_record.dump_schema_after_migration is false on production" do
+      build_app
+      ENV["RAILS_ENV"] = "production"
+
+      require "#{app_path}/config/environment"
+
+      assert_not ActiveRecord::Base.dump_schema_after_migration
+    end
+
+    test "config.active_record.dump_schema_after_migration is true by default on development" do
+      ENV["RAILS_ENV"] = "development"
+
+      require "#{app_path}/config/environment"
+
+      assert ActiveRecord::Base.dump_schema_after_migration
+    end
+
+    test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
+      make_basic_app do |app|
+        app.config.annotations.register_extensions("coffee") do |tag|
+          /#\s*(#{tag}):?\s*(.*)$/
+        end
+      end
+
+      assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
+    end
+
+    test "rake_tasks block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          rake_tasks do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      require 'rake'
+      require 'rake/testtask'
+      require 'rdoc/task'
+
+      Rails.application.load_tasks
+      assert $ran_block
+    end
+
+    test "generators block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          generators do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_generators
+      assert $ran_block
+    end
+
+    test "console block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          console do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_console
+      assert $ran_block
+    end
+
+    test "runner block works at instance level" do
+      $ran_block = false
+
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          runner do
+            $ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      Rails.application.load_runner
+      assert $ran_block
+    end
+
+    test "loading the first existing database configuration available" do
+      app_file 'config/environments/development.rb', <<-RUBY
+
+      Rails.application.configure do
+        config.paths.add 'config/database', with: 'config/nonexistant.yml'
+        config.paths['config/database'] << 'config/database.yml'
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      db_config =  Rails.application.config.database_configuration
+
+      assert db_config.is_a?(Hash)
     end
   end
 end

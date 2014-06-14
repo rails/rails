@@ -64,14 +64,17 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
   end
 
-  def test_inclusion_of_debugger
+  def test_inclusion_of_a_debugger
     run_generator [destination_root, '--full']
     if defined?(JRUBY_VERSION)
       assert_file "Gemfile" do |content|
+        assert_no_match(/byebug/, content)
         assert_no_match(/debugger/, content)
       end
-    else
+    elsif RUBY_VERSION < '2.0.0'
       assert_file "Gemfile", /# gem 'debugger'/
+    else
+      assert_file "Gemfile", /# gem 'byebug'/
     end
   end
 
@@ -156,7 +159,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/bukkits/, contents)
     end
     assert_match(/run  bundle install/, result)
-    assert_match(/Using bukkits \(0\.0\.1\)/, result)
+    assert_match(/Using bukkits \(?0\.0\.1\)?/, result)
     assert_match(/Your bundle is complete/, result)
     assert_equal 1, result.scan("Your bundle is complete").size
   end
@@ -185,22 +188,22 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     FileUtils.cd destination_root
     quietly { system 'bundle install' }
-    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
+    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
   end
 
   def test_ensure_that_tests_works_in_full_mode
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     quietly { system 'bundle install' }
-    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test`)
+    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
   end
 
   def test_ensure_that_migration_tasks_work_with_mountable_option
     run_generator [destination_root, "--mountable"]
     FileUtils.cd destination_root
     quietly { system 'bundle install' }
-    `bundle exec rake db:migrate`
-    assert_equal 0, $?.exitstatus
+    output = `bundle exec rake db:migrate 2>&1`
+    assert $?.success?, "Command failed: #{output}"
   end
 
   def test_creating_engine_in_full_mode
@@ -309,7 +312,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bukkits.gemspec"
     assert_file "Gemfile" do |contents|
       assert_no_match('gemspec', contents)
-      assert_match(/gem "rails", "~> #{Rails.version}"/, contents)
+      assert_match(/gem 'rails', '~> #{Rails.version}'/, contents)
       assert_match_sqlite3(contents)
       assert_no_match(/# gem "jquery-rails"/, contents)
     end
@@ -320,7 +323,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bukkits.gemspec"
     assert_file "Gemfile" do |contents|
       assert_no_match('gemspec', contents)
-      assert_match(/gem "rails", "~> #{Rails.version}"/, contents)
+      assert_match(/gem 'rails', '~> #{Rails.version}'/, contents)
       assert_match_sqlite3(contents)
     end
   end
@@ -355,6 +358,52 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     FileUtils.rm gemfile_path
   end
 
+  def test_generating_controller_inside_mountable_engine
+    run_generator [destination_root, "--mountable"]
+
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g controller admin/dashboard foo`
+    end
+
+    assert_file "config/routes.rb" do |contents|
+      assert_match(/namespace :admin/, contents)
+      assert_no_match(/namespace :bukkit/, contents)
+    end
+  end
+
+  def test_git_name_and_email_in_gemspec_file
+    name = `git config user.name`.chomp rescue "TODO: Write your name"
+    email = `git config user.email`.chomp rescue "TODO: Write your email address"
+
+    run_generator [destination_root]
+    assert_file "bukkits.gemspec" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match(/#{Regexp.escape(email)}/, contents)
+    end
+  end
+
+  def test_git_name_in_license_file
+    name = `git config user.name`.chomp rescue "TODO: Write your name"
+
+    run_generator [destination_root]
+    assert_file "MIT-LICENSE" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+    end
+  end
+
+  def test_no_details_from_git_when_skip_git
+    name = "TODO: Write your name"
+    email = "TODO: Write your email address"
+
+    run_generator [destination_root, '--skip-git']
+    assert_file "MIT-LICENSE" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+    end
+    assert_file "bukkits.gemspec" do |contents|
+      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match(/#{Regexp.escape(email)}/, contents)
+    end
+  end
 
 protected
   def action(*args, &block)
@@ -367,9 +416,9 @@ protected
 
   def assert_match_sqlite3(contents)
     unless defined?(JRUBY_VERSION)
-      assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
+      assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
     else
-      assert_match(/group :development do\n  gem "activerecord-jdbcsqlite3-adapter"\nend/, contents)
+      assert_match(/group :development do\n  gem 'activerecord-jdbcsqlite3-adapter'\nend/, contents)
     end
   end
 end

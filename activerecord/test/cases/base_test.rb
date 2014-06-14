@@ -102,8 +102,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_columns_should_obey_set_primary_key
-    pk = Subscriber.columns.find { |x| x.name == 'nick' }
-    assert pk.primary, 'nick should be primary key'
+    pk = Subscriber.columns_hash[Subscriber.primary_key]
+    assert_equal 'nick', pk.name, 'nick should be primary key'
   end
 
   def test_primary_key_with_no_id
@@ -160,19 +160,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_date_objects
-    if current_adapter?(:SybaseAdapter)
-      # Sybase ctlib does not (yet?) support the date type; use datetime instead.
-      assert_kind_of(
-        Time, Topic.find(1).last_read,
-        "The last_read attribute should be of the Time class"
-      )
-    else
-      # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
-      assert_kind_of(
-        Date, Topic.find(1).last_read,
-        "The last_read attribute should be of the Date class"
-      )
-    end
+    # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
+    assert_kind_of(
+      Date, Topic.find(1).last_read,
+      "The last_read attribute should be of the Date class"
+    )
   end
 
   def test_previously_changed
@@ -212,7 +204,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) || mysql_56?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -321,7 +313,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_load
     topics = Topic.all.merge!(:order => 'id').to_a
-    assert_equal(4, topics.size)
+    assert_equal(5, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
@@ -480,8 +472,8 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
+  # Oracle does not have a TIME datatype.
+  unless current_adapter?(:OracleAdapter)
     def test_utc_as_time_zone
       with_timezone_config default: :utc do
         attributes = { "bonus_time" => "5:42:00AM" }
@@ -515,12 +507,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(topic.id)
     assert_nil topic.last_read
 
-    # Sybase adapter does not allow nulls in boolean columns
-    if current_adapter?(:SybaseAdapter)
-      assert topic.approved == false
-    else
-      assert_nil topic.approved
-    end
+    assert_nil topic.approved
   end
 
   def test_equality
@@ -531,8 +518,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find('1-meowmeow'), Topic.find(1)
   end
 
+  def test_find_by_slug_with_array
+    assert_equal Topic.find(['1-meowmeow', '2-hello']), Topic.find([1, 2])
+  end
+
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
+    assert_equal false, Topic.new == Topic.new
   end
 
   def test_equality_of_destroyed_records
@@ -542,6 +534,47 @@ class BasicsTest < ActiveRecord::TestCase
     topic_1.destroy
     assert_equal topic_1, topic_2
     assert_equal topic_2, topic_1
+  end
+
+  def test_equality_with_blank_ids
+    one = Subscriber.new(:id => '')
+    two = Subscriber.new(:id => '')
+    assert_equal one, two
+  end
+
+  def test_equality_of_relation_and_collection_proxy
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert car.bulbs == Bulb.where(car_id: car.id), 'CollectionProxy should be comparable with Relation'
+    assert Bulb.where(car_id: car.id) == car.bulbs, 'Relation should be comparable with CollectionProxy'
+  end
+
+  def test_equality_of_relation_and_array
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, 'Relation should be comparable with Array'
+  end
+
+  def test_equality_of_relation_and_association_relation
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert_equal Bulb.where(car_id: car.id), car.bulbs.includes(:car), 'Relation should be comparable with AssociationRelation'
+    assert_equal car.bulbs.includes(:car), Bulb.where(car_id: car.id), 'AssociationRelation should be comparable with Relation'
+  end
+
+  def test_equality_of_collection_proxy_and_association_relation
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    assert_equal car.bulbs, car.bulbs.includes(:car), 'CollectionProxy should be comparable with AssociationRelation'
+    assert_equal car.bulbs.includes(:car), car.bulbs, 'AssociationRelation should be comparable with CollectionProxy'
   end
 
   def test_hashing
@@ -576,12 +609,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     assert_equal nil, Topic.find_by_id(topic.id)
-  end
-
-  def test_blank_ids
-    one = Subscriber.new(:id => '')
-    two = Subscriber.new(:id => '')
-    assert_equal one, two
   end
 
   def test_comparison_with_different_objects
@@ -626,6 +653,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal ["EUC-JP"], Weird.columns.map {|c| c.name.encoding.name }.uniq
     ensure
       silence_warnings { Encoding.default_internal = old_default_internal }
+      Weird.reset_column_information
     end
   end
 
@@ -648,8 +676,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+    # Oracle does not have a TIME datatype.
+    return true if current_adapter?(:OracleAdapter)
 
     with_timezone_config default: :local do
       attributes = {
@@ -662,8 +690,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time_with_invalid_time
-    # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+    # Oracle does not have a TIME datatype.
+    return true if current_adapter?(:OracleAdapter)
 
     attributes = {
       "bonus_time" => "not a time"
@@ -750,8 +778,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("c", duped_topic.title)
   end
 
+  DeveloperSalary = Struct.new(:amount)
   def test_dup_with_aggregate_of_same_name_as_attribute
-    dev = DeveloperWithAggregate.find(1)
+    developer_with_aggregate = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers'
+      composed_of :salary, :class_name => 'BasicsTest::DeveloperSalary', :mapping => [%w(salary amount)]
+    end
+
+    dev = developer_with_aggregate.find(1)
     assert_kind_of DeveloperSalary, dev.salary
 
     dup = nil
@@ -950,6 +984,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
+
+    attribute :world_population, Type::Integer.new
+    attribute :my_house_population, Type::Integer.new
+    attribute :atoms_in_universe, Type::Integer.new
   end
 
   def test_big_decimal_conditions
@@ -1129,7 +1167,7 @@ class BasicsTest < ActiveRecord::TestCase
     k = Class.new(ak)
     k.table_name = "projects"
     orig_name = k.sequence_name
-    return skip "sequences not supported by db" unless orig_name
+    skip "sequences not supported by db" unless orig_name
     assert_equal k.reset_sequence_name, orig_name
   end
 
@@ -1379,6 +1417,8 @@ class BasicsTest < ActiveRecord::TestCase
       })
 
       rd, wr = IO.pipe
+      rd.binmode
+      wr.binmode
 
       ActiveRecord::Base.connection_handler.clear_all_connections!
 
@@ -1448,15 +1488,14 @@ class BasicsTest < ActiveRecord::TestCase
     attrs = topic.attributes.dup
     attrs.delete 'id'
 
-    typecast = Class.new {
+    typecast = Class.new(ActiveRecord::Type::Value) {
       def type_cast value
         "t.lo"
       end
     }
 
     types = { 'author_name' => typecast.new }
-    topic = Topic.allocate.init_with 'attributes' => attrs,
-                                     'column_types' => types
+    topic = Topic.instantiate(attrs, types)
 
     assert_equal 't.lo', topic.author_name
   end
@@ -1556,5 +1595,12 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal after_handler, new_handler
     assert_equal orig_handler, klass.connection_handler
+  end
+
+  # Note: This is a performance optimization for Array#uniq and Hash#[] with
+  # AR::Base objects. If the future has made this irrelevant, feel free to
+  # delete this.
+  test "records without an id have unique hashes" do
+    assert_not_equal Post.new.hash, Post.new.hash
   end
 end

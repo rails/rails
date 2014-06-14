@@ -10,9 +10,15 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   MyObject = Struct.new :attribute1, :attribute2
 
-  def teardown
-    super
+  teardown do
     Topic.serialize("content")
+  end
+
+  def test_serialize_does_not_eagerly_load_columns
+    assert_no_queries do
+      Topic.reset_column_information
+      Topic.serialize(:content)
+    end
   end
 
   def test_list_of_serialized_attributes
@@ -30,12 +36,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
-  def test_serialized_attribute_init_with
-    topic = Topic.allocate
-    topic.init_with('attributes' => { 'content' => '--- foo' })
-    assert_equal 'foo', topic.content
-  end
-
   def test_serialized_attribute_in_base_class
     Topic.serialize("content", Hash)
 
@@ -47,34 +47,22 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(hash, important_topic.content)
   end
 
-  # This test was added to fix GH #4004. Obviously the value returned
-  # is not really the value 'before type cast' so we should maybe think
-  # about changing that in the future.
-  def test_serialized_attribute_before_type_cast_returns_unserialized_value
+  def test_serialized_attributes_from_database_on_subclass
     Topic.serialize :content, Hash
 
-    t = Topic.new(content: { foo: :bar })
-    assert_equal({ foo: :bar }, t.content_before_type_cast)
+    t = Reply.new(content: { foo: :bar })
+    assert_equal({ foo: :bar }, t.content)
     t.save!
-    t.reload
-    assert_equal({ foo: :bar }, t.content_before_type_cast)
-  end
-
-  def test_serialized_attributes_before_type_cast_returns_unserialized_value
-    Topic.serialize :content, Hash
-
-    t = Topic.new(content: { foo: :bar })
-    assert_equal({ foo: :bar }, t.attributes_before_type_cast["content"])
-    t.save!
-    t.reload
-    assert_equal({ foo: :bar }, t.attributes_before_type_cast["content"])
+    t = Reply.last
+    assert_equal({ foo: :bar }, t.content)
   end
 
   def test_serialized_attribute_calling_dup_method
     Topic.serialize :content, JSON
 
-    t = Topic.new(:content => { :foo => :bar }).dup
-    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+    orig = Topic.new(content: { foo: :bar })
+    clone = orig.dup
+    assert_equal(orig.content, clone.content)
   end
 
   def test_serialized_attribute_declared_in_subclass
@@ -117,8 +105,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   def test_serialized_attribute_should_raise_exception_on_save_with_wrong_type
     Topic.serialize(:content, Hash)
-    topic = Topic.new(:content => "string")
-    assert_raise(ActiveRecord::SerializationTypeMismatch) { topic.save }
+    assert_raise(ActiveRecord::SerializationTypeMismatch) do
+      topic = Topic.new(content: 'string')
+      topic.save
+    end
   end
 
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
@@ -169,45 +159,22 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialize_with_coder
-    coder = Class.new {
-      # Identity
-      def load(thing)
-        thing
+    some_class = Struct.new(:foo) do
+      def self.dump(value)
+        value.foo
       end
 
-      # base 64
-      def dump(thing)
-        [thing].pack('m')
+      def self.load(value)
+        new(value)
       end
-    }.new
+    end
 
-    Topic.serialize(:content, coder)
-    s = 'hello world'
-    topic = Topic.new(:content => s)
-    assert topic.save
-    topic = topic.reload
-    assert_equal [s].pack('m'), topic.content
-  end
-
-  def test_serialize_with_bcrypt_coder
-    crypt_coder = Class.new {
-      def load(thing)
-        return unless thing
-        BCrypt::Password.new thing
-      end
-
-      def dump(thing)
-        BCrypt::Password.create(thing).to_s
-      end
-    }.new
-
-    Topic.serialize(:content, crypt_coder)
-    password = 'password'
-    topic = Topic.new(:content => password)
-    assert topic.save
-    topic = topic.reload
-    assert_kind_of BCrypt::Password, topic.content
-    assert_equal(true, topic.content == password, 'password should equal')
+    Topic.serialize(:content, some_class)
+    topic = Topic.new(:content => some_class.new('my value'))
+    topic.save!
+    topic.reload
+    assert_kind_of some_class, topic.content
+    assert_equal topic.content, some_class.new('my value')
   end
 
   def test_serialize_attribute_via_select_method_when_time_zone_available
@@ -236,13 +203,19 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [], light.long_state
   end
 
-  def test_serialized_column_should_not_be_wrapped_twice
-    Topic.serialize(:content, MyObject)
+  def test_serialized_column_should_unserialize_after_update_column
+    t = Topic.create(content: "first")
+    assert_equal("first", t.content)
 
-    myobj = MyObject.new('value1', 'value2')
-    Topic.create(content: myobj)
-    Topic.create(content: myobj)
-    type = Topic.column_types["content"]
-    assert !type.instance_variable_get("@column").is_a?(ActiveRecord::AttributeMethods::Serialization::Type)
+    t.update_column(:content, Topic.serialized_attributes["content"].dump("second"))
+    assert_equal("second", t.content)
+  end
+
+  def test_serialized_column_should_unserialize_after_update_attribute
+    t = Topic.create(content: "first")
+    assert_equal("first", t.content)
+
+    t.update_attribute(:content, "second")
+    assert_equal("second", t.content)
   end
 end

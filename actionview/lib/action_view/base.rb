@@ -131,7 +131,8 @@ module ActionView #:nodoc:
   #     end
   #   end
   #
-  # More builder documentation can be found at http://builder.rubyforge.org.
+  # For more information on Builder please consult the [source
+  # code](https://github.com/jimweirich/builder).
   class Base
     include Helpers, ::ERB::Util, Context
 
@@ -152,6 +153,10 @@ module ActionView #:nodoc:
 
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
+
+    # Specify whether an error should be raised for missing translations
+    cattr_accessor :raise_on_missing_translations
+    @@raise_on_missing_translations = false
 
     class_attribute :_routes
     class_attribute :logger

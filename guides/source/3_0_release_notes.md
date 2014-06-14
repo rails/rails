@@ -294,7 +294,7 @@ NOTE. The old style `map` commands still work as before with a backwards compati
 Deprecations
 
 * The catch all route for non-REST applications (`/:controller/:action/:id`) is now commented out.
-* Routes :path\_prefix no longer exists and :name\_prefix now automatically adds "\_" at the end of the given value.
+* Routes `:path_prefix` no longer exists and `:name_prefix` now automatically adds "_" at the end of the given value.
 
 More Information:
 * [The Rails 3 Router: Rack it Up](http://yehudakatz.com/2009/12/26/the-rails-3-router-rack-it-up/)
@@ -308,7 +308,7 @@ More Information:
 
 Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands. This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
 
-What this means is that all previous `remote_<method>` helpers have been removed from Rails core and put into the [Prototype Legacy Helper](http://github.com/rails/prototype_legacy_helper.) To get UJS hooks into your HTML, you now pass `:remote => true` instead. For example:
+What this means is that all previous `remote_<method>` helpers have been removed from Rails core and put into the [Prototype Legacy Helper](http://github.com/rails/prototype_legacy_helper). To get UJS hooks into your HTML, you now pass `:remote => true` instead. For example:
 
 ```ruby
 form_for @post, :remote => true
@@ -521,7 +521,7 @@ A large effort was made in Active Support to make it cherry pickable, that is, y
 These are the main changes in Active Support:
 
 * Large clean up of the library removing unused methods throughout.
-* Active Support no longer provides vendored versions of [TZInfo](http://tzinfo.rubyforge.org/), [Memcache Client](http://deveiate.org/projects/RMemCache/) and [Builder](http://builder.rubyforge.org/,) these are all included as dependencies and installed via the `bundle install` command.
+* Active Support no longer provides vendored versions of TZInfo, Memcache Client and Builder. These are all included as dependencies and installed via the `bundle install` command.
 * Safe buffers are implemented in `ActiveSupport::SafeBuffer`.
 * Added `Array.uniq_by` and `Array.uniq_by!`.
 * Removed `Array#rand` and backported `Array#sample` from Ruby 1.9.
@@ -574,7 +574,7 @@ The following methods have been removed because they are no longer used in the f
 Action Mailer
 -------------
 
-Action Mailer has been given a new API with TMail being replaced out with the new [Mail](http://github.com/mikel/mail) as the Email library. Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched. The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.
+Action Mailer has been given a new API with TMail being replaced out with the new [Mail](http://github.com/mikel/mail) as the email library. Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched. The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.
 
 * All mailers are now in `app/mailers` by default.
 * Can now send email using new API with three methods: `attachments`, `headers` and `mail`.
@@ -608,4 +608,4 @@ Credits
 
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails 3. Kudos to all of them.
 
-Rails 3.0 Release Notes were compiled by [Mikel Lindsaar](http://lindsaar.net.)
+Rails 3.0 Release Notes were compiled by [Mikel Lindsaar](http://lindsaar.net).

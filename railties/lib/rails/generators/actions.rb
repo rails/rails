@@ -20,9 +20,9 @@ module Rails
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
-        parts, message = [ name.inspect ], name
+        parts, message = [ quote(name) ], name
         if version ||= options.delete(:version)
-          parts   << version.inspect
+          parts   << quote(version)
           message << " (#{version})"
         end
         message = options[:git] if options[:git]
@@ -30,7 +30,7 @@ module Rails
         log :gemfile, message
 
         options.each do |option, value|
-          parts << "#{option}: #{value.inspect}"
+          parts << "#{option}: #{quote(value)}"
         end
 
         in_root do
@@ -68,7 +68,7 @@ module Rails
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{source.inspect}\n", verbose: false
+          prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
         end
       end
 
@@ -188,7 +188,7 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
-        argument = args.map {|arg| arg.to_s }.flatten.join(" ")
+        argument = args.flat_map {|arg| arg.to_s }.join(" ")
 
         in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end
@@ -255,6 +255,15 @@ module Rails
           end
         end
 
+        # Surround string with single quotes if there is no quotes.
+        # Otherwise fall back to double quotes
+        def quote(str)
+          if str.include?("'")
+            str.inspect
+          else
+            "'#{str}'"
+          end
+        end
     end
   end
 end

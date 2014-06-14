@@ -195,7 +195,7 @@ module ActiveRecord
   # == Database support
   #
   # Migrations are currently supported in MySQL, PostgreSQL, SQLite,
-  # SQL Server, Sybase, and Oracle (all supported databases except DB2).
+  # SQL Server, and Oracle (all supported databases except DB2).
   #
   # == More examples
   #
@@ -385,8 +385,8 @@ module ActiveRecord
       attr_accessor :delegate # :nodoc:
       attr_accessor :disable_ddl_transaction # :nodoc:
 
-      def check_pending!
-        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
+      def check_pending!(connection = Base.connection)
+        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
       end
 
       def load_schema_if_pending!
@@ -640,7 +640,7 @@ module ActiveRecord
 
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
-          unless arguments.empty? || method == :execute
+          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
             arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
           end
@@ -711,7 +711,7 @@ module ActiveRecord
       if ActiveRecord::Base.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
-        "%.3d" % number
+        SchemaMigration.normalize_migration_number(number)
       end
     end
 
@@ -830,17 +830,17 @@ module ActiveRecord
         SchemaMigration.all.map { |x| x.version.to_i }.sort
       end
 
-      def current_version
+      def current_version(connection = Base.connection)
         sm_table = schema_migrations_table_name
-        if Base.connection.table_exists?(sm_table)
+        if connection.table_exists?(sm_table)
           get_all_versions.max || 0
         else
           0
         end
       end
 
-      def needs_migration?
-        current_version < last_version
+      def needs_migration?(connection = Base.connection)
+        current_version(connection) < last_version
       end
 
       def last_version
@@ -849,19 +849,6 @@ module ActiveRecord
 
       def last_migration #:nodoc:
         migrations(migrations_paths).last || NullMigration.new
-      end
-
-      def proper_table_name(name, options = {})
-        ActiveSupport::Deprecation.warn "ActiveRecord::Migrator.proper_table_name is deprecated and will be removed in Rails 4.2. Use the proper_table_name instance method on ActiveRecord::Migration instead"
-        options = {
-          table_name_prefix: ActiveRecord::Base.table_name_prefix,
-          table_name_suffix: ActiveRecord::Base.table_name_suffix
-        }.merge(options)
-        if name.respond_to? :table_name
-          name.table_name
-        else
-          "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
-        end
       end
 
       def migrations_paths

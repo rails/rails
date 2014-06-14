@@ -66,7 +66,7 @@ module ActiveRecord
           send(lock_col + '=', previous_lock_value + 1)
         end
 
-        def update_record(attribute_names = @attributes.keys) #:nodoc:
+        def _update_record(attribute_names = self.attribute_names) #:nodoc:
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
 
@@ -149,12 +149,6 @@ module ActiveRecord
         def locking_column
           reset_locking_column unless defined?(@locking_column)
           @locking_column
-        end
-
-        # Quote the column name used for optimistic locking.
-        def quoted_locking_column
-          ActiveSupport::Deprecation.warn "ActiveRecord::Base.quoted_locking_column is deprecated and will be removed in Rails 4.2 or later."
-          connection.quote_column_name(locking_column)
         end
 
         # Reset the column used for optimistic locking back to the +lock_version+ default.

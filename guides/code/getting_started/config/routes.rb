@@ -1,5 +1,5 @@
-Blog::Application.routes.draw do
-  resources :posts do
+Rails.application.routes.draw do
+  resources :articles do
     resources :comments
   end
 

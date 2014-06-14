@@ -19,6 +19,10 @@ module ActionView
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
     #   of \date[month].
     module DateHelper
+      MINUTES_IN_YEAR = 525600
+      MINUTES_IN_QUARTER_YEAR = 131400
+      MINUTES_IN_THREE_QUARTERS_YEAR = 394200
+
       # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
       # Pass <tt>include_seconds: true</tt> if you want more detailed approximations when distance < 1 min, 29 secs.
       # Distances are reported based on the following table:
@@ -120,11 +124,11 @@ module ActionView
               else
                 minutes_with_offset = distance_in_minutes
               end
-              remainder                   = (minutes_with_offset % 525600)
-              distance_in_years           = (minutes_with_offset.div 525600)
-              if remainder < 131400
+              remainder                   = (minutes_with_offset % MINUTES_IN_YEAR)
+              distance_in_years           = (minutes_with_offset.div MINUTES_IN_YEAR)
+              if remainder < MINUTES_IN_QUARTER_YEAR
                 locale.t(:about_x_years,  :count => distance_in_years)
-              elsif remainder < 394200
+              elsif remainder < MINUTES_IN_THREE_QUARTERS_YEAR
                 locale.t(:over_x_years,   :count => distance_in_years)
               else
                 locale.t(:almost_x_years, :count => distance_in_years + 1)
@@ -169,6 +173,9 @@ module ActionView
       #   "2 - February" instead of "February").
       # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
       #   Note: You can also use Rails' i18n functionality for this.
+      # * <tt>:month_format_string</tt> - Set to a format string. The string gets passed keys +:number+ (integer)
+      #   and +:name+ (string). A format string would be something like "%{name} (%<number>02d)" for example.
+      #   See <tt>Kernel.sprintf</tt> for documentation on format sequences.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
       # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt>if
       #   you are creating new record. While editing existing record, <tt>:start_year</tt> defaults to
@@ -850,24 +857,36 @@ module ActionView
           I18n.translate(key, :locale => @options[:locale])
         end
 
-        # Lookup month name for number.
-        #  month_name(1) => "January"
+        # Looks up month names by number (1-based):
         #
-        # If <tt>:use_month_numbers</tt> option is passed
-        #  month_name(1) => 1
+        #   month_name(1) # => "January"
         #
-        # If <tt>:use_two_month_numbers</tt> option is passed
-        #  month_name(1) => '01'
+        # If the <tt>:use_month_numbers</tt> option is passed:
         #
-        # If <tt>:add_month_numbers</tt> option is passed
-        #  month_name(1) => "1 - January"
+        #   month_name(1) # => 1
+        #
+        # If the <tt>:use_two_month_numbers</tt> option is passed:
+        #
+        #   month_name(1) # => '01'
+        #
+        # If the <tt>:add_month_numbers</tt> option is passed:
+        #
+        #   month_name(1) # => "1 - January"
+        #
+        # If the <tt>:month_format_string</tt> option is passed:
+        #
+        #   month_name(1) # => "January (01)"
+        #
+        # depending on the format string.
         def month_name(number)
           if @options[:use_month_numbers]
             number
           elsif @options[:use_two_digit_numbers]
-            sprintf "%02d", number
+            '%02d' % number
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
+          elsif format_string = @options[:month_format_string]
+            format_string % {number: number, name: month_names[number]}
           else
             month_names[number]
           end
@@ -946,7 +965,7 @@ module ActionView
             :name => input_name_from_type(type)
           }.merge!(@html_options)
           select_options[:disabled] = 'disabled' if @options[:disabled]
-          select_options[:class] = type if @options[:with_css_classes]
+          select_options[:class] = [select_options[:class], type].compact.join(' ') if @options[:with_css_classes]
 
           select_html = "\n"
           select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]

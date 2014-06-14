@@ -31,6 +31,8 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     resources :users do
       mount FakeEngine, :at => "/fakeengine", :as => :fake_mounted_at_resource
     end
+
+    mount SprocketsApp, :at => "/", :via => :get
   end
 
   def app
@@ -44,9 +46,9 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
           "A named route should be defined with a parent's prefix"
   end
 
-  def test_trailing_slash_is_not_removed_from_path_info
-    get "/sprockets/omg/"
-    assert_equal "/sprockets -- /omg/", response.body
+  def test_mounting_at_root_path
+    get "/omg"
+    assert_equal " -- /omg", response.body
   end
 
   def test_mounting_sets_script_name

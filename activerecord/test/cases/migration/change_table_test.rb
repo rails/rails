@@ -8,7 +8,7 @@ module ActiveRecord
         @connection = Minitest::Mock.new
       end
 
-      def teardown
+      teardown do
         assert @connection.verify
       end
 

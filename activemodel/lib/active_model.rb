@@ -48,6 +48,7 @@ module ActiveModel
 
   eager_autoload do
     autoload :Errors
+    autoload :StrictValidationFailed, 'active_model/errors'
   end
 
   module Serializers
@@ -59,9 +60,9 @@ module ActiveModel
     end
   end
 
-  def eager_load!
+  def self.eager_load!
     super
-    ActiveModel::Serializer.eager_load!
+    ActiveModel::Serializers.eager_load!
   end
 end
 

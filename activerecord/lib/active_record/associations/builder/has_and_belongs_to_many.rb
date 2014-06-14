@@ -11,7 +11,7 @@ module ActiveRecord::Associations::Builder
         end
 
         def join_table
-          @join_table ||= [@lhs_class.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+          @join_table ||= [@lhs_class.table_name, klass.table_name].sort.join("\0").gsub(/^(.*[._])(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
         end
 
         private
@@ -23,7 +23,13 @@ module ActiveRecord::Associations::Builder
           KnownTable.new options[:join_table].to_s
         else
           class_name = options.fetch(:class_name) {
-            name.to_s.camelize.singularize
+            model_name = name.to_s.camelize.singularize
+
+            if lhs_class.parent_name
+              model_name.prepend("#{lhs_class.parent_name}::")
+            end
+
+            model_name
           }
           KnownClass.new lhs_class, class_name
         end
@@ -60,13 +66,13 @@ module ActiveRecord::Associations::Builder
 
         def self.add_left_association(name, options)
           belongs_to name, options
-          self.left_reflection = reflect_on_association(name)
+          self.left_reflection = _reflect_on_association(name)
         end
 
         def self.add_right_association(name, options)
           rhs_name = name.to_s.singularize.to_sym
           belongs_to rhs_name, options
-          self.right_reflection = reflect_on_association(rhs_name)
+          self.right_reflection = _reflect_on_association(rhs_name)
         end
 
       }

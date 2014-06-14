@@ -12,7 +12,7 @@ class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
     Bird.establish_connection adapter: 'mysql', database: 'i_do_not_exist'
   end
 
-  def teardown
+  teardown do
     Bird.remove_connection
   end
 

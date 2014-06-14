@@ -5,7 +5,7 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
   layout -> { request.xhr? ? false : 'application' }
 
-  before_filter :require_local!
+  before_action :require_local!
 
   def index
     redirect_to action: :routes

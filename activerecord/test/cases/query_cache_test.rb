@@ -8,7 +8,7 @@ require 'rack'
 class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
-  def setup
+  teardown do
     Task.connection.clear_query_cache
     ActiveRecord::Base.connection.disable_query_cache!
   end
@@ -118,6 +118,14 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert ActiveRecord::Base.connection.query_cache.empty?, 'cache should be empty'
   end
 
+  def test_cache_passing_a_relation
+    post = Post.first
+    Post.cache do
+      query = post.categories.select(:post_id)
+      assert Post.connection.select_all(query).is_a?(ActiveRecord::Result)
+    end
+  end
+
   def test_find_queries
     assert_queries(2) { Task.find(1); Task.find(1) }
   end
@@ -214,7 +222,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     Post.find(1)
 
     # change the column definition
-    Post.connection.change_column :posts, :title, :string, :limit => 80
+    Post.connection.change_column :posts, :title, :string, limit: 80
     assert_nothing_raised { Post.find(1) }
 
     # restore the old definition
@@ -241,7 +249,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   def test_update
     Task.connection.expects(:clear_query_cache).times(2)
-
     Task.cache do
       task = Task.find(1)
       task.starting = Time.now.utc
@@ -251,7 +258,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   def test_destroy
     Task.connection.expects(:clear_query_cache).times(2)
-
     Task.cache do
       Task.find(1).destroy
     end
@@ -259,7 +265,6 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   def test_insert
     ActiveRecord::Base.connection.expects(:clear_query_cache).times(2)
-
     Task.cache do
       Task.create!
     end

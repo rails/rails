@@ -22,7 +22,7 @@ module RenderTestCases
 
   def test_render_without_options
     e = assert_raises(ArgumentError) { @view.render() }
-    assert_match "You invoked render but did not give any of :partial, :template, :inline, :file or :text option.", e.message
+    assert_match(/You invoked render but did not give any of (.+) option./, e.message)
   end
 
   def test_render_file
@@ -304,6 +304,16 @@ module RenderTestCases
     assert_equal "Hola: david", @controller_view.render('customer_greeting', :greeting => 'Hola', :customer_greeting => Customer.new("david"))
   end
 
+  def test_render_partial_with_object_uses_render_partial_path
+    assert_equal "Hello: lifo",
+      @controller_view.render(:partial => Customer.new("lifo"), :locals => {:greeting => "Hello"})
+  end
+
+  def test_render_partial_with_object_and_format_uses_render_partial_path
+    assert_equal "<greeting>Hello</greeting><name>lifo</name>",
+      @controller_view.render(:partial => Customer.new("lifo"), :formats => :xml, :locals => {:greeting => "Hello"})
+  end
+
   def test_render_partial_using_object
     assert_equal "Hello: lifo",
       @controller_view.render(Customer.new("lifo"), :greeting => "Hello")
@@ -359,23 +369,40 @@ module RenderTestCases
 
   def test_render_inline_with_render_from_to_proc
     ActionView::Template.register_template_handler :ruby_handler, :source.to_proc
-    assert_equal '3', @view.render(:inline => "(1 + 2).to_s", :type => :ruby_handler)
+    assert_equal '3', @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
+  ensure
+    ActionView::Template.unregister_template_handler :ruby_handler
   end
 
   def test_render_inline_with_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CustomHandler
-    assert_equal 'source: "Hello, World!"', @view.render(:inline => "Hello, World!", :type => :foo)
+    assert_equal 'source: "Hello, World!"', @view.render(inline: "Hello, World!", type: :foo)
+  ensure
+    ActionView::Template.unregister_template_handler :foo
   end
 
   def test_render_inline_with_locals_and_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CustomHandler
-    assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
+    assert_equal 'source: "Hello, <%= name %>!"', @view.render(inline: "Hello, <%= name %>!", locals: { name: "Josh" }, type: :foo)
+  ensure
+    ActionView::Template.unregister_template_handler :foo
   end
 
   def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization
     ActionView::Template::Handlers.extensions
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert ActionView::Template::Handlers.extensions.include?(:foo)
+  ensure
+    ActionView::Template.unregister_template_handler :foo
+  end
+
+  def test_render_does_not_use_unregistered_extension_and_template_handler
+    ActionView::Template.register_template_handler :foo, CustomHandler
+    ActionView::Template.unregister_template_handler :foo
+    assert_not ActionView::Template::Handlers.extensions.include?(:foo)
+    assert_equal "Hello, World!", @view.render(inline: "Hello, World!", type: :foo)
+  ensure
+    ActionView::Template::Handlers.class_variable_get(:@@template_handlers).delete(:foo)
   end
 
   def test_render_ignores_templates_with_malformed_template_handlers
@@ -464,7 +491,9 @@ module RenderTestCases
 
   def test_render_with_passing_couple_extensions_to_one_register_template_handler_function_call
     ActionView::Template.register_template_handler :foo1, :foo2, CustomHandler
-    assert_equal @view.render(:inline => "Hello, World!", :type => :foo1), @view.render(:inline => "Hello, World!", :type => :foo2)
+    assert_equal @view.render(inline: "Hello, World!", type: :foo1), @view.render(inline: "Hello, World!", type: :foo2)
+  ensure
+    ActionView::Template.unregister_template_handler :foo1, :foo2
   end
 
   def test_render_throws_exception_when_no_extensions_passed_to_register_template_handler_function_call

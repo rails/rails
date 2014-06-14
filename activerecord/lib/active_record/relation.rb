@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'arel/collectors/bind'
 
 module ActiveRecord
   # = Active Record Relation
@@ -11,6 +12,7 @@ module ActiveRecord
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
                             :reverse_order, :distinct, :create_with, :uniq]
+    INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
@@ -24,6 +26,7 @@ module ActiveRecord
       @klass  = klass
       @table  = table
       @values = values
+      @offsets = {}
       @loaded = false
     end
 
@@ -69,9 +72,16 @@ module ActiveRecord
         binds)
     end
 
-    def update_record(values, id, id_was) # :nodoc:
+    def _update_record(values, id, id_was) # :nodoc:
       substitutes, binds = substitute_values values
-      um = @klass.unscoped.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes, @klass.primary_key)
+
+      scope = @klass.unscoped
+
+      if @klass.finder_needs_type_condition?
+        scope.unscope!(where: @klass.inheritance_column)
+      end
+
+      um = scope.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes, @klass.primary_key)
 
       @klass.connection.update(
         um,
@@ -222,6 +232,7 @@ module ActiveRecord
     # Please see further details in the
     # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
+      #TODO: Fix for binds.
       exec_explain(collecting_queries_for_explain { exec_queries })
     end
 
@@ -237,7 +248,7 @@ module ActiveRecord
 
     # Returns size of the records.
     def size
-      loaded? ? @records.length : count
+      loaded? ? @records.length : count(:all)
     end
 
     # Returns true if there are no records.
@@ -247,8 +258,7 @@ module ActiveRecord
       if limit_value == 0
         true
       else
-        # FIXME: This count is not compatible with #select('authors.*') or other select narrows
-        c = count
+        c = count(:all)
         c.respond_to?(:zero?) ? c.zero? : c.empty?
       end
     end
@@ -323,7 +333,8 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, 'SQL', bind_values
+      bvs = bind_values + arel.bind_values
+      @klass.connection.update stmt, 'SQL', bvs
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -427,12 +438,21 @@ module ActiveRecord
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     #
-    # If a limit scope is supplied, +delete_all+ raises an ActiveRecord error:
+    # If an invalid method is supplied, +delete_all+ raises an ActiveRecord error:
     #
     #   Post.limit(100).delete_all
-    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit scope
+    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
     def delete_all(conditions = nil)
-      raise ActiveRecordError.new("delete_all doesn't support limit scope") if self.limit_value
+      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
+        if MULTI_VALUE_METHODS.include?(method)
+          send("#{method}_values").any?
+        else
+          send("#{method}_value")
+        end
+      }
+      if invalid_methods.any?
+        raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
+      end
 
       if conditions
         where(conditions).delete_all
@@ -495,9 +515,10 @@ module ActiveRecord
     end
 
     def reset
-      @first = @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
+      @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
       @should_eager_load = @join_dependency = nil
       @records = []
+      @offsets = {}
       self
     end
 
@@ -515,11 +536,11 @@ module ActiveRecord
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    ast   = relation.arel.ast
-                    binds = relation.bind_values.dup
-                    visitor.accept(ast) do
-                      connection.quote(*binds.shift.reverse)
-                    end
+                    arel  = relation.arel
+                    binds = (arel.bind_values + relation.bind_values).dup
+                    binds.map! { |bv| connection.quote(*bv.reverse) }
+                    collect = visitor.accept(arel.ast, Arel::Collectors::Bind.new)
+                    collect.substitute_binds(binds).join
                   end
     end
 
@@ -527,17 +548,22 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
-    def where_values_hash
+    def where_values_hash(relation_table_name = table_name)
       equalities = where_values.grep(Arel::Nodes::Equality).find_all { |node|
-        node.left.relation.name == table_name
+        node.left.relation.name == relation_table_name
       }
 
       binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
-      binds.merge!(Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }])
 
       Hash[equalities.map { |where|
         name = where.left.name
-        [name, binds.fetch(name.to_s) { where.right }]
+        [name, binds.fetch(name.to_s) {
+          case where.right
+          when Array then where.right.map(&:val)
+          else
+            where.right.val
+          end
+        }]
       }]
     end
 
@@ -569,6 +595,8 @@ module ActiveRecord
     # Compares two relations for equality.
     def ==(other)
       case other
+      when Associations::CollectionProxy, AssociationRelation
+        self == other.to_a
       when Relation
         other.to_sql == to_sql
       when Array
@@ -599,7 +627,7 @@ module ActiveRecord
     private
 
     def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, arel.bind_values + bind_values)
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?
@@ -616,7 +644,9 @@ module ActiveRecord
 
     def references_eager_loaded_tables?
       joined_tables = arel.join_sources.map do |join|
-        unless join.is_a?(Arel::Nodes::StringJoin)
+        if join.is_a?(Arel::Nodes::StringJoin)
+          tables_in_string(join.left)
+        else
           [join.left.table_name, join.left.table_alias]
         end
       end
@@ -627,6 +657,13 @@ module ActiveRecord
       joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
 
       (references_values - joined_tables).any?
+    end
+
+    def tables_in_string(string)
+      return [] if string.blank?
+      # always convert table names to downcase as in Oracle quoted table names are in uppercase
+      # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
+      string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map{ |s| s.downcase }.uniq - ['raw_sql_']
     end
   end
 end

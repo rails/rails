@@ -78,9 +78,12 @@ module SharedGeneratorTests
   end
 
   def test_template_raises_an_error_with_invalid_path
-    content = capture(:stderr){ run_generator([destination_root, "-m", "non/existent/path"]) }
-    assert_match(/The template \[.*\] could not be loaded/, content)
-    assert_match(/non\/existent\/path/, content)
+    quietly do
+      content = capture(:stderr){ run_generator([destination_root, "-m", "non/existent/path"]) }
+
+      assert_match(/The template \[.*\] could not be loaded/, content)
+      assert_match(/non\/existent\/path/, content)
+    end
   end
 
   def test_template_is_executed_when_supplied
@@ -89,7 +92,7 @@ module SharedGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
+    quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
   end
 
   def test_template_is_executed_when_supplied_an_https_path
@@ -98,7 +101,7 @@ module SharedGeneratorTests
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
+    quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
   end
 
   def test_dev_option

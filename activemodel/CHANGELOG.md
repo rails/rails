@@ -1,45 +1,18 @@
-*   `attribute_changed?` now accepts parameters which check the old and new value of the attribute
+*   Remove deprecated `Validator#setup` without replacement.
 
-    `model.name_changed?(from: "Pete", to: "Ringo")`
+    See #10716.
 
-    *Tejas Dinkar*
+    *Kuldeep Aggarwal*
 
-*   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
+*   Add plural and singular form for length validator's default messages.
 
-    *T.J. Schuck*
+    *Abd ar-Rahman Hamid*
 
-*   Updated the `ActiveModel::Dirty#changed_attributes` method to be indifferent between using
-    symbols and strings as keys.
+*   Introduce `validate` as an alias for `valid?`.
 
-    *William Myers*
+    This is more intuitive when you want to run validations but don't care about
+    the return value.
 
-*   Added new API methods `reset_changes` and `changes_applied` to `ActiveModel::Dirty`
-    that control changes state. Previsously you needed to update internal
-    instance variables, but now API methods are available.
+    *Henrik Nyh*
 
-    *Bogdan Gusiev*
-
-*   Fix `has_secure_password` not to trigger `password_confirmation` validations
-    if no `password_confirmation` is set.
-
-    *Vladimir Kiselev*
-
-*   `inclusion` / `exclusion` validations with ranges will only use the faster
-    `Range#cover` for numerical ranges, and the more accurate `Range#include?`
-    for non-numerical ones.
-
-    Fixes range validations like `:a..:f` that used to pass with values like `:be`.
-    Fixes #10593.
-
-    *Charles Bergeron*
-
-*   Fix regression in `has_secure_password`. When a password is set, but a
-    confirmation is an empty string, it would incorrectly save.
-
-    *Steve Klabnik* and *Phillip Calvin*
-
-*   Deprecate `Validator#setup`. This should be done manually now in the validator's constructor.
-
-    *Nick Sutterer*
-
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activemodel/CHANGELOG.md) for previous changes.

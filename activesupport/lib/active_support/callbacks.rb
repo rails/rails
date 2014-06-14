@@ -131,8 +131,6 @@ module ActiveSupport
           end
         end
 
-        private
-
         def self.halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
           lambda { |env|
             target = env.target
@@ -149,6 +147,7 @@ module ActiveSupport
             next_callback.call env
           }
         end
+        private_class_method :halting_and_conditional
 
         def self.halting(next_callback, user_callback, halted_lambda, filter)
           lambda { |env|
@@ -166,6 +165,7 @@ module ActiveSupport
             next_callback.call env
           }
         end
+        private_class_method :halting
 
         def self.conditional(next_callback, user_callback, user_conditions)
           lambda { |env|
@@ -178,6 +178,7 @@ module ActiveSupport
             next_callback.call env
           }
         end
+        private_class_method :conditional
 
         def self.simple(next_callback, user_callback)
           lambda { |env|
@@ -185,6 +186,7 @@ module ActiveSupport
             next_callback.call env
           }
         end
+        private_class_method :simple
       end
 
       class After
@@ -208,8 +210,6 @@ module ActiveSupport
           end
         end
 
-        private
-
         def self.halting_and_conditional(next_callback, user_callback, user_conditions)
           lambda { |env|
             env = next_callback.call env
@@ -223,6 +223,7 @@ module ActiveSupport
             env
           }
         end
+        private_class_method :halting_and_conditional
 
         def self.halting(next_callback, user_callback)
           lambda { |env|
@@ -233,6 +234,7 @@ module ActiveSupport
             env
           }
         end
+        private_class_method :halting
 
         def self.conditional(next_callback, user_callback, user_conditions)
           lambda { |env|
@@ -246,6 +248,7 @@ module ActiveSupport
             env
           }
         end
+        private_class_method :conditional
 
         def self.simple(next_callback, user_callback)
           lambda { |env|
@@ -254,6 +257,7 @@ module ActiveSupport
             env
           }
         end
+        private_class_method :simple
       end
 
       class Around
@@ -269,8 +273,6 @@ module ActiveSupport
           end
         end
 
-        private
-
         def self.halting_and_conditional(next_callback, user_callback, user_conditions)
           lambda { |env|
             target = env.target
@@ -288,23 +290,25 @@ module ActiveSupport
             end
           }
         end
+        private_class_method :halting_and_conditional
 
         def self.halting(next_callback, user_callback)
           lambda { |env|
             target = env.target
             value  = env.value
 
-            unless env.halted
+            if env.halted
+              next_callback.call env
+            else
               user_callback.call(target, value) {
                 env = next_callback.call env
                 env.value
               }
               env
-            else
-              next_callback.call env
             end
           }
         end
+        private_class_method :halting
 
         def self.conditional(next_callback, user_callback, user_conditions)
           lambda { |env|
@@ -322,6 +326,7 @@ module ActiveSupport
             end
           }
         end
+        private_class_method :conditional
 
         def self.simple(next_callback, user_callback)
           lambda { |env|
@@ -332,6 +337,7 @@ module ActiveSupport
             env
           }
         end
+        private_class_method :simple
       end
     end
 
@@ -718,12 +724,6 @@ module ActiveSupport
       #   would call <tt>Audit#save</tt>.
       def define_callbacks(*names)
         options = names.extract_options!
-        if options.key?(:terminator) && String === options[:terminator]
-          ActiveSupport::Deprecation.warn "String based terminators are deprecated, please use a lambda"
-          value = options[:terminator]
-          line = class_eval "lambda { |result| #{value} }", __FILE__, __LINE__
-          options[:terminator] = lambda { |target, result| target.instance_exec(result, &line) }
-        end
 
         names.each do |name|
           class_attribute "_#{name}_callbacks"

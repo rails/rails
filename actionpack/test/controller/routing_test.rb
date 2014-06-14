@@ -87,7 +87,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_symbols_with_dashes
     rs.draw do
       get '/:artist/:song-omg', :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -99,7 +99,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_id_with_dash
     rs.draw do
       get '/journey/:id', :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -111,7 +111,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_dash_with_custom_regexp
     rs.draw do
       get '/:artist/:song-omg', :constraints => { :song => /\d+/ }, :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -124,7 +124,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_pre_dash
     rs.draw do
       get '/:artist/omg-:song', :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -136,7 +136,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   def test_pre_dash_with_custom_regexp
     rs.draw do
       get '/:artist/omg-:song', :constraints => { :song => /\d+/ }, :to => lambda { |env|
-        resp = ActiveSupport::JSON.encode env[ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
+        resp = ActiveSupport::JSON.encode ActionDispatch::Request.new(env).path_parameters
         [200, {}, [resp]]
       }
     end
@@ -241,6 +241,32 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     assert_equal 'default', get(URI('http://www.example.org/'))
     assert_equal 'clients', get(URI('http://clients.example.org/'))
+  end
+
+  def test_scoped_lambda
+    scope_called = false
+    rs.draw do
+      scope '/foo', :constraints => lambda { |req| scope_called = true } do
+        get '/', :to => lambda { |env| [200, {}, %w{default}] }
+      end
+    end
+
+    assert_equal 'default', get(URI('http://www.example.org/foo/'))
+    assert scope_called, "scope constraint should be called"
+  end
+
+  def test_scoped_lambda_with_get_lambda
+    inner_called = false
+
+    rs.draw do
+      scope '/foo', :constraints => lambda { |req| flunk "should not be called" } do
+        get '/', :constraints    => lambda { |req| inner_called = true },
+                 :to             => lambda { |env| [200, {}, %w{default}] }
+      end
+    end
+
+    assert_equal 'default', get(URI('http://www.example.org/foo/'))
+    assert inner_called, "inner constraint should be called"
   end
 
   def test_empty_string_match
@@ -419,14 +445,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get 'page' => 'content#show_page', :as => 'pages', :host => 'foo.com'
     end
     routes = setup_for_named_route
-    routes.expects(:url_for).with({
-      :host => 'foo.com',
-      :only_path => false,
-      :controller => 'content',
-      :action => 'show_page',
-      :use_route => 'pages'
-    }).once
-    routes.send(:pages_url)
+    assert_equal "http://foo.com/page", routes.pages_url
   end
 
   def setup_for_named_route(options = {})

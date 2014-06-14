@@ -80,7 +80,7 @@ module ActiveRecord
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
 
-      NULL_RELATION = Struct.new(:values).new({})
+      NULL_RELATION = Struct.new(:values, :bind_values).new({}, [])
 
       def preload(records, associations, preload_scope = nil)
         records       = Array.wrap(records).compact.uniq
@@ -112,13 +112,14 @@ module ActiveRecord
       end
 
       def preloaders_for_hash(association, records, scope)
-        parent, child = association.to_a.first # hash should only be of length 1
+        association.flat_map { |parent, child|
+          loaders = preloaders_for_one parent, records, scope
 
-        loaders = preloaders_for_one parent, records, scope
-
-        recs = loaders.flat_map(&:preloaded_records).uniq
-        loaders.concat Array.wrap(child).flat_map { |assoc|
-          preloaders_on assoc, recs, scope
+          recs = loaders.flat_map(&:preloaded_records).uniq
+          loaders.concat Array.wrap(child).flat_map { |assoc|
+            preloaders_on assoc, recs, scope
+          }
+          loaders
         }
       end
 
@@ -140,36 +141,14 @@ module ActiveRecord
       end
 
       def grouped_records(association, records)
-        reflection_records = records_by_reflection(association, records)
-
-        reflection_records.each_with_object({}) do |(reflection, r_records),h|
-          h[reflection] = r_records.group_by { |record|
-            association_klass(reflection, record)
-          }
+        h = {}
+        records.each do |record|
+          next unless record
+          assoc = record.association(association)
+          klasses = h[assoc.reflection] ||= {}
+          (klasses[assoc.klass] ||= []) << record
         end
-      end
-
-      def records_by_reflection(association, records)
-        records.group_by do |record|
-          reflection = record.class.reflect_on_association(association)
-
-          reflection || raise_config_error(record, association)
-        end
-      end
-
-      def raise_config_error(record, association)
-        raise ActiveRecord::ConfigurationError,
-              "Association named '#{association}' was not found on #{record.class.name}; " \
-              "perhaps you misspelled it?"
-      end
-
-      def association_klass(reflection, record)
-        if reflection.macro == :belongs_to && reflection.options[:polymorphic]
-          klass = record.read_attribute(reflection.foreign_type.to_s)
-          klass && klass.constantize
-        else
-          reflection.klass
-        end
+        h
       end
 
       class AlreadyLoaded
@@ -198,6 +177,7 @@ module ActiveRecord
         if owners.first.association(reflection.name).loaded?
           return AlreadyLoaded
         end
+        reflection.check_preloadable!
 
         case reflection.macro
         when :has_many

@@ -7,7 +7,7 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
     end
   end
 
-  def teardown
+  teardown do
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       remove_method :execute
     end

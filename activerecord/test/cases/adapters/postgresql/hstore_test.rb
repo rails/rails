@@ -24,13 +24,14 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     @connection.transaction do
       @connection.create_table('hstores') do |t|
         t.hstore 'tags', :default => ''
+        t.hstore 'payload', array: true
         t.hstore 'settings'
       end
     end
-    @column = Hstore.columns.find { |c| c.name == 'tags' }
+    @column = Hstore.columns_hash['tags']
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists hstores'
   end
 
@@ -53,6 +54,22 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
     def test_column
       assert_equal :hstore, @column.type
+      assert_equal "hstore", @column.sql_type
+      assert_not @column.number?
+      assert_not @column.text?
+      assert_not @column.binary?
+      assert_not @column.array
+    end
+
+    def test_default
+      @connection.add_column 'hstores', 'permissions', :hstore, default: '"users"=>"read", "articles"=>"write"'
+      Hstore.reset_column_information
+      column = Hstore.columns_hash["permissions"]
+
+      assert_equal({"users"=>"read", "articles"=>"write"}, column.default)
+      assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.new.permissions)
+    ensure
+      Hstore.reset_column_information
     end
 
     def test_change_table_supports_hstore
@@ -61,7 +78,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
           t.hstore 'users', default: ''
         end
         Hstore.reset_column_information
-        column = Hstore.columns.find { |c| c.name == 'users' }
+        column = Hstore.columns_hash['users']
         assert_equal :hstore, column.type
 
         raise ActiveRecord::Rollback # reset the schema change
@@ -89,6 +106,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
     def test_cast_value_on_write
       x = Hstore.new tags: {"bool" => true, "number" => 5}
+      assert_equal({"bool" => true, "number" => 5}, x.tags_before_type_cast)
       assert_equal({"bool" => "true", "number" => "5"}, x.tags)
       x.save
       assert_equal({"bool" => "true", "number" => "5"}, x.reload.tags)
@@ -100,11 +118,11 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       data = "\"1\"=>\"2\""
       hash = @column.class.string_to_hstore data
       assert_equal({'1' => '2'}, hash)
-      assert_equal({'1' => '2'}, @column.type_cast(data))
+      assert_equal({'1' => '2'}, @column.type_cast_from_database(data))
 
-      assert_equal({}, @column.type_cast(""))
-      assert_equal({'key'=>nil}, @column.type_cast('key => NULL'))
-      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast(%q(c=>"}", "\"a\""=>"b \"a b")))
+      assert_equal({}, @column.type_cast_from_database(""))
+      assert_equal({'key'=>nil}, @column.type_cast_from_database('key => NULL'))
+      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast_from_database(%q(c=>"}", "\"a\""=>"b \"a b")))
     end
 
     def test_with_store_accessors
@@ -125,6 +143,35 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       assert_equal "GMT", x.timezone
     end
 
+    def test_duplication_with_store_accessors
+      x = Hstore.new(language: "fr", timezone: "GMT")
+      assert_equal "fr", x.language
+      assert_equal "GMT", x.timezone
+
+      y = x.dup
+      assert_equal "fr", y.language
+      assert_equal "GMT", y.timezone
+    end
+
+    def test_yaml_round_trip_with_store_accessors
+      x = Hstore.new(language: "fr", timezone: "GMT")
+      assert_equal "fr", x.language
+      assert_equal "GMT", x.timezone
+
+      y = YAML.load(YAML.dump(x))
+      assert_equal "fr", y.language
+      assert_equal "GMT", y.timezone
+    end
+
+    def test_changes_in_place
+      hstore = Hstore.create!(settings: { 'one' => 'two' })
+      hstore.settings['three'] = 'four'
+      hstore.save!
+      hstore.reload
+
+      assert_equal 'four', hstore.settings['three']
+    end
+
     def test_gen1
       assert_equal(%q(" "=>""), @column.class.hstore_to_string({' '=>''}))
     end
@@ -142,31 +189,31 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     end
 
     def test_parse1
-      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @column.type_cast('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
+      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @column.type_cast_from_database('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
     end
 
     def test_parse2
-      assert_equal({" " => " "},  @column.type_cast("\\ =>\\ "))
+      assert_equal({" " => " "},  @column.type_cast_from_database("\\ =>\\ "))
     end
 
     def test_parse3
-      assert_equal({"=" => ">"},  @column.type_cast("==>>"))
+      assert_equal({"=" => ">"},  @column.type_cast_from_database("==>>"))
     end
 
     def test_parse4
-      assert_equal({"=a"=>"q=w"},   @column.type_cast('\=a=>q=w'))
+      assert_equal({"=a"=>"q=w"},   @column.type_cast_from_database('\=a=>q=w'))
     end
 
     def test_parse5
-      assert_equal({"=a"=>"q=w"},   @column.type_cast('"=a"=>q\=w'))
+      assert_equal({"=a"=>"q=w"},   @column.type_cast_from_database('"=a"=>q\=w'))
     end
 
     def test_parse6
-      assert_equal({"\"a"=>"q>w"},  @column.type_cast('"\"a"=>q>w'))
+      assert_equal({"\"a"=>"q>w"},  @column.type_cast_from_database('"\"a"=>q>w'))
     end
 
     def test_parse7
-      assert_equal({"\"a"=>"q\"w"}, @column.type_cast('\"a=>q"w'))
+      assert_equal({"\"a"=>"q\"w"}, @column.type_cast_from_database('\"a=>q"w'))
     end
 
     def test_rewrite
@@ -180,6 +227,30 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       @connection.execute "insert into hstores (tags) VALUES ('1=>2')"
       x = Hstore.first
       assert_equal({'1' => '2'}, x.tags)
+    end
+
+    def test_array_cycle
+      assert_array_cycle([{"AA" => "BB", "CC" => "DD"}, {"AA" => nil}])
+    end
+
+    def test_array_strings_with_quotes
+      assert_array_cycle([{'this has' => 'some "s that need to be escaped"'}])
+    end
+
+    def test_array_strings_with_commas
+      assert_array_cycle([{'this,has' => 'many,values'}])
+    end
+
+    def test_array_strings_with_array_delimiters
+      assert_array_cycle(['{' => '}'])
+    end
+
+    def test_array_strings_with_null_strings
+      assert_array_cycle([{'NULL' => 'NULL'}])
+    end
+
+    def test_contains_nils
+      assert_array_cycle([{'NULL' => nil}])
     end
 
     def test_select_multikey
@@ -233,9 +304,51 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       Hstore.update_all tags: { }
       assert_equal({ }, hstore.reload.tags)
     end
+
+    class TagCollection
+      def initialize(hash); @hash = hash end
+      def to_hash; @hash end
+      def self.load(hash); new(hash) end
+      def self.dump(object); object.to_hash end
+    end
+
+    class HstoreWithSerialize < Hstore
+      serialize :tags, TagCollection
+    end
+
+    def test_hstore_with_serialized_attributes
+      HstoreWithSerialize.create! tags: TagCollection.new({"one" => "two"})
+      record = HstoreWithSerialize.first
+      assert_instance_of TagCollection, record.tags
+      assert_equal({"one" => "two"}, record.tags.to_hash)
+      record.tags = TagCollection.new("three" => "four")
+      record.save!
+      assert_equal({"three" => "four"}, HstoreWithSerialize.first.tags.to_hash)
+    end
+
+    def test_clone_hstore_with_serialized_attributes
+      HstoreWithSerialize.create! tags: TagCollection.new({"one" => "two"})
+      record = HstoreWithSerialize.first
+      dupe = record.dup
+      assert_equal({"one" => "two"}, dupe.tags.to_hash)
+    end
   end
 
   private
+
+    def assert_array_cycle(array)
+      # test creation
+      x = Hstore.create!(payload: array)
+      x.reload
+      assert_equal(array, x.payload)
+
+      # test updating
+      x = Hstore.create!(payload: [])
+      x.payload = array
+      x.save!
+      x.reload
+      assert_equal(array, x.payload)
+    end
 
     def assert_cycle(hash)
       # test creation

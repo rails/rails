@@ -33,7 +33,7 @@ module ActionController
 
     def initialize(params) # :nodoc:
       @params = params
-      super("found unpermitted parameters: #{params.join(", ")}")
+      super("found unpermitted parameter#{'s' if params.size > 1 }: #{params.join(", ")}")
     end
   end
 
@@ -130,6 +130,10 @@ module ActionController
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
+    #
+    # Testing membership still loops, but it's going to be faster than our own
+    # loop that converts values. Also, we are not going to build a new array
+    # object per fetch.
     def converted_arrays
       @converted_arrays ||= Set.new
     end
@@ -159,8 +163,8 @@ module ActionController
     def permit!
       each_pair do |key, value|
         value = convert_hashes_to_parameters(key, value)
-        Array.wrap(value).each do |_|
-          _.permit! if _.respond_to? :permit!
+        Array.wrap(value).each do |v|
+          v.permit! if v.respond_to? :permit!
         end
       end
 
@@ -181,7 +185,12 @@ module ActionController
     #   ActionController::Parameters.new(person: {}).require(:person)
     #   # => ActionController::ParameterMissing: param not found: person
     def require(key)
-      self[key].presence || raise(ParameterMissing.new(key))
+      value = self[key]
+      if value.present? || value == false
+        value
+      else
+        raise ParameterMissing.new(key)
+      end
     end
 
     # Alias of #require.
@@ -539,7 +548,7 @@ module ActionController
   #       end
   #   end
   #
-  # In order to use <tt>accepts_nested_attribute_for</tt> with Strong \Parameters, you
+  # In order to use <tt>accepts_nested_attributes_for</tt> with Strong \Parameters, you
   # will need to specify which nested attributes should be whitelisted.
   #
   #   class Person

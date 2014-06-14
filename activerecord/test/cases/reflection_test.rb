@@ -63,7 +63,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_column_string_type_and_limit
     assert_equal :string, @first.column_for_attribute("title").type
-    assert_equal 255, @first.column_for_attribute("title").limit
+    assert_equal 250, @first.column_for_attribute("title").limit
   end
 
   def test_column_null_not_null
@@ -80,11 +80,39 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal :integer, @first.column_for_attribute("id").type
   end
 
+  def test_non_existent_columns_return_null_object
+    column = @first.column_for_attribute("attribute_that_doesnt_exist")
+    assert_instance_of ActiveRecord::ConnectionAdapters::NullColumn, column
+    assert_equal "attribute_that_doesnt_exist", column.name
+    assert_equal nil, column.sql_type
+    assert_equal nil, column.type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+  end
+
+  def test_non_existent_columns_are_identity_types
+    column = @first.column_for_attribute("attribute_that_doesnt_exist")
+    object = Object.new
+
+    assert_equal object, column.type_cast_from_database(object)
+    assert_equal object, column.type_cast_from_user(object)
+    assert_equal object, column.type_cast_for_database(object)
+  end
+
   def test_reflection_klass_for_nested_class_name
     reflection = MacroReflection.new(:company, nil, nil, { :class_name => 'MyApplication::Business::Company' }, ActiveRecord::Base)
     assert_nothing_raised do
       assert_equal MyApplication::Business::Company, reflection.klass
     end
+  end
+
+  def test_irregular_reflection_class_name
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.irregular 'plural_irregular', 'plurales_irregulares'
+    end
+    reflection = AssociationReflection.new(:has_many, 'plurales_irregulares', nil, {}, ActiveRecord::Base)
+    assert_equal 'PluralIrregular', reflection.class_name
   end
 
   def test_aggregation_reflection
@@ -192,7 +220,12 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_should_not_raise_error_when_compared_to_other_object
-    assert_nothing_raised { Firm.reflections[:clients] == Object.new }
+    assert_not_equal Object.new, Firm._reflections['clients']
+  end
+
+  def test_has_and_belongs_to_many_reflection
+    assert_equal :has_and_belongs_to_many, Category.reflections['posts'].macro
+    assert_equal :posts, Category.reflect_on_all_associations(:has_and_belongs_to_many).first.name
   end
 
   def test_has_many_through_reflection

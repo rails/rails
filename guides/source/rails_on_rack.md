@@ -18,7 +18,7 @@ Introduction to Rack
 
 Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
 
-- [Rack API Documentation](http://rack.rubyforge.org/doc/)
+* [Rack API Documentation](http://rack.github.io/)
 
 Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the [Resources](#resources) section below.
 
@@ -27,10 +27,9 @@ Rails on Rack
 
 ### Rails Application's Rack Object
 
-`ApplicationName::Application` is the primary Rack application object of a Rails
+`Rails.application` is the primary Rack application object of a Rails
 application. Any Rack compliant web server should be using
-`ApplicationName::Application` object to serve a Rails
-application. `Rails.application` refers to the same application object.
+`Rails.application` object to serve a Rails application.
 
 ### `rails server`
 
@@ -112,7 +111,7 @@ NOTE: `ActionDispatch::MiddlewareStack` is Rails equivalent of `Rack::Builder`, 
 Rails has a handy rake task for inspecting the middleware stack in use:
 
 ```bash
-$ rake middleware
+$ bin/rake middleware
 ```
 
 For a freshly generated Rails application, this might produce something like:
@@ -141,7 +140,7 @@ use ActionDispatch::ParamsParser
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
-run MyApp::Application.routes
+run Rails.application.routes
 ```
 
 The default middlewares shown here (and some others) are each summarized in the [Internal Middlewares](#internal-middleware-stack) section, below.
@@ -195,13 +194,13 @@ And now if you inspect the middleware stack, you'll find that `Rack::Lock` is
 not a part of it.
 
 ```bash
-$ rake middleware
+$ bin/rake middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
 use Rack::Runtime
 ...
-run Blog::Application.routes
+run Rails.application.routes
 ```
 
 If you want to remove session related middleware, do the following:

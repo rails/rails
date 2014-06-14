@@ -33,9 +33,14 @@ module ActiveRecord
         def initialize(url)
           raise "Database URL cannot be empty" if url.blank?
           @uri     = URI.parse(url)
-          @adapter = @uri.scheme
+          @adapter = @uri.scheme.gsub('-', '_')
           @adapter = "postgresql" if @adapter == "postgres"
-          @query   = @uri.query || ''
+
+          if @uri.opaque
+            @uri.opaque, @query = @uri.opaque.split('?', 2)
+          else
+            @query = @uri.query
+          end
         end
 
         # Converts the given URL to a full connection hash.
@@ -57,38 +62,46 @@ module ActiveRecord
 
         # Converts the query parameters of the URI into a hash.
         #
-        #   "localhost?pool=5&reap_frequency=2"
-        #   # => { "pool" => "5", "reap_frequency" => "2" }
+        #   "localhost?pool=5&reaping_frequency=2"
+        #   # => { "pool" => "5", "reaping_frequency" => "2" }
         #
         # returns empty hash if no query present.
         #
         #   "localhost"
         #   # => {}
         def query_hash
-          Hash[@query.split("&").map { |pair| pair.split("=") }]
+          Hash[(@query || '').split("&").map { |pair| pair.split("=") }]
         end
 
         def raw_config
-          query_hash.merge({
-            "adapter"  => @adapter,
-            "username" => uri.user,
-            "password" => uri.password,
-            "port"     => uri.port,
-            "database" => database,
-            "host"     => uri.host })
+          if uri.opaque
+            query_hash.merge({
+              "adapter"  => @adapter,
+              "database" => uri.opaque })
+          else
+            query_hash.merge({
+              "adapter"  => @adapter,
+              "username" => uri.user,
+              "password" => uri.password,
+              "port"     => uri.port,
+              "database" => database_from_path,
+              "host"     => uri.host })
+          end
         end
 
         # Returns name of the database.
-        # Sqlite3 expects this to be a full path or `:memory:`.
-        def database
+        def database_from_path
           if @adapter == 'sqlite3'
-            if '/:memory:' == uri.path
-              ':memory:'
-            else
-              uri.path
-            end
+            # 'sqlite3:/foo' is absolute, because that makes sense. The
+            # corresponding relative version, 'sqlite3:foo', is handled
+            # elsewhere, as an "opaque".
+
+            uri.path
           else
-            uri.path.sub(%r{^/},"")
+            # Only SQLite uses a filename as the "database" name; for
+            # anything else, a leading slash would be silly.
+
+            uri.path.sub(%r{^/}, "")
           end
         end
       end
@@ -124,7 +137,7 @@ module ActiveRecord
           if config
             resolve_connection config
           elsif env = ActiveRecord::ConnectionHandling::RAILS_ENV.call
-            resolve_env_connection env.to_sym
+            resolve_symbol_connection env.to_sym
           else
             raise AdapterNotSpecified
           end
@@ -193,10 +206,26 @@ module ActiveRecord
         #
         def resolve_connection(spec)
           case spec
-          when Symbol, String
-            resolve_env_connection spec
+          when Symbol
+            resolve_symbol_connection spec
+          when String
+            resolve_string_connection spec
           when Hash
             resolve_hash_connection spec
+          end
+        end
+
+        def resolve_string_connection(spec)
+          # Rails has historically accepted a string to mean either
+          # an environment key or a URL spec, so we have deprecated
+          # this ambiguous behaviour and in the future this function
+          # can be removed in favor of resolve_url_connection.
+          if configurations.key?(spec) || spec !~ /:/
+            ActiveSupport::Deprecation.warn "Passing a string to ActiveRecord::Base.establish_connection " \
+              "for a configuration lookup is deprecated, please pass a symbol (#{spec.to_sym.inspect}) instead"
+            resolve_symbol_connection(spec)
+          else
+            resolve_url_connection(spec)
           end
         end
 
@@ -204,31 +233,14 @@ module ActiveRecord
         # This requires that the @configurations was initialized with a key that
         # matches.
         #
-        #
-        #   Resolver.new("production" => {}).resolve_env_connection(:production)
+        #   Resolver.new("production" => {}).resolve_symbol_connection(:production)
         #   # => {}
         #
-        # Takes a connection URL.
-        #
-        #   Resolver.new({}).resolve_env_connection("postgresql://localhost/foo")
-        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
-        #
-        def resolve_env_connection(spec)
-          # Rails has historically accepted a string to mean either
-          # an environment key or a URL spec, so we have deprecated
-          # this ambiguous behaviour and in the future this function
-          # can be removed in favor of resolve_string_connection and
-          # resolve_symbol_connection.
+        def resolve_symbol_connection(spec)
           if config = configurations[spec.to_s]
-            if spec.is_a?(String)
-              ActiveSupport::Deprecation.warn "Passing a string to ActiveRecord::Base.establish_connection " \
-                "for a configuration lookup is deprecated, please pass a symbol (#{spec.to_sym.inspect}) instead"
-            end
             resolve_connection(config)
-          elsif spec.is_a?(String)
-            resolve_string_connection(spec)
           else
-            raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available configuration: #{configurations.inspect}")
+            raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available: #{configurations.keys.inspect}")
           end
         end
 
@@ -237,14 +249,19 @@ module ActiveRecord
         # hash and merges with the rest of the hash.
         # Connection details inside of the "url" key win any merge conflicts
         def resolve_hash_connection(spec)
-          if url = spec.delete("url")
-            connection_hash = resolve_string_connection(url)
+          if spec["url"] && spec["url"] !~ /^jdbc:/
+            connection_hash = resolve_string_connection(spec.delete("url"))
             spec.merge!(connection_hash)
           end
           spec
         end
 
-        def resolve_string_connection(url)
+        # Takes a connection URL.
+        #
+        #   Resolver.new({}).resolve_url_connection("postgresql://localhost/foo")
+        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+        #
+        def resolve_url_connection(url)
           ConnectionUrlResolver.new(url).to_hash
         end
       end

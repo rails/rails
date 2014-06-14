@@ -2,6 +2,7 @@ require 'erb'
 require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
+require 'active_support/core_ext/securerandom'
 require 'active_record/fixture_set/file'
 require 'active_record/errors'
 
@@ -14,9 +15,10 @@ module ActiveRecord
   # They are stored in YAML files, one file per model, which are placed in the directory
   # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically
   # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
-  # The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
-  # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>). The format of a fixture file looks
-  # like this:
+  # The fixture file ends with the +.yml+ file extension, for example:
+  # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>).
+  #
+  # The format of a fixture file looks like this:
   #
   #   rubyonrails:
   #     id: 1
@@ -32,7 +34,7 @@ module ActiveRecord
   # is followed by an indented list of key/value pairs in the "key: value" format. Records are
   # separated by a blank line for your viewing pleasure.
   #
-  # Note that fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
+  # Note: Fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
   # See http://yaml.org/type/omap.html
   # for the specification. You will need ordered fixtures when you have foreign key constraints
   # on keys in the same table. This is commonly needed for tree structures. Example:
@@ -60,8 +62,8 @@ module ActiveRecord
   #     end
   #   end
   #
-  # By default, <tt>test_helper.rb</tt> will load all of your fixtures into your test database,
-  # so this test will succeed.
+  # By default, +test_helper.rb+ will load all of your fixtures into your test
+  # database, so this test will succeed.
   #
   # The testing environment will automatically load the all fixtures into the database before each
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
@@ -361,6 +363,7 @@ module ActiveRecord
   #   geeksomnia:
   #     name: Geeksomnia's Account
   #     subdomain: $LABEL
+  #     email: $LABEL@email.com
   #
   # Also, sometimes (like when porting older join table fixtures) you'll need
   # to be able to get a hold of the identifier for a given label. ERB
@@ -372,8 +375,9 @@ module ActiveRecord
   #
   # == Support for YAML defaults
   #
-  # You probably already know how to use YAML to set and reuse defaults in
-  # your <tt>database.yml</tt> file. You can use the same technique in your fixtures:
+  # You can set and reuse defaults in your fixtures YAML file.
+  # This is the same technique used in the +database.yml+ file to specify
+  # defaults:
   #
   #   DEFAULTS: &DEFAULTS
   #     created_on: <%= 3.weeks.ago.to_s(:db) %>
@@ -389,7 +393,8 @@ module ActiveRecord
   # Any fixture labeled "DEFAULTS" is safely ignored.
   class FixtureSet
     #--
-    # An instance of FixtureSet is normally stored in a single YAML file and possibly in a folder with the same name.
+    # An instance of FixtureSet is normally stored in a single YAML file and
+    # possibly in a folder with the same name.
     #++
 
     MAX_ID = 2 ** 30 - 1
@@ -459,13 +464,7 @@ module ActiveRecord
         @config      = config
 
         # Remove string values that aren't constants or subclasses of AR
-        @class_names.delete_if { |k,klass|
-          unless klass.is_a? Class
-            klass = klass.safe_constantize
-            ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name will be removed in Rails 4.2, consider using the class itself instead.")
-          end
-          !insert_class(@class_names, k, klass)
-        }
+        @class_names.delete_if { |klass_name, klass| !insert_class(@class_names, klass_name, klass) }
       end
 
       def [](fs_name)
@@ -549,9 +548,13 @@ module ActiveRecord
     end
 
     # Returns a consistent, platform-independent identifier for +label+.
-    # Identifiers are positive integers less than 2^32.
-    def self.identify(label)
-      Zlib.crc32(label.to_s) % MAX_ID
+    # Integer identifiers are values less than 2^30. UUIDs are RFC 4122 version 5 SHA-1 hashes.
+    def self.identify(label, column_type = :integer)
+      if column_type == :uuid
+        SecureRandom.uuid_v5(SecureRandom::UUID_OID_NAMESPACE, label.to_s)
+      else
+        Zlib.crc32(label.to_s) % MAX_ID
+      end
     end
 
     # Superclass for the evaluation contexts used by ERB fixtures.
@@ -566,10 +569,6 @@ module ActiveRecord
       @path     = path
       @config   = config
       @model_class = nil
-
-      if class_name.is_a?(String)
-        ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name will be removed in Rails 4.2, consider using the class itself instead.")
-      end
 
       if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
         @model_class = class_name
@@ -627,12 +626,12 @@ module ActiveRecord
 
           # interpolate the fixture label
           row.each do |key, value|
-            row[key] = label if "$LABEL" == value
+            row[key] = value.gsub("$LABEL", label) if value.is_a?(String)
           end
 
           # generate a primary key if necessary
           if has_primary_key_column? && !row.include?(primary_key_name)
-            row[primary_key_name] = ActiveRecord::FixtureSet.identify(label)
+            row[primary_key_name] = ActiveRecord::FixtureSet.identify(label, primary_key_type)
           end
 
           # If STI is used, find the correct subclass for association reflection
@@ -643,19 +642,20 @@ module ActiveRecord
               model_class
             end
 
-          reflection_class.reflect_on_all_associations.each do |association|
+          reflection_class._reflections.values.each do |association|
             case association.macro
             when :belongs_to
               # Do not replace association name with association foreign key if they are named the same
               fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
 
               if association.name.to_s != fk_name && value = row.delete(association.name.to_s)
-                if association.options[:polymorphic] && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
+                if association.polymorphic? && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
                   # support polymorphic belongs_to as "label (Type)"
                   row[association.foreign_type] = $1
                 end
 
-                row[fk_name] = ActiveRecord::FixtureSet.identify(value)
+                fk_type = association.active_record.columns_hash[association.foreign_key].type
+                row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
               end
             when :has_many
               if association.options[:through]
@@ -682,6 +682,10 @@ module ActiveRecord
       def name
         @association.name
       end
+
+      def primary_key_type
+        @association.klass.column_types[@association.klass.primary_key].type
+      end
     end
 
     class HasManyThroughProxy < ReflectionProxy # :nodoc:
@@ -699,17 +703,22 @@ module ActiveRecord
         @primary_key_name ||= model_class && model_class.primary_key
       end
 
+      def primary_key_type
+        @primary_key_type ||= model_class && model_class.column_types[model_class.primary_key].type
+      end
+
       def add_join_records(rows, row, association)
         # This is the case when the join table has no fixtures file
         if (targets = row.delete(association.name.to_s))
-          table_name = association.join_table
-          lhs_key    = association.lhs_key
-          rhs_key    = association.rhs_key
+          table_name  = association.join_table
+          column_type = association.primary_key_type
+          lhs_key     = association.lhs_key
+          rhs_key     = association.rhs_key
 
           targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
           rows[table_name].concat targets.map { |target|
             { lhs_key => row[primary_key_name],
-              rhs_key => ActiveRecord::FixtureSet.identify(target) }
+              rhs_key => ActiveRecord::FixtureSet.identify(target, column_type) }
           }
         end
       end

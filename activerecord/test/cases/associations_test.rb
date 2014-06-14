@@ -255,6 +255,15 @@ class AssociationProxyTest < ActiveRecord::TestCase
       assert_equal man, man.interests.where("1=1").first.man
     end
   end
+
+  def test_reset_unloads_target
+    david = authors(:david)
+    david.posts.reload
+
+    assert david.posts.loaded?
+    david.posts.reset
+    assert !david.posts.loaded?
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase

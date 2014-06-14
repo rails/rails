@@ -76,6 +76,15 @@ module ActiveRecord
       mattr_accessor :timestamped_migrations, instance_writer: false
       self.timestamped_migrations = true
 
+      ##
+      # :singleton-method:
+      # Specify whether schema dump should happen at the end of the
+      # db:migrate rake task. This is true by default, which is useful for the
+      # development environment. This should ideally be false in the production
+      # environment where dumping schema is rarely needed.
+      mattr_accessor :dump_schema_after_migration, instance_writer: false
+      self.dump_schema_after_migration = true
+
       # :nodoc:
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
@@ -85,6 +94,7 @@ module ActiveRecord
       end
 
       class_attribute :default_connection_handler, instance_writer: false
+      class_attribute :find_by_statement_cache
 
       def self.connection_handler
         ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
@@ -98,6 +108,71 @@ module ActiveRecord
     end
 
     module ClassMethods
+      def initialize_find_by_cache
+        self.find_by_statement_cache = {}.extend(Mutex_m)
+      end
+
+      def inherited(child_class)
+        child_class.initialize_find_by_cache
+        super
+      end
+
+      def find(*ids)
+        # We don't have cache keys for this stuff yet
+        return super unless ids.length == 1
+        return super if block_given? ||
+                        primary_key.nil? ||
+                        default_scopes.any? ||
+                        columns_hash.include?(inheritance_column) ||
+                        ids.first.kind_of?(Array)
+
+        id  = ids.first
+        if ActiveRecord::Base === id
+          id = id.id
+          ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `find`." \
+            "Please pass the id of the object by calling `.id`"
+        end
+        key = primary_key
+
+        s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
+          find_by_statement_cache[key] ||= StatementCache.create(connection) { |params|
+            where(key => params.bind).limit(1)
+          }
+        }
+        record = s.execute([id], self, connection).first
+        unless record
+          raise RecordNotFound, "Couldn't find #{name} with '#{primary_key}'=#{id}"
+        end
+        record
+      end
+
+      def find_by(*args)
+        return super if current_scope || args.length > 1 || reflect_on_all_aggregations.any?
+
+        hash = args.first
+
+        return super if hash.values.any? { |v|
+          v.nil? || Array === v || Hash === v
+        }
+
+        key  = hash.keys
+
+        klass = self
+        s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
+          find_by_statement_cache[key] ||= StatementCache.create(connection) { |params|
+            wheres = key.each_with_object({}) { |param,o|
+              o[param] = params.bind
+            }
+            klass.where(wheres).limit(1)
+          }
+        }
+        begin
+          s.execute(hash.values, self, connection).first
+        rescue TypeError => e
+          raise ActiveRecord::StatementInvalid.new(e.message, e)
+        end
+      end
+
       def initialize_generated_modules
         super
 
@@ -138,12 +213,12 @@ module ActiveRecord
       #   class Post < ActiveRecord::Base
       #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
       #   end
-      def arel_table
+      def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
       # Returns the Arel engine.
-      def arel_engine
+      def arel_engine # :nodoc:
         @arel_engine ||=
           if Base == self || connection_handler.retrieve_connection_pool(self)
             self
@@ -174,18 +249,19 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = self.class.column_defaults.dup
-      defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
+      defaults = {}
+      self.class.raw_column_defaults.each do |k, v|
+        default = v.duplicable? ? v.dup : v
+        defaults[k] = Attribute.from_database(default, type_for_attribute(k))
+      end
 
-      @attributes   = self.class.initialize_attributes(defaults)
-      @column_types_override = nil
+      @attributes = defaults
       @column_types = self.class.column_types
 
       init_internals
-      init_changed_attributes
-      ensure_proper_type
-      populate_with_current_scope_attributes
+      initialize_internals_callback
 
+      self.class.define_attribute_methods
       # +options+ argument is only needed to make protected_attributes gem easier to hook.
       # Remove it when we drop support to this gem.
       init_attributes(attributes, options) if attributes
@@ -205,13 +281,14 @@ module ActiveRecord
     #   post.init_with('attributes' => { 'title' => 'hello world' })
     #   post.title # => 'hello world'
     def init_with(coder)
-      @attributes   = self.class.initialize_attributes(coder['attributes'])
-      @column_types_override = coder['column_types']
+      @attributes = coder['attributes']
       @column_types = self.class.column_types
 
       init_internals
 
-      @new_record = false
+      @new_record = coder['new_record']
+
+      self.class.define_attribute_methods
 
       run_callbacks :find
       run_callbacks :initialize
@@ -247,24 +324,18 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
-      self.class.initialize_attributes(cloned_attributes, :serialized => false)
-
-      @attributes = cloned_attributes
-      @attributes[self.class.primary_key] = nil
+      pk = self.class.primary_key
+      @attributes = other.clone_attributes
+      @attributes[pk] = Attribute.from_database(nil, type_for_attribute(pk))
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
-      @changed_attributes = {}
-      init_changed_attributes
-
       @aggregation_cache = {}
       @association_cache = {}
-      @attributes_cache  = {}
 
       @new_record  = true
+      @destroyed   = false
 
-      ensure_proper_type
       super
     end
 
@@ -281,7 +352,10 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      coder['attributes'] = attributes
+      # FIXME: Remove this when we better serialize attributes
+      coder['raw_attributes'] = attributes_before_type_cast
+      coder['attributes'] = @attributes
+      coder['new_record'] = new_record?
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
@@ -296,7 +370,7 @@ module ActiveRecord
     def ==(comparison_object)
       super ||
         comparison_object.instance_of?(self.class) &&
-        id &&
+        !id.nil? &&
         comparison_object.id == id
     end
     alias :eql? :==
@@ -304,7 +378,11 @@ module ActiveRecord
     # Delegates to id in order to allow two records of the same type and id to work with something like:
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
-      id.hash
+      if id
+        id.hash
+      else
+        super
+      end
     end
 
     # Clone and freeze the attributes hash such that associations are still
@@ -360,6 +438,29 @@ module ActiveRecord
       "#<#{self.class} #{inspection}>"
     end
 
+    # Takes a PP and prettily prints this record to it, allowing you to get a nice result from `pp record`
+    # when pp is required.
+    def pretty_print(pp)
+      pp.object_address_group(self) do
+        if defined?(@attributes) && @attributes
+          column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
+          pp.seplist(column_names, proc { pp.text ',' }) do |column_name|
+            column_value = read_attribute(column_name)
+            pp.breakable ' '
+            pp.group(1) do
+              pp.text column_name
+              pp.text ':'
+              pp.breakable
+              pp.pp column_value
+            end
+          end
+        else
+          pp.breakable ' '
+          pp.text 'not initialized'
+        end
+      end
+    end
+
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
       Hash[methods.map! { |method| [method, public_send(method)] }].with_indifferent_access
@@ -397,13 +498,10 @@ module ActiveRecord
     end
 
     def update_attributes_from_transaction_state(transaction_state, depth)
-      if transaction_state && !has_transactional_callbacks?
+      if transaction_state && transaction_state.finalized? && !has_transactional_callbacks?
         unless @reflects_state[depth]
-          if transaction_state.committed?
-            committed!
-          elsif transaction_state.rolledback?
-            rolledback!
-          end
+          restore_transaction_record_state if transaction_state.rolledback?
+          clear_transaction_record_state
           @reflects_state[depth] = true
         end
 
@@ -427,11 +525,10 @@ module ActiveRecord
 
     def init_internals
       pk = self.class.primary_key
-      @attributes[pk] = nil unless @attributes.key?(pk)
+      @attributes[pk] ||= Attribute.from_database(nil, type_for_attribute(pk))
 
       @aggregation_cache        = {}
       @association_cache        = {}
-      @attributes_cache         = {}
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false
@@ -443,19 +540,19 @@ module ActiveRecord
       @reflects_state           = [false]
     end
 
-    def init_changed_attributes
-      # Intentionally avoid using #column_defaults since overridden defaults (as is done in
-      # optimistic locking) won't get written unless they get marked as changed
-      self.class.columns.each do |c|
-        attr, orig_value = c.name, c.default
-        changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
-      end
+    def initialize_internals_callback
     end
 
     # This method is needed to make protected_attributes gem easier to hook.
     # Remove it when we drop support to this gem.
     def init_attributes(attributes, options)
       assign_attributes(attributes)
+    end
+
+    def thaw
+      if frozen?
+        @attributes = @attributes.dup
+      end
     end
   end
 end

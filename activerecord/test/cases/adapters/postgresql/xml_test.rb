@@ -1,8 +1,5 @@
 # encoding: utf-8
-
 require 'cases/helper'
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlXMLTest < ActiveRecord::TestCase
   class XmlDataType < ActiveRecord::Base
@@ -18,12 +15,12 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
         end
       end
     rescue ActiveRecord::StatementInvalid
-      return skip "do not test on PG without xml"
+      skip "do not test on PG without xml"
     end
-    @column = XmlDataType.columns.find { |c| c.name == 'payload' }
+    @column = XmlDataType.columns_hash['payload']
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists xml_data_type'
   end
 

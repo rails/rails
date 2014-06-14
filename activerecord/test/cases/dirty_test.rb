@@ -445,11 +445,20 @@ class DirtyTest < ActiveRecord::TestCase
   def test_save_should_store_serialized_attributes_even_with_partial_writes
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
+
+      assert_not topic.changed?
+
       topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
+
+      assert topic.changed?
+
       topic.save!
+
+      assert_not topic.changed?
       assert_equal "b", topic.content[:b]
+
       topic.reload
+
       assert_equal "b", topic.content[:b]
     end
   end
@@ -614,6 +623,32 @@ class DirtyTest < ActiveRecord::TestCase
       a.reload
       assert_not_nil a.id
     end
+  end
+
+  test "defaults with type that implements `type_cast_for_database`" do
+    type = Class.new(ActiveRecord::Type::Value) do
+      def type_cast(value)
+        value.to_i
+      end
+
+      def type_cast_for_database(value)
+        value.to_s
+      end
+    end
+
+    model_class = Class.new(ActiveRecord::Base) do
+      self.table_name = 'numeric_data'
+      attribute :foo, type.new, default: 1
+    end
+
+    model = model_class.new
+    assert_not model.foo_changed?
+
+    model = model_class.new(foo: 1)
+    assert_not model.foo_changed?
+
+    model = model_class.new(foo: '1')
+    assert_not model.foo_changed?
   end
 
   private

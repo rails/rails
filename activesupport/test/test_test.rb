@@ -28,10 +28,28 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     assert_equal 'custom', e.message
   end
 
-  def test_assert_no_difference
+  def test_assert_no_difference_pass
     assert_no_difference '@object.num' do
       # ...
     end
+  end
+
+  def test_assert_no_difference_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_no_difference '@object.num' do
+        @object.increment
+      end
+    end
+    assert_equal "\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_no_difference_with_message_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_no_difference '@object.num', 'Object Changed' do
+        @object.increment
+      end
+    end
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
   end
 
   def test_assert_difference
@@ -162,6 +180,10 @@ class TimeHelperTest < ActiveSupport::TestCase
     Time.stubs now: Time.now
   end
 
+  teardown do
+    travel_back
+  end
+
   def test_time_helper_travel
     expected_time = Time.now + 1.day
     travel 1.day
@@ -197,6 +219,18 @@ class TimeHelperTest < ActiveSupport::TestCase
       assert_equal expected_time, Time.now
       assert_equal Date.new(2004, 11, 24), Date.today
     end
+
+    assert_not_equal expected_time, Time.now
+    assert_not_equal Date.new(2004, 11, 24), Date.today
+  end
+
+  def test_time_helper_travel_back
+    expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+
+    travel_to expected_time
+    assert_equal expected_time, Time.now
+    assert_equal Date.new(2004, 11, 24), Date.today
+    travel_back
 
     assert_not_equal expected_time, Time.now
     assert_not_equal Date.new(2004, 11, 24), Date.today

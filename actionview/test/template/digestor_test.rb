@@ -15,18 +15,30 @@ end
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
 
-  attr_reader :details
+  attr_reader   :details
+  attr_accessor :formats
+  attr_accessor :variants
 
   def initialize
-    @details = {}
+    @details  = {}
+    @formats  = []
+    @variants = []
   end
 
   def details_key
     details.hash
   end
 
-  def find(logical_name, keys, partial, options)
-    FixtureTemplate.new("digestor/#{partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name}.#{options[:formats].first}.erb")
+  def find(name, prefixes = [], partial = false, keys = [], options = {})
+    partial_name = partial ? name.gsub(%r|/([^/]+)$|, '/_\1') : name
+    format = @formats.first.to_s
+    format += "+#{@variants.first}" if @variants.any?
+
+    FixtureTemplate.new("digestor/#{partial_name}.#{format}.erb")
+  end
+
+  def disable_cache(&block)
+    yield
   end
 end
 
@@ -88,13 +100,13 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_logging_of_missing_template
-    assert_logged "Couldn't find template for digesting: messages/something_missing.html" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       digest("messages/show")
     end
   end
 
   def test_logging_of_missing_template_ending_with_number
-    assert_logged "Couldn't find template for digesting: messages/something_missing_1.html" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing_1" do
       digest("messages/show")
     end
   end
@@ -194,6 +206,13 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_variants
+    assert_digest_difference("messages/new", false, variants: [:iphone]) do
+      change_template("messages/new",     :iphone)
+      change_template("messages/_header", :iphone)
+    end
+  end
+
   def test_dependencies_via_options_results_in_different_digest
     digest_plain        = digest("comments/_comment")
     digest_fridge       = digest("comments/_comment", dependencies: ["fridge"])
@@ -242,6 +261,7 @@ class TemplateDigestorTest < ActionView::TestCase
     ActionView::Resolver.caching = resolver_before
   end
 
+
   private
     def assert_logged(message)
       old_logger = ActionView::Base.logger
@@ -258,26 +278,33 @@ class TemplateDigestorTest < ActionView::TestCase
       end
     end
 
-    def assert_digest_difference(template_name, persistent = false)
-      previous_digest = digest(template_name)
+    def assert_digest_difference(template_name, persistent = false, options = {})
+      previous_digest = digest(template_name, options)
       ActionView::Digestor.cache.clear unless persistent
 
       yield
 
-      assert previous_digest != digest(template_name), "digest didn't change"
+      assert previous_digest != digest(template_name, options), "digest didn't change"
       ActionView::Digestor.cache.clear
     end
 
-    def digest(template_name, options={})
-      ActionView::Digestor.digest(template_name, :html, finder, options)
+    def digest(template_name, options = {})
+      options = options.dup
+
+      finder.formats  = [:html]
+      finder.variants = options.delete(:variants) || []
+
+      ActionView::Digestor.digest({ name: template_name, finder: finder }.merge(options))
     end
 
     def finder
       @finder ||= FixtureFinder.new
     end
 
-    def change_template(template_name)
-      File.open("digestor/#{template_name}.html.erb", "w") do |f|
+    def change_template(template_name, variant = nil)
+      variant = "+#{variant}" if variant.present?
+
+      File.open("digestor/#{template_name}.html#{variant}.erb", "w") do |f|
         f.write "\nTHIS WAS CHANGED!"
       end
     end

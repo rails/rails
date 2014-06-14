@@ -34,7 +34,7 @@ The naming convention of controllers in Rails favors pluralization of the last w
 
 Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
-NOTE: The controller naming convention differs from the naming convention of models, which expected to be named in singular form.
+NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
 
 Methods and Actions
@@ -111,6 +111,10 @@ GET /clients?ids[]=1&ids[]=2&ids[]=3
 NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as "[" and "]" are not allowed in URLs. Most of the time you don't have to worry about this because the browser will take care of it for you, and Rails will decode it back when it receives it, but if you ever find yourself having to send those requests to the server manually you have to keep this in mind.
 
 The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.
+
+NOTE: Values such as `[]`, `[nil]` or `[nil, nil, ...]` in `params` are replaced
+with `nil` for security reasons by default. See [Security Guide](security.html#unsafe-query-generation)
+for more information.
 
 To send a hash you include the key name inside the brackets:
 
@@ -256,7 +260,7 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any subhash of it
+This will mark the `:log_entry` parameters hash and any sub-hash of it
 permitted. Extreme care should be taken when using `permit!` as it
 will allow all current and future model attributes to be
 mass-assigned.
@@ -360,33 +364,48 @@ If you need a different session storage mechanism, you can change it in the `con
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
 # (create the session table with "rails g active_record:session_migration")
-# YourApp::Application.config.session_store :active_record_store
+# Rails.application.config.session_store :active_record_store
 ```
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in `config/initializers/session_store.rb`:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
+Rails.application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`
+Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/secrets.yml`
 
 ```ruby
 # Be sure to restart your server when you modify this file.
 
-# Your secret key for verifying the integrity of signed cookies.
+# Your secret key is used for verifying the integrity of signed cookies.
 # If you change this key, all old signed cookies will become invalid!
+
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
+# You can use `rake secret` to generate a secure secret key.
+
+# Make sure the secrets in this file are kept private
+# if you're sharing your code publicly.
+
+development:
+  secret_key_base: a75d...
+
+test:
+  secret_key_base: 492f...
+
+# Do not keep production secrets in the repository,
+# instead read values from the environment.
+production:
+  secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 ```
 
 NOTE: Changing the secret when using the `CookieStore` will invalidate all existing sessions.
@@ -568,6 +587,62 @@ end
 
 Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
 
+Rails also provides a signed cookie jar and an encrypted cookie jar for storing
+sensitive data. The signed cookie jar appends a cryptographic signature on the
+cookie values to protect their integrity. The encrypted cookie jar encrypts the
+values in addition to signing them, so that they cannot be read by the end user.
+Refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+for more details.
+
+These special cookie jars use a serializer to serialize the assigned values into
+strings and deserializes them into Ruby objects on read.
+
+You can specify what serializer to use:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = :json
+```
+
+The default serializer for new applications is `:json`. For compatibility with
+old applications with existing cookies, `:marshal` is used when `serializer`
+option is not specified.
+
+You may also set this option to `:hybrid`, in which case Rails would transparently
+deserialize existing (`Marshal`-serialized) cookies on read and re-write them in
+the `JSON` format. This is useful for migrating existing applications to the
+`:json` serializer.
+
+It is also possible to pass a custom serializer that responds to `load` and
+`dump`:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
+```
+
+When using the `:json` or `:hybrid` serializer, you should beware that not all
+Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
+will be serialized as strings, and `Hash`es will have their keys stringified.
+
+```ruby
+class CookiesController < ApplicationController
+  def set_cookie
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
+    redirect_to action: 'read_cookie'
+  end
+
+  def read_cookie
+    cookies.encrypted[:expiration_date] # => "2014-03-20"
+  end
+end
+```
+
+It's advisable that you only store simple data (strings and numbers) in cookies.
+If you have to store complex objects, you would need to handle the conversion
+manually when reading the values on subsequent requests.
+
+If you use the cookie session store, this would apply to the `session` and
+`flash` hash as well.
+
 Rendering XML and JSON data
 ---------------------------
 
@@ -683,7 +758,7 @@ class ApplicationController < ActionController::Base
 end
 
 class LoginFilter
-  def self.filter(controller)
+  def self.before(controller)
     unless controller.send(:logged_in?)
       controller.flash[:error] = "You must be logged in to access this section"
       controller.redirect_to controller.new_login_url
@@ -692,7 +767,7 @@ class LoginFilter
 end
 ```
 
-Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method `filter` which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same `filter` method, which will get run in the same way. The method must `yield` to execute the action. Alternatively, it can have both a `before` and an `after` method that are run before and after the action.
+Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class must implement a method with the same name as the filter, so for the `before_action` filter the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
 
 Request Forgery Protection
 --------------------------
@@ -1003,7 +1078,7 @@ Rails keeps a log file for each environment in the `log` folder. These are extre
 
 ### Parameters Filtering
 
-You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+You can filter out sensitive request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
@@ -1011,7 +1086,7 @@ config.filter_parameters << :password
 
 ### Redirects Filtering
 
-Sometimes it's desirable to filter out from log files some sensible locations your application is redirecting to.
+Sometimes it's desirable to filter out from log files some sensitive locations your application is redirecting to.
 You can do that by using the `config.filter_redirect` configuration option:
 
 ```ruby
@@ -1052,7 +1127,7 @@ class ApplicationController < ActionController::Base
   private
 
     def record_not_found
-      render text: "404 Not Found", status: 404
+      render plain: "404 Not Found", status: 404
     end
 end
 ```

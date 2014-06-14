@@ -160,13 +160,6 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     Unknown::Generators.send :remove_const, :ActiveModel
   end
 
-  def test_new_hash_style
-    run_generator
-    assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/render action: 'new'/, content)
-    end
-  end
-
   def test_model_name_option
     run_generator ["Admin::User", "--model-name=User"]
     assert_file "app/controllers/admin/users_controller.rb" do |content|

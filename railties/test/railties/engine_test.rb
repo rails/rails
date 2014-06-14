@@ -34,6 +34,7 @@ module RailtiesTest
 
     test "serving sprocket's assets" do
       @plugin.write "app/assets/javascripts/engine.js.erb", "<%= :alert %>();"
+      add_to_env_config "development", "config.assets.digest = false"
 
       boot_rails
       require 'rack/test'
@@ -108,6 +109,38 @@ module RailtiesTest
         `bundle exec rake railties:install:migrations`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
+      end
+    end
+
+    test 'respects the order of railties when installing migrations' do
+      @blog = engine "blog" do |plugin|
+        plugin.write "lib/blog.rb", <<-RUBY
+          module Blog
+            class Engine < ::Rails::Engine
+            end
+          end
+        RUBY
+      end
+
+      @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      @blog.write "db/migrate/2_create_blogs.rb", <<-RUBY
+        class CreateBlogs < ActiveRecord::Migration
+        end
+      RUBY
+
+      add_to_config("config.railties_order = [Bukkits::Engine, Blog::Engine, :all, :main_app]")
+
+      boot_rails
+
+      Dir.chdir(app_path) do
+        output  = `bundle exec rake railties:install:migrations`.split("\n")
+
+        assert_match(/Copied migration \d+_create_users.bukkits.rb from bukkits/, output.first)
+        assert_match(/Copied migration \d+_create_blogs.blog_engine.rb from blog_engine/, output.last)
       end
     end
 
@@ -592,10 +625,14 @@ YAML
       @plugin.write "app/models/bukkits/post.rb", <<-RUBY
         module Bukkits
           class Post
-            extend ActiveModel::Naming
+            include ActiveModel::Model
 
             def to_param
               "1"
+            end
+
+            def persisted?
+              true
             end
           end
         end
@@ -704,8 +741,7 @@ YAML
       @plugin.write "app/models/bukkits/post.rb", <<-RUBY
         module Bukkits
           class Post
-            extend ActiveModel::Naming
-            include ActiveModel::Conversion
+            include ActiveModel::Model
             attr_accessor :title
 
             def to_param
@@ -1077,6 +1113,7 @@ YAML
       RUBY
 
       add_to_config("config.railties_order = [:all, :main_app, Blog::Engine]")
+      add_to_env_config "development", "config.assets.digest = false"
 
       boot_rails
 

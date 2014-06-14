@@ -5,7 +5,8 @@ module ActionDispatch
       FILTERED = '[FILTERED]'.freeze # :nodoc:
 
       def filtered_location
-        if !location_filter.empty? && location_filter_match?
+        filters = location_filter
+        if !filters.empty? && location_filter_match?(filters)
           FILTERED
         else
           location
@@ -15,15 +16,15 @@ module ActionDispatch
     private
 
       def location_filter
-        if request.present?
+        if request
           request.env['action_dispatch.redirect_filter'] || []
         else
           []
         end
       end
 
-      def location_filter_match?
-        location_filter.any? do |filter|
+      def location_filter_match?(filters)
+        filters.any? do |filter|
           if String === filter
             location.include?(filter)
           elsif Regexp === filter

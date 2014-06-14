@@ -89,6 +89,18 @@ class TimestampTest < ActiveRecord::TestCase
     assert_in_delta Time.now, task.ending, 1
   end
 
+  def test_touching_many_attributes_updates_them
+    task = Task.first
+    previous_starting = task.starting
+    previous_ending = task.ending
+    task.touch(:starting, :ending)
+
+    assert_not_equal previous_starting, task.starting
+    assert_not_equal previous_ending, task.ending
+    assert_in_delta Time.now, task.starting, 1
+    assert_in_delta Time.now, task.ending, 1
+  end
+
   def test_touching_a_record_without_timestamps_is_unexceptional
     assert_nothing_raised { Car.first.touch }
   end
@@ -138,6 +150,25 @@ class TimestampTest < ActiveRecord::TestCase
     end
 
     assert !@developer.no_touching?
+  end
+
+  def test_no_touching_with_callbacks
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers"
+
+      attr_accessor :after_touch_called
+
+      after_touch do |user|
+        user.after_touch_called = true
+      end
+    end
+
+    developer = klass.first
+
+    klass.no_touching do
+      developer.touch
+      assert_not developer.after_touch_called
+    end
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at
@@ -348,6 +379,19 @@ class TimestampTest < ActiveRecord::TestCase
     pet.reload
 
     assert_not_equal time, pet.updated_at
+  end
+
+  def test_timestamp_column_values_are_present_in_the_callbacks
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'people'
+
+      before_create do
+        self.born_at = self.created_at
+      end
+    end
+
+    person = klass.create first_name: 'David'
+    assert_not_equal person.born_at, nil
   end
 
   def test_timestamp_attributes_for_create

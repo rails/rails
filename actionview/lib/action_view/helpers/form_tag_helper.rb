@@ -67,7 +67,7 @@ module ActionView
       def form_tag(url_for_options = {}, options = {}, &block)
         html_options = html_options_for_form(url_for_options, options)
         if block_given?
-          form_tag_in_block(html_options, &block)
+          form_tag_with_body(html_options, capture(&block))
         else
           form_tag_html(html_options)
         end
@@ -82,13 +82,17 @@ module ActionView
       # ==== Options
       # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:include_blank</tt> - If set to true, an empty option will be created.
-      # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something
+      # * <tt>:include_blank</tt> - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
+      # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
+      # * <tt>:selected</tt> - Provide a default selected value. It should be of the exact type as the provided options.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name")
       #   # <select id="people" name="people"><option value="1">David</option></select>
+      #
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), selected: ["1", "David"]
+      #   # <select id="people" name="people"><option value="1" selected="selected">David</option></select>
       #
       #   select_tag "people", "<option>David</option>".html_safe
       #   # => <select id="people" name="people"><option>David</option></select>
@@ -105,12 +109,15 @@ module ActionView
       #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
       #   #    <option>Out</option></select>
       #
-      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, multiple: true, class: 'form_input'
-      #   # => <select class="form_input" id="access" multiple="multiple" name="access[]"><option>Read</option>
+      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, multiple: true, class: 'form_input', id: 'unique_id'
+      #   # => <select class="form_input" id="unique_id" multiple="multiple" name="access[]"><option>Read</option>
       #   #    <option>Write</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: true
       #   # => <select id="people" name="people"><option value=""></option><option value="1">David</option></select>
+      #
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: "All"
+      #   # => <select id="people" name="people"><option value="">All</option><option value="1">David</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), prompt: "Select something"
       #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
@@ -465,17 +472,23 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
-      #   button_tag "Checkout", data: { :disable_with => "Please wait..." }
+      #   button_tag "Checkout", data: { disable_with: "Please wait..." }
       #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
-        options = content_or_options if block_given? && content_or_options.is_a?(Hash)
-        options ||= {}
-        options = options.stringify_keys
+        if content_or_options.is_a? Hash
+          options = content_or_options
+        else
+          options ||= {}
+        end
 
-        options.reverse_merge! 'name' => 'button', 'type' => 'submit'
+        options = { 'name' => 'button', 'type' => 'submit' }.merge!(options.stringify_keys)
 
-        content_tag :button, content_or_options || 'Button', options, &block
+        if block_given?
+          content_tag :button, options, &block
+        else
+          content_tag :button, content_or_options || 'Button', options
+        end
       end
 
       # Displays an image which when clicked will submit the form.
@@ -544,6 +557,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   color_field_tag 'name'
+      #   # => <input id="name" name="name" type="color" />
+      #
+      #   color_field_tag 'color', '#DEF726'
+      #   # => <input id="color" name="color" type="color" value="#DEF726" />
+      #
+      #   color_field_tag 'color', nil, class: 'special_input'
+      #   # => <input class="special_input" id="color" name="color" type="color" />
+      #
+      #   color_field_tag 'color', '#DEF726', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="color" name="color" type="color" value="#DEF726" />
       def color_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "color"))
       end
@@ -552,6 +578,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   search_field_tag 'name'
+      #   # => <input id="name" name="name" type="search" />
+      #
+      #   search_field_tag 'search', 'Enter your search query here'
+      #   # => <input id="search" name="search" type="search" value="Enter your search query here" />
+      #
+      #   search_field_tag 'search', nil, class: 'special_input'
+      #   # => <input class="special_input" id="search" name="search" type="search" />
+      #
+      #   search_field_tag 'search', 'Enter your search query here', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="search" name="search" type="search" value="Enter your search query here" />
       def search_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "search"))
       end
@@ -560,6 +599,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   telephone_field_tag 'name'
+      #   # => <input id="name" name="name" type="tel" />
+      #
+      #   telephone_field_tag 'tel', '0123456789'
+      #   # => <input id="tel" name="tel" type="tel" value="0123456789" />
+      #
+      #   telephone_field_tag 'tel', nil, class: 'special_input'
+      #   # => <input class="special_input" id="tel" name="tel" type="tel" />
+      #
+      #   telephone_field_tag 'tel', '0123456789', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="tel" name="tel" type="tel" value="0123456789" />
       def telephone_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "tel"))
       end
@@ -569,6 +621,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   date_field_tag 'name'
+      #   # => <input id="name" name="name" type="date" />
+      #
+      #   date_field_tag 'date', '01/01/2014'
+      #   # => <input id="date" name="date" type="date" value="01/01/2014" />
+      #
+      #   date_field_tag 'date', nil, class: 'special_input'
+      #   # => <input class="special_input" id="date" name="date" type="date" />
+      #
+      #   date_field_tag 'date', '01/01/2014', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="date" name="date" type="date" value="01/01/2014" />
       def date_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
       end
@@ -632,6 +697,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   url_field_tag 'name'
+      #   # => <input id="name" name="name" type="url" />
+      #
+      #   url_field_tag 'url', 'http://rubyonrails.org'
+      #   # => <input id="url" name="url" type="url" value="http://rubyonrails.org" />
+      #
+      #   url_field_tag 'url', nil, class: 'special_input'
+      #   # => <input class="special_input" id="url" name="url" type="url" />
+      #
+      #   url_field_tag 'url', 'http://rubyonrails.org', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="url" name="url" type="url" value="http://rubyonrails.org" />
       def url_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "url"))
       end
@@ -640,6 +718,19 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
+      #
+      # ==== Examples
+      #   email_field_tag 'name'
+      #   # => <input id="name" name="name" type="email" />
+      #
+      #   email_field_tag 'email', 'email@example.com'
+      #   # => <input id="email" name="email" type="email" value="email@example.com" />
+      #
+      #   email_field_tag 'email', nil, class: 'special_input'
+      #   # => <input class="special_input" id="email" name="email" type="email" />
+      #
+      #   email_field_tag 'email', 'email@example.com', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="email" name="email" type="email" value="email@example.com" />
       def email_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "email"))
       end
@@ -651,12 +742,40 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:in</tt> - A range specifying the <tt>:min</tt> and
       #   <tt>:max</tt> values.
+      # * <tt>:within</tt> - Same as <tt>:in</tt>.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       #
       # ==== Examples
+      #   number_field_tag 'quantity'
+      #   # => <input id="quantity" name="quantity" type="number" />
+      #
+      #   number_field_tag 'quantity', '1'
+      #   # => <input id="quantity" name="quantity" type="number" value="1" />
+      #
+      #   number_field_tag 'quantity', nil, class: 'special_input'
+      #   # => <input class="special_input" id="quantity" name="quantity" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, min: 1
+      #   # => <input id="quantity" name="quantity" min="1" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, max: 9
+      #   # => <input id="quantity" name="quantity" max="9" type="number" />
+      #
       #   number_field_tag 'quantity', nil, in: 1...10
       #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, within: 1...10
+      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, min: 1, max: 10
+      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #
+      #   number_field_tag 'quantity', nil, min: 1, max: 10, step: 2
+      #   # => <input id="quantity" name="quantity" min="1" max="9" step="2" type="number" />
+      #
+      #   number_field_tag 'quantity', '1', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="quantity" name="quantity" type="number" value="1" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"
@@ -677,7 +796,10 @@ module ActionView
       # Creates the hidden UTF8 enforcer tag. Override this method in a helper
       # to customize the tag.
       def utf8_enforcer_tag
-        tag(:input, :type => "hidden", :name => "utf8", :value => "&#x2713;".html_safe)
+        # Use raw HTML to ensure the value is written as an HTML entity; it
+        # needs to be the right character regardless of which encoding the
+        # browser infers.
+        '<input name="utf8" type="hidden" value="&#x2713;" />'.html_safe
       end
 
       private
@@ -720,9 +842,11 @@ module ActionView
               method_tag(method) + token_tag(authenticity_token)
           end
 
-          enforce_utf8 = html_options.delete("enforce_utf8") { true }
-          tags = (enforce_utf8 ? utf8_enforcer_tag : ''.html_safe) << method_tag
-          content_tag(:div, tags, :style => 'display:none')
+          if html_options.delete("enforce_utf8") { true }
+            utf8_enforcer_tag + method_tag
+          else
+            method_tag
+          end
         end
 
         def form_tag_html(html_options)
@@ -730,8 +854,7 @@ module ActionView
           tag(:form, html_options, true) + extra_tags
         end
 
-        def form_tag_in_block(html_options, &block)
-          content = capture(&block)
+        def form_tag_with_body(html_options, content)
           output = form_tag_html(html_options)
           output << content
           output.safe_concat("</form>")

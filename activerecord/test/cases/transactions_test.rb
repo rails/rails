@@ -5,6 +5,7 @@ require 'models/developer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
+require 'models/movie'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -12,6 +13,11 @@ class TransactionTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
+  end
+
+  def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
+    movie = Movie.create
+    assert !movie.persisted?
   end
 
   def test_raise_after_destroy
@@ -115,6 +121,19 @@ class TransactionTest < ActiveRecord::TestCase
     e = assert_raises(RuntimeError) { @first.save }
     assert_equal "Make the transaction rollback", e.message
     assert !Topic.find(1).approved?
+  end
+
+  def test_rolling_back_in_a_callback_rollbacks_before_save
+    def @first.before_save_for_transaction
+      raise ActiveRecord::Rollback
+    end
+    assert !@first.approved
+
+    Topic.transaction do
+      @first.approved  = true
+      @first.save!
+    end
+    assert !Topic.find(@first.id).approved?, "Should not commit the approved flag"
   end
 
   def test_raising_exception_in_nested_transaction_restore_state_in_save
@@ -430,17 +449,26 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
+    topic_without_callbacks = Class.new(ActiveRecord::Base) do
+      self.table_name = 'topics'
+    end
+
     topic_1 = Topic.new(:title => 'test_1')
     topic_2 = Topic.new(:title => 'test_2')
+    topic_3 = topic_without_callbacks.new(:title => 'test_3')
+
     Topic.transaction do
       assert topic_1.save
       assert topic_2.save
+      assert topic_3.save
       @first.save
       @second.destroy
       assert topic_1.persisted?, 'persisted'
       assert_not_nil topic_1.id
       assert topic_2.persisted?, 'persisted'
       assert_not_nil topic_2.id
+      assert topic_3.persisted?, 'persisted'
+      assert_not_nil topic_3.id
       assert @first.persisted?, 'persisted'
       assert_not_nil @first.id
       assert @second.destroyed?, 'destroyed'
@@ -451,6 +479,8 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nil topic_1.id
     assert !topic_2.persisted?, 'not persisted'
     assert_nil topic_2.id
+    assert !topic_3.persisted?, 'not persisted'
+    assert_nil topic_3.id
     assert @first.persisted?, 'persisted'
     assert_not_nil @first.id
     assert !@second.destroyed?, 'not destroyed'

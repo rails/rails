@@ -258,8 +258,6 @@ class RespondToController < ActionController::Base
 end
 
 class RespondToControllerTest < ActionController::TestCase
-  tests RespondToController
-
   def setup
     super
     @request.host = "www.example.com"
@@ -492,6 +490,11 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal 'Whatever you ask for, I got it', @response.body
   end
 
+  def test_handle_any_any_unkown_format
+    get :handle_any_any, { format: 'php' }
+    assert_equal 'Whatever you ask for, I got it', @response.body
+  end
+
   def test_browser_check_with_any_any
     @request.accept = "application/json, application/xml"
     get :json_xml_or_html
@@ -671,6 +674,10 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_variant_any_any
+    get :variant_any_any
+    assert_equal "text/html", @response.content_type
+    assert_equal "any", @response.body
+
     @request.variant = :phone
     get :variant_any_any
     assert_equal "text/html", @response.content_type
@@ -739,5 +746,26 @@ class RespondToControllerTest < ActionController::TestCase
     get :format_any_variant_any, format: :js
     assert_equal "text/javascript", @response.content_type
     assert_equal "tablet", @response.body
+  end
+
+  def test_variant_negotiation_inline_syntax
+    @request.variant = [:tablet, :phone]
+    get :variant_inline_syntax_without_block
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+  end
+
+  def test_variant_negotiation_block_syntax
+    @request.variant = [:tablet, :phone]
+    get :variant_plus_none_for_format
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
+  end
+
+  def test_variant_negotiation_without_block
+    @request.variant = [:tablet, :phone]
+    get :variant_inline_syntax_without_block
+    assert_equal "text/html", @response.content_type
+    assert_equal "phone", @response.body
   end
 end

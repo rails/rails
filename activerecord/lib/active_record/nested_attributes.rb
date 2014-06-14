@@ -305,7 +305,7 @@ module ActiveRecord
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
-          if reflection = reflect_on_association(association_name)
+          if reflection = _reflect_on_association(association_name)
             reflection.autosave = true
             add_autosave_association_callbacks(reflection)
 
@@ -485,10 +485,10 @@ module ActiveRecord
     end
 
     # Takes in a limit and checks if the attributes_collection has too many
-    # records. The method will take limits in the form of symbols, procs, and
-    # number-like objects (anything that can be compared with an integer).
+    # records. It accepts limit in the form of symbol, proc, or
+    # number-like object (anything that can be compared with an integer).
     #
-    # Will raise an TooManyRecords error if the attributes_collection is
+    # Raises TooManyRecords error if the attributes_collection is
     # larger than the limit.
     def check_record_limit!(limit, attributes_collection)
       if limit
@@ -516,10 +516,10 @@ module ActiveRecord
 
     # Determines if a hash contains a truthy _destroy key.
     def has_destroy_flag?(hash)
-      ConnectionAdapters::Column.value_to_boolean(hash['_destroy'])
+      Type::Boolean.new.type_cast_from_user(hash['_destroy'])
     end
 
-    # Determines if a new record should be build by checking for
+    # Determines if a new record should be rejected by checking
     # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
@@ -542,7 +542,7 @@ module ActiveRecord
     end
 
     def raise_nested_attributes_record_not_found!(association_name, record_id)
-      raise RecordNotFound, "Couldn't find #{self.class.reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+      raise RecordNotFound, "Couldn't find #{self.class._reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
     end
   end
 end

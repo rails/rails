@@ -9,7 +9,7 @@ require 'bigdecimal'
 class NumericalityValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   NIL = [nil]
@@ -119,6 +119,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!([3, 4])
     valid!([5, 6])
+  ensure
     Topic.send(:remove_method, :min_approved)
   end
 
@@ -128,6 +129,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!([6])
     valid!([4, 5])
+  ensure
     Topic.send(:remove_method, :max_approved)
   end
 
@@ -157,7 +159,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     p.karma = "1234"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 
   def test_validates_numericality_with_invalid_args

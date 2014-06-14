@@ -51,6 +51,16 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "reset counters by counter name" do
+    # throw the count off by 1
+    Topic.increment_counter(:replies_count, @topic.id)
+
+    # check that it gets reset
+    assert_difference '@topic.reload.replies_count', -1 do
+      Topic.reset_counters(@topic.id, :replies_count)
+    end
+  end
+
   test 'reset multiple counters' do
     Topic.update_counters @topic.id, replies_count: 1, unique_replies_count: 1
     assert_difference ['@topic.reload.replies_count', '@topic.reload.unique_replies_count'], -1 do
@@ -154,10 +164,10 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
-  test "the passed symbol needs to be an association name" do
+  test "the passed symbol needs to be an association name or counter name" do
     e = assert_raises(ArgumentError) do
-      Topic.reset_counters(@topic.id, :replies_count)
+      Topic.reset_counters(@topic.id, :undefined_count)
     end
-    assert_equal "'Topic' has no association called 'replies_count'", e.message
+    assert_equal "'Topic' has no association called 'undefined_count'", e.message
   end
 end

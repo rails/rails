@@ -1,6 +1,7 @@
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/file_update_checker'
 require 'rails/engine/configuration'
+require 'rails/source_annotation_extractor'
 
 module Rails
   class Application
@@ -91,9 +92,10 @@ module Rails
       # Loads and returns the entire raw configuration of database from
       # values stored in `config/database.yml`.
       def database_configuration
-        yaml = Pathname.new(paths["config/database"].first || "")
+        yaml = Pathname.new(paths["config/database"].existent.first || "")
 
         config = if yaml.exist?
+          require "yaml"
           require "erb"
           YAML.load(ERB.new(yaml.read).result) || {}
         elsif ENV['DATABASE_URL']
@@ -109,6 +111,8 @@ module Rails
         raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
               "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
               "Error: #{e.message}"
+      rescue => e
+        raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
       end
 
       def log_level
@@ -147,6 +151,9 @@ module Rails
         end
       end
 
+      def annotations
+        SourceAnnotationExtractor::Annotation
+      end
     end
   end
 end

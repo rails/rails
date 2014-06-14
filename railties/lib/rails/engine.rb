@@ -371,7 +371,7 @@ module Rails
       end
 
       def isolate_namespace(mod)
-        engine_name(generate_railtie_name(mod))
+        engine_name(generate_railtie_name(mod.name))
 
         self.routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
@@ -429,7 +429,6 @@ module Rails
     # Load console and invoke the registered hooks.
     # Check <tt>Rails::Railtie.console</tt> for more info.
     def load_console(app=self)
-      require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
       run_console_blocks(app)

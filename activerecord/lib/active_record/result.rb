@@ -31,7 +31,7 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    IDENTITY_TYPE = Class.new { def type_cast(v); v; end }.new # :nodoc:
+    IDENTITY_TYPE = Type::Value.new # :nodoc:
 
     attr_reader :columns, :rows, :column_types
 
@@ -54,7 +54,7 @@ module ActiveRecord
       if block_given?
         hash_rows.each { |row| yield row }
       else
-        hash_rows.to_enum
+        hash_rows.to_enum { @rows.size }
       end
     end
 

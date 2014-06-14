@@ -163,6 +163,29 @@ XML
     end
   end
 
+  class DefaultUrlOptionsCachingController < ActionController::Base
+    before_action { @dynamic_opt = 'opt' }
+
+    def test_url_options_reset
+      render text: url_for(params)
+    end
+
+    def default_url_options
+      if defined?(@dynamic_opt)
+        super.merge dynamic_opt: @dynamic_opt
+      else
+        super
+      end
+    end
+  end
+
+  def test_url_options_reset
+    @controller = DefaultUrlOptionsCachingController.new
+    get :test_url_options_reset
+    assert_nil @request.params['dynamic_opt']
+    assert_match(/dynamic_opt=opt/, @response.body)
+  end
+
   def test_raw_post_handling
     params = Hash[:page, {:name => 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup
@@ -639,7 +662,7 @@ XML
 
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
-    assert_kind_of String, @request.path_parameters['id']
+    assert_kind_of String, @request.path_parameters[:id]
   end
 
   def test_array_path_parameter_handled_properly
@@ -650,17 +673,17 @@ XML
       end
 
       get :test_params, :path => ['hello', 'world']
-      assert_equal ['hello', 'world'], @request.path_parameters['path']
-      assert_equal 'hello/world', @request.path_parameters['path'].to_param
+      assert_equal ['hello', 'world'], @request.path_parameters[:path]
+      assert_equal 'hello/world', @request.path_parameters[:path].to_param
     end
   end
 
   def test_assert_realistic_path_parameters
     get :test_params, :id => 20, :foo => Object.new
 
-    # All elements of path_parameters should use string keys
+    # All elements of path_parameters should use Symbol keys
     @request.path_parameters.keys.each do |key|
-      assert_kind_of String, key
+      assert_kind_of Symbol, key
     end
   end
 
@@ -704,6 +727,14 @@ XML
     @request.recycle!
     post :no_op
     assert @request.params[:foo].blank?
+  end
+
+  def test_filtered_parameters_reset_between_requests
+    get :no_op, :foo => "bar"
+    assert_equal "bar", @request.filtered_parameters[:foo]
+
+    get :no_op, :foo => "baz"
+    assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
   def test_symbolized_path_params_reset_after_request

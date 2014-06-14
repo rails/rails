@@ -948,6 +948,18 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.class_eval { remove_const :A if const_defined?(:A) }
   end
 
+  def test_access_unloaded_constants_for_reload
+    with_autoloading_fixtures do
+      assert_kind_of Module, A
+      assert_kind_of Class, A::B # Necessary to load A::B for the test
+      ActiveSupport::Dependencies.mark_for_unload(A::B)
+      ActiveSupport::Dependencies.remove_unloadable_constants!
+       
+      A::B # Make sure no circular dependency error
+    end
+  end
+
+
   def test_autoload_once_paths_should_behave_when_recursively_loading
     with_loading 'dependencies', 'autoloading_fixtures' do
       ActiveSupport::Dependencies.autoload_once_paths = [ActiveSupport::Dependencies.autoload_paths.last]

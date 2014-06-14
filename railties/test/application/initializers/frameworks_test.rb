@@ -216,8 +216,8 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         orig_database_url = ENV.delete("DATABASE_URL")
         orig_rails_env, Rails.env = Rails.env, 'development'
-        database_url_db_name = File.join(app_path, "db/database_url_db.sqlite3")
-        ENV["DATABASE_URL"] = "sqlite3://:@localhost/#{database_url_db_name}"
+        database_url_db_name = "db/database_url_db.sqlite3"
+        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
         assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])

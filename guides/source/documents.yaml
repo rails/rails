@@ -13,8 +13,8 @@
       url: active_record_basics.html
       description: This guide will get you started with models, persistence to database and the Active Record pattern and library.
     -
-      name: Rails Database Migrations
-      url: migrations.html
+      name: Active Record Migrations
+      url: active_record_migrations.html
       description: This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
     -
       name: Active Record Validations
@@ -96,11 +96,6 @@
       url: command_line.html
       description: This guide covers the command line tools and rake tasks provided by Rails.
     -
-      name: Caching with Rails
-      work_in_progress: true
-      url: caching_with_rails.html
-      description: Various caching techniques provided by Rails.
-    -
       name: Asset Pipeline
       url: asset_pipeline.html
       description: This guide documents the asset pipeline.
@@ -117,7 +112,7 @@
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
-      description: This guide explains the internals of the Rails initialization process as of Rails 3.1
+      description: This guide explains the internals of the Rails initialization process as of Rails 4
 -
   name: Extending Rails
   documents:
@@ -162,12 +157,10 @@
     -
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
-      work_in_progress: true
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
       name: Ruby on Rails 4.1 Release Notes
       url: 4_1_release_notes.html
-      work_in_progress: true
       description: Release notes for Rails 4.1.
     -
       name: Ruby on Rails 4.0 Release Notes

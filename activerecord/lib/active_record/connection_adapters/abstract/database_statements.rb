@@ -9,17 +9,26 @@ module ActiveRecord
       # Converts an arel AST to SQL
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
-          binds = binds.dup
-          visitor.accept(arel.ast) do
-            quote(*binds.shift.reverse)
-          end
+          collected = visitor.accept(arel.ast, collector)
+          collected.compile(binds.dup, self)
         else
           arel
         end
       end
 
+      # This is used in the StatementCache object. It returns an object that
+      # can be used to query the database repeatedly.
+      def cacheable_query(arel) # :nodoc:
+        if prepared_statements
+          ActiveRecord::StatementCache.query visitor, arel.ast
+        else
+          ActiveRecord::StatementCache.partial_query visitor, arel.ast, collector
+        end
+      end
+
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [])
+        arel, binds = binds_from_relation arel, binds
         select(to_sql(arel, binds), name, binds)
       end
 
@@ -39,13 +48,13 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil)
-        select_rows(to_sql(arel, []), name)
-          .map { |v| v[0] }
+        arel, binds = binds_from_relation arel, []
+        select_rows(to_sql(arel, binds), name, binds).map(&:first)
       end
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
-      def select_rows(sql, name = nil)
+      def select_rows(sql, name = nil, binds = [])
       end
       undef_method :select_rows
 
@@ -218,6 +227,10 @@ module ActiveRecord
         end
       end
 
+      def open_transactions
+        @transaction.number
+      end
+
       def current_transaction #:nodoc:
         @transaction
       end
@@ -317,7 +330,7 @@ module ActiveRecord
       def sanitize_limit(limit)
         if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
           limit
-        elsif limit.to_s =~ /,/
+        elsif limit.to_s.include?(',')
           Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
         else
           Integer(limit)
@@ -377,6 +390,13 @@ module ActiveRecord
         def last_inserted_id(result)
           row = result.rows.first
           row && row.first
+        end
+
+        def binds_from_relation(relation, binds)
+          if relation.is_a?(Relation) && binds.empty?
+            relation, binds = relation.arel, relation.bind_values
+          end
+          [relation, binds]
         end
     end
   end

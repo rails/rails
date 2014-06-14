@@ -56,7 +56,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
     end
     ```
 
-* `config.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints builtin in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
+* `config.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
 
 * `config.autoload_once_paths` accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if `config.cache_classes` is false, which is the case in development mode by default. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
 
@@ -110,7 +110,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all modes except production, where it defaults to `:info`.
 
-* `config.log_tags` accepts a list of methods that respond to `request` object. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
+* `config.log_tags` accepts a list of methods that the `request` object responds to. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
 * `config.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to an instance of `ActiveSupport::Logger`, with auto flushing off in production mode.
 
@@ -118,9 +118,9 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If `config.cache_classes` is true, this option is ignored.
 
-* `config.secret_key_base` used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `config.secret_key_base` initialized to a random key in `config/initializers/secret_token.rb`.
+* `secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`.
 
-* `config.serve_static_assets` configures Rails itself to serve static assets. Defaults to true, but in the production environment is turned off as the server software (e.g. Nginx or Apache) used to run the application should serve static assets instead. Unlike the default setting set this to true when running (absolutely not recommended!) or testing your app in production mode using WEBrick. Otherwise you won't be able use page caching and requests for files that exist regularly under the public directory will anyway hit your Rails app.
+* `config.serve_static_assets` configures Rails itself to serve static assets. Defaults to true, but in the production environment is turned off as the server software (e.g. NGINX or Apache) used to run the application should serve static assets instead. Unlike the default setting set this to true when running (absolutely not recommended!) or testing your app in production mode using WEBrick. Otherwise you won't be able use page caching and requests for files that exist regularly under the public directory will anyway hit your Rails app.
 
 * `config.session_store` is usually set up in `config/initializers/session_store.rb` and specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Custom session stores can also be specified:
 
@@ -274,7 +274,7 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.pluralize_table_names` specifies whether Rails will look for singular or plural table names in the database. If set to true (the default), then the Customer class will use the `customers` table. If set to false, then the Customer class will use the `customer` table.
 
-* `config.active_record.default_timezone` determines whether to use `Time.local` (if set to `:local`) or `Time.utc` (if set to `:utc`) when pulling dates and times from the database. The default is `:utc` for Rails, although Active Record defaults to `:local` when used outside of Rails.
+* `config.active_record.default_timezone` determines whether to use `Time.local` (if set to `:local`) or `Time.utc` (if set to `:utc`) when pulling dates and times from the database. The default is `:utc`.
 
 * `config.active_record.schema_format` controls the format for dumping the database schema to a file. The options are `:ruby` (the default) for a database-independent version that depends on migrations, or `:sql` for a set of (potentially database-dependent) SQL statements.
 
@@ -291,6 +291,12 @@ All these configuration options are delegated to the `I18n` library.
 * `config.active_record.attribute_types_cached_by_default` sets the attribute types that `ActiveRecord::AttributeMethods` will cache by default on reads. The default is `[:datetime, :timestamp, :time, :date]`.
 
 * `config.active_record.maintain_test_schema` is a boolean value which controls whether Active Record should try to keep your test database schema up-to-date with `db/schema.rb` (or `db/structure.sql`) when you run your tests. The default is true.
+
+* `config.active_record.dump_schema_after_migration` is a flag which
+  controls whether or not schema dump should happen (`db/schema.rb` or
+  `db/structure.sql`) when you run migrations. This is set to false in
+  `config/environments/production.rb` which is generated by Rails. The
+  default value is true if this configuration is not set.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -352,6 +358,10 @@ value. Defaults to `'encrypted cookie'`.
 * `config.action_dispatch.encrypted_signed_cookie_salt` sets the signed
 encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
+* `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
+  method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
+  for more information. It defaults to true.
+
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
 * `ActionDispatch::Callbacks.to_prepare` takes a block to run after `ActionDispatch::Callbacks.before`, but before the request. Runs for every request in `development` mode, but only once for `production` or environments with `cache_classes` set to `true`.
@@ -374,17 +384,19 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
 * `config.action_view.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action View. Set to `nil` to disable logging.
 
-* `config.action_view.erb_trim_mode` gives the trim mode to be used by ERB. It defaults to `'-'`. See the [ERB documentation](http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/) for more information.
+* `config.action_view.erb_trim_mode` gives the trim mode to be used by ERB. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.06.html#topics-trimspaces) for more information.
 
 * `config.action_view.embed_authenticity_token_in_remote_forms` allows you to set the default behavior for `authenticity_token` in forms with `:remote => true`. By default it's set to false, which means that remote forms will not include `authenticity_token`, which is helpful when you're fragment-caching the form. Remote forms get the authenticity from the `meta` tag, so embedding is unnecessary unless you support browsers without JavaScript. In such case you can either pass `:authenticity_token => true` as a form option or set this config setting to `true`
 
-* `config.action_view.prefix_partial_path_with_controller_namespace` determines whether or not partials are looked up from a subdirectory in templates rendered from namespaced controllers. For example, consider a controller named `Admin::PostsController` which renders this template:
+* `config.action_view.prefix_partial_path_with_controller_namespace` determines whether or not partials are looked up from a subdirectory in templates rendered from namespaced controllers. For example, consider a controller named `Admin::ArticlesController` which renders this template:
 
     ```erb
-    <%= render @post %>
+    <%= render @article %>
     ```
 
-    The default setting is `true`, which uses the partial at `/admin/posts/_post.erb`. Setting the value to `false` would render `/posts/_post.erb`, which is the same behavior as rendering from a non-namespaced controller such as `PostsController`.
+    The default setting is `true`, which uses the partial at `/admin/articles/_article.erb`. Setting the value to `false` would render `/articles/_article.erb`, which is the same behavior as rendering from a non-namespaced controller such as `ArticlesController`.
+
+* `config.action_view.raise_on_missing_translations` determines whether an error should be raised for missing translations
 
 ### Configuring Action Mailer
 
@@ -406,17 +418,25 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.raise_delivery_errors` specifies whether to raise an error if email delivery cannot be completed. It defaults to true.
 
-* `config.action_mailer.delivery_method` defines the delivery method. The allowed values are `:smtp` (default), `:sendmail`, and `:test`.
+* `config.action_mailer.delivery_method` defines the delivery method and defaults to `:smtp`. See the [configuration section in the Action Mailer guide](http://guides.rubyonrails.org/action_mailer_basics.html#action-mailer-configuration) for more info.
 
 * `config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to false for testing.
 
 * `config.action_mailer.default_options` configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
 
     ```ruby
-    :mime_version => "1.0",
-    :charset      => "UTF-8",
-    :content_type => "text/plain",
-    :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+    mime_version:  "1.0",
+    charset:       "UTF-8",
+    content_type: "text/plain",
+    parts_order:  ["text/plain", "text/enriched", "text/html"]
+    ```
+
+    Assign a hash to set additional options:
+
+    ```ruby
+    config.action_mailer.default_options = {
+      from: "noreply@example.com"
+    }
     ```
 
 * `config.action_mailer.observers` registers observers which will be notified when mail is delivered.
@@ -441,6 +461,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.use_standard_json_time_format` enables or disables serializing dates to ISO 8601 format. Defaults to `true`.
 
+* `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
+
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 * `ActiveSupport::Cache::Store.logger` specifies the logger to use within cache store operations.
@@ -451,7 +473,6 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings.
 
-* `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 ### Configuring a Database
 
@@ -531,7 +552,7 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.connections'
+$ bin/rails runner 'puts ActiveRecord::Base.connections'
 {"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database"}}
 ```
 
@@ -548,24 +569,24 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.connections'
+$ bin/rails runner 'puts ActiveRecord::Base.connections'
 {"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database", "pool"=>5}}
 ```
 
 Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
 
-The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connectinon using the `"url"` sub key:
+The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connection using the `"url"` sub key:
 
 ```
 $ cat config/database.yml
 development:
-  url: sqlite3://localhost/NOT_my_database
+  url: sqlite3:NOT_my_database
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.connections'
-{"development"=>{"adapter"=>"sqlite3", "host"=>"localhost", "database"=>"NOT_my_database"}}
+$ bin/rails runner 'puts ActiveRecord::Base.connections'
+{"development"=>{"adapter"=>"sqlite3", "database"=>"NOT_my_database"}}
 ```
 
 Here the connection information in `ENV['DATABASE_URL']` is ignored, note the different adapter and database name.
@@ -623,17 +644,25 @@ development:
   encoding: unicode
   database: blog_development
   pool: 5
-  username: blog
-  password:
 ```
 
-Prepared Statements can be disabled thus:
+Prepared Statements are enabled by default on PostgreSQL. You can be disable prepared statements by setting `prepared_statements` to `false`:
 
 ```yaml
 production:
   adapter: postgresql
   prepared_statements: false
 ```
+
+If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:
+
+```
+production:
+  adapter: postgresql
+  statement_limit: 200
+```
+
+The more prepared statements in use: the more memory your database will require. If your PostgreSQL database is hitting memory limits, try lowering `statement_limit` or disabling prepared statements.
 
 #### Configuring an SQLite3 Database for JRuby Platform
 
@@ -700,13 +729,47 @@ Rails will now prepend "/app1" when generating links.
 
 #### Using Passenger
 
-Passenger makes it easiy to run your application in a subdirectory. You can find
-the relevant configuration in the
-[passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
+Passenger makes it easy to run your application in a subdirectory. You can find the relevant configuration in the [Passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
 
 #### Using a Reverse Proxy
 
-TODO
+Deploying your application using a reverse proxy has definite advantages over traditional deploys. They allow you to have more control over your server by layering the components required by your application.
+
+Many modern web servers can be used as a proxy server to balance third-party elements such as caching servers or application servers.
+
+One such application server you can use is [Unicorn](http://unicorn.bogomips.org/) to run behind a reverse proxy.
+
+In this case, you would need to configure the proxy server (NGINX, Apache, etc) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
+
+You can find more information in the [Unicorn readme](http://unicorn.bogomips.org/README.html) and understand the [philosophy](http://unicorn.bogomips.org/PHILOSOPHY.html) behind it.
+
+Once you've configured the application server, you must proxy requests to it by configuring your web server appropriately. For example your NGINX config may include:
+
+```
+upstream application_server {
+  server 0.0.0.0:8080
+}
+
+server {
+  listen 80;
+  server_name localhost;
+
+  root /root/path/to/your_app/public;
+
+  try_files $uri/index.html $uri.html @app;
+
+  location @app {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_redirect off;
+    proxy_pass http://application_server;
+  }
+
+  # some other configuration
+}
+```
+
+Be sure to read the [NGINX documentation](http://nginx.org/en/docs/) for the most up-to-date information.
 
 #### Considerations when deploying to a subdirectory
 
@@ -918,4 +981,4 @@ ActiveRecord::ConnectionTimeoutError - could not obtain a database connection wi
 If you get the above error, you might want to increase the size of connection
 pool by incrementing the `pool` option in `database.yml`
 
-NOTE. If you have enabled `Rails.threadsafe!` mode then there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
+NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.

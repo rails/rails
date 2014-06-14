@@ -1,7 +1,9 @@
 require 'time'
 require 'base64'
+require 'bigdecimal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/date_time/calculations'
 
 module ActiveSupport
   # = XmlMini
@@ -56,13 +58,13 @@ module ActiveSupport
     # TODO use regexp instead of Date.parse
     unless defined?(PARSING)
       PARSING = {
-        "symbol"       => Proc.new { |symbol|  symbol.to_sym },
+        "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
         "date"         => Proc.new { |date|    ::Date.parse(date) },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new { |number|  BigDecimal(number) },
-        "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.strip) },
+        "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.to_s.strip) },
         "string"       => Proc.new { |string|  string.to_s },
         "yaml"         => Proc.new { |yaml|    YAML::load(yaml) rescue yaml },
         "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },

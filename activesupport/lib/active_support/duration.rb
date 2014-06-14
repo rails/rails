@@ -49,6 +49,10 @@ module ActiveSupport
       end
     end
 
+    def eql?(other)
+      other.is_a?(Duration) && self == other
+    end
+
     def self.===(other) #:nodoc:
       other.is_a?(Duration)
     rescue ::NoMethodError
@@ -101,8 +105,7 @@ module ActiveSupport
 
       # We define it as a workaround to Ruby 2.0.0-p353 bug.
       # For more information, check rails/rails#13055.
-      # It should be dropped once a new Ruby patch-level
-      # release after 2.0.0-p353 happens.
+      # Remove it when we drop support for 2.0.0-p353.
       def ===(other) #:nodoc:
         value === other
       end

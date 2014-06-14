@@ -19,8 +19,7 @@ module ActiveRecord
         ActiveRecord::SchemaMigration.delete_all
       end
 
-      def teardown
-        super
+      teardown do
         ActiveRecord::SchemaMigration.drop_table
       end
 

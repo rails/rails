@@ -116,17 +116,22 @@ module ActiveRecord
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
       ActiveSupport.on_load(:active_record) do
-
-        class ActiveRecord::NoDatabaseError
-          remove_possible_method :extend_message
-          def extend_message(message)
-            message << "Run `$ bin/rake db:create db:migrate` to create your database"
-            message
-          end
-        end
-
         self.configurations = Rails.application.config.database_configuration
-        establish_connection
+
+        begin
+          establish_connection
+        rescue ActiveRecord::NoDatabaseError
+          warn <<-end_warning
+Oops - You have a database configured, but it doesn't exist yet!
+
+Here's how to get started:
+
+  1. Configure your database in config/database.yml.
+  2. Run `bin/rake db:create` to create the database.
+  3. Run `bin/rake db:setup` to load your database schema.
+end_warning
+          raise
+        end
       end
     end
 

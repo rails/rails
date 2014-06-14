@@ -89,6 +89,19 @@ class RichPerson < ActiveRecord::Base
   self.table_name = 'people'
 
   has_and_belongs_to_many :treasures, :join_table => 'peoples_treasures'
+
+  before_validation :run_before_create, on: :create
+  before_validation :run_before_validation
+
+  private
+
+  def run_before_create
+    self.first_name = first_name.to_s + 'run_before_create'
+  end
+
+  def run_before_validation
+    self.first_name = first_name.to_s + 'run_before_validation'
+  end
 end
 
 class NestedPerson < ActiveRecord::Base

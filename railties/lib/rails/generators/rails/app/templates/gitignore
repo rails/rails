@@ -7,10 +7,12 @@
 # Ignore bundler config.
 /.bundle
 
+<% if sqlite3? -%>
 # Ignore the default SQLite database.
 /db/*.sqlite3
 /db/*.sqlite3-journal
 
+<% end -%>
 # Ignore all logfiles and tempfiles.
 /log/*.log
 /tmp

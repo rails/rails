@@ -5,8 +5,9 @@ before_install:
 rvm:
   - 1.9.3
   - 2.0.0
-  - 2.1.0
-  - rbx
+  - 2.1
+  - ruby-head
+  - rbx-2
   - jruby
 env:
   - "GEM=railties"
@@ -17,8 +18,11 @@ env:
   - "GEM=ar:postgresql"
 matrix:
   allow_failures:
-    - rvm: rbx
+    - rvm: 1.9.3
+      env: "GEM=ar:mysql"
+    - rvm: rbx-2
     - rvm: jruby
+    - rvm: ruby-head
   fast_finish: true
 notifications:
   email: false
@@ -35,4 +39,3 @@ notifications:
 bundler_args: --path vendor/bundle --without test
 services:
   - memcached
-

@@ -9,13 +9,14 @@ ActiveRecord::Schema.define do
 
   #put adapter specific setup here
   case adapter_name
-    # For Firebird, set the sequence values 10000 when create_table is called;
-    # this prevents primary key collisions between "normally" created records
-    # and fixture-based (YAML) records.
-  when "Firebird"
-    def create_table(*args, &block)
-      ActiveRecord::Base.connection.create_table(*args, &block)
-      ActiveRecord::Base.connection.execute "SET GENERATOR #{args.first}_seq TO 10000"
+  when "PostgreSQL"
+    enable_uuid_ossp!(ActiveRecord::Base.connection)
+    create_table :uuid_parents, id: :uuid, force: true do |t|
+      t.string :name
+    end
+    create_table :uuid_children, id: :uuid, force: true do |t|
+      t.string :name
+      t.uuid :uuid_parent_id
     end
   end
 
@@ -51,6 +52,14 @@ ActiveRecord::Schema.define do
 
   create_table :aircraft, force: true do |t|
     t.string :name
+  end
+
+  create_table :articles, force: true do |t|
+  end
+
+  create_table :articles_magazines, force: true do |t|
+    t.references :article
+    t.references :magazine
   end
 
   create_table :audit_logs, force: true do |t|
@@ -94,9 +103,11 @@ ActiveRecord::Schema.define do
 
   create_table :books, force: true do |t|
     t.integer :author_id
+    t.string :format
     t.column :name, :string
     t.column :status, :integer, default: 0
     t.column :read_status, :integer, default: 0
+    t.column :nullable_status, :integer
   end
 
   create_table :booleans, force: true do |t|
@@ -160,6 +171,10 @@ ActiveRecord::Schema.define do
     t.integer :references, null: false
   end
 
+  create_table :columns, force: true do |t|
+    t.references :record
+  end
+
   create_table :comments, force: true do |t|
     t.integer :post_id, null: false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
@@ -173,6 +188,9 @@ ActiveRecord::Schema.define do
     t.integer :taggings_count, default: 0
     t.integer :children_count, default: 0
     t.integer :parent_id
+    t.references :author, polymorphic: true
+    t.string :resource_id
+    t.string :resource_type
   end
 
   create_table :companies, force: true do |t|
@@ -197,6 +215,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :computers, force: true do |t|
+    t.string :system
     t.integer :developer, null: false
     t.integer :extendedWarranty, null: false
   end
@@ -370,6 +389,9 @@ ActiveRecord::Schema.define do
     t.column :custom_lock_version, :integer
   end
 
+  create_table :magazines, force: true do |t|
+  end
+
   create_table :mateys, id: false, force: true do |t|
     t.column :pirate_id, :integer
     t.column :target_id, :integer
@@ -507,6 +529,7 @@ ActiveRecord::Schema.define do
     t.references :best_friend
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0
+    t.timestamp :born_at
     t.timestamps
   end
 
@@ -557,7 +580,12 @@ ActiveRecord::Schema.define do
 
   create_table :products, force: true do |t|
     t.references :collection
+    t.references :type
     t.string     :name
+  end
+
+  create_table :product_types, force: true do |t|
+    t.string :name
   end
 
   create_table :projects, force: true do |t|
@@ -631,6 +659,8 @@ ActiveRecord::Schema.define do
 
   create_table :students, force: true do |t|
     t.string :name
+    t.boolean :active
+    t.integer :college_id
   end
 
   create_table :subscribers, force: true, id: false do |t|
@@ -664,10 +694,14 @@ ActiveRecord::Schema.define do
   end
 
   create_table :topics, force: true do |t|
-    t.string   :title
+    t.string   :title, limit: 250
     t.string   :author_name
     t.string   :author_email_address
-    t.datetime :written_on
+    if mysql_56?
+      t.datetime :written_on, limit: 6
+    else
+      t.datetime :written_on
+    end
     t.time     :bonus_time
     t.date     :last_read
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
@@ -741,6 +775,8 @@ ActiveRecord::Schema.define do
     t.integer :man_id
     t.integer :polymorphic_man_id
     t.string  :polymorphic_man_type
+    t.integer :polymorphic_man_without_inverse_id
+    t.string  :polymorphic_man_without_inverse_type
     t.integer :horrible_polymorphic_man_id
     t.string  :horrible_polymorphic_man_type
   end
@@ -806,6 +842,8 @@ ActiveRecord::Schema.define do
     t.integer :department_id
   end
 
+  create_table :records, force: true do |t|
+  end
 
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
@@ -819,6 +857,13 @@ ActiveRecord::Schema.define do
     execute "ALTER TABLE fk_test_has_fk ADD CONSTRAINT fk_name FOREIGN KEY (#{quote_column_name 'fk_id'}) REFERENCES #{quote_table_name 'fk_test_has_pk'} (#{quote_column_name 'id'})"
 
     execute "ALTER TABLE lessons_students ADD CONSTRAINT student_id_fk FOREIGN KEY (#{quote_column_name 'student_id'}) REFERENCES #{quote_table_name 'students'} (#{quote_column_name 'id'})"
+  end
+
+  create_table :overloaded_types, force: true do |t|
+    t.float :overloaded_float, default: 500
+    t.float :unoverloaded_float
+    t.string :overloaded_string_with_limit, limit: 255
+    t.string :string_with_default, default: 'the original default'
   end
 end
 

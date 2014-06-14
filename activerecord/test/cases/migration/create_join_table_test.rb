@@ -10,8 +10,7 @@ module ActiveRecord
         @connection = ActiveRecord::Base.connection
       end
 
-      def teardown
-        super
+      teardown do
         %w(artists_musics musics_videos catalog).each do |table_name|
           connection.drop_table table_name if connection.tables.include?(table_name)
         end

@@ -30,6 +30,8 @@ module ActiveRecord
             else
               other.joins!(*v)
             end
+          elsif k == :select
+            other._select!(v)
           else
             other.send("#{k}!", v)
           end
@@ -62,7 +64,13 @@ module ActiveRecord
           # expensive), most of the time the value is going to be `nil` or `.blank?`, the only catch is that
           # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
           # don't fall through the cracks.
-          relation.send("#{name}!", *value) unless value.nil? || (value.blank? && false != value)
+          unless value.nil? || (value.blank? && false != value)
+            if name == :select
+              relation._select!(*value)
+            else
+              relation.send("#{name}!", *value)
+            end
+          end
         end
 
         merge_multi_values
@@ -139,7 +147,6 @@ module ActiveRecord
       def merge_single_values
         relation.from_value          = values[:from] unless relation.from_value
         relation.lock_value          = values[:lock] unless relation.lock_value
-        relation.reverse_order_value = values[:reverse_order]
 
         unless values[:create_with].blank?
           relation.create_with_value = (relation.create_with_value || {}).merge(values[:create_with])
@@ -149,7 +156,7 @@ module ActiveRecord
       def filter_binds(lhs_binds, removed_wheres)
         return lhs_binds if removed_wheres.empty?
 
-        set = Set.new removed_wheres.map { |x| x.left.name }
+        set = Set.new removed_wheres.map { |x| x.left.name.to_s }
         lhs_binds.dup.delete_if { |col,_| set.include? col.name }
       end
 

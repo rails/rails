@@ -34,7 +34,7 @@ db_namespace = namespace :db do
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
       ENV["SCOPE"].blank? || (ENV["SCOPE"] == migration.scope)
     end
-    db_namespace['_dump'].invoke
+    db_namespace['_dump'].invoke if ActiveRecord::Base.dump_schema_after_migration
   end
 
   task :_dump do
@@ -75,7 +75,7 @@ db_namespace = namespace :db do
     # desc 'Runs the "down" for a given migration VERSION.'
     task :down => [:environment, :load_config] do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
-      raise 'VERSION is required' unless version
+      raise 'VERSION is required - To go down one migration, run db:rollback' unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
       db_namespace['_dump'].invoke
     end
@@ -83,18 +83,18 @@ db_namespace = namespace :db do
     desc 'Display status of migrations'
     task :status => [:environment, :load_config] do
       unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
-        puts 'Schema migrations table does not exist yet.'
-        next  # means "return" for rake task
+        abort 'Schema migrations table does not exist yet.'
       end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
-      db_list.map! { |version| "%.3d" % version }
+      db_list.map! { |version| ActiveRecord::SchemaMigration.normalize_migration_number(version) }
       file_list = []
       ActiveRecord::Migrator.migrations_paths.each do |path|
         Dir.foreach(path) do |file|
           # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
           if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
-            status = db_list.delete(match_data[1]) ? 'up' : 'down'
-            file_list << [status, match_data[1], match_data[2].humanize]
+            version = ActiveRecord::SchemaMigration.normalize_migration_number(match_data[1])
+            status = db_list.delete(version) ? 'up' : 'down'
+            file_list << [status, version, match_data[2].humanize]
           end
         end
       end
@@ -186,7 +186,7 @@ db_namespace = namespace :db do
 
       fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
 
-      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
+      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(',') : Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
         ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_file)
       end
     end
@@ -268,7 +268,8 @@ db_namespace = namespace :db do
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
 
-      if ActiveRecord::Base.connection.supports_migrations?
+      if ActiveRecord::Base.connection.supports_migrations? &&
+          ActiveRecord::SchemaMigration.table_exists?
         File.open(filename, "a") do |f|
           f.puts ActiveRecord::Base.connection.dump_schema_information
           f.print "\n"
@@ -277,7 +278,7 @@ db_namespace = namespace :db do
       db_namespace['structure:dump'].reenable
     end
 
-    # desc "Recreate the databases from the structure.sql file"
+    desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema(:sql, ENV['DB_STRUCTURE'])
     end
@@ -366,7 +367,7 @@ namespace :railties do
     task :migrations => :'db:load_config' do
       to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
       railties = {}
-      Rails.application.railties.each do |railtie|
+      Rails.application.migration_railties.each do |railtie|
         next unless to_load == :all || to_load.include?(railtie.railtie_name)
 
         if railtie.respond_to?(:paths) && (path = railtie.paths['db/migrate'].first)

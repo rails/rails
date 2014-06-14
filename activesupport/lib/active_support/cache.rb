@@ -357,20 +357,19 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       #
-      # Returns an array with the data for each of the names. For example:
+      # Returns a hash with the data for each of the names. For example:
       #
       #   cache.write("bim", "bam")
-      #   cache.fetch_multi("bim", "boom") {|key| key * 2 }
-      #   # => ["bam", "boomboom"]
+      #   cache.fetch_multi("bim", "boom") { |key| key * 2 }
+      #   # => { "bam" => "bam", "boom" => "boomboom" }
       #
       def fetch_multi(*names)
         options = names.extract_options!
         options = merged_options(options)
-
         results = read_multi(*names, options)
 
-        names.map do |name|
-          results.fetch(name) do
+        names.each_with_object({}) do |name, memo|
+          memo[name] = results.fetch(name) do
             value = yield name
             write(name, value, options)
             value
@@ -452,7 +451,7 @@ module ActiveSupport
       # Clear the entire cache. Be careful with this method since it could
       # affect other processes if shared cache is being used.
       #
-      # Options are passed to the underlying cache implementation.
+      # The options hash is passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
       def clear(options = nil)

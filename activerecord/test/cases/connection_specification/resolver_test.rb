@@ -82,15 +82,34 @@ module ActiveRecord
           assert_equal password, spec["password"]
         end
 
-        def test_url_host_db_for_sqlite3
-          spec = resolve 'sqlite3://foo:bar@dburl:9000/foo_test'
+        def test_url_with_authority_for_sqlite3
+          spec = resolve 'sqlite3:///foo_test'
           assert_equal('/foo_test', spec["database"])
         end
 
-        def test_url_host_memory_db_for_sqlite3
-          spec = resolve 'sqlite3://foo:bar@dburl:9000/:memory:'
+        def test_url_absolute_path_for_sqlite3
+          spec = resolve 'sqlite3:/foo_test'
+          assert_equal('/foo_test', spec["database"])
+        end
+
+        def test_url_relative_path_for_sqlite3
+          spec = resolve 'sqlite3:foo_test'
+          assert_equal('foo_test', spec["database"])
+        end
+
+        def test_url_memory_db_for_sqlite3
+          spec = resolve 'sqlite3::memory:'
           assert_equal(':memory:', spec["database"])
         end
+
+        def test_url_sub_key_for_sqlite3
+          spec = resolve :production, 'production' => {"url" => 'sqlite3:foo?encoding=utf8'}
+          assert_equal({
+            "adapter"  => "sqlite3",
+            "database" => "foo",
+            "encoding" => "utf8" }, spec)
+        end
+
       end
     end
   end

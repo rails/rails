@@ -84,7 +84,7 @@ module ActiveRecord
       #
       # Be careful because this also means you're initializing a model
       # object with only the fields that you've selected. If you attempt
-      # to access a field that is not in the initialized record you'll
+      # to access a field except +id+ that is not in the initialized record you'll
       # receive:
       #
       #   person.pets.select(:name).first.person_id
@@ -168,6 +168,32 @@ module ActiveRecord
       #   another_person_without.pets.first(3) # => []
       def first(*args)
         @association.first(*args)
+      end
+
+      # Same as +first+ except returns only the second record.
+      def second(*args)
+        @association.second(*args)
+      end
+
+      # Same as +first+ except returns only the third record.
+      def third(*args)
+        @association.third(*args)
+      end
+
+      # Same as +first+ except returns only the fourth record.
+      def fourth(*args)
+        @association.fourth(*args)
+      end
+
+      # Same as +first+ except returns only the fifth record.
+      def fifth(*args)
+        @association.fifth(*args)
+      end
+
+      # Same as +first+ except returns only the forty second record.
+      # Also known as accessing "the reddit".
+      def forty_two(*args)
+        @association.forty_two(*args)
       end
 
       # Returns the last record, or the last +n+ records, from the collection.
@@ -331,7 +357,7 @@ module ActiveRecord
 
       # Deletes all the records from the collection. For +has_many+ associations,
       # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
-      # option. Returns an array with the deleted records.
+      # option.
       #
       # If no <tt>:dependent</tt> option is given, then it will follow the
       # default strategy. The default strategy is <tt>:nullify</tt>. This
@@ -409,11 +435,6 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
@@ -834,6 +855,10 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
+      def arel
+        scope.arel
+      end
+
       def proxy_association
         @association
       end
@@ -976,6 +1001,28 @@ module ActiveRecord
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload
+        self
+      end
+
+      # Unloads the association. Returns +self+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets # fetches pets from the database
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #
+      #   person.pets # uses the pets cache
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #
+      #   person.pets.reset # clears the pets cache
+      #
+      #   person.pets  # fetches pets from the database
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      def reset
+        proxy_association.reset
+        proxy_association.reset_scope
         self
       end
     end

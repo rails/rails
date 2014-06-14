@@ -31,7 +31,7 @@ class String
   def pluralize(count = nil, locale = :en)
     locale = count if count.is_a?(Symbol)
     if count == 1
-      self
+      self.dup
     else
       ActiveSupport::Inflector.pluralize(self, locale)
     end
@@ -130,6 +130,8 @@ class String
   #
   #   'ActiveRecord::CoreExtensions::String::Inflections'.demodulize # => "Inflections"
   #   'Inflections'.demodulize                                       # => "Inflections"
+  #   '::Inflections'.demodulize                                     # => "Inflections"
+  #   ''.demodulize                                                  # => ''
   #
   # See also +deconstantize+.
   def demodulize

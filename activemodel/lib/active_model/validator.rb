@@ -106,7 +106,6 @@ module ActiveModel
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
       @options  = options.except(:class).freeze
-      deprecated_setup(options)
     end
 
     # Returns the kind for this validator.
@@ -121,21 +120,6 @@ module ActiveModel
     # to the records +errors+ array where necessary.
     def validate(record)
       raise NotImplementedError, "Subclasses must implement a validate(record) method."
-    end
-
-    private
-    def deprecated_setup(options) # TODO: remove me in 4.2.
-      return unless respond_to?(:setup)
-      ActiveSupport::Deprecation.warn "The `Validator#setup` instance method is deprecated and will be removed on Rails 4.2. Do your setup in the constructor instead:
-
-class MyValidator < ActiveModel::Validator
-  def initialize(options={})
-    super
-    options[:class].send :attr_accessor, :custom_attribute
-  end
-end
-"
-      setup(options[:class])
     end
   end
 

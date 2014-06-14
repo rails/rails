@@ -1,6 +1,7 @@
 module ActiveRecord
   module Querying
     delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, to: :all
+    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, to: :all
     delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
     delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, to: :all
     delegate :find_by, :find_by!, to: :all
@@ -39,7 +40,7 @@ module ActiveRecord
       column_types = {}
 
       if result_set.respond_to? :column_types
-        column_types = result_set.column_types
+        column_types = result_set.column_types.except(*columns_hash.keys)
       else
         ActiveSupport::Deprecation.warn "the object returned from `select_all` must respond to `column_types`"
       end

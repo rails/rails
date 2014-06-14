@@ -11,10 +11,10 @@ module ActiveRecord
         @table_name = :testings
       end
 
-      def teardown
-        super
+      teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Base.primary_key_prefix_type = nil
+        ActiveRecord::Base.clear_cache!
       end
 
       def test_create_table_without_id
@@ -205,9 +205,9 @@ module ActiveRecord
         connection.create_table table_name
       end
 
-      # Sybase, and SQLite3 will not allow you to add a NOT NULL
+      # SQLite3 will not allow you to add a NOT NULL
       # column to a table without a default value.
-      unless current_adapter?(:SybaseAdapter, :SQLite3Adapter)
+      unless current_adapter?(:SQLite3Adapter)
         def test_add_column_not_null_without_default
           connection.create_table :testings do |t|
             t.column :foo, :string
@@ -226,18 +226,28 @@ module ActiveRecord
         end
 
         con = connection
-        connection.enable_identity_insert("testings", true) if current_adapter?(:SybaseAdapter)
         connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
-        connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
         assert_nothing_raised {connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
         assert_raises(ActiveRecord::StatementInvalid) do
-          unless current_adapter?(:OpenBaseAdapter)
-            connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
-          else
-            connection.insert("INSERT INTO testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) VALUES (2, 'hello', NULL)",
-                                     "Testing Insert","id",2)
-          end
+          connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
+        end
+      end
+
+      def test_add_column_with_timestamp_type
+        connection.create_table :testings do |t|
+          t.column :foo, :timestamp
+        end
+
+        klass = Class.new(ActiveRecord::Base)
+        klass.table_name = 'testings'
+
+        assert_equal :datetime, klass.columns_hash['foo'].type
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal 'timestamp without time zone', klass.columns_hash['foo'].sql_type
+        else
+          assert_equal klass.connection.type_to_sql('datetime'), klass.columns_hash['foo'].sql_type
         end
       end
 

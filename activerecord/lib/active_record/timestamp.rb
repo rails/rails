@@ -37,13 +37,13 @@ module ActiveRecord
     end
 
     def initialize_dup(other) # :nodoc:
-      clear_timestamp_attributes
       super
+      clear_timestamp_attributes
     end
 
   private
 
-    def create_record
+    def _create_record
       if self.record_timestamps
         current_time = current_time_from_proper_timezone
 
@@ -57,7 +57,7 @@ module ActiveRecord
       super
     end
 
-    def update_record(*args)
+    def _update_record(*args)
       if should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
@@ -71,7 +71,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      self.record_timestamps && (!partial_writes? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
+      self.record_timestamps && (!partial_writes? || changed?)
     end
 
     def timestamp_attributes_for_create_in_model
@@ -99,9 +99,11 @@ module ActiveRecord
     end
 
     def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
-      if (timestamps = timestamp_names.map { |attr| self[attr] }.compact).present?
-        timestamps.map { |ts| ts.to_time }.max
-      end
+      timestamp_names
+        .map { |attr| self[attr] }
+        .compact
+        .map(&:to_time)
+        .max
     end
 
     def current_time_from_proper_timezone

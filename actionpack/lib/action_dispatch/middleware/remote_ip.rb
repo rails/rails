@@ -11,7 +11,7 @@ module ActionDispatch
   # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
   # requires. Some Rack servers simply drop preceding headers, and only report
   # the value that was {given in the last header}[http://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers].
-  # If you are behind multiple proxy servers (like Nginx to HAProxy to Unicorn)
+  # If you are behind multiple proxy servers (like NGINX to HAProxy to Unicorn)
   # then you should test your Rack server to make sure your data is good.
   #
   # IF YOU DON'T USE A PROXY, THIS MAKES YOU VULNERABLE TO IP SPOOFING.
@@ -31,7 +31,7 @@ module ActionDispatch
     TRUSTED_PROXIES = %r{
       ^127\.0\.0\.1$                | # localhost IPv4
       ^::1$                         | # localhost IPv6
-      ^fc00:                        | # private IPv6 range fc00
+      ^[fF][cCdD]                   | # private IPv6 range fc00::/7
       ^10\.                         | # private IPv4 range 10.x.x.x
       ^172\.(1[6-9]|2[0-9]|3[0-1])\.| # private IPv4 range 172.16.0.0 .. 172.31.255.255
       ^192\.168\.                     # private IPv4 range 192.168.x.x
@@ -47,12 +47,12 @@ module ActionDispatch
     # clients (like WAP devices), or behind proxies that set headers in an
     # incorrect or confusing way (like AWS ELB).
     #
-    # The +custom_trusted+ argument can take a regex, which will be used
+    # The +custom_proxies+ argument can take a regex, which will be used
     # instead of +TRUSTED_PROXIES+, or a string, which will be used in addition
     # to +TRUSTED_PROXIES+. Any proxy setup will put the value you want in the
     # middle (or at the beginning) of the X-Forwarded-For list, with your proxy
     # servers after it. If your proxies aren't removed, pass them in via the
-    # +custom_trusted+ parameter. That way, the middleware will ignore those
+    # +custom_proxies+ parameter. That way, the middleware will ignore those
     # IP addresses, and return the one that you want.
     def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
       @app = app
@@ -118,7 +118,7 @@ module ActionDispatch
       #
       # REMOTE_ADDR will be correct if the request is made directly against the
       # Ruby process, on e.g. Heroku. When the request is proxied by another
-      # server like HAProxy or Nginx, the IP address that made the original
+      # server like HAProxy or NGINX, the IP address that made the original
       # request will be put in an X-Forwarded-For header. If there are multiple
       # proxies, that header may contain a list of IPs. Other proxy services
       # set the Client-Ip header instead, so we check that too.

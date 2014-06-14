@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/reply'
 require 'models/topic'
 
 module ActiveRecord
@@ -30,6 +31,14 @@ module ActiveRecord
 
       assert !duped.persisted?, 'topic not persisted'
       assert duped.new_record?, 'topic is new'
+    end
+
+    def test_dup_not_destroyed
+      topic = Topic.first
+      topic.destroy
+
+      duped = topic.dup
+      assert_not duped.destroyed?
     end
 
     def test_dup_has_no_id

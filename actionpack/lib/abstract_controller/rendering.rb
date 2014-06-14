@@ -1,5 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/class/attribute'
+require 'action_view'
 require 'action_view/view_paths'
 require 'set'
 
@@ -22,7 +23,7 @@ module AbstractController
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       self.response_body = render_to_body(options)
-      _process_format(rendered_format) if rendered_format
+      _process_format(rendered_format, options) if rendered_format
       self.response_body
     end
 
@@ -97,7 +98,7 @@ module AbstractController
 
     # Process the rendered format.
     # :api: private
-    def _process_format(format)
+    def _process_format(format, options = {})
     end
 
     # Normalize args and options.
@@ -105,7 +106,9 @@ module AbstractController
     def _normalize_render(*args, &block)
       options = _normalize_args(*args, &block)
       #TODO: remove defined? when we restore AP <=> AV dependency
-      options[:variant] = request.variant if defined?(request) && request.variant.present?
+      if defined?(request) && request && request.variant.present?
+        options[:variant] = request.variant
+      end
       _normalize_options(options)
       options
     end

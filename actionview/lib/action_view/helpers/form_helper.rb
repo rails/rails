@@ -434,7 +434,8 @@ module ActionView
         output  = capture(builder, &block)
         html_options[:multipart] ||= builder.multipart?
 
-        form_tag(options[:url] || {}, html_options) { output }
+        html_options = html_options_for_form(options[:url] || {}, html_options)
+        form_tag_with_body(html_options, output)
       end
 
       def apply_form_for_options!(record, object, options) #:nodoc:
@@ -449,7 +450,11 @@ module ActionView
           method: method
         )
 
-        options[:url] ||= polymorphic_path(record, format: options.delete(:format))
+        options[:url] ||= if options.key?(:format)
+                            polymorphic_path(record, format: options.delete(:format))
+                          else
+                            polymorphic_path(record, {})
+                          end
       end
       private :apply_form_for_options!
 
@@ -457,7 +462,7 @@ module ActionView
       # doesn't create the form tags themselves. This makes fields_for suitable
       # for specifying additional model objects in the same form.
       #
-      # Although the usage and purpose of +field_for+ is similar to +form_for+'s,
+      # Although the usage and purpose of +fields_for+ is similar to +form_for+'s,
       # its method signature is slightly different. Like +form_for+, it yields
       # a FormBuilder object associated with a particular model object to a block,
       # and within the block allows methods to be called on the builder to
@@ -746,6 +751,7 @@ module ActionView
       #   label(:post, :terms) do
       #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
+      #   # => <label for="post_terms">Accept <a href="/terms">Terms</a>.</label>
       def label(object_name, method, content_or_options = nil, options = nil, &block)
         Tags::Label.new(object_name, method, self, content_or_options, options).render(&block)
       end
@@ -1268,7 +1274,7 @@ module ActionView
       # doesn't create the form tags themselves. This makes fields_for suitable
       # for specifying additional model objects in the same form.
       #
-      # Although the usage and purpose of +field_for+ is similar to +form_for+'s,
+      # Although the usage and purpose of +fields_for+ is similar to +form_for+'s,
       # its method signature is slightly different. Like +form_for+, it yields
       # a FormBuilder object associated with a particular model object to a block,
       # and within the block allows methods to be called on the builder to

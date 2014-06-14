@@ -9,34 +9,16 @@ module ActiveRecord
         # records are quoted as their primary key
         return value.quoted_id if value.respond_to?(:quoted_id)
 
-        case value
-        when String, ActiveSupport::Multibyte::Chars
-          value = value.to_s
-          return "'#{quote_string(value)}'" unless column
-
-          case column.type
-          when :integer then value.to_i.to_s
-          when :float then value.to_f.to_s
-          else
-            "'#{quote_string(value)}'"
-          end
-
-        when true, false
-          if column && column.type == :integer
-            value ? '1' : '0'
-          else
-            value ? quoted_true : quoted_false
-          end
-          # BigDecimals need to be put in a non-normalized form and quoted.
-        when nil        then "NULL"
-        when BigDecimal then value.to_s('F')
-        when Numeric, ActiveSupport::Duration then value.to_s
-        when Date, Time then "'#{quoted_date(value)}'"
-        when Symbol     then "'#{quote_string(value.to_s)}'"
-        when Class      then "'#{value.to_s}'"
-        else
-          "'#{quote_string(YAML.dump(value))}'"
+        # FIXME: The only case we get an object other than nil or a real column
+        # is `SchemaStatements#add_column` with a PG array that has a non-empty default
+        # value. Is this really the only case? Are we missing tests for other types?
+        # We should have a real column object passed (or nil) here, and check for that
+        # instead
+        if column.respond_to?(:type_cast_for_database)
+          value = column.type_cast_for_database(value)
         end
+
+        _quote(value)
       end
 
       # Cast a +value+ to a type that the database understands. For example,
@@ -47,34 +29,19 @@ module ActiveRecord
           return value.id
         end
 
-        case value
-        when String, ActiveSupport::Multibyte::Chars
-          value = value.to_s
-          return value unless column
-
-          case column.type
-          when :integer then value.to_i
-          when :float then value.to_f
-          else
-            value
-          end
-
-        when true, false
-          if column && column.type == :integer
-            value ? 1 : 0
-          else
-            value ? 't' : 'f'
-          end
-          # BigDecimals need to be put in a non-normalized form and quoted.
-        when nil        then nil
-        when BigDecimal then value.to_s('F')
-        when Numeric    then value
-        when Date, Time then quoted_date(value)
-        when Symbol     then value.to_s
-        else
-          to_type = column ? " to #{column.type}" : ""
-          raise TypeError, "can't cast #{value.class}#{to_type}"
+        # FIXME: The only case we get an object other than nil or a real column
+        # is `SchemaStatements#add_column` with a PG array that has a non-empty default
+        # value. Is this really the only case? Are we missing tests for other types?
+        # We should have a real column object passed (or nil) here, and check for that
+        # instead
+        if column.respond_to?(:type_cast_for_database)
+          value = column.type_cast_for_database(value)
         end
+
+        _type_cast(value)
+      rescue TypeError
+        to_type = column ? " to #{column.type}" : ""
+        raise TypeError, "can't cast #{value.class}#{to_type}"
       end
 
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
@@ -109,8 +76,16 @@ module ActiveRecord
         "'t'"
       end
 
+      def unquoted_true
+        't'
+      end
+
       def quoted_false
         "'f'"
+      end
+
+      def unquoted_false
+        'f'
       end
 
       def quoted_date(value)
@@ -123,6 +98,45 @@ module ActiveRecord
         end
 
         value.to_s(:db)
+      end
+
+      private
+
+      def types_which_need_no_typecasting
+        [nil, Numeric, String]
+      end
+
+      def _quote(value)
+        case value
+        when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          "'#{quote_string(value.to_s)}'"
+        when true       then quoted_true
+        when false      then quoted_false
+        when nil        then "NULL"
+        # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal then value.to_s('F')
+        when Numeric, ActiveSupport::Duration then value.to_s
+        when Date, Time then "'#{quoted_date(value)}'"
+        when Symbol     then "'#{quote_string(value.to_s)}'"
+        when Class      then "'#{value.to_s}'"
+        else
+          "'#{quote_string(YAML.dump(value))}'"
+        end
+      end
+
+      def _type_cast(value)
+        case value
+        when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          value.to_s
+        when true       then unquoted_true
+        when false      then unquoted_false
+        # BigDecimals need to be put in a non-normalized form and quoted.
+        when BigDecimal then value.to_s('F')
+        when Date, Time then quoted_date(value)
+        when *types_which_need_no_typecasting
+          value
+        else raise TypeError
+        end
       end
     end
   end

@@ -50,7 +50,7 @@ module Rails
     end
 
     def gitignore
-      copy_file "gitignore", ".gitignore"
+      template "gitignore", ".gitignore"
     end
 
     def app
@@ -83,6 +83,16 @@ module Rails
         directory "environments"
         directory "initializers"
         directory "locales"
+      end
+    end
+
+    def config_when_updating
+      cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
+
+      config
+
+      unless cookie_serializer_config_exist
+        gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
       end
     end
 
@@ -166,7 +176,6 @@ module Rails
       end
 
       public_task :set_default_accessors!
-      public_task :apply_rails_template
       public_task :create_root
 
       def create_root_files
@@ -188,6 +197,11 @@ module Rails
       def create_config_files
         build(:config)
       end
+
+      def update_config_files
+        build(:config_when_updating)
+      end
+      remove_task :update_config_files
 
       def create_boot_file
         template "config/boot.rb"
@@ -232,12 +246,17 @@ module Rails
         end
       end
 
+      def delete_assets_initializer_skipping_sprockets
+        if options[:skip_sprockets]
+          remove_file 'config/initializers/assets.rb'
+        end
+      end
+
       def finish_template
         build(:leftovers)
       end
 
-      public_task :run_bundle
-      public_task :replay_template
+      public_task :apply_rails_template, :run_bundle
       public_task :generate_spring_binstubs
 
     protected

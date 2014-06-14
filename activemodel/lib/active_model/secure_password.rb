@@ -20,9 +20,9 @@ module ActiveModel
       # value to the password_confirmation attribute and the validation
       # will not be triggered.
       #
-      # You need to add bcrypt-ruby (~> 3.1.2) to Gemfile to use #has_secure_password:
+      # You need to add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
       #
-      #   gem 'bcrypt-ruby', '~> 3.1.2'
+      #   gem 'bcrypt', '~> 3.1.7'
       #
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
       #
@@ -42,28 +42,31 @@ module ActiveModel
       #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
       #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
       def has_secure_password(options = {})
-        # Load bcrypt-ruby only when has_secure_password is used.
+        # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
         begin
           require 'bcrypt'
         rescue LoadError
-          $stderr.puts "You don't have bcrypt-ruby installed in your application. Please add it to your Gemfile and run bundle install"
+          $stderr.puts "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install"
           raise
         end
-
-        attr_reader :password
 
         include InstanceMethodsOnActivation
 
         if options.fetch(:validations, true)
-          validates_confirmation_of :password, if: :password_confirmation_required?
-          validates_presence_of     :password, on: :create
-          validates_presence_of     :password_confirmation, if: :password_confirmation_required?
+          # This ensures the model has a password by checking whether the password_digest
+          # is present, so that this works with both new and existing records. However,
+          # when there is an error, the message is added to the password attribute instead
+          # so that the error message will make sense to the end-user.
+          validate do |record|
+            record.errors.add(:password, :blank) unless record.password_digest.present?
+          end
 
-          before_create { raise "Password digest missing on new record" if password_digest.blank? }
+          validates_confirmation_of :password, if: ->{ password.present? }
         end
 
+        # This code is necessary as long as the protected_attributes gem is supported.
         if respond_to?(:attributes_protected_by_default)
           def self.attributes_protected_by_default #:nodoc:
             super + ['password_digest']
@@ -87,6 +90,8 @@ module ActiveModel
         BCrypt::Password.new(password_digest) == unencrypted_password && self
       end
 
+      attr_reader :password
+
       # Encrypts the password into the +password_digest+ attribute, only if the
       # new password is not blank.
       #
@@ -100,7 +105,9 @@ module ActiveModel
       #   user.password = 'mUc3m00RsqyRe'
       #   user.password_digest # => "$2a$10$4LEA7r4YmNHtvlAvHhsYAeZmk/xeUVtMTYqwIvYY76EW5GUqDiP4."
       def password=(unencrypted_password)
-        unless unencrypted_password.blank?
+        if unencrypted_password.nil?
+          self.password_digest = nil
+        elsif unencrypted_password.present?
           @password = unencrypted_password
           cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
           self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
@@ -110,12 +117,6 @@ module ActiveModel
       def password_confirmation=(unencrypted_password)
         @password_confirmation = unencrypted_password
       end
-
-      private
-
-        def password_confirmation_required?
-          password_confirmation && password.present?
-        end
     end
   end
 end

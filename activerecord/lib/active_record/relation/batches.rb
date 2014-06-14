@@ -52,7 +52,9 @@ module ActiveRecord
           records.each { |record| yield record }
         end
       else
-        enum_for :find_each, options
+        enum_for :find_each, options do
+          options[:start] ? where(table[primary_key].gteq(options[:start])).size : size
+        end
       end
     end
 
@@ -63,6 +65,16 @@ module ActiveRecord
     #     sleep(50) # Make sure it doesn't get too crowded in there!
     #     group.each { |person| person.party_all_night! }
     #   end
+    #
+    # If you do not provide a block to #find_in_batches, it will return an Enumerator
+    # for chaining with other methods:
+    #
+    #   Person.find_in_batches.with_index do |group, batch|
+    #     puts "Processing group ##{batch}"
+    #     group.each(&:recover_from_last_night!)
+    #   end
+    #
+    # To be yielded each record one by one, use #find_each instead.
     #
     # ==== Options
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
@@ -88,13 +100,19 @@ module ActiveRecord
       options.assert_valid_keys(:start, :batch_size)
 
       relation = self
+      start = options[:start]
+      batch_size = options[:batch_size] || 1000
+
+      unless block_given?
+        return to_enum(:find_in_batches, options) do
+          total = start ? where(table[primary_key].gteq(start)).size : size
+          (total - 1).div(batch_size) + 1
+        end
+      end
 
       if logger && (arel.orders.present? || arel.taken.present?)
         logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
-
-      start = options.delete(:start)
-      batch_size = options.delete(:batch_size) || 1000
 
       relation = relation.reorder(batch_order).limit(batch_size)
       records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
@@ -102,16 +120,13 @@ module ActiveRecord
       while records.any?
         records_size = records.size
         primary_key_offset = records.last.id
+        raise "Primary key not included in the custom select clause" unless primary_key_offset
 
         yield records
 
         break if records_size < batch_size
 
-        if primary_key_offset
-          records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
-        else
-          raise "Primary key not included in the custom select clause"
-        end
+        records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
       end
     end
 

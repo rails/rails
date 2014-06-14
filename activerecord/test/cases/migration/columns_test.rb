@@ -274,6 +274,16 @@ module ActiveRecord
       ensure
         connection.drop_table(:my_table) rescue nil
       end
+
+      def test_column_with_index
+        connection.create_table "my_table", force: true do |t|
+          t.string :item_number, index: true
+        end
+
+        assert connection.index_exists?("my_table", :item_number, name: :index_my_table_on_item_number)
+      ensure
+        connection.drop_table(:my_table) rescue nil
+      end
     end
   end
 end

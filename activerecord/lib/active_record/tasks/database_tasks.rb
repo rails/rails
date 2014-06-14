@@ -6,14 +6,13 @@ module ActiveRecord
     # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used in rake tasks provided by Active Record.
+    # The tasks defined here are used with Rake tasks provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
     # config values are set by Rails already, so it's necessary to do it only if you
     # want to change the defaults or when you want to use Active Record outside of Rails
     # (in such case after configuring the database tasks, you can also use the rake tasks
     # defined in Active Record).
-    #
     #
     # The possible config values are:
     #
@@ -28,7 +27,7 @@ module ActiveRecord
     # Example usage of +DatabaseTasks+ outside Rails could look as such:
     #
     #   include ActiveRecord::Tasks
-    #   DatabaseTasks.database_configuration = YAML.load(File.read('my_database_config.yml'))
+    #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')
     #   DatabaseTasks.db_dir = 'db'
     #   # other settings...
     #
@@ -161,10 +160,12 @@ module ActiveRecord
         when :ruby
           file ||= File.join(db_dir, "schema.rb")
           check_schema_file(file)
+          purge(current_config)
           load(file)
         when :sql
           file ||= File.join(db_dir, "structure.sql")
           check_schema_file(file)
+          purge(current_config)
           structure_load(current_config, file)
         else
           raise ArgumentError, "unknown format #{format.inspect}"

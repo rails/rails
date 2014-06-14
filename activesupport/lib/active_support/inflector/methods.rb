@@ -89,6 +89,7 @@ module ActiveSupport
     #
     #   'SSLError'.underscore.camelize # => "SslError"
     def underscore(camel_cased_word)
+      return camel_cased_word unless camel_cased_word =~ /[A-Z-]|::/
       word = camel_cased_word.to_s.gsub('::', '/')
       word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
@@ -98,26 +99,46 @@ module ActiveSupport
       word
     end
 
-    # Capitalizes the first word, turns underscores into spaces, and strips a
-    # trailing '_id' if present.
-    # Like +titleize+, this is meant for creating pretty output.
+    # Tweaks an attribute name for display to end users.
+    #
+    # Specifically, +humanize+ performs these transformations:
+    #
+    #   * Applies human inflection rules to the argument.
+    #   * Deletes leading underscores, if any.
+    #   * Removes a "_id" suffix if present.
+    #   * Replaces underscores with spaces, if any.
+    #   * Downcases all words except acronyms.
+    #   * Capitalizes the first word.
     #
     # The capitalization of the first word can be turned off by setting the
-    # optional parameter +capitalize+ to false.
-    # By default, this parameter is true.
+    # +:capitalize+ option to false (default is true).
     #
     #   humanize('employee_salary')              # => "Employee salary"
     #   humanize('author_id')                    # => "Author"
     #   humanize('author_id', capitalize: false) # => "author"
+    #   humanize('_id')                          # => "Id"
+    #
+    # If "SSL" was defined to be an acronym:
+    #
+    #   humanize('ssl_error') # => "SSL error"
+    #
     def humanize(lower_case_and_underscored_word, options = {})
       result = lower_case_and_underscored_word.to_s.dup
+
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
-      result.gsub!(/_id$/, "")
+
+      result.sub!(/\A_+/, '')
+      result.sub!(/_id\z/, '')
       result.tr!('_', ' ')
-      result.gsub!(/([a-z\d]*)/i) { |match|
+
+      result.gsub!(/([a-z\d]*)/i) do |match|
         "#{inflections.acronyms[match] || match.downcase}"
-      }
-      result.gsub!(/^\w/) { $&.upcase } if options.fetch(:capitalize, true)
+      end
+
+      if options.fetch(:capitalize, true)
+        result.sub!(/\A\w/) { |match| match.upcase }
+      end
+
       result
     end
 
@@ -154,7 +175,7 @@ module ActiveSupport
     #
     # Singular names are not handled correctly:
     #
-    #   'business'.classify     # => "Busines"
+    #   'calculus'.classify     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
       camelize(singularize(table_name.to_s.sub(/.*\./, '')))
@@ -171,6 +192,8 @@ module ActiveSupport
     #
     #   'ActiveRecord::CoreExtensions::String::Inflections'.demodulize # => "Inflections"
     #   'Inflections'.demodulize                                       # => "Inflections"
+    #   '::Inflections'.demodulize                                     # => "Inflections"
+    #   ''.demodulize                                                  # => ""
     #
     # See also +deconstantize+.
     def demodulize(path)
@@ -227,7 +250,7 @@ module ActiveSupport
     def constantize(camel_cased_word)
       names = camel_cased_word.split('::')
 
-      # Trigger a builtin NameError exception including the ill-formed constant in the message.
+      # Trigger a built-in NameError exception including the ill-formed constant in the message.
       Object.const_get(camel_cased_word) if names.empty?
 
       # Remove the first blank element in case of '::ClassName' notation.
@@ -241,8 +264,8 @@ module ActiveSupport
           next candidate if constant.const_defined?(name, false)
           next candidate unless Object.const_defined?(name)
 
-          # Go down the ancestors to check it it's owned
-          # directly before we reach Object or the end of ancestors.
+          # Go down the ancestors to check if it is owned directly. The check
+          # stops when we reach Object or the end of ancestors tree.
           constant = constant.ancestors.inject do |const, ancestor|
             break const    if ancestor == Object
             break ancestor if ancestor.const_defined?(name, false)

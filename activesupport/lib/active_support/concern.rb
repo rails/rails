@@ -26,7 +26,7 @@ module ActiveSupport
   #       scope :disabled, -> { where(disabled: true) }
   #     end
   #
-  #     module ClassMethods
+  #     class_methods do
   #       ...
   #     end
   #   end
@@ -129,6 +129,14 @@ module ActiveSupport
       else
         super
       end
+    end
+
+    def class_methods(&class_methods_module_definition)
+      mod = const_defined?(:ClassMethods) ?
+        const_get(:ClassMethods) :
+        const_set(:ClassMethods, Module.new)
+
+      mod.module_eval(&class_methods_module_definition)
     end
   end
 end

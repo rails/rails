@@ -83,7 +83,9 @@ module ActiveModel
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a +true+ or
       #   +false+ value.
-      # * <tt>:strict</tt> - if the <tt>:strict</tt> option is set to true
+      # * <tt>:allow_nil</tt> - Skip validation if the attribute is +nil+.
+      # * <tt>:allow_blank</tt> - Skip validation if the attribute is blank.
+      # * <tt>:strict</tt> - If the <tt>:strict</tt> option is set to true
       #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
       #   <tt>:strict</tt> option can also be set to any other exception.
       #

@@ -35,7 +35,7 @@ module ActiveRecord
   #
   # === One-to-one Example
   #
-  #   class Post
+  #   class Post < ActiveRecord::Base
   #     has_one :author, autosave: true
   #   end
   #
@@ -76,7 +76,7 @@ module ActiveRecord
   #
   # When <tt>:autosave</tt> is not declared new children are saved when their parent is saved:
   #
-  #   class Post
+  #   class Post < ActiveRecord::Base
   #     has_many :comments # :autosave option is not declared
   #   end
   #
@@ -95,20 +95,23 @@ module ActiveRecord
   # When <tt>:autosave</tt> is true all children are saved, no matter whether they
   # are new records or not:
   #
-  #   class Post
+  #   class Post < ActiveRecord::Base
   #     has_many :comments, autosave: true
   #   end
   #
   #   post = Post.create(title: 'ruby rocks')
   #   post.comments.create(body: 'hello world')
   #   post.comments[0].body = 'hi everyone'
-  #   post.save # => saves both post and comment, with 'hi everyone' as body
+  #   post.comments.build(body: "good morning.")
+  #   post.title += "!"
+  #   post.save # => saves both post and comments.
   #
   # Destroying one of the associated models as part of the parent's save action
   # is as simple as marking it for destruction:
   #
-  #   post.comments.last.mark_for_destruction
-  #   post.comments.last.marked_for_destruction? # => true
+  #   post.comments # => [#<Comment id: 1, ...>, #<Comment id: 2, ...]>
+  #   post.comments[1].mark_for_destruction
+  #   post.comments[1].marked_for_destruction? # => true
   #   post.comments.length # => 2
   #
   # Note that the model is _not_ yet removed from the database:
@@ -144,6 +147,7 @@ module ActiveRecord
       private
 
         def define_non_cyclic_method(name, &block)
+          return if method_defined?(name)
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
@@ -176,30 +180,28 @@ module ActiveRecord
           validation_method = :"validate_associated_records_for_#{reflection.name}"
           collection = reflection.collection?
 
-          unless method_defined?(save_method)
-            if collection
-              before_save :before_save_collection_association
+          if collection
+            before_save :before_save_collection_association
 
-              define_non_cyclic_method(save_method) { save_collection_association(reflection) }
-              # Doesn't use after_save as that would save associations added in after_create/after_update twice
-              after_create save_method
-              after_update save_method
-            elsif reflection.macro == :has_one
-              define_method(save_method) { save_has_one_association(reflection) }
-              # Configures two callbacks instead of a single after_save so that
-              # the model may rely on their execution order relative to its
-              # own callbacks.
-              #
-              # For example, given that after_creates run before after_saves, if
-              # we configured instead an after_save there would be no way to fire
-              # a custom after_create callback after the child association gets
-              # created.
-              after_create save_method
-              after_update save_method
-            else
-              define_non_cyclic_method(save_method) { save_belongs_to_association(reflection) }
-              before_save save_method
-            end
+            define_non_cyclic_method(save_method) { save_collection_association(reflection) }
+            # Doesn't use after_save as that would save associations added in after_create/after_update twice
+            after_create save_method
+            after_update save_method
+          elsif reflection.has_one?
+            define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
+            # Configures two callbacks instead of a single after_save so that
+            # the model may rely on their execution order relative to its
+            # own callbacks.
+            #
+            # For example, given that after_creates run before after_saves, if
+            # we configured instead an after_save there would be no way to fire
+            # a custom after_create callback after the child association gets
+            # created.
+            after_create save_method
+            after_update save_method
+          else
+            define_non_cyclic_method(save_method) { save_belongs_to_association(reflection) }
+            before_save save_method
           end
 
           if reflection.validate? && !method_defined?(validation_method)
@@ -270,9 +272,11 @@ module ActiveRecord
       # go through nested autosave associations that are loaded in memory (without loading
       # any new ones), and return true if is changed for autosave
       def nested_records_changed_for_autosave?
-        self.class.reflect_on_all_autosave_associations.any? do |reflection|
-          association = association_instance_get(reflection.name)
-          association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+        self.class._reflections.values.any? do |reflection|
+          if reflection.options[:autosave]
+            association = association_instance_get(reflection.name)
+            association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+          end
         end
       end
 
@@ -301,7 +305,8 @@ module ActiveRecord
       def association_valid?(reflection, record)
         return true if record.destroyed? || record.marked_for_destruction?
 
-        unless valid = record.valid?
+        validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
+        unless valid = record.valid?(validation_context)
           if reflection.options[:autosave]
             record.errors.each do |attribute, message|
               attribute = "#{reflection.name}.#{attribute}"
@@ -377,15 +382,16 @@ module ActiveRecord
       def save_has_one_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
+
         if record && !record.destroyed?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
             record.destroy
-          else
+          elsif autosave != false
             key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-            if autosave != false && (autosave || new_record? || record_changed?(reflection, record, key))
 
+            if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
               end

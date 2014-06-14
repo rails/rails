@@ -4,10 +4,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 module ActionDispatch
   module Http
     module Parameters
-      def initialize(env)
-        super
-        @symbolized_path_params = nil
-      end
+      PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
 
       # Returns both GET and POST \parameters in a single hash.
       def parameters
@@ -18,20 +15,18 @@ module ActionDispatch
             query_parameters.dup
           end
           params.merge!(path_parameters)
-          params.with_indifferent_access
         end
       end
       alias :params :parameters
 
       def path_parameters=(parameters) #:nodoc:
-        @symbolized_path_params = nil
-        @env.delete("action_dispatch.request.parameters")
-        @env["action_dispatch.request.path_parameters"] = parameters
+        @env.delete('action_dispatch.request.parameters')
+        @env[PARAMETERS_KEY] = parameters
       end
 
       # The same as <tt>path_parameters</tt> with explicitly symbolized keys.
       def symbolized_path_parameters
-        @symbolized_path_params ||= path_parameters.symbolize_keys
+        path_parameters
       end
 
       # Returns a hash with the \parameters used to form the \path of the request.
@@ -41,11 +36,7 @@ module ActionDispatch
       #
       # See <tt>symbolized_path_parameters</tt> for symbolized keys.
       def path_parameters
-        @env["action_dispatch.request.path_parameters"] ||= {}
-      end
-
-      def reset_parameters #:nodoc:
-        @env.delete("action_dispatch.request.parameters")
+        @env[PARAMETERS_KEY] ||= {}
       end
 
     private

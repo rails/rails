@@ -80,11 +80,27 @@ class TagHelperTest < ActionView::TestCase
 
     str = content_tag('p', "limelight", :class => ["song", "play"])
     assert_equal "<p class=\"song play\">limelight</p>", str
+
+    str = content_tag('p', "limelight", :class => ["song", ["play"]])
+    assert_equal "<p class=\"song play\">limelight</p>", str
   end
 
   def test_content_tag_with_unescaped_array_class
     str = content_tag('p', "limelight", {:class => ["song", "play>"]}, false)
     assert_equal "<p class=\"song play>\">limelight</p>", str
+
+    str = content_tag('p', "limelight", {:class => ["song", ["play>"]]}, false)
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+  end
+
+  def test_content_tag_with_empty_array_class
+    str = content_tag('p', 'limelight', {:class => []})
+    assert_equal '<p class="">limelight</p>', str
+  end
+
+  def test_content_tag_with_unescaped_empty_array_class
+    str = content_tag('p', 'limelight', {:class => []}, false)
+    assert_equal '<p class="">limelight</p>', str
   end
 
   def test_content_tag_with_data_attributes
@@ -113,6 +129,14 @@ class TagHelperTest < ActionView::TestCase
     ['1&amp;2', '1 &lt; 2', '&#8220;test&#8220;'].each do |escaped|
       assert_equal %(<a href="#{escaped}" />), tag('a', :href => escaped.html_safe)
     end
+  end
+
+  def test_tag_honors_html_safe_with_escaped_array_class
+    str = tag('p', :class => ['song>', 'play>'.html_safe])
+    assert_equal '<p class="song&gt; play>" />', str
+
+    str = tag('p', :class => ['song>'.html_safe, 'play>'])
+    assert_equal '<p class="song> play&gt;" />', str
   end
 
   def test_skip_invalid_escaped_attributes

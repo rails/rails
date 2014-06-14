@@ -15,7 +15,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @klass.connection.drop_table :hot_compatibilities
+    ActiveRecord::Base.connection.drop_table :hot_compatibilities
   end
 
   test "insert after remove_column" do

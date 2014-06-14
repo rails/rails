@@ -58,7 +58,7 @@ module ActiveRecord
         # the loaded flag is set to true as well.
         def count_records
           count = if has_cached_counter?
-            owner.send(:read_attribute, cached_counter_attribute_name)
+            owner.read_attribute cached_counter_attribute_name
           else
             scope.count
           end
@@ -71,15 +71,15 @@ module ActiveRecord
           [association_scope.limit_value, count].compact.min
         end
 
-        def has_cached_counter?(reflection = reflection)
+        def has_cached_counter?(reflection = reflection())
           owner.attribute_present?(cached_counter_attribute_name(reflection))
         end
 
-        def cached_counter_attribute_name(reflection = reflection)
+        def cached_counter_attribute_name(reflection = reflection())
           options[:counter_cache] || "#{reflection.name}_count"
         end
 
-        def update_counter(difference, reflection = reflection)
+        def update_counter(difference, reflection = reflection())
           if has_cached_counter?(reflection)
             counter = cached_counter_attribute_name(reflection)
             owner.class.update_counters(owner.id, counter => difference)
@@ -98,11 +98,25 @@ module ActiveRecord
         #     it will be decremented twice.
         #
         # Hence this method.
-        def inverse_updates_counter_cache?(reflection = reflection)
+        def inverse_updates_counter_cache?(reflection = reflection())
           counter_name = cached_counter_attribute_name(reflection)
-          reflection.klass.reflect_on_all_associations(:belongs_to).any? { |inverse_reflection|
+          reflection.klass._reflections.values.any? { |inverse_reflection|
+            :belongs_to == inverse_reflection.macro &&
             inverse_reflection.counter_cache_column == counter_name
           }
+        end
+
+        def delete_count(method, scope)
+          if method == :delete_all
+            scope.delete_all
+          else
+            scope.update_all(reflection.foreign_key => nil)
+          end
+        end
+
+        def delete_or_nullify_all_records(method)
+          count = delete_count(method, self.scope)
+          update_counter(-count)
         end
 
         # Deletes the records according to the <tt>:dependent</tt> option.
@@ -111,17 +125,8 @@ module ActiveRecord
             records.each(&:destroy!)
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            if records == :all
-              scope = self.scope
-            else
-              scope = self.scope.where(reflection.klass.primary_key => records)
-            end
-
-            if method == :delete_all
-              update_counter(-scope.delete_all)
-            else
-              update_counter(-scope.update_all(reflection.foreign_key => nil))
-            end
+            scope = self.scope.where(reflection.klass.primary_key => records)
+            update_counter(-delete_count(method, scope))
           end
         end
 

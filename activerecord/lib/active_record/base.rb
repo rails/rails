@@ -15,10 +15,12 @@ require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/object/duplicable'
 require 'active_support/core_ext/class/subclasses'
 require 'arel'
+require 'active_record/attribute_decorators'
 require 'active_record/errors'
 require 'active_record/log_subscriber'
 require 'active_record/explain_subscriber'
 require 'active_record/relation/delegation'
+require 'active_record/attributes'
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -294,8 +296,8 @@ module ActiveRecord #:nodoc:
     extend Enum
     extend Delegation::DelegateCache
 
+    include Core
     include Persistence
-    include NoTouching
     include ReadonlyAttributes
     include ModelSchema
     include Inheritance
@@ -317,10 +319,12 @@ module ActiveRecord #:nodoc:
     include NestedAttributes
     include Aggregations
     include Transactions
+    include NoTouching
     include Reflection
     include Serialization
     include Store
-    include Core
+    include Attributes
+    include AttributeDecorators
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

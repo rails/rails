@@ -23,7 +23,7 @@ module ActiveRecord
 
           reset_association owners, through_reflection.name
 
-          middle_records = through_records.map { |(_,rec)| rec }.flatten
+          middle_records = through_records.flat_map { |(_,rec)| rec }
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
@@ -84,7 +84,7 @@ module ActiveRecord
             end
 
             scope.references! reflection_scope.values[:references]
-            scope.order! reflection_scope.values[:order] if scope.eager_loading?
+            scope = scope.order reflection_scope.values[:order] if scope.eager_loading?
           end
 
           scope

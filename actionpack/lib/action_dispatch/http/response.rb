@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/attribute_accessors'
+require 'action_dispatch/http/filter_redirect'
 require 'monitor'
 
 module ActionDispatch # :nodoc:
@@ -90,7 +91,13 @@ module ActionDispatch # :nodoc:
       end
 
       def each(&block)
-        @buf.each(&block)
+        @response.sending!
+        x = @buf.each(&block)
+        @response.sent!
+        x
+      end
+
+      def abort
       end
 
       def close
@@ -117,6 +124,8 @@ module ActionDispatch # :nodoc:
       @blank        = false
       @cv           = new_cond
       @committed    = false
+      @sending      = false
+      @sent         = false
       @content_type = nil
       @charset      = nil
 
@@ -137,16 +146,36 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    def await_sent
+      synchronize { @cv.wait_until { @sent } }
+    end
+
     def commit!
       synchronize do
+        before_committed
         @committed = true
         @cv.broadcast
       end
     end
 
-    def committed?
-      @committed
+    def sending!
+      synchronize do
+        before_sending
+        @sending = true
+        @cv.broadcast
+      end
     end
+
+    def sent!
+      synchronize do
+        @sent = true
+        @cv.broadcast
+      end
+    end
+
+    def sending?;   synchronize { @sending };   end
+    def committed?; synchronize { @committed }; end
+    def sent?;      synchronize { @sent };      end
 
     # Sets the HTTP status code.
     def status=(status)
@@ -180,18 +209,6 @@ module ActionDispatch # :nodoc:
       Rack::Utils::HTTP_STATUS_CODES[@status]
     end
     alias_method :status_message, :message
-
-    def respond_to?(method, include_private = false)
-      if method.to_s == 'to_path'
-        stream.respond_to?(method)
-      else
-        super
-      end
-    end
-
-    def to_path
-      stream.to_path
-    end
 
     # Returns the content of the response as a string. This contains the contents
     # of any calls to <tt>render</tt>.
@@ -245,6 +262,17 @@ module ActionDispatch # :nodoc:
       stream.close if stream.respond_to?(:close)
     end
 
+    def abort
+      if stream.respond_to?(:abort)
+        stream.abort
+      elsif stream.respond_to?(:close)
+        # `stream.close` should really be reserved for a close from the
+        # other direction, but we must fall back to it for
+        # compatibility.
+        stream.close
+      end
+    end
+
     # Turns the Response into a Rack-compatible array of the status, headers,
     # and body.
     def to_a
@@ -270,7 +298,16 @@ module ActionDispatch # :nodoc:
       cookies
     end
 
+    def _status_code
+      @status
+    end
   private
+
+    def before_committed
+    end
+
+    def before_sending
+    end
 
     def merge_default_headers(original, default)
       return original unless default.respond_to?(:merge)
@@ -302,6 +339,38 @@ module ActionDispatch # :nodoc:
       !@sending_file && @charset != false
     end
 
+    class RackBody
+      def initialize(response)
+        @response = response
+      end
+
+      def each(*args, &block)
+        @response.each(*args, &block)
+      end
+
+      def close
+        # Rack "close" maps to Response#abort, and *not* Response#close
+        # (which is used when the controller's finished writing)
+        @response.abort
+      end
+
+      def body
+        @response.body
+      end
+
+      def respond_to?(method, include_private = false)
+        if method.to_s == 'to_path'
+          @response.stream.respond_to?(method)
+        else
+          super
+        end
+      end
+
+      def to_path
+        @response.stream.to_path
+      end
+    end
+
     def rack_response(status, header)
       assign_default_content_type_and_charset!(header)
       handle_conditional_get!
@@ -312,7 +381,7 @@ module ActionDispatch # :nodoc:
         header.delete CONTENT_TYPE
         [status, header, []]
       else
-        [status, header, self]
+        [status, header, RackBody.new(self)]
       end
     end
   end

@@ -68,6 +68,10 @@ module ActionController #:nodoc:
       config_accessor :allow_forgery_protection
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
 
+      # Controls whether a CSRF failure logs a warning. On by default.
+      config_accessor :log_warning_on_csrf_failure
+      self.log_warning_on_csrf_failure = true
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -193,7 +197,9 @@ module ActionController #:nodoc:
         mark_for_same_origin_verification!
 
         if !verified_request?
-          logger.warn "Can't verify CSRF token authenticity" if logger
+          if logger && log_warning_on_csrf_failure
+            logger.warn "Can't verify CSRF token authenticity"
+          end
           handle_unverified_request
         end
       end
@@ -241,7 +247,7 @@ module ActionController #:nodoc:
       # * Does the X-CSRF-Token header match the form_authenticity_token
       def verified_request?
         !protect_against_forgery? || request.get? || request.head? ||
-          form_authenticity_token == params[request_forgery_protection_token] ||
+          form_authenticity_token == form_authenticity_param ||
           form_authenticity_token == request.headers['X-CSRF-Token']
       end
 

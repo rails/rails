@@ -26,8 +26,6 @@ module ActiveRecord
         protected
 
         if Module.methods_transplantable?
-          # See define_method_attribute in read.rb for an explanation of
-          # this code.
           def define_method_attribute=(name)
             method = WriterMethodCache[name]
             generated_attribute_methods.module_eval {
@@ -55,24 +53,12 @@ module ActiveRecord
       # specified +value+. Empty strings for fixnum and float columns are
       # turned into +nil+.
       def write_attribute(attr_name, value)
-        attr_name = attr_name.to_s
-        attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
-        @attributes_cache.delete(attr_name)
-        column = column_for_attribute(attr_name)
-
-        # If we're dealing with a binary column, write the data to the cache
-        # so we don't attempt to typecast multiple times.
-        if column && column.binary?
-          @attributes_cache[attr_name] = value
-        end
-
-        if column || @attributes.has_key?(attr_name)
-          @attributes[attr_name] = type_cast_attribute_for_write(column, value)
-        else
-          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
-        end
+        write_attribute_with_type_cast(attr_name, value, true)
       end
-      alias_method :raw_write_attribute, :write_attribute
+
+      def raw_write_attribute(attr_name, value)
+        write_attribute_with_type_cast(attr_name, value, false)
+      end
 
       private
       # Handle *= for method_missing.
@@ -80,10 +66,22 @@ module ActiveRecord
         write_attribute(attribute_name, value)
       end
 
-      def type_cast_attribute_for_write(column, value)
-        return value unless column
+      def write_attribute_with_type_cast(attr_name, value, should_type_cast)
+        attr_name = attr_name.to_s
+        attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
+        type = type_for_attribute(attr_name)
 
-        column.type_cast_for_write value
+        unless has_attribute?(attr_name) || self.class.columns_hash.key?(attr_name)
+          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
+        end
+
+        if should_type_cast
+          @attributes[attr_name] = Attribute.from_user(value, type)
+        else
+          @attributes[attr_name] = Attribute.from_database(value, type)
+        end
+
+        value
       end
     end
   end

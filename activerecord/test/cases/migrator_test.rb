@@ -26,8 +26,7 @@ module ActiveRecord
       ActiveRecord::SchemaMigration.delete_all rescue nil
     end
 
-    def teardown
-      super
+    teardown do
       ActiveRecord::SchemaMigration.delete_all rescue nil
       ActiveRecord::Migration.verbose = true
     end
@@ -93,7 +92,7 @@ module ActiveRecord
 
     def test_relative_migrations
       list = Dir.chdir(MIGRATIONS_ROOT) do
-        ActiveRecord::Migrator.migrations("valid/")
+        ActiveRecord::Migrator.migrations("valid")
       end
 
       migration_proxy = list.find { |item|

@@ -23,10 +23,6 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-# Bogus template processors
-ActionView::Template.register_template_handler :haml, lambda { |template| "Look its HAML!".inspect }
-ActionView::Template.register_template_handler :bak, lambda { |template| "Lame backup".inspect }
-
 FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 

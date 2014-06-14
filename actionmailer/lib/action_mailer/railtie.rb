@@ -46,7 +46,7 @@ module ActionMailer
     end
 
     config.after_initialize do
-      if ActionMailer::Base.preview_path?
+      if ActionMailer::Base.preview_path
         ActiveSupport::Dependencies.autoload_paths << ActionMailer::Base.preview_path
       end
     end

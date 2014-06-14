@@ -1,17 +1,17 @@
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapter < AbstractAdapter
+    module PostgreSQL
       module Quoting
         # Escapes binary strings for bytea input to the database.
         def escape_bytea(value)
-          PGconn.escape_bytea(value) if value
+          @connection.escape_bytea(value) if value
         end
 
         # Unescapes bytea output from a database to the binary string it represents.
         # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
         # on escaped binary output from database drive.
         def unescape_bytea(value)
-          PGconn.unescape_bytea(value) if value
+          @connection.unescape_bytea(value) if value
         end
 
         # Quotes PostgreSQL-specific data types for SQL input.
@@ -44,11 +44,6 @@ module ActiveRecord
             when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
             else super
             end
-          when IPAddr
-            case sql_type
-            when 'inet', 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
-            else super
-            end
           when Float
             if value.infinite? && column.type == :datetime
               "'#{value.to_s.downcase}'"
@@ -66,7 +61,6 @@ module ActiveRecord
             end
           when String
             case sql_type
-            when 'bytea' then "'#{escape_bytea(value)}'"
             when 'xml'   then "xml '#{quote_string(value)}'"
             when /^bit/
               case value
@@ -110,26 +104,11 @@ module ActiveRecord
                 super(value, column)
               end
             end
-          when String
-            if 'bytea' == column.sql_type
-              # Return a bind param hash with format as binary.
-              # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
-              # for more information
-              { value: value, format: 1 }
-            else
-              super(value, column)
-            end
           when Hash
             case column.sql_type
-            when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
+            when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)
             when 'json' then PostgreSQLColumn.json_to_string(value)
             else super(value, column)
-            end
-          when IPAddr
-            if %w(inet cidr).include? column.sql_type
-              PostgreSQLColumn.cidr_to_string(value)
-            else
-              super(value, column)
             end
           else
             super(value, column)
@@ -150,14 +129,7 @@ module ActiveRecord
         # - "schema.name".table_name
         # - "schema.name"."table.name"
         def quote_table_name(name)
-          schema, name_part = extract_pg_identifier_from_name(name.to_s)
-
-          unless name_part
-            quote_column_name(schema)
-          else
-            table_name, name_part = extract_pg_identifier_from_name(name_part)
-            "#{quote_column_name(schema)}.#{quote_column_name(table_name)}"
-          end
+          Utils.extract_schema_qualified_name(name.to_s).quoted
         end
 
         def quote_table_name_for_assignment(table, attr)
@@ -177,10 +149,41 @@ module ActiveRecord
             result = "#{result}.#{sprintf("%06d", value.usec)}"
           end
 
-          if value.year < 0
-            result = result.sub(/^-/, "") + " BC"
+          if value.year <= 0
+            bce_year = format("%04d", -value.year + 1)
+            result = result.sub(/^-?\d+/, bce_year) + " BC"
           end
           result
+        end
+
+        # Does not quote function default values for UUID columns
+        def quote_default_value(value, column) #:nodoc:
+          if column.type == :uuid && value =~ /\(\)/
+            value
+          else
+            quote(value, column)
+          end
+        end
+
+        private
+
+        def _quote(value)
+          if value.is_a?(Type::Binary::Data)
+            "'#{escape_bytea(value.to_s)}'"
+          else
+            super
+          end
+        end
+
+        def _type_cast(value)
+          if value.is_a?(Type::Binary::Data)
+            # Return a bind param hash with format as binary.
+            # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
+            # for more information
+            { value: value.to_s, format: 1 }
+          else
+            super
+          end
         end
       end
     end
