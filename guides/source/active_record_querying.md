@@ -676,6 +676,21 @@ FROM "orders"
 GROUP BY status
 ```
 
+`group` also has the capability to count the items that are grouped by multiple columns.
+
+```ruby
+Article.group(:status, :category).count
+# =>  {["draft", "business"]=>10, ["draft", "technology"]=>4, ["published", "business"]=>0, ["published", "technology"]=>2}
+```
+
+The SQL that would be executed would be something like this:
+
+```sql
+SELECT COUNT (*) AS count_all, status AS status, category AS category
+FROM "articles"
+GROUP BY status, category
+```
+
 Having
 ------
 
