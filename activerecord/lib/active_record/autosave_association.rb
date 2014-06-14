@@ -359,6 +359,7 @@ module ActiveRecord
 
             raise ActiveRecord::Rollback unless saved
           end
+          @new_record_before_save = false unless reflection.macro == :has_and_belongs_to_many
         end
 
         # reconstruct the scope now that we know the owner's id
