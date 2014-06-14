@@ -208,7 +208,7 @@ module ActionDispatch
           when nil
             raise ArgumentError, "Nil location provided. Can't build URI."
           else
-            method, args = builder.handle_model record_or_hash_or_array
+            method, args = builder.handle_model record_or_hash_or_array, recipient
           end
 
 
@@ -243,12 +243,12 @@ module ActionDispatch
           target.send get_method_for_class klass
         end
 
-        def handle_model(record)
+        def handle_model(record, target, plural = true)
           args  = []
 
           model = record.to_model
-          name = if record.persisted?
-                   args << model
+          name = if record.persisted? || !plural
+                   args << model if plural
                    model.class.model_name.singular_route_key
                  else
                    @key_strategy.call model.class.model_name
@@ -256,11 +256,15 @@ module ActionDispatch
 
           named_route = prefix + "#{name}_#{suffix}"
 
-          [named_route, args]
+          if !plural || target.respond_to?(named_route)
+            [named_route, args]
+          else
+            handle_model(record, target, false)
+          end
         end
 
         def handle_model_call(target, model)
-          method, args = handle_model model
+          method, args = handle_model model, target
           target.send(method, *args)
         end
 
