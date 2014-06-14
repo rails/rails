@@ -1,21 +1,10 @@
 # encoding: utf-8
 
+require 'arel/collectors/plain_string'
+
 module Arel
   module Collectors
-    class SQLString
-      def initialize
-        @str = ''
-      end
-
-      def value
-        @str
-      end
-
-      def << str
-        @str << str
-        self
-      end
-
+    class SQLString < PlainString
       def add_bind bind
         self << bind.to_s
         self
