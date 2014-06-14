@@ -50,6 +50,9 @@ module Rails
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
 
+        class_option :skip_turbolinks,    type: :boolean, default: false,
+                                          desc: "Don't install Turbolinks"
+
         class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
@@ -287,8 +290,10 @@ module Rails
           gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
                                  "Use #{options[:javascript]} as the JavaScript library")
 
-          gems << GemfileEntry.version("turbolinks", nil,
-            "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
+          unless options[:skip_turbolinks]
+            gems << GemfileEntry.version("turbolinks", nil,
+              "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
+          end
           gems
         end
       end
