@@ -1,3 +1,10 @@
+*   `has_secure_password` now verifies that the given password is less than 72
+    characters if validations are enabled.
+
+    Fixes #14591.
+
+    *Akshay Vishnoi*
+
 *   Remove deprecated `Validator#setup` without replacement.
 
     See #10716.
