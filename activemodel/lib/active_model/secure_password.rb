@@ -21,12 +21,13 @@ module ActiveModel
       # * Password length should be less than or equal to 72 characters
       # * Confirmation of password (using a +password_confirmation+ attribute)
       #
-      # If validations are not needed, pass <tt>validations: false</tt> as an
-      # argument. More validations can be added if required.
+      # If password confirmation validation is not needed, simply leave out the
+      # value for +password_confirmation+ (i.e. don't provide a form field for
+      # it). When this attribute has a +nil+ value, the validation will not be
+      # triggered.
       #
-      # If password confirmation validation is not needed, do not set any
-      # value to the password_confirmation attribute and the validation
-      # will not be triggered.
+      # For further customizability, it is possible to supress the default
+      # validations by passing <tt>validations: false</tt> as an argument.
       #
       # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
       #
