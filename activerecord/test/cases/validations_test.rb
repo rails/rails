@@ -70,6 +70,8 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_invalid_record_exception
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.save! }
+    assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.validate! }
+    assert_nothing_raised { Topic.first.validate! }
 
     r = WrongReply.new
     invalid = assert_raise ActiveRecord::RecordInvalid do

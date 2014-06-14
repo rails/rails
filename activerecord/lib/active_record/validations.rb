@@ -75,6 +75,12 @@ module ActiveRecord
 
     alias_method :validate, :valid?
 
+    # Runs all the validations within the specified context by calling <tt>valid?</tt>, and raises
+    # a +RecordInvalid+ exception if there are errors.
+    def validate!(context = nil)
+      raise(RecordInvalid.new(self)) unless valid?(context)
+    end
+
   protected
 
     def perform_validations(options={}) # :nodoc:
