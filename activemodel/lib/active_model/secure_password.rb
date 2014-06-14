@@ -16,16 +16,19 @@ module ActiveModel
       # Adds methods to set and authenticate against a BCrypt password.
       # This mechanism requires you to have a +password_digest+ attribute.
       #
-      # Validations for presence of password on create, confirmation of password
-      # (using a +password_confirmation+ attribute) are automatically added. If
-      # you wish to turn off validations, pass <tt>validations: false</tt> as an
-      # argument. You can add more validations by hand if need be.
+      # The following validations are added automatically:
+      # * Password must be present on creation
+      # * Password length should be less than or equal to 72 characters
+      # * Confirmation of password (using a +password_confirmation+ attribute)
       #
-      # If you don't need the confirmation validation, just don't set any
+      # If validations are not needed, pass <tt>validations: false</tt> as an
+      # argument. More validations can be added if required.
+      #
+      # If password confirmation validation is not needed, do not set any
       # value to the password_confirmation attribute and the validation
       # will not be triggered.
       #
-      # You need to add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
+      # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
       #
       #   gem 'bcrypt', '~> 3.1.7'
       #
