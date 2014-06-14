@@ -1,0 +1,2 @@
+class ExclusiveScope < Scope
+end

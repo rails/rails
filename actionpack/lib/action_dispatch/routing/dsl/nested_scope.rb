@@ -1,0 +1,2 @@
+class NestedScope < Scope
+end

@@ -1,0 +1,2 @@
+class CollectionScope < Scope
+end

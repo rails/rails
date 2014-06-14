@@ -1,12 +1,78 @@
 module ActionDispatch
   module Routing
-    class Mapper
-      class Scope
+    class Scope
       def root(options = {})
         match '/', { :as => :root, :via => :get }.merge!(options)
       end
 
-      def match(path, options=nil)
+      def match(path, *rest)
+        if rest.empty? && Hash === path
+          options  = path
+          path, to = options.find { |name, _value| name.is_a?(String) }
+
+          case to
+          when Symbol
+            options[:action] = to
+          when String
+            if to =~ /#/
+              options[:to] = to
+            else
+              options[:controller] = to
+            end
+          else
+            options[:to] = to
+          end
+
+          options.delete(path)
+          paths = [path]
+        else
+          options = rest.pop || {}
+          paths = [path] + rest
+        end
+
+        options[:anchor] = true unless options.key?(:anchor)
+
+        if options[:on] && !VALID_ON_OPTIONS.include?(options[:on])
+          raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
+        end
+
+        if @scope[:controller] && @scope[:action]
+          options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
+        end
+
+        paths.each do |_path|
+          route_options = options.dup
+          route_options[:path] ||= _path if _path.is_a?(String)
+
+          path_without_format = _path.to_s.sub(/\(\.:format\)$/, '')
+          if using_match_shorthand?(path_without_format, route_options)
+            route_options[:to] ||= path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1')
+            route_options[:to].tr!("-", "_")
+          end
+
+          decomposed_match(_path, route_options)
+        end
+        self
+      end
+
+      def get(*args, &block)
+        map_method(:get, args, &block)
+      end
+
+      def post(*args, &block)
+        map_method(:post, args, &block)
+      end
+
+      def patch(*args, &block)
+        map_method(:patch, args, &block)
+      end
+
+      def put(*args, &block)
+        map_method(:put, args, &block)
+      end
+
+      def delete(*args, &block)
+        map_method(:delete, args, &block)
       end
 
       def mount(app, options = nil)
@@ -86,17 +152,69 @@ module ActionDispatch
         end
       end
 
-      def default_url_options=(options)
-        @set.default_url_options = options
+      def shallow?
+        false
       end
-      alias_method :default_url_options, :default_url_options=
 
-      # Query if the following named route was already defined.
-      def has_named_route?(name)
-        @set.named_routes.routes[name.to_sym]
+      def using_match_shorthand?(path, options)
+        path && (options[:to] || options[:action]).nil? && path =~ %r{/[\w/]+$}
+      end
+
+      def decomposed_match(path, options) # :nodoc:
+        if on = options.delete(:on)
+          send(on) { decomposed_match(path, options) }
+        else
+          case @scope[:scope_level]
+          when :resources
+            nested { decomposed_match(path, options) }
+          when :resource
+            member { decomposed_match(path, options) }
+          else
+            add_route(path, options)
+          end
+        end
+      end
+
+      def add_route(action, options) # :nodoc:
+        path = path_for_action(action, options.delete(:path))
+        raise ArgumentError, "path is required" if path.blank?
+
+        action = action.to_s.dup
+
+        if action =~ /^[\w\-\/]+$/
+          options[:action] ||= action.tr('-', '_') unless action.include?("/")
+        else
+          action = nil
+        end
+
+        if !options.fetch(:as, true)
+          options.delete(:as)
+        else
+          options[:as] = name_for_action(options[:as], action)
+        end
+
+        mapping = Mapping.build(@scope, URI.parser.escape(path), options)
+        app, conditions, requirements, defaults, as, anchor = mapping.to_route
+        @set.add_route(app, conditions, requirements, defaults, as, anchor)
       end
 
       private
+        def map_method(method, args, &block)
+          options = args.extract_options!
+          options[:via] = method
+          match(*args, options, &block)
+          self
+        end
+
+        def default_url_options=(options)
+          @set.default_url_options = options
+        end
+        alias_method :default_url_options, :default_url_options=
+
+        # Query if the following named route was already defined.
+        def has_named_route?(name)
+          @set.named_routes.routes[name.to_sym]
+        end
         def app_name(app)
           return unless app.respond_to?(:routes)
 
@@ -126,35 +244,6 @@ module ActionDispatch
             end
           }
         end
-
-      def get(*args, &block)
-        map_method(:get, args, &block)
-      end
-
-      def post(*args, &block)
-        map_method(:post, args, &block)
-      end
-
-      def patch(*args, &block)
-        map_method(:patch, args, &block)
-      end
-
-      def put(*args, &block)
-        map_method(:put, args, &block)
-      end
-
-      def delete(*args, &block)
-        map_method(:delete, args, &block)
-      end
-
-      private
-        def map_method(method, args, &block)
-          options = args.extract_options!
-          options[:via] = method
-          match(*args, options, &block)
-          self
-        end
-      end
     end
   end
 end

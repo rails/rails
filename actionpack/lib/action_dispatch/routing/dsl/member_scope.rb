@@ -1,0 +1,2 @@
+class MemberScope < Scope
+end

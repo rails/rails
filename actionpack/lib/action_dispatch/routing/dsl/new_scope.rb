@@ -1,0 +1,2 @@
+class NewScope < Scope
+end
