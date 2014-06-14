@@ -788,7 +788,7 @@ module ActiveRecord
           return option_strings
         end
 
-        # Overridden by the mysql adapter for supporting index lengths
+        # Overridden by the MySQL adapter for supporting index lengths
         def quoted_columns_for_index(column_names, options = {})
           option_strings = Hash[column_names.map {|name| [name, '']}]
 

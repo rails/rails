@@ -409,7 +409,7 @@ module ActiveRecord
             stmt.execute(*type_casted_binds.map { |_, val| val })
           rescue Mysql::Error => e
             # Older versions of MySQL leave the prepared statement in a bad
-            # place when an error occurs. To support older mysql versions, we
+            # place when an error occurs. To support older MySQL versions, we
             # need to close the statement and delete the statement from the
             # cache.
             stmt.close
