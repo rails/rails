@@ -10,8 +10,11 @@ class FormHelperTest < ActionView::TestCase
     @output_buffer = super
   end
 
-  def setup
-    super
+  teardown do
+    I18n.backend.reload!
+  end
+
+  setup do
 
     # Create "label" locale for testing I18n label helpers
     I18n.backend.store_translations 'label', {
