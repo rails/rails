@@ -1,3 +1,11 @@
+*   `has_many :through` associations will no longer save the through record
+    twice when added in an `after_create` callback defined before the
+    associations.
+
+    Fixes #3798.
+
+    *Sean Griffin*
+
 *   Add `bin/rake db:purge` task to empty the current database.
 
     *Yves Senn*
