@@ -363,6 +363,7 @@ module ActiveRecord
 
               raise ActiveRecord::Rollback unless saved
             end
+            @new_record_before_save = false
           end
 
           # reconstruct the scope now that we know the owner's id
