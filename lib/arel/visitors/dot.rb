@@ -22,9 +22,9 @@ module Arel
         @seen       = {}
       end
 
-      def accept object
+      def accept object, collector
         visit object
-        to_dot
+        collector << to_dot
       end
 
       private

@@ -15,7 +15,9 @@ module Arel
     end
 
     def to_dot
-      Visitors::Dot.new.accept @ast
+      collector = Arel::Collectors::PlainString.new
+      collector = Visitors::Dot.new.accept @ast, collector
+      collector.value
     end
 
     def visitor
