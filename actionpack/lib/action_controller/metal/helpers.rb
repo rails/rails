@@ -1,5 +1,5 @@
 module ActionController
-  # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
+  # The Rails framework provides a large number of helpers for working with assets, dates, forms,
   # numbers and model objects, to name a few. These helpers are available to all templates
   # by default.
   #
@@ -7,7 +7,7 @@ module ActionController
   # extract complicated logic or reusable functionality is strongly encouraged. By default, each controller
   # will include all helpers. These helpers are only accessible on the controller through <tt>.helpers</tt>
   #
-  # In previous versions of \Rails the controller will include a helper whose
+  # In previous versions of Rails the controller will include a helper whose
   # name matches that of the controller, e.g., <tt>MyController</tt> will automatically
   # include <tt>MyHelper</tt>. To return old behavior set +config.action_controller.include_all_helpers+ to +false+.
   #

@@ -1,7 +1,7 @@
 
 module ActionDispatch
   module Assertions
-    # A small suite of assertions that test responses from \Rails applications.
+    # A small suite of assertions that test responses from Rails applications.
     module ResponseAssertions
       # Asserts that the response is one of the following types:
       #

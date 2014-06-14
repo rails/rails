@@ -56,7 +56,7 @@ module ActionController
   #
   #   get 'hello', to: HelloController.action(:index)
   #
-  # The +action+ method returns a valid Rack application for the \Rails
+  # The +action+ method returns a valid Rack application for the Rails
   # router to dispatch to.
   #
   # == Rendering Helpers

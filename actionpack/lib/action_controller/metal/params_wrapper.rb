@@ -9,7 +9,7 @@ module ActionController
   # POST requests without having to specify any root elements.
   #
   # This functionality is enabled in +config/initializers/wrap_parameters.rb+
-  # and can be customized. If you are upgrading to \Rails 3.1, this file will
+  # and can be customized. If you are upgrading to Rails 3.1, this file will
   # need to be created for the functionality to be enabled.
   #
   # You could also turn it on per controller by setting the format array to

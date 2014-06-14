@@ -9,7 +9,7 @@ module ActionDispatch # :nodoc:
   # back to the web browser) or a TestResponse (i.e. one that is generated
   # from integration tests).
   #
-  # \Response is mostly a Ruby on \Rails framework implementation detail, and
+  # \Response is mostly a Ruby on Rails framework implementation detail, and
   # should never be used directly in controllers. Controllers should use the
   # methods defined in ActionController::Base instead. For example, if you want
   # to set the HTTP response's content MIME type, then use
