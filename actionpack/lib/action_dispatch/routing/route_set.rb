@@ -312,12 +312,10 @@ module ActionDispatch
           raise "You are using the old router DSL which has been removed in Rails 3.1. " <<
             "Please check how to update your routes file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/"
         end
-        mapper = Mapper.new(self)
-        if default_scope
-          mapper.with_default_scope(default_scope, &block)
-        else
-          mapper.instance_exec(&block)
-        end
+        scope_params = default_scope || { path_names: resources_path_names }
+        scope = Scope.new(scope_params)
+        scope.instance_exec(&block)
+        scope.routes.each { |r| add_route(*r) }
       end
 
       def finalize!

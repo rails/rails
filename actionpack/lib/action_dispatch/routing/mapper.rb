@@ -8,17 +8,11 @@ require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 require 'action_dispatch/routing/endpoint'
 require 'active_support/deprecation'
-
 require 'action_dispatch/routing/dsl'
 
 module ActionDispatch
   module Routing
     class Mapper
-      URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
-      SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
-                       :controller, :action, :path_names, :constraints,
-                       :shallow, :blocks, :defaults, :options]
-
       class Constraints < Endpoint #:nodoc:
         attr_reader :app, :constraints
 
@@ -368,18 +362,16 @@ module ActionDispatch
         normalize_path(name)[1..-1].tr("/", "_")
       end
 
+      attr_reader :scope
+
       def initialize(set) #:nodoc:
         @set = set
-        @scope = { :path_names => @set.resources_path_names }
+        @scope = Scope.new(path_names: @set.resources_path_names)
         @concerns = {}
         @nesting = []
       end
 
-      include DSL
       include Redirection
-      include DSL::Scoping
-      include DSL::Concerns
-      include DSL::Resources
     end
   end
 end
