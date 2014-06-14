@@ -8,7 +8,7 @@ After reading this guide, you will know:
 * How to use PostgreSQL's datatypes.
 * How to use UUID primary keys.
 * How to implement full text search with PostgreSQL.
-* How to back your Active Record models with views.
+* How to back your Active Record models with database views.
 
 --------------------------------------------------------------------------------
 
@@ -374,8 +374,8 @@ Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
                  "cat & dog")
 ```
 
-Views
------
+Database Views
+--------------
 
 * [view creation](http://www.postgresql.org/docs/9.3/static/sql-createview.html)
 
