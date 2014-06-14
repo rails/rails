@@ -1,3 +1,8 @@
+*   Deprecate `serialized_attributes` without replacement. You can access its
+    behavior by going through the column's type object.
+
+    *Sean Griffin*
+
 *   Correctly extract IPv6 addresses from `DATABASE_URI`: the square brackets
     are part of the URI structure, not the actual host.
 

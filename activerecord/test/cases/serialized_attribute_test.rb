@@ -22,7 +22,9 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_list_of_serialized_attributes
-    assert_equal %w(content), Topic.serialized_attributes.keys
+    assert_deprecated do
+      assert_equal %w(content), Topic.serialized_attributes.keys
+    end
   end
 
   def test_serialized_attribute
@@ -207,7 +209,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     t = Topic.create(content: "first")
     assert_equal("first", t.content)
 
-    t.update_column(:content, Topic.serialized_attributes["content"].dump("second"))
+    t.update_column(:content, Topic.type_for_attribute('content').type_cast_for_database("second"))
     assert_equal("second", t.content)
   end
 
