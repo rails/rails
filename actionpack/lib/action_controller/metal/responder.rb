@@ -24,10 +24,10 @@ module ActionController #:nodoc:
   #
   # === Built-in HTTP verb semantics
   #
-  # The default \Rails responder holds semantics for each HTTP verb. Depending on the
+  # The default Rails responder holds semantics for each HTTP verb. Depending on the
   # content type, verb and the resource status, it will behave differently.
   #
-  # Using \Rails default responder, a POST request for creating an object could
+  # Using Rails default responder, a POST request for creating an object could
   # be written as:
   #
   #   def create
