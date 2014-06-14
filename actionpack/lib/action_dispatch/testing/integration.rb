@@ -347,7 +347,7 @@ module ActionDispatch
       # By default, a single session is automatically created for you, but you
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
-      def open_session(app = nil)
+      def open_session
         dup.tap do |session|
           yield session if block_given?
         end
