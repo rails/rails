@@ -3,20 +3,7 @@ module ActiveRecord
     module Serialization
       extend ActiveSupport::Concern
 
-      included do
-        # Returns a hash of all the attributes that have been specified for
-        # serialization as keys and their class restriction as values.
-        class_attribute :serialized_attributes, instance_accessor: false
-        self.serialized_attributes = {}
-      end
-
       module ClassMethods
-        ##
-        # :method: serialized_attributes
-        #
-        # Returns a hash of all the attributes that have been specified for
-        # serialization as keys and their class restriction as values.
-
         # If you have an attribute that needs to be saved to the database as an
         # object, and retrieved as the same object, then specify the name of that
         # attribute using this method and it will be handled automatically. The
@@ -59,10 +46,24 @@ module ActiveRecord
           decorate_attribute_type(attr_name, :serialize) do |type|
             Type::Serialized.new(type, coder)
           end
+        end
 
-          # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
-          # has its own hash of own serialized attributes
-          self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
+        def serialized_attributes
+          ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
+            `serialized_attributes` is deprecated, and will be removed in Rails 5.0.
+            If you need to access the serialization behavior, you can do:
+
+              #{self.class.name}.column_for_attribute('foo').type_cast_for_database(value)
+
+            or
+
+              #{self.class.name}.column_for_attribute('foo').type_cast_from_database(value)
+          WARNING
+          @serialized_attributes ||= Hash[
+            columns.select { |t| t.cast_type.is_a?(Type::Serialized) }.map { |c|
+              [c.name, c.cast_type.coder]
+            }
+          ]
         end
       end
     end
