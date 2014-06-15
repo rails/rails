@@ -10,6 +10,9 @@ require 'models/comment'
 require 'models/car'
 require 'models/bulb'
 require 'models/mixed_case_monkey'
+require 'models/admin'
+require 'models/admin/account'
+require 'models/admin/user'
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -25,6 +28,15 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     assert_respond_to man_reflection, :has_inverse?
     assert man_reflection.has_inverse?, "The man reflection should have an inverse"
     assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
+  end
+
+  def test_has_many_and_belongs_to_should_find_inverse_automatically_for_model_in_module
+    account_reflection = Admin::Account.reflect_on_association(:users)
+    user_reflection = Admin::User.reflect_on_association(:account)
+
+    assert_respond_to account_reflection, :has_inverse?
+    assert account_reflection.has_inverse?, "The Admin::Account reflection should have an inverse"
+    assert_equal user_reflection, account_reflection.inverse_of, "The Admin::Account reflection's inverse should be the Admin::User reflection"
   end
 
   def test_has_one_and_belongs_to_should_find_inverse_automatically

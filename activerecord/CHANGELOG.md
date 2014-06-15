@@ -1,3 +1,7 @@
+*   Fixed automatic inverse_of for models nested in module.
+
+    *Andrew McCloud*
+
 *   Deprecate `serialized_attributes` without replacement. You can access its
     behavior by going through the column's type object.
 
