@@ -1,2 +1,0 @@
-class NewScope < Scope
-end

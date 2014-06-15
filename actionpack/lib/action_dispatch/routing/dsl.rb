@@ -1,10 +1,30 @@
 module ActionDispatch
   module Routing
     class Scope
-      def root(options = {})
-        match '/', { :as => :root, :via => :get }.merge!(options)
+      def root(path, options={})
+        if path.is_a?(String)
+          options[:to] = path
+        elsif path.is_a?(Hash) and options.empty?
+          options = path
+        else
+          raise ArgumentError, "must be called with a path and/or options"
+        end
+
+        if self.instance_of?(ResourceScope)
+          new_root = RootScope.new(path)
+          new_root.parent = self
+          new_root.instance_exec do
+            match '/', { :as => :root, :via => :get }.merge!(options)
+          end
+          @routes += new_root.routes
+        else
+          match '/', { :as => :root, :via => :get }.merge!(options)
+        end
       end
 
+      # match 'path' => 'controller#action'
+      # match 'path', to: 'controller#action'
+      # match 'path', 'otherpath', on: :member, via: :get
       def match(path, *rest)
         if rest.empty? && Hash === path
           options  = path
@@ -36,8 +56,8 @@ module ActionDispatch
           raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
         end
 
-        if @scope[:controller] && @scope[:action]
-          options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
+        if @controller && @action
+          options[:to] ||= "#{@controller}##{@action}"
         end
 
         paths.each do |_path|
@@ -152,52 +172,6 @@ module ActionDispatch
         end
       end
 
-      def shallow?
-        false
-      end
-
-      def using_match_shorthand?(path, options)
-        path && (options[:to] || options[:action]).nil? && path =~ %r{/[\w/]+$}
-      end
-
-      def decomposed_match(path, options) # :nodoc:
-        if on = options.delete(:on)
-          send(on) { decomposed_match(path, options) }
-        else
-          case @scope[:scope_level]
-          when :resources
-            nested { decomposed_match(path, options) }
-          when :resource
-            member { decomposed_match(path, options) }
-          else
-            add_route(path, options)
-          end
-        end
-      end
-
-      def add_route(action, options) # :nodoc:
-        path = path_for_action(action, options.delete(:path))
-        raise ArgumentError, "path is required" if path.blank?
-
-        action = action.to_s.dup
-
-        if action =~ /^[\w\-\/]+$/
-          options[:action] ||= action.tr('-', '_') unless action.include?("/")
-        else
-          action = nil
-        end
-
-        if !options.fetch(:as, true)
-          options.delete(:as)
-        else
-          options[:as] = name_for_action(options[:as], action)
-        end
-
-        mapping = Mapping.build(@scope, URI.parser.escape(path), options)
-        app, conditions, requirements, defaults, as, anchor = mapping.to_route
-        @set.add_route(app, conditions, requirements, defaults, as, anchor)
-      end
-
       private
         def map_method(method, args, &block)
           options = args.extract_options!
@@ -243,6 +217,43 @@ module ActionDispatch
               end
             end
           }
+        end
+
+        def decomposed_match(path, options) # :nodoc:
+          if on = options.delete(:on)
+            send(on) { decomposed_match(path, options) }
+          else
+            case @scope[:scope_level]
+            when :resources
+              nested { decomposed_match(path, options) }
+            when :resource
+              member { decomposed_match(path, options) }
+            else
+              add_route(path, options)
+            end
+          end
+        end
+
+        def add_route(action, options) # :nodoc:
+          path = path_for_action(action, options.delete(:path))
+          raise ArgumentError, "path is required" if path.blank?
+
+          action = action.to_s.dup
+
+          if action =~ /^[\w\-\/]+$/
+            options[:action] ||= action.tr('-', '_') unless action.include?("/")
+          else
+            action = nil
+          end
+
+          if !options.fetch(:as, true)
+            options.delete(:as)
+          else
+            options[:as] = name_for_action(options[:as], action)
+          end
+
+          mapping = Mapping.build(@scope, URI.parser.escape(path), options)
+          @routes << mapping.to_route
         end
     end
   end

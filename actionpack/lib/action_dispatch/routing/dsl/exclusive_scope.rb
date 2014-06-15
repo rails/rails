@@ -1,2 +1,0 @@
-class ExclusiveScope < Scope
-end

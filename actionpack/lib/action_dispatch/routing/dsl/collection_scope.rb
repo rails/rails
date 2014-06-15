@@ -1,2 +1,0 @@
-class CollectionScope < Scope
-end
