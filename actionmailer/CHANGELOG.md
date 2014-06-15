@@ -1,3 +1,10 @@
+*   Allow preview interceptors to be registered through
+    `config.action_mailer.preview_interceptors`.
+
+    See #15739.
+
+    *Yves Senn*
+
 ## Rails 4.1.2 (unreleased) ##
 
 *   No changes.
