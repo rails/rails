@@ -56,7 +56,13 @@ module ActiveSupport
     inflect.irregular('man', 'men')
     inflect.irregular('child', 'children')
     inflect.irregular('sex', 'sexes')
+
+    # Ends with -fe exceptions
     inflect.irregular('move', 'moves')
+    inflect.irregular('olive', 'olives')
+    inflect.irregular('glove', 'gloves')
+    inflect.irregular('safe', 'safes')
+
     inflect.irregular('cow', 'kine')
     inflect.irregular('zombie', 'zombies')
 

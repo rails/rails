@@ -27,7 +27,7 @@ module InflectorTestCases
     "index"       => "indices",
 
     "wife"        => "wives",
-    "safe"        => "saves",
+    "safe"        => "safes",
     "half"        => "halves",
 
     "move"        => "moves",
@@ -100,6 +100,9 @@ module InflectorTestCases
 
     "rice"        => "rice",
     "shoe"        => "shoes",
+
+    "olive"       => "olives",
+    "glove"       => "gloves",
 
     "horse"       => "horses",
     "prize"       => "prizes",
