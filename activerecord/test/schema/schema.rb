@@ -190,7 +190,7 @@ ActiveRecord::Schema.define do
       t.text    :body, null: false
     end
     t.string  :type
-    t.integer :taggings_count, default: 0
+    t.integer :tags_count, default: 0
     t.integer :children_count, default: 0
     t.integer :parent_id
     t.references :author, polymorphic: true
@@ -569,7 +569,6 @@ ActiveRecord::Schema.define do
     end
     t.string  :type
     t.integer :comments_count, default: 0
-    t.integer :taggings_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
     t.integer :taggings_with_destroy_count, default: 0
     t.integer :tags_count, default: 0

@@ -36,7 +36,7 @@ class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCa
     author = authors(:david)
     # this can fail on adapters which require ORDER BY expressions to be included in the SELECT expression
     # if the reorder clauses are not correctly handled
-    assert author.posts_with_comments_sorted_by_comment_id.where('comments.id > 0').reorder('posts.comments_count DESC', 'posts.taggings_count DESC').last
+    assert author.posts_with_comments_sorted_by_comment_id.where('comments.id > 0').reorder('posts.comments_count DESC', 'posts.tags_count DESC').last
   end
 end
 
@@ -814,14 +814,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_deleting_updates_counter_cache_without_dependent_option
     post = posts(:welcome)
 
-    assert_difference "post.reload.taggings_count", -1 do
+    assert_difference "post.reload.tags_count", -1 do
       post.taggings.delete(post.taggings.first)
     end
   end
 
   def test_deleting_updates_counter_cache_with_dependent_delete_all
     post = posts(:welcome)
-    post.update_columns(taggings_with_delete_all_count: post.taggings_count)
+    post.update_columns(taggings_with_delete_all_count: post.tags_count)
 
     assert_difference "post.reload.taggings_with_delete_all_count", -1 do
       post.taggings_with_delete_all.delete(post.taggings_with_delete_all.first)
@@ -830,7 +830,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_deleting_updates_counter_cache_with_dependent_destroy
     post = posts(:welcome)
-    post.update_columns(taggings_with_destroy_count: post.taggings_count)
+    post.update_columns(taggings_with_destroy_count: post.tags_count)
 
     assert_difference "post.reload.taggings_with_destroy_count", -1 do
       post.taggings_with_destroy.delete(post.taggings_with_destroy.first)
