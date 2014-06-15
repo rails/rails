@@ -50,14 +50,8 @@ module ActiveRecord
 
         def serialized_attributes
           ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
-            `serialized_attributes` is deprecated, and will be removed in Rails 5.0.
-            If you need to access the serialization behavior, you can do:
-
-              #{self.class.name}.column_for_attribute('foo').type_cast_for_database(value)
-
-            or
-
-              #{self.class.name}.column_for_attribute('foo').type_cast_from_database(value)
+            `serialized_attributes` is deprecated without replacement, and will
+            be removed in Rails 5.0.
           WARNING
           @serialized_attributes ||= Hash[
             columns.select { |t| t.cast_type.is_a?(Type::Serialized) }.map { |c|
