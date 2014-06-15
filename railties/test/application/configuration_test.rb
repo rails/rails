@@ -8,6 +8,12 @@ end
 
 class ::MyOtherMailInterceptor < ::MyMailInterceptor; end
 
+class ::MyPreviewMailInterceptor
+  def self.previewing_email(email); email; end
+end
+
+class ::MyOtherPreviewMailInterceptor < ::MyPreviewMailInterceptor; end
+
 class ::MyMailObserver
   def self.delivered_email(email); email; end
 end
@@ -458,6 +464,32 @@ module ApplicationTests
       _ = ActionMailer::Base
 
       assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
+    end
+
+    test "registers preview interceptors with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.preview_interceptors = MyPreviewMailInterceptor
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      assert_equal [::MyPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+    end
+
+    test "registers multiple preview interceptors with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.preview_interceptors = [MyPreviewMailInterceptor, "MyOtherPreviewMailInterceptor"]
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      assert_equal [MyPreviewMailInterceptor, MyOtherPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
     end
 
     test "registers observers with ActionMailer" do
