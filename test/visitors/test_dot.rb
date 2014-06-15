@@ -17,13 +17,13 @@ module Arel
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           op = klass.new(:a, "z")
-          @visitor.accept op
+          @visitor.accept op, Collectors::PlainString.new
         end
       end
 
       def test_named_function
         func = Nodes::NamedFunction.new 'omg', 'omg'
-        @visitor.accept func
+        @visitor.accept func, Collectors::PlainString.new
       end
 
       # unary ops
@@ -41,7 +41,7 @@ module Arel
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           op = klass.new(:a)
-          @visitor.accept op
+          @visitor.accept op, Collectors::PlainString.new
         end
       end
 
@@ -68,7 +68,7 @@ module Arel
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new(:a, :b)
-          @visitor.accept binary
+          @visitor.accept binary, Collectors::PlainString.new
         end
       end
     end
