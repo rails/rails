@@ -78,14 +78,19 @@ module Arel
         }
       end
 
-      it 'takes an empty list' do
+      it 'noop for empty list' do
+        table = Table.new(:users)
         manager = Arel::InsertManager.new Table.engine
+        manager.insert [[table[:id], 1]]
         manager.insert []
+        manager.to_sql.must_be_like %{
+          INSERT INTO "users" ("id") VALUES (1)
+        }
       end
     end
 
     describe 'into' do
-      it 'takes an engine' do
+      it 'takes a Table and chains' do
         manager = Arel::InsertManager.new Table.engine
         manager.into(Table.new(:users)).must_equal manager
       end
@@ -126,7 +131,7 @@ module Arel
     end
 
     describe "combo" do
-      it "puts shit together" do
+      it "combines columns and values list in order" do
         table   = Table.new :users
         manager = Arel::InsertManager.new Table.engine
         manager.into table
