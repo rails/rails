@@ -35,9 +35,9 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
     assert_nothing_raised do
-      Author.joins(:posts).eager_load(:comments).where(:posts => {:taggings_count => 1}).to_a
+      Author.joins(:posts).eager_load(:comments).where(:posts => {:tags_count => 1}).to_a
     end
-    authors = Author.joins(:posts).eager_load(:comments).where(:posts => {:taggings_count => 1}).to_a
+    authors = Author.joins(:posts).eager_load(:comments).where(:posts => {:tags_count => 1}).to_a
     assert_equal 1, assert_no_queries { authors.size }
     assert_equal 10, assert_no_queries { authors[0].comments.size }
   end

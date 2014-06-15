@@ -4,7 +4,6 @@ welcome:
   title: Welcome to the weblog
   body: Such a lovely day
   comments_count: 2
-  taggings_count: 1
   tags_count: 1
   type: Post
 
@@ -14,7 +13,6 @@ thinking:
   title: So I was thinking
   body: Like I hopefully always am
   comments_count: 1
-  taggings_count: 1
   tags_count: 1
   type: SpecialPost
 
