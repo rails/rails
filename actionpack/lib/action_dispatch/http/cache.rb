@@ -92,7 +92,7 @@ module ActionDispatch
         LAST_MODIFIED = "Last-Modified".freeze
         ETAG          = "ETag".freeze
         CACHE_CONTROL = "Cache-Control".freeze
-        SPECIAL_KEYS  = %w[extras no-cache max-age public must-revalidate]
+        SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public must-revalidate])
 
         def cache_control_segments
           if cache_control = self[CACHE_CONTROL]
