@@ -340,7 +340,7 @@ module ActionMailer
   #     end
   #   end
   #
-  #   config.action_mailer.register_preview_interceptor :css_inline_styler
+  #   ActionMailer::Base.register_preview_interceptor :css_inline_styler
   #
   # Note that interceptors need to be registered both with <tt>register_interceptor</tt>
   # and <tt>register_preview_interceptor</tt> if they should operate on both sending and
