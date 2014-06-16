@@ -204,53 +204,15 @@ module ActionView
     include ActionView::Rendering
 
     included do
-      class_attribute :_layout_proc, :_layout_conditions, :instance_accessor => false
-      self._layout_proc       = nil
-      self._layout_conditions = {}
+      class_attribute :_layout_param, :_layout_conditions, :_layout_root, :instance_accessor => false
+      self._layout_param      = nil
+      self._layout_conditions = nil
+      self._layout_root       = self
 
       include LayoutMethod
     end
 
     module ClassMethods
-      # This module is mixed in if layout conditions are provided. This means
-      # that if no layout conditions are used, this method is not used
-      module LayoutConditions # :nodoc:
-        private
-
-        # Determines whether the current action has a layout definition by
-        # checking the action name against the :only and :except conditions
-        # set by the <tt>layout</tt> method.
-        #
-        # ==== Returns
-        # * <tt> Boolean</tt> - True if the action has a layout definition, false otherwise.
-        def _conditional_layout?(action_name)
-          return unless super
-
-          conditions = _layout_conditions
-
-          if only = conditions[:only]
-            only.include?(action_name)
-          elsif except = conditions[:except]
-            !except.include?(action_name)
-          else
-            true
-          end
-        end
-      end
-
-      # Entry point for finding layout for class.
-      def _layout_for(action_name, lookup_context, exec_context)
-        return if abstract?
-
-        default_layout = DefaultLayout.new(action_name, lookup_context, exec_context)
-
-        if _conditional_layout?(action_name)
-          default_layout.for_instance(self, _layout_proc)
-        else
-          default_layout.for_class(self)
-        end
-      end
-
       # Specify the layout to use for this class.
       #
       # If the specified layout is a:
@@ -270,18 +232,16 @@ module ActionView
         is_valid = (layout == false || layout.nil? || layout.is_a?(Proc) || layout.is_a?(String) || layout.is_a?(Symbol))
         raise ArgumentError, "Layouts must be specified as a String, Symbol, Proc, false, or nil" unless is_valid
 
-        extend LayoutConditions unless conditions.empty?
-
         conditions.each {|k, v| conditions[k] = Array(v).map {|a| a.to_s} }
         self._layout_conditions = conditions
 
-        self._layout_proc = layout
-      end
+        if layout.is_a?(Proc) # turn Proc layouts into "method" layouts, this allows for simpler LayoutFinder
+          define_method(:_layout_from_proc, &layout)
+          protected :_layout_from_proc # don't leak the new method into controller actions
+          layout = :_layout_from_proc
+        end
 
-      private
-
-      def _conditional_layout?(*)
-        true
+        self._layout_param = layout
       end
 
       # If no layout is supplied, look for a template named the return
@@ -292,56 +252,83 @@ module ActionView
       def _implied_layout_name # :nodoc:
         controller_path
       end
+
+      def _layout_lookup_prefixes # :nodoc:
+        @_layout_lookup_prefixes ||= _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+      end
     end
 
     # If a layout is not explicitly mentioned then look for a layout with the controller's name.
     # if nothing is found then try same procedure to find super class's layout.
-    class DefaultLayout # :nodoc:
-      def initialize(action_name, lookup_context, exec_context)
-        @action_name    = action_name
-        @lookup_context = lookup_context
-        @exec_context   = exec_context # the controller instance.
+    class LayoutFinder # :nodoc:
+      def initialize(action_name, lookup_context, controller_instance)
+        @action_name               = action_name
+        @lookup_context            = lookup_context
+        @controller_instance       = controller_instance
+        @controller_class          = controller_instance.class
+        @use_user_specified_layout = controller_class_with_user_layout? && passes_layout_conditions?
+      end
+
+      def find
+        @use_user_specified_layout ? from_layout_param : default_layout_or_inherit
+      end
+
+      private
+      # Determines whether the current action has a layout definition by
+      # checking the action name against the :only and :except conditions
+      # set by the <tt>layout</tt> method.
+      #
+      # ==== Returns
+      # * <tt> Boolean</tt> - True if the action has a layout definition, false otherwise.
+      def passes_layout_conditions?
+        conditions = @controller_class._layout_conditions
+
+        if only = conditions[:only]
+          only.include?(@action_name)
+        elsif except = conditions[:except]
+          !except.include?(@action_name)
+        else
+          true
+        end
+      end
+
+      def controller_class_with_user_layout?
+        # ClassMethods#layout always assigns something (a Hash) into _layout_conditions,
+        # use this knowledge to determine if user has .layout() method on the controller
+        # to specify custom layout behavior
+        @controller_class._layout_conditions
       end
 
       # Default behaviour, traversing up the inheritance chain.
-      def for_class(controller_class)
-        implied_layout_name = controller_class.send(:_implied_layout_name)
-        prefixes = implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+      def default_layout_or_inherit
+        controller_class       = @controller_class
+        implied_layout_name    = controller_class._implied_layout_name
+        layout_lookup_prefixes = controller_class._layout_lookup_prefixes
 
-        lookup_context.find_all(implied_layout_name, prefixes).first ||
-          controller_class.superclass._layout_for(@action_name, lookup_context, @exec_context) # we should call superclass._layout here for consistency.
+        if layout = @lookup_context.find_all(implied_layout_name, layout_lookup_prefixes).first
+          layout
+        elsif controller_class._layout_root != controller_class
+          @controller_class = controller_class.superclass
+          find
+        end
       end
 
       # Evaluates the proc (or configuration) from Controller._layout_proc
-      def for_instance(controller_class, proc)
-        layout = proc
+      def from_layout_param
+        layout = layout_param = @controller_class._layout_param
+        layout = invoke_layout_param(layout_param) if layout_param.is_a?(Symbol)
+        layout = default_layout_or_inherit if layout.nil? # call default behaviour for nil return value.
+        layout
+      end
 
-        case proc
-        when Symbol
-          layout = invoke_for(@exec_context, proc)
-        when Proc
-          layout = exec_for(@exec_context, proc)
+      def invoke_layout_param(layout_param)
+        layout = @controller_instance.send(layout_param)
+        if !layout || layout.is_a?(String)
+          layout
+        else
+          raise ArgumentError, "Your layout method :#{proc} returned #{layout}. It " \
+            "should have returned a String, false, or nil"
         end
-        layout = for_class(controller_class) if layout.nil? # call default behaviour for nil return value.
-        layout
-      end
-
-
-      attr_reader :lookup_context
-      private :lookup_context
-
-      private
-      def invoke_for(controller, proc)
-        layout = controller.send(proc)
-
-        raise ArgumentError, "Your layout method :#{proc} returned #{layout}. It " \
-          "should have returned a String, false, or nil" unless layout.is_a?(String) || !layout
-
-        layout
-      end
-
-      def exec_for(controller, proc)
-        controller.instance_exec(&proc)
       end
     end
 
@@ -349,7 +336,7 @@ module ActionView
     module LayoutMethod # :nodoc:
       private
       def _layout # reader, called in #_default_layout.
-        self.class._layout_for(action_name, lookup_context, self)
+        LayoutFinder.new(action_name, lookup_context, self).find
       end
     end
 
