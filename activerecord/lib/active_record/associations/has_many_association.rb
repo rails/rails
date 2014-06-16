@@ -100,6 +100,10 @@ module ActiveRecord
         # Hence this method.
         def inverse_updates_counter_cache?(reflection = reflection())
           counter_name = cached_counter_attribute_name(reflection)
+          inverse_updates_counter_named?(counter_name, reflection)
+        end
+
+        def inverse_updates_counter_named?(counter_name, reflection = reflection())
           reflection.klass._reflections.values.any? { |inverse_reflection|
             :belongs_to == inverse_reflection.macro &&
             inverse_reflection.counter_cache_column == counter_name
