@@ -1,3 +1,8 @@
+*   Dont swallow errors on compute_type when having a bad alias_method on
+    a class.
+
+    *arthurnn*
+
 *   Assume numeric types have changed if they were assigned to a value that
     would fail numericality validation, regardless of the old value. Previously
     this would only occur if the old value was 0.
