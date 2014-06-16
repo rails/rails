@@ -23,13 +23,10 @@
 
 *   Fixed precision error in NumberHelper when using Rationals.
 
-    Before:
-        
+    before:
         ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
         #=> "330.00"
-    
-    After:
-    
+    after:
         ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
         #=> "333.33"
 
