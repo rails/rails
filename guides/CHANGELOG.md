@@ -1,4 +1,4 @@
-## Rails 4.1.2 (May 27, 2014) ##
+## Rails 4.1.2 (June 16, 2014) ##
 
 * Update all Rails 4.1.0 references to 4.1.1 within the guides and code.
 

@@ -1,4 +1,4 @@
-## Rails 4.1.2 (May 27, 2014) ##
+## Rails 4.1.2 (June 16, 2014) ##
 
 *   Change `asset_path` to use File.join to create proper paths.
 
