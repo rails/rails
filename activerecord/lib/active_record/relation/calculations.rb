@@ -19,7 +19,15 @@ module ActiveRecord
     #
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
-    #
+    # 
+    # If +count+ is used with +group+ for multiple columns, it returns a Hash whose 
+    # keys are an array containing the individual values of each column and the value 
+    # of each key would be the +count+.
+    # 
+    #   Article.group(:status, :category).count
+    #   # =>  {["draft", "business"]=>10, ["draft", "technology"]=>4, 
+    #          ["published", "business"]=>0, ["published", "technology"]=>2}
+    # 
     # If +count+ is used with +select+, it will count the selected columns:
     #
     #   Person.select(:age).count
