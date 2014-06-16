@@ -14,9 +14,13 @@ module ApplicationTests
       @simple_plugin = engine "weblog"
       @plugin = engine "blog"
       @metrics_plugin = engine "metrics"
+      @data_collecting_plugin = engine "data_collecting"
 
       app_file 'config/routes.rb', <<-RUBY
         Rails.application.routes.draw do
+          namespace :admin do
+            mount DataCollecting::Engine => '/data_collecting'
+          end
           mount Weblog::Engine, :at => '/', :as => 'weblog'
           resources :posts
           get "/engine_route" => "application_generating#engine_route"
@@ -26,6 +30,8 @@ module ApplicationTests
           get "/url_for_engine_route" => "application_generating#url_for_engine_route"
           get "/polymorphic_route" => "application_generating#polymorphic_route"
           get "/application_polymorphic_path" => "application_generating#application_polymorphic_path"
+          get "/engine_under_namespace_route" => "application_generating#engine_under_namespace_route"
+          get "/engine_under_namespace_route_in_view" => "application_generating#engine_under_namespace_route_in_view"
           scope "/:user", :user => "anonymous" do
             mount Blog::Engine => "/blog"
           end
@@ -81,6 +87,30 @@ module ApplicationTests
             def generate_blog_route_in_view
               render inline: "<%= blog.post_path(1) -%>"
             end
+          end
+        end
+      RUBY
+
+      @data_collecting_plugin.write "config/routes.rb", <<-RUBY
+        DataCollecting::Engine.routes.draw do
+          root :to => 'data_collecting#index'
+        end
+      RUBY
+
+      @data_collecting_plugin.write "app/controllers/data_collecting/data_collecting_controller.rb", <<-RUBY
+        module DataCollecting
+          class Controller < ActionController::Base
+            def index
+              render text: "Hello, admin!"
+            end
+          end
+        end
+      RUBY
+
+      @data_collecting_plugin.write "lib/data_collecting.rb", <<-RUBY
+        module DataCollecting
+          class Engine < ::Rails::Engine
+            isolate_namespace(DataCollecting)
           end
         end
       RUBY
@@ -177,6 +207,14 @@ module ApplicationTests
           def application_polymorphic_path
             render text: polymorphic_path(Blog::Post.new)
           end
+
+          def engine_under_namespace_route
+            render text: admin_data_collecting.root_path
+          end
+
+          def engine_under_namespace_route_in_view
+            render inline: "<%= admin_data_collecting.root_path %>"
+          end
         end
       RUBY
 
@@ -269,6 +307,14 @@ module ApplicationTests
 
       get "/weblog_engine_route_in_view"
       assert_equal "/weblog", last_response.body
+    end
+
+    test "route generation when engine is mounted inside a namespace" do
+      get "/engine_under_namespace_route"
+      assert_equal "/admin/data_collecting/", last_response.body
+
+      get "/engine_under_namespace_route_in_view"
+      assert_equal "/admin/data_collecting/", last_response.body
     end
   end
 end
