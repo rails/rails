@@ -1,7 +1,7 @@
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
-      class Type < SimpleDelegator # :nodoc:
+      class TimeZoneConverter < SimpleDelegator # :nodoc:
         def type_cast_from_database(value)
           convert_time_to_time_zone(super)
         end
@@ -33,6 +33,11 @@ module ActiveRecord
 
         class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false
         self.skip_time_zone_conversion_for_attributes = []
+
+        matcher = ->(name, type) { create_time_zone_conversion_attribute?(name, type) }
+        decorate_matching_attribute_types(matcher, :_time_zone_conversion) do |type|
+          TimeZoneConverter.new(type)
+        end
       end
 
       module ClassMethods

@@ -110,5 +110,26 @@ module ActiveRecord
 
       assert_equal 'whatever decorated!', column.default
     end
+
+    class Multiplier < SimpleDelegator
+      def type_cast_from_user(value)
+        return if value.nil?
+        value * 2
+      end
+      alias type_cast_from_database type_cast_from_user
+    end
+
+    test "decorating with a proc" do
+      Model.attribute :an_int, Type::Integer.new
+      type_is_integer = proc { |_, type| type.type == :integer }
+      Model.decorate_matching_attribute_types type_is_integer, :multiplier do |type|
+        Multiplier.new(type)
+      end
+
+      model = Model.new(a_string: 'whatever', an_int: 1)
+
+      assert_equal 'whatever', model.a_string
+      assert_equal 2, model.an_int
+    end
   end
 end

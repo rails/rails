@@ -9,18 +9,24 @@ module ActiveRecord
 
     module ClassMethods
       def decorate_attribute_type(column_name, decorator_name, &block)
+        matcher = ->(name, _) { name == column_name.to_s }
+        key = "_#{column_name}_#{decorator_name}"
+        decorate_matching_attribute_types(matcher, key, &block)
+      end
+
+      def decorate_matching_attribute_types(matcher, decorator_name, &block)
         clear_caches_calculated_from_columns
-        column_name = column_name.to_s
+        decorator_name = decorator_name.to_s
 
         # Create new hashes so we don't modify parent classes
-        self.attribute_type_decorations = attribute_type_decorations.merge(column_name, decorator_name, block)
+        self.attribute_type_decorations = attribute_type_decorations.merge(decorator_name => [matcher, block])
       end
 
       private
 
       def add_user_provided_columns(*)
         super.map do |column|
-          decorated_type = attribute_type_decorations.apply(column.name, column.cast_type)
+          decorated_type = attribute_type_decorations.apply(self, column.name, column.cast_type)
           column.with_type(decorated_type)
         end
       end
@@ -29,20 +35,30 @@ module ActiveRecord
     class TypeDecorator
       delegate :clear, to: :@decorations
 
-      def initialize(decorations = Hash.new({}))
+      def initialize(decorations = {})
         @decorations = decorations
       end
 
-      def merge(attribute_name, decorator_name, block)
-        decorations_for_attribute = @decorations[attribute_name]
-        new_decorations = decorations_for_attribute.merge(decorator_name.to_s => block)
-        TypeDecorator.new(@decorations.merge(attribute_name => new_decorations))
+      def merge(*args)
+        TypeDecorator.new(@decorations.merge(*args))
       end
 
-      def apply(attribute_name, type)
-        decorations = @decorations[attribute_name].values
+      def apply(context, name, type)
+        decorations = decorators_for(context, name, type)
         decorations.inject(type) do |new_type, block|
           block.call(new_type)
+        end
+      end
+
+      private
+
+      def decorators_for(context, name, type)
+        matching(context, name, type).map(&:last)
+      end
+
+      def matching(context, name, type)
+        @decorations.values.select do |(matcher, _)|
+          context.instance_exec(name, type, &matcher)
         end
       end
     end

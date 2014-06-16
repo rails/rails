@@ -310,6 +310,8 @@ module ActiveRecord #:nodoc:
     include CounterCache
     include Locking::Optimistic
     include Locking::Pessimistic
+    include Attributes
+    include AttributeDecorators
     include AttributeMethods
     include Callbacks
     include Timestamp
@@ -323,8 +325,6 @@ module ActiveRecord #:nodoc:
     include Reflection
     include Serialization
     include Store
-    include Attributes
-    include AttributeDecorators
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)
