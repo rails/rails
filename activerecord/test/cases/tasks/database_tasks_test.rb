@@ -285,6 +285,34 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
+    def test_purges_current_environment_database
+      configurations = {
+        'development' => {'database' => 'dev-db'},
+        'test'        => {'database' => 'test-db'},
+        'production'  => {'database' => 'prod-db'}
+      }
+      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
+        with('database' => 'prod-db')
+
+      ActiveRecord::Tasks::DatabaseTasks.purge_current('production')
+    end
+  end
+
+  class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
+    def test_purge_all_local_configurations
+      configurations = {:development => {'database' => 'my-db'}}
+      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
+        with('database' => 'my-db')
+
+      ActiveRecord::Tasks::DatabaseTasks.purge_all
+    end
+  end
+
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 

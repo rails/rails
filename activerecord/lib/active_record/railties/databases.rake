@@ -28,6 +28,17 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
+  namespace :purge do
+    task :all => :load_config do
+      ActiveRecord::Tasks::DatabaseTasks.purge_all
+    end
+  end
+
+  # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases."
+  task :purge => [:load_config] do
+    ActiveRecord::Tasks::DatabaseTasks.purge_current
+  end
+
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task :migrate => [:environment, :load_config] do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true

@@ -1,3 +1,7 @@
+*   Add `bin/rake db:purge` task to empty the current database.
+
+    *Yves Senn*
+
 *   Deprecate `serialized_attributes` without replacement. You can access its
     behavior by going through the column's type object.
 

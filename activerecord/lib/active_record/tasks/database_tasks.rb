@@ -143,6 +143,18 @@ module ActiveRecord
         class_for_adapter(configuration['adapter']).new(configuration).purge
       end
 
+      def purge_all
+        each_local_configuration { |configuration|
+          purge configuration
+        }
+      end
+
+      def purge_current(environment = env)
+        each_current_configuration(environment) { |configuration|
+          purge configuration
+        }
+      end
+
       def structure_dump(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
