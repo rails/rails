@@ -25,7 +25,6 @@ module ActiveModel
   #   person.name = "Bob"
   #   person.serializable_hash   # => {"name"=>"Bob"}
   #
-
   # An +attributes+ hash must be defined and should contain any attributes you
   # need to be serialized. Attributes must be strings, not symbols.
   # When called, serializable hash will use instance methods that match the name
@@ -33,8 +32,9 @@ module ActiveModel
   # at the private method +read_attribute_for_serialization+.
   #
   # Most of the time though, either the JSON or XML serializations are needed.
-  # Both of these modules automatically include the <tt>ActiveModel::Serialization</tt> 
-  # module, so there is no need to explicitly include it.
+  # Both of these modules automatically include the
+  # <tt>ActiveModel::Serialization</tt> module, so there is no need to
+  # explicitly include it.
   #
   # A minimal implementation including XML and JSON would be:
   #
