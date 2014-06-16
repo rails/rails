@@ -29,6 +29,14 @@ module ActiveRecord
       type.type_cast_for_database(value)
     end
 
+    def changed_from?(old_value)
+      type.changed?(old_value, value, value_before_type_cast)
+    end
+
+    def changed_in_place_from?(old_value)
+      type.changed_in_place?(old_value, value)
+    end
+
     def type_cast
       raise NotImplementedError
     end
@@ -50,6 +58,17 @@ module ActiveRecord
     class FromUser < Attribute
       def type_cast(value)
         type.type_cast_from_user(value)
+      end
+    end
+
+    class Null
+      class << self
+        attr_reader :value, :value_before_type_cast, :value_for_database
+
+        def changed_from?(*)
+          false
+        end
+        alias changed_in_place_from? changed_from?
       end
     end
   end

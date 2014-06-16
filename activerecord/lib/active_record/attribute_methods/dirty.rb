@@ -137,9 +137,7 @@ module ActiveRecord
       end
 
       def _field_changed?(attr, old_value)
-        new_value = read_attribute(attr)
-        raw_value = read_attribute_before_type_cast(attr)
-        column_for_attribute(attr).changed?(old_value, new_value, raw_value)
+        attribute_named(attr).changed_from?(old_value)
       end
 
       def changed_in_place
@@ -149,10 +147,8 @@ module ActiveRecord
       end
 
       def changed_in_place?(attr_name)
-        type = type_for_attribute(attr_name)
         old_value = original_raw_attribute(attr_name)
-        value = read_attribute(attr_name)
-        type.changed_in_place?(old_value, value)
+        attribute_named(attr_name).changed_in_place_from?(old_value)
       end
 
       def original_raw_attribute(attr_name)
@@ -166,9 +162,7 @@ module ActiveRecord
       end
 
       def store_original_raw_attribute(attr_name)
-        type = type_for_attribute(attr_name)
-        value = type.type_cast_for_database(read_attribute(attr_name))
-        original_raw_attributes[attr_name] = value
+        original_raw_attributes[attr_name] = attribute_named(attr_name).value_for_database
       end
 
       def store_original_raw_attributes
