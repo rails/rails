@@ -205,7 +205,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_local_ip
+    def test_drops_configurations_with_local_ip
       @configurations[:development].merge!('host' => '127.0.0.1')
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -213,7 +213,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_local_host
+    def test_drops_configurations_with_local_host
       @configurations[:development].merge!('host' => 'localhost')
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -221,7 +221,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_blank_hosts
+    def test_drops_configurations_with_blank_hosts
       @configurations[:development].merge!('host' => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -241,7 +241,7 @@ module ActiveRecord
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end
 
-    def test_creates_current_environment_database
+    def test_drops_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'prod-db')
 
