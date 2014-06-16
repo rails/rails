@@ -75,7 +75,7 @@ module ActiveRecord
         end
 
         def has_default?
-          return false if blob_or_text_column? #mysql forbids defaults on blob and text columns
+          return false if blob_or_text_column? # MySQL forbids defaults on blob and text columns
           super
         end
 
@@ -213,7 +213,7 @@ module ActiveRecord
         Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
-      # Must return the Mysql error number from the exception, if the exception has an
+      # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:
         raise NotImplementedError

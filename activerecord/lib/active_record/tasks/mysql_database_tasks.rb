@@ -124,7 +124,7 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
       end
 
       def root_password
-        $stdout.print "Please provide the root password for your mysql installation\n>"
+        $stdout.print "Please provide the root password for your MySQL installation\n>"
         $stdin.gets.strip
       end
 
