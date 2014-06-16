@@ -691,6 +691,11 @@ class HashExtTest < ActiveSupport::TestCase
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
       { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
+    # not all valid keys are required to be present
+    assert_nothing_raised do
+      { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny, :sunny ])
+      { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny, :sunny)
+    end
 
     exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
@@ -701,6 +706,16 @@ class HashExtTest < ActiveSupport::TestCase
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
     assert_equal "Unknown key: :failore. Valid keys are: :failure, :funny", exception.message
+    
+    exception = assert_raise ArgumentError do
+      { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure ])
+    end
+    assert_equal "Unknown key: :failore. Valid keys are: :failure", exception.message
+
+    exception = assert_raise ArgumentError do
+      { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure)
+    end
+    assert_equal "Unknown key: :failore. Valid keys are: :failure", exception.message
   end
 
   def test_assorted_keys_not_stringified
