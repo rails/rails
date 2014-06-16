@@ -83,6 +83,13 @@ module ActiveRecord
           if has_cached_counter?(reflection)
             counter = cached_counter_attribute_name(reflection)
             owner.class.update_counters(owner.id, counter => difference)
+            update_counter_in_memory(difference, reflection)
+          end
+        end
+
+        def update_counter_in_memory(difference, reflection = reflection())
+          if has_cached_counter?(reflection)
+            counter = cached_counter_attribute_name(reflection)
             owner[counter] += difference
             owner.changed_attributes.delete(counter) # eww
           end
@@ -136,6 +143,25 @@ module ActiveRecord
           else
             false
           end
+        end
+
+        def concat_records(records, *)
+          update_counter_if_success(super, records.length)
+        end
+
+        def _create_record(attributes, *)
+          if attributes.is_a?(Array)
+            super
+          else
+            update_counter_if_success(super, 1)
+          end
+        end
+
+        def update_counter_if_success(saved_successfully, difference)
+          if saved_successfully
+            update_counter_in_memory(difference)
+          end
+          saved_successfully
         end
     end
   end

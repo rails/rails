@@ -772,6 +772,36 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal topic.replies.to_a.size, topic.replies_count
   end
 
+  def test_counter_cache_updates_in_memory_after_concat
+    topic = Topic.create title: "Zoom-zoom-zoom"
+
+    topic.replies << Reply.create(title: "re: zoom", content: "speedy quick!")
+    assert_equal 1, topic.replies_count
+    assert_equal 1, topic.replies.size
+    assert_equal 1, topic.reload.replies.size
+  end
+
+  def test_counter_cache_updates_in_memory_after_create
+    topic = Topic.create title: "Zoom-zoom-zoom"
+
+    topic.replies.create!(title: "re: zoom", content: "speedy quick!")
+    assert_equal 1, topic.replies_count
+    assert_equal 1, topic.replies.size
+    assert_equal 1, topic.reload.replies.size
+  end
+
+  def test_counter_cache_updates_in_memory_after_create_with_array
+    topic = Topic.create title: "Zoom-zoom-zoom"
+
+    topic.replies.create!([
+      { title: "re: zoom", content: "speedy quick!" },
+      { title: "re: zoom 2", content: "OMG lol!" },
+    ])
+    assert_equal 2, topic.replies_count
+    assert_equal 2, topic.replies.size
+    assert_equal 2, topic.reload.replies.size
+  end
+
   def test_pushing_association_updates_counter_cache
     topic = Topic.order("id ASC").first
     reply = Reply.create!
