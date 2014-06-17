@@ -41,6 +41,9 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
+        class_option :skip_gems,          type: :array, default: [],
+                                          desc: 'Skip the provided gems files'
+
         class_option :skip_action_view,   type: :boolean, aliases: '-V', default: false,
                                           desc: 'Skip Action View files'
 
@@ -49,9 +52,6 @@ module Rails
 
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
-
-        class_option :skip_turbolinks,    type: :boolean, default: false,
-                                          desc: "Don't install Turbolinks"
 
         class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
@@ -82,7 +82,7 @@ module Rails
       end
 
       def initialize(*args)
-        @gem_filter    = lambda { |gem| true }
+        @gem_filter    = lambda { |gem| !options[:skip_gems].include?(gem.name) }
         @extra_entries = []
         super
         convert_database_option_for_jruby
@@ -290,10 +290,8 @@ module Rails
           gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
                                  "Use #{options[:javascript]} as the JavaScript library")
 
-          unless options[:skip_turbolinks]
-            gems << GemfileEntry.version("turbolinks", nil,
-              "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
-          end
+          gems << GemfileEntry.version("turbolinks", nil,
+            "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
           gems
         end
       end

@@ -1,3 +1,13 @@
+*   Add a generic --skip-gems options to generator
+
+    This option is useful if users want to remove some gems like jbuilder,
+    turbolinks, coffee-rails, etc that don't have specific options on the
+    generator.
+
+        rails new my_app --skip-gems turbolinks coffee-rails
+
+    *Rafael Mendonça França*
+
 *   Invalid `bin/rails generate` commands will now show spelling suggestions.
 
     *Richard Schneeman*
