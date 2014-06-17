@@ -183,6 +183,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     json.save!
     json.reload
 
-    assert json.payload['three'] = 'four'
+    assert_equal({ 'one' => 'two', 'three' => 'four' }, json.payload)
+    assert_not json.changed?
   end
 end
