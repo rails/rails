@@ -173,6 +173,51 @@ person.first_name_change # => [nil, "First Name"]
 person.last_name_change # => nil
 ```
 
+### Identity
+
+The Identity module makes objects of the same type be considered equal if they have the same ID. To implement, just include `ActiveModel::Identity` in your class:
+
+```ruby
+class User
+  include ActiveModel::Identity
+
+  attr_accessor :id
+end
+```
+
+Two objects without IDs are not equal:
+
+```ruby
+user1 = User.new
+user2 = User.new
+user2 == user1 # => false
+```
+
+Two objects with different IDs are not equal:
+
+```ruby
+user1.id = 1
+user2.id = 2
+user2 == user1 # => false
+```
+
+Two objects of different types are not equal:
+
+```ruby
+product = Product.new
+product.id = 1
+product == user1 # => false
+```
+
+Two objects with the same type and ID are considered equal:
+
+```ruby
+user2.id = 1
+user2 == user1 # => true
+```
+
+The only requirement is that your object responds to `#id`.
+
 ### Validations
 
 Validations module adds the ability to class objects to validate them in Active Record style.

@@ -1,3 +1,7 @@
+*   Add an `ActiveModel::Identity` mixin for comparisons of objects by ID.
+
+    *Aidan Feldman*
+
 *   Added `undo_changes` method to `ActiveModel::Dirty` API to restore all the
     changed values to the previous data.
 
