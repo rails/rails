@@ -107,14 +107,14 @@ module Rails
       end
 
       def gemfile_entries
-        [ rails_gemfile_entry,
-          database_gemfile_entry,
-          assets_gemfile_entry,
-          javascript_gemfile_entry,
-          jbuilder_gemfile_entry,
-          sdoc_gemfile_entry,
-          spring_gemfile_entry,
-          @extra_entries].flatten.find_all(&@gem_filter)
+        [rails_gemfile_entry,
+         database_gemfile_entry,
+         assets_gemfile_entry,
+         javascript_gemfile_entry,
+         jbuilder_gemfile_entry,
+         sdoc_gemfile_entry,
+         spring_gemfile_entry,
+         @extra_entries].flatten.find_all(&@gem_filter)
       end
 
       def add_gem_entry_filter
