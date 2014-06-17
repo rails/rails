@@ -204,7 +204,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_has_and_belongs_to_many_reflection
-    assert_equal :has_and_belongs_to_many, Category.reflections[:posts].macro
+    assert_equal :has_and_belongs_to_many, Category.reflections['posts'].macro
     assert_equal :posts, Category.reflect_on_all_associations(:has_and_belongs_to_many).first.name
   end
 
@@ -404,6 +404,16 @@ class ReflectionTest < ActiveRecord::TestCase
     reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, { :join_table => 'product_categories' }, category)
     reflection.stubs(:klass).returns(product)
     assert_equal 'product_categories', reflection.join_table
+  end
+
+  def test_reflection_keys_can_be_strings
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes(['departments' => 'chefs']).first.chefs
+    end
   end
 
   private
