@@ -57,9 +57,11 @@ class Hash
   end
   alias_method :to_options!, :symbolize_keys!
 
-  # Ensures all the hash's keys are present in the supplied list of <tt>*valid_keys</tt>.
-  # Raises an ArgumentError if any unexpected keys are encountered. 
-  # Note that keys are NOT treated indifferently: strings and symbols will not match each other.
+  # Validate all keys in a hash match <tt>*valid_keys</tt>, raising
+  # ArgumentError on a mismatch.
+  #
+  # Note that keys are treated differently than HashWithIndifferentAccess,
+  # meaning that string and symbol keys will not match.
   #
   #   { name: 'Rob', years: '28' }.assert_valid_keys(:name, :age) # => raises "ArgumentError: Unknown key: :years. Valid keys are: :name, :age"
   #   { name: 'Rob', age: '28' }.assert_valid_keys('name', 'age') # => raises "ArgumentError: Unknown key: :name. Valid keys are: 'name', 'age'"
