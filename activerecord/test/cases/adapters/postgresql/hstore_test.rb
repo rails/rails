@@ -170,6 +170,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       hstore.reload
 
       assert_equal 'four', hstore.settings['three']
+      assert_not hstore.changed?
     end
 
     def test_gen1

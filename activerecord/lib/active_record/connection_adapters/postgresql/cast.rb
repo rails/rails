@@ -8,7 +8,7 @@ module ActiveRecord
 
         def hstore_to_string(object, array_member = false) # :nodoc:
           if Hash === object
-            string = object.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(',')
+            string = object.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(', ')
             string = escape_hstore(string) if array_member
             string
           else
