@@ -38,21 +38,6 @@ module ActiveRecord
           end
         end
 
-        def array_to_string(value, column, adapter) # :nodoc:
-          casted_values = value.map do |val|
-            if String === val
-              if val == "NULL"
-                "\"#{val}\""
-              else
-                quote_and_escape(adapter.type_cast(val, column, true))
-              end
-            else
-              adapter.type_cast(val, column, true)
-            end
-          end
-          "{#{casted_values.join(',')}}"
-        end
-
         def range_to_string(object) # :nodoc:
           from = object.begin.respond_to?(:infinite?) && object.begin.infinite? ? '' : object.begin
           to   = object.end.respond_to?(:infinite?) && object.end.infinite? ? '' : object.end
@@ -84,19 +69,6 @@ module ActiveRecord
               else
                 '"%s"' % value.to_s.gsub(/(["\\])/, '\\\\\1')
               end
-            end
-          end
-
-          ARRAY_ESCAPE = "\\" * 2 * 2 # escape the backslash twice for PG arrays
-
-          def quote_and_escape(value)
-            case value
-            when "NULL", Numeric
-              value
-            else
-              value = value.gsub(/\\/, ARRAY_ESCAPE)
-              value.gsub!(/"/,"\\\"")
-              "\"#{value}\""
             end
           end
       end

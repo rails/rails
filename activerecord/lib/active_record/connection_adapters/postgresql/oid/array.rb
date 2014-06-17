@@ -22,6 +22,14 @@ module ActiveRecord
             type_cast_array(value, :type_cast_from_user)
           end
 
+          def type_cast_for_database(value)
+            if value.is_a?(::Array)
+              cast_value_for_database(value)
+            else
+              super
+            end
+          end
+
           # Loads pg_array_parser if available. String parsing can be
           # performed quicker by a native extension, which will not create
           # a large amount of Ruby objects that will need to be garbage
@@ -41,6 +49,28 @@ module ActiveRecord
               value.map { |item| type_cast_array(item, method) }
             else
               @subtype.public_send(method, value)
+            end
+          end
+
+          def cast_value_for_database(value)
+            if value.is_a?(::Array)
+              casted_values = value.map { |item| cast_value_for_database(item) }
+              "{#{casted_values.join(',')}}"
+            else
+              quote_and_escape(subtype.type_cast_for_database(value))
+            end
+          end
+
+          ARRAY_ESCAPE = "\\" * 2 * 2 # escape the backslash twice for PG arrays
+
+          def quote_and_escape(value)
+            case value
+            when ::String
+              value = value.gsub(/\\/, ARRAY_ESCAPE)
+              value.gsub!(/"/,"\\\"")
+              %("#{value}")
+            when nil then "NULL"
+            else value
             end
           end
         end
