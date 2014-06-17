@@ -53,6 +53,11 @@ module ActiveRecord
       included do
         class_attribute :lock_optimistically, instance_writer: false
         self.lock_optimistically = true
+
+        is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
+        decorate_matching_attribute_types(is_lock_column, :_optimistic_locking) do |type|
+          LockingType.new(type)
+        end
       end
 
       def locking_enabled? #:nodoc:
@@ -141,7 +146,7 @@ module ActiveRecord
 
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def locking_column=(value)
-          @column_defaults = nil
+          clear_caches_calculated_from_columns
           @locking_column = value.to_s
         end
 
@@ -162,18 +167,26 @@ module ActiveRecord
           counters = counters.merge(locking_column => 1) if locking_enabled?
           super
         end
+      end
+    end
 
-        def column_defaults
-          @column_defaults ||= begin
-            defaults = super
+    class LockingType < SimpleDelegator
+      def type_cast_from_database(value)
+        # `nil` *should* be changed to 0
+        super.to_i
+      end
 
-            if defaults.key?(locking_column) && lock_optimistically
-              defaults[locking_column] ||= 0
-            end
+      def changed?(old_value, *)
+        # Ensure we save if the default was `nil`
+        super || old_value == 0
+      end
 
-            defaults
-          end
-        end
+      def init_with(coder)
+        __setobj__(coder['subtype'])
+      end
+
+      def encode_with(coder)
+        coder['subtype'] = __getobj__
       end
     end
   end
