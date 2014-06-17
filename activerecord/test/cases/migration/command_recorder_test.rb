@@ -157,6 +157,23 @@ module ActiveRecord
         assert_equal [:remove_column, [:table, :column, :type, {}], nil], remove
       end
 
+      def test_invert_change_column
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :change_column, [:table, :column, :type, {}]
+        end
+      end
+
+      def test_invert_change_column_default
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :change_column_default, [:table, :column, 'default_value']
+        end
+      end
+
+      def test_invert_change_column_null
+        add = @recorder.inverse_of :change_column_null, [:table, :column, true]
+        assert_equal [:change_column_null, [:table, :column, false]], add
+      end
+
       def test_invert_remove_column
         add = @recorder.inverse_of :remove_column, [:table, :column, :type, {}]
         assert_equal [:add_column, [:table, :column, :type, {}], nil], add
