@@ -9,7 +9,7 @@ module ActiveJob
         end
 
         def enqueue_at(job, timestamp, *args)
-          JobWrapper.new.delay(queue: job.queue_name, run_at: timestamp).perform(job, *args)
+          JobWrapper.new.delay(queue: job.queue_name, run_at: Time.at(timestamp)).perform(job, *args)
         end
       end
 
