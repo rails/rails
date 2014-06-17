@@ -448,6 +448,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_skip_turbolinks
+    run_generator [destination_root, "--skip-turbolinks"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/turbolinks/, content)
+    end
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_no_match(/data-turbolinks-track/, content)
+    end
+    assert_file "app/assets/javascripts/application.js" do |content|
+      assert_no_match(/turbolinks/, content)
+    end
+  end
+
   def test_gitignore_when_sqlite3
     run_generator
 
