@@ -35,7 +35,7 @@
 
     *Rafael Mendonça França*
 
-*   `collection_check_boxes` respects `:index` option for the hidden file name.
+*   `collection_check_boxes` respects `:index` option for the hidden field name.
 
     Fixes #14147.
 
