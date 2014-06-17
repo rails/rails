@@ -1,3 +1,6 @@
+*   Make Dependencies pass a name to NameError error.
+    *arthurnn*
+
 *   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
     *Adam Panzer / Michael Grosser* 
 
