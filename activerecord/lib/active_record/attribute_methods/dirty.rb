@@ -40,7 +40,7 @@ module ActiveRecord
 
       def initialize_dup(other) # :nodoc:
         super
-        init_changed_attributes
+        calculate_changes_from_defaults
       end
 
       def changed?
@@ -71,17 +71,9 @@ module ActiveRecord
 
       private
 
-      def initialize_internals_callback
-        super
-        init_changed_attributes
-      end
-
-      def init_changed_attributes
+      def calculate_changes_from_defaults
         @changed_attributes = nil
-        # Intentionally avoid using #column_defaults since overridden defaults (as is done in
-        # optimistic locking) won't get written unless they get marked as changed
-        self.class.columns.each do |c|
-          attr, orig_value = c.name, c.default
+        self.class.column_defaults.each do |attr, orig_value|
           changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value)
         end
       end
