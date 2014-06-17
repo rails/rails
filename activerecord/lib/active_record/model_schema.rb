@@ -230,14 +230,16 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        @column_defaults ||= Hash[columns.map { |c| [c.name, c.default] }]
+        @column_defaults ||= Hash[columns_hash.map { |name, column|
+          [name, column.type_cast_from_database(column.default)]
+        }]
       end
 
       # Returns a hash where the keys are the column names and the values
       # are the default values suitable for use in `@raw_attriubtes`
       def raw_column_defaults # :nodoc:
-        @raw_column_defauts ||= Hash[column_defaults.map { |name, default|
-          [name, columns_hash[name].type_cast_for_database(default)]
+        @raw_column_defaults ||= Hash[columns_hash.map { |name, column|
+          [name, column.default]
         }]
       end
 
@@ -285,7 +287,7 @@ module ActiveRecord
 
         @arel_engine             = nil
         @column_defaults         = nil
-        @raw_column_defauts      = nil
+        @raw_column_defaults     = nil
         @column_names            = nil
         @column_types            = nil
         @content_columns         = nil

@@ -23,13 +23,23 @@ module ActiveRecord
         spec[:precision] = column.precision.inspect if column.precision
         spec[:scale]     = column.scale.inspect if column.scale
         spec[:null]      = 'false' unless column.null
-        spec[:default]   = column.type_cast_for_schema(column.default) if column.has_default?
+        spec[:default]   = schema_default(column) if column.has_default?
+        spec.delete(:default) if spec[:default].nil?
         spec
       end
 
       # Lists the valid migration options
       def migration_keys
         [:name, :limit, :precision, :scale, :default, :null]
+      end
+
+      private
+
+      def schema_default(column)
+        default = column.type_cast_from_database(column.default)
+        unless default.nil?
+          column.type_cast_for_schema(default)
+        end
       end
     end
   end

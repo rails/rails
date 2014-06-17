@@ -62,15 +62,14 @@ module ActiveRecord
           @extra     = extra
           super(name, default, cast_type, sql_type, null)
           assert_valid_default(default)
+          extract_default
         end
 
-        def default
-          @default ||= if blob_or_text_column?
-            null || strict ? nil : ''
-          elsif missing_default_forged_as_empty_string?(@original_default)
-            nil
-          else
-            super
+        def extract_default
+          if blob_or_text_column?
+            @default = null || strict ? nil : ''
+          elsif missing_default_forged_as_empty_string?(@default)
+            @default = nil
           end
         end
 
