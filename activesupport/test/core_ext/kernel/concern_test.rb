@@ -6,7 +6,8 @@ class KernelConcernTest < ActiveSupport::TestCase
     mod = ::TOPLEVEL_BINDING.eval 'concern(:ToplevelConcern) { }'
     assert_equal mod, ::ToplevelConcern
     assert_kind_of ActiveSupport::Concern, ::ToplevelConcern
-    assert !Object.ancestors.include?(::ToplevelConcern), mod.ancestors.inspect
+    assert_not Object.ancestors.include?(::ToplevelConcern), mod.ancestors.inspect
+  ensure
     Object.send :remove_const, :ToplevelConcern
   end
 end
