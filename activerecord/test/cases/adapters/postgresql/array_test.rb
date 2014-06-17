@@ -3,6 +3,7 @@ require "cases/helper"
 
 class PostgresqlArrayTest < ActiveRecord::TestCase
   include InTimeZone
+  OID = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
 
   class PgArray < ActiveRecord::Base
     self.table_name = 'pg_arrays'
@@ -201,6 +202,23 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     ar = PgArray.create!(tags: tags)
     ar.reload
     assert_equal tags, ar.tags
+  end
+
+  def test_string_quoting_rules_match_pg_behavior
+    tags = ["", "one{", "two}", %(three"), "four\\", "five ", "six\t", "seven\n", "eight,", "nine", "ten\r", "NULL"]
+    x = PgArray.create!(tags: tags)
+    x.reload
+
+    assert_equal x.tags_before_type_cast, PgArray.columns_hash['tags'].type_cast_for_database(tags)
+  end
+
+  def test_quoting_non_standard_delimiters
+    strings = ["hello,", "world;"]
+    comma_delim = OID::Array.new(ActiveRecord::Type::String.new, ',')
+    semicolon_delim = OID::Array.new(ActiveRecord::Type::String.new, ';')
+
+    assert_equal %({"hello,",world;}), comma_delim.type_cast_for_database(strings)
+    assert_equal %({hello,;"world;"}), semicolon_delim.type_cast_for_database(strings)
   end
 
   def test_datetime_with_timezone_awareness
