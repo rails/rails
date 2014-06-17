@@ -3,11 +3,12 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Array < Type::Value
-          attr_reader :subtype
+          attr_reader :subtype, :delimiter
           delegate :type, to: :subtype
 
-          def initialize(subtype)
+          def initialize(subtype, delimiter = ',')
             @subtype = subtype
+            @delimiter = delimiter
           end
 
           def type_cast_from_database(value)
@@ -55,7 +56,7 @@ module ActiveRecord
           def cast_value_for_database(value)
             if value.is_a?(::Array)
               casted_values = value.map { |item| cast_value_for_database(item) }
-              "{#{casted_values.join(',')}}"
+              "{#{casted_values.join(delimiter)}}"
             else
               quote_and_escape(subtype.type_cast_for_database(value))
             end
@@ -66,12 +67,25 @@ module ActiveRecord
           def quote_and_escape(value)
             case value
             when ::String
-              value = value.gsub(/\\/, ARRAY_ESCAPE)
-              value.gsub!(/"/,"\\\"")
-              %("#{value}")
+              if string_requires_quoting?(value)
+                value = value.gsub(/\\/, ARRAY_ESCAPE)
+                value.gsub!(/"/,"\\\"")
+                %("#{value}")
+              else
+                value
+              end
             when nil then "NULL"
             else value
             end
+          end
+
+          # See http://www.postgresql.org/docs/9.2/static/arrays.html#ARRAYS-IO
+          # for a list of all cases in which strings will be quoted.
+          def string_requires_quoting?(string)
+            string.empty? ||
+              string == "NULL" ||
+              string =~ /[\{\}"\\\s]/ ||
+              string.include?(delimiter)
           end
         end
       end
