@@ -308,10 +308,10 @@ module ActiveRecord #:nodoc:
     include Integration
     include Validations
     include CounterCache
-    include Locking::Optimistic
-    include Locking::Pessimistic
     include Attributes
     include AttributeDecorators
+    include Locking::Optimistic
+    include Locking::Pessimistic
     include AttributeMethods
     include Callbacks
     include Timestamp
