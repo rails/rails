@@ -7,6 +7,16 @@ module ActiveRecord
         :datetime
       end
 
+      def type_cast_for_database(value)
+        zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
+
+        if value.acts_like?(:time)
+          value.send(zone_conversion_method)
+        else
+          super
+        end
+      end
+
       private
 
       def cast_value(string)

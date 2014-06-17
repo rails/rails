@@ -32,11 +32,7 @@ module ActiveRecord
             when 'point' then super(PostgreSQLColumn.point_to_string(value))
             when 'json' then super(PostgreSQLColumn.json_to_string(value))
             else
-              if column.array
-                "'#{PostgreSQLColumn.array_to_string(value, column, self).gsub(/'/, "''")}'"
-              else
-                super
-              end
+              super(value, array_column(column))
             end
           when Hash
             case sql_type
@@ -98,11 +94,7 @@ module ActiveRecord
             when 'point' then PostgreSQLColumn.point_to_string(value)
             when 'json' then PostgreSQLColumn.json_to_string(value)
             else
-              if column.array
-                PostgreSQLColumn.array_to_string(value, column, self)
-              else
-                super(value, column)
-              end
+              super(value, array_column(column))
             end
           when Hash
             case column.sql_type
@@ -183,6 +175,26 @@ module ActiveRecord
             { value: value.to_s, format: 1 }
           else
             super
+          end
+        end
+
+        def array_column(column)
+          if column.array && !column.respond_to?(:type_cast_for_database)
+            OID::Array.new(AdapterProxyType.new(column, self))
+          else
+            column
+          end
+        end
+
+        class AdapterProxyType < SimpleDelegator
+          def initialize(column, adapter)
+            @column = column
+            @adapter = adapter
+            super(column)
+          end
+
+          def type_cast_for_database(value)
+            @adapter.type_cast(value, @column)
           end
         end
       end
