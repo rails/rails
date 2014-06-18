@@ -11,6 +11,12 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
+
+    unless @connection.extension_enabled?('hstore')
+      @connection.enable_extension 'hstore'
+      @connection.commit_db_transaction
+    end
+
     @connection.transaction do
       @connection.create_table('pg_arrays') do |t|
         t.string 'tags', array: true
