@@ -1,3 +1,7 @@
+*   Detect in-place modifications of PG array types
+
+    *Sean Griffin*
+
 *   Add `bin/rake db:purge` task to empty the current database.
 
     *Yves Senn*

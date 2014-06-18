@@ -16,6 +16,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
         t.string 'tags', array: true
         t.integer 'ratings', array: true
         t.datetime :datetimes, array: true
+        t.hstore :hstores, array: true
       end
     end
     @column = PgArray.columns_hash['tags']
@@ -219,6 +220,28 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
     assert_equal %({"hello,",world;}), comma_delim.type_cast_for_database(strings)
     assert_equal %({hello,;"world;"}), semicolon_delim.type_cast_for_database(strings)
+  end
+
+  def test_mutate_array
+    x = PgArray.create!(tags: %w(one two))
+
+    x.tags << "three"
+    x.save!
+    x.reload
+
+    assert_equal %w(one two three), x.tags
+    assert_not x.changed?
+  end
+
+  def test_mutate_value_in_array
+    x = PgArray.create!(hstores: [{ a: 'a' }, { b: 'b' }])
+
+    x.hstores.first['a'] = 'c'
+    x.save!
+    x.reload
+
+    assert_equal [{ 'a' => 'c' }, { 'b' => 'b' }], x.hstores
+    assert_not x.changed?
   end
 
   def test_datetime_with_timezone_awareness

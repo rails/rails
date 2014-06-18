@@ -3,6 +3,20 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Array < Type::Value
+          include Type::Mutable
+
+          # Loads pg_array_parser if available. String parsing can be
+          # performed quicker by a native extension, which will not create
+          # a large amount of Ruby objects that will need to be garbage
+          # collected. pg_array_parser has a C and Java extension
+          begin
+            require 'pg_array_parser'
+            include PgArrayParser
+          rescue LoadError
+            require 'active_record/connection_adapters/postgresql/array_parser'
+            include PostgreSQL::ArrayParser
+          end
+
           attr_reader :subtype, :delimiter
           delegate :type, to: :subtype
 
@@ -29,18 +43,6 @@ module ActiveRecord
             else
               super
             end
-          end
-
-          # Loads pg_array_parser if available. String parsing can be
-          # performed quicker by a native extension, which will not create
-          # a large amount of Ruby objects that will need to be garbage
-          # collected. pg_array_parser has a C and Java extension
-          begin
-            require 'pg_array_parser'
-            include PgArrayParser
-          rescue LoadError
-            require 'active_record/connection_adapters/postgresql/array_parser'
-            include PostgreSQL::ArrayParser
           end
 
           private
