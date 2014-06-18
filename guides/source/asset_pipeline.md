@@ -760,7 +760,7 @@ typical manifest file looks like:
 "digest":"12b3c7dd74d2e9df37e7cbb1efa76a6d"},"application-1c5752789588ac18d7e1a50b1f0fd4c2.css":{"logical_path":"application.css","mtime":"2013-07-26T22:56:17-07:00","size":1591,
 "digest":"1c5752789588ac18d7e1a50b1f0fd4c2"},"favicon-a9c641bf2b81f0476e876f7c5e375969.ico":{"logical_path":"favicon.ico","mtime":"2013-07-26T23:00:10-07:00","size":1406,
 "digest":"a9c641bf2b81f0476e876f7c5e375969"},"my_image-231a680f23887d9dd70710ea5efd3c62.png":{"logical_path":"my_image.png","mtime":"2013-07-26T23:00:27-07:00","size":6646,
-"digest":"231a680f23887d9dd70710ea5efd3c62"}},"assets"{"application.js":
+"digest":"231a680f23887d9dd70710ea5efd3c62"}},"assets":{"application.js":
 "application-723d1be6cc741a3aabb1cec24276d681.js","application.css":
 "application-1c5752789588ac18d7e1a50b1f0fd4c2.css",
 "favicon.ico":"favicona9c641bf2b81f0476e876f7c5e375969.ico","my_image.png":
