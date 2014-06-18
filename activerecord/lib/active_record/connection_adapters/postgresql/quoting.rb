@@ -179,8 +179,8 @@ module ActiveRecord
         end
 
         def array_column(column)
-          if column.array && !column.respond_to?(:type_cast_for_database)
-            OID::Array.new(AdapterProxyType.new(column, self))
+          if column.array && !column.respond_to?(:cast_type)
+            Column.new('', nil, OID::Array.new(AdapterProxyType.new(column, self)))
           else
             column
           end
