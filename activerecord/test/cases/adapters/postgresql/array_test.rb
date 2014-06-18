@@ -17,6 +17,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
       @connection.commit_db_transaction
     end
 
+    @connection.reconnect!
+
     @connection.transaction do
       @connection.create_table('pg_arrays') do |t|
         t.string 'tags', array: true
