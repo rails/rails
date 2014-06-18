@@ -68,7 +68,7 @@ module ActiveRecord
             ref[name] = reflection
           end
         end
-        ref
+        ref.with_indifferent_access
       end
 
       # Returns an array of AssociationReflection objects for all the
