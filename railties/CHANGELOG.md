@@ -1,3 +1,7 @@
+*   Deprecate `Rails::Rack::LogTailer` with not replacement.
+
+    *Rafael Mendonça França*
+
 *   Add a generic --skip-gems options to generator
 
     This option is useful if users want to remove some gems like jbuilder,
