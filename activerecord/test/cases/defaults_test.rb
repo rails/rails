@@ -154,7 +154,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
         t.column :omit, :integer, :null => false
       end
 
-      assert_equal 0, klass.columns_hash['zero'].default
+      assert_equal '0', klass.columns_hash['zero'].default
       assert !klass.columns_hash['zero'].null
       # 0 in MySQL 4, nil in 5.
       assert [0, nil].include?(klass.columns_hash['omit'].default)

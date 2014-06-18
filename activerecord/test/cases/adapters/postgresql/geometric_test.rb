@@ -35,12 +35,10 @@ class PostgresqlPointTest < ActiveRecord::TestCase
   end
 
   def test_default
-    column = PostgresqlPoint.columns_hash["y"]
-    assert_equal [12.2, 13.3], column.default
+    assert_equal [12.2, 13.3], PostgresqlPoint.column_defaults['y']
     assert_equal [12.2, 13.3], PostgresqlPoint.new.y
 
-    column = PostgresqlPoint.columns_hash["z"]
-    assert_equal [14.4, 15.5], column.default
+    assert_equal [14.4, 15.5], PostgresqlPoint.column_defaults['z']
     assert_equal [14.4, 15.5], PostgresqlPoint.new.z
   end
 

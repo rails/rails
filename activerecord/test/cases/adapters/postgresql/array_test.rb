@@ -49,9 +49,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   def test_default
     @connection.add_column 'pg_arrays', 'score', :integer, array: true, default: [4, 4, 2]
     PgArray.reset_column_information
-    column = PgArray.columns_hash["score"]
 
-    assert_equal([4, 4, 2], column.default)
+    assert_equal([4, 4, 2], PgArray.column_defaults['score'])
     assert_equal([4, 4, 2], PgArray.new.score)
   ensure
     PgArray.reset_column_information
@@ -60,9 +59,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   def test_default_strings
     @connection.add_column 'pg_arrays', 'names', :string, array: true, default: ["foo", "bar"]
     PgArray.reset_column_information
-    column = PgArray.columns_hash["names"]
 
-    assert_equal(["foo", "bar"], column.default)
+    assert_equal(["foo", "bar"], PgArray.column_defaults['names'])
     assert_equal(["foo", "bar"], PgArray.new.names)
   ensure
     PgArray.reset_column_information
@@ -76,7 +74,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     column = PgArray.columns_hash['snippets']
 
     assert_equal :text, column.type
-    assert_equal [], column.default
+    assert_equal [], PgArray.column_defaults['snippets']
     assert column.array
   end
 
@@ -93,8 +91,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     @connection.change_column_default :pg_arrays, :tags, []
 
     PgArray.reset_column_information
-    column = PgArray.columns_hash['tags']
-    assert_equal [], column.default
+    assert_equal [], PgArray.column_defaults['tags']
   end
 
   def test_type_cast_array
