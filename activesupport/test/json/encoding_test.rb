@@ -4,8 +4,11 @@ require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 require 'active_support/time'
+require 'time_zone_test_helpers'
 
 class TestJSONEncoding < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   class Foo
     def initialize(a, b)
       @a, @b = a, b
@@ -528,13 +531,6 @@ EXPECTED
 
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
-    end
-
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
     end
 
     def with_standard_json_time_format(boolean = true)

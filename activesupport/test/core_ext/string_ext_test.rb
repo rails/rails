@@ -10,10 +10,12 @@ require 'active_support/time'
 require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/string/indent'
+require 'time_zone_test_helpers'
 
 class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
+  include TimeZoneTestHelpers
 
   def test_strip_heredoc_on_an_empty_string
     assert_equal '', ''.strip_heredoc
@@ -354,6 +356,8 @@ class StringAccessTest < ActiveSupport::TestCase
 end
 
 class StringConversionsTest < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   def test_string_to_time
     with_env_tz "Europe/Moscow" do
       assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:utc)
@@ -523,14 +527,6 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_nil "".to_date
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end
 
 class StringBehaviourTest < ActiveSupport::TestCase

@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'core_ext/date_and_time_behavior'
+require 'time_zone_test_helpers'
 
 class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year,month,day,hour,minute,second,*args)
@@ -8,6 +9,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   include DateAndTimeBehavior
+  include TimeZoneTestHelpers
 
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
@@ -352,12 +354,4 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0, DateTime.civil(2000).nsec
     assert_equal 500000000, DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)).nsec
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end
