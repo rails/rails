@@ -306,7 +306,7 @@ module ActionDispatch
           def blocks(options_constraints, scope_blocks)
             if options_constraints && !options_constraints.is_a?(Hash)
               verify_callable_constraint(options_constraints)
-              [options_constraints]
+              [*scope_blocks, options_constraints]
             else
               scope_blocks || []
             end

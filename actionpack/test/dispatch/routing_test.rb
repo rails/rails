@@ -2468,6 +2468,29 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raises(ActionController::UrlGenerationError){ movie_trailer_path(:movie_id => '00001') }
   end
 
+  def test_lambda_constraints_are_merged_from_scope
+    draw do
+      scope constraints: lambda { |req| req.subdomain == 'numbers' } do
+        get ':number', to: 'numbers#evens', constraints: lambda { |params, _req|
+          params[:number].to_i.even?
+        }
+        get ':number', to: 'numbers#odds'
+      end
+    end
+
+    get 'http://numbers.example.com/42'
+    assert_equal 'numbers#evens', @response.body
+
+    get 'http://numbers.example.com/5'
+    assert_equal 'numbers#odds', @response.body
+
+    get 'http://example.com/42'
+    assert_equal 'Not Found', @response.body
+
+    get 'http://example.com/5'
+    assert_equal 'Not Found', @response.body
+  end
+
   def test_only_should_be_read_from_scope
     draw do
       scope :only => [:index, :show] do

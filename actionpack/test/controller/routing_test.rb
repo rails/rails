@@ -255,20 +255,6 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert scope_called, "scope constraint should be called"
   end
 
-  def test_scoped_lambda_with_get_lambda
-    inner_called = false
-
-    rs.draw do
-      scope '/foo', :constraints => lambda { |req| flunk "should not be called" } do
-        get '/', :constraints    => lambda { |req| inner_called = true },
-                 :to             => lambda { |env| [200, {}, %w{default}] }
-      end
-    end
-
-    assert_equal 'default', get(URI('http://www.example.org/foo/'))
-    assert inner_called, "inner constraint should be called"
-  end
-
   def test_empty_string_match
     rs.draw do
       get '/:username', :constraints => { :username => /[^\/]+/ },
