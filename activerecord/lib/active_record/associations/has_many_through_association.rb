@@ -63,7 +63,6 @@ module ActiveRecord
         end
 
         save_through_record(record)
-        update_counter(1)
         record
       end
 
