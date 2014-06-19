@@ -146,7 +146,7 @@ If you use the cookie session store, this would apply to the `session` and
 
 Flash message keys are
 [normalized to strings](https://github.com/rails/rails/commit/a668beffd64106a1e1fedb71cc25eaaa11baf0c1). They
-can still be accessed using either symbols or strings. Lopping through the flash
+can still be accessed using either symbols or strings. Looping through the flash
 will always yield string keys:
 
 ```ruby
