@@ -273,7 +273,7 @@ module ActiveRecord
       row    = result.first
       value  = row && row.values.first
       column = result.column_types.fetch(column_alias) do
-        column_for(column_name)
+        type_for(column_name)
       end
 
       type_cast_calculated_value(value, column, operation)
@@ -336,14 +336,14 @@ module ActiveRecord
       Hash[calculated_data.map do |row|
         key = group_columns.map { |aliaz, col_name|
           column = calculated_data.column_types.fetch(aliaz) do
-            column_for(col_name)
+            type_for(col_name)
           end
           type_cast_calculated_value(row[aliaz], column)
         }
         key = key.first if key.size == 1
         key = key_records[key] if associated
 
-        column_type = calculated_data.column_types.fetch(aggregate_alias) { column_for(column_name) }
+        column_type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
         [key, type_cast_calculated_value(row[aggregate_alias], column_type, operation)]
       end]
     end
@@ -370,22 +370,18 @@ module ActiveRecord
       @klass.connection.table_alias_for(table_name)
     end
 
-    def column_for(field)
+    def type_for(field)
       field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
-      @klass.columns_hash[field_name]
+      @klass.type_for_attribute(field_name)
     end
 
-    def type_cast_calculated_value(value, column, operation = nil)
+    def type_cast_calculated_value(value, type, operation = nil)
       case operation
         when 'count'   then value.to_i
-        when 'sum'     then type_cast_using_column(value || 0, column)
+        when 'sum'     then type.type_cast_from_database(value || 0)
         when 'average' then value.respond_to?(:to_d) ? value.to_d : value
-        else type_cast_using_column(value, column)
+        else type.type_cast_from_database(value)
       end
-    end
-
-    def type_cast_using_column(value, column)
-      column ? column.type_cast_from_database(value) : value
     end
 
     # TODO: refactor to allow non-string `select_values` (eg. Arel nodes).
