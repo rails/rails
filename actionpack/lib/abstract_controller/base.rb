@@ -253,7 +253,7 @@ module AbstractController
 
       # Checks if the action name is valid and returns false otherwise.
       def _valid_action_name?(action_name)
-        action_name.to_s !~ Regexp.new(File::SEPARATOR)
+        !action_name.to_s.include? File::SEPARATOR
       end
   end
 end
