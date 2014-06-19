@@ -239,3 +239,143 @@ A class with `Model` included can be used on `form_for`, `render` and any other 
 <%= form_for @email_contact %>
 <%= render @email_contact %>
 ```
+
+### Serialization
+
+`Serialization` provides a basic serialization for your object.
+You need to declare an attributes hash which contains the attributes you want to serialize. Attributes must be strings, not symbols.
+
+```ruby
+class Person
+  include ActiveModel::Serialization
+
+  attr_accessor :name
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+Now you can access a serialized hash of your object using the `serializable_hash`.
+
+```ruby
+person = Person.new
+person.serializable_hash   # => {"name"=>nil}
+person.name = "Bob"
+person.serializable_hash   # => {"name"=>"Bob"}
+```
+
+#### Serializers
+
+Rails provides two serializers `Serializers::JSON` and `Serializers::Xml`. Both of these modules automatically include the `Serialization`.
+
+##### Serializers::JSON
+
+To use the `Serializers::JSON` you only need to change from `Serialization` to `Serializers::JSON`.
+
+```ruby
+class Person
+  include ActiveModel::Serializers::JSON
+
+  attr_accessor :name
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+With the `as_json` you have a hash representing the model.
+
+```ruby
+person = Person.new
+person.as_json # => {"name"=>nil}
+person.name = "Bob"
+person.as_json # => {"name"=>"Bob"}
+```
+
+With the `from_json` you define the attributes of the model from a JSON.
+First you need to have the `attributes=` on your class.
+
+```ruby
+class Person
+  include ActiveModel::Serializers::JSON
+
+  attr_accessor :name
+
+  def attributes=(hash)
+    hash.each do |key, value|
+      send("#{key}=", value)
+    end
+  end
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+Now it is possible to create a instance of person using the `from_json`.
+
+```ruby
+json = { name: 'Bob' }.to_json
+person = Person.new
+person.from_json(json) # => #<Person:0x00000100c773f0 @name="Bob">
+person.name            # => "Bob"
+```
+
+##### Serializers::Xml
+
+To use the `Serializers::Xml` you only need to change from `Serialization` to `Serializers::Xml`.
+
+```ruby
+class Person
+  include ActiveModel::Serializers::Xml
+
+  attr_accessor :name
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+With the `to_xml` you have a XML representing the model.
+
+```ruby
+person = Person.new
+person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name nil=\"true\"/>\n</person>\n"
+person.name = "Bob"
+person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>Bob</name>\n</person>\n"
+```
+
+With the `from_xml` you define the attributes of the model from a XML.
+First you need to have the `attributes=` on your class.
+
+```ruby
+class Person
+  include ActiveModel::Serializers::Xml
+
+  attr_accessor :name
+
+  def attributes=(hash)
+    hash.each do |key, value|
+      send("#{key}=", value)
+    end
+  end
+
+  def attributes
+    {'name' => nil}
+  end
+end
+```
+
+Now it is possible to create a instance of person using the `from_xml`.
+
+```ruby
+xml = { name: 'Bob' }.to_xml
+person = Person.new
+person.from_xml(xml) # => #<Person:0x00000100c773f0 @name="Bob">
+person.name          # => "Bob"
+```
