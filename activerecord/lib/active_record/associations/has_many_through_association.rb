@@ -93,7 +93,9 @@ module ActiveRecord
         end
 
         def through_scope_attributes
-          scope.where_values_hash(through_association.reflection.name.to_s).except!(through_association.reflection.foreign_key)
+          scope.where_values_hash(through_association.reflection.name.to_s).
+            except!(through_association.reflection.foreign_key,
+                    through_association.reflection.klass.inheritance_column)
         end
 
         def save_through_record(record)
