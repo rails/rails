@@ -306,10 +306,6 @@ module ActiveRecord
         self.client_min_messages = old
       end
 
-      def supports_insert_with_returning?
-        true
-      end
-
       def supports_ddl_transactions?
         true
       end
