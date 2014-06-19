@@ -1191,7 +1191,7 @@ Create the controller and views.
 * `app/controllers/errors_controller.rb`
 
   ```ruby
-  class ErrorsController < ApplicationController
+  class ErrorsController < ActionController::Base
     layout 'error'
 
     def not_found
