@@ -1129,4 +1129,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, post.lazy_readers_unscope_skimmers.to_a.size
     assert_equal 2, post.lazy_people_unscope_skimmers.to_a.size
   end
+  
+  def test_has_many_through_add_with_sti_middle_relation
+    club = SuperClub.create!(name: 'Fight Club')
+    member = Member.create!(name: 'Tyler Durden')
+
+    club.members << member
+    assert_equal 1, SuperMembership.where(member_id: member.id, club_id: club.id).count
+  end
 end
