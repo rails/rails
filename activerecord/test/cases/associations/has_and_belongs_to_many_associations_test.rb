@@ -869,6 +869,15 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_includes magazine.articles, article
   end
 
+  def test_has_and_belongs_to_many_in_a_namespaced_model_pointing_to_a_non_namespaced_model
+    article = Publisher::Article.create
+    tag = Tag.create
+    article.tags << tag
+    article.save
+
+    assert_includes article.tags, tag
+  end
+
   def test_redefine_habtm
     child = SubDeveloper.new("name" => "Aredridel")
     child.special_projects << SpecialProject.new("name" => "Special Project")
