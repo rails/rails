@@ -230,7 +230,7 @@ module ActiveRecord
       # For queries selecting a subset of columns, return false for unselected columns.
       # We check defined?(@attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && @attributes.any? && self.class.column_names.include?(name)
+      if defined?(@attributes) && self.class.column_names.include?(name)
         return has_attribute?(name)
       end
 
@@ -247,7 +247,7 @@ module ActiveRecord
     #   person.has_attribute?('age')    # => true
     #   person.has_attribute?(:nothing) # => false
     def has_attribute?(attr_name)
-      @attributes.has_key?(attr_name.to_s)
+      @attributes.include?(attr_name.to_s)
     end
 
     # Returns an array of names for the attributes available on this object.
@@ -366,12 +366,6 @@ module ActiveRecord
     end
 
     protected
-
-    def clone_attributes # :nodoc:
-      @attributes.each_with_object({}) do |(name, attr), h|
-        h[name] = attr.dup
-      end
-    end
 
     def clone_attribute_value(reader_method, attribute_name) # :nodoc:
       value = send(reader_method, attribute_name)
