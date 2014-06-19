@@ -379,3 +379,30 @@ person = Person.new
 person.from_xml(xml) # => #<Person:0x00000100c773f0 @name="Bob">
 person.name          # => "Bob"
 ```
+
+### Translation
+
+Provides integration between your object and the Rails internationalization (i18n) framework.
+
+```ruby
+class Person
+  extend ActiveModel::Translation
+
+end
+```
+
+With the `human_attribute_name` you can transform attribute names into a more human format. The human format is defined in your locale file.
+
+* config/locales/app.pt-BR.yml
+
+  ```yml
+  pt-BR:
+    activemodel:
+      attributes:
+        person:
+          name: 'Nome'
+  ```
+
+```ruby
+Person.human_attribute_name('name') # => "Nome"
+```
