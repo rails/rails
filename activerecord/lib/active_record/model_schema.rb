@@ -236,8 +236,8 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        @column_defaults ||= Hash[columns_hash.map { |name, column|
-          [name, column.type_cast_from_database(column.default)]
+        @column_defaults ||= Hash[raw_column_defaults.map { |name, default|
+          [name, type_for_attribute(name).type_cast_from_database(default)]
         }]
       end
 
