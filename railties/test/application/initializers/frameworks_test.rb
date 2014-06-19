@@ -50,7 +50,7 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
-    test "does not include url helpers as action methods" do
+    test "includes url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
@@ -66,8 +66,8 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert Foo.method_defined?(:foo_path)
+      assert Foo.method_defined?(:foo_url)
       assert Foo.method_defined?(:main_app)
-      assert_equal Set.new(["notify"]), Foo.action_methods
     end
 
     test "allows to not load all helpers for controllers" do

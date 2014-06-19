@@ -86,12 +86,13 @@ module ActionDispatch
       # named routes.
       class NamedRouteCollection #:nodoc:
         include Enumerable
-        attr_reader :routes, :helpers, :module
+        attr_reader :routes, :helpers, :url_helpers_module
 
         def initialize
           @routes  = {}
           @helpers = Set.new
-          @module  = Module.new
+          @url_helpers_module  = Module.new
+          @path_helpers_module = Module.new
         end
 
         def route_defined?(name)
@@ -104,7 +105,11 @@ module ActionDispatch
 
         def clear!
           @helpers.each do |helper|
-            @module.send :undef_method, helper
+            if helper =~ /_path$/
+              @path_helpers_module.send :undef_method, helper
+            else
+              @url_helpers_module.send  :undef_method, helper
+            end
           end
 
           @routes.clear
@@ -114,10 +119,12 @@ module ActionDispatch
         def add(name, route)
           key = name.to_sym
           if routes.key? key
-            undef_named_route_methods @module, name
+            @path_helpers_module.send :undef_method, :"#{name}_path"
+            @url_helpers_module.send  :undef_method, :"#{name}_url"
           end
           routes[key] = route
-          define_named_route_methods(@module, name, route)
+          define_url_helper @path_helpers_module, route, :"#{name}_path", route.defaults, name, PATH
+          define_url_helper @url_helpers_module,  route, :"#{name}_url",  route.defaults, name, FULL
         end
 
         def get(name)
@@ -139,6 +146,26 @@ module ActionDispatch
 
         def length
           routes.length
+        end
+
+        def path_helpers_module(warn = false)
+          if warn
+            mod = @path_helpers_module
+            Module.new do
+              include mod
+
+              mod.instance_methods(false).each do |meth|
+                define_method("#{meth}_with_warning") do |*args, &block|
+                  ActiveSupport::Deprecation.warn("The method `#{meth}` cannot be used here as a full URL is required. Use `#{meth.to_s.sub(/_path$/, '_url')}` instead")
+                  send("#{meth}_without_warning", *args, &block)
+                end
+
+                alias_method_chain meth, :warning
+              end
+            end
+          else
+            @path_helpers_module
+          end
         end
 
         class UrlHelper # :nodoc:
@@ -263,7 +290,7 @@ module ActionDispatch
         #
         def define_url_helper(mod, route, name, opts, route_key, url_strategy)
           helper = UrlHelper.create(route, opts, route_key, url_strategy)
-
+          mod.remove_possible_method name
           mod.module_eval do
             define_method(name) do |*args|
               options = nil
@@ -273,16 +300,6 @@ module ActionDispatch
           end
 
           helpers << name
-        end
-
-        def define_named_route_methods(mod, name, route)
-          define_url_helper mod, route, :"#{name}_path", route.defaults, name, PATH
-          define_url_helper mod, route, :"#{name}_url", route.defaults, name, FULL
-        end
-
-        def undef_named_route_methods(mod, name)
-          mod.send :undef_method, :"#{name}_path"
-          mod.send :undef_method, :"#{name}_url"
         end
       end
 
@@ -396,44 +413,51 @@ module ActionDispatch
         RUBY
       end
 
-      def url_helpers
-        @url_helpers ||= begin
-          routes = self
+      def url_helpers(include_path_helpers = true)
+        routes = self
 
-          Module.new do
-            extend ActiveSupport::Concern
-            include UrlFor
+        Module.new do
+          extend ActiveSupport::Concern
+          include UrlFor
 
-            # Define url_for in the singleton level so one can do:
-            # Rails.application.routes.url_helpers.url_for(args)
-            @_routes = routes
-            class << self
-              delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
-              attr_reader :_routes
-              def url_options; {}; end
-            end
-
-            route_methods = routes.named_routes.module
-
-            # Make named_routes available in the module singleton
-            # as well, so one can do:
-            # Rails.application.routes.url_helpers.posts_path
-            extend route_methods
-
-            # Any class that includes this module will get all
-            # named routes...
-            include route_methods
-
-            # plus a singleton class method called _routes ...
-            included do
-              singleton_class.send(:redefine_method, :_routes) { routes }
-            end
-
-            # And an instance method _routes. Note that
-            # UrlFor (included in this module) add extra
-            # conveniences for working with @_routes.
-            define_method(:_routes) { @_routes || routes }
+          # Define url_for in the singleton level so one can do:
+          # Rails.application.routes.url_helpers.url_for(args)
+          @_routes = routes
+          class << self
+            delegate :url_for, :optimize_routes_generation?, to: '@_routes'
+            attr_reader :_routes
+            def url_options; {}; end
           end
+
+          route_methods = routes.named_routes.url_helpers_module
+
+          # Make named_routes available in the module singleton
+          # as well, so one can do:
+          # Rails.application.routes.url_helpers.posts_path
+          extend route_methods
+
+          # Any class that includes this module will get all
+          # named routes...
+          include route_methods
+
+          if include_path_helpers
+            path_helpers = routes.named_routes.path_helpers_module
+          else
+            path_helpers = routes.named_routes.path_helpers_module(true)
+          end
+
+          include path_helpers
+          extend path_helpers
+
+          # plus a singleton class method called _routes ...
+          included do
+            singleton_class.send(:redefine_method, :_routes) { routes }
+          end
+
+          # And an instance method _routes. Note that
+          # UrlFor (included in this module) add extra
+          # conveniences for working with @_routes.
+          define_method(:_routes) { @_routes || routes }
         end
       end
 

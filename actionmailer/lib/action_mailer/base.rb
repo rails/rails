@@ -897,6 +897,11 @@ module ActionMailer
       container.add_part(part)
     end
 
+    # Emails do not support relative path links.
+    def self.supports_path?
+      false
+    end
+
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end
 end
