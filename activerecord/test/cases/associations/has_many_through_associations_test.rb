@@ -1139,12 +1139,31 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, post.lazy_readers_unscope_skimmers.to_a.size
     assert_equal 2, post.lazy_people_unscope_skimmers.to_a.size
   end
-  
+
   def test_has_many_through_add_with_sti_middle_relation
     club = SuperClub.create!(name: 'Fight Club')
     member = Member.create!(name: 'Tyler Durden')
 
     club.members << member
     assert_equal 1, SuperMembership.where(member_id: member.id, club_id: club.id).count
+  end
+
+  class ClubWithCallbacks < ActiveRecord::Base
+    self.table_name = 'clubs'
+    after_create :add_a_member
+
+    has_many :memberships, inverse_of: :club, foreign_key: :club_id
+    has_many :members, through: :memberships
+
+    def add_a_member
+      members << Member.last
+    end
+  end
+
+  def test_has_many_with_callback_before_association
+    Member.create!
+    club = ClubWithCallbacks.create!
+
+    assert_equal 1, club.reload.memberships.count
   end
 end

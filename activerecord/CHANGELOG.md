@@ -1,3 +1,11 @@
+*   `has_many :through` associations will no longer save the through record
+    twice when added in an `after_create` callback defined before the
+    associations.
+
+    Fixes #3798.
+
+    *Sean Griffin*
+
 *   Detect in-place modifications of PG array types
 
     *Sean Griffin*
