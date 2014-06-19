@@ -21,6 +21,7 @@ module ActionMailer
 
     # An email was generated.
     def process(event)
+      return unless logger.debug?
       mailer = event.payload[:mailer]
       action = event.payload[:action]
       debug("\n#{mailer}##{action}: processed outbound mail in #{event.duration.round(1)}ms")
