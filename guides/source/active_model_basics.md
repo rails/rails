@@ -406,3 +406,46 @@ With the `human_attribute_name` you can transform attribute names into a more hu
 ```ruby
 Person.human_attribute_name('name') # => "Nome"
 ```
+
+### Lint::Tests
+
+Test whether an object is compliant with the Active Model API.
+
+* app/models/person.rb
+
+    ```ruby
+    class person
+      include activemodel::model
+
+    end
+    ```
+
+* test/models/person_test.rb
+
+    ```ruby
+    require 'test_helper'
+
+    class PersonTest < ActiveSupport::TestCase
+      include ActiveModel::Lint::Tests
+
+      def setup
+        @model = Person.new
+      end
+    end
+    ```
+
+```bash
+$ rake test
+
+Run options: --seed 14596
+
+# Running:
+
+......
+
+Finished in 0.024899s, 240.9735 runs/s, 1204.8677 assertions/s.
+
+6 runs, 30 assertions, 0 failures, 0 errors, 0 skips
+```
+
+An object is not required to implement all APIs in order to work with Action Pack. This module only intends to provide guidance in case you want all features out of the box.
