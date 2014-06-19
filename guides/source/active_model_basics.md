@@ -6,6 +6,9 @@ This guide should provide you with all you need to get started using model class
 After reading this guide, you will know:
 
 * How to create a plain ruby object that behaves like an Active Record model.
+* Add callbacks and validations like Active Record to a plain ruby object.
+* Add serializers to a plain ruby object.
+* Integrate plain ruby object with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
