@@ -860,7 +860,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'edges', Vertex.reflect_on_association(:sources).join_table
   end
 
-  def test_namespaced_habtm
+  def test_has_and_belongs_to_many_in_a_namespaced_model_pointing_to_a_namespaced_model
     magazine = Publisher::Magazine.create
     article = Publisher::Article.create
     magazine.articles << article
