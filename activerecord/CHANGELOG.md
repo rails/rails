@@ -1,3 +1,9 @@
+*   `has_many :through` associations will no longer save the through record
+    twice when added in an `after_create` callback defined before the
+    associations.
+
+    *Sean Griffin*
+
 *   Fixed automatic maintaining test schema to properly handle sql structure
     schema format.
 
