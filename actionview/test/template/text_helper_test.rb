@@ -265,6 +265,13 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
+  def test_highlight_with_block
+    assert_equal(
+      "<b>one</b> <b>two</b> <b>three</b>",
+      highlight("one two three", ["one", "two", "three"]) { |word| "<b>#{word}</b>" }
+    )
+  end
+
   def test_excerpt
     assert_equal("...is a beautiful morn...", excerpt("This is a beautiful morning", "beautiful", :radius => 5))
     assert_equal("This is a...", excerpt("This is a beautiful morning", "this", :radius => 5))

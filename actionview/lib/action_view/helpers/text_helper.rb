@@ -103,10 +103,13 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
-      # '<mark>\1</mark>')
+      # '<mark>\1</mark>') or passing a block that receives each matched term.
       #
       #   highlight('You searched for: rails', 'rails')
       #   # => You searched for: <mark>rails</mark>
+      #
+      #   highlight('You searched for: rails', /for|rails/)
+      #   # => You searched <mark>for</mark>: <mark>rails</mark>
       #
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
       #   # => You searched for: ruby, rails, dhh
@@ -116,17 +119,25 @@ module ActionView
       #
       #   highlight('You searched for: rails', 'rails', highlighter: '<a href="search?q=\1">\1</a>')
       #   # => You searched for: <a href="search?q=rails">rails</a>
+      #
+      #   highlight('You searched for: rails', 'rails') { |match| link_to(search_path(q: match, match)) }
+      #   # => You searched for: <a href="search?q=rails">rails</a>
       def highlight(text, phrases, options = {})
         text = sanitize(text) if options.fetch(:sanitize, true)
 
         if text.blank? || phrases.blank?
           text
         else
-          highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
           match = Array(phrases).map do |p|
             Regexp === p ? p.to_s : Regexp.escape(p)
           end.join('|')
-          text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
+
+          if block_given?
+            text.gsub(/(#{match})(?![^<]*?>)/i) { |found| yield found }
+          else
+            highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
+            text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
+          end
         end.html_safe
       end
 
