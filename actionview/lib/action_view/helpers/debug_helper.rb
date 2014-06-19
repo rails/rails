@@ -16,15 +16,15 @@ module ActionView
       #   # =>
       #   <pre class='debug_dump'>--- !ruby/object:User
       #   attributes:
-      #   &nbsp; updated_at:
-      #   &nbsp; username: testing
-      #   &nbsp; age: 42
-      #   &nbsp; password: xyz
-      #   &nbsp; created_at:
+      #     updated_at:
+      #     username: testing
+      #     age: 42
+      #     password: xyz
+      #     created_at:
       #   </pre>
       def debug(object)
         Marshal::dump(object)
-        object = ERB::Util.html_escape(object.to_yaml).gsub("  ", "&nbsp; ").html_safe
+        object = ERB::Util.html_escape(object.to_yaml)
         content_tag(:pre, object, :class => "debug_dump")
       rescue Exception  # errors from Marshal or YAML
         # Object couldn't be dumped, perhaps because of singleton methods -- this is the fallback
