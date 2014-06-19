@@ -14,8 +14,8 @@ module ActiveRecord
         # value. Is this really the only case? Are we missing tests for other types?
         # We should have a real column object passed (or nil) here, and check for that
         # instead
-        if column.respond_to?(:type_cast_for_database)
-          value = column.type_cast_for_database(value)
+        if column.respond_to?(:cast_type)
+          value = column.cast_type.type_cast_for_database(value)
         end
 
         _quote(value)
@@ -34,8 +34,8 @@ module ActiveRecord
         # value. Is this really the only case? Are we missing tests for other types?
         # We should have a real column object passed (or nil) here, and check for that
         # instead
-        if column.respond_to?(:type_cast_for_database)
-          value = column.type_cast_for_database(value)
+        if column.respond_to?(:cast_type)
+          value = column.cast_type.type_cast_for_database(value)
         end
 
         _type_cast(value)

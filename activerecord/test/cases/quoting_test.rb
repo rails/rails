@@ -93,12 +93,10 @@ module ActiveRecord
 
       def test_quote_true
         assert_equal @quoter.quoted_true, @quoter.quote(true, nil)
-        assert_equal '1', @quoter.quote(true, Type::Integer.new)
       end
 
       def test_quote_false
         assert_equal @quoter.quoted_false, @quoter.quote(false, nil)
-        assert_equal '0', @quoter.quote(false, Type::Integer.new)
       end
 
       def test_quote_float
@@ -157,35 +155,12 @@ module ActiveRecord
         assert_equal "'lo\\\\l'", @quoter.quote(string, nil)
       end
 
-      def test_quote_string_int_column
-        assert_equal "1", @quoter.quote('1', Type::Integer.new)
-        assert_equal "1", @quoter.quote('1.2', Type::Integer.new)
-      end
-
-      def test_quote_string_float_column
-        assert_equal "1.0", @quoter.quote('1', Type::Float.new)
-        assert_equal "1.2", @quoter.quote('1.2', Type::Float.new)
-      end
-
-      def test_quote_as_mb_chars_binary_column
-        string = ActiveSupport::Multibyte::Chars.new('lo\l')
-        assert_equal "'lo\\\\l'", @quoter.quote(string, Type::Binary.new)
-      end
-
-      def test_quote_binary_without_string_to_binary
-        assert_equal "'lo\\\\l'", @quoter.quote('lo\l', Type::Binary.new)
-      end
-
       def test_string_with_crazy_column
         assert_equal "'lo\\\\l'", @quoter.quote('lo\l')
       end
 
       def test_quote_duration
         assert_equal "1800", @quoter.quote(30.minutes)
-      end
-
-      def test_quote_duration_int_column
-        assert_equal "7200", @quoter.quote(2.hours, Type::Integer.new)
       end
     end
   end
