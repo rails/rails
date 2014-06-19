@@ -22,6 +22,7 @@ class NumericData < ActiveRecord::Base
 end
 
 class CalculationsTest < ActiveRecord::TestCase
+  include InTimeZone
   fixtures :companies, :accounts, :topics
 
   def test_should_sum_field
@@ -56,6 +57,75 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_type_cast_calculated_value_should_convert_db_averages_of_fixnum_class_to_decimal
     assert_equal 0, NumericData.all.send(:type_cast_calculated_value, 0, nil, 'avg')
     assert_equal 53.0, NumericData.all.send(:type_cast_calculated_value, 53, nil, 'avg')
+  end
+
+  def test_calculated_datetime_value_should_have_same_timezone_as_value_returned_from_attribute
+    tz = "Pacific Time (US & Canada)"
+    in_time_zone tz do
+      Topic.time_zone_aware_attributes = true
+      Topic.skip_time_zone_conversion_for_attributes = []
+      # We have to reset the column information on the model so that it creates attributes
+      # that are time zone aware (ActiveRecord::Base.time_zone_aware_attributes)
+      Topic.reset_column_information
+      written_on_maximum = Topic.maximum(:written_on)
+      topic_with_maximum_written_on_value = topics(:third)
+      assert_equal topic_with_maximum_written_on_value.written_on.time_zone, written_on_maximum.time_zone
+    end
+  end
+
+  def test_calculated_value_type_cast_should_convert_datetime_field_to_current_timezone
+    tz = "Pacific Time (US & Canada)"
+    in_time_zone tz do
+      Topic.time_zone_aware_attributes = true
+      Topic.skip_time_zone_conversion_for_attributes = []
+      Topic.reset_column_information
+      written_on_maximum = Topic.maximum(:written_on)
+      assert_equal ActiveSupport::TimeZone[tz], written_on_maximum.time_zone
+    end
+  end
+
+  def test_calculated_value_type_cast_for_datetime_should_honor_time_zone_aware_attributes_flag
+    tz = "Pacific Time (US & Canada)"
+    in_time_zone tz do
+      Topic.time_zone_aware_attributes = false
+      Topic.skip_time_zone_conversion_for_attributes = []
+      Topic.reset_column_information
+      written_on_maximum = Topic.maximum(:written_on)
+      assert written_on_maximum.utc?
+    end
+  end
+
+  def test_calculated_value_type_cast_for_datetime_should_honor_skip_time_zone_conversion_for_attributes_flag
+    tz = "Pacific Time (US & Canada)"
+    in_time_zone tz do
+      Topic.time_zone_aware_attributes = true
+      Topic.skip_time_zone_conversion_for_attributes = [:written_on]
+      Topic.reset_column_information
+      written_on_maximum = Topic.maximum(:written_on)
+      assert written_on_maximum.utc?
+    end
+  end
+
+  def test_calculated_group_value_type_cast_should_convert_datetime_field_to_current_timezone
+    tz = "Pacific Time (US & Canada)"
+    in_time_zone tz do
+      Topic.time_zone_aware_attributes = true
+      Topic.skip_time_zone_conversion_for_attributes = []
+      Topic.reset_column_information
+      results = Topic.group(:approved).maximum(:written_on)
+      assert_equal ActiveSupport::TimeZone[tz], results[true].time_zone
+    end
+  end
+
+  def test_calculated_group_key_value_type_cast_should_convert_datetime_field_to_current_timezone
+    tz = "Pacific Time (US & Canada)"
+    in_time_zone tz do
+      Topic.time_zone_aware_attributes = true
+      Topic.skip_time_zone_conversion_for_attributes = []
+      Topic.reset_column_information
+      results = Topic.group(:written_on).count(:id)
+      assert_equal ActiveSupport::TimeZone[tz], results.keys.first.time_zone
+    end
   end
 
   def test_should_get_maximum_of_field

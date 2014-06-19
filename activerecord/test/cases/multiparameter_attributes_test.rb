@@ -213,6 +213,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
 
   def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes_false
     with_timezone_config default: :local, aware_attributes: false, zone: -28800 do
+      Topic.reset_column_information
       attributes = {
         "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
         "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00"
@@ -227,6 +228,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
   def test_multiparameter_attributes_on_time_with_skip_time_zone_conversion_for_attributes
     with_timezone_config default: :utc, aware_attributes: true, zone: -28800 do
       Topic.skip_time_zone_conversion_for_attributes = [:written_on]
+      Topic.reset_column_information
       attributes = {
         "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
         "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00"
