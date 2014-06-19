@@ -48,7 +48,7 @@ module ActiveRecord
       def build_relation(klass, table, attribute, value) #:nodoc:
         if reflection = klass._reflect_on_association(attribute)
           attribute = reflection.foreign_key
-          value = value.attributes[reflection.primary_key_column.name] unless value.nil?
+          value = value.attributes[reflection.klass.primary_key] unless value.nil?
         end
 
         attribute_name = attribute.to_s

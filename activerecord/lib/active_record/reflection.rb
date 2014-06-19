@@ -290,8 +290,8 @@ module ActiveRecord
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
 
-      def primary_key_column
-        klass.columns_hash[klass.primary_key]
+      def primary_key_type
+        klass.type_for_attribute(klass.primary_key)
       end
 
       def association_foreign_key
