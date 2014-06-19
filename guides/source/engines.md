@@ -94,7 +94,7 @@ including a skeleton structure that provides the following:
     ```
 
   * A file at `lib/blorgh/engine.rb`, which is identical in function to a
-  * standard Rails application's `config/application.rb` file:
+    standard Rails application's `config/application.rb` file:
 
     ```ruby
     module Blorgh
