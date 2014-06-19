@@ -251,11 +251,10 @@ module ActiveRecord
     def initialize(attributes = nil, options = {})
       defaults = {}
       self.class.raw_column_defaults.each do |k, v|
-        default = v.duplicable? ? v.dup : v
-        defaults[k] = Attribute.from_database(default, type_for_attribute(k))
+        defaults[k] = v.duplicable? ? v.dup : v
       end
 
-      @attributes = defaults
+      @attributes = self.class.attributes_builder.build_from_database(defaults)
       @column_types = self.class.column_types
 
       init_internals
@@ -325,7 +324,7 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       pk = self.class.primary_key
-      @attributes = other.clone_attributes
+      @attributes = @attributes.dup
       @attributes[pk] = Attribute.from_database(nil, type_for_attribute(pk))
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?

@@ -32,6 +32,7 @@ module ActiveRecord
   extend ActiveSupport::Autoload
 
   autoload :Attribute
+  autoload :AttributeSet
   autoload :Base
   autoload :Callbacks
   autoload :Core

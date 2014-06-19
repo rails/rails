@@ -219,12 +219,18 @@ module ActiveRecord
         connection.schema_cache.table_exists?(table_name)
       end
 
+      def attributes_builder # :nodoc:
+        @attributes_builder ||= AttributeSet::Builder.new(column_types)
+      end
+
       def column_types # :nodoc:
-        @column_types ||= Hash[columns.map { |column| [column.name, column.cast_type] }]
+        @column_types ||= Hash.new(Type::Value.new).tap do |column_types|
+          columns.each { |column| column_types[column.name] = column.cast_type }
+        end
       end
 
       def type_for_attribute(attr_name) # :nodoc:
-        column_types.fetch(attr_name) { Type::Value.new }
+        column_types[attr_name]
       end
 
       # Returns a hash where the keys are column names and the values are

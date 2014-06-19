@@ -109,13 +109,14 @@ module ActiveRecord
       end
 
       def clear_caches_calculated_from_columns
+        @attributes_builder = nil
+        @column_defaults = nil
+        @column_names = nil
+        @column_types = nil
         @columns = nil
         @columns_hash = nil
-        @column_types = nil
-        @column_defaults = nil
-        @raw_column_defaults = nil
-        @column_names = nil
         @content_columns = nil
+        @raw_column_defaults = nil
       end
     end
   end
