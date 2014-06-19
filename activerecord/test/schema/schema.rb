@@ -62,6 +62,11 @@ ActiveRecord::Schema.define do
     t.references :magazine
   end
 
+  create_table :articles_tags, force: true do |t|
+    t.references :article
+    t.references :tag
+  end
+
   create_table :audit_logs, force: true do |t|
     t.column :message, :string, null: false
     t.column :developer_id, :integer, null: false
