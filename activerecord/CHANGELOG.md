@@ -1,3 +1,16 @@
+*   `Relation#explain` delegates all additional arguments to the underlying adapter.
+    This adds support for MySQL's EXTENDED explain and PostgreSQL specific explain flags.
+
+      Examples:
+
+        # PostgreSQL
+        User.where(username: "jane").explain(analyze: true)
+
+        # MySQL
+        User.where(username: "jack").explain(extended: true)
+
+    *Max Melentiev*
+
 *   Honor overridden `rack.test` in Rack environment for the connection
     management middlware.
 

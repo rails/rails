@@ -19,6 +19,20 @@ module ActiveRecord
           assert_match %(EXPLAIN for: SELECT "developers".* FROM "developers" WHERE "developers"."id" = $1), explain
           assert_match %(EXPLAIN for: SELECT "audit_logs".* FROM "audit_logs" WHERE "audit_logs"."developer_id" IN (1)), explain
         end
+
+        def test_explain_for_one_query_with_modifiers
+          explain = Developer.where(id: 1).explain(analyze: true)
+          assert_match %(EXPLAIN for: SELECT "developers".* FROM "developers" WHERE "developers"."id" = $1), explain
+          assert_match %(QUERY PLAN), explain
+          assert_match %(Index Scan using developers_pkey on developers), explain
+          assert_match %(Total runtime), explain
+        end
+
+        def test_explain_for_one_query_with_json_format
+          explain = Developer.where(id: 1).explain(format: :json)
+          json = JSON.parse(explain.lines.to_a[1..-1].join)
+          assert json.first.key?('Plan')
+        end
       end
     end
   end

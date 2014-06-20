@@ -15,7 +15,7 @@ module ActiveRecord
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
     # Returns a formatted string ready to be logged.
-    def exec_explain(queries) # :nodoc:
+    def exec_explain(queries, *args) # :nodoc:
       str = queries.map do |sql, bind|
         [].tap do |msg|
           msg << "EXPLAIN for: #{sql}"
@@ -23,7 +23,7 @@ module ActiveRecord
             bind_msg = bind.map {|col, val| [col.name, val]}.inspect
             msg.last << " #{bind_msg}"
           end
-          msg << connection.explain(sql, bind)
+          msg << connection.explain(sql, bind, *args)
         end.join("\n")
       end.join("\n")
 

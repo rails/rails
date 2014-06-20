@@ -2,9 +2,33 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
-        def explain(arel, binds = [])
-          sql = "EXPLAIN #{to_sql(arel, binds)}"
-          ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
+        EXPLAIN_MODIFIERS = [:analyze, :verbose, :costs, :buffers, :timing]
+        # Performs EXPLAIN query for a given relation and binds.
+        # Available options are +:analyze+, +:verbose+, +:costs+, +:buffers+, +:timing+.
+        # Output format can be set with +:format+ option. Valid formats are
+        # +:text+, +:xml+, +:json+, +:yaml+.
+        # This options can depend on your PostgreSQL server version.
+        #
+        #   User.active.explain
+        #   User.active.explain analyze: true
+        #   User.active.explain analyze: true, format: :json
+        def explain(arel, binds = [], options = {})
+          modifiers = []
+          EXPLAIN_MODIFIERS.each do |modifier|
+            next unless options.key? modifier
+            modifiers << "#{modifier.to_s.upcase} #{(!!options[modifier]).inspect}"
+          end
+          format = options[:format] || :text
+          modifiers << "FORMAT #{format.to_s.upcase}" unless format == :text
+          sql = 'EXPLAIN '
+          sql << "(#{modifiers.join ', '}) " if modifiers.any?
+          sql << to_sql(arel, binds)
+          result = exec_query(sql, 'EXPLAIN', binds)
+          if format == :text
+            ExplainPrettyPrinter.new.pp(result)
+          else
+            result.map { |x| x.values }.join("\n")
+          end
         end
 
         class ExplainPrettyPrinter # :nodoc:

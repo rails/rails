@@ -64,6 +64,18 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_equal expected, base.exec_explain(queries)
     end
 
+    def test_exec_explain_with_options
+      sqls    = %w(foo bar)
+      binds   = [[], []]
+      queries = sqls.zip(binds)
+      options = {modifier: :value}
+
+      connection.expects(:explain).with('bar', [], options).returns('query plan bar')
+      connection.expects(:explain).with('foo', [], options).returns('query plan foo')
+      expected = sqls.map {|sql| "EXPLAIN for: #{sql}\nquery plan #{sql}"}.join("\n")
+      assert_equal expected, base.exec_explain(queries, options)
+    end
+
     def test_unsupported_connection_adapter
       connection.stubs(:supports_explain?).returns(false)
 

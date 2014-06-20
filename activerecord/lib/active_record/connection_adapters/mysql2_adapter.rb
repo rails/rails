@@ -106,8 +106,10 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def explain(arel, binds = [])
-        sql     = "EXPLAIN #{to_sql(arel, binds.dup)}"
+      def explain(arel, binds = [], options = {})
+        sql = 'EXPLAIN '
+        sql << 'EXTENDED ' if options[:extended]
+        sql << to_sql(arel, binds.dup)
         start   = Time.now
         result  = exec_query(sql, 'EXPLAIN', binds)
         elapsed = Time.now - start
