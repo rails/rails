@@ -28,6 +28,8 @@ require 'models/college'
 require 'models/student'
 require 'models/pirate'
 require 'models/ship'
+require 'models/dog'
+require 'models/dog_lover'
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
@@ -124,6 +126,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car.funky_bulbs.create!
     assert_nothing_raised { car.reload.funky_bulbs.delete_all }
     assert_equal 0, Bulb.count, "bulbs should have been deleted using :delete_all strategy"
+  end
+
+  def test_depndent_destroy_does_not_individually_destroy_when_no_destroy_callbacks
+    dog_lover = DogLover.create!
+    dog_lover.trained_dogs.create!()
+    Dog.any_instance.expects(:destroy).never
+    dog_lover.destroy
+    assert_equal 0, Dog.count, "all associates dog objects should be deleted"
   end
 
   def test_delete_all_on_association_is_the_same_as_not_loaded
