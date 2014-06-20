@@ -126,6 +126,16 @@ module ActiveRecord
         assert_equal :nullify, fk.on_delete
       end
 
+      def test_on_update_and_on_delete_raises_with_invalid_values
+        assert_raises ArgumentError do
+          @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_delete: :invalid
+        end
+
+        assert_raises ArgumentError do
+          @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_update: :invalid
+        end
+      end
+
       def test_add_foreign_key_with_on_update
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", on_update: :nullify
 

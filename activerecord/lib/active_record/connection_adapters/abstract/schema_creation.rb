@@ -104,9 +104,14 @@ FOREIGN KEY (#{quote_column_name(o.column)})
 
           def action_sql(action, dependency)
             case dependency
-              when :nullify then "ON #{action} SET NULL"
-              when :cascade  then "ON #{action} CASCADE"
-              when :restrict then "ON #{action} RESTRICT"
+            when :nullify then "ON #{action} SET NULL"
+            when :cascade  then "ON #{action} CASCADE"
+            when :restrict then "ON #{action} RESTRICT"
+            else
+              raise ArgumentError, <<-MSG
+'#{dependency}' is not supported for :on_update or :on_delete.
+Supported values are: :nullify, :cascade, :restrict
+              MSG
             end
           end
       end
