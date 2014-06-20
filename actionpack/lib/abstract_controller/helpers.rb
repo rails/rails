@@ -9,7 +9,7 @@ module AbstractController
       self._helpers = Module.new
 
       class_attribute :_helper_methods
-      self._helper_methods = Array.new
+      self._helper_methods = []
     end
 
     class MissingHelperError < LoadError
@@ -120,7 +120,7 @@ module AbstractController
       def clear_helpers
         inherited_helper_methods = _helper_methods
         self._helpers = Module.new
-        self._helper_methods = Array.new
+        self._helper_methods = []
 
         inherited_helper_methods.each { |meth| helper_method meth }
         default_helper_module! unless anonymous?
