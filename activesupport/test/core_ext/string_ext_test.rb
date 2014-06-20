@@ -510,6 +510,7 @@ class StringConversionsTest < ActiveSupport::TestCase
 
   def test_string_to_datetime
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_datetime
+    assert_equal DateTime.civil(2039, 2, 27, 23, 50), "39-02-27 23:50".to_datetime
     assert_equal 0, "2039-02-27 23:50".to_datetime.offset # use UTC offset
     assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime.start # use Ruby's default start value
     assert_equal DateTime.civil(2039, 2, 27, 23, 50, 19 + Rational(275038, 1000000), "-04:00"), "2039-02-27T23:50:19.275038-04:00".to_datetime
@@ -524,6 +525,7 @@ class StringConversionsTest < ActiveSupport::TestCase
 
   def test_string_to_date
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
+    assert_equal Date.new(2005, 2, 27), "05-02-27".to_date
     assert_nil "".to_date
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
   end

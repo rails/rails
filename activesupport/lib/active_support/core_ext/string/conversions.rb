@@ -41,7 +41,7 @@ class String
   #   "2012-12-13".to_date # => Thu, 13 Dec 2012
   #   "12/13/2012".to_date # => ArgumentError: invalid date
   def to_date
-    ::Date.parse(self, false) unless blank?
+    ::Date.parse(self) unless blank?
   end
 
   # Converts a string to a DateTime value.
@@ -51,6 +51,6 @@ class String
   #   "2012-12-13 12:50".to_datetime    # => Thu, 13 Dec 2012 12:50:00 +0000
   #   "12/13/2012".to_datetime          # => ArgumentError: invalid date
   def to_datetime
-    ::DateTime.parse(self, false) unless blank?
+    ::DateTime.parse(self) unless blank?
   end
 end
