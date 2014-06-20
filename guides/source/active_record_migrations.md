@@ -434,6 +434,8 @@ change_column_default :products, :approved, false
 This sets `:name` field on products to a `NOT NULL` column and the default
 value of the `:approved` field to false.
 
+TIP: Unlike `change_column` (and `change_column_default`), `change_column_null` is reversible.
+
 ### Column Modifiers
 
 Column modifiers can be applied when creating or changing a column:
