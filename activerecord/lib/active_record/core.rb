@@ -16,7 +16,6 @@ module ActiveRecord
       mattr_accessor :logger, instance_writer: false
 
       ##
-      # :singleton-method:
       # Contains the database configuration - as is typically stored in config/database.yml -
       # as a Hash.
       #
