@@ -781,4 +781,8 @@
 
     *Yves Senn*
 
+*   Optimize dependent destroy on a has many to be smarter by not individually destroying each associated objects if there are no destroy callbacks
+
+    *Rahul Kapadia*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activerecord/CHANGELOG.md) for previous changes.
