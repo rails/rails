@@ -523,7 +523,9 @@ module ActiveRecord
 
     def init_internals
       pk = self.class.primary_key
-      @attributes[pk] ||= Attribute.from_database(nil, type_for_attribute(pk))
+      unless @attributes.include?(pk)
+        @attributes[pk] = Attribute.from_database(nil, type_for_attribute(pk))
+      end
 
       @aggregation_cache        = {}
       @association_cache        = {}

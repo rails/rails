@@ -18,6 +18,14 @@ module ActiveRecord
       assert_equal 4, attributes[:bar].value
     end
 
+    test "[] returns a null object" do
+      builder = AttributeSet::Builder.new(foo: Type::Float.new)
+      attributes = builder.build_from_database(foo: '3.3')
+
+      assert_equal '3.3', attributes[:foo].value_before_type_cast
+      assert_equal nil, attributes[:bar].value_before_type_cast
+    end
+
     test "duping creates a new hash and dups each attribute" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::String.new)
       attributes = builder.build_from_database(foo: 1, bar: 'foo')

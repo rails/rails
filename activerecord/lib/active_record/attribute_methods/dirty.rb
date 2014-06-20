@@ -129,7 +129,7 @@ module ActiveRecord
       end
 
       def _field_changed?(attr, old_value)
-        attribute_named(attr).changed_from?(old_value)
+        @attributes[attr].changed_from?(old_value)
       end
 
       def changed_in_place
@@ -140,7 +140,7 @@ module ActiveRecord
 
       def changed_in_place?(attr_name)
         old_value = original_raw_attribute(attr_name)
-        attribute_named(attr_name).changed_in_place_from?(old_value)
+        @attributes[attr_name].changed_in_place_from?(old_value)
       end
 
       def original_raw_attribute(attr_name)
@@ -154,7 +154,7 @@ module ActiveRecord
       end
 
       def store_original_raw_attribute(attr_name)
-        original_raw_attributes[attr_name] = attribute_named(attr_name).value_for_database
+        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database
       end
 
       def store_original_raw_attributes

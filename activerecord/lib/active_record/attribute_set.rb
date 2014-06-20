@@ -35,7 +35,8 @@ module ActiveRecord
       end
 
       def build_from_database(values, additional_types = {})
-        attributes = values.each_with_object({}) do |(name, value), hash|
+        attributes = Hash.new(Attribute::Null)
+        values.each_with_object(attributes) do |(name, value), hash|
           type = additional_types.fetch(name, @types[name])
           hash[name] = Attribute.from_database(value, type)
         end
