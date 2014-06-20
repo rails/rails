@@ -176,8 +176,8 @@ class ArelLike
     true
   end
   def each
-    a = Array.new(2) { |id| Comment.new(id + 1) }
-    a.each { |i| yield i }
+    yield Comment.new(1)
+    yield Comment.new(2)
   end
 end
 
