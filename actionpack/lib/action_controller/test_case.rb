@@ -593,7 +593,6 @@ module ActionController
 
         unless @controller.respond_to?(:recycle!)
           @controller.extend(Testing::Functional)
-          @controller.class.class_eval { include Testing }
         end
 
         @request.recycle!
