@@ -45,7 +45,7 @@ module ActionDispatch
 
         @children.each { |index| parts[index] = parts[index].evaluate(hash) }
 
-        parts.join
+        parts.join.gsub(%r|//|, '/')
       end
     end
 
