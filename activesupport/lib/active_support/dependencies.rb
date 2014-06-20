@@ -187,7 +187,7 @@ module ActiveSupport #:nodoc:
       # top-level constant.
       def guess_for_anonymous(const_name)
         if Object.const_defined?(const_name)
-          raise NameError.new "#{const_name} cannot be autoloaded from an anonymous class or module", const_name
+          raise NameError.new "#{const_name} cannot be autoloaded from an anonymous class or module", const_name.to_s
         else
           Object
         end
