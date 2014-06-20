@@ -36,7 +36,7 @@ module ActionView
       end
     end
 
-    initializer "action_view.setup_action_pack" do |app|
+    initializer "action_view.setup_action_pack" do
       ActiveSupport.on_load(:action_controller) do
         ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
       end
