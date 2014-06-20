@@ -22,6 +22,7 @@ class UrlRewriterTests < ActiveSupport::TestCase
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
         get ':controller(/:action(/:id))'
+        get '*path' => "pages#show"
       end
     end
   end
@@ -85,6 +86,11 @@ class UrlRewriterTests < ActiveSupport::TestCase
     assert_equal '/foo/bar/3/', @rewriter.rewrite(@routes, options)
     options.update({:query => 'string'})
     assert_equal '/foo/bar/3/?query=string', @rewriter.rewrite(@routes, options)
+  end
+
+  def test_splat
+    options = {:controller => 'pages', :action => 'show', :path => '/test', :only_path => true}
+    assert_equal '/test', @rewriter.rewrite(@routes, options)
   end
 end
 

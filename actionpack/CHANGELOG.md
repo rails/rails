@@ -1,3 +1,9 @@
+*   Fix Journey::Format#evaluate when argument has a leading slash.
+
+    Fixes #10963.
+
+    *Larry Lv*
+
 *   Fix env['PATH_INFO'] missing leading slash when a rack app mounted at '/'.
 
     Fixes #15511.
