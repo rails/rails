@@ -35,7 +35,7 @@ module ActiveRecord
       end
 
       def primary_key
-        options[:primary_key]
+        options[:primary_key] || default_primary_key
       end
 
       def on_delete
@@ -44,6 +44,15 @@ module ActiveRecord
 
       def on_update
         options[:on_update]
+      end
+
+      def custom_primary_key?
+        options[:primary_key] != default_primary_key
+      end
+
+      private
+      def default_primary_key
+        "id"
       end
     end
 

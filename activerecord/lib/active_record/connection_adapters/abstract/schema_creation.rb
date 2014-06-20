@@ -30,7 +30,7 @@ FOREIGN KEY (#{quote_column_name(o.column)})
         end
 
         def visit_DropForeignKey(name)
-          "DROP CONSTRAINT #{name}"
+          "DROP CONSTRAINT #{quote_column_name(name)}"
         end
 
         private

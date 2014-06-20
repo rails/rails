@@ -650,11 +650,10 @@ module ActiveRecord
         return unless supports_foreign_keys?
 
         options[:column] ||= foreign_key_column_for(to_table)
-        primary_key = options.fetch(:primary_key, "id")
 
         options = {
           column: options[:column],
-          primary_key: primary_key,
+          primary_key: options[:primary_key],
           name: foreign_key_name(from_table, options),
           on_delete: options[:on_delete],
           on_update: options[:on_update]
@@ -674,8 +673,17 @@ module ActiveRecord
           options = { column: foreign_key_column_for(options_or_to_table) }
         end
 
+        fk_name_to_delete = options.fetch(:name) do
+          fk_to_delete = foreign_keys(from_table).detect {|fk| fk.column == options[:column] }
+          if fk_to_delete
+            fk_to_delete.name
+          else
+            raise ArgumentError, "Table '#{from_table}' has no foreign key on column '#{options[:column]}'"
+          end
+        end
+
         at = create_alter_table from_table
-        at.drop_foreign_key foreign_key_name(from_table, options)
+        at.drop_foreign_key fk_name_to_delete
 
         execute schema_creation.accept at
       end
@@ -686,11 +694,7 @@ module ActiveRecord
 
       def foreign_key_name(table_name, options) # :nodoc:
         options.fetch(:name) do
-          identifier = "#{table_name}_#{options.fetch(:column)}_fk"
-          if identifier.length > allowed_index_name_length
-            raise ArgumentError, "Foreign key name '#{identifier}' is too long; the limit is #{allowed_index_name_length} characters"
-          end
-          identifier
+          "fk_rails_#{SecureRandom.hex(5)}"
         end
       end
 
