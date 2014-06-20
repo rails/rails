@@ -93,7 +93,7 @@ module ActiveModel
         end
 
         if root
-          root = self.class.model_name.element if root == true
+          root = model_name.element if root == true
           { root => serializable_hash(options) }
         else
           serializable_hash(options)

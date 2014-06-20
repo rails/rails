@@ -40,7 +40,7 @@ module ActionView
                         @object_name.gsub!(/\[(.*)_attributes\]\[\d+\]/, '.\1')
 
                         if object.respond_to?(:to_model)
-                          key = object.class.model_name.i18n_key
+                          key = object.model_name.i18n_key
                           i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
                         end
 
