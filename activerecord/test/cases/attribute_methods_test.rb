@@ -831,6 +831,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_attribute_method?
+    assert @target.attribute_method?(:title)
+    assert @target.attribute_method?(:title=)
+    assert_not @target.attribute_method?(:wibble)
+  end
+
+  def test_attribute_method_returns_false_if_table_does_not_exist
+    @target.table_name = 'wibble'
+    assert_not @target.attribute_method?(:title)
+  end
+
   private
 
   def new_topic_like_ar_class(&block)
