@@ -166,7 +166,7 @@ module ActiveRecord
       #   Person.attribute_method?(:age=)    # => true
       #   Person.attribute_method?(:nothing) # => false
       def attribute_method?(attribute)
-        super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, '')))
+        super || column_names.include?(attribute.to_s.remove(/=$/))
       end
 
       # Returns an array of column names as strings if it's not an abstract class and
@@ -178,11 +178,11 @@ module ActiveRecord
       #   Person.attribute_names
       #   # => ["id", "created_at", "updated_at", "name", "age"]
       def attribute_names
-        @attribute_names ||= if !abstract_class? && table_exists?
-            column_names
-          else
-            []
-          end
+        if abstract_class?
+          []
+        else
+          column_names
+        end
       end
 
       # Returns the column object for the named attribute.

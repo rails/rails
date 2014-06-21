@@ -249,6 +249,14 @@ module ActiveRecord
         }]
       end
 
+      def columns # :nodoc:
+        if table_exists?
+          connection.schema_cache.columns(table_name)
+        else
+          []
+        end
+      end
+
       # Returns an array of column names as strings.
       def column_names
         @column_names ||= columns.map { |column| column.name }

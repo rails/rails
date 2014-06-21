@@ -82,7 +82,7 @@ module ActiveRecord
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        @columns ||= add_user_provided_columns(connection.schema_cache.columns(table_name))
+        @columns ||= add_user_provided_columns(super)
       end
 
       # Returns a hash of column objects for the table associated with this class.
