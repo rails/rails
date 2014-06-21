@@ -10,6 +10,11 @@ module ActiveRecord
       attributes.update(other.attributes)
     end
 
+    def to_hash
+      attributes.each_with_object({}) { |(k, v), h| h[k] = v.value }
+    end
+    alias_method :to_h, :to_hash
+
     def freeze
       @attributes.freeze
       super
