@@ -17,7 +17,7 @@ Introduction
 
 Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. Some of modules are explained below.
 
-### AttributeMethods
+### ActiveModel::AttributeMethods
 
 The `ActiveModel::AttributeMethods` module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes and which methods on the object will use them.
 
@@ -48,7 +48,7 @@ person.reset_age     # 0
 person.age_highest?  # false
 ```
 
-### Callbacks
+### ActiveModel::Callbacks
 
 `ActiveModel::Callbacks` gives Active Record style callbacks. This provides an ability to define callbacks which run at appropriate times. After defining callbacks, you can wrap them with before, after and around custom methods.
 
@@ -72,7 +72,7 @@ class Person
 end
 ```
 
-### Conversion
+### ActiveModel::Conversion
 
 If a class defines `persisted?` and `id` methods, then you can include the `ActiveModel::Conversion` module in that class and call the Rails conversion methods on objects of that class.
 
@@ -95,7 +95,7 @@ person.to_key              # => nil
 person.to_param            # => nil
 ```
 
-### Dirty
+### ActiveModel::Dirty
 
 An object becomes dirty when it has gone through one or more changes to its attributes and has not been saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Let's consider a Person class with attributes `first_name` and `last_name`:
 
@@ -178,7 +178,7 @@ person.first_name_change # => [nil, "First Name"]
 person.last_name_change # => nil
 ```
 
-### Validations
+### ActiveModel::Validations
 
 `ActiveModel::Validations` module adds the ability to class objects to validate them in Active Record style.
 
@@ -204,7 +204,7 @@ person.token = nil
 person.valid?                        # => raises ActiveModel::StrictValidationFailed
 ```
 
-### Model
+### ActiveModel::Model
 
 `ActiveModel::Model` adds the ability to a class to work with Action Pack and Action View out of box.
 
@@ -244,7 +244,7 @@ email_contact.persisted? # => false
 
 Any class that includes `ActiveModel::Model` can be used with `form_for`, `render` and any other Action View helper methods, just like Active Record objects.
 
-### Serialization
+### ActiveModel::Serialization
 
 `ActiveModel::Serialization` provides a basic serialization for your object.
 You need to declare an attributes hash which contains the attributes you want to serialize. Attributes must be strings, not symbols.
@@ -270,11 +270,11 @@ person.name = "Bob"
 person.serializable_hash   # => {"name"=>"Bob"}
 ```
 
-#### Serializers
+#### ActiveModel::Serializers
 
 Rails provides two serializers `ActiveModel::Serializers::JSON` and `ActiveModel::Serializers::Xml`. Both of these modules automatically include the `ActiveModel::Serialization`.
 
-##### Serializers::JSON
+##### ActiveModel::Serializers::JSON
 
 To use the `ActiveModel::Serializers::JSON` you only need to change from `ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`.
 
@@ -329,7 +329,7 @@ person.from_json(json) # => #<Person:0x00000100c773f0 @name="Bob">
 person.name            # => "Bob"
 ```
 
-##### Serializers::Xml
+##### ActiveModel::Serializers::Xml
 
 To use the `ActiveModel::Serializers::Xml` you only need to change from `ActiveModel::Serialization` to `ActiveModel::Serializers::Xml`.
 
@@ -384,7 +384,7 @@ person.from_xml(xml) # => #<Person:0x00000100c773f0 @name="Bob">
 person.name          # => "Bob"
 ```
 
-### Translation
+### ActiveModel::Translation
 
 Provides integration between your object and the Rails internationalization (i18n) framework.
 
@@ -411,7 +411,7 @@ With the `human_attribute_name` you can transform attribute names into a more hu
 Person.human_attribute_name('name') # => "Nome"
 ```
 
-### Lint::Tests
+### ActiveModel::Lint::Tests
 
 Test whether an object is compliant with the Active Model API.
 
