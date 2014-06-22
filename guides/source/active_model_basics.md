@@ -19,7 +19,7 @@ Active Model is a library containing various modules used in developing framewor
 
 ### AttributeMethods
 
-The AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes and which methods on the object will use them.
+The `ActiveModel::AttributeMethods` module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes and which methods on the object will use them.
 
 ```ruby
 class Person
@@ -50,7 +50,7 @@ person.age_highest?  # false
 
 ### Callbacks
 
-Callbacks gives Active Record style callbacks. This provides an ability to define callbacks which run at appropriate times. After defining callbacks, you can wrap them with before, after and around custom methods.
+`ActiveModel::Callbacks` gives Active Record style callbacks. This provides an ability to define callbacks which run at appropriate times. After defining callbacks, you can wrap them with before, after and around custom methods.
 
 ```ruby
 class Person
@@ -74,7 +74,7 @@ end
 
 ### Conversion
 
-If a class defines `persisted?` and `id` methods, then you can include the `Conversion` module in that class and call the Rails conversion methods on objects of that class.
+If a class defines `persisted?` and `id` methods, then you can include the `ActiveModel::Conversion` module in that class and call the Rails conversion methods on objects of that class.
 
 ```ruby
 class Person
@@ -180,7 +180,7 @@ person.last_name_change # => nil
 
 ### Validations
 
-Validations module adds the ability to class objects to validate them in Active Record style.
+`ActiveModel::Validations` module adds the ability to class objects to validate them in Active Record style.
 
 ```ruby
 class Person
