@@ -105,7 +105,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def self.define_readers(mixin, name)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+      mixin.module_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}(*args)
           association(:#{name}).reader(*args)
         end
@@ -113,7 +113,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def self.define_writers(mixin, name)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+      mixin.module_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
           association(:#{name}).writer(value)
         end
