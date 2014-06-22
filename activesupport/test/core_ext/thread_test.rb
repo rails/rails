@@ -2,19 +2,6 @@ require 'abstract_unit'
 require 'active_support/core_ext/thread'
 
 class ThreadExt < ActiveSupport::TestCase
-  def test_main_thread_variable_in_enumerator
-    assert_equal Thread.main, Thread.current
-
-    Thread.current.thread_variable_set :foo, "bar"
-
-    thread, value = Fiber.new {
-      Fiber.yield [Thread.current, Thread.current.thread_variable_get(:foo)]
-    }.resume
-
-    assert_equal Thread.current, thread
-    assert_equal Thread.current.thread_variable_get(:foo), value
-  end
-
   def test_thread_variable_in_enumerator
     Thread.new {
       Thread.current.thread_variable_set :foo, "bar"
