@@ -2,7 +2,7 @@ require 'active_record/attribute_set/builder'
 
 module ActiveRecord
   class AttributeSet # :nodoc:
-    delegate :[], :[]=, :each_with_object, to: :attributes
+    delegate :[], :each_with_object, to: :attributes
     delegate :keys, to: :initialized_attributes
 
     def initialize(attributes)
@@ -25,6 +25,14 @@ module ActiveRecord
       else
         yield name
       end
+    end
+
+    def write_from_database(name, value)
+      attributes[name] = self[name].with_value_from_database(value)
+    end
+
+    def write_from_user(name, value)
+      attributes[name] = self[name].with_value_from_user(value)
     end
 
     def freeze

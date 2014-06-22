@@ -99,5 +99,31 @@ module ActiveRecord
       attribute = Attribute.from_database('a value', @type)
       attribute.dup
     end
+
+    class MyType
+      def type_cast_from_user(value)
+        value + " from user"
+      end
+
+      def type_cast_from_database(value)
+        value + " from database"
+      end
+    end
+
+    test "with_value_from_user returns a new attribute with the value from the user" do
+      old = Attribute.from_database("old", MyType.new)
+      new = old.with_value_from_user("new")
+
+      assert_equal "old from database", old.value
+      assert_equal "new from user", new.value
+    end
+
+    test "with_value_from_database returns a new attribute with the value from the database" do
+      old = Attribute.from_user("old", MyType.new)
+      new = old.with_value_from_database("new")
+
+      assert_equal "old from user", old.value
+      assert_equal "new from database", new.value
+    end
   end
 end

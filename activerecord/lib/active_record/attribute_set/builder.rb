@@ -7,7 +7,7 @@ module ActiveRecord
         @types = types
       end
 
-      def build_from_database(values, additional_types = {})
+      def build_from_database(values = {}, additional_types = {})
         attributes = build_attributes_from_values(values, additional_types)
         add_uninitialized_attributes(attributes)
         AttributeSet.new(attributes)

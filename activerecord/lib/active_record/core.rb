@@ -322,7 +322,7 @@ module ActiveRecord
     def initialize_dup(other) # :nodoc:
       pk = self.class.primary_key
       @attributes = @attributes.dup
-      @attributes[pk] = Attribute.from_database(nil, type_for_attribute(pk))
+      @attributes.write_from_database(pk, nil)
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
@@ -522,7 +522,7 @@ module ActiveRecord
     def init_internals
       pk = self.class.primary_key
       unless @attributes.include?(pk)
-        @attributes[pk] = Attribute.from_database(nil, type_for_attribute(pk))
+        @attributes.write_from_database(pk, nil)
       end
 
       @aggregation_cache        = {}
