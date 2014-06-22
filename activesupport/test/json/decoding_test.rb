@@ -73,22 +73,20 @@ class TestJSONDecoding < ActiveSupport::TestCase
 
   TESTS.each_with_index do |(json, expected), index|
     test "json decodes #{index}" do
-      prev = ActiveSupport.parse_json_times
-      ActiveSupport.parse_json_times = true
-      silence_warnings do
-        assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
-        failed for #{json}"
+      with_parse_json_times(true) do
+        silence_warnings do
+          assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
+          failed for #{json}"
+        end
       end
-      ActiveSupport.parse_json_times = prev
     end
   end
 
   test "json decodes time json with time parsing disabled" do
-    prev = ActiveSupport.parse_json_times
-    ActiveSupport.parse_json_times = false
-    expected = {"a" => "2007-01-01 01:12:34 Z"}
-    assert_equal expected, ActiveSupport::JSON.decode(%({"a": "2007-01-01 01:12:34 Z"}))
-    ActiveSupport.parse_json_times = prev
+    with_parse_json_times(false) do
+      expected = {"a" => "2007-01-01 01:12:34 Z"}
+      assert_equal expected, ActiveSupport::JSON.decode(%({"a": "2007-01-01 01:12:34 Z"}))
+    end
   end
 
   def test_failed_json_decoding
@@ -100,6 +98,16 @@ class TestJSONDecoding < ActiveSupport::TestCase
 
   def test_cannot_pass_unsupported_options
     assert_raise(ArgumentError) { ActiveSupport::JSON.decode("", create_additions: true) }
+  end
+
+  private
+
+  def with_parse_json_times(value)
+    old_value = ActiveSupport.parse_json_times
+    ActiveSupport.parse_json_times = value
+    yield
+  ensure
+    ActiveSupport.parse_json_times = old_value
   end
 end
 
