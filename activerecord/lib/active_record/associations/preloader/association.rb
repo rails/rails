@@ -151,6 +151,10 @@ module ActiveRecord
             end
           end
 
+          if preload_values[:readonly] || values[:readonly]
+            scope.readonly!
+          end
+
           if options[:as]
             scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
           end

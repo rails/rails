@@ -1,3 +1,9 @@
+*   `preload` preserves readonly flag for associations.
+
+    See #15853.
+
+    *Yves Senn*
+
 *   Assume numeric types have changed if they were assigned to a value that
     would fail numericality validation, regardless of the old value. Previously
     this would only occur if the old value was 0.
