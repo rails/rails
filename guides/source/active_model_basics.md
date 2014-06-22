@@ -206,7 +206,7 @@ person.valid?                        # => raises ActiveModel::StrictValidationFa
 
 ### Model
 
-`Model` adds the ability to a class to work with Action Pack and Action View out of box.
+`ActiveModel::Model` adds the ability to a class to work with Action Pack and Action View out of box.
 
 ```ruby
 class EmailContact
@@ -223,7 +223,7 @@ class EmailContact
 end
 ```
 
-When including `Model` you get some features like.
+When including `ActiveModel::Model` you get some features like.
 
 - model name instrospection
 - conversions
@@ -242,11 +242,11 @@ email_contact.valid?     # => true
 email_contact.persisted? # => false
 ```
 
-Any class that includes `Model` can be used with `form_for`, `render` and any other Action View helper methods, just like Active Record objects.
+Any class that includes `ActiveModel::Model` can be used with `form_for`, `render` and any other Action View helper methods, just like Active Record objects.
 
 ### Serialization
 
-`Serialization` provides a basic serialization for your object.
+`ActiveModel::Serialization` provides a basic serialization for your object.
 You need to declare an attributes hash which contains the attributes you want to serialize. Attributes must be strings, not symbols.
 
 ```ruby
@@ -272,11 +272,11 @@ person.serializable_hash   # => {"name"=>"Bob"}
 
 #### Serializers
 
-Rails provides two serializers `Serializers::JSON` and `Serializers::Xml`. Both of these modules automatically include the `Serialization`.
+Rails provides two serializers `ActiveModel::Serializers::JSON` and `ActiveModel::Serializers::Xml`. Both of these modules automatically include the `ActiveModel::Serialization`.
 
 ##### Serializers::JSON
 
-To use the `Serializers::JSON` you only need to change from `Serialization` to `Serializers::JSON`.
+To use the `ActiveModel::Serializers::JSON` you only need to change from `ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`.
 
 ```ruby
 class Person
@@ -331,7 +331,7 @@ person.name            # => "Bob"
 
 ##### Serializers::Xml
 
-To use the `Serializers::Xml` you only need to change from `Serialization` to `Serializers::Xml`.
+To use the `ActiveModel::Serializers::Xml` you only need to change from `ActiveModel::Serialization` to `ActiveModel::Serializers::Xml`.
 
 ```ruby
 class Person
