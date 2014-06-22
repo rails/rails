@@ -5,10 +5,10 @@ This guide should provide you with all you need to get started using model class
 
 After reading this guide, you will know:
 
-* How to create a plain ruby object that behaves like an Active Record model.
-* Add callbacks and validations like Active Record to a plain ruby object.
-* Add serializers to a plain ruby object.
-* Integrate plain ruby object with the Rails internationalization (i18n) framework.
+* How to create a plain Ruby object that behaves like an Active Record model.
+* Add callbacks and validations like Active Record to a plain Ruby object.
+* Add serializers to a plain Ruby object.
+* Integrate plain Ruby object with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
@@ -223,8 +223,14 @@ class EmailContact
 end
 ```
 
-When including `Model` you get some features like model name instrospection, conversions, translations and validations.
-Besides that, it allows you to initialize the object with a hash of attributes, pretty much like Active Record does.
+When including `Model` you get some features like.
+
+- model name instrospection
+- conversions
+- translations
+- validations
+
+It also gives you the ability to initialize an object with a hash of attributes, much like any Active Record object.
 
 ```ruby
 email_contact = EmailContact.new(name: 'David',
@@ -236,12 +242,7 @@ email_contact.valid?     # => true
 email_contact.persisted? # => false
 ```
 
-A class with `Model` included can be used on `form_for`, `render` and any other Action View helper, as you do with Active Record objects.
-
-```ruby
-<%= form_for @email_contact %>
-<%= render @email_contact %>
-```
+Any class that includes `Model` can be used with `form_for`, `render` and any other Action View helper methods, just like Active Record objects.
 
 ### Serialization
 
