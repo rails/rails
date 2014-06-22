@@ -1,24 +1,29 @@
 module ActiveRecord
   class Attribute # :nodoc:
     class << self
-      def from_database(value, type)
-        FromDatabase.new(value, type)
+      def from_database(name, value, type)
+        FromDatabase.new(name, value, type)
       end
 
-      def from_user(value, type)
-        FromUser.new(value, type)
+      def from_user(name, value, type)
+        FromUser.new(name, value, type)
       end
 
-      def uninitialized(type)
-        Uninitialized.new(type)
+      def null(name)
+        Null.new(name)
+      end
+
+      def uninitialized(name, type)
+        Uninitialized.new(name, type)
       end
     end
 
-    attr_reader :value_before_type_cast, :type
+    attr_reader :name, :value_before_type_cast, :type
 
     # This method should not be called directly.
     # Use #from_database or #from_user
-    def initialize(value_before_type_cast, type)
+    def initialize(name, value_before_type_cast, type)
+      @name = name
       @value_before_type_cast = value_before_type_cast
       @type = type
     end
@@ -42,11 +47,11 @@ module ActiveRecord
     end
 
     def with_value_from_user(value)
-      self.class.from_user(value, type)
+      self.class.from_user(name, value, type)
     end
 
     def with_value_from_database(value)
-      self.class.from_database(value, type)
+      self.class.from_database(name, value, type)
     end
 
     def type_cast
@@ -77,9 +82,9 @@ module ActiveRecord
       end
     end
 
-    class NullAttribute < Attribute # :nodoc:
-      def initialize
-        super(nil, Type::Value.new)
+    class Null < Attribute # :nodoc:
+      def initialize(name)
+        super(name, nil, Type::Value.new)
       end
 
       def value
@@ -88,21 +93,23 @@ module ActiveRecord
     end
 
     class Uninitialized < Attribute # :nodoc:
-      def initialize(type)
-        super(nil, type)
+      def initialize(name, type)
+        super(name, nil, type)
       end
 
       def value
-        nil
+        if block_given?
+          yield name
+        end
       end
-      alias value_for_database value
+
+      def value_for_database
+      end
 
       def initialized?
         false
       end
     end
-    private_constant :FromDatabase, :FromUser, :NullAttribute, :Uninitialized
-
-    Null = NullAttribute.new # :nodoc:
+    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized
   end
 end

@@ -2,11 +2,14 @@ require 'active_record/attribute_set/builder'
 
 module ActiveRecord
   class AttributeSet # :nodoc:
-    delegate :[], to: :attributes
     delegate :keys, to: :initialized_attributes
 
     def initialize(attributes)
       @attributes = attributes
+    end
+
+    def [](name)
+      attributes[name] || Attribute.null(name)
     end
 
     def values_before_type_cast
@@ -22,13 +25,8 @@ module ActiveRecord
       attributes.include?(name) && self[name].initialized?
     end
 
-    def fetch_value(name)
-      attribute = self[name]
-      if attribute.initialized? || !block_given?
-        attribute.value
-      else
-        yield name
-      end
+    def fetch_value(name, &block)
+      self[name].value(&block)
     end
 
     def write_from_database(name, value)

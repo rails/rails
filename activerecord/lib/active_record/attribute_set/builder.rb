@@ -16,16 +16,15 @@ module ActiveRecord
       private
 
       def build_attributes_from_values(values, additional_types)
-        attributes = Hash.new(Attribute::Null)
-        values.each_with_object(attributes) do |(name, value), hash|
+        values.each_with_object({}) do |(name, value), hash|
           type = additional_types.fetch(name, types[name])
-          hash[name] = Attribute.from_database(value, type)
+          hash[name] = Attribute.from_database(name, value, type)
         end
       end
 
       def add_uninitialized_attributes(attributes)
         types.except(*attributes.keys).each do |name, type|
-          attributes[name] = Attribute.uninitialized(type)
+          attributes[name] = Attribute.uninitialized(name, type)
         end
       end
     end
