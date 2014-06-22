@@ -6,10 +6,6 @@ module ActiveRecord
       @attributes = attributes
     end
 
-    def update(other)
-      attributes.update(other.attributes)
-    end
-
     def to_hash
       attributes.each_with_object({}) { |(k, v), h| h[k] = v.value }
     end
