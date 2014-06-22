@@ -1,3 +1,14 @@
+*   `reload` no longer merges with the existing attributes.
+    The attribute hash is fully replaced. The record is put into the same state
+    as it would be with `Model.find(model.id)`.
+
+    *Sean Griffin*
+
+*   The object returned from `select_all` must respond to `column_types`.
+    If this is not the case a `NoMethodError` is raised.
+
+    *Sean Griffin*
+
 *   `has_many :through` associations will no longer save the through record
     twice when added in an `after_create` callback defined before the
     associations.
