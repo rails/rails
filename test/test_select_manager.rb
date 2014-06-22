@@ -736,6 +736,17 @@ module Arel
         }
       end
 
+      it 'takes a partition and an order' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        manager.window('a_window').partition(table['foo']).order(table['foo'].asc)
+        manager.to_sql.must_be_like %{
+          SELECT FROM "users" WINDOW "a_window" AS (PARTITION BY "users"."foo"
+            ORDER BY "users"."foo" ASC)
+        }
+      end
+
       it 'takes a partition with multiple columns' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
