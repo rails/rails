@@ -396,8 +396,6 @@ module ActiveRecord
         end
 
       @attributes = fresh_object.instance_variable_get('@attributes')
-
-      @column_types = self.class.column_types
       self
     end
 
