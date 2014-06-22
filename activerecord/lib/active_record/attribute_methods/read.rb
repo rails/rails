@@ -99,10 +99,6 @@ module ActiveRecord
       def attribute(attribute_name)
         read_attribute(attribute_name)
       end
-
-      def attribute_named(attribute_name)
-        @attributes.fetch(attribute_name, Attribute::Null)
-      end
     end
   end
 end
