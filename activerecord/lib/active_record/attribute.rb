@@ -41,6 +41,14 @@ module ActiveRecord
       type.changed_in_place?(old_value, value)
     end
 
+    def with_value_from_user(value)
+      self.class.from_user(value, type)
+    end
+
+    def with_value_from_database(value)
+      self.class.from_database(value, type)
+    end
+
     def type_cast
       raise NotImplementedError
     end
@@ -69,18 +77,13 @@ module ActiveRecord
       end
     end
 
-    class Null # :nodoc:
-      class << self
-        attr_reader :value, :value_before_type_cast, :value_for_database
+    class NullAttribute < Attribute # :nodoc:
+      def initialize
+        super(nil, Type::Value.new)
+      end
 
-        def changed_from?(*)
-          false
-        end
-        alias changed_in_place_from? changed_from?
-
-        def initialized?
-          true
-        end
+      def value
+        nil
       end
     end
 
@@ -98,5 +101,8 @@ module ActiveRecord
         false
       end
     end
+    private_constant :FromDatabase, :FromUser, :NullAttribute, :Uninitialized
+
+    Null = NullAttribute.new # :nodoc:
   end
 end
