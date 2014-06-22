@@ -45,5 +45,13 @@ module ActiveRecord
       assert clone.frozen?
       assert_not attributes.frozen?
     end
+
+    test "to_hash returns a hash of the type cast values" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
+      attributes = builder.build_from_database(foo: '1.1', bar: '2.2')
+
+      assert_equal({ foo: 1, bar: 2.2 }, attributes.to_hash)
+      assert_equal({ foo: 1, bar: 2.2 }, attributes.to_h)
+    end
   end
 end

@@ -271,9 +271,7 @@ module ActiveRecord
     #   person.attributes
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
     def attributes
-      attribute_names.each_with_object({}) { |name, attrs|
-        attrs[name] = read_attribute(name)
-      }
+      @attributes.to_hash
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
