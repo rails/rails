@@ -1,15 +1,31 @@
+require 'active_record/attribute_set/builder'
+
 module ActiveRecord
   class AttributeSet # :nodoc:
-    delegate :[], :[]=, :fetch, :include?, :keys, :each_with_object, to: :attributes
+    delegate :[], :[]=, :each_with_object, to: :attributes
+    delegate :keys, to: :initialized_attributes
 
     def initialize(attributes)
       @attributes = attributes
     end
 
     def to_hash
-      attributes.each_with_object({}) { |(k, v), h| h[k] = v.value }
+      initialized_attributes.each_with_object({}) { |(k, v), h| h[k] = v.value }
     end
     alias_method :to_h, :to_hash
+
+    def include?(name)
+      attributes.include?(name) && self[name].initialized?
+    end
+
+    def fetch_value(name)
+      attribute = self[name]
+      if attribute.initialized? || !block_given?
+        attribute.value
+      else
+        yield name
+      end
+    end
 
     def freeze
       @attributes.freeze
@@ -30,23 +46,14 @@ module ActiveRecord
       super
     end
 
-    class Builder # :nodoc:
-      def initialize(types)
-        @types = types
-      end
-
-      def build_from_database(values, additional_types = {})
-        attributes = Hash.new(Attribute::Null)
-        values.each_with_object(attributes) do |(name, value), hash|
-          type = additional_types.fetch(name, @types[name])
-          hash[name] = Attribute.from_database(value, type)
-        end
-        AttributeSet.new(attributes)
-      end
-    end
-
     protected
 
     attr_reader :attributes
+
+    private
+
+    def initialized_attributes
+      attributes.select { |_, attr| attr.initialized? }
+    end
   end
 end
