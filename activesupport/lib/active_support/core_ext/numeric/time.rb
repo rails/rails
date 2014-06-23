@@ -64,6 +64,6 @@ class Numeric
   # Used with the standard time durations, like 1.hour.in_milliseconds --
   # so we can feed them to JavaScript functions like getTime().
   def in_milliseconds
-    self * 1000
+    (self * 1000.0).to_i
   end
 end

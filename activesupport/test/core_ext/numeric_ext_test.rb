@@ -386,7 +386,12 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
   end
 
-  def test_in_milliseconds
+  def test_in_milliseconds_with_duration
     assert_equal 10_000, 10.seconds.in_milliseconds
+  end
+
+  def test_in_milliseconds_with_numeric
+    assert_equal 10_000, 10.in_milliseconds
+    assert_equal 10_123, 10.123456.in_milliseconds
   end
 end

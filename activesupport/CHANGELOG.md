@@ -1,3 +1,7 @@
+*   `Numeric#in_milliseconds` preserves millisecond precision.
+
+    *Philippe Creux*
+
 *   Make Dependencies pass a name to NameError error.
     *arthurnn*
 
