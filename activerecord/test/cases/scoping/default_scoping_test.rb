@@ -83,9 +83,15 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 50000,   wheres['salary']
   end
 
-  def test_scope_overwrites_default
-    expected = Developer.all.merge!(order: 'salary DESC, name DESC').to_a.collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.by_name.to_a.collect { |dev| dev.name }
+  def test_default_versus_explicit_scope
+    assert_deprecated do
+      expected = Developer.all.merge!(order: 'salary DESC, name DESC').to_a.collect { |dev| dev.name }
+      received = DeveloperOrderedBySalary.by_name.to_a.collect { |dev| dev.name }
+      assert_equal expected, received
+    end
+
+    expected = Developer.all.merge!(order: 'name DESC, salary DESC').to_a.collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.by_name_prepended.to_a.collect { |dev| dev.name }
     assert_equal expected, received
   end
 
@@ -97,7 +103,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_order_after_reorder_combines_orders
     expected = Developer.order('name DESC, id DESC').collect { |dev| [dev.name, dev.id] }
-    received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
+
+    assert_deprecated do
+      received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
+      assert_equal expected, received
+    end
+
+    received = Developer.order('name ASC').reorder('name DESC').append_order('id DESC').collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 
@@ -176,7 +188,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_to_unscope_reordering
-    scope = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order)
+    assert_deprecated do
+      scope = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order)
+      assert !(scope.to_sql =~ /order/i)
+    end
+
+    scope = DeveloperOrderedBySalary.append_order('salary DESC, name ASC').reverse_order.unscope(:order)
     assert !(scope.to_sql =~ /order/i)
   end
 

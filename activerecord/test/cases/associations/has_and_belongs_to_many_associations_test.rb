@@ -544,8 +544,16 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_should_append_to_association_order
-    ordered_developers = projects(:active_record).developers.order('projects.id')
+    assert_deprecated do
+      ordered_developers = projects(:active_record).developers.order('projects.id')
+      assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
+    end
+
+    ordered_developers = projects(:active_record).developers.append_order('projects.id')
     assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
+
+    ordered_developers = projects(:active_record).developers.prepend_order('projects.id')
+    assert_equal ['projects.id', 'developers.name desc, developers.id desc'], ordered_developers.order_values
   end
 
   def test_dynamic_find_all_should_respect_readonly_access
