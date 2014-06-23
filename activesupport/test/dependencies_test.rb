@@ -107,7 +107,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       silence_warnings { require_dependency filename }
       assert_equal 1, $check_warnings_load_count
-      assert_equal true, $checked_verbose, 'On first load warnings should be enabled.'
+      assert $checked_verbose, 'On first load warnings should be enabled.'
 
       assert ActiveSupport::Dependencies.loaded.include?(expanded)
       ActiveSupport::Dependencies.clear
@@ -125,7 +125,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       enable_warnings { require_dependency filename }
       assert_equal 3, $check_warnings_load_count
-      assert_equal true, $checked_verbose, 'After first load warnings should be left alone.'
+      assert true, $checked_verbose, 'After first load warnings should be left alone.'
 
       assert ActiveSupport::Dependencies.loaded.include?(expanded)
       ActiveSupport::Dependencies.warnings_on_first_load = old_warnings
