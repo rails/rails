@@ -1,4 +1,4 @@
-## Rails 4.0.6 (June 16, 2014) ##
+## Rails 4.0.6 (June 23, 2014) ##
 
 *   Fix URL generation with `:trailing_slash` such that it does not add
     a trailing slash after `.:format`
