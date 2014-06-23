@@ -1,4 +1,4 @@
-## Rails 4.1.2 (June 16, 2014) ##
+## Rails 4.1.2 (June 23, 2014) ##
 
 *   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
     in nested arrays.  This change also applies to `Hash#deep_stringify_keys`,

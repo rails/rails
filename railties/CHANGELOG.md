@@ -1,4 +1,4 @@
-## Rails 4.1.2 (June 16, 2014) ##
+## Rails 4.1.2 (June 23, 2014) ##
 
 *   Load database configuration from the first `database.yml` available in paths.
 
