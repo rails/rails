@@ -117,7 +117,8 @@
 
     *Lauro Caetano*, *Carlos Antonio da Silva*
 
-*   Return a null column from `column_for_attribute` when no column exists.
+*   Deprecate returning `nil` from `column_for_attribute` when no column exists.
+    It will return a null object in Rails 5.0
 
     *Sean Griffin*
 
