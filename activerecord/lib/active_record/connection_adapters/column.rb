@@ -57,12 +57,6 @@ module ActiveRecord
         end
       end
     end
-
-    class NullColumn < Column
-      def initialize(name)
-        super name, nil, Type::Value.new
-      end
-    end
   end
   # :startdoc:
 end
