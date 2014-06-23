@@ -75,5 +75,13 @@ module ActiveRecord
     def exists?(_id = false)
       false
     end
+
+    def or(other)
+      if other.is_a?(NullRelation)
+        super
+      else
+        other.or(self)
+      end
+    end
   end
 end

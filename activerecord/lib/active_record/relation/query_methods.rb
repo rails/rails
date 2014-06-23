@@ -582,6 +582,65 @@ module ActiveRecord
       unscope(where: conditions.keys).where(conditions)
     end
 
+    # Returns a new relation, which is the logical union of this relation and the one passed as an
+    # argument.
+    #
+    # The two relations must be structurally compatible: they must be scoping the same model, and
+    # they must differ only by +where+ (if no +group+ has been defined) or +having+ (if a +group+ is
+    # present). Neither relation may have a +limit+, +offset+, or +uniq+ set.
+    #
+    #    Post.where("id = 1").or(Post.where("id = 2"))
+    #    # SELECT `posts`.* FROM `posts`  WHERE (('id = 1' OR 'id = 2'))
+    #
+    def or(other)
+      spawn.or!(other)
+    end
+
+    def or!(other)
+      combining = group_values.any? ? :having : :where
+
+      unless structurally_compatible?(other, combining)
+        raise ArgumentError, 'Relation passed to #or must be structurally compatible'
+      end
+
+      unless other.is_a?(NullRelation)
+        left_values = send("#{combining}_values")
+        right_values = other.send("#{combining}_values")
+
+        common = left_values & right_values
+        mine = left_values - common
+        theirs = right_values - common
+
+        if mine.any? && theirs.any?
+          mine = mine.map { |x| String === x ? Arel.sql(x) : x }
+          theirs = theirs.map { |x| String === x ? Arel.sql(x) : x }
+
+          mine = [Arel::Nodes::And.new(mine)] if mine.size > 1
+          theirs = [Arel::Nodes::And.new(theirs)] if theirs.size > 1
+
+          common << Arel::Nodes::Or.new(mine.first, theirs.first)
+        end
+
+        send("#{combining}_values=", common)
+      end
+
+      self
+    end
+
+    def structurally_compatible?(other, allowed_to_vary)
+      Relation::SINGLE_VALUE_METHODS.all? do |name|
+        send("#{name}_value") == other.send("#{name}_value")
+      end &&
+        (Relation::MULTI_VALUE_METHODS - [allowed_to_vary, :extending]).all? do |name|
+          send("#{name}_values") == other.send("#{name}_values")
+        end &&
+        (extending_values - [NullRelation]) == (other.extending_values - [NullRelation]) &&
+        !limit_value &&
+        !offset_value &&
+        !uniq_value
+    end
+    private :structurally_compatible?
+
     # Allows to specify a HAVING clause. Note that you can't use HAVING
     # without also specifying a GROUP clause.
     #
