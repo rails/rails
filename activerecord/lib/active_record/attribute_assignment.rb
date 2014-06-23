@@ -134,7 +134,7 @@ module ActiveRecord
         elsif klass == Date
           read_date
         else
-          read_other(klass)
+          read_other
         end
       end
 
@@ -181,7 +181,7 @@ module ActiveRecord
         end
       end
 
-      def read_other(klass)
+      def read_other
         max_position = extract_max_param
         positions    = (1..max_position)
         validate_required_parameters!(positions)
