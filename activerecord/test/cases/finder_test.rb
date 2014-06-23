@@ -66,6 +66,11 @@ class FinderTest < ActiveRecord::TestCase
   def test_exists
     assert_equal true, Topic.exists?(1)
     assert_equal true, Topic.exists?("1")
+
+    # when is alphanumeric
+    assert_equal true, Topic.exists?('1-abc')
+    assert_equal false, Topic.exists?('abc-1')
+
     assert_equal true, Topic.exists?(title: "The First Topic")
     assert_equal true, Topic.exists?(heading: "The First Topic")
     assert_equal true, Topic.exists?(:author_name => "Mary", :approved => true)
