@@ -1,3 +1,13 @@
+*   Added the `#or` method on ActiveRecord::Relation, allowing use of the OR
+    operator to combine WHERE or HAVING clauses.
+
+    Example:
+
+        Post.where('id = 1').or(Post.where('id = 2'))
+        # => SELECT * FROM posts WHERE (id = 1) OR (id = 2)
+
+    *Matthew Draper*, *Gael Muller*, *Olivier El Mekki*
+
 *   `has_many :through` associations will no longer save the through record
     twice when added in an `after_create` callback defined before the
     associations.

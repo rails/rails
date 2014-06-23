@@ -18,6 +18,7 @@ class Post < ActiveRecord::Base
   end
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
+  scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
   scope :ranked_by_comments,      -> { order("comments_count DESC") }
 
   scope :limit_by, lambda {|l| limit(l) }
@@ -41,6 +42,8 @@ class Post < ActiveRecord::Base
   scope :with_tags, -> { preload(:taggings) }
 
   scope :tagged_with, ->(id) { joins(:taggings).where(taggings: { tag_id: id }) }
+
+  scope :typographically_interesting, -> { containing_the_letter_a.or(titled_with_an_apostrophe) }
 
   has_many   :comments do
     def find_most_recent
