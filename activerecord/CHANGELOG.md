@@ -1,3 +1,10 @@
+*   `DatabaseStatements#binds_from_relation` correctly get the binding values 
+    when passing polymorphic relation.
+
+    Fixes #15821.
+
+    *James Yang*
+
 *   `reload` no longer merges with the existing attributes.
     The attribute hash is fully replaced. The record is put into the same state
     as it would be with `Model.find(model.id)`.
@@ -8,7 +15,6 @@
     If this is not the case a `NoMethodError` is raised.
 
     *Sean Griffin*
->>>>>>> master
 
 *   `has_many :through` associations will no longer save the through record
     twice when added in an `after_create` callback defined before the
