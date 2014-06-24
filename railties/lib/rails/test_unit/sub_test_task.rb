@@ -7,7 +7,7 @@ module Rails
     #
     # This class takes a TestInfo class and defines the appropriate rake task
     # based on the information, then invokes it.
-    class TestCreator
+    class TestCreator # :nodoc:
       def initialize(info)
         @info = info
       end
@@ -41,7 +41,7 @@ module Rails
     # to test files (or can be transformed into test files). Calling <tt>files</tt>
     # provides the set of test files and is used when initializing tests after
     # a call to <tt>rake test</tt>.
-    class TestInfo
+    class TestInfo # :nodoc:
       def initialize(tasks)
         @tasks = tasks
         @files = nil
