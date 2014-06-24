@@ -69,7 +69,6 @@ module ActiveRecord
       include DatabaseLimits
       include QueryCache
       include ActiveSupport::Callbacks
-      include MonitorMixin
       include ColumnDumper
 
       SIMPLE_INT = /\A\d+\z/
@@ -140,11 +139,7 @@ module ActiveRecord
       end
 
       def lease
-        synchronize do
-          unless in_use?
-            @owner = Thread.current
-          end
-        end
+        @owner = Thread.current
       end
 
       def schema_cache=(cache)

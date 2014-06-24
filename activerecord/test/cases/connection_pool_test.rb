@@ -41,6 +41,16 @@ module ActiveRecord
         assert pool.connection.in_use?
       end
 
+      def test_checkin
+        connection = pool.connection
+        assert connection.in_use?
+
+        pool.checkin(connection)
+        assert !connection.in_use?
+
+        assert pool.connection.in_use?
+      end
+
       def test_released_connection_moves_between_threads
         thread_conn = nil
 
