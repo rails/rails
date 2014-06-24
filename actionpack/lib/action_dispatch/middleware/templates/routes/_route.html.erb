@@ -8,7 +8,11 @@
     <%= route[:verb] %>
   </td>
   <td data-route-path='<%= route[:path] %>' data-regexp='<%= route[:regexp] %>'>
-    <%= route[:path] %>
+    <% if route[:linkable] %>
+      <a href="<%= ActionDispatch::Http::URL.url_for(route[:options].merge(only_path: true)) %>"><%= route[:path] %></a>
+    <% else %>
+      <%= route[:path] %>
+    <% end %>
   </td>
   <td data-route-reqs='<%= route[:reqs] %>'>
     <%= route[:reqs] %>
