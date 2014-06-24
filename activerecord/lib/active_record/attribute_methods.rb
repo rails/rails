@@ -186,8 +186,7 @@ module ActiveRecord
       end
 
       # Returns the column object for the named attribute.
-      # Returns a +ActiveRecord::ConnectionAdapters::NullColumn+ if the
-      # named attribute does not exist.
+      # Returns nil if the named attribute does not exist.
       #
       #   class Person < ActiveRecord::Base
       #   end
@@ -197,12 +196,17 @@ module ActiveRecord
       #   # => #<ActiveRecord::ConnectionAdapters::SQLite3Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
       #
       #   person.column_for_attribute(:nothing)
-      #   # => #<ActiveRecord::ConnectionAdapters::NullColumn:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
+      #   # => nil
       def column_for_attribute(name)
-        name = name.to_s
-        columns_hash.fetch(name) do
-          ConnectionAdapters::NullColumn.new(name)
+        column = columns_hash[name.to_s]
+        if column.nil?
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            `column_for_attribute` will return a null object for non-existent columns
+            in Rails 5.0. If you would like to continue to receive `nil`, you should
+            instead call `model.class.columns_hash[name]`
+          MESSAGE
         end
+        column
       end
     end
 

@@ -1873,7 +1873,7 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= render "comments/form" %>
+<%= render 'comments/form' %>
 
 <%= link_to 'Edit Article', edit_article_path(@article) %> |
 <%= link_to 'Back to Articles', articles_path %>

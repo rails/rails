@@ -842,6 +842,26 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_not @target.attribute_method?(:title)
   end
 
+  def test_attribute_names_on_new_record
+    model = @target.new
+
+    assert_equal @target.column_names, model.attribute_names
+  end
+
+  def test_attribute_names_on_queried_record
+    model = @target.last!
+
+    assert_equal @target.column_names, model.attribute_names
+  end
+
+  def test_attribute_names_with_custom_select
+    model = @target.select('id').last!
+
+    assert_equal ['id'], model.attribute_names
+    # Sanity check, make sure other columns exist
+    assert_not_equal ['id'], @target.column_names
+  end
+
   private
 
   def new_topic_like_ar_class(&block)

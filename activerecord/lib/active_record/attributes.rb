@@ -27,7 +27,7 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      # The type detected by Active Record can be overriden.
+      # The type detected by Active Record can be overridden.
       #
       #   # db/schema.rb
       #   create_table :store_listings, force: true do |t|

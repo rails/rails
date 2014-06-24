@@ -7,10 +7,10 @@ module ActionView
     # urls.
     #
     #   image_path("rails.png")
-    #   # => "/images/rails.png"
+    #   # => "/assets/rails.png"
     #
     #   image_url("rails.png")
-    #   # => "http://www.example.com/images/rails.png"
+    #   # => "http://www.example.com/assets/rails.png"
     #
     # === Using asset hosts
     #
@@ -155,7 +155,7 @@ module ActionView
       #
       # All other options provided are forwarded to +asset_path+ call.
       #
-      #   asset_url "application.js"                                 # => http://example.com/application.js
+      #   asset_url "application.js"                                 # => http://example.com/assets/application.js
       #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/assets/application.js
       #
       def asset_url(source, options = {})
@@ -236,8 +236,8 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +javascript_include_tag+ to build the script path.
       #
-      #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
-      #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
+      #   javascript_path "xmlhr"                              # => /assets/xmlhr.js
+      #   javascript_path "dir/xmlhr.js"                       # => /assets/dir/xmlhr.js
       #   javascript_path "/dir/xmlhr"                         # => /dir/xmlhr.js
       #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
       #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
@@ -258,8 +258,8 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
       #
-      #   stylesheet_path "style"                                  # => /stylesheets/style.css
-      #   stylesheet_path "dir/style.css"                          # => /stylesheets/dir/style.css
+      #   stylesheet_path "style"                                  # => /assets/style.css
+      #   stylesheet_path "dir/style.css"                          # => /assets/dir/style.css
       #   stylesheet_path "/dir/style.css"                         # => /dir/style.css
       #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
       #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
@@ -279,9 +279,9 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +image_tag+ to build the image path:
       #
-      #   image_path("edit")                                         # => "/images/edit"
-      #   image_path("edit.png")                                     # => "/images/edit.png"
-      #   image_path("icons/edit.png")                               # => "/images/icons/edit.png"
+      #   image_path("edit")                                         # => "/assets/edit"
+      #   image_path("edit.png")                                     # => "/assets/edit.png"
+      #   image_path("icons/edit.png")                               # => "/assets/icons/edit.png"
       #   image_path("/icons/edit.png")                              # => "/icons/edit.png"
       #   image_path("http://www.example.com/img/edit.png")          # => "http://www.example.com/img/edit.png"
       #

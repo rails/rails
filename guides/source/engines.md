@@ -82,8 +82,11 @@ The full list of options for the plugin generator may be seen by typing:
 $ bin/rails plugin --help
 ```
 
-The `--full` option tells the generator that you want to create an engine,
-including a skeleton structure that provides the following:
+The `--mountable` option tells the generator that you want to create a
+"mountable" and namespace-isolated engine. This generator will provide the same
+skeleton structure as would the `--full` option. The `--full` option tells the
+generator that you want to create an engine, including a skeleton structure
+that provides the following:
 
   * An `app` directory tree
   * A `config/routes.rb` file:
@@ -103,9 +106,7 @@ including a skeleton structure that provides the following:
     end
     ```
 
-The `--mountable` option tells the generator that you want to create a
-"mountable" and namespace-isolated engine. This generator will provide the same
-skeleton structure as would the `--full` option, and will add:
+The `--mountable` option will add to the `--full` option:
 
   * Asset manifest files (`application.js` and `application.css`)
   * A namespaced `ApplicationController` stub

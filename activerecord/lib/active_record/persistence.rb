@@ -395,9 +395,7 @@ module ActiveRecord
           self.class.unscoped { self.class.find(id) }
         end
 
-      @attributes.update(fresh_object.instance_variable_get('@attributes'))
-
-      @column_types = self.class.column_types
+      @attributes = fresh_object.instance_variable_get('@attributes')
       self
     end
 
