@@ -679,5 +679,12 @@ module ApplicationTests
       end
       assert_equal Logger::INFO, Rails.logger.level
     end
+
+    test "respond_to? accepts include_private" do
+      make_basic_app
+
+      assert_not Rails.configuration.respond_to?(:method_missing)
+      assert Rails.configuration.respond_to?(:method_missing, true)
+    end
   end
 end
