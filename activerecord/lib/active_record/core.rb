@@ -254,7 +254,6 @@ module ActiveRecord
       end
 
       @attributes = self.class.attributes_builder.build_from_database(defaults)
-      @column_types = self.class.column_types
 
       init_internals
       initialize_internals_callback
@@ -280,7 +279,6 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = coder['attributes']
-      @column_types = self.class.column_types
 
       init_internals
 

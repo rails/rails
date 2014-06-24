@@ -315,10 +315,10 @@ authors.compact!
 
 ### Changes on Default Scopes
 
-Default scopes are no longer overriden by chained conditions.
+Default scopes are no longer overridden by chained conditions.
 
 In previous versions when you defined a `default_scope` in a model
-it was overriden by chained conditions in the same field. Now it
+it was overridden by chained conditions in the same field. Now it
 is merged like any other scope.
 
 Before:

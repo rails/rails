@@ -11,6 +11,11 @@
 
     *Sean Griffin*
 
+*   The object returned from `select_all` must respond to `column_types`.
+    If this is not the case a `NoMethodError` is raised.
+
+    *Sean Griffin*
+
 *   `has_many :through` associations will no longer save the through record
     twice when added in an `after_create` callback defined before the
     associations.
@@ -119,7 +124,8 @@
 
     *Lauro Caetano*, *Carlos Antonio da Silva*
 
-*   Return a null column from `column_for_attribute` when no column exists.
+*   Deprecate returning `nil` from `column_for_attribute` when no column exists.
+    It will return a null object in Rails 5.0
 
     *Sean Griffin*
 
