@@ -16,13 +16,13 @@ module ActiveRecord
       end
 
       def changed?(old_value, _new_value, new_value_before_type_cast) # :nodoc:
-        super || zero_to_non_number?(old_value, new_value_before_type_cast)
+        super || number_to_non_number?(old_value, new_value_before_type_cast)
       end
 
       private
 
-      def zero_to_non_number?(old_value, new_value_before_type_cast)
-        old_value == 0 && non_numeric_string?(new_value_before_type_cast)
+      def number_to_non_number?(old_value, new_value_before_type_cast)
+        old_value != nil && non_numeric_string?(new_value_before_type_cast)
       end
 
       def non_numeric_string?(value)
