@@ -1,3 +1,17 @@
+*   Assume numeric types have changed if they were assigned to a value that
+    would fail numericality validation, regardless of the old value. Previously
+    this would only occur if the old value was 0.
+
+    Example:
+
+        model = Model.create!(number: 5)
+        model.number = '5wibble'
+        model.number_changed? # => true
+
+    Fixes #14731.
+
+    *Sean Griffin*
+
 *   `reload` no longer merges with the existing attributes.
     The attribute hash is fully replaced. The record is put into the same state
     as it would be with `Model.find(model.id)`.
