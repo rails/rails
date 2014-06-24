@@ -13,7 +13,7 @@ module ActiveModel
   #
   #   class Person
   #     # Required dependency for ActiveModel::Errors
-  #     extend ActiveModel::Naming
+  #     include ActiveModel::Naming
   #
   #     def initialize
   #       @errors = ActiveModel::Errors.new(self)

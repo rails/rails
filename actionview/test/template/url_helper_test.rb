@@ -712,7 +712,7 @@ class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
 end
 
 class Session
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
   attr_accessor :id, :workshop_id
 

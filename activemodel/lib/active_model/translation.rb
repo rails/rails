@@ -19,7 +19,10 @@ module ActiveModel
   # class based +i18n_scope+ and +lookup_ancestors+ to find translations in
   # parent classes.
   module Translation
-    include ActiveModel::Naming
+
+    def self.extended(base) # :nodoc:
+      base.send(:include, ActiveModel::Naming)
+    end
 
     # Returns the +i18n_scope+ for the class. Overwrite if you want custom lookup.
     def i18n_scope

@@ -144,11 +144,11 @@ behavior out of the box:
 * Model name introspection
 
     class NamedPerson
-      extend ActiveModel::Naming
+      include ActiveModel::Naming
     end
 
-    NamedPerson.model_name.name   # => "NamedPerson"
-    NamedPerson.model_name.human  # => "Named person"
+    NamedPerson.new.model_name.name   # => "NamedPerson"
+    NamedPerson.new.model_name.human  # => "Named person"
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
 

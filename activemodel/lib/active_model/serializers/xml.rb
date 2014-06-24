@@ -12,7 +12,7 @@ module ActiveModel
       include ActiveModel::Serialization
 
       included do
-        extend ActiveModel::Naming
+        include ActiveModel::Naming
       end
 
       class Serializer #:nodoc:

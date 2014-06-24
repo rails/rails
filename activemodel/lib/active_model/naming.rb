@@ -21,7 +21,7 @@ module ActiveModel
     # +other+ are equal, otherwise +false+.
     #
     #   class BlogPost
-    #     extend ActiveModel::Naming
+    #     include ActiveModel::Naming
     #   end
     #
     #   BlogPost.model_name == 'BlogPost'  # => true
@@ -36,7 +36,7 @@ module ActiveModel
     # Equivalent to <tt>#==</tt>.
     #
     #   class BlogPost
-    #     extend ActiveModel::Naming
+    #     include ActiveModel::Naming
     #   end
     #
     #   BlogPost.model_name === 'BlogPost'  # => true
@@ -51,7 +51,7 @@ module ActiveModel
     # Equivalent to <tt>String#<=></tt>.
     #
     #   class BlogPost
-    #     extend ActiveModel::Naming
+    #     include ActiveModel::Naming
     #   end
     #
     #   BlogPost.model_name <=> 'BlogPost'  # => 0
@@ -69,7 +69,7 @@ module ActiveModel
     # no match.
     #
     #   class BlogPost
-    #     extend ActiveModel::Naming
+    #     include ActiveModel::Naming
     #   end
     #
     #   BlogPost.model_name =~ /Post/ # => 4
@@ -85,7 +85,7 @@ module ActiveModel
     # regexp. Returns +true+ if there is no match, otherwise +false+.
     #
     #   class BlogPost
-    #     extend ActiveModel::Naming
+    #     include ActiveModel::Naming
     #   end
     #
     #   BlogPost.model_name !~ /Post/ # => false
@@ -101,7 +101,7 @@ module ActiveModel
     # +other+ have the same length and content, otherwise +false+.
     #
     #   class BlogPost
-    #     extend ActiveModel::Naming
+    #     include ActiveModel::Naming
     #   end
     #
     #   BlogPost.model_name.eql?('BlogPost')  # => true
@@ -116,7 +116,7 @@ module ActiveModel
     # Returns the class name.
     #
     #   class BlogPost
-    #     extend ActiveModel::Naming
+    #     include ActiveModel::Naming
     #   end
     #
     #   BlogPost.model_name.to_s # => "BlogPost"
@@ -166,7 +166,7 @@ module ActiveModel
     # it will underscore then humanize the class name.
     #
     #   class BlogPost
-    #     extend ActiveModel::Naming
+    #     include ActiveModel::Naming
     #   end
     #
     #   BlogPost.model_name.human # => "Blog post"
@@ -198,26 +198,30 @@ module ActiveModel
   #
   # Creates a +model_name+ method on your object.
   #
-  # To implement, just extend ActiveModel::Naming in your object:
+  # To implement, just include ActiveModel::Naming in your object:
   #
   #   class BookCover
-  #     extend ActiveModel::Naming
+  #     include ActiveModel::Naming
   #   end
   #
-  #   BookCover.model_name.name   # => "BookCover"
-  #   BookCover.model_name.human  # => "Book cover"
+  #   BookCover.new.model_name.name   # => "BookCover"
+  #   BookCover.new.model_name.human  # => "Book cover"
   #
-  #   BookCover.model_name.i18n_key              # => :book_cover
-  #   BookModule::BookCover.model_name.i18n_key  # => :"book_module/book_cover"
+  #   BookCover.new.model_name.i18n_key              # => :book_cover
+  #   BookModule::BookCover.new.model_name.i18n_key  # => :"book_module/book_cover"
   #
   # Providing the functionality that ActiveModel::Naming provides in your object
   # is required to pass the Active Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
-    def self.extended(base) #:nodoc:
-      base.class_eval do
-        delegate :model_name, to: :class
-      end
+    extend ActiveSupport::Concern
+
+    def self.extended(base) # :nodoc:
+      ActiveSupport::Deprecation.warn(
+        "extending ActiveModel::Naming is deprecated. Please use include instead"
+      )
+
+      base.send(:include, self)
     end
 
     # Returns an ActiveModel::Name object for module. It can be
@@ -233,11 +237,17 @@ module ActiveModel
     #   Person.model_name.singular # => "person"
     #   Person.model_name.plural   # => "people"
     def model_name
-      @_model_name ||= begin
-        namespace = self.parents.detect do |n|
-          n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
+      self.class.model_name
+    end
+
+    module ClassMethods
+      def model_name
+        @_model_name ||= begin
+          namespace = self.parents.detect do |n|
+            n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
+          end
+          ActiveModel::Name.new(self, namespace)
         end
-        ActiveModel::Name.new(self, namespace)
       end
     end
 
@@ -305,12 +315,10 @@ module ActiveModel
     end
 
     def self.model_name_from_record_or_class(record_or_class) #:nodoc:
-      if record_or_class.respond_to?(:model_name)
-        record_or_class.model_name
-      elsif record_or_class.respond_to?(:to_model)
+      if record_or_class.respond_to?(:to_model)
         record_or_class.to_model.model_name
       else
-        record_or_class.class.model_name
+        record_or_class.model_name
       end
     end
     private_class_method :model_name_from_record_or_class

@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
 end
 
 class Customer < Struct.new(:name, :id)
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   undef_method :to_json
@@ -36,7 +36,7 @@ end
 module Quiz
   #Models
   class Question < Struct.new(:name, :id)
-    extend ActiveModel::Naming
+    include ActiveModel::Naming
     include ActiveModel::Conversion
 
     def persisted?

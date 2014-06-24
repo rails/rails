@@ -6,6 +6,6 @@ class Post
   end
 
   class NamedTrackBack
-    extend ActiveModel::Naming
+    include ActiveModel::Naming
   end
 end

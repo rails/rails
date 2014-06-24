@@ -1,5 +1,5 @@
 class Contact
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   attr_accessor :id, :name, :age, :created_at, :awesome, :preferences

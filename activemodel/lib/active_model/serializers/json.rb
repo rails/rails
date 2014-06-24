@@ -8,7 +8,7 @@ module ActiveModel
       include ActiveModel::Serialization
 
       included do
-        extend ActiveModel::Naming
+        include ActiveModel::Naming
 
         class_attribute :include_root_in_json
         self.include_root_in_json = false

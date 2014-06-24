@@ -2,7 +2,7 @@ require "cases/helper"
 
 class ErrorsTest < ActiveModel::TestCase
   class Person
-    extend ActiveModel::Naming
+    include ActiveModel::Naming
     def initialize
       @errors = ActiveModel::Errors.new(self)
     end

@@ -1,7 +1,7 @@
 require "active_model"
 
 class Customer < Struct.new(:name, :id)
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   undef_method :to_json
@@ -40,7 +40,7 @@ end
 
 module Quiz
   class Question < Struct.new(:name, :id)
-    extend ActiveModel::Naming
+    include ActiveModel::Naming
     include ActiveModel::Conversion
 
     def persisted?
@@ -53,7 +53,7 @@ module Quiz
 end
 
 class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
   extend ActiveModel::Translation
 
@@ -76,7 +76,7 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :writt
 end
 
 class Comment
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   attr_reader :id
@@ -102,7 +102,7 @@ module Blog
   end
 
   class Post < Struct.new(:title, :id)
-    extend ActiveModel::Naming
+    include ActiveModel::Naming
     include ActiveModel::Conversion
 
     def persisted?

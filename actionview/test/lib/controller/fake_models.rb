@@ -1,7 +1,7 @@
 require "active_model"
 
 class Customer < Struct.new(:name, :id)
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   undef_method :to_json
@@ -32,7 +32,7 @@ class GoodCustomer < Customer
 end
 
 class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
   extend ActiveModel::Translation
 
@@ -55,7 +55,7 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :writt
 end
 
 class Comment
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   attr_reader :id
@@ -76,7 +76,7 @@ class Comment
 end
 
 class Tag
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   attr_reader :id
@@ -96,7 +96,7 @@ class Tag
 end
 
 class CommentRelevance
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   attr_reader :id
@@ -112,7 +112,7 @@ class CommentRelevance
 end
 
 class Sheep
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   attr_reader :id
@@ -125,7 +125,7 @@ class Sheep
 end
 
 class TagRelevance
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   attr_reader :id
@@ -146,7 +146,7 @@ class Author < Comment
 end
 
 class HashBackedAuthor < Hash
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
 
   def persisted?; false; end
@@ -162,7 +162,7 @@ module Blog
   end
 
   class Post < Struct.new(:title, :id)
-    extend ActiveModel::Naming
+    include ActiveModel::Naming
     include ActiveModel::Conversion
 
     def persisted?
