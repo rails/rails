@@ -187,7 +187,7 @@ module ActiveSupport #:nodoc:
       # top-level constant.
       def guess_for_anonymous(const_name)
         if Object.const_defined?(const_name)
-          raise NameError.new "#{const_name} cannot be autoloaded from an anonymous class or module", const_name.to_s
+          raise NameError.new "#{const_name} cannot be autoloaded from an anonymous class or module", const_name
         else
           Object
         end
@@ -516,7 +516,7 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      name_error = NameError.new("uninitialized constant #{qualified_name}", qualified_name)
+      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
       name_error.set_backtrace(caller.reject {|l| l.starts_with? __FILE__ })
       raise name_error
     end

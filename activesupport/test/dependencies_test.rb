@@ -367,11 +367,11 @@ class DependenciesTest < ActiveSupport::TestCase
     with_autoloading_fixtures do
       e = assert_raise(NameError) { A::DoesNotExist.nil? }
       assert_equal "uninitialized constant A::DoesNotExist", e.message
-      assert_equal "A::DoesNotExist", e.name
+      assert_equal :DoesNotExist, e.name
 
       e = assert_raise(NameError) { A::B::DoesNotExist.nil? }
       assert_equal "uninitialized constant A::B::DoesNotExist", e.message
-      assert_equal "A::B::DoesNotExist", e.name
+      assert_equal :DoesNotExist, e.name
     end
   end
 
@@ -539,7 +539,7 @@ class DependenciesTest < ActiveSupport::TestCase
       mod = Module.new
       e = assert_raise(NameError) { mod::E }
       assert_equal 'E cannot be autoloaded from an anonymous class or module', e.message
-      assert_equal 'E', e.name
+      assert_equal :E, e.name
     end
   end
 
