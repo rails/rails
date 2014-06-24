@@ -214,6 +214,12 @@ module ActiveModel
   # is required to pass the Active Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
+    def self.extended(base) #:nodoc:
+      base.class_eval do
+        delegate :model_name, to: :class
+      end
+    end
+
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information
     # (See ActiveModel::Name for more information).
