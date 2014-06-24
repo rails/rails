@@ -304,7 +304,7 @@ module ActiveRecord
         end
       end
 
-      connection.select_value(relation, "#{name} Exists", arel.bind_values + relation.bind_values) ? true : false
+      connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
     end
 
     # This method is called whenever no records are found with either a single
