@@ -89,8 +89,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, relation.exists?
 
     assert_equal false, relation.exists?(false)
-    assert_equal false, relation.exists?(2)
-    assert_equal false, relation.exists?("2")
+    assert_equal false, relation.exists?(post.id)
+    assert_equal false, relation.exists?(post.id.to_s)
   end
 
   def test_exists_passing_active_record_object_is_deprecated

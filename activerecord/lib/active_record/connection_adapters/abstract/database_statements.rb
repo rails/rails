@@ -393,7 +393,7 @@ module ActiveRecord
         end
 
         def binds_from_relation(relation, binds)
-          if relation.is_a?(Relation) && binds.empty?
+          if relation.is_a?(Relation)
             if relation.arel.bind_values.empty?
               binds = relation.bind_values
             else
