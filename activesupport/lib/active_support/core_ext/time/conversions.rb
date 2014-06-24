@@ -62,4 +62,9 @@ class Time
   def formatted_offset(colon = true, alternate_utc_string = nil)
     utc? && alternate_utc_string || ActiveSupport::TimeZone.seconds_to_utc_offset(utc_offset, colon)
   end
+
+  # Converts +self+ to an integer number of milliseconds since the Unix epoch.
+  def in_milliseconds
+    (self.to_f * 1000).to_i
+  end
 end

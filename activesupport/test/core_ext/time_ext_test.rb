@@ -695,6 +695,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_in_milliseconds
+    assert_equal 86_400_000, Time.utc(1970, 1, 2, 0, 0, 0).in_milliseconds
+    assert_equal 86_400_123, Time.utc(1970, 1, 2, 0, 0, 0.123456).in_milliseconds
+  end
+
   def test_compare_with_time
     assert_equal  1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999)
     assert_equal  0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0)
