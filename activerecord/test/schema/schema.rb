@@ -644,6 +644,12 @@ ActiveRecord::Schema.define do
     t.integer :ship_id
   end
 
+  create_table :slugs, force: true do |t|
+    t.string :name
+    t.integer :sluggable_id
+    t.string :sluggable_type
+  end
+
   create_table :speedometers, force: true, id: false do |t|
     t.string :speedometer_id
     t.string :name
