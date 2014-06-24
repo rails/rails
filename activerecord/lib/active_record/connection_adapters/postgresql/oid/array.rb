@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Array < Type::Value
+        class Array < Type::Value # :nodoc:
           include Type::Mutable
 
           # Loads pg_array_parser if available. String parsing can be

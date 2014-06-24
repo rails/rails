@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Json < Type::Value
+        class Json < Type::Value # :nodoc:
           include Type::Mutable
 
           def type

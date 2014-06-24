@@ -263,7 +263,7 @@ module ActiveRecord
       end
 
       module Fields # :nodoc:
-        class DateTime < Type::DateTime
+        class DateTime < Type::DateTime # :nodoc:
           def cast_value(value)
             if Mysql::Time === value
               new_time(
@@ -280,7 +280,7 @@ module ActiveRecord
           end
         end
 
-        class Time < Type::Time
+        class Time < Type::Time # :nodoc:
           def cast_value(value)
             if Mysql::Time === value
               new_time(

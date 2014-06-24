@@ -186,7 +186,7 @@ module ActiveRecord
           end
         end
 
-        class AdapterProxyType < SimpleDelegator
+        class AdapterProxyType < SimpleDelegator # :nodoc:
           def initialize(column, adapter)
             @column = column
             @adapter = adapter

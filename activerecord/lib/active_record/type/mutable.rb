@@ -1,6 +1,6 @@
 module ActiveRecord
   module Type
-    module Mutable
+    module Mutable # :nodoc:
       def type_cast_from_user(value)
         type_cast_from_database(type_cast_for_database(value))
       end

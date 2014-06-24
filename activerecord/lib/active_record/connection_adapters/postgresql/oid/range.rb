@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Range < Type::Value
+        class Range < Type::Value # :nodoc:
           attr_reader :subtype, :type
 
           def initialize(subtype, type)
