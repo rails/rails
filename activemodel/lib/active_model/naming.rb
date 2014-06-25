@@ -218,26 +218,34 @@ module ActiveModel
 
     def self.extended(base) # :nodoc:
       ActiveSupport::Deprecation.warn(
-        "extending ActiveModel::Naming is deprecated. Please use include instead"
+        "extending ActiveModel::Naming is deprecated. Please use include instead."
       )
 
       base.send(:include, self)
     end
 
-    # Returns an ActiveModel::Name object for module. It can be
-    # used to retrieve all kinds of naming-related information
-    # (See ActiveModel::Name for more information).
-    #
-    #   class Person
-    #     include ActiveModel::Model
-    #   end
-    #
-    #   Person.model_name.name     # => "Person"
-    #   Person.model_name.class    # => ActiveModel::Name
-    #   Person.model_name.singular # => "person"
-    #   Person.model_name.plural   # => "people"
-    def model_name
-      self.class.model_name
+    # FIXME: Remove the InstanceMethods module after the deprecation cycle
+    # for extending ActiveSupport::Naming ends.
+    included do
+      include InstanceMethods
+    end
+
+    module InstanceMethods
+      # Returns an ActiveModel::Name object for module. It can be
+      # used to retrieve all kinds of naming-related information
+      # (See ActiveModel::Name for more information).
+      #
+      #   class Person
+      #     include ActiveModel::Model
+      #   end
+      #
+      #   Person.model_name.name     # => "Person"
+      #   Person.model_name.class    # => ActiveModel::Name
+      #   Person.model_name.singular # => "person"
+      #   Person.model_name.plural   # => "people"
+      def model_name
+        self.class.model_name
+      end
     end
 
     module ClassMethods
