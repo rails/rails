@@ -203,9 +203,7 @@ db_namespace = namespace :db do
                         Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }
                       end
 
-      fixture_files.each do |fixture_file|
-        ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_file)
-      end
+      ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
     end
 
     # desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
