@@ -360,12 +360,14 @@ class DependenciesTest < ActiveSupport::TestCase
         flunk "No raise!!"
       rescue NameError => e
         assert_equal "uninitialized constant A::DoesNotExist", e.message
+        assert_equal :DoesNotExist, e.name
       end
       begin
         A::B::DoesNotExist.nil?
         flunk "No raise!!"
       rescue NameError => e
         assert_equal "uninitialized constant A::B::DoesNotExist", e.message
+        assert_equal :DoesNotExist, e.name
       end
     end
   end
@@ -524,8 +526,9 @@ class DependenciesTest < ActiveSupport::TestCase
     with_autoloading_fixtures do
       require_dependency '././counting_loader'
       assert_equal 1, $counting_loaded_times
-      assert_raise(NameError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
+      e = assert_raise(NameError) { ActiveSupport::Dependencies.load_missing_constant Object, :CountingLoader }
       assert_equal 1, $counting_loaded_times
+      assert_equal :CountingLoader, e.name
     end
   end
 
