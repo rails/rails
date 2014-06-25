@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Hstore < Type::Value
+        class Hstore < Type::Value # :nodoc:
           include Type::Mutable
 
           def type

@@ -280,8 +280,13 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_regex
+    assert_equal('...is a beautiful! mor...', excerpt('This is a beautiful! morning', 'beautiful', :radius => 5))
+    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', 'beautiful', :radius => 5))
+    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', /\bbeau\w*\b/i, :radius => 5))
+    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', /\b(beau\w*)\b/i, :radius => 5))
     assert_equal("...udge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 5))
     assert_equal("...judge Allen and...", excerpt("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i, :radius => 1, :separator => ' '))
+    assert_equal("...was challenging for...", excerpt("This day was challenging for judge Allen and his colleagues.", /\b(\w*allen\w*)\b/i, :radius => 5))
   end
 
   def test_excerpt_should_not_be_html_safe
@@ -303,11 +308,6 @@ class TextHelperTest < ActionView::TestCase
     # appended is questionable.
     assert_equal("zabcd", excerpt("  zabcd  ", "b", :radius => 4))
     assert_equal("...abc...", excerpt("z  abc  d", "b", :radius => 1))
-  end
-
-  def test_excerpt_with_regex
-    assert_equal('...is a beautiful! mor...', excerpt('This is a beautiful! morning', 'beautiful', :radius => 5))
-    assert_equal('...is a beautiful? mor...', excerpt('This is a beautiful? morning', 'beautiful', :radius => 5))
   end
 
   def test_excerpt_with_omission

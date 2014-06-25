@@ -205,7 +205,7 @@ module ActionController
     end
 
     class Response < ActionDispatch::Response #:nodoc: all
-      class Header < DelegateClass(Hash)
+      class Header < DelegateClass(Hash) # :nodoc:
         def initialize(response, header)
           @response = response
           super(header)

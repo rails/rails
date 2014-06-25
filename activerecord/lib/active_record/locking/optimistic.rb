@@ -170,7 +170,7 @@ module ActiveRecord
       end
     end
 
-    class LockingType < SimpleDelegator
+    class LockingType < SimpleDelegator # :nodoc:
       def type_cast_from_database(value)
         # `nil` *should* be changed to 0
         super.to_i

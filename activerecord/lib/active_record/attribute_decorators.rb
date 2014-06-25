@@ -7,7 +7,7 @@ module ActiveRecord
       self.attribute_type_decorations = TypeDecorator.new
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       def decorate_attribute_type(column_name, decorator_name, &block)
         matcher = ->(name, _) { name == column_name.to_s }
         key = "_#{column_name}_#{decorator_name}"
@@ -32,7 +32,7 @@ module ActiveRecord
       end
     end
 
-    class TypeDecorator
+    class TypeDecorator # :nodoc:
       delegate :clear, to: :@decorations
 
       def initialize(decorations = {})

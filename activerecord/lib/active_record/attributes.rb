@@ -9,7 +9,7 @@ module ActiveRecord
       self.user_provided_columns = {}
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       # Defines or overrides a attribute on this model. This allows customization of
       # Active Record's type casting behavior, as well as adding support for user defined
       # types.

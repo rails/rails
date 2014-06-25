@@ -30,7 +30,7 @@ module ActiveRecord
       super
     end
 
-    class Builder
+    class Builder # :nodoc:
       def initialize(types)
         @types = types
       end
@@ -48,6 +48,5 @@ module ActiveRecord
     protected
 
     attr_reader :attributes
-
   end
 end

@@ -49,19 +49,19 @@ module ActiveRecord
       end
     end
 
-    class FromDatabase < Attribute
+    class FromDatabase < Attribute # :nodoc:
       def type_cast(value)
         type.type_cast_from_database(value)
       end
     end
 
-    class FromUser < Attribute
+    class FromUser < Attribute # :nodoc:
       def type_cast(value)
         type.type_cast_from_user(value)
       end
     end
 
-    class Null
+    class Null # :nodoc:
       class << self
         attr_reader :value, :value_before_type_cast, :value_for_database
 
