@@ -446,7 +446,7 @@ module ActiveSupport #:nodoc:
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
-      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name, false)
+      raise NameError.new("#{from_mod} is not missing constant #{const_name}!", const_name) if from_mod.const_defined?(const_name, false)
 
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
@@ -498,9 +498,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      raise NameError,
-            "uninitialized constant #{qualified_name}",
-            caller.reject { |l| l.starts_with? __FILE__ }
+      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
+      name_error.set_backtrace(caller.reject {|l| l.starts_with? __FILE__ })
+      raise name_error
     end
 
     # Remove the constants that have been autoloaded, and those that have been

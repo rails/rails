@@ -1,3 +1,6 @@
+*   Make Dependencies pass a name to NameError error.
+    *arthurnn*, *Yuki Nishijima*
+
 ## Rails 4.0.6 (unreleased) ##
 
 *   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
