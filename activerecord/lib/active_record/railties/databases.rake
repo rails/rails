@@ -190,7 +190,7 @@ db_namespace = namespace :db do
       require 'active_record/fixtures'
 
       base_dir = if ENV['FIXTURES_PATH']
-        File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}].flatten
+        Rails.root.join(ENV['FIXTURES_PATH'])
       else
         ActiveRecord::Tasks::DatabaseTasks.fixtures_path
       end
@@ -212,7 +212,7 @@ db_namespace = namespace :db do
       puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::FixtureSet.identify(label)}.) if label
 
       base_dir = if ENV['FIXTURES_PATH']
-        File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}].flatten
+        Rails.root.join(ENV['FIXTURES_PATH'])
       else
         ActiveRecord::Tasks::DatabaseTasks.fixtures_path
       end
