@@ -189,11 +189,7 @@ db_namespace = namespace :db do
     task :load => [:environment, :load_config] do
       require 'active_record/fixtures'
 
-      base_dir = if ENV['FIXTURES_PATH']
-        ActiveRecord::Tasks::DatabaseTasks.root.join(ENV['FIXTURES_PATH'])
-      else
-        ActiveRecord::Tasks::DatabaseTasks.fixtures_path
-      end
+      base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
       fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
 
@@ -211,12 +207,7 @@ db_namespace = namespace :db do
 
       puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::FixtureSet.identify(label)}.) if label
 
-      base_dir = if ENV['FIXTURES_PATH']
-        ActiveRecord::Tasks::DatabaseTasks.root.join(ENV['FIXTURES_PATH'])
-      else
-        ActiveRecord::Tasks::DatabaseTasks.fixtures_path
-      end
-
+      base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
       Dir["#{base_dir}/**/*.yml"].each do |file|
         if data = YAML::load(ERB.new(IO.read(file)).result)
