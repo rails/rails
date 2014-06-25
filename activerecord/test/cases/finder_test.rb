@@ -13,7 +13,7 @@ require 'models/customer'
 require 'models/toy'
 require 'models/matey'
 require 'models/dog'
-require 'models/slug'
+require 'models/tagging'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
@@ -80,11 +80,11 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_polymorphic_relation
-    post = SlugPost.create!(title: 'slugs', body: "default", slug: Slug.new(name: 'the-slug'))
-    relation = SlugPost.find_slug('the-slug')
-    query = "slugs"
+    post = TagPost.create!(title: 'TagPost', body: "default", taggings: [Tagging.new(comment: 'tagging comment')])
+    relation = TagPost.find_tagging('tagging comment')
+    query = "TagPost"
 
-    assert_equal true, relation.exists?(title: ["slugs"])
+    assert_equal true, relation.exists?(title: ["TagPost"])
     assert_equal true, relation.exists?(['title LIKE ?', "#{query}%"])
     assert_equal true, relation.exists?
     assert_equal true, relation.exists?(post.id)

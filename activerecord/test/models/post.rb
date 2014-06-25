@@ -218,8 +218,9 @@ class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
   end
 end
 
-class SlugPost < ActiveRecord::Base
+class TagPost < ActiveRecord::Base
   self.table_name = 'posts'
-  has_one :slug, as: :sluggable
-  scope :find_slug, ->(slug) { joins(:slug).where(slugs: { name: slug }) }
+  has_many :taggings, :as => :taggable
+
+  scope :find_tagging, ->(comment) { joins(:taggings).where(taggings: { comment: comment }) }
 end
