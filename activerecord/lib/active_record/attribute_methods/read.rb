@@ -81,17 +81,10 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after
       # it has been typecast (for example, "2004-12-12" in a date column is cast
       # to a date object, like Date.new(2004, 12, 12)).
-      def read_attribute(attr_name)
+      def read_attribute(attr_name, &block)
         name = attr_name.to_s
-        @attributes.fetch(name) {
-          if name == 'id'
-            return read_attribute(self.class.primary_key)
-          elsif block_given? && self.class.columns_hash.key?(name)
-            return yield(name)
-          else
-            return nil
-          end
-        }.value
+        name = self.class.primary_key if name == 'id'
+        @attributes.fetch_value(name, &block)
       end
 
       private

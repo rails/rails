@@ -35,7 +35,7 @@ module ActiveRecord
       attributes[:bar].value
 
       duped = attributes.dup
-      duped[:foo] = Attribute.from_database(2, Type::Integer.new)
+      duped.write_from_database(:foo, 2)
       duped[:bar].value << 'bar'
 
       assert_equal 1, attributes[:foo].value
@@ -60,6 +60,96 @@ module ActiveRecord
 
       assert_equal({ foo: 1, bar: 2.2 }, attributes.to_hash)
       assert_equal({ foo: 1, bar: 2.2 }, attributes.to_h)
+    end
+
+    test "known columns are built with uninitialized attributes" do
+      attributes = attributes_with_uninitialized_key
+      assert attributes[:foo].initialized?
+      assert_not attributes[:bar].initialized?
+    end
+
+    test "uninitialized attributes are not included in the attributes hash" do
+      attributes = attributes_with_uninitialized_key
+      assert_equal({ foo: 1 }, attributes.to_hash)
+    end
+
+    test "uninitialized attributes are not included in keys" do
+      attributes = attributes_with_uninitialized_key
+      assert_equal [:foo], attributes.keys
+    end
+
+    test "uninitialized attributes return false for include?" do
+      attributes = attributes_with_uninitialized_key
+      assert attributes.include?(:foo)
+      assert_not attributes.include?(:bar)
+    end
+
+    test "unknown attributes return false for include?" do
+      attributes = attributes_with_uninitialized_key
+      assert_not attributes.include?(:wibble)
+    end
+
+    test "fetch_value returns the value for the given attribute" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
+      attributes = builder.build_from_database(foo: '1.1', bar: '2.2')
+
+      assert_equal 1, attributes.fetch_value(:foo)
+      assert_equal 2.2, attributes.fetch_value(:bar)
+    end
+
+    test "fetch_value returns nil for unknown attributes" do
+      attributes = attributes_with_uninitialized_key
+      assert_nil attributes.fetch_value(:wibble)
+    end
+
+    test "fetch_value uses the given block for uninitialized attributes" do
+      attributes = attributes_with_uninitialized_key
+      value = attributes.fetch_value(:bar) { |n| n.to_s + '!' }
+      assert_equal 'bar!', value
+    end
+
+    test "fetch_value returns nil for uninitialized attributes if no block is given" do
+      attributes = attributes_with_uninitialized_key
+      assert_nil attributes.fetch_value(:bar)
+    end
+
+    class MyType
+      def type_cast_from_user(value)
+        return if value.nil?
+        value + " from user"
+      end
+
+      def type_cast_from_database(value)
+        return if value.nil?
+        value + " from database"
+      end
+    end
+
+    test "write_from_database sets the attribute with database typecasting" do
+      builder = AttributeSet::Builder.new(foo: MyType.new)
+      attributes = builder.build_from_database
+
+      assert_nil attributes.fetch_value(:foo)
+
+      attributes.write_from_database(:foo, "value")
+
+      assert_equal "value from database", attributes.fetch_value(:foo)
+    end
+
+    test "write_from_user sets the attribute with user typecasting" do
+      builder = AttributeSet::Builder.new(foo: MyType.new)
+      attributes = builder.build_from_database
+
+      assert_nil attributes.fetch_value(:foo)
+
+      attributes.write_from_user(:foo, "value")
+
+      assert_equal "value from user", attributes.fetch_value(:foo)
+    end
+
+    def attributes_with_uninitialized_key
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
+      builder.build_from_database(foo: '1.1')
     end
   end
 end
