@@ -191,7 +191,11 @@ db_namespace = namespace :db do
 
       base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
-      fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
+      fixtures_dir = if ENV['FIXTURES_DIR']
+                       File.join base_dir, ENV['FIXTURES_DIR']
+                     else
+                       base_dir
+                     end
 
       (ENV['FIXTURES'] ? ENV['FIXTURES'].split(',') : Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
         ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_file)
