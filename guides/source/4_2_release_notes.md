@@ -132,7 +132,31 @@ Please refer to the
 [Changelog](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md)
 for detailed changes.
 
+### Removals
+
+* Removed deprecated method `ActiveRecord::Base.quoted_locking_column`.
+  ([Pull Request](https://github.com/rails/rails/pull/15612))
+
+* Removed deprecated `ActiveRecord::Migrator.proper_table_name`. Use the
+  `proper_table_name` instance method on `ActiveRecord::Migration` instead.
+  ([Pull Request](https://github.com/rails/rails/pull/15512))
+
+* Removed `cache_attributes` and friends. All attributes are cached.
+  ([Pull Request](https://github.com/rails/rails/pull/15429))
+
+* Removed unused `:timestamp` type. Transparently alias it to `:datetime`
+  in all cases. Fixes inconsistencies when column types are sent outside of
+  `ActiveRecord`, such as for XML Serialization.
+  ([Pull Request](https://github.com/rails/rails/pull/15184))
+
 ### Deprecations
+
+* Deprecated returning `nil` from `column_for_attribute` when no column exists.
+  It will return a null object in Rails 5.0
+  ([Pull Request](https://github.com/rails/rails/pull/15878))
+
+* Deprecated `serialized_attributes` without replacement.
+  ([Pull Request](https://github.com/rails/rails/pull/15704))
 
 * Deprecated using `.joins`, `.preload` and `.eager_load` with associations that
   depends on the instance state (i.e. those defined with a scope that takes an

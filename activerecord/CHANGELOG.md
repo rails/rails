@@ -45,8 +45,7 @@
 
     *Yves Senn*
 
-*   Deprecate `serialized_attributes` without replacement. You can access its
-    behavior by going through the column's type object.
+*   Deprecate `serialized_attributes` without replacement.
 
     *Sean Griffin*
 
