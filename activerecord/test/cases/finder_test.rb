@@ -13,6 +13,7 @@ require 'models/customer'
 require 'models/toy'
 require 'models/matey'
 require 'models/dog'
+require 'models/tagging'
 
 class FinderTest < ActiveRecord::TestCase
   fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
@@ -76,6 +77,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(Topic.new.id)
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
+  end
+
+  def test_exists_with_polymorphic_relation
+    post = TagPost.create!(title: 'TagPost', body: "default", taggings: [Tagging.new(comment: 'tagging comment')])
+    relation = TagPost.find_tagging('tagging comment')
+    query = "TagPost"
+
+    assert_equal true, relation.exists?(title: ["TagPost"])
+    assert_equal true, relation.exists?(['title LIKE ?', "#{query}%"])
+    assert_equal true, relation.exists?
+    assert_equal true, relation.exists?(post.id)
+    assert_equal true, relation.exists?(post.id.to_s)
+
+    assert_equal false, relation.exists?(false)
   end
 
   def test_exists_passing_active_record_object_is_deprecated

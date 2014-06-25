@@ -1,3 +1,10 @@
+*   `DatabaseStatements#binds_from_relation` correctly get the binding values 
+    when polymorphic relation call `exists?`.
+
+    Fixes #15821.
+
+    *James Yang*
+
 *   Assume numeric types have changed if they were assigned to a value that
     would fail numericality validation, regardless of the old value. Previously
     this would only occur if the old value was 0.

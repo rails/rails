@@ -217,3 +217,10 @@ class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
     post.comments.load
   end
 end
+
+class TagPost < ActiveRecord::Base
+  self.table_name = 'posts'
+  has_many :taggings, :as => :taggable
+
+  scope :find_tagging, ->(comment) { joins(:taggings).where(taggings: { comment: comment }) }
+end
