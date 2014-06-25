@@ -115,6 +115,27 @@ for detailed changes.
   ([Pull Request](https://github.com/rails/rails/pull/14280))
 
 
+Action View
+-------------
+
+Please refer to the
+[Changelog](https://github.com/rails/rails/blob/4-2-stable/actionview/CHANGELOG.md)
+for detailed changes.
+
+### Deprecations
+
+* Deprecated `AbstractController::Base.parent_prefixes`.
+  Override `AbstractController::Base.local_prefixes` when you want to change
+  where to find views.
+  ([Pull Request](https://github.com/rails/rails/pull/15026))
+
+* Deprecated `ActionView::Digestor#digest(name, format, finder, options = {})`,
+  arguments should be passed as a hash instead.
+  ([Pull Request](https://github.com/rails/rails/pull/14243))
+
+### Notable changes
+
+
 Action Mailer
 -------------
 
@@ -216,6 +237,11 @@ Active Model
 Please refer to the
 [Changelog](https://github.com/rails/rails/blob/4-2-stable/activemodel/CHANGELOG.md)
 for detailed changes.
+
+### Removals
+
+* Removed deprecated `Validator#setup` without replacement.
+  ([Pull Request](https://github.com/rails/rails/pull/15617))
 
 ### Notable changes
 
