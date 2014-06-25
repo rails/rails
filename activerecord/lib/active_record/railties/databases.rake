@@ -116,8 +116,8 @@ db_namespace = namespace :db do
       puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
       puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
       puts "-" * 50
-      (db_list + file_list).sort_by {|migration| migration[1]}.each do |migration|
-        puts "#{migration[0].center(8)}  #{migration[1].ljust(14)}  #{migration[2]}"
+      (db_list + file_list).sort_by { |_, version, _| version }.each do |status, version, name|
+        puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
       end
       puts
     end
