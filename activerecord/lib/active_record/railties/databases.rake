@@ -200,7 +200,7 @@ db_namespace = namespace :db do
       fixture_files = if ENV['FIXTURES']
                         ENV['FIXTURES'].split(',')
                       else
-                        Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }
+                        Pathname.glob("#{fixtures_dir}/**/*.yml").map {|f| f.basename.sub_ext('').to_s }
                       end
 
       ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
