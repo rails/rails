@@ -1,8 +1,13 @@
+*   Make the `apply_inflections` method case-insensitive when checking
+    whether a word is uncountable or not.
+
+    *Robin Dupret*
+
 *   Make Dependencies pass a name to NameError error.
     *arthurnn*
 
 *   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
-    *Adam Panzer / Michael Grosser* 
+    *Adam Panzer / Michael Grosser*
 
 *   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
     when working with objects with a nanosecond component.
@@ -27,12 +32,12 @@
 *   Fixed precision error in NumberHelper when using Rationals.
 
     Before:
-        
+
         ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
         #=> "330.00"
-    
+
     After:
-    
+
         ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
         #=> "333.33"
 

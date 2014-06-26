@@ -509,6 +509,14 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_inflections_with_uncountable_words
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.uncountable "HTTP"
+    end
+
+    assert_equal "HTTP", ActiveSupport::Inflector.pluralize("HTTP")
+  end
+
   # Dups the singleton and yields, restoring the original inflections later.
   # Use this in tests what modify the state of the singleton.
   #
