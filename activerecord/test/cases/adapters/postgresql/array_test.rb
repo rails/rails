@@ -192,16 +192,6 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal("[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...]", record.attribute_for_inspect(:ratings))
   end
 
-  def test_update_all
-    pg_array = PgArray.create! tags: ["one", "two", "three"]
-
-    PgArray.update_all tags: ["four", "five"]
-    assert_equal ["four", "five"], pg_array.reload.tags
-
-    PgArray.update_all tags: []
-    assert_equal [], pg_array.reload.tags
-  end
-
   def test_escaping
     unknown = 'foo\\",bar,baz,\\'
     tags = ["hello_#{unknown}"]
