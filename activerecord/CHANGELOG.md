@@ -56,13 +56,6 @@
 
     *Yves Senn*
 
-*   Fix regression on eager loading association based on SQL query rather than
-    existing column.
-
-    Fixes #15480.
-
-    *Lauro Caetano*, *Carlos Antonio da Silva*
-
 *   Fixed `columns_for_distinct` of postgresql adapter to work correctly
     with orders without sort direction modifiers.
 
@@ -80,7 +73,14 @@
     *Arun Agrawal*
 
 
-## Rails 4.1.2 (unreleased) ##
+## Rails 4.1.2 (June 26, 2014) ##
+
+*   Fix regression on eager loading association based on SQL query rather than
+    existing column.
+
+    Fixes #15480.
+
+    *Lauro Caetano*, *Carlos Antonio da Silva*
 
 *   Fix redefine a has_and_belongs_to_many inside inherited class
     Fixing regression case, where redefining the same has_an_belongs_to_many

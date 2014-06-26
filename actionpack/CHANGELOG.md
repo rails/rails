@@ -18,27 +18,27 @@
     *Larry Lv*
 
 
-## Rails 4.1.2 (unreleased) ##
+## Rails 4.1.2 (June 26, 2014) ##
 
 *   Fix URL generation with `:trailing_slash` such that it does not add
     a trailing slash after `.:format`
 
     *Dan Langevin*
 
-*   Fixed an issue with migrating legacy json cookies.
+*   Fix an issue with migrating legacy json cookies.
 
-    Previously, the `VerifyAndUpgradeLegacySignedMessage` assumes all incoming
-    cookies are marshal-encoded. This is not the case when `secret_token` is
+    Previously, the `VerifyAndUpgradeLegacySignedMessage` assumed all incoming
+    cookies were marshal-encoded. This was not the case when `secret_token` was
     used in conjunction with the `:json` or `:hybrid` serializer.
 
-    In those case, when upgrading to use `secret_key_base`, this would cause a
+    In those cases, when upgrading to use `secret_key_base`, this would cause a
     `TypeError: incompatible marshal file format` and a 500 error for the user.
 
     Fixes #14774.
 
     *Godfrey Chan*
 
-*   `http_basic_authenticate_with` only check the autentication if the schema is
+*   `http_basic_authenticate_with` only checks the authentication if the schema is
     `Basic`.
 
     Fixes #10257.
@@ -58,7 +58,7 @@
 
     *Guilherme Cavalcanti*, *Andrew White*
 
-*   Append link to bad code to backtrace when exception is `SyntaxError`.
+*   Append a link in the backtrace to the bad code when a `SyntaxError` exception occurs.
 
     *Boris Kuznetsov*
 
@@ -78,14 +78,14 @@
 
     *Andrew White*, *Edho Arief*
 
-*   Returns null type format when format is not know and controller is using `any`
-    format block.
+*   Returns a null type format when the format is not known and the controller is using an
+    `any` format block.
 
     Fixes #14462.
 
     *Rafael Mendonça França*
 
-*   Only make deeply nested routes shallow when parent is shallow.
+*   Only make deeply nested routes shallow when the parent is shallow.
 
     Fixes #14684.
 
@@ -94,7 +94,7 @@
 
 ## Rails 4.1.1 (May 6, 2014) ##
 
-*   Only accept actions without File::SEPARATOR in the name.
+*   Only accept actions without `File::SEPARATOR` in the name.
 
     This will avoid directory traversal in implicit render.
 
@@ -105,14 +105,14 @@
 
 ## Rails 4.1.0 (April 8, 2014) ##
 
-*   Swapped the parameters of assert_equal in `assert_select` so that the
-    proper values were printed correctly
+*   Swap the parameters of assert_equal in `assert_select` so that the
+    proper values are printed correctly
 
     Fixes #14422.
 
     *Vishal Lal*
 
-*   The method `shallow?` returns false if the parent resource is a singleton so
+*   The method `shallow?` returns false if the parent resource is a singleton, so
     we need to check if we're not inside a nested scope before copying the :path
     and :as options to their shallow equivalents.
 
@@ -130,8 +130,8 @@
 
 *   Introduce `render :html` as an option to render HTML content with a content
     type of `text/html`. This rendering option calls `ERB::Util.html_escape`
-    internally to escape unsafe HTML string, so you will have to mark your
-    string as html safe if you have any HTML tag in it.
+    internally to escape unsafe HTML strings, so you will need to mark a
+    string as `html_safe` if it contains any HTML tag.
 
     See #14062, #12374.
 
@@ -158,13 +158,13 @@
     *Prem Sichanugrist*
 
 *   Set stream status to 500 (or 400 on BadRequest) when an error is thrown
-    before commiting.
+    before committing.
 
     Fixes #12552.
 
     *Kevin Casey*
 
-*   Add new config option `config.action_dispatch.cookies_serializer` for
+*   Add a new config option `config.action_dispatch.cookies_serializer` for
     specifying a serializer for the signed and encrypted cookie jars.
 
     The possible values are:
@@ -173,7 +173,7 @@
     * `:marshal` - serialize cookie values with `Marshal`
     * `:hybrid` - transparently migrate existing `Marshal` cookie values to `JSON`
 
-    For new apps `:json` option is added by default and `:marshal` is used
+    For new apps the `:json` option is added by default and `:marshal` is used
     when no option is specified to maintain backwards compatibility.
 
     *Łukasz Sarnacki*, *Matt Aimonetti*, *Guillermo Iguaran*, *Godfrey Chan*, *Rafael Mendonça França*
@@ -191,7 +191,7 @@
     *Andrew White*, *Aleksi Aalto*
 
 *   Properly require `action_view` in `AbstractController::Rendering` to prevent
-    uninitialized constant error for `ENCODING_FLAG`.
+    an uninitialized constant error for `ENCODING_FLAG`.
 
     *Philipe Fatio*
 
@@ -215,9 +215,9 @@
 
 *   Log which keys were affected by deep munge.
 
-    Deep munge solves CVE-2013-0155 security vulnerability, but its
-    behaviour is definately confusing, so now at least information
-    about for which keys values were set to nil is visible in logs.
+    Deep munge solves the CVE-2013-0155 security vulnerability, but its
+    behaviour is confusing. With this commit, the information about which
+    key values were set to nil is now visible in logs.
 
     *Łukasz Sarnacki*
 
@@ -263,11 +263,11 @@
 
 *   Unique the segment keys array for non-optimized url helpers
 
-    In Rails 3.2 you only needed pass an argument for dynamic segment once so
-    unique the segment keys array to match the number of args. Since the number
-    of args is less than required parts the non-optimized code path is selected.
-    This means to benefit from optimized url generation the arg needs to be
-    specified as many times as it appears in the path.
+    In Rails 3.2 you only needed to pass an argument for a dynamic segment
+    once so unique the segment keys array to match the number of args. Since
+    the number of args is less than the required parts, the non-optimized code
+    path is selected. To benefit from optimized url generation, the arg needs
+    to be specified as many times as it appears in the path.
 
     Fixes #12808.
 
@@ -299,7 +299,7 @@
 
     This now redirects to the path `/blog`, whereas before it would redirect
     to the application root path. In the case of a path redirect or a custom
-    redirect if the path returned contains a host then the path is treated as
+    redirect, if the path returned contains a host then the path is treated as
     absolute. Similarly for option redirects, if the options hash returned
     contains a `:host` or `:domain` key then the path is treated as absolute.
 
@@ -309,10 +309,11 @@
 
 *   Fix `Encoding::CompatibilityError` when public path is UTF-8
 
-    In #5337 we forced the path encoding to ASCII-8BIT to prevent static file handling
-    from blowing up before an application has had chance to deal with possibly invalid
-    urls. However this has a negative side effect of making it an incompatible encoding
-    if the application's public path has UTF-8 characters in it.
+    In #5337 we forced the path encoding to ASCII-8BIT to prevent static file
+    handling from blowing up before an application has had a chance to deal
+    with possibly invalid urls. However this has a negative side effect of
+    making it an incompatible encoding if the application's public path has
+    UTF-8 characters in it.
 
     To work around the problem we check to see if the path has a valid encoding once
     it has been unescaped. If it is not valid then we can return early since it will
@@ -333,7 +334,7 @@
     *Xavier Noria*
 
 *   New config option to opt out of params "deep munging" that was used to
-    address security vulnerability CVE-2013-0155. In your app config:
+    address the security vulnerability CVE-2013-0155. In your app config:
 
         config.action_dispatch.perform_deep_munge = false
 
@@ -351,7 +352,7 @@
 
     *Jeremy Kemper*
 
-*   Fix generating a path for engine inside a resources block.
+*   Fix generating a path for an engine inside a resources block.
 
     Fixes #8533.
 
@@ -408,7 +409,7 @@
           format.html.none  { render "trash" }
         end
 
-    Variants also support common `any`/`all` block that formats have.
+    Variants also support the common `any`/`all` block that formats have.
 
     It works for both inline:
 
@@ -428,7 +429,7 @@
 
     *Łukasz Strzałkowski*
 
-*   Fix render of localized templates without an explicit format using wrong
+*   Fix rendering localized templates without an explicit format using wrong
     content header and not passing correct formats to template due to the
     introduction of the `NullType` for mimes.
 
@@ -444,7 +445,7 @@
 
     *Andrew White*
 
-*   Better error message for typos in assert_response argument.
+*   Better error message for typos in assert_response arguments.
 
     When the response type argument to `assert_response` is not a known
     response type, `assert_response` now throws an ArgumentError with a clear
@@ -456,7 +457,7 @@
 
     *Sıtkı Bağdat*
 
-*   Take a hash with options inside array in `#url_for`.
+*   Accept an options hash inside the array in `#url_for`.
 
     Example:
 
@@ -471,9 +472,9 @@
     It returns a value from the hash for the given key.
     If the key can’t be found, there are several options:
 
-      * With no other arguments, it will raise an KeyError exception.
-      * If a default value is given, then that will be returned.
-      * If the optional code block is specified, then that will be run and its result returned.
+      * With no other arguments, it will raise a KeyError exception.
+      * If a default value is given, then it will be returned.
+      * If the optional code block is specified, then it will be run and its result returned.
 
     *Damien Mathieu*
 
@@ -485,12 +486,12 @@
 
     *Brendon Murphy*, *Doug Cole*
 
-*   Add `params` option to `button_to` form helper, which renders the given hash
-    as hidden form fields.
+*   Add a `params` option to the `button_to` form helper which renders
+    the given hash as hidden form fields.
 
     *Andy Waite*
 
-*   Make assets helpers work in the controllers like it works in the views.
+*   Enable assets helpers to work in the controllers like they do in the views.
 
     Example:
 
@@ -514,18 +515,18 @@
         # engine routes.rb
         get '/admin' => redirect('admin/dashboard')
 
-    This now redirects to the path `/blog/admin/dashboard`, whereas before it would've
-    generated an invalid url because there would be no slash between the host name and
-    the path. It also allows redirects to work where the application is deployed to a
-    subdirectory of a website.
+    This now redirects to the path `/blog/admin/dashboard`, whereas before it would
+    have generated an invalid url because there would be no slash between the host name
+    and the path. It also allows redirects to work when the application is deployed
+    to a subdirectory of a website.
 
     Fixes #7977.
 
     *Andrew White*
 
-*   Fixing repond_with working directly on the options hash
-    This fixes an issue where the respond_with worked directly with the given
-    options hash, so that if a user relied on it after calling respond_with,
+*   Fixing `repond_with` working directly on the options hash
+    This fixes an issue where the `respond_with` worked directly with the given
+    options hash, so that if a user relied on it after calling `respond_with`,
     the hash wouldn't be the same.
 
     Fixes #12029.
@@ -539,14 +540,14 @@
 
     *Tamir Duberstein*
 
-*   Strong parameters should permit nested number as key.
+*   Strong parameters should permit a nested number to be a key.
 
     Fixes #12293.
 
     *kennyj*
 
-*   Fix regex used to detect URI schemes in `redirect_to` to be consistent with
-    RFC 3986.
+*   Fix the regex used to detect URI schemes in `redirect_to`, to be consistent
+    with RFC 3986.
 
     *Derek Prior*
 
@@ -555,13 +556,13 @@
 
     *Derek Prior*
 
-*   Fix an issue where router can't recognize downcased url encoding path.
+*   Fix an issue where the router could not recognize a downcased url encoding path.
 
     Fixes #12269.
 
     *kennyj*
 
-*   Fix custom flash type definition. Misusage of the `_flash_types` class variable
+*   Fix custom flash type definition. Misuse of the `_flash_types` class variable
     caused an error when reloading controllers with custom flash types.
 
     Fixes #12057.
@@ -574,7 +575,8 @@
 
     *Vasiliy Ermolovich*
 
-*   Development mode exceptions are rendered in text format in case of XHR request.
+*   Development mode exceptions are rendered in text format in case of
+    an XHR request.
 
     *Kir Shatrov*
 
@@ -618,26 +620,26 @@
 
     *Yves Senn*
 
-*   Fix an issue where rails raise exception about missing helper where it
-    should throw `LoadError`. When helper file exists and only loaded file from
-    this helper does not exist rails should throw LoadError instead of
-    `MissingHelperError`.
+*   Fix an issue where Rails raised an exception about a missing helper when
+    it should have thrown a `LoadError` instead. When the helper file exists
+    and only the loaded file from the helper does not exist, Rails should now
+    throw a `LoadError` instead of a `MissingHelperError`.
 
     *Piotr Niełacny*
 
-*   Fix `ActionDispatch::ParamsParser#parse_formatted_parameters` to rewind body input stream on
-    parsing json params.
+*   Fix `ActionDispatch::ParamsParser#parse_formatted_parameters` to rewind
+    body input stream on parsing json params.
 
     Fixes #11345.
 
     *Yuri Bol*, *Paul Nikitochkin*
 
-*   Ignore spaces around delimiter in Set-Cookie header.
+*   Ignore spaces around delimiters in the Set-Cookie header.
 
     *Yamagishi Kazutoshi*
 
-*   Remove deprecated Rails application fallback for integration testing, set
-    `ActionDispatch.test_app` instead.
+*   Remove deprecated Rails application fallback for integration testing.
+    Set `ActionDispatch.test_app` instead.
 
     *Carlos Antonio da Silva*
 
@@ -657,9 +659,9 @@
 
     *Carlos Antonio da Silva*
 
-*   Fix `Mime::Type.parse` when bad accepts header is looked up. Previously it
-    was setting `request.formats` with an array containing a `nil` value, which
-    raised an error when setting the controller formats.
+*   Fix `Mime::Type.parse` when a bad accepts header is looked up.
+    Previously, it was setting `request.formats` with an array containing a
+    `nil` value, which raised an error when setting the controller formats.
 
     Fixes #10965.
 
@@ -667,7 +669,7 @@
 
 *   Merge `:action` from routing scope and assign endpoint if both `:controller`
     and `:action` are present. The endpoint assignment only occurs if there is
-    no `:to` present in the options hash so should only affect routes using the
+    no `:to` present in the options hash, so should only affect routes using the
     shorthand syntax (i.e. endpoint is inferred from the path).
 
     Fixes #9856.

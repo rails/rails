@@ -1,4 +1,4 @@
-## Rails 4.1.2 (unreleased) ##
+## Rails 4.1.2 (June 26, 2014) ##
 
 *   No changes.
 
