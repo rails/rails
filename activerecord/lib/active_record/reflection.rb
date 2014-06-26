@@ -22,11 +22,11 @@ module ActiveRecord
     end
 
     def self.add_reflection(ar, name, reflection)
-      ar._reflections = ar._reflections.merge(name => reflection)
+      ar._reflections = ar._reflections.merge(name.to_sym => reflection)
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)
-      ar.aggregate_reflections = ar.aggregate_reflections.merge(name => reflection)
+      ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_sym => reflection)
     end
 
     # \Reflection enables to interrogate Active Record classes and objects
@@ -48,7 +48,7 @@ module ActiveRecord
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
-        aggregate_reflections[aggregation]
+        aggregate_reflections[aggregation.to_sym]
       end
 
       # Returns a Hash of name of the reflection as the key and a AssociationReflection as the value.
@@ -92,12 +92,12 @@ module ActiveRecord
       #
       #   @api public
       def reflect_on_association(association)
-        reflections[association]
+        reflections[association.to_sym]
       end
 
       #   @api private
       def _reflect_on_association(association) #:nodoc:
-        _reflections[association]
+        _reflections[association.to_sym]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
