@@ -1,3 +1,8 @@
+*   Fix subtle bugs regarding attribute assignment on models with no primary
+    key. `'id'` will no longer be part of the attributes hash.
+
+    *Sean Griffin*
+
 *   Deprecate automatic counter caches on `has_many :through`. The behavior was
     broken and inconsistent.
 

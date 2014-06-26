@@ -253,6 +253,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
 
+  def test_attributes_without_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers_projects'
+    end
+
+    assert_equal klass.column_names, klass.new.attributes.keys
+    assert_not klass.new.attributes.key?('id')
+  end
+
   def test_hashes_not_mangled
     new_topic = { :title => "New Topic" }
     new_topic_values = { :title => "AnotherTopic" }
