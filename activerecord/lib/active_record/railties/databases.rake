@@ -98,17 +98,17 @@ db_namespace = namespace :db do
       end
       db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
       db_list.map! { |version| ActiveRecord::SchemaMigration.normalize_migration_number(version) }
-      file_list = []
-      ActiveRecord::Migrator.migrations_paths.each do |path|
-        Dir.foreach(path) do |file|
-          # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
-          if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
-            version = ActiveRecord::SchemaMigration.normalize_migration_number(match_data[1])
-            status = db_list.delete(version) ? 'up' : 'down'
-            file_list << [status, version, match_data[2].humanize]
+
+      file_list =
+          ActiveRecord::Migrator.migrations_paths.flat_map do |path|
+            # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
+            Dir.foreach(path).grep(/^(\d{3,})_(.+)\.rb$/) do
+              version = ActiveRecord::SchemaMigration.normalize_migration_number($1)
+              status = db_list.delete(version) ? 'up' : 'down'
+              [status, version, $2.humanize]
+            end
           end
-        end
-      end
+
       db_list.map! do |version|
         ['up', version, '********** NO FILE **********']
       end
