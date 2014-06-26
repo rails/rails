@@ -412,6 +412,46 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 'product_categories', reflection.join_table
   end
 
+  def test_reflection_association_accepts_symbols_as_keys
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes([departments: :chefs]).first.chefs
+    end
+  end
+
+  def test_reflection_association_accepts_strings_as_keys
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes(['departments' => 'chefs']).first.chefs
+    end
+  end
+
+  def test_has_many_reflection_accepts_symbols_as_keys
+    assert_equal :has_many, Firm.reflections[:clients].macro
+  end
+
+  def test_has_many_reflection_accepts_strings_as_keys
+    assert_equal :has_many, Firm.reflections['clients'].macro
+  end
+  def test_belongs_to_reflection_accepts_symbols_as_keys
+    assert_equal :belongs_to, Client.reflections[:firm].macro
+  end
+
+  def test_belongs_to_reflection_accepts_strings_as_keys
+    assert_equal :belongs_to, Client.reflections['firm'].macro
+  end
+
+  def test_some_more_shit
+    reflection_for_clients = AssociationReflection.new(:has_many, :clients, nil, { :order => "id", :dependent => :destroy }, Firm)
+    assert_equal reflection_for_clients, Firm.reflect_on_association('clients')
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
