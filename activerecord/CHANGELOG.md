@@ -1,4 +1,4 @@
-## Rails 4.0.6 (June 23, 2014) ##
+## Rails 4.0.6 (June 26, 2014) ##
 
 *   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
     table inside a schema.
