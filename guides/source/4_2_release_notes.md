@@ -201,6 +201,12 @@ for detailed changes.
 
   ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
 
+* Deprecated broken support for automatic detection of counter caches on
+  `has_many :through` associations. You should instead manually specify the
+  counter cache on the `has_many` and `belongs_to` associations for the through
+  records.
+  ([Pull Request](https://github.com/rails/rails/pull/15754))
+
 ### Notable changes
 
 * Added support for `#pretty_print` in `ActiveRecord::Base` objects.

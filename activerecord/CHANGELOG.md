@@ -1,3 +1,8 @@
+*   Deprecate automatic counter caches on `has_many :through`. The behavior was
+    broken and inconsistent.
+
+    *Sean Griffin*
+
 *   `preload` preserves readonly flag for associations.
 
     See #15853.

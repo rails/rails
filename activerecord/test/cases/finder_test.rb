@@ -144,8 +144,8 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.tags_count DESC').limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.tags_count DESC').limit(1).exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given

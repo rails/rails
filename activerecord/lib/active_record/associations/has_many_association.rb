@@ -80,10 +80,14 @@ module ActiveRecord
         end
 
         def update_counter(difference, reflection = reflection())
+          update_counter_in_database(difference, reflection)
+          update_counter_in_memory(difference, reflection)
+        end
+
+        def update_counter_in_database(difference, reflection = reflection())
           if has_cached_counter?(reflection)
             counter = cached_counter_attribute_name(reflection)
             owner.class.update_counters(owner.id, counter => difference)
-            update_counter_in_memory(difference, reflection)
           end
         end
 
@@ -107,6 +111,10 @@ module ActiveRecord
         # Hence this method.
         def inverse_updates_counter_cache?(reflection = reflection())
           counter_name = cached_counter_attribute_name(reflection)
+          inverse_updates_counter_named?(counter_name, reflection)
+        end
+
+        def inverse_updates_counter_named?(counter_name, reflection = reflection())
           reflection.klass._reflections.values.any? { |inverse_reflection|
             :belongs_to == inverse_reflection.macro &&
             inverse_reflection.counter_cache_column == counter_name
