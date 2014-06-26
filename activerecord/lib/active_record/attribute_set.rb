@@ -1,9 +1,13 @@
 module ActiveRecord
   class AttributeSet # :nodoc:
-    delegate :[], :[]=, :fetch, :include?, :keys, :each_with_object, to: :attributes
+    delegate :[], :[]=, :fetch, :include?, :keys, to: :attributes
 
     def initialize(attributes)
       @attributes = attributes
+    end
+
+    def values_before_type_cast
+      attributes.each_with_object({}) { |(k, v), h| h[k] = v.value_before_type_cast }
     end
 
     def to_hash

@@ -61,5 +61,12 @@ module ActiveRecord
       assert_equal({ foo: 1, bar: 2.2 }, attributes.to_hash)
       assert_equal({ foo: 1, bar: 2.2 }, attributes.to_h)
     end
+
+    test "values_before_type_cast" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
+      attributes = builder.build_from_database(foo: '1.1', bar: '2.2')
+
+      assert_equal({ foo: '1.1', bar: '2.2' }, attributes.values_before_type_cast)
+    end
   end
 end

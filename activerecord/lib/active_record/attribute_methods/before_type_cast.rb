@@ -57,7 +57,7 @@ module ActiveRecord
       #   task.attributes_before_type_cast
       #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
       def attributes_before_type_cast
-        @attributes.each_with_object({}) { |(k, v), h| h[k] = v.value_before_type_cast }
+        @attributes.values_before_type_cast
       end
 
       private
