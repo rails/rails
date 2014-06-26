@@ -661,7 +661,7 @@ module ActiveRecord
         at = create_alter_table from_table
         at.add_foreign_key to_table, options
 
-        execute schema_creation.accept at
+        execute schema_creation.accept(at)
       end
 
       def remove_foreign_key(from_table, options_or_to_table = {})
@@ -675,6 +675,7 @@ module ActiveRecord
 
         fk_name_to_delete = options.fetch(:name) do
           fk_to_delete = foreign_keys(from_table).detect {|fk| fk.column == options[:column] }
+
           if fk_to_delete
             fk_to_delete.name
           else
@@ -685,17 +686,11 @@ module ActiveRecord
         at = create_alter_table from_table
         at.drop_foreign_key fk_name_to_delete
 
-        execute schema_creation.accept at
+        execute schema_creation.accept(at)
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
         "#{table_name.to_s.singularize}_id"
-      end
-
-      def foreign_key_name(table_name, options) # :nodoc:
-        options.fetch(:name) do
-          "fk_rails_#{SecureRandom.hex(5)}"
-        end
       end
 
       def dump_schema_information #:nodoc:
@@ -907,6 +902,12 @@ module ActiveRecord
 
       def create_alter_table(name)
         AlterTable.new create_table_definition(name, false, {})
+      end
+
+      def foreign_key_name(table_name, options) # :nodoc:
+        options.fetch(:name) do
+          "fk_rails_#{SecureRandom.hex(5)}"
+        end
       end
     end
   end

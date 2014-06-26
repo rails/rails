@@ -510,7 +510,7 @@ module ActiveRecord
       end
 
       def foreign_keys(table_name)
-        fk_info = select_all %{
+        fk_info = select_all <<-SQL.strip_heredoc
           SELECT fk.referenced_table_name as 'to_table'
                 ,fk.referenced_column_name as 'primary_key'
                 ,fk.column_name as 'column'
@@ -519,7 +519,7 @@ module ActiveRecord
           WHERE fk.referenced_column_name is not null
             AND fk.table_schema = '#{@config[:database]}'
             AND fk.table_name = '#{table_name}'
-        }
+        SQL
 
         create_table_info = select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
 
@@ -534,15 +534,6 @@ module ActiveRecord
           options[:on_delete] = extract_foreign_key_action(create_table_info, row['name'], "DELETE")
 
           ForeignKeyDefinition.new(table_name, row['to_table'], options)
-        end
-      end
-
-      def extract_foreign_key_action(structure, name, action) # :nodoc:
-        if structure =~ /CONSTRAINT #{quote_column_name(name)} FOREIGN KEY .* REFERENCES .* ON #{action} (CASCADE|SET NULL|RESTRICT)/
-          case $1
-          when 'CASCADE'; :cascade
-          when 'SET NULL'; :nullify
-          end
         end
       end
 
@@ -823,6 +814,15 @@ module ActiveRecord
 
         # ...and send them all in one query
         @connection.query  "SET #{encoding} #{variable_assignments}"
+      end
+
+      def extract_foreign_key_action(structure, name, action) # :nodoc:
+        if structure =~ /CONSTRAINT #{quote_column_name(name)} FOREIGN KEY .* REFERENCES .* ON #{action} (CASCADE|SET NULL|RESTRICT)/
+          case $1
+          when 'CASCADE'; :cascade
+          when 'SET NULL'; :nullify
+          end
+        end
       end
     end
   end

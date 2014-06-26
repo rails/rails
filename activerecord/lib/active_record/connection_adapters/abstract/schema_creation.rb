@@ -18,21 +18,6 @@ module ActiveRecord
           add_column_options!(sql, column_options(o))
         end
 
-        def visit_AddForeignKey(o)
-          sql = <<-SQL
-ADD CONSTRAINT #{quote_column_name(o.name)}
-FOREIGN KEY (#{quote_column_name(o.column)})
-  REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
-          SQL
-          sql << " #{action_sql('DELETE', o.on_delete)}" if o.on_delete
-          sql << " #{action_sql('UPDATE', o.on_update)}" if o.on_update
-          sql
-        end
-
-        def visit_DropForeignKey(name)
-          "DROP CONSTRAINT #{quote_column_name(name)}"
-        end
-
         private
 
           def visit_AlterTable(o)
@@ -56,6 +41,21 @@ FOREIGN KEY (#{quote_column_name(o.column)})
             create_sql << "#{o.options}"
             create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
             create_sql
+          end
+
+          def visit_AddForeignKey(o)
+            sql = <<-SQL.strip_heredoc
+              ADD CONSTRAINT #{quote_column_name(o.name)}
+              FOREIGN KEY (#{quote_column_name(o.column)})
+                REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
+            SQL
+            sql << " #{action_sql('DELETE', o.on_delete)}" if o.on_delete
+            sql << " #{action_sql('UPDATE', o.on_update)}" if o.on_update
+            sql
+          end
+
+          def visit_DropForeignKey(name)
+            "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 
           def column_options(o)
@@ -108,9 +108,9 @@ FOREIGN KEY (#{quote_column_name(o.column)})
             when :cascade  then "ON #{action} CASCADE"
             when :restrict then "ON #{action} RESTRICT"
             else
-              raise ArgumentError, <<-MSG
-'#{dependency}' is not supported for :on_update or :on_delete.
-Supported values are: :nullify, :cascade, :restrict
+              raise ArgumentError, <<-MSG.strip_heredoc
+                '#{dependency}' is not supported for :on_update or :on_delete.
+                Supported values are: :nullify, :cascade, :restrict
               MSG
             end
           end

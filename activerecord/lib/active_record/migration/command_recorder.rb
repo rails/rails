@@ -170,13 +170,13 @@ module ActiveRecord
       end
 
       def invert_add_foreign_key(args)
-        from_table, to_table, add_options = *args
+        from_table, to_table, add_options = args
         add_options ||= {}
 
         if add_options[:name]
-          options = {name: add_options[:name]}
+          options = { name: add_options[:name] }
         elsif add_options[:column]
-          options = {column: add_options[:column]}
+          options = { column: add_options[:column] }
         else
           options = to_table
         end
