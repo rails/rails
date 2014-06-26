@@ -8,6 +8,10 @@ module ActiveRecord
       def from_user(value, type)
         FromUser.new(value, type)
       end
+
+      def uninitialized(type)
+        Uninitialized.new(type)
+      end
     end
 
     attr_reader :value_before_type_cast, :type
@@ -41,6 +45,10 @@ module ActiveRecord
       raise NotImplementedError
     end
 
+    def initialized?
+      true
+    end
+
     protected
 
     def initialize_dup(other)
@@ -69,6 +77,25 @@ module ActiveRecord
           false
         end
         alias changed_in_place_from? changed_from?
+
+        def initialized?
+          true
+        end
+      end
+    end
+
+    class Uninitialized < Attribute # :nodoc:
+      def initialize(type)
+        super(nil, type)
+      end
+
+      def value
+        nil
+      end
+      alias value_for_database value
+
+      def initialized?
+        false
       end
     end
   end
