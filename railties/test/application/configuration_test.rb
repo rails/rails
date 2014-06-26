@@ -454,6 +454,18 @@ module ApplicationTests
       assert ActionView::Resolver.caching?
     end
 
+    test "configure Active Support using config.active_support" do
+      add_to_config <<-RUBY
+        config.active_support.escape_html_entities_in_json = true
+      RUBY
+
+      require 'active_support/json'
+      require "#{app_path}/config/environment"
+
+      assert ActiveSupport.escape_html_entities_in_json
+      assert ActiveSupport::JSON::Encoding.escape_html_entities_in_json
+    end
+
     test "config.action_dispatch.show_exceptions is sent in env" do
       make_basic_app do |app|
         app.config.action_dispatch.show_exceptions = true
