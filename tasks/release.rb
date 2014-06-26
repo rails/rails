@@ -68,7 +68,7 @@ end
 
 namespace :changelog do
   task :release_date do
-    FRAMEWORKS + ['guides'].each do |fw|
+    (FRAMEWORKS + ['guides']).each do |fw|
       require 'date'
       replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
       fname = File.join fw, 'CHANGELOG.md'
