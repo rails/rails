@@ -1,3 +1,10 @@
+*   Added `config.action_view.raise_on_missing_translations` to define whether an
+    error should be raised for missing translations.
+
+    Fixes #13196
+
+    *Kassio Borges*
+
 *   ActionController::Parameters#require now accepts `false` values.
 
     Fixes #15685.

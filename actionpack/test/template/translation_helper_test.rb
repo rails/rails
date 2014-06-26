@@ -53,6 +53,16 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal false, translate(:"translations.missing", :rescue_format => nil).html_safe?
   end
 
+  def test_raises_missing_translation_message_with_raise_config_option
+    ActionView::Base.raise_on_missing_translations = true
+
+    assert_raise(I18n::MissingTranslationData) do
+      translate("translations.missing")
+    end
+  ensure
+    ActionView::Base.raise_on_missing_translations = false
+  end
+
   def test_raises_missing_translation_message_with_raise_option
     assert_raise(I18n::MissingTranslationData) do
       translate(:"translations.missing", :raise => true)
