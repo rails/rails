@@ -178,16 +178,7 @@ module ActiveRecord
           columns_hash.key?(cn) ? arel_table[cn] : cn
         }
         result = klass.connection.select_all(relation.arel, nil, bind_values)
-        columns = result.columns.map do |key|
-          klass.column_types.fetch(key) {
-            result.column_types.fetch(key) { result.identity_type }
-          }
-        end
-
-        result = result.rows.map do |values|
-          columns.zip(values).map { |column, value| column.type_cast_from_database value }
-        end
-        columns.one? ? result.map!(&:first) : result
+        result.cast_values(klass.column_types)
       end
     end
 

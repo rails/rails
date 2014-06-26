@@ -42,14 +42,6 @@ module ActiveRecord
       @column_types = column_types
     end
 
-    def identity_type # :nodoc:
-      IDENTITY_TYPE
-    end
-
-    def column_type(name)
-      @column_types[name] || identity_type
-    end
-
     def each
       if block_given?
         hash_rows.each { |row| yield row }
@@ -82,6 +74,15 @@ module ActiveRecord
       hash_rows.last
     end
 
+    def cast_values(type_overrides = {}) # :nodoc:
+      types = columns.map { |name| column_type(name, type_overrides) }
+      result = rows.map do |values|
+        types.zip(values).map { |type, value| type.type_cast_from_database(value) }
+      end
+
+      columns.one? ? result.map!(&:first) : result
+    end
+
     def initialize_copy(other)
       @columns      = columns.dup
       @rows         = rows.dup
@@ -90,6 +91,12 @@ module ActiveRecord
     end
 
     private
+
+    def column_type(name, type_overrides = {})
+      type_overrides.fetch(name) do
+        column_types.fetch(name, IDENTITY_TYPE)
+      end
+    end
 
     def hash_rows
       @hash_rows ||=
