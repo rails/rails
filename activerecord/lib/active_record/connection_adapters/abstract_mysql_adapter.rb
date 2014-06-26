@@ -10,11 +10,11 @@ module ActiveRecord
           add_column_position!(super, column_options(o))
         end
 
+        private
+
         def visit_DropForeignKey(name)
           "DROP FOREIGN KEY #{name}"
         end
-
-        private
 
         def visit_TableDefinition(o)
           name = o.name
