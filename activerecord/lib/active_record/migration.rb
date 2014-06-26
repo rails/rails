@@ -645,7 +645,9 @@ module ActiveRecord
         unless @connection.respond_to? :revert
           unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
-            arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
+            if [:rename_table, :add_foreign_key].include?(method)
+              arguments[1] = proper_table_name(arguments.second, table_name_options)
+            end
           end
         end
         return super unless connection.respond_to?(method)

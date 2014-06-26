@@ -270,6 +270,31 @@ module ActiveRecord
         enable = @recorder.inverse_of :disable_extension, ['uuid-ossp']
         assert_equal [:enable_extension, ['uuid-ossp'], nil], enable
       end
+
+      def test_invert_add_foreign_key
+        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people]
+        assert_equal [:remove_foreign_key, [:dogs, :people]], enable
+      end
+
+      def test_invert_add_foreign_key_with_column
+        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id"]
+        assert_equal [:remove_foreign_key, [:dogs, column: "owner_id"]], enable
+      end
+
+      def test_invert_add_foreign_key_with_column_and_name
+        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"]
+        assert_equal [:remove_foreign_key, [:dogs, name: "fk"]], enable
+      end
+
+      def test_remove_foreign_key_is_irreversible
+        assert_raises ActiveRecord::IrreversibleMigration do
+          @recorder.inverse_of :remove_foreign_key, [:dogs, column: "owner_id"]
+        end
+
+        assert_raises ActiveRecord::IrreversibleMigration do
+          @recorder.inverse_of :remove_foreign_key, [:dogs, name: "fk"]
+        end
+      end
     end
   end
 end

@@ -25,6 +25,37 @@ module ActiveRecord
     class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
     end
 
+    class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options)
+      def name
+        options[:name]
+      end
+
+      def column
+        options[:column]
+      end
+
+      def primary_key
+        options[:primary_key] || default_primary_key
+      end
+
+      def on_delete
+        options[:on_delete]
+      end
+
+      def on_update
+        options[:on_update]
+      end
+
+      def custom_primary_key?
+        options[:primary_key] != default_primary_key
+      end
+
+      private
+      def default_primary_key
+        "id"
+      end
+    end
+
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
@@ -303,13 +334,25 @@ module ActiveRecord
 
     class AlterTable # :nodoc:
       attr_reader :adds
+      attr_reader :foreign_key_adds
+      attr_reader :foreign_key_drops
 
       def initialize(td)
         @td   = td
         @adds = []
+        @foreign_key_adds = []
+        @foreign_key_drops = []
       end
 
       def name; @td.name; end
+
+      def add_foreign_key(to_table, options)
+        @foreign_key_adds << ForeignKeyDefinition.new(name, to_table, options)
+      end
+
+      def drop_foreign_key(name)
+        @foreign_key_drops << name
+      end
 
       def add_column(name, type, options)
         name = name.to_s

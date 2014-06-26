@@ -855,10 +855,10 @@ ActiveRecord::Schema.define do
       t.integer :fk_id, null: false
     end
 
-    create_table :fk_test_has_pk, force: true do |t|
+    create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
     end
 
-    execute "ALTER TABLE fk_test_has_fk ADD CONSTRAINT fk_name FOREIGN KEY (#{quote_column_name 'fk_id'}) REFERENCES #{quote_table_name 'fk_test_has_pk'} (#{quote_column_name 'id'})"
+    execute "ALTER TABLE fk_test_has_fk ADD CONSTRAINT fk_name FOREIGN KEY (#{quote_column_name 'fk_id'}) REFERENCES #{quote_table_name 'fk_test_has_pk'} (#{quote_column_name 'pk_id'})"
 
     execute "ALTER TABLE lessons_students ADD CONSTRAINT student_id_fk FOREIGN KEY (#{quote_column_name 'student_id'}) REFERENCES #{quote_table_name 'students'} (#{quote_column_name 'id'})"
   end
