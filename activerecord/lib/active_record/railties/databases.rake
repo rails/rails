@@ -96,7 +96,7 @@ db_namespace = namespace :db do
       unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
         abort 'Schema migrations table does not exist yet.'
       end
-      db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
+      db_list = ActiveRecord::SchemaMigration.pluck(:version)
       db_list.map! { |version| ActiveRecord::SchemaMigration.normalize_migration_number(version) }
 
       file_list =
