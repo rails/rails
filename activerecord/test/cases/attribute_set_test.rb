@@ -8,6 +8,8 @@ module ActiveRecord
 
       assert_equal 1, attributes[:foo].value
       assert_equal 2.2, attributes[:bar].value
+      assert_equal :foo, attributes[:foo].name
+      assert_equal :bar, attributes[:bar].name
     end
 
     test "building with custom types" do
@@ -24,6 +26,7 @@ module ActiveRecord
 
       assert_equal '3.3', attributes[:foo].value_before_type_cast
       assert_equal nil, attributes[:bar].value_before_type_cast
+      assert_equal :bar, attributes[:bar].name
     end
 
     test "duping creates a new hash and dups each attribute" do
