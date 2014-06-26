@@ -82,12 +82,14 @@ module Arel
       alias :visit_Arel_Nodes_Range             :unary
 
       def window o
+        visit_edge o, "partitions"
         visit_edge o, "orders"
         visit_edge o, "framing"
       end
       alias :visit_Arel_Nodes_Window            :window
 
       def named_window o
+        visit_edge o, "partitions"
         visit_edge o, "orders"
         visit_edge o, "framing"
         visit_edge o, "name"

@@ -336,12 +336,20 @@ module Arel
 
       def visit_Arel_Nodes_Window o, collector
         collector << "("
+
+        if o.partitions.any?
+          collector << "PARTITION BY "
+          collector = inject_join o.partitions, collector, ", "
+        end
+
         if o.orders.any?
+          collector << ' ' if o.partitions.any?
           collector << "ORDER BY "
           collector = inject_join o.orders, collector, ", "
         end
 
         if o.framing
+          collector << ' ' if o.partitions.any? or o.orders.any?
           collector = visit o.framing, collector
         end
 
