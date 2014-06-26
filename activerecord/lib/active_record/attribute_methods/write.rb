@@ -70,10 +70,6 @@ module ActiveRecord
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
 
-        unless has_attribute?(attr_name) || self.class.columns_hash.key?(attr_name)
-          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
-        end
-
         if should_type_cast
           @attributes.write_from_user(attr_name, value)
         else

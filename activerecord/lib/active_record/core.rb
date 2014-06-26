@@ -521,7 +521,7 @@ module ActiveRecord
 
     def init_internals
       pk = self.class.primary_key
-      unless @attributes.include?(pk)
+      if pk && !@attributes.include?(pk)
         @attributes.write_from_database(pk, nil)
       end
 

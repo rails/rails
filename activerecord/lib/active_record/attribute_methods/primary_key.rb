@@ -83,12 +83,9 @@ module ActiveRecord
         end
 
         def get_primary_key(base_name) #:nodoc:
-          return 'id' if base_name.blank?
-
-          case primary_key_prefix_type
-          when :table_name
+          if base_name && primary_key_prefix_type == :table_name
             base_name.foreign_key(false)
-          when :table_name_with_underscore
+          elsif base_name && primary_key_prefix_type == :table_name_with_underscore
             base_name.foreign_key
           else
             if ActiveRecord::Base != self && table_exists?

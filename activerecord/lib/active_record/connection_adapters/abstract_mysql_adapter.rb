@@ -381,7 +381,7 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        return false unless name
+        return false unless name.present?
         return true if tables(nil, nil, name).any?
 
         name          = name.to_s
