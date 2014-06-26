@@ -25,7 +25,7 @@ module ActiveRecord
     class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
     end
 
-    class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options)
+    class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options) #:nodoc:
       def name
         options[:name]
       end
