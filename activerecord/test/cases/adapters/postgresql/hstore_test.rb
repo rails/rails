@@ -295,16 +295,6 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       assert_cycle("a\nb" => "c\nd")
     end
 
-    def test_update_all
-      hstore = Hstore.create! tags: { "one" => "two" }
-
-      Hstore.update_all tags: { "three" => "four" }
-      assert_equal({ "three" => "four" }, hstore.reload.tags)
-
-      Hstore.update_all tags: { }
-      assert_equal({ }, hstore.reload.tags)
-    end
-
     class TagCollection
       def initialize(hash); @hash = hash end
       def to_hash; @hash end
