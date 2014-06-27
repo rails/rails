@@ -1,3 +1,9 @@
+*   Add `config.action_controller.always_permitted_parameters` to configure which
+    parameters are permitted globally. The default value of this configuration is
+    `['controller', 'action']`.
+
+    *Gary S. Weaver*, *Rafael Chacon*
+
 *   Fix env['PATH_INFO'] missing leading slash when a rack app mounted at '/'.
 
     Fixes #15511.
