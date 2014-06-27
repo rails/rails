@@ -71,7 +71,8 @@ module ActiveSupport
     # order.
     #
     # If the callback chain was halted, returns +false+. Otherwise returns the
-    # result of the block, or +true+ if no block is given.
+    # result of the block, nil if no callbacks have been set, or +true+ 
+    # if callbacks have been set but no block is given.
     #
     #   run_callbacks :save do
     #     save
