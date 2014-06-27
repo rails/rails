@@ -1,3 +1,7 @@
+*   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
+
+    *Abdelkader Boudih*
+
 *   Move 'dependent: :destroy' handling for 'belongs_to'
     from 'before_destroy' to 'after_destroy' callback chain
 
