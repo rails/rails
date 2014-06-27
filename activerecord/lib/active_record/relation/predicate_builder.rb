@@ -110,6 +110,7 @@ module ActiveRecord
     register_handler(Class, ->(attribute, value) { attribute.eq(value.name) })
     register_handler(Base, ->(attribute, value) { attribute.eq(value.id) })
     register_handler(Range, ->(attribute, value) { attribute.in(value) })
+    register_handler(Arel::SelectManager, ->(attribute, value) { attribute.in(value) })
     register_handler(Relation, RelationHandler.new)
     register_handler(Array, ArrayHandler.new)
 
