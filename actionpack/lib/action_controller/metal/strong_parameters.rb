@@ -105,11 +105,10 @@ module ActionController
     # params are present. The default includes both 'controller' and 'action'
     # because they are added by Rails and should be of no concern. One way
     # to change these is to specify `always_permitted_parameters` in your
-    # config, e.g.
-    # `config.always_permitted_parameters = %w( controller action format )`
-
+    # config. For instance:
+    #
+    #    config.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters
-
     self.always_permitted_parameters = %w( controller action )
 
     def self.const_missing(const_name)
