@@ -2,6 +2,9 @@
     a part of `schema.rb`. This is supported by Mysql2Adapter, MysqlAdapter
     and PostgreSQLAdapter.
 
+    Many thanks to *Matthew Higgins* for laying the foundation with his work on
+    [foreigner](https://github.com/matthuhiggins/foreigner).
+
     Example:
 
         # within your migrations:
