@@ -936,12 +936,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 end
 
+unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
   def setup
     ActiveRecord::Schema.define do
-      drop_table :authors, if_exists: true
-      drop_table :author_addresses, if_exists: true
-
       create_table :author_addresses do |t|
       end
 
@@ -970,4 +968,5 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
 
     author.destroy!
   end
+end
 end
