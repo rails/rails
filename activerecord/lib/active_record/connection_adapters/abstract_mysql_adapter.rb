@@ -787,7 +787,8 @@ module ActiveRecord
       end
 
       def supports_rename_index?
-        (version[0] == 5 && version[1] >= 7) || (version[0] >= 6 && version[0] < 10)
+        return false if mariadb?
+        (version[0] == 5 && version[1] >= 7) || version[0] >= 6
       end
 
       def configure_connection
