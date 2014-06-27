@@ -84,9 +84,11 @@ module ActiveModel
   #   person.changed        # => ["name"]
   #   person.changes        # => {"name" => ["Bill", "Bob"]}
   #
-  # If an attribute is modified in-place then make use of <tt>[attribute_name]_will_change!</tt>
-  # to mark that the attribute is changing. Otherwise ActiveModel can't track
-  # changes to in-place attributes.
+  # If an attribute is modified in-place then make use of
+  # +[attribute_name]_will_change!+ to mark that the attribute is changing.
+  # Otherwise ActiveModel can't track changes to in-place attributes. Note
+  # that ActiveRecord can detect in-place modifications automatically. You do
+  # not need to call +[attribute_name]_will_change!+ on ActiveRecord models.
   #
   #   person.name_will_change!
   #   person.name_change    # => ["Bill", "Bill"]
