@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/deprecation'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
 require 'stringio'
@@ -38,7 +39,7 @@ module ActionController
   # == Action Controller \Parameters
   #
   # Allows to choose which attributes should be whitelisted for mass updating
-  # and thus prevent accidentally exposing that which shouldn’t be exposed.
+  # and thus prevent accidentally exposing that which shouldn't be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
   # as permitted and limit which attributes should be allowed for mass updating.
@@ -100,9 +101,24 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
-    # Never raise an UnpermittedParameters exception because of these params
-    # are present. They are added by Rails and it's of no concern.
-    NEVER_UNPERMITTED_PARAMS = %w( controller action )
+    # By default, never raise an UnpermittedParameters exception if these
+    # params are present. The default includes both 'controller' and 'action'
+    # because they are added by Rails and should be of no concern. One way
+    # to change these is to specify `always_permitted_parameters` in your
+    # config, e.g.
+    # `config.always_permitted_parameters = %w( controller action format )`
+
+    cattr_accessor :always_permitted_parameters
+
+    self.always_permitted_parameters = %w( controller action )
+
+    def self.const_missing(const_name)
+      super unless const_name == :NEVER_UNPERMITTED_PARAMS
+      ActiveSupport::Deprecation.warn "`ActionController::Parameters::NEVER_UNPERMITTED_PARAMS`"\
+                                      " has been deprecated. Use "\
+                                      "`ActionController::Parameters.always_permitted_parameters` instead."
+      self.always_permitted_parameters
+    end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -361,7 +377,7 @@ module ActionController
       end
 
       def unpermitted_keys(params)
-        self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
+        self.keys - params.keys - self.always_permitted_parameters
       end
 
       #

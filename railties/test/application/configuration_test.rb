@@ -592,6 +592,19 @@ module ApplicationTests
       assert_match "We're sorry, but something went wrong", last_response.body
     end
 
+    test "config.action_controller.always_permitted_parameters are: controller, action by default" do
+      require "#{app_path}/config/environment"
+      assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
+    end
+
+    test "config.action_controller.always_permitted_parameters = ['controller', 'action', 'format']" do
+      add_to_config <<-RUBY
+        config.action_controller.always_permitted_parameters = %w( controller action format )
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
+    end
+
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
       ENV["RAILS_ENV"] = "development"
 
