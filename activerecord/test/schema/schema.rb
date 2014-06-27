@@ -83,6 +83,7 @@ ActiveRecord::Schema.define do
 
   create_table :author_addresses, force: true do |t|
   end
+  add_foreign_key :authors, :author_address
 
   create_table :author_favorites, force: true do |t|
     t.column :author_id, :integer
