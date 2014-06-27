@@ -1,3 +1,25 @@
+*   Detect in-place modifications on String attributes.
+
+    Before this change user have to mark the attribute as changed to it be persisted
+    in the database. Now it is not required anymore.
+
+    Before:
+
+        user = User.first
+        user.name << ' Griffin'
+        user.name_will_change!
+        user.save
+        user.reload.name # => "Sean Griffin"
+
+    After:
+
+        user = User.first
+        user.name << ' Griffin'
+        user.save
+        user.reload.name # => "Sean Griffin"
+
+    *Sean Griffin*
+
 *   Add `ActiveRecord::Base#validate!` that raises `RecordInvalid` if the record
     is invalid.
 

@@ -309,16 +309,14 @@ class DirtyTest < ActiveRecord::TestCase
   def test_attribute_will_change!
     pirate = Pirate.create!(:catchphrase => 'arr')
 
-    pirate.catchphrase << ' matey'
     assert !pirate.catchphrase_changed?
-
     assert pirate.catchphrase_will_change!
     assert pirate.catchphrase_changed?
-    assert_equal ['arr matey', 'arr matey'], pirate.catchphrase_change
+    assert_equal ['arr', 'arr'], pirate.catchphrase_change
 
-    pirate.catchphrase << '!'
+    pirate.catchphrase << ' matey!'
     assert pirate.catchphrase_changed?
-    assert_equal ['arr matey', 'arr matey!'], pirate.catchphrase_change
+    assert_equal ['arr', 'arr matey!'], pirate.catchphrase_change
   end
 
   def test_association_assignment_changes_foreign_key
