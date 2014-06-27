@@ -78,6 +78,20 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal r, invalid.record
   end
 
+  def test_validate_with_bang
+    assert_raise(ActiveRecord::RecordInvalid) do
+      WrongReply.new.validate!
+    end
+  end
+
+  def test_validate_with_bang_and_context
+    assert_raise(ActiveRecord::RecordInvalid) do
+      WrongReply.new.validate!(:special_case)
+    end
+    r = WrongReply.new(:title => "Valid title", :author_name => "secret", :content => "Good")
+    assert r.validate!(:special_case)
+  end
+
   def test_exception_on_create_bang_many
     assert_raise(ActiveRecord::RecordInvalid) do
       WrongReply.create!([ { "title" => "OK" }, { "title" => "Wrong Create" }])

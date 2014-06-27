@@ -1,3 +1,8 @@
+*   Add `ActiveRecord::Base#validate!` that raises `RecordInvalid` if the record
+    is invalid.
+
+    *Bogdan Gusiev*, *Marc Schütz*
+
 *   Support for adding and removing foreign keys. Foreign keys are now
     a part of `schema.rb`. This is supported by Mysql2Adapter, MysqlAdapter
     and PostgreSQLAdapter.
