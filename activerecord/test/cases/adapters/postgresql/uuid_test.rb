@@ -252,5 +252,19 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
       comment = post.uuid_comments.create!
       assert post.uuid_comments.find(comment.id)
     end
+
+    def test_find_with_uuid
+      UuidPost.create!
+      assert_raise ActiveRecord::RecordNotFound do
+        UuidPost.find(123456)
+      end
+
+    end
+
+    def test_find_by_with_uuid
+      UuidPost.create!
+      assert_nil UuidPost.find_by(id: 789)
+    end
   end
+
 end
