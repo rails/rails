@@ -394,7 +394,7 @@ end
 ```
 
 This helps prevent conflicts with any other engine or application that may have
-a article resource as well.
+an article resource as well.
 
 Finally, the assets for this resource are generated in two files:
 `app/assets/javascripts/blorgh/articles.js` and
@@ -506,8 +506,8 @@ NOTE: Because the `has_many` is defined inside a class that is inside the
 model for these objects, so there's no need to specify that using the
 `:class_name` option here.
 
-Next, there needs to be a form so that comments can be created on a article. To add
-this, put this line underneath the call to `render @article.comments` in
+Next, there needs to be a form so that comments can be created on an article. To
+add this, put this line underneath the call to `render @article.comments` in
 `app/views/blorgh/articles/show.html.erb`:
 
 ```erb
@@ -739,9 +739,10 @@ the application. In the case of the `blorgh` engine, making articles and comment
 have authors would make a lot of sense.
 
 A typical application might have a `User` class that would be used to represent
-authors for a article or a comment. But there could be a case where the application
-calls this class something different, such as `Person`. For this reason, the
-engine should not hardcode associations specifically for a `User` class.
+authors for an article or a comment. But there could be a case where the
+application calls this class something different, such as `Person`. For this
+reason, the engine should not hardcode associations specifically for a `User`
+class.
 
 To keep it simple in this case, the application will have a class called `User`
 that represents the users of the application. It can be generated using this

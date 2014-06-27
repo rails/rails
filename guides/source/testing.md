@@ -585,7 +585,7 @@ Here's another example that uses `flash`, `assert_redirected_to`, and `assert_di
 
 ```ruby
 test "should create article" do
-  assert_difference('article.count') do
+  assert_difference('Article.count') do
     post :create, article: {title: 'Hi', body: 'This is my first article.'}
   end
   assert_redirected_to article_path(assigns(:article))
