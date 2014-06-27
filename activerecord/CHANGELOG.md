@@ -1,3 +1,10 @@
+*   Move 'dependent: :destroy' handling for 'belongs_to'
+    from 'before_destroy' to 'after_destroy' callback chain
+
+    Fix #12380.
+
+    *Ivan Antropov*
+
 *   Detect in-place modifications on String attributes.
 
     Before this change user have to mark the attribute as changed to it be persisted
