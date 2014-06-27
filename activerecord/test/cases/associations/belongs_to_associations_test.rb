@@ -938,28 +938,21 @@ end
 
 unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
-  def setup
-    ActiveRecord::Schema.define do
-      create_table :author_addresses do |t|
-      end
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :author_addresses, force: true
 
-      exec_query  <<-eos
-        create table authors(
-          id int,
-          author_address_id int,
-          name varchar(255),
-          PRIMARY KEY (id),
-          FOREIGN KEY (author_address_id) REFERENCES author_addresses(id)
-        );
-      eos
+    @connection.create_table :authors, force: true do |t|
+      t.string :name
+      t.references :author_address
     end
+
+    @connection.add_foreign_key :authors, :author_address
   end
 
-  def teardown
-    ActiveRecord::Schema.define do
-      drop_table :authors, if_exists: true
-      drop_table :author_addresses, if_exists: true
-    end
+  teardown do
+    @connection.drop_table :authors, if_exists: true
+    @connection.drop_table :author_addresses, if_exists: true
   end
 
   def test_destroy_linked_models
