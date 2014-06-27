@@ -375,8 +375,8 @@ module ActiveRecord
         end
 
         # Renames a table.
-        # Also renames a table's primary key sequence if the sequence name matches the
-        # Active Record default.
+        # Also renames a table's primary key sequence if the sequence name exists and
+        # matches the Active Record default.
         #
         # Example:
         #   rename_table('octopuses', 'octopi')
@@ -384,7 +384,7 @@ module ActiveRecord
           clear_cache!
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
-          if seq.identifier == "#{table_name}_#{pk}_seq"
+          if seq && seq.identifier == "#{table_name}_#{pk}_seq"
             new_seq = "#{new_name}_#{pk}_seq"
             execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
           end
