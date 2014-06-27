@@ -1,3 +1,9 @@
+*   Do not use `RENAME INDEX` syntax for MariaDB 10.0.
+
+    Fixes #15931.
+
+    *Jeff Browning*
+
 *   Fix the schema dump generated for tables without constraints and with
     primary key with default value of custom PostgreSQL function result.
 
