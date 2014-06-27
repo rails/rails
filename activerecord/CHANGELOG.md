@@ -1,3 +1,9 @@
+*   Do not use `RENAME INDEX` syntax for MariaDB 10.0
+
+    Fixes #15931.
+
+    *Jeff Browning*
+
 *   Support for adding and removing foreign keys. Foreign keys are now
     a part of `schema.rb`. This is supported by Mysql2Adapter, MysqlAdapter
     and PostgreSQLAdapter.
