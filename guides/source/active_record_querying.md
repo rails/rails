@@ -132,7 +132,7 @@ TIP: The retrieved record may vary depending on the database engine.
 
 #### `first`
 
-`Model.first` finds the first record ordered by the primary key. For example:
+The `first` method finds the first record ordered by the primary key. For example:
 
 ```ruby
 client = Client.first
@@ -145,7 +145,26 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 ```
 
-`Model.first` returns `nil` if no matching record is found and no exception will be raised.
+The `first` method returns `nil` if no matching record is found and no exception will be raised.
+
+You can pass in a numerical argument to the `first` method to return up to that number of results. For example
+
+```ruby
+client = Client.first(3)
+# => [
+  #<Client id: 1, first_name: "Lifo">,
+  #<Client id: 2, first_name: "Fifo">,
+  #<Client id: 3, first_name: "Filo">
+]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients ORDER BY clients.id ASC LIMIT 3
+```
+
+The `first!` method behaves exactly like `first`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 #### `last`
 
@@ -198,23 +217,6 @@ SELECT * FROM clients LIMIT 1
 ```
 
 `Model.take!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
-
-#### `first!`
-
-`Model.first!` finds the first record ordered by the primary key. For example:
-
-```ruby
-client = Client.first!
-# => #<Client id: 1, first_name: "Lifo">
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
-```
-
-`Model.first!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
 
 #### `last!`
 
@@ -285,22 +287,6 @@ The SQL equivalent of the above is:
 
 ```sql
 SELECT * FROM clients LIMIT 2
-```
-
-#### first
-
-`Model.first(limit)` finds the first number of records specified by `limit` ordered by primary key:
-
-```ruby
-Client.first(2)
-# => [#<Client id: 1, first_name: "Lifo">,
-      #<Client id: 2, first_name: "Raf">]
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients ORDER BY id ASC LIMIT 2
 ```
 
 #### last
