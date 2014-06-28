@@ -83,7 +83,10 @@ ActiveRecord::Schema.define do
 
   create_table :author_addresses, force: true do |t|
   end
-  add_foreign_key :authors, :author_addresses
+
+  unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+    add_foreign_key :authors, :author_addresses
+  end
 
   create_table :author_favorites, force: true do |t|
     t.column :author_id, :integer
