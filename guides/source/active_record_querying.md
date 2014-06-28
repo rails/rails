@@ -185,7 +185,7 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 
 #### `find_by`
 
-`Model.find_by` finds the first record matching some conditions. For example:
+The `find_by` method finds the first record matching some conditions. For example:
 
 ```ruby
 Client.find_by first_name: 'Lifo'
@@ -199,6 +199,19 @@ It is equivalent to writing:
 
 ```ruby
 Client.where(first_name: 'Lifo').take
+```
+
+The `find_by!` method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
+
+```ruby
+Client.find_by! first_name: 'does not exist'
+# => ActiveRecord::RecordNotFound
+```
+
+This is equivalent to writing:
+
+```ruby
+Client.where(first_name: 'does not exist').take!
 ```
 
 #### `take!`
@@ -234,24 +247,6 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
 `Model.last!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
-
-#### `find_by!`
-
-`Model.find_by!` finds the first record matching some conditions. It raises `ActiveRecord::RecordNotFound` if no matching record is found. For example:
-
-```ruby
-Client.find_by! first_name: 'Lifo'
-# => #<Client id: 1, first_name: "Lifo">
-
-Client.find_by! first_name: 'Jon'
-# => ActiveRecord::RecordNotFound
-```
-
-It is equivalent to writing:
-
-```ruby
-Client.where(first_name: 'Lifo').take!
-```
 
 ### Retrieving Multiple Objects
 
