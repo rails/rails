@@ -4,7 +4,6 @@ require 'cases/helper'
 require 'models/topic'
 require 'models/reply'
 require 'models/custom_reader'
-require 'models/automobile'
 
 require 'active_support/json'
 require 'active_support/xml_mini'
@@ -283,25 +282,30 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_validations_on_the_instance_level
-    auto = Automobile.new
+    Topic.validates :title, :author_name, presence: true
+    Topic.validates :content, length: { minimum: 10 }
 
-    assert          auto.invalid?
-    assert_equal 3, auto.errors.size
+    topic = Topic.new
+    assert topic.invalid?
+    assert_equal 3, topic.errors.size
 
-    auto.make  = 'Toyota'
-    auto.model = 'Corolla'
-    auto.approved = '1'
-
-    assert auto.valid?
+    topic.title = 'Some Title'
+    topic.author_name = 'Some Author'
+    topic.content = 'Some Content Whose Length is more than 10.'
+    assert topic.valid?
   end
 
   def test_validate
-    auto = Automobile.new
+    Topic.validate do
+      validates_presence_of :title, :author_name
+      validates_length_of :content, minimum: 10
+    end
 
-    assert_empty auto.errors
+    topic = Topic.new
+    assert_empty topic.errors
 
-    auto.validate
-    assert_not_empty auto.errors
+    topic.validate
+    assert_not_empty topic.errors
   end
 
   def test_strict_validation_in_validates
