@@ -779,7 +779,7 @@ module ActiveRecord
       end
 
       def mariadb?
-        @mariadb ||= !!(full_version =~ /mariadb/i)
+        !!(full_version =~ /mariadb/i)
       end
 
       def supports_views?
