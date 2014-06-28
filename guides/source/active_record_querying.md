@@ -731,8 +731,6 @@ The `reorder` method overrides the default scope order. For example:
 
 ```ruby
 class Article < ActiveRecord::Base
-  ..
-  ..
   has_many :comments, -> { order('posted_at DESC') }
 end
 
