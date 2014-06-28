@@ -93,9 +93,9 @@ The primary operation of `Model.find(options)` can be summarized as:
 
 Active Record provides several different ways of retrieving a single object.
 
-#### Using a Primary Key
+#### `find`
 
-Using `Model.find(primary_key)`, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
+Using the `find` method, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
 
 ```ruby
 # Find the client with primary key (id) 10.
@@ -109,7 +109,23 @@ The SQL equivalent of the above is:
 SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 ```
 
-`Model.find(primary_key)` will raise an `ActiveRecord::RecordNotFound` exception if no matching record is found.
+The `find` method will raise an `ActiveRecord::RecordNotFound` exception if no matching record is found.
+
+You can also use this method to query for multiple objects. Call the `find` method and pass in an array of primary keys. The return will be an array containing all of the matching records for the supplied _primary keys_. For example:
+
+```ruby
+# Find the clients with primary keys 1 and 10.
+client = Client.find([1, 10]) # Or even Client.find(1, 10)
+# => [#<Client id: 1, first_name: "Lifo">, #<Client id: 10, first_name: "Ryan">]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients WHERE (clients.id IN (1,10))
+```
+
+WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
 #### `take`
 
@@ -267,28 +283,6 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
 `Model.last!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
-
-### Retrieving Multiple Objects
-
-#### Using Multiple Primary Keys
-
-`Model.find(array_of_primary_key)` accepts an array of _primary keys_, returning an array containing all of the matching records for the supplied _primary keys_. For example:
-
-```ruby
-# Find the clients with primary keys 1 and 10.
-client = Client.find([1, 10]) # Or even Client.find(1, 10)
-# => [#<Client id: 1, first_name: "Lifo">, #<Client id: 10, first_name: "Ryan">]
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients WHERE (clients.id IN (1,10))
-```
-
-WARNING: `Model.find(array_of_primary_key)` will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
-
-
 
 ### Retrieving Multiple Objects in Batches
 
