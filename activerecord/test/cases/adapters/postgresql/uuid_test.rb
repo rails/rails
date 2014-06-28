@@ -9,15 +9,6 @@ module PostgresqlUUIDHelper
     @connection ||= ActiveRecord::Base.connection
   end
 
-  def enable_uuid_ossp
-    unless connection.extension_enabled?('uuid-ossp')
-      connection.enable_extension 'uuid-ossp'
-      connection.commit_db_transaction
-    end
-
-    connection.reconnect!
-  end
-
   def drop_table(name)
     connection.execute "drop table if exists #{name}"
   end
@@ -91,7 +82,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
   end
 
   setup do
-    enable_uuid_ossp
+    enable_uuid_ossp!(connection)
 
     connection.create_table('pg_uuids', id: :uuid, default: 'uuid_generate_v1()') do |t|
       t.string 'name'
@@ -139,7 +130,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
 
   setup do
-    enable_uuid_ossp
+    enable_uuid_ossp!(connection)
 
     connection.create_table('pg_uuids', id: false) do |t|
       t.primary_key :id, :uuid, default: nil
@@ -176,7 +167,7 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
   end
 
   setup do
-    enable_uuid_ossp
+    enable_uuid_ossp!(connection)
 
     connection.transaction do
       connection.create_table('pg_uuid_posts', id: :uuid) do |t|
