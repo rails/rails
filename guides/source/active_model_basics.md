@@ -299,8 +299,8 @@ person.name = "Bob"
 person.as_json # => {"name"=>"Bob"}
 ```
 
-With the `from_json` you define the attributes of the model from a JSON.
-First you need to have the `attributes=` on your class.
+From a JSON string you define the attributes of the model.
+You need to have the `attributes=` method defined on your class:
 
 ```ruby
 class Person
@@ -320,7 +320,7 @@ class Person
 end
 ```
 
-Now it is possible to create a instance of person using the `from_json`.
+Now it is possible to create an instance of person using the `from_json`.
 
 ```ruby
 json = { name: 'Bob' }.to_json
@@ -354,8 +354,8 @@ person.name = "Bob"
 person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>Bob</name>\n</person>\n"
 ```
 
-With the `from_xml` you define the attributes of the model from a XML.
-First you need to have the `attributes=` on your class.
+From a XML string you define the attributes of the model.
+You need to have the `attributes=` method defined on your class:
 
 ```ruby
 class Person
@@ -375,7 +375,7 @@ class Person
 end
 ```
 
-Now it is possible to create a instance of person using the `from_xml`.
+Now it is possible to create an instance of person using the `from_xml`.
 
 ```ruby
 xml = { name: 'Bob' }.to_xml
@@ -391,7 +391,6 @@ Provides integration between your object and the Rails internationalization (i18
 ```ruby
 class Person
   extend ActiveModel::Translation
-
 end
 ```
 
