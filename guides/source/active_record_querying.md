@@ -186,7 +186,7 @@ The `first!` method behaves exactly like `first`, except that it will raise `Act
 
 #### `last`
 
-`Model.last` finds the last record ordered by the primary key. For example:
+The `last` method finds the last record ordered by the primary key. For example:
 
 ```ruby
 client = Client.last
@@ -199,7 +199,26 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
-`Model.last` returns `nil` if no matching record is found and no exception will be raised.
+The `last` method returns `nil` if no matching record is found and no exception will be raised.
+
+You can pass in a numerical argument to the `last` method to return up to that number of results. For example
+
+```ruby
+client = Client.last(3)
+# => [
+  #<Client id: 219, first_name: "James">,
+  #<Client id: 220, first_name: "Sara">,
+  #<Client id: 221, first_name: "Russel">
+]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients ORDER BY clients.id DESC LIMIT 3
+```
+
+The `last!` method behaves exactly like `last`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 #### `find_by`
 
@@ -269,21 +288,7 @@ SELECT * FROM clients WHERE (clients.id IN (1,10))
 
 WARNING: `Model.find(array_of_primary_key)` will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
-#### last
 
-`Model.last(limit)` finds the number of records specified by `limit` ordered by primary key in descending order:
-
-```ruby
-Client.last(2)
-# => [#<Client id: 10, first_name: "Ryan">,
-      #<Client id: 9, first_name: "John">]
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients ORDER BY id DESC LIMIT 2
-```
 
 ### Retrieving Multiple Objects in Batches
 
