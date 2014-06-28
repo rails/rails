@@ -16,11 +16,16 @@ module ModuleWithConstant
 end
 
 class DependenciesTest < ActiveSupport::TestCase
-  def teardown
-    ActiveSupport::Dependencies.clear
+  include DependenciesTestHelpers
+
+  setup do
+    @loaded_features_copy = $LOADED_FEATURES.dup
   end
 
-  include DependenciesTestHelpers
+  teardown do
+    ActiveSupport::Dependencies.clear
+    $LOADED_FEATURES.replace(@loaded_features_copy)
+  end
 
   def test_depend_on_path
     skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'
@@ -51,8 +56,7 @@ class DependenciesTest < ActiveSupport::TestCase
     require_dependency 'dependencies/service_two'
     assert_equal 2, ActiveSupport::Dependencies.loaded.size
   ensure
-    Object.send(:remove_const, :ServiceOne) if Object.const_defined?(:ServiceOne)
-    Object.send(:remove_const, :ServiceTwo) if Object.const_defined?(:ServiceTwo)
+    remove_constants(:ServiceOne, :ServiceTwo)
   end
 
   def test_tracking_identical_loaded_files
@@ -60,7 +64,7 @@ class DependenciesTest < ActiveSupport::TestCase
     require_dependency 'dependencies/service_one'
     assert_equal 1, ActiveSupport::Dependencies.loaded.size
   ensure
-    Object.send(:remove_const, :ServiceOne) if Object.const_defined?(:ServiceOne)
+    remove_constants(:ServiceOne)
   end
 
   def test_missing_dependency_raises_missing_source_file
@@ -89,7 +93,6 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_dependency_which_raises_doesnt_blindly_call_blame_file!
     with_loading do
       filename = 'dependencies/raises_exception_without_blame_file'
-
       assert_raises(Exception) { require_dependency filename }
     end
   end
@@ -97,7 +100,6 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_warnings_should_be_enabled_on_first_load
     with_loading 'dependencies' do
       old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
-
       filename = "check_warnings"
       expanded = File.expand_path("#{File.dirname(__FILE__)}/dependencies/#{filename}")
       $check_warnings_load_count = 0
@@ -174,43 +176,49 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_directories_manifest_as_modules_unless_const_defined
     with_autoloading_fixtures do
       assert_kind_of Module, ModuleFolder
-      Object.__send__ :remove_const, :ModuleFolder
     end
+  ensure
+    remove_constants(:ModuleFolder)
   end
 
   def test_module_with_nested_class
     with_autoloading_fixtures do
       assert_kind_of Class, ModuleFolder::NestedClass
-      Object.__send__ :remove_const, :ModuleFolder
     end
+  ensure
+    remove_constants(:ModuleFolder)
   end
 
   def test_module_with_nested_inline_class
     with_autoloading_fixtures do
       assert_kind_of Class, ModuleFolder::InlineClass
-      Object.__send__ :remove_const, :ModuleFolder
     end
+  ensure
+    remove_constants(:ModuleFolder)
   end
 
   def test_directories_may_manifest_as_nested_classes
     with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder
-      Object.__send__ :remove_const, :ClassFolder
     end
+  ensure
+    remove_constants(:ClassFolder)
   end
 
   def test_class_with_nested_class
     with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder::NestedClass
-      Object.__send__ :remove_const, :ClassFolder
     end
+  ensure
+    remove_constants(:ClassFolder)
   end
 
   def test_class_with_nested_inline_class
     with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder::InlineClass
-      Object.__send__ :remove_const, :ClassFolder
     end
+  ensure
+    remove_constants(:ClassFolder)
   end
 
   def test_class_with_nested_inline_subclass_of_parent
@@ -218,8 +226,9 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_kind_of Class, ClassFolder::ClassFolderSubclass
       assert_kind_of Class, ClassFolder
       assert_equal 'indeed', ClassFolder::ClassFolderSubclass::ConstantInClassFolder
-      Object.__send__ :remove_const, :ClassFolder
     end
+  ensure
+    remove_constants(:ClassFolder)
   end
 
   def test_nested_class_can_access_sibling
@@ -227,16 +236,15 @@ class DependenciesTest < ActiveSupport::TestCase
       sibling = ModuleFolder::NestedClass.class_eval "NestedSibling"
       assert defined?(ModuleFolder::NestedSibling)
       assert_equal ModuleFolder::NestedSibling, sibling
-      Object.__send__ :remove_const, :ModuleFolder
     end
+  ensure
+    remove_constants(:ModuleFolder)
   end
 
   def test_doesnt_break_normal_require
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup
-    original_features = $".dup
     $:.push(path)
-
     with_autoloading_fixtures do
       # The _ = assignments are to prevent warnings
       _ = RequiresConstant
@@ -248,15 +256,13 @@ class DependenciesTest < ActiveSupport::TestCase
       assert defined?(LoadedConstant)
     end
   ensure
-    remove_constants(:RequiresConstant, :LoadedConstant, :LoadsConstant)
-    $".replace(original_features)
+    remove_constants(:RequiresConstant, :LoadedConstant)
     $:.replace(original_path)
   end
 
   def test_doesnt_break_normal_require_nested
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup
-    original_features = $".dup
     $:.push(path)
 
     with_autoloading_fixtures do
@@ -271,14 +277,12 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:RequiresConstant, :LoadedConstant, :LoadsConstant)
-    $".replace(original_features)
     $:.replace(original_path)
   end
 
   def test_require_returns_true_when_file_not_yet_required
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup
-    original_features = $".dup
     $:.push(path)
 
     with_loading do
@@ -286,14 +290,12 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:LoadedConstant)
-    $".replace(original_features)
     $:.replace(original_path)
   end
 
   def test_require_returns_true_when_file_not_yet_required_even_when_no_new_constants_added
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup
-    original_features = $".dup
     $:.push(path)
 
     with_loading do
@@ -302,14 +304,12 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:LoadedConstant)
-    $".replace(original_features)
     $:.replace(original_path)
   end
 
   def test_require_returns_false_when_file_already_required
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup
-    original_features = $".dup
     $:.push(path)
 
     with_loading do
@@ -318,7 +318,6 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:LoadedConstant)
-    $".replace(original_features)
     $:.replace(original_path)
   end
 
@@ -326,14 +325,11 @@ class DependenciesTest < ActiveSupport::TestCase
     with_loading do
       assert_raise(LoadError) { require 'this_file_dont_exist_dude' }
     end
-  ensure
-    remove_constants(:LoadedConstant)
   end
 
   def test_load_returns_true_when_file_found
     path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
     original_path = $:.dup
-    original_features = $".dup
     $:.push(path)
 
     with_loading do
@@ -342,7 +338,6 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:LoadedConstant)
-    $".replace(original_features)
     $:.replace(original_path)
   end
 
@@ -350,16 +345,13 @@ class DependenciesTest < ActiveSupport::TestCase
     with_loading do
       assert_raise(LoadError) { load 'this_file_dont_exist_dude.rb' }
     end
-  ensure
-    remove_constants(:LoadedConstant)
   end
 
   def failing_test_access_thru_and_upwards_fails
     with_autoloading_fixtures do
-      assert ! defined?(ModuleFolder)
+      assert_not defined?(ModuleFolder)
       assert_raise(NameError) { ModuleFolder::Object }
       assert_raise(NameError) { ModuleFolder::NestedClass::Object }
-      Object.__send__ :remove_const, :ModuleFolder
     end
   end
 
@@ -373,6 +365,8 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal "uninitialized constant A::B::DoesNotExist", e.message
       assert_equal :DoesNotExist, e.name
     end
+  ensure
+    remove_constants(:A)
   end
 
   def test_smart_name_error_strings
@@ -462,9 +456,9 @@ class DependenciesTest < ActiveSupport::TestCase
       nil_name = Module.new
       def nil_name.name() nil end
       assert !ActiveSupport::Dependencies.autoloaded?(nil_name)
-
-      Object.class_eval { remove_const :ModuleFolder }
     end
+  ensure
+    remove_constants(:ModuleFolder)
   end
 
   def test_qualified_name_for
@@ -522,6 +516,8 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_kind_of Module, ::ModuleWithCustomConstMissing::A
       assert_kind_of String, ::ModuleWithCustomConstMissing::A::B
     end
+  ensure
+    remove_constants(:ModuleWithCustomConstMissing)
   end
 
   def test_const_missing_in_anonymous_modules_loads_top_level_constants
@@ -530,6 +526,8 @@ class DependenciesTest < ActiveSupport::TestCase
       klass = Class.new.class_eval "E"
       assert_equal E, klass
     end
+  ensure
+    remove_constants(:E)
   end
 
   def test_const_missing_in_anonymous_modules_raises_if_the_constant_belongs_to_Object
@@ -541,6 +539,8 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal 'E cannot be autoloaded from an anonymous class or module', e.message
       assert_equal :E, e.name
     end
+  ensure
+    remove_constants(:E)
   end
 
   def test_removal_from_tree_should_be_detected
@@ -553,6 +553,8 @@ class DependenciesTest < ActiveSupport::TestCase
       end
       assert_match %r{ServiceOne has been removed from the module tree}i, e.message
     end
+  ensure
+    remove_constants(:ServiceOne)
   end
 
   def test_references_should_work
@@ -562,17 +564,20 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal service_one_first, c.get("ServiceOne")
       ActiveSupport::Dependencies.clear
       assert ! defined?(ServiceOne)
-
       service_one_second = ServiceOne
       assert_not_equal service_one_first, c.get("ServiceOne")
       assert_equal service_one_second, c.get("ServiceOne")
     end
+  ensure
+    remove_constants(:ServiceOne)
   end
 
   def test_constantize_shortcut_for_cached_constant_lookups
     with_loading 'dependencies' do
       assert_equal ServiceOne, ActiveSupport::Dependencies.constantize("ServiceOne")
     end
+  ensure
+    remove_constants(:ServiceOne)
   end
 
   def test_nested_load_error_isnt_rescued
@@ -584,19 +589,20 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_autoload_once_paths_do_not_add_to_autoloaded_constants
+    old_path = ActiveSupport::Dependencies.autoload_once_paths
     with_autoloading_fixtures do
       ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths.dup
 
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
-      assert ! ActiveSupport::Dependencies.autoloaded?(ModuleFolder)
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert_not ActiveSupport::Dependencies.autoloaded?(ModuleFolder)
 
       1 if ModuleFolder::NestedClass # 1 if to avoid warning
-      assert ! ActiveSupport::Dependencies.autoloaded?(ModuleFolder::NestedClass)
+      assert_not ActiveSupport::Dependencies.autoloaded?(ModuleFolder::NestedClass)
     end
   ensure
-    Object.class_eval { remove_const :ModuleFolder }
-    ActiveSupport::Dependencies.autoload_once_paths = []
+    remove_constants(:ModuleFolder)
+    ActiveSupport::Dependencies.autoload_once_paths = old_path
   end
 
   def test_autoload_once_pathnames_do_not_add_to_autoloaded_constants
@@ -605,15 +611,15 @@ class DependenciesTest < ActiveSupport::TestCase
       ActiveSupport::Dependencies.autoload_paths = pathnames
       ActiveSupport::Dependencies.autoload_once_paths = pathnames
 
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
-      assert ! ActiveSupport::Dependencies.autoloaded?(ModuleFolder)
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert_not ActiveSupport::Dependencies.autoloaded?(ModuleFolder)
 
       1 if ModuleFolder::NestedClass # 1 if to avoid warning
-      assert ! ActiveSupport::Dependencies.autoloaded?(ModuleFolder::NestedClass)
+      assert_not ActiveSupport::Dependencies.autoloaded?(ModuleFolder::NestedClass)
     end
   ensure
-    Object.class_eval { remove_const :ModuleFolder }
+    remove_constants(:ModuleFolder)
     ActiveSupport::Dependencies.autoload_once_paths = []
   end
 
@@ -623,6 +629,8 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal 10, ApplicationController
       assert ActiveSupport::Dependencies.autoloaded?(:ApplicationController)
     end
+  ensure
+    remove_constants(:ApplicationController)
   end
 
   def test_preexisting_constants_are_not_marked_as_autoloaded
@@ -638,9 +646,8 @@ class DependenciesTest < ActiveSupport::TestCase
       assert ! ActiveSupport::Dependencies.autoloaded?(:E), "E shouldn't be marked autoloaded!"
       ActiveSupport::Dependencies.clear
     end
-
   ensure
-    Object.class_eval { remove_const :E }
+    remove_constants(:E)
   end
 
   def test_constants_in_capitalized_nesting_marked_as_autoloaded
@@ -649,6 +656,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
       assert ActiveSupport::Dependencies.autoloaded?("HTML::SomeClass")
     end
+  ensure
+    remove_constants(:HTML)
   end
 
   def test_unloadable
@@ -679,7 +688,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal false, M.unloadable
     end
   ensure
-    Object.class_eval { remove_const :M }
+    remove_constants(:M)
   end
 
   def test_unloadable_constants_should_receive_callback
@@ -690,7 +699,7 @@ class DependenciesTest < ActiveSupport::TestCase
     ActiveSupport::Dependencies.clear
     assert !defined?(C)
   ensure
-    Object.class_eval { remove_const :C } if defined?(C)
+    remove_constants(:C)
   end
 
   def test_new_contants_in_without_constants
@@ -704,7 +713,7 @@ class DependenciesTest < ActiveSupport::TestCase
                             }.map(&:to_s)
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
-    Object.class_eval { remove_const :Hello }
+    remove_constants(:Hello)
   end
 
   def test_new_constants_in_with_nesting
@@ -721,9 +730,7 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_equal ["OuterAfter", "OuterBefore"], outer.sort.map(&:to_s)
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
-    %w(OuterBefore Inner OuterAfter).each do |name|
-      Object.class_eval { remove_const name if const_defined?(name) }
-    end
+    remove_constants(:OuterBefore, :Inner, :OuterAfter)
   end
 
   def test_new_constants_in_module
@@ -742,7 +749,7 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
-    Object.class_eval { remove_const :M }
+    remove_constants(:M)
   end
 
   def test_new_constants_in_module_using_name
@@ -760,7 +767,7 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
     assert ActiveSupport::Dependencies.constant_watch_stack.all? {|k,v| v.empty? }
   ensure
-    Object.class_eval { remove_const :M }
+    remove_constants(:M)
   end
 
   def test_new_constants_in_with_inherited_constants
@@ -778,26 +785,27 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_file_with_multiple_constants_and_require_dependency
     with_autoloading_fixtures do
-      assert ! defined?(MultipleConstantFile)
-      assert ! defined?(SiblingConstant)
+      assert_not defined?(MultipleConstantFile)
+      assert_not defined?(SiblingConstant)
 
       require_dependency 'multiple_constant_file'
       assert defined?(MultipleConstantFile)
       assert defined?(SiblingConstant)
       assert ActiveSupport::Dependencies.autoloaded?(:MultipleConstantFile)
       assert ActiveSupport::Dependencies.autoloaded?(:SiblingConstant)
-
       ActiveSupport::Dependencies.clear
 
-      assert ! defined?(MultipleConstantFile)
-      assert ! defined?(SiblingConstant)
+      assert_not defined?(MultipleConstantFile)
+      assert_not defined?(SiblingConstant)
     end
+  ensure
+    remove_constants(:MultipleConstantFile, :SiblingConstant)
   end
 
   def test_file_with_multiple_constants_and_auto_loading
     with_autoloading_fixtures do
-      assert ! defined?(MultipleConstantFile)
-      assert ! defined?(SiblingConstant)
+      assert_not defined?(MultipleConstantFile)
+      assert_not defined?(SiblingConstant)
 
       assert_equal 10, MultipleConstantFile
 
@@ -808,15 +816,17 @@ class DependenciesTest < ActiveSupport::TestCase
 
       ActiveSupport::Dependencies.clear
 
-      assert ! defined?(MultipleConstantFile)
-      assert ! defined?(SiblingConstant)
+      assert_not defined?(MultipleConstantFile)
+      assert_not defined?(SiblingConstant)
     end
+  ensure
+    remove_constants(:MultipleConstantFile, :SiblingConstant)
   end
 
   def test_nested_file_with_multiple_constants_and_require_dependency
     with_autoloading_fixtures do
-      assert ! defined?(ClassFolder::NestedClass)
-      assert ! defined?(ClassFolder::SiblingClass)
+      assert_not defined?(ClassFolder::NestedClass)
+      assert_not defined?(ClassFolder::SiblingClass)
 
       require_dependency 'class_folder/nested_class'
 
@@ -827,15 +837,17 @@ class DependenciesTest < ActiveSupport::TestCase
 
       ActiveSupport::Dependencies.clear
 
-      assert ! defined?(ClassFolder::NestedClass)
-      assert ! defined?(ClassFolder::SiblingClass)
+      assert_not defined?(ClassFolder::NestedClass)
+      assert_not defined?(ClassFolder::SiblingClass)
     end
+  ensure
+    remove_constants(:ClassFolder)
   end
 
   def test_nested_file_with_multiple_constants_and_auto_loading
     with_autoloading_fixtures do
-      assert ! defined?(ClassFolder::NestedClass)
-      assert ! defined?(ClassFolder::SiblingClass)
+      assert_not defined?(ClassFolder::NestedClass)
+      assert_not defined?(ClassFolder::SiblingClass)
 
       assert_kind_of Class, ClassFolder::NestedClass
 
@@ -846,9 +858,11 @@ class DependenciesTest < ActiveSupport::TestCase
 
       ActiveSupport::Dependencies.clear
 
-      assert ! defined?(ClassFolder::NestedClass)
-      assert ! defined?(ClassFolder::SiblingClass)
+      assert_not defined?(ClassFolder::NestedClass)
+      assert_not defined?(ClassFolder::SiblingClass)
     end
+  ensure
+    remove_constants(:ClassFolder)
   end
 
   def test_autoload_doesnt_shadow_no_method_error_with_relative_constant
@@ -859,9 +873,8 @@ class DependenciesTest < ActiveSupport::TestCase
         assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
-
   ensure
-    Object.class_eval { remove_const :RaisesNoMethodError if const_defined?(:RaisesNoMethodError) }
+    remove_constants(:RaisesNoMethodError)
   end
 
   def test_autoload_doesnt_shadow_no_method_error_with_absolute_constant
@@ -872,9 +885,8 @@ class DependenciesTest < ActiveSupport::TestCase
         assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
-
   ensure
-    Object.class_eval { remove_const :RaisesNoMethodError if const_defined?(:RaisesNoMethodError) }
+    remove_constants(:RaisesNoMethodError)
   end
 
   def test_autoload_doesnt_shadow_error_when_mechanism_not_set_to_load
@@ -884,11 +896,12 @@ class DependenciesTest < ActiveSupport::TestCase
         assert_raise(NameError) { assert_equal 123, ::RaisesNameError::FooBarBaz }
       end
     end
+  ensure
+    remove_constants(:RaisesNameError)
   end
 
   def test_autoload_doesnt_shadow_name_error
     with_autoloading_fixtures do
-      Object.send(:remove_const, :RaisesNameError) if defined?(::RaisesNameError)
       2.times do
         e = assert_raise NameError do
           ::RaisesNameError::FooBarBaz.object_id
@@ -903,19 +916,20 @@ class DependenciesTest < ActiveSupport::TestCase
         assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
     end
-
   ensure
-    Object.class_eval { remove_const :RaisesNoMethodError if const_defined?(:RaisesNoMethodError) }
+    remove_constants(:RaisesNameError)
   end
 
   def test_remove_constant_handles_double_colon_at_start
     Object.const_set 'DeleteMe', Module.new
     DeleteMe.const_set 'OrMe', Module.new
     ActiveSupport::Dependencies.remove_constant "::DeleteMe::OrMe"
-    assert ! defined?(DeleteMe::OrMe)
+    assert_not defined?(DeleteMe::OrMe)
     assert defined?(DeleteMe)
     ActiveSupport::Dependencies.remove_constant "::DeleteMe"
-    assert ! defined?(DeleteMe)
+    assert_not defined?(DeleteMe)
+  ensure
+    remove_constants(:DeleteMe)
   end
 
   def test_remove_constant_does_not_trigger_loading_autoloads
@@ -925,7 +939,9 @@ class DependenciesTest < ActiveSupport::TestCase
     end
 
     assert_nil ActiveSupport::Dependencies.remove_constant(constant), "Kernel#autoload has been triggered by remove_constant"
-    assert !defined?(ShouldNotBeAutoloaded)
+    assert_not defined?(ShouldNotBeAutoloaded)
+  ensure
+    remove_constants(constant)
   end
 
   def test_remove_constant_does_not_autoload_already_removed_parents_as_a_side_effect
@@ -934,11 +950,14 @@ class DependenciesTest < ActiveSupport::TestCase
       _ = ::A::B # assignment to silence parse-time warning "possibly useless use of :: in void context"
       ActiveSupport::Dependencies.remove_constant('A')
       ActiveSupport::Dependencies.remove_constant('A::B')
-      assert !defined?(A)
+      assert_not defined?(A)
     end
+  ensure
+    remove_constants(:A)
   end
 
   def test_load_once_constants_should_not_be_unloaded
+    old_path = ActiveSupport::Dependencies.autoload_once_paths
     with_autoloading_fixtures do
       ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths
       _ = ::A # assignment to silence parse-time warning "possibly useless use of :: in void context"
@@ -947,8 +966,8 @@ class DependenciesTest < ActiveSupport::TestCase
       assert defined?(A)
     end
   ensure
-    ActiveSupport::Dependencies.autoload_once_paths = []
-    Object.class_eval { remove_const :A if const_defined?(:A) }
+    ActiveSupport::Dependencies.autoload_once_paths = old_path
+    remove_constants(:A)
   end
 
   def test_access_unloaded_constants_for_reload
@@ -960,23 +979,27 @@ class DependenciesTest < ActiveSupport::TestCase
 
       A::B # Make sure no circular dependency error
     end
+  ensure
+    remove_constants(:A)
   end
 
 
   def test_autoload_once_paths_should_behave_when_recursively_loading
+    old_path = ActiveSupport::Dependencies.autoload_once_paths
     with_loading 'dependencies', 'autoloading_fixtures' do
       ActiveSupport::Dependencies.autoload_once_paths = [ActiveSupport::Dependencies.autoload_paths.last]
-      assert !defined?(CrossSiteDependency)
+      assert_not defined?(CrossSiteDependency)
       assert_nothing_raised { CrossSiteDepender.nil? }
       assert defined?(CrossSiteDependency)
-      assert !ActiveSupport::Dependencies.autoloaded?(CrossSiteDependency),
+      assert_not ActiveSupport::Dependencies.autoloaded?(CrossSiteDependency),
         "CrossSiteDependency shouldn't be marked as autoloaded!"
       ActiveSupport::Dependencies.clear
       assert defined?(CrossSiteDependency),
         "CrossSiteDependency shouldn't have been unloaded!"
     end
   ensure
-    ActiveSupport::Dependencies.autoload_once_paths = []
+    ActiveSupport::Dependencies.autoload_once_paths = old_path
+    remove_constants(:CrossSiteDependency)
   end
 
   def test_hook_called_multiple_times
@@ -989,12 +1012,5 @@ class DependenciesTest < ActiveSupport::TestCase
     assert !Module.new.respond_to?(:load_without_new_constant_marking)
   ensure
     ActiveSupport::Dependencies.hook!
-  end
-
-private
-  def remove_constants(*constants)
-    constants.each do |constant|
-      Object.send(:remove_const, constant) if Object.const_defined?(constant)
-    end
   end
 end
