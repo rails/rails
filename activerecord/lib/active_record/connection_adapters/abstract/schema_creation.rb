@@ -94,6 +94,7 @@ module ActiveRecord
 
           def quote_value(value, column)
             column.sql_type ||= type_to_sql(column.type, column.limit, column.precision, column.scale)
+            column.cast_type ||= type_for_column(column)
 
             @conn.quote(value, column)
           end
@@ -113,6 +114,10 @@ module ActiveRecord
                 Supported values are: :nullify, :cascade, :restrict
               MSG
             end
+          end
+
+          def type_for_column(column)
+            @conn.lookup_cast_type(column.sql_type)
           end
       end
     end
