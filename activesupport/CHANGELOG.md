@@ -1,3 +1,10 @@
+*   Always instrument `ActiveSupport::Cache`.
+
+    Since `ActiveSupport::Notifications` only instrument items when there
+    are subscriber we don't need to disable instrumentation.
+
+    *Peter Wagenet*
+
 *   Make the `apply_inflections` method case-insensitive when checking
     whether a word is uncountable or not.
 

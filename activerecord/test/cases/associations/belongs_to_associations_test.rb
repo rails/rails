@@ -935,3 +935,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Column.count
   end
 end
+
+unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
+  def test_destroy_linked_models
+    address = AuthorAddress.create!
+    author = Author.create! name: "Author", author_address_id: address.id
+
+    author.destroy!
+  end
+end
+end

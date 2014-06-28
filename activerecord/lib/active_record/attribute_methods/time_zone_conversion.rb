@@ -33,15 +33,25 @@ module ActiveRecord
 
         class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false
         self.skip_time_zone_conversion_for_attributes = []
-
-        matcher = ->(name, type) { create_time_zone_conversion_attribute?(name, type) }
-        decorate_matching_attribute_types(matcher, :_time_zone_conversion) do |type|
-          TimeZoneConverter.new(type)
-        end
       end
 
       module ClassMethods
         private
+
+        def inherited(subclass)
+          # We need to apply this decorator here, rather than on module inclusion. The closure
+          # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
+          # sub class being decorated. As such, changes to `time_zone_aware_attributes`, or
+          # `skip_time_zone_conversion_for_attributes` would not be picked up.
+          subclass.class_eval do
+            matcher = ->(name, type) { create_time_zone_conversion_attribute?(name, type) }
+            decorate_matching_attribute_types(matcher, :_time_zone_conversion) do |type|
+              TimeZoneConverter.new(type)
+            end
+          end
+          super
+        end
+
         def create_time_zone_conversion_attribute?(name, cast_type)
           time_zone_aware_attributes &&
             !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) &&

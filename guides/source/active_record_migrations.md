@@ -442,11 +442,15 @@ is reversible.
 Column modifiers can be applied when creating or changing a column:
 
 * `limit`        Sets the maximum size of the `string/text/binary/integer` fields.
-* `precision`    Defines the precision for the `decimal` fields, representing the total number of digits in the number.
-* `scale`        Defines the scale for the `decimal` fields, representing the number of digits after the decimal point.
+* `precision`    Defines the precision for the `decimal` fields, representing the
+total number of digits in the number.
+* `scale`        Defines the scale for the `decimal` fields, representing the
+number of digits after the decimal point.
 * `polymorphic`  Adds a `type` column for `belongs_to` associations.
 * `null`         Allows or disallows `NULL` values in the column.
-* `default`      Allows to set a default value on the column. NOTE: If using a dynamic value (such as date), the default will only be calculated the first time (e.g. on the date the migration is applied.)
+* `default`      Allows to set a default value on the column. Note that if you
+are using a dynamic value (such as a date), the default will only be calculated
+the first time (i.e. on the date the migration is applied).
 * `index`        Adds an index for the column.
 
 Some adapters may support additional options; see the adapter specific API docs

@@ -4,9 +4,50 @@
 
     *Jeff Browning*
 
+*   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
+
+    *Abdelkader Boudih*
+
+*   Move 'dependent: :destroy' handling for 'belongs_to'
+    from 'before_destroy' to 'after_destroy' callback chain
+
+    Fix #12380.
+
+    *Ivan Antropov*
+
+*   Detect in-place modifications on String attributes.
+
+    Before this change user have to mark the attribute as changed to it be persisted
+    in the database. Now it is not required anymore.
+
+    Before:
+
+        user = User.first
+        user.name << ' Griffin'
+        user.name_will_change!
+        user.save
+        user.reload.name # => "Sean Griffin"
+
+    After:
+
+        user = User.first
+        user.name << ' Griffin'
+        user.save
+        user.reload.name # => "Sean Griffin"
+
+    *Sean Griffin*
+
+*   Add `ActiveRecord::Base#validate!` that raises `RecordInvalid` if the record
+    is invalid.
+
+    *Bogdan Gusiev*, *Marc Schütz*
+
 *   Support for adding and removing foreign keys. Foreign keys are now
     a part of `schema.rb`. This is supported by Mysql2Adapter, MysqlAdapter
     and PostgreSQLAdapter.
+
+    Many thanks to *Matthew Higgins* for laying the foundation with his work on
+    [foreigner](https://github.com/matthuhiggins/foreigner).
 
     Example:
 

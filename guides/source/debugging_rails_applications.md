@@ -159,10 +159,10 @@ class ArticlesController < ApplicationController
   def create
     @article = Article.new(params[:article])
     logger.debug "New article: #{@article.attributes.inspect}"
-    logger.debug  Article should be valid: #{@article.valid?}"
+    logger.debug "Article should be valid: #{@article.valid?}"
 
     if @article.save
-      flash[:notice] =  Article was successfully created.'
+      flash[:notice] =  'Article was successfully created.'
       logger.debug "The article was saved and now the user is going to be redirected..."
       redirect_to(@article)
     else
@@ -184,7 +184,8 @@ vbkNvbnRyb2xsZXI6OkZsYXNoOjpGbGFzaEhhc2h7AAY6CkB1c2VkewA=--b18cd92fba90eacf8137e
  "body"=>"I'm learning how to print in logs!!!", "published"=>"0"},
  "authenticity_token"=>"2059c1286e93402e389127b1153204e0d1e275dd", "action"=>"create", "controller"=>"articles"}
 New article: {"updated_at"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!",
- "published"=>false, "created_at"=>nil} Article should be valid: true
+ "published"=>false, "created_at"=>nil}
+Article should be valid: true
   Article Create (0.000443)   INSERT INTO "articles" ("updated_at", "title", "body", "published",
  "created_at") VALUES('2008-09-08 14:52:54', 'Debugging Rails',
  'I''m learning how to print in logs!!!', 'f', '2008-09-08 14:52:54')

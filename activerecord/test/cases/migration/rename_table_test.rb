@@ -76,6 +76,16 @@ module ActiveRecord
 
           assert_equal ConnectionAdapters::PostgreSQL::Name.new("public", "octopi_#{pk}_seq"), seq
         end
+
+        def test_renaming_table_doesnt_attempt_to_rename_non_existent_sequences
+          enable_uuid_ossp!(connection)
+          connection.create_table :cats, id: :uuid
+          assert_nothing_raised { rename_table :cats, :felines }
+          assert connection.table_exists? :felines
+        ensure
+          connection.drop_table :cats if connection.table_exists? :cats
+          connection.drop_table :felines if connection.table_exists? :felines
+        end
       end
     end
   end
