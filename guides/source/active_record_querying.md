@@ -113,7 +113,7 @@ SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 
 #### `take`
 
-`Model.take` retrieves a record without any implicit ordering. For example:
+The `take` method retrieves a record without any implicit ordering. For example:
 
 ```ruby
 client = Client.take
@@ -126,7 +126,25 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 1
 ```
 
-`Model.take` returns `nil` if no record is found and no exception will be raised.
+The `take` method returns `nil` if no record is found and no exception will be raised.
+
+You can pass in a numerical argument to the `take` method to return up to that number of results. For example
+
+```ruby
+client = Client.take(2)
+# => [
+  #<Client id: 1, first_name: "Lifo">,
+  #<Client id: 220, first_name: "Sara">
+]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients LIMIT 2
+```
+
+The `take!` method behaves exactly like `take`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 TIP: The retrieved record may vary depending on the database engine.
 
@@ -214,23 +232,6 @@ This is equivalent to writing:
 Client.where(first_name: 'does not exist').take!
 ```
 
-#### `take!`
-
-`Model.take!` retrieves a record without any implicit ordering. For example:
-
-```ruby
-client = Client.take!
-# => #<Client id: 1, first_name: "Lifo">
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients LIMIT 1
-```
-
-`Model.take!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
-
 #### `last!`
 
 `Model.last!` finds the last record ordered by the primary key. For example:
@@ -267,22 +268,6 @@ SELECT * FROM clients WHERE (clients.id IN (1,10))
 ```
 
 WARNING: `Model.find(array_of_primary_key)` will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
-
-#### take
-
-`Model.take(limit)` retrieves the first number of records specified by `limit` without any explicit ordering:
-
-```ruby
-Client.take(2)
-# => [#<Client id: 1, first_name: "Lifo">,
-      #<Client id: 2, first_name: "Raf">]
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients LIMIT 2
-```
 
 #### last
 
