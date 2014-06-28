@@ -1487,6 +1487,11 @@ If you'd like to use your own SQL to find records in a table you can use `find_b
 Client.find_by_sql("SELECT * FROM clients
   INNER JOIN orders ON clients.id = orders.client_id
   ORDER BY clients.created_at desc")
+# =>  [
+  #<Client id: 1, first_name: "Lucas" >,
+  #<Client id: 2, first_name: "Jan" >,
+  # ...
+]
 ```
 
 `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
@@ -1496,7 +1501,11 @@ Client.find_by_sql("SELECT * FROM clients
 `find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve objects from the database using custom SQL just like `find_by_sql` but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
 
 ```ruby
-Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
+Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE id = '1'")
+# => [
+  {"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
+  {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}
+]
 ```
 
 ### `pluck`
