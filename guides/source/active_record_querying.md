@@ -309,7 +309,15 @@ The `find_each` method retrieves a batch of records and then yields _each_ recor
 
 ```ruby
 User.find_each do |user|
-  NewsLetter.weekly_deliver(user)
+  NewsMailer.weekly(user).deliver
+end
+```
+
+To add conditions to a `find_each` operation you can chain other Active Record methods such as `where`:
+
+```ruby
+User.where(weekly_subscriber: true).find_each do |user|
+  NewsMailer.weekly(user).deliver
 end
 ```
 
