@@ -482,7 +482,7 @@ module ActionView
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
       #
-      #     <%= f.submit %>
+      #     <%= person_form.submit %>
       #   <% end %>
       #
       # In this case, the checkbox field will be represented by an HTML +input+
