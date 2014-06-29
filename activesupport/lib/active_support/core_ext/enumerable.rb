@@ -1,3 +1,5 @@
+require 'active_support/core_ext/enumerable/to_h'
+
 module Enumerable
   # Calculates a sum from the elements.
   #
