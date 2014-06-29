@@ -1,3 +1,12 @@
+*   Add `config.action_mailer.preview_enabled` configuration option.
+
+    This config option can be used to enable the mail preview in environments
+    other than development (such as staging).
+
+    Defaults to `true` in development and false elsewhere.
+
+    *Leonard Garvey*
+
 *   Allow preview interceptors to be registered through
     `config.action_mailer.preview_interceptors`.
 
