@@ -9,12 +9,7 @@ module ActiveRecord
         # records are quoted as their primary key
         return value.quoted_id if value.respond_to?(:quoted_id)
 
-        # FIXME: The only case we get an object other than nil or a real column
-        # is `SchemaStatements#add_column` with a PG array that has a non-empty default
-        # value. Is this really the only case? Are we missing tests for other types?
-        # We should have a real column object passed (or nil) here, and check for that
-        # instead
-        if column.respond_to?(:cast_type)
+        if column
           value = column.cast_type.type_cast_for_database(value)
         end
 
@@ -29,12 +24,7 @@ module ActiveRecord
           return value.id
         end
 
-        # FIXME: The only case we get an object other than nil or a real column
-        # is `SchemaStatements#add_column` with a PG array that has a non-empty default
-        # value. Is this really the only case? Are we missing tests for other types?
-        # We should have a real column object passed (or nil) here, and check for that
-        # instead
-        if column.respond_to?(:cast_type)
+        if column
           value = column.cast_type.type_cast_for_database(value)
         end
 

@@ -375,11 +375,11 @@ module ActiveRecord
         Column.new(name, default, cast_type, sql_type, null)
       end
 
-      protected
-
       def lookup_cast_type(sql_type) # :nodoc:
         type_map.lookup(sql_type)
       end
+
+      protected
 
       def initialize_type_map(m) # :nodoc:
         register_class_with_limit m, %r(boolean)i,   Type::Boolean

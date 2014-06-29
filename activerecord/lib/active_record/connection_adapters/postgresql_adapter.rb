@@ -383,6 +383,11 @@ module ActiveRecord
         PostgreSQL::Table.new(table_name, base)
       end
 
+      def lookup_cast_type(sql_type) # :nodoc:
+        oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first['oid'].to_i
+        super(oid)
+      end
+
       protected
 
         # Returns the version of the connected PostgreSQL server.
