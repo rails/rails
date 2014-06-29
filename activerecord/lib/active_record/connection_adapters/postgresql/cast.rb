@@ -34,26 +34,10 @@ module ActiveRecord
           end
         end
 
-        def json_to_string(object) # :nodoc:
-          if Hash === object || Array === object
-            ActiveSupport::JSON.encode(object)
-          else
-            object
-          end
-        end
-
         def range_to_string(object) # :nodoc:
           from = object.begin.respond_to?(:infinite?) && object.begin.infinite? ? '' : object.begin
           to   = object.end.respond_to?(:infinite?) && object.end.infinite? ? '' : object.end
           "[#{from},#{to}#{object.exclude_end? ? ')' : ']'}"
-        end
-
-        def string_to_json(string) # :nodoc:
-          if String === string
-            ActiveSupport::JSON.decode(string)
-          else
-            string
-          end
         end
 
         private

@@ -77,7 +77,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     column = JsonDataType.columns_hash["payload"]
 
     data = "{\"a_key\":\"a_value\"}"
-    hash = column.class.string_to_json data
+    hash = column.type_cast_from_database(data)
     assert_equal({'a_key' => 'a_value'}, hash)
     assert_equal({'a_key' => 'a_value'}, column.type_cast_from_database(data))
 
