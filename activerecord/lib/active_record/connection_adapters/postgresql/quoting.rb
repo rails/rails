@@ -65,33 +65,31 @@ module ActiveRecord
           end
         end
 
-        def type_cast(value, column, array_member = false)
-          return super(value, column) unless column
+        def type_cast(value, column)
+          return super unless column
 
           case value
           when Range
             if /range$/ =~ column.sql_type
               PostgreSQLColumn.range_to_string(value)
             else
-              super(value, column)
+              super
             end
           when NilClass
-            if column.array && array_member
-              'NULL'
-            elsif column.array
+            if column.array
               value
             else
-              super(value, column)
+              super
             end
           when Array
             super(value, array_column(column))
           when Hash
             case column.sql_type
-            when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)
-            else super(value, column)
+            when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
+            else super
             end
           else
-            super(value, column)
+            super
           end
         end
 
