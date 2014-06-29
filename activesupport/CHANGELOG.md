@@ -11,9 +11,11 @@
     *Robin Dupret*
 
 *   Make Dependencies pass a name to NameError error.
+
     *arthurnn*
 
 *   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
+
     *Adam Panzer / Michael Grosser*
 
 *   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
