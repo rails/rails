@@ -27,8 +27,6 @@ module ActiveRecord
             else
               super
             end
-          when Array
-            super(value, array_column(column))
           when Hash
             case sql_type
             when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
@@ -83,8 +81,6 @@ module ActiveRecord
             else
               super(value, column)
             end
-          when Array
-            super(value, array_column(column))
           when Hash
             case column.sql_type
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)
@@ -163,26 +159,6 @@ module ActiveRecord
             { value: value.to_s, format: 1 }
           else
             super
-          end
-        end
-
-        def array_column(column)
-          if column.array && !column.respond_to?(:cast_type)
-            Column.new('', nil, OID::Array.new(AdapterProxyType.new(column, self)))
-          else
-            column
-          end
-        end
-
-        class AdapterProxyType < SimpleDelegator # :nodoc:
-          def initialize(column, adapter)
-            @column = column
-            @adapter = adapter
-            super(column)
-          end
-
-          def type_cast_for_database(value)
-            @adapter.type_cast(value, @column)
           end
         end
       end
