@@ -4,6 +4,7 @@ require 'active_record/connection_adapters/postgresql/oid'
 require 'active_record/connection_adapters/postgresql/cast'
 require 'active_record/connection_adapters/postgresql/array_parser'
 require 'active_record/connection_adapters/postgresql/quoting'
+require 'active_record/connection_adapters/postgresql/schema_dumper'
 require 'active_record/connection_adapters/postgresql/schema_statements'
 require 'active_record/connection_adapters/postgresql/database_statements'
 require 'active_record/connection_adapters/postgresql/referential_integrity'
@@ -448,6 +449,7 @@ module ActiveRecord
       include ReferentialIntegrity
       include SchemaStatements
       include DatabaseStatements
+      include PostgreSQL::SchemaDumper
       include Savepoints
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
