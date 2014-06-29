@@ -1,3 +1,8 @@
+*   Add `Hash#transform_values` to simplify a common pattern where the values of a
+    hash must change, but the keys are left the same.
+
+    *Sean Griffin*
+
 *   Always instrument `ActiveSupport::Cache`.
 
     Since `ActiveSupport::Notifications` only instrument items when there
