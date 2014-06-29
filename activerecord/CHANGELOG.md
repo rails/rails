@@ -4,13 +4,6 @@
 
     *Sean Griffin*
 
-*   Fixed automatic maintaining test schema to properly handle sql structure
-    schema format.
-
-    Fixes #15394.
-
-    *Wojciech Wnętrzak*
-
 *   Correctly extract IPv6 addresses from `DATABASE_URI`: the square brackets
     are part of the URI structure, not the actual host.
 
