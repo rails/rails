@@ -6,6 +6,9 @@ module ActiveRecord
     class TableTest < ActiveRecord::TestCase
       def setup
         @connection = Minitest::Mock.new
+        def @connection.native_database_types
+          { integer: 'integer', string: 'string' }
+        end
       end
 
       teardown do
@@ -99,6 +102,20 @@ module ActiveRecord
           @connection.expect :add_column, nil, [:delete_me, :foo, :string, {}]
           @connection.expect :add_column, nil, [:delete_me, :bar, :string, {}]
           t.string :foo, :bar
+        end
+      end
+
+      def test_aliased_types_create_column
+        with_change_table do |t|
+          @connection.expect :add_column, nil, [:delete_me, :foo, :timestamp, {}]
+          def @connection.aliased_types; { timestamp: :datetime }; end
+          t.timestamp :foo
+        end
+      end
+
+      def test_unknown_column_types_error
+        with_change_table do |t|
+          assert_raises(NoMethodError) { t.wibble :foo, :bar }
         end
       end
 
