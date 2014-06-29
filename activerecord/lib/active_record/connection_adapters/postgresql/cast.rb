@@ -2,14 +2,6 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module Cast # :nodoc:
-        def point_to_string(point) # :nodoc:
-          "(#{number_for_point(point[0])},#{number_for_point(point[1])})"
-        end
-
-        def number_for_point(number)
-          number.to_s.gsub(/\.0$/, '')
-        end
-
         def hstore_to_string(object, array_member = false) # :nodoc:
           if Hash === object
             string = object.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(', ')

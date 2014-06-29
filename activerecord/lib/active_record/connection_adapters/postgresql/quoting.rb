@@ -28,11 +28,7 @@ module ActiveRecord
               super
             end
           when Array
-            case sql_type
-            when 'point' then super(PostgreSQLColumn.point_to_string(value))
-            else
-              super(value, array_column(column))
-            end
+            super(value, array_column(column))
           when Hash
             case sql_type
             when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
@@ -88,11 +84,7 @@ module ActiveRecord
               super(value, column)
             end
           when Array
-            case column.sql_type
-            when 'point' then PostgreSQLColumn.point_to_string(value)
-            else
-              super(value, array_column(column))
-            end
+            super(value, array_column(column))
           when Hash
             case column.sql_type
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)

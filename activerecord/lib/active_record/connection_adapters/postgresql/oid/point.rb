@@ -25,10 +25,16 @@ module ActiveRecord
 
           def type_cast_for_database(value)
             if value.is_a?(::Array)
-              PostgreSQLColumn.point_to_string(value)
+              "(#{number_for_point(value[0])},#{number_for_point(value[1])})"
             else
               super
             end
+          end
+
+          private
+
+          def number_for_point(number)
+            number.to_s.gsub(/\.0$/, '')
           end
         end
       end
