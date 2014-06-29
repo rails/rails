@@ -88,7 +88,7 @@ for detailed changes.
 
 ### Deprecations
 
-* Deprecated support for setting the `to:` option of a router to a symbol or a
+* Deprecated support for setting the `:to` option of a router to a symbol or a
   string that does not contain a `#` character:
 
       get '/posts', to: MyRackApp    => (No change necessary)
