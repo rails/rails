@@ -11,7 +11,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   MyObject = Struct.new :attribute1, :attribute2
 
   teardown do
-    Topic.serialize("content")
+    Topic.serialize(:content)
   end
 
   def test_serialize_does_not_eagerly_load_columns
@@ -31,7 +31,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     Topic.serialize("content", MyObject)
 
     myobj = MyObject.new('value1', 'value2')
-    topic = Topic.create("content" => myobj)
+    topic = Topic.create(content: myobj)
     assert_equal(myobj, topic.content)
 
     topic.reload
@@ -39,10 +39,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_in_base_class
-    Topic.serialize("content", Hash)
+    Topic.serialize(:content, Hash)
 
     hash = { 'content1' => 'value1', 'content2' => 'value2' }
-    important_topic = ImportantTopic.create("content" => hash)
+    important_topic = ImportantTopic.create(content: hash)
     assert_equal(hash, important_topic.content)
 
     important_topic.reload
@@ -69,7 +69,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   def test_serialized_attribute_declared_in_subclass
     hash = { 'important1' => 'value1', 'important2' => 'value2' }
-    important_topic = ImportantTopic.create("important" => hash)
+    important_topic = ImportantTopic.create(important: hash)
     assert_equal(hash, important_topic.important)
 
     important_topic.reload
@@ -79,13 +79,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   def test_serialized_time_attribute
     myobj = Time.local(2008,1,1,1,0)
-    topic = Topic.create("content" => myobj).reload
+    topic = Topic.create(content: myobj).reload
     assert_equal(myobj, topic.content)
   end
 
   def test_serialized_string_attribute
     myobj = "Yes"
-    topic = Topic.create("content" => myobj).reload
+    topic = Topic.create(content: myobj).reload
     assert_equal(myobj, topic.content)
   end
 
@@ -95,14 +95,14 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_nil_not_serialized_without_class_constraint
-    assert Topic.new(:content => nil).save
-    assert_equal 1, Topic.where(:content => nil).count
+    assert Topic.new(content: nil).save
+    assert_equal 1, Topic.where(content: nil).count
   end
 
   def test_nil_not_serialized_with_class_constraint
     Topic.serialize :content, Hash
-    assert Topic.new(:content => nil).save
-    assert_equal 1, Topic.where(:content => nil).count
+    assert Topic.new(content: nil).save
+    assert_equal 1, Topic.where(content: nil).count
   end
 
   def test_serialized_attribute_should_raise_exception_on_save_with_wrong_type
@@ -115,7 +115,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
     myobj = MyObject.new('value1', 'value2')
-    topic = Topic.new(:content => myobj)
+    topic = Topic.new(content: myobj)
     assert topic.save
     Topic.serialize(:content, Hash)
     assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
@@ -124,7 +124,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   def test_serialized_attribute_with_class_constraint
     settings = { "color" => "blue" }
     Topic.serialize(:content, Hash)
-    topic = Topic.new(:content => settings)
+    topic = Topic.new(content: settings)
     assert topic.save
     assert_equal(settings, Topic.find(topic.id).content)
   end
@@ -147,14 +147,14 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_boolean_value_true
-    topic = Topic.new(:content => true)
+    topic = Topic.new(content: true)
     assert topic.save
     topic = topic.reload
     assert_equal topic.content, true
   end
 
   def test_serialized_boolean_value_false
-    topic = Topic.new(:content => false)
+    topic = Topic.new(content: false)
     assert topic.save
     topic = topic.reload
     assert_equal topic.content, false
@@ -172,7 +172,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end
 
     Topic.serialize(:content, some_class)
-    topic = Topic.new(:content => some_class.new('my value'))
+    topic = Topic.new(content: some_class.new('my value'))
     topic.save!
     topic.reload
     assert_kind_of some_class, topic.content
