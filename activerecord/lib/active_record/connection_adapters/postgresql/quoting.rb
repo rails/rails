@@ -30,14 +30,12 @@ module ActiveRecord
           when Array
             case sql_type
             when 'point' then super(PostgreSQLColumn.point_to_string(value))
-            when 'json' then super(PostgreSQLColumn.json_to_string(value))
             else
               super(value, array_column(column))
             end
           when Hash
             case sql_type
             when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
-            when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
             else super
             end
           when Float
@@ -92,14 +90,12 @@ module ActiveRecord
           when Array
             case column.sql_type
             when 'point' then PostgreSQLColumn.point_to_string(value)
-            when 'json' then PostgreSQLColumn.json_to_string(value)
             else
               super(value, array_column(column))
             end
           when Hash
             case column.sql_type
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)
-            when 'json' then PostgreSQLColumn.json_to_string(value)
             else super(value, column)
             end
           else
