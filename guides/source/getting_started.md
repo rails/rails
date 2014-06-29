@@ -2012,7 +2012,7 @@ class CommentsController < ApplicationController
 ```
 
 Now if you try to create a new article, you will be greeted with a basic HTTP
-Authentication challenge
+Authentication challenge:
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
 
@@ -2027,7 +2027,7 @@ along with a number of others.
 
 Security, especially in web applications, is a broad and detailed area. Security
 in your Rails application is covered in more depth in
-The [Ruby on Rails Security Guide](security.html)
+the [Ruby on Rails Security Guide](security.html).
 
 
 What's Next?
@@ -2038,7 +2038,7 @@ update it and experiment on your own. But you don't have to do everything
 without help. As you need assistance getting up and running with Rails, feel
 free to consult these support resources:
 
-* The [Ruby on Rails guides](index.html)
+* The [Ruby on Rails Guides](index.html)
 * The [Ruby on Rails Tutorial](http://railstutorial.org/book)
 * The [Ruby on Rails mailing list](http://groups.google.com/group/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
