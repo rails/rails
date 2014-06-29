@@ -1,3 +1,11 @@
+*   Correctly dump `:bigserial` primary keys on PostgreSQL. Previously if a
+    table was created with `create_table :foo, id: :bigserial`, that information
+    would be lost in `schema.rb`.
+
+    Fixes #15968.
+
+    *Sean Griffin*
+
 *   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
 
     *Abdelkader Boudih*

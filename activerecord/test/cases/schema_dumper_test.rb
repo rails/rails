@@ -63,7 +63,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|uuid|point)\s+"/)
+        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|uuid|point|big_integer)\s+"/)
           match[0].length
         end
       end
@@ -251,7 +251,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   if current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_bigint_default
       output = standard_dump
-      assert_match %r{t.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
+      assert_match %r{t.big_integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
     end
 
     if ActiveRecord::Base.connection.supports_extensions?

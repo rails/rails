@@ -83,6 +83,10 @@ module ActiveRecord
         def money(name, options)
           column(name, :money, options)
         end
+
+        def big_integer(name, options)
+          column(name, :big_integer, options)
+        end
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
