@@ -15,7 +15,10 @@ module ActiveRecord::Associations::Builder
         end
 
         private
-        def klass; @rhs_class_name.constantize; end
+
+        def klass
+          @lhs_class.send(:compute_type, @rhs_class_name)
+        end
       end
 
       def self.build(lhs_class, name, options)
@@ -23,13 +26,7 @@ module ActiveRecord::Associations::Builder
           KnownTable.new options[:join_table].to_s
         else
           class_name = options.fetch(:class_name) {
-            model_name = name.to_s.camelize.singularize
-
-            if lhs_class.parent_name
-              model_name.prepend("#{lhs_class.parent_name}::")
-            end
-
-            model_name
+            name.to_s.camelize.singularize
           }
           KnownClass.new lhs_class, class_name
         end

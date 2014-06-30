@@ -434,20 +434,61 @@ change_column_default :products, :approved, false
 This sets `:name` field on products to a `NOT NULL` column and the default
 value of the `:approved` field to false.
 
+TIP: Unlike `change_column` (and `change_column_default`), `change_column_null`
+is reversible.
+
 ### Column Modifiers
 
 Column modifiers can be applied when creating or changing a column:
 
 * `limit`        Sets the maximum size of the `string/text/binary/integer` fields.
-* `precision`    Defines the precision for the `decimal` fields, representing the total number of digits in the number.
-* `scale`        Defines the scale for the `decimal` fields, representing the number of digits after the decimal point.
+* `precision`    Defines the precision for the `decimal` fields, representing the
+total number of digits in the number.
+* `scale`        Defines the scale for the `decimal` fields, representing the
+number of digits after the decimal point.
 * `polymorphic`  Adds a `type` column for `belongs_to` associations.
 * `null`         Allows or disallows `NULL` values in the column.
-* `default`      Allows to set a default value on the column. NOTE: If using a dynamic value (such as date), the default will only be calculated the first time (e.g. on the date the migration is applied.)
+* `default`      Allows to set a default value on the column. Note that if you
+are using a dynamic value (such as a date), the default will only be calculated
+the first time (i.e. on the date the migration is applied).
 * `index`        Adds an index for the column.
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
+
+### Foreign Keys
+
+While it's not required you might want to add foreign key constraints to
+[guarantee referential integrity](#active-record-and-referential-integrity).
+
+```ruby
+add_foreign_key :articles, :authors
+```
+
+This adds a new foreign key to the `author_id` column of the `articles`
+table. The key references the `id` column of the `articles` table. If the
+column names can not be derived from the table names, you can use the
+`:column` and `:primary_key` options.
+
+Rails will generate a name for every foreign key starting with
+`fk_rails_` followed by 10 random characters.
+There is a `:name` option to specify a different name if needed.
+
+NOTE: Active Record only supports single column foreign keys. `execute` and
+`structure.sql` are required to use composite foreign keys.
+
+Removing a foreign key is easy as well:
+
+```ruby
+# let Active Record figure out the column name
+remove_foreign_key :accounts, :branches
+
+# remove foreign key for a specific column
+remove_foreign_key :accounts, column: :owner_id
+
+# remove foreign key by name
+remove_foreign_key :accounts, name: :special_fk_name
+```
 
 ### When Helpers aren't Enough
 
@@ -479,6 +520,7 @@ definitions:
 * `add_index`
 * `add_reference`
 * `add_timestamps`
+* `add_foreign_key`
 * `create_table`
 * `create_join_table`
 * `drop_table` (must supply a block)
@@ -504,24 +546,23 @@ migration what else to do when reverting it. For example:
 ```ruby
 class ExampleMigration < ActiveRecord::Migration
   def change
-    create_table :products do |t|
-      t.references :category
+    create_table :distributors do |t|
+      t.string :zipcode
     end
 
     reversible do |dir|
       dir.up do
-        #add a foreign key
+        # add a CHECK constraint
         execute <<-SQL
-          ALTER TABLE products
-            ADD CONSTRAINT fk_products_categories
-            FOREIGN KEY (category_id)
-            REFERENCES categories(id)
+          ALTER TABLE distributors
+            ADD CONSTRAINT zipchk
+              CHECK (char_length(zipcode) = 5) NO INHERIT;
         SQL
       end
       dir.down do
         execute <<-SQL
-          ALTER TABLE products
-            DROP FOREIGN KEY fk_products_categories
+          ALTER TABLE distributors
+            DROP CONSTRAINT zipchk
         SQL
       end
     end
@@ -535,7 +576,7 @@ end
 Using `reversible` will ensure that the instructions are executed in the
 right order too. If the previous example migration is reverted,
 the `down` block will be run after the `home_page_url` column is removed and
-right before the table `products` is dropped.
+right before the table `distributors` is dropped.
 
 Sometimes your migration will do something which is just plain irreversible; for
 example, it might destroy some data. In such cases, you can raise
@@ -558,16 +599,15 @@ made in the `up` method. The example in the `reversible` section is equivalent t
 ```ruby
 class ExampleMigration < ActiveRecord::Migration
   def up
-    create_table :products do |t|
-      t.references :category
+    create_table :distributors do |t|
+      t.string :zipcode
     end
 
-    # add a foreign key
+    # add a CHECK constraint
     execute <<-SQL
-      ALTER TABLE products
-        ADD CONSTRAINT fk_products_categories
-        FOREIGN KEY (category_id)
-        REFERENCES categories(id)
+      ALTER TABLE distributors
+        ADD CONSTRAINT zipchk
+        CHECK (char_length(zipcode) = 5);
     SQL
 
     add_column :users, :home_page_url, :string
@@ -579,11 +619,11 @@ class ExampleMigration < ActiveRecord::Migration
     remove_column :users, :home_page_url
 
     execute <<-SQL
-      ALTER TABLE products
-        DROP FOREIGN KEY fk_products_categories
+      ALTER TABLE distributors
+        DROP CONSTRAINT zipchk
     SQL
 
-    drop_table :products
+    drop_table :distributors
   end
 end
 ```
@@ -614,43 +654,27 @@ end
 The `revert` method also accepts a block of instructions to reverse.
 This could be useful to revert selected parts of previous migrations.
 For example, let's imagine that `ExampleMigration` is committed and it
-is later decided it would be best to serialize the product list instead.
-One could write:
+is later decided it would be best to use Active Record validations,
+in place of the `CHECK` constraint, to verify the zipcode.
 
 ```ruby
-class SerializeProductListMigration < ActiveRecord::Migration
+class DontUseConstraintForZipcodeValidationMigration < ActiveRecord::Migration
   def change
-    add_column :categories, :product_list
-
-    reversible do |dir|
-      dir.up do
-        # transfer data from Products to Category#product_list
-      end
-      dir.down do
-        # create Products from Category#product_list
-      end
-    end
-
     revert do
       # copy-pasted code from ExampleMigration
-      create_table :products do |t|
-        t.references :category
-      end
-
       reversible do |dir|
         dir.up do
-          #add a foreign key
+          # add a CHECK constraint
           execute <<-SQL
-            ALTER TABLE products
-              ADD CONSTRAINT fk_products_categories
-              FOREIGN KEY (category_id)
-              REFERENCES categories(id)
+            ALTER TABLE distributors
+              ADD CONSTRAINT zipchk
+                CHECK (char_length(zipcode) = 5);
           SQL
         end
         dir.down do
           execute <<-SQL
-            ALTER TABLE products
-              DROP FOREIGN KEY fk_products_categories
+            ALTER TABLE distributors
+              DROP CONSTRAINT zipchk
           SQL
         end
       end
@@ -915,10 +939,10 @@ that Active Record supports. This could be very useful if you were to
 distribute an application that is able to run against multiple databases.
 
 There is however a trade-off: `db/schema.rb` cannot express database specific
-items such as foreign key constraints, triggers, or stored procedures. While in
-a migration you can execute custom SQL statements, the schema dumper cannot
-reconstitute those statements from the database. If you are using features like
-this, then you should set the schema format to `:sql`.
+items such as triggers, or stored procedures. While in a migration you can
+execute custom SQL statements, the schema dumper cannot reconstitute those
+statements from the database. If you are using features like this, then you
+should set the schema format to `:sql`.
 
 Instead of using Active Record's schema dumper, the database's structure will
 be dumped using a tool specific to the database (via the `db:structure:dump`
@@ -945,7 +969,7 @@ Active Record and Referential Integrity
 ---------------------------------------
 
 The Active Record way claims that intelligence belongs in your models, not in
-the database. As such, features such as triggers or foreign key constraints,
+the database. As such, features such as triggers or constraints,
 which push some of that intelligence back into the database, are not heavily
 used.
 
@@ -954,14 +978,10 @@ which models can enforce data integrity. The `:dependent` option on
 associations allows models to automatically destroy child objects when the
 parent is destroyed. Like anything which operates at the application level,
 these cannot guarantee referential integrity and so some people augment them
-with foreign key constraints in the database.
+with [foreign key constraints](#foreign-keys) in the database.
 
-Although Active Record does not provide any tools for working directly with
-such features, the `execute` method can be used to execute arbitrary SQL. You
-can also use a gem like
-[foreigner](https://github.com/matthuhiggins/foreigner) which adds foreign key
-support to Active Record (including support for dumping foreign keys in
-`db/schema.rb`).
+Although Active Record does not provide all the tools for working directly with
+such features, the `execute` method can be used to execute arbitrary SQL.
 
 Migrations and Seed Data
 ------------------------

@@ -330,6 +330,8 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
+* `config.action_controller.always_permitted_parameters` sets a list of whitelisted parameters that are permitted by default. The default values are `['controller', 'action']`.
+
 ### Configuring Action Dispatch
 
 * `config.action_dispatch.session_store` sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
@@ -552,7 +554,7 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.connections'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 {"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database"}}
 ```
 
@@ -569,7 +571,7 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.connections'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 {"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database", "pool"=>5}}
 ```
 
@@ -585,7 +587,7 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.connections'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 {"development"=>{"adapter"=>"sqlite3", "database"=>"NOT_my_database"}}
 ```
 

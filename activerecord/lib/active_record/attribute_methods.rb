@@ -186,8 +186,7 @@ module ActiveRecord
       end
 
       # Returns the column object for the named attribute.
-      # Returns a +ActiveRecord::ConnectionAdapters::NullColumn+ if the
-      # named attribute does not exist.
+      # Returns nil if the named attribute does not exist.
       #
       #   class Person < ActiveRecord::Base
       #   end
@@ -197,12 +196,17 @@ module ActiveRecord
       #   # => #<ActiveRecord::ConnectionAdapters::SQLite3Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
       #
       #   person.column_for_attribute(:nothing)
-      #   # => #<ActiveRecord::ConnectionAdapters::NullColumn:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
+      #   # => nil
       def column_for_attribute(name)
-        name = name.to_s
-        columns_hash.fetch(name) do
-          ConnectionAdapters::NullColumn.new(name)
+        column = columns_hash[name.to_s]
+        if column.nil?
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            `column_for_attribute` will return a null object for non-existent columns
+            in Rails 5.0. Use `has_attribute?` if you need to check for an
+            attribute's existence.
+          MESSAGE
         end
+        column
       end
     end
 
@@ -230,7 +234,7 @@ module ActiveRecord
       # For queries selecting a subset of columns, return false for unselected columns.
       # We check defined?(@attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && @attributes.any? && self.class.column_names.include?(name)
+      if defined?(@attributes) && self.class.column_names.include?(name)
         return has_attribute?(name)
       end
 
@@ -247,7 +251,7 @@ module ActiveRecord
     #   person.has_attribute?('age')    # => true
     #   person.has_attribute?(:nothing) # => false
     def has_attribute?(attr_name)
-      @attributes.has_key?(attr_name.to_s)
+      @attributes.include?(attr_name.to_s)
     end
 
     # Returns an array of names for the attributes available on this object.
@@ -271,9 +275,7 @@ module ActiveRecord
     #   person.attributes
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
     def attributes
-      attribute_names.each_with_object({}) { |name, attrs|
-        attrs[name] = read_attribute(name)
-      }
+      @attributes.to_hash
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
@@ -366,12 +368,6 @@ module ActiveRecord
     end
 
     protected
-
-    def clone_attributes # :nodoc:
-      @attributes.each_with_object({}) do |(name, attr), h|
-        h[name] = attr.dup
-      end
-    end
 
     def clone_attribute_value(reader_method, attribute_name) # :nodoc:
       value = send(reader_method, attribute_name)

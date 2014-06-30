@@ -25,6 +25,31 @@ guide.
 Major Features
 --------------
 
+### Foreign key support
+
+The migration DSL now supports adding and removing foreign keys. They are dumped
+to `schema.rb` as well. At this time, only the `mysql`, `mysql2` and `postgresql`
+adapters support foreign keys.
+
+```ruby
+# add a foreign key to `articles.author_id` referencing `authors.id`
+add_foreign_key :articles, :authors
+
+# add a foreign key to `articles.author_id` referencing `users.lng_id`
+add_foreign_key :articles, :users, column: :author_id, primary_key: "lng_id"
+
+# remove the foreign key on `accounts.branch_id`
+remove_foreign_key :accounts, :branches
+
+# remove the foreign key on `accounts.owner_id`
+remove_foreign_key :accounts, column: :owner_id
+```
+
+See the API documentation on
+[add_foreign_key](http://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key)
+and
+[remove_foreign_key](http://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key)
+for a full description.
 
 
 Railties
@@ -63,7 +88,7 @@ for detailed changes.
 
 ### Deprecations
 
-* Deprecated support for setting the `to:` option of a router to a symbol or a
+* Deprecated support for setting the `:to` option of a router to a symbol or a
   string that does not contain a `#` character:
 
       get '/posts', to: MyRackApp    => (No change necessary)
@@ -115,6 +140,27 @@ for detailed changes.
   ([Pull Request](https://github.com/rails/rails/pull/14280))
 
 
+Action View
+-------------
+
+Please refer to the
+[Changelog](https://github.com/rails/rails/blob/4-2-stable/actionview/CHANGELOG.md)
+for detailed changes.
+
+### Deprecations
+
+* Deprecated `AbstractController::Base.parent_prefixes`.
+  Override `AbstractController::Base.local_prefixes` when you want to change
+  where to find views.
+  ([Pull Request](https://github.com/rails/rails/pull/15026))
+
+* Deprecated `ActionView::Digestor#digest(name, format, finder, options = {})`,
+  arguments should be passed as a hash instead.
+  ([Pull Request](https://github.com/rails/rails/pull/14243))
+
+### Notable changes
+
+
 Action Mailer
 -------------
 
@@ -132,7 +178,31 @@ Please refer to the
 [Changelog](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md)
 for detailed changes.
 
+### Removals
+
+* Removed deprecated method `ActiveRecord::Base.quoted_locking_column`.
+  ([Pull Request](https://github.com/rails/rails/pull/15612))
+
+* Removed deprecated `ActiveRecord::Migrator.proper_table_name`. Use the
+  `proper_table_name` instance method on `ActiveRecord::Migration` instead.
+  ([Pull Request](https://github.com/rails/rails/pull/15512))
+
+* Removed `cache_attributes` and friends. All attributes are cached.
+  ([Pull Request](https://github.com/rails/rails/pull/15429))
+
+* Removed unused `:timestamp` type. Transparently alias it to `:datetime`
+  in all cases. Fixes inconsistencies when column types are sent outside of
+  `ActiveRecord`, such as for XML Serialization.
+  ([Pull Request](https://github.com/rails/rails/pull/15184))
+
 ### Deprecations
+
+* Deprecated returning `nil` from `column_for_attribute` when no column exists.
+  It will return a null object in Rails 5.0
+  ([Pull Request](https://github.com/rails/rails/pull/15878))
+
+* Deprecated `serialized_attributes` without replacement.
+  ([Pull Request](https://github.com/rails/rails/pull/15704))
 
 * Deprecated using `.joins`, `.preload` and `.eager_load` with associations that
   depends on the instance state (i.e. those defined with a scope that takes an
@@ -155,6 +225,12 @@ for detailed changes.
   beginnings.
 
   ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
+
+* Deprecated broken support for automatic detection of counter caches on
+  `has_many :through` associations. You should instead manually specify the
+  counter cache on the `has_many` and `belongs_to` associations for the through
+  records.
+  ([Pull Request](https://github.com/rails/rails/pull/15754))
 
 ### Notable changes
 
@@ -192,6 +268,11 @@ Active Model
 Please refer to the
 [Changelog](https://github.com/rails/rails/blob/4-2-stable/activemodel/CHANGELOG.md)
 for detailed changes.
+
+### Removals
+
+* Removed deprecated `Validator#setup` without replacement.
+  ([Pull Request](https://github.com/rails/rails/pull/15617))
 
 ### Notable changes
 

@@ -219,40 +219,29 @@ module ActiveRecord
         connection.schema_cache.table_exists?(table_name)
       end
 
+      def attributes_builder # :nodoc:
+        @attributes_builder ||= AttributeSet::Builder.new(column_types)
+      end
+
       def column_types # :nodoc:
-        @column_types ||= decorate_types(build_types_hash)
+        @column_types ||= columns_hash.transform_values(&:cast_type).tap do |h|
+          h.default = Type::Value.new
+        end
       end
 
       def type_for_attribute(attr_name) # :nodoc:
-        column_types.fetch(attr_name) { Type::Value.new }
-      end
-
-      def decorate_types(types) # :nodoc:
-        return if types.empty?
-
-        @time_zone_column_names ||= self.columns_hash.find_all do |name, col|
-          create_time_zone_conversion_attribute?(name, col)
-        end.map!(&:first)
-
-        @time_zone_column_names.each do |name|
-          types[name] = AttributeMethods::TimeZoneConversion::Type.new(types[name])
-        end
-
-        types
+        column_types[attr_name]
       end
 
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        @column_defaults ||= Hash[columns.map { |c| [c.name, c.default] }]
+        default_attributes.to_hash
       end
 
-      # Returns a hash where the keys are the column names and the values
-      # are the default values suitable for use in `@raw_attriubtes`
-      def raw_column_defaults # :nodoc:
-        @raw_column_defauts ||= Hash[column_defaults.map { |name, default|
-          [name, columns_hash[name].type_cast_for_database(default)]
-        }]
+      def default_attributes # :nodoc:
+        @default_attributes ||= attributes_builder.build_from_database(
+          columns_hash.transform_values(&:default))
       end
 
       # Returns an array of column names as strings.
@@ -298,11 +287,10 @@ module ActiveRecord
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
         @arel_engine             = nil
-        @column_defaults         = nil
-        @raw_column_defauts      = nil
         @column_names            = nil
         @column_types            = nil
         @content_columns         = nil
+        @default_attributes      = nil
         @dynamic_methods_hash    = nil
         @inheritance_column      = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation                = nil
@@ -334,10 +322,6 @@ module ActiveRecord
           # STI subclasses always use their superclass' table.
           base.table_name
         end
-      end
-
-      def build_types_hash
-        Hash[columns.map { |column| [column.name, column.cast_type] }]
       end
     end
   end

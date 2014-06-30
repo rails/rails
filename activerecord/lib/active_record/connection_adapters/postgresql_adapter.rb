@@ -159,6 +159,10 @@ module ActiveRecord
         true
       end
 
+      def supports_foreign_keys?
+        true
+      end
+
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end
@@ -306,10 +310,6 @@ module ActiveRecord
         self.client_min_messages = old
       end
 
-      def supports_insert_with_returning?
-        true
-      end
-
       def supports_ddl_transactions?
         true
       end
@@ -348,14 +348,13 @@ module ActiveRecord
         if supports_extensions?
           res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled",
             'SCHEMA'
-          res.column_types['enabled'].type_cast_from_database res.rows.first.first
+          res.cast_values.first
         end
       end
 
       def extensions
         if supports_extensions?
-          res = exec_query "SELECT extname from pg_extension", "SCHEMA"
-          res.rows.map { |r| res.column_types['extname'].type_cast_from_database r.first }
+          exec_query("SELECT extname from pg_extension", "SCHEMA").cast_values
         else
           super
         end
@@ -382,6 +381,11 @@ module ActiveRecord
 
       def update_table_definition(table_name, base) #:nodoc:
         PostgreSQL::Table.new(table_name, base)
+      end
+
+      def lookup_cast_type(sql_type) # :nodoc:
+        oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first['oid'].to_i
+        super(oid)
       end
 
       protected

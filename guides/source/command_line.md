@@ -294,6 +294,31 @@ Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
 
+#### The app and helper objects
+
+Inside the `rails console` you have access to the `app` and `helper` instances.
+
+With the `app` method you can access url and path helpers, as well as do requests.
+
+```bash
+>> app.root_path
+=> "/"
+
+>> app.get _
+Started GET "/" for 127.0.0.1 at 2014-06-19 10:41:57 -0300
+...
+```
+
+With the `helper` method it is possible to access Rails and your application's helpers.
+
+```bash
+>> helper.time_ago_in_words 30.days.ago
+=> "about 1 month"
+
+>> helper.my_custom_helper
+=> "my custom helper"
+```
+
 ### `rails dbconsole`
 
 `rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.

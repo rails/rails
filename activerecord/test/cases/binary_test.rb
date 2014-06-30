@@ -21,7 +21,7 @@ unless current_adapter?(:DB2Adapter)
 
       name = binary.name
 
-      # Mysql adapter doesn't properly encode things, so we have to do it
+      # MySQL adapter doesn't properly encode things, so we have to do it
       if current_adapter?(:MysqlAdapter)
         name.force_encoding(Encoding::UTF_8)
       end

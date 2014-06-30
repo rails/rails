@@ -20,7 +20,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     ActiveModel::SecurePassword.min_cost = @original_min_cost
   end
 
-  test "create and updating without validations" do
+  test "create/update without validations" do
     assert @visitor.valid?(:create), 'visitor should be valid'
     assert @visitor.valid?(:update), 'visitor should be valid'
 
@@ -29,6 +29,18 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     assert @visitor.valid?(:create), 'visitor should be valid'
     assert @visitor.valid?(:update), 'visitor should be valid'
+  end
+
+  test "create a new user with validations and valid password/confirmation" do
+    @user.password = 'password'
+    @user.password_confirmation = 'password'
+
+    assert @user.valid?(:create), 'user should be valid'
+
+    @user.password = 'a' * 72
+    @user.password_confirmation = 'a' * 72
+
+    assert @user.valid?(:create), 'user should be valid'
   end
 
   test "create a new user with validation and a blank password" do
@@ -43,6 +55,14 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert !@user.valid?(:create), 'user should be invalid'
     assert_equal 1, @user.errors.count
     assert_equal ["can't be blank"], @user.errors[:password]
+  end
+
+  test 'create a new user with validation and password length greater than 72' do
+    @user.password = 'a' * 73
+    @user.password_confirmation = 'a' * 73
+    assert !@user.valid?(:create), 'user should be invalid'
+    assert_equal 1, @user.errors.count
+    assert_equal ["is too long (maximum is 72 characters)"], @user.errors[:password]
   end
 
   test "create a new user with validation and a blank password confirmation" do
@@ -67,15 +87,19 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
   end
 
-  test "create a new user with validation and a correct password confirmation" do
-    @user.password = 'password'
-    @user.password_confirmation = 'something else'
-    assert !@user.valid?(:create), 'user should be invalid'
-    assert_equal 1, @user.errors.count
-    assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
+  test "update an existing user with validation and no change in password" do
+    assert @existing_user.valid?(:update), 'user should be valid'
   end
 
-  test "update an existing user with validation and no change in password" do
+  test "update an existing user with validations and valid password/confirmation" do
+    @existing_user.password = 'password'
+    @existing_user.password_confirmation = 'password'
+
+    assert @existing_user.valid?(:update), 'user should be valid'
+
+    @existing_user.password = 'a' * 72
+    @existing_user.password_confirmation = 'a' * 72
+
     assert @existing_user.valid?(:update), 'user should be valid'
   end
 
@@ -97,6 +121,14 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal ["can't be blank"], @existing_user.errors[:password]
   end
 
+  test 'updating an existing user with validation and password length greater than 72' do
+    @existing_user.password = 'a' * 73
+    @existing_user.password_confirmation = 'a' * 73
+    assert !@existing_user.valid?(:update), 'user should be invalid'
+    assert_equal 1, @existing_user.errors.count
+    assert_equal ["is too long (maximum is 72 characters)"], @existing_user.errors[:password]
+  end
+
   test "updating an existing user with validation and a blank password confirmation" do
     @existing_user.password = 'password'
     @existing_user.password_confirmation = ''
@@ -112,14 +144,6 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "updating an existing user with validation and an incorrect password confirmation" do
-    @existing_user.password = 'password'
-    @existing_user.password_confirmation = 'something else'
-    assert !@existing_user.valid?(:update), 'user should be invalid'
-    assert_equal 1, @existing_user.errors.count
-    assert_equal ["doesn't match Password"], @existing_user.errors[:password_confirmation]
-  end
-
-  test "updating an existing user with validation and a correct password confirmation" do
     @existing_user.password = 'password'
     @existing_user.password_confirmation = 'something else'
     assert !@existing_user.valid?(:update), 'user should be invalid'

@@ -1,3 +1,16 @@
+*   Added String support for min and max properties for date field helpers.
+
+    *Todd Bealmear*
+
+*   The `highlight` helper now accepts a block to be used instead of the `highlighter`
+    option.
+
+    *Lucas Mazza*
+
+*   The `except` and `highlight` helpers now accept regular expressions.
+
+    *Jan Szumiec*
+
 *   Flatten the array parameter in `safe_join`, so it behaves consistently with
     `Array#join`.
 

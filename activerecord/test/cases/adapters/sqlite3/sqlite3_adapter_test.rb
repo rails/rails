@@ -339,7 +339,7 @@ module ActiveRecord
           column = @conn.columns('ex').find { |x|
             x.name == 'number'
           }
-          assert_equal 10, column.default
+          assert_equal '10', column.default
         end
       end
 

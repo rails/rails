@@ -367,9 +367,11 @@ class DependenciesTest < ActiveSupport::TestCase
     with_autoloading_fixtures do
       e = assert_raise(NameError) { A::DoesNotExist.nil? }
       assert_equal "uninitialized constant A::DoesNotExist", e.message
+      assert_equal :DoesNotExist, e.name
 
       e = assert_raise(NameError) { A::B::DoesNotExist.nil? }
       assert_equal "uninitialized constant A::B::DoesNotExist", e.message
+      assert_equal :DoesNotExist, e.name
     end
   end
 
@@ -537,6 +539,7 @@ class DependenciesTest < ActiveSupport::TestCase
       mod = Module.new
       e = assert_raise(NameError) { mod::E }
       assert_equal 'E cannot be autoloaded from an anonymous class or module', e.message
+      assert_equal :E, e.name
     end
   end
 
@@ -954,7 +957,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_kind_of Class, A::B # Necessary to load A::B for the test
       ActiveSupport::Dependencies.mark_for_unload(A::B)
       ActiveSupport::Dependencies.remove_unloadable_constants!
-       
+
       A::B # Make sure no circular dependency error
     end
   end

@@ -1,3 +1,124 @@
+*   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
+
+    *Abdelkader Boudih*
+
+*   Move 'dependent: :destroy' handling for 'belongs_to'
+    from 'before_destroy' to 'after_destroy' callback chain
+
+    Fix #12380.
+
+    *Ivan Antropov*
+
+*   Detect in-place modifications on String attributes.
+
+    Before this change user have to mark the attribute as changed to it be persisted
+    in the database. Now it is not required anymore.
+
+    Before:
+
+        user = User.first
+        user.name << ' Griffin'
+        user.name_will_change!
+        user.save
+        user.reload.name # => "Sean Griffin"
+
+    After:
+
+        user = User.first
+        user.name << ' Griffin'
+        user.save
+        user.reload.name # => "Sean Griffin"
+
+    *Sean Griffin*
+
+*   Add `ActiveRecord::Base#validate!` that raises `RecordInvalid` if the record
+    is invalid.
+
+    *Bogdan Gusiev*, *Marc Schütz*
+
+*   Support for adding and removing foreign keys. Foreign keys are now
+    a part of `schema.rb`. This is supported by Mysql2Adapter, MysqlAdapter
+    and PostgreSQLAdapter.
+
+    Many thanks to *Matthew Higgins* for laying the foundation with his work on
+    [foreigner](https://github.com/matthuhiggins/foreigner).
+
+    Example:
+
+        # within your migrations:
+        add_foreign_key :articles, :authors
+        remove_foreign_key :articles, :authors
+
+    *Yves Senn*
+
+*   Fix subtle bugs regarding attribute assignment on models with no primary
+    key. `'id'` will no longer be part of the attributes hash.
+
+    *Sean Griffin*
+
+*   Deprecate automatic counter caches on `has_many :through`. The behavior was
+    broken and inconsistent.
+
+    *Sean Griffin*
+
+*   `preload` preserves readonly flag for associations.
+
+    See #15853.
+
+    *Yves Senn*
+
+*   Assume numeric types have changed if they were assigned to a value that
+    would fail numericality validation, regardless of the old value. Previously
+    this would only occur if the old value was 0.
+
+    Example:
+
+        model = Model.create!(number: 5)
+        model.number = '5wibble'
+        model.number_changed? # => true
+
+    Fixes #14731.
+
+    *Sean Griffin*
+
+*   `reload` no longer merges with the existing attributes.
+    The attribute hash is fully replaced. The record is put into the same state
+    as it would be with `Model.find(model.id)`.
+
+    *Sean Griffin*
+
+*   The object returned from `select_all` must respond to `column_types`.
+    If this is not the case a `NoMethodError` is raised.
+
+    *Sean Griffin*
+
+*   `has_many :through` associations will no longer save the through record
+    twice when added in an `after_create` callback defined before the
+    associations.
+
+    Fixes #3798.
+
+    *Sean Griffin*
+
+*   Detect in-place modifications of PG array types
+
+    *Sean Griffin*
+
+*   Add `bin/rake db:purge` task to empty the current database.
+
+    *Yves Senn*
+
+*   Deprecate `serialized_attributes` without replacement.
+
+    *Sean Griffin*
+
+*   Correctly extract IPv6 addresses from `DATABASE_URI`: the square brackets
+    are part of the URI structure, not the actual host.
+
+    Fixes #15705.
+
+    *Andy Bakun*, *Aaron Stone*
+
 *   Ensure both parent IDs are set on join records when both sides of a
     through association are new.
 
@@ -78,7 +199,8 @@
 
     *Lauro Caetano*, *Carlos Antonio da Silva*
 
-*   Return a null column from `column_for_attribute` when no column exists.
+*   Deprecate returning `nil` from `column_for_attribute` when no column exists.
+    It will return a null object in Rails 5.0
 
     *Sean Griffin*
 
@@ -411,7 +533,7 @@
 
     *Eric Chahin*
 
-*   `sanitize_sql_like` helper method to escape a string for safe use in a SQL
+*   `sanitize_sql_like` helper method to escape a string for safe use in an SQL
     LIKE statement.
 
     Example:
@@ -447,7 +569,7 @@
     *Lauro Caetano*
 
 *   Calling `delete_all` on an unloaded `CollectionProxy` no longer
-    generates a SQL statement containing each id of the collection:
+    generates an SQL statement containing each id of the collection:
 
     Before:
 

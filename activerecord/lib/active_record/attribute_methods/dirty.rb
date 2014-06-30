@@ -40,7 +40,7 @@ module ActiveRecord
 
       def initialize_dup(other) # :nodoc:
         super
-        init_changed_attributes
+        calculate_changes_from_defaults
       end
 
       def changed?
@@ -71,17 +71,9 @@ module ActiveRecord
 
       private
 
-      def initialize_internals_callback
-        super
-        init_changed_attributes
-      end
-
-      def init_changed_attributes
+      def calculate_changes_from_defaults
         @changed_attributes = nil
-        # Intentionally avoid using #column_defaults since overridden defaults (as is done in
-        # optimistic locking) won't get written unless they get marked as changed
-        self.class.columns.each do |c|
-          attr, orig_value = c.name, c.default
+        self.class.column_defaults.each do |attr, orig_value|
           changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value)
         end
       end
@@ -137,9 +129,7 @@ module ActiveRecord
       end
 
       def _field_changed?(attr, old_value)
-        new_value = read_attribute(attr)
-        raw_value = read_attribute_before_type_cast(attr)
-        column_for_attribute(attr).changed?(old_value, new_value, raw_value)
+        @attributes[attr].changed_from?(old_value)
       end
 
       def changed_in_place
@@ -149,10 +139,8 @@ module ActiveRecord
       end
 
       def changed_in_place?(attr_name)
-        type = type_for_attribute(attr_name)
         old_value = original_raw_attribute(attr_name)
-        value = read_attribute(attr_name)
-        type.changed_in_place?(old_value, value)
+        @attributes[attr_name].changed_in_place_from?(old_value)
       end
 
       def original_raw_attribute(attr_name)
@@ -166,9 +154,7 @@ module ActiveRecord
       end
 
       def store_original_raw_attribute(attr_name)
-        type = type_for_attribute(attr_name)
-        value = type.type_cast_for_database(read_attribute(attr_name))
-        original_raw_attributes[attr_name] = value
+        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database
       end
 
       def store_original_raw_attributes

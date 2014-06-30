@@ -253,6 +253,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
 
+  def test_attributes_without_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers_projects'
+    end
+
+    assert_equal klass.column_names, klass.new.attributes.keys
+    assert_not klass.new.attributes.key?('id')
+  end
+
   def test_hashes_not_mangled
     new_topic = { :title => "New Topic" }
     new_topic_values = { :title => "AnotherTopic" }
@@ -829,6 +838,37 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) do
       klass.new.some_method_that_is_not_on_super
     end
+  end
+
+  def test_attribute_method?
+    assert @target.attribute_method?(:title)
+    assert @target.attribute_method?(:title=)
+    assert_not @target.attribute_method?(:wibble)
+  end
+
+  def test_attribute_method_returns_false_if_table_does_not_exist
+    @target.table_name = 'wibble'
+    assert_not @target.attribute_method?(:title)
+  end
+
+  def test_attribute_names_on_new_record
+    model = @target.new
+
+    assert_equal @target.column_names, model.attribute_names
+  end
+
+  def test_attribute_names_on_queried_record
+    model = @target.last!
+
+    assert_equal @target.column_names, model.attribute_names
+  end
+
+  def test_attribute_names_with_custom_select
+    model = @target.select('id').last!
+
+    assert_equal ['id'], model.attribute_names
+    # Sanity check, make sure other columns exist
+    assert_not_equal ['id'], @target.column_names
   end
 
   private

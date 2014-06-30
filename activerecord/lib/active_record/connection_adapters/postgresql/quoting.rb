@@ -27,21 +27,9 @@ module ActiveRecord
             else
               super
             end
-          when Array
-            case sql_type
-            when 'point' then super(PostgreSQLColumn.point_to_string(value))
-            when 'json' then super(PostgreSQLColumn.json_to_string(value))
-            else
-              if column.array
-                "'#{PostgreSQLColumn.array_to_string(value, column, self).gsub(/'/, "''")}'"
-              else
-                super
-              end
-            end
           when Hash
             case sql_type
             when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
-            when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
             else super
             end
           when Float
@@ -75,43 +63,29 @@ module ActiveRecord
           end
         end
 
-        def type_cast(value, column, array_member = false)
-          return super(value, column) unless column
+        def type_cast(value, column)
+          return super unless column
 
           case value
           when Range
             if /range$/ =~ column.sql_type
               PostgreSQLColumn.range_to_string(value)
             else
-              super(value, column)
+              super
             end
           when NilClass
-            if column.array && array_member
-              'NULL'
-            elsif column.array
+            if column.array
               value
             else
-              super(value, column)
-            end
-          when Array
-            case column.sql_type
-            when 'point' then PostgreSQLColumn.point_to_string(value)
-            when 'json' then PostgreSQLColumn.json_to_string(value)
-            else
-              if column.array
-                PostgreSQLColumn.array_to_string(value, column, self)
-              else
-                super(value, column)
-              end
+              super
             end
           when Hash
             case column.sql_type
-            when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)
-            when 'json' then PostgreSQLColumn.json_to_string(value)
-            else super(value, column)
+            when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
+            else super
             end
           else
-            super(value, column)
+            super
           end
         end
 

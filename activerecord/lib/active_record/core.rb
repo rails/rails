@@ -16,7 +16,6 @@ module ActiveRecord
       mattr_accessor :logger, instance_writer: false
 
       ##
-      # :singleton-method:
       # Contains the database configuration - as is typically stored in config/database.yml -
       # as a Hash.
       #
@@ -249,14 +248,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = {}
-      self.class.raw_column_defaults.each do |k, v|
-        default = v.duplicable? ? v.dup : v
-        defaults[k] = Attribute.from_database(default, type_for_attribute(k))
-      end
-
-      @attributes = defaults
-      @column_types = self.class.column_types
+      @attributes = self.class.default_attributes.dup
 
       init_internals
       initialize_internals_callback
@@ -282,7 +274,6 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       @attributes = coder['attributes']
-      @column_types = self.class.column_types
 
       init_internals
 
@@ -325,8 +316,8 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       pk = self.class.primary_key
-      @attributes = other.clone_attributes
-      @attributes[pk] = Attribute.from_database(nil, type_for_attribute(pk))
+      @attributes = @attributes.dup
+      @attributes.write_from_database(pk, nil)
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
@@ -525,7 +516,9 @@ module ActiveRecord
 
     def init_internals
       pk = self.class.primary_key
-      @attributes[pk] ||= Attribute.from_database(nil, type_for_attribute(pk))
+      if pk && !@attributes.include?(pk)
+        @attributes.write_from_database(pk, nil)
+      end
 
       @aggregation_cache        = {}
       @association_cache        = {}

@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Cidr < Type::Value
+        class Cidr < Type::Value # :nodoc:
           def type
             :cidr
           end

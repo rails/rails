@@ -70,6 +70,13 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /get 'account\/foo'/, /get 'account\/bar'/
   end
 
+  def test_skip_routes
+    run_generator ["account", "foo", "--skip-routes"]
+    assert_file "config/routes.rb" do |routes|
+      assert_no_match /get 'account\/foo'/, routes
+    end
+  end
+
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["account"]
     assert_file "app/views/account"

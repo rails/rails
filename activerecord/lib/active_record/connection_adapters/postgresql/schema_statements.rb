@@ -31,6 +31,14 @@ module ActiveRecord
             super
           end
         end
+
+        def type_for_column(column)
+          if column.array
+            @conn.lookup_cast_type("#{column.sql_type}[]")
+          else
+            super
+          end
+        end
       end
 
       module SchemaStatements
@@ -375,8 +383,8 @@ module ActiveRecord
         end
 
         # Renames a table.
-        # Also renames a table's primary key sequence if the sequence name matches the
-        # Active Record default.
+        # Also renames a table's primary key sequence if the sequence name exists and
+        # matches the Active Record default.
         #
         # Example:
         #   rename_table('octopuses', 'octopi')
@@ -384,7 +392,7 @@ module ActiveRecord
           clear_cache!
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
-          if seq.identifier == "#{table_name}_#{pk}_seq"
+          if seq && seq.identifier == "#{table_name}_#{pk}_seq"
             new_seq = "#{new_name}_#{pk}_seq"
             execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
           end
@@ -446,6 +454,42 @@ module ActiveRecord
 
         def rename_index(table_name, old_name, new_name)
           execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
+        end
+
+        def foreign_keys(table_name)
+          fk_info = select_all <<-SQL.strip_heredoc
+            SELECT t2.relname AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
+            FROM pg_constraint c
+            JOIN pg_class t1 ON c.conrelid = t1.oid
+            JOIN pg_class t2 ON c.confrelid = t2.oid
+            JOIN pg_attribute a1 ON a1.attnum = c.conkey[1] AND a1.attrelid = t1.oid
+            JOIN pg_attribute a2 ON a2.attnum = c.confkey[1] AND a2.attrelid = t2.oid
+            JOIN pg_namespace t3 ON c.connamespace = t3.oid
+            WHERE c.contype = 'f'
+              AND t1.relname = #{quote(table_name)}
+              AND t3.nspname = ANY (current_schemas(false))
+            ORDER BY c.conname
+          SQL
+
+          fk_info.map do |row|
+            options = {
+              column: row['column'],
+              name: row['name'],
+              primary_key: row['primary_key']
+            }
+
+            options[:on_delete] = extract_foreign_key_action(row['on_delete'])
+            options[:on_update] = extract_foreign_key_action(row['on_update'])
+            ForeignKeyDefinition.new(table_name, row['to_table'], options)
+          end
+        end
+
+        def extract_foreign_key_action(specifier) # :nodoc:
+          case specifier
+          when 'c'; :cascade
+          when 'n'; :nullify
+          when 'r'; :restrict
+          end
         end
 
         def index_name_length

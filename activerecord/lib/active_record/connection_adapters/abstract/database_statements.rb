@@ -193,7 +193,7 @@ module ActiveRecord
       # * You are creating a nested (savepoint) transaction
       #
       # The mysql, mysql2 and postgresql adapters support setting the transaction
-      # isolation level. However, support is disabled for mysql versions below 5,
+      # isolation level. However, support is disabled for MySQL versions below 5,
       # because they are affected by a bug[http://bugs.mysql.com/bug.php?id=39170]
       # which means the isolation level gets persisted outside the transaction.
       def transaction(options = {})
@@ -338,8 +338,8 @@ module ActiveRecord
       end
 
       # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
-      # on mysql (even when aliasing the tables), but mysql allows using JOIN directly in
-      # an UPDATE statement, so in the mysql adapters we redefine this to do that.
+      # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
+      # an UPDATE statement, so in the MySQL adapters we redefine this to do that.
       def join_to_update(update, select) #:nodoc:
         key = update.key
         subselect = subquery_for(key, select)

@@ -494,10 +494,10 @@ file (if any) at the precise location of the `require_self` call. If
 `require_self` is called more than once, only the last call is respected.
 
 NOTE. If you want to use multiple Sass files, you should generally use the [Sass `@import` rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import)
-instead of these Sprockets directives. Using Sprockets directives all Sass files exist within
+instead of these Sprockets directives. When using Sprockets directives, Sass files exist within
 their own scope, making variables or mixins only available within the document they were defined in.
-You can do file globbing as well using `@import "*"`, and `@import "**/*"` to add the whole tree
-equivalent to how `require_tree` works. Check the [sass-rails documentation](https://github.com/rails/sass-rails#features) for more info and important caveats.
+
+You can do file globbing as well using `@import "*"`, and `@import "**/*"` to add the whole tree which is equivalent to how `require_tree` works. Check the [sass-rails documentation](https://github.com/rails/sass-rails#features) for more info and important caveats.
 
 You can have as many manifest files as you need. For example, the `admin.css`
 and `admin.js` manifest could contain the JS and CSS files that are used for the
@@ -760,7 +760,7 @@ typical manifest file looks like:
 "digest":"12b3c7dd74d2e9df37e7cbb1efa76a6d"},"application-1c5752789588ac18d7e1a50b1f0fd4c2.css":{"logical_path":"application.css","mtime":"2013-07-26T22:56:17-07:00","size":1591,
 "digest":"1c5752789588ac18d7e1a50b1f0fd4c2"},"favicon-a9c641bf2b81f0476e876f7c5e375969.ico":{"logical_path":"favicon.ico","mtime":"2013-07-26T23:00:10-07:00","size":1406,
 "digest":"a9c641bf2b81f0476e876f7c5e375969"},"my_image-231a680f23887d9dd70710ea5efd3c62.png":{"logical_path":"my_image.png","mtime":"2013-07-26T23:00:27-07:00","size":6646,
-"digest":"231a680f23887d9dd70710ea5efd3c62"}},"assets"{"application.js":
+"digest":"231a680f23887d9dd70710ea5efd3c62"}},"assets":{"application.js":
 "application-723d1be6cc741a3aabb1cec24276d681.js","application.css":
 "application-1c5752789588ac18d7e1a50b1f0fd4c2.css",
 "favicon.ico":"favicona9c641bf2b81f0476e876f7c5e375969.ico","my_image.png":

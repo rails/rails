@@ -35,12 +35,10 @@ class PostgresqlPointTest < ActiveRecord::TestCase
   end
 
   def test_default
-    column = PostgresqlPoint.columns_hash["y"]
-    assert_equal [12.2, 13.3], column.default
+    assert_equal [12.2, 13.3], PostgresqlPoint.column_defaults['y']
     assert_equal [12.2, 13.3], PostgresqlPoint.new.y
 
-    column = PostgresqlPoint.columns_hash["z"]
-    assert_equal [14.4, 15.5], column.default
+    assert_equal [14.4, 15.5], PostgresqlPoint.column_defaults['z']
     assert_equal [14.4, 15.5], PostgresqlPoint.new.z
   end
 
@@ -60,5 +58,16 @@ class PostgresqlPointTest < ActiveRecord::TestCase
     record.save!
     assert record.reload
     assert_equal [1.1, 2.2], record.x
+  end
+
+  def test_mutation
+    p = PostgresqlPoint.create! x: [10, 20]
+
+    p.x[1] = 25
+    p.save!
+    p.reload
+
+    assert_equal [10.0, 25.0], p.x
+    assert_not p.changed?
   end
 end

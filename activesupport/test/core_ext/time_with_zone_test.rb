@@ -1,7 +1,9 @@
 require 'abstract_unit'
 require 'active_support/time'
+require 'time_zone_test_helpers'
 
 class TimeWithZoneTest < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
 
   def setup
     @utc = Time.utc(2000, 1, 1, 0)
@@ -810,23 +812,17 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "undefined method `this_method_does_not_exist' for Fri, 31 Dec 1999 19:00:00 EST -05:00:Time", e.message
     assert_no_match "rescue", e.backtrace.first
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end
 
 class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   def setup
-    @t, @dt = Time.utc(2000), DateTime.civil(2000)
+    @t, @dt, @zone = Time.utc(2000), DateTime.civil(2000), Time.zone
   end
 
   def teardown
-    Time.zone = nil
+    Time.zone = @zone
   end
 
   def test_in_time_zone
@@ -882,8 +878,6 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   def test_localtime
     Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     assert_equal @dt.in_time_zone.localtime, @dt.in_time_zone.utc.to_time.getlocal
-  ensure
-    Time.zone = nil
   end
 
   def test_use_zone
@@ -922,6 +916,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_time_zone_getter_and_setter_with_zone_default_set
+    old_zone_default = Time.zone_default
     Time.zone_default = ActiveSupport::TimeZone['Alaska']
     assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
     Time.zone = ActiveSupport::TimeZone['Hawaii']
@@ -929,8 +924,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     Time.zone = nil
     assert_equal ActiveSupport::TimeZone['Alaska'], Time.zone
   ensure
-    Time.zone = nil
-    Time.zone_default = nil
+    Time.zone_default = old_zone_default
   end
 
   def test_time_zone_setter_is_thread_safe
@@ -1002,8 +996,6 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
       assert_equal 'Eastern Time (US & Canada)', Time.current.time_zone.name
       assert_equal Time.utc(2000), Time.current.time
     end
-  ensure
-    Time.zone = nil
   end
 
   def test_time_in_time_zone_doesnt_affect_receiver
@@ -1014,23 +1006,13 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
       assert_not time.utc?, 'time expected to be local, but is UTC'
     end
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end
 
 class TimeWithZoneMethodsForDate < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   def setup
     @d = Date.civil(2000)
-  end
-
-  def teardown
-    Time.zone = nil
   end
 
   def test_in_time_zone
@@ -1065,26 +1047,15 @@ class TimeWithZoneMethodsForDate < ActiveSupport::TestCase
     assert_raise(ArgumentError) { @d.in_time_zone(-15.hours) }
     assert_raise(ArgumentError) { @d.in_time_zone(Object.new) }
   end
-
-  protected
-    def with_tz_default(tz = nil)
-      old_tz = Time.zone
-      Time.zone = tz
-      yield
-    ensure
-      Time.zone = old_tz
-    end
 end
 
 class TimeWithZoneMethodsForString < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   def setup
     @s = "Sat, 01 Jan 2000 00:00:00"
     @u = "Sat, 01 Jan 2000 00:00:00 UTC +00:00"
     @z = "Fri, 31 Dec 1999 19:00:00 EST -05:00"
-  end
-
-  def teardown
-    Time.zone = nil
   end
 
   def test_in_time_zone
@@ -1141,13 +1112,4 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
     assert_raise(ArgumentError) { @u.in_time_zone(Object.new) }
     assert_raise(ArgumentError) { @z.in_time_zone(Object.new) }
   end
-
-  protected
-    def with_tz_default(tz = nil)
-      old_tz = Time.zone
-      Time.zone = tz
-      yield
-    ensure
-      Time.zone = old_tz
-    end
 end

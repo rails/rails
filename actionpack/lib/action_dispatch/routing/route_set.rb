@@ -420,7 +420,7 @@ module ActionDispatch
 
         path = conditions.delete :path_info
         ast  = conditions.delete :parsed_path_info
-        path = build_path(path, ast, requirements, SEPARATORS, anchor)
+        path = build_path(path, ast, requirements, anchor)
         conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
@@ -428,7 +428,7 @@ module ActionDispatch
         route
       end
 
-      def build_path(path, ast, requirements, separators, anchor)
+      def build_path(path, ast, requirements, anchor)
         strexp = Journey::Router::Strexp.new(
             ast,
             path,

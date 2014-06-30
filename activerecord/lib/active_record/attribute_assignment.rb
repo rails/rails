@@ -115,7 +115,7 @@ module ActiveRecord
     end
 
     class MultiparameterAttribute #:nodoc:
-      attr_reader :object, :name, :values, :column
+      attr_reader :object, :name, :values, :cast_type
 
       def initialize(object, name, values)
         @object = object
@@ -126,22 +126,22 @@ module ActiveRecord
       def read_value
         return if values.values.compact.empty?
 
-        @column = object.column_for_attribute(name)
-        klass   = column ? column.klass : nil
+        @cast_type = object.type_for_attribute(name)
+        klass = cast_type.klass
 
         if klass == Time
           read_time
         elsif klass == Date
           read_date
         else
-          read_other(klass)
+          read_other
         end
       end
 
       private
 
       def instantiate_time_object(set_values)
-        if object.class.send(:create_time_zone_conversion_attribute?, name, column)
+        if object.class.send(:create_time_zone_conversion_attribute?, name, cast_type)
           Time.zone.local(*set_values)
         else
           Time.send(object.class.default_timezone, *set_values)
@@ -151,7 +151,7 @@ module ActiveRecord
       def read_time
         # If column is a :time (and not :date or :datetime) there is no need to validate if
         # there are year/month/day fields
-        if column.type == :time
+        if cast_type.type == :time
           # if the column is a time set the values to their defaults as January 1, 1970, but only if they're nil
           { 1 => 1970, 2 => 1, 3 => 1 }.each do |key,value|
             values[key] ||= value
@@ -181,7 +181,7 @@ module ActiveRecord
         end
       end
 
-      def read_other(klass)
+      def read_other
         max_position = extract_max_param
         positions    = (1..max_position)
         validate_required_parameters!(positions)

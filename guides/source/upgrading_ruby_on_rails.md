@@ -22,6 +22,29 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
+### The Rake Task
+
+Rails provides the `rails:update` rake task. After updating the Rails version
+in the Gemfile, run this rake task.
+This will help you with the creation of new files and changes of old files in a
+interactive session.
+
+```bash
+$ rake rails:update
+   identical  config/boot.rb
+       exist  config
+    conflict  config/routes.rb
+Overwrite /myapp/config/routes.rb? (enter "h" for help) [Ynaqdh]
+       force  config/routes.rb
+    conflict  config/application.rb
+Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
+       force  config/application.rb
+    conflict  config/environment.rb
+...
+```
+
+Don't forget to review the difference, to see if there were any unexpected changes.
+
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
@@ -146,7 +169,7 @@ If you use the cookie session store, this would apply to the `session` and
 
 Flash message keys are
 [normalized to strings](https://github.com/rails/rails/commit/a668beffd64106a1e1fedb71cc25eaaa11baf0c1). They
-can still be accessed using either symbols or strings. Lopping through the flash
+can still be accessed using either symbols or strings. Looping through the flash
 will always yield string keys:
 
 ```ruby
@@ -315,10 +338,10 @@ authors.compact!
 
 ### Changes on Default Scopes
 
-Default scopes are no longer overriden by chained conditions.
+Default scopes are no longer overridden by chained conditions.
 
 In previous versions when you defined a `default_scope` in a model
-it was overriden by chained conditions in the same field. Now it
+it was overridden by chained conditions in the same field. Now it
 is merged like any other scope.
 
 Before:

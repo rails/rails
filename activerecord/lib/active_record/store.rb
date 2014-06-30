@@ -99,7 +99,7 @@ module ActiveRecord
         self.local_stored_attributes[store_attribute] |= keys
       end
 
-      def _store_accessors_module
+      def _store_accessors_module # :nodoc:
         @_store_accessors_module ||= begin
           mod = Module.new
           include mod
@@ -129,10 +129,10 @@ module ActiveRecord
 
     private
       def store_accessor_for(store_attribute)
-        @column_types[store_attribute.to_s].accessor
+        type_for_attribute(store_attribute.to_s).accessor
       end
 
-      class HashAccessor
+      class HashAccessor # :nodoc:
         def self.read(object, attribute, key)
           prepare(object, attribute)
           object.public_send(attribute)[key]
@@ -151,7 +151,7 @@ module ActiveRecord
         end
       end
 
-      class StringKeyedHashAccessor < HashAccessor
+      class StringKeyedHashAccessor < HashAccessor # :nodoc:
         def self.read(object, attribute, key)
           super object, attribute, key.to_s
         end
@@ -161,7 +161,7 @@ module ActiveRecord
         end
       end
 
-      class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor
+      class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor # :nodoc:
         def self.prepare(object, store_attribute)
           attribute = object.send(store_attribute)
           unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)

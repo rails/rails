@@ -33,6 +33,7 @@ module ActionMailer
         include app.routes.mounted_helpers
 
         register_interceptors(options.delete(:interceptors))
+        register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
 
         options.each { |k,v| send("#{k}=", v) }

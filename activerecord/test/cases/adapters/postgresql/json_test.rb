@@ -43,9 +43,8 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
   def test_default
     @connection.add_column 'json_data_type', 'permissions', :json, default: '{"users": "read", "posts": ["read", "write"]}'
     JsonDataType.reset_column_information
-    column = JsonDataType.columns_hash["permissions"]
 
-    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, column.default)
+    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.column_defaults['permissions'])
     assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.new.permissions)
   ensure
     JsonDataType.reset_column_information
@@ -78,7 +77,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     column = JsonDataType.columns_hash["payload"]
 
     data = "{\"a_key\":\"a_value\"}"
-    hash = column.class.string_to_json data
+    hash = column.type_cast_from_database(data)
     assert_equal({'a_key' => 'a_value'}, hash)
     assert_equal({'a_key' => 'a_value'}, column.type_cast_from_database(data))
 
@@ -156,16 +155,6 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     assert_equal "320×480", y.resolution
   end
 
-  def test_update_all
-    json = JsonDataType.create! payload: { "one" => "two" }
-
-    JsonDataType.update_all payload: { "three" => "four" }
-    assert_equal({ "three" => "four" }, json.reload.payload)
-
-    JsonDataType.update_all payload: { }
-    assert_equal({ }, json.reload.payload)
-  end
-
   def test_changes_in_place
     json = JsonDataType.new
     assert_not json.changed?
@@ -183,6 +172,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     json.save!
     json.reload
 
-    assert json.payload['three'] = 'four'
+    assert_equal({ 'one' => 'two', 'three' => 'four' }, json.payload)
+    assert_not json.changed?
   end
 end

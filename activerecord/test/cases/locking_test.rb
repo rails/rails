@@ -272,6 +272,13 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert p.treasures.empty?
     assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
   end
+
+  def test_yaml_dumping_with_lock_column
+    t1 = LockWithoutDefault.new
+    t2 = YAML.load(YAML.dump(t1))
+
+    assert_equal t1.attributes, t2.attributes
+  end
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase

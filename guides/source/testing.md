@@ -585,7 +585,7 @@ Here's another example that uses `flash`, `assert_redirected_to`, and `assert_di
 
 ```ruby
 test "should create article" do
-  assert_difference('article.count') do
+  assert_difference('Article.count') do
     post :create, article: {title: 'Hi', body: 'This is my first article.'}
   end
   assert_redirected_to article_path(assigns(:article))
@@ -996,7 +996,7 @@ class UserControllerTest < ActionController::TestCase
 
     assert_equal "You have been invited by me@example.com", invite_email.subject
     assert_equal 'friend@example.com', invite_email.to[0]
-    assert_match(/Hi friend@example.com/, invite_email.body)
+    assert_match(/Hi friend@example.com/, invite_email.body.to_s)
   end
 end
 ```

@@ -68,9 +68,9 @@ module ActiveRecord
         five = columns.detect { |c| c.name == "five" } unless mysql
 
         assert_equal "hello", one.default
-        assert_equal true, two.default
-        assert_equal false, three.default
-        assert_equal 1, four.default
+        assert_equal true, two.type_cast_from_database(two.default)
+        assert_equal false, three.type_cast_from_database(three.default)
+        assert_equal '1', four.default
         assert_equal "hello", five.default unless mysql
       end
 
@@ -275,7 +275,7 @@ module ActiveRecord
 
         person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
         person_klass.reset_column_information
-        assert_equal 99, person_klass.columns_hash["wealth"].default
+        assert_equal 99, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
         # Oracle needs primary key value from sequence
         if current_adapter?(:OracleAdapter)
@@ -287,20 +287,20 @@ module ActiveRecord
         # change column default to see that column doesn't lose its not null definition
         person_klass.connection.change_column_default "testings", "wealth", 100
         person_klass.reset_column_information
-        assert_equal 100, person_klass.columns_hash["wealth"].default
+        assert_equal 100, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
 
         # rename column to see that column doesn't lose its not null and/or default definition
         person_klass.connection.rename_column "testings", "wealth", "money"
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["wealth"]
-        assert_equal 100, person_klass.columns_hash["money"].default
+        assert_equal 100, person_klass.column_defaults["money"]
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column
         person_klass.connection.change_column "testings", "money", :integer, :null => false, :default => 1000
         person_klass.reset_column_information
-        assert_equal 1000, person_klass.columns_hash["money"].default
+        assert_equal 1000, person_klass.column_defaults["money"]
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column, make it nullable and clear default

@@ -9,6 +9,7 @@ end
 
 class SendFileController < ActionController::Base
   include TestFileUtils
+  include ActionController::Testing
   layout "layouts/standard" # to make sure layouts don't interfere
 
   attr_writer :options

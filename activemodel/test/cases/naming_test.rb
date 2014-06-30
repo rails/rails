@@ -272,3 +272,9 @@ class NameWithAnonymousClassTest < ActiveModel::TestCase
     assert_equal "Anonymous", model_name
   end
 end
+
+class NamingMethodDelegationTest < ActiveModel::TestCase
+  def test_model_name
+    assert_equal Blog::Post.model_name, Blog::Post.new.model_name
+  end
+end

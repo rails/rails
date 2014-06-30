@@ -858,4 +858,11 @@ class PersistenceTest < ActiveRecord::TestCase
       post.body
     end
   end
+
+  def test_reload_removes_custom_selects
+    post = Post.select('posts.*, 1 as wibble').last!
+
+    assert_equal 1, post[:wibble]
+    assert_nil post.reload[:wibble]
+  end
 end

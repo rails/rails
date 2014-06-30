@@ -12,6 +12,10 @@ module ActiveRecord
 
         private
 
+        def visit_DropForeignKey(name)
+          "DROP FOREIGN KEY #{name}"
+        end
+
         def visit_TableDefinition(o)
           name = o.name
           create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(name)} "
@@ -62,20 +66,19 @@ module ActiveRecord
           @extra     = extra
           super(name, default, cast_type, sql_type, null)
           assert_valid_default(default)
+          extract_default
         end
 
-        def default
-          @default ||= if blob_or_text_column?
-            null || strict ? nil : ''
-          elsif missing_default_forged_as_empty_string?(@original_default)
-            nil
-          else
-            super
+        def extract_default
+          if blob_or_text_column?
+            @default = null || strict ? nil : ''
+          elsif missing_default_forged_as_empty_string?(@default)
+            @default = nil
           end
         end
 
         def has_default?
-          return false if blob_or_text_column? #mysql forbids defaults on blob and text columns
+          return false if blob_or_text_column? # MySQL forbids defaults on blob and text columns
           super
         end
 
@@ -193,6 +196,10 @@ module ActiveRecord
         true
       end
 
+      def supports_foreign_keys?
+        true
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
@@ -213,7 +220,7 @@ module ActiveRecord
         Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
-      # Must return the Mysql error number from the exception, if the exception has an
+      # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:
         raise NotImplementedError
@@ -382,7 +389,7 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        return false unless name
+        return false unless name.present?
         return true if tables(nil, nil, name).any?
 
         name          = name.to_s
@@ -500,6 +507,34 @@ module ActiveRecord
       def add_index(table_name, column_name, options = {}) #:nodoc:
         index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options} #{index_algorithm}"
+      end
+
+      def foreign_keys(table_name)
+        fk_info = select_all <<-SQL.strip_heredoc
+          SELECT fk.referenced_table_name as 'to_table'
+                ,fk.referenced_column_name as 'primary_key'
+                ,fk.column_name as 'column'
+                ,fk.constraint_name as 'name'
+          FROM information_schema.key_column_usage fk
+          WHERE fk.referenced_column_name is not null
+            AND fk.table_schema = '#{@config[:database]}'
+            AND fk.table_name = '#{table_name}'
+        SQL
+
+        create_table_info = select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+
+        fk_info.map do |row|
+          options = {
+            column: row['column'],
+            name: row['name'],
+            primary_key: row['primary_key']
+          }
+
+          options[:on_update] = extract_foreign_key_action(create_table_info, row['name'], "UPDATE")
+          options[:on_delete] = extract_foreign_key_action(create_table_info, row['name'], "DELETE")
+
+          ForeignKeyDefinition.new(table_name, row['to_table'], options)
+        end
       end
 
       # Maps logical Rails types to MySQL-specific data types.
@@ -779,6 +814,15 @@ module ActiveRecord
 
         # ...and send them all in one query
         @connection.query  "SET #{encoding} #{variable_assignments}"
+      end
+
+      def extract_foreign_key_action(structure, name, action) # :nodoc:
+        if structure =~ /CONSTRAINT #{quote_column_name(name)} FOREIGN KEY .* REFERENCES .* ON #{action} (CASCADE|SET NULL|RESTRICT)/
+          case $1
+          when 'CASCADE'; :cascade
+          when 'SET NULL'; :nullify
+          end
+        end
       end
     end
   end

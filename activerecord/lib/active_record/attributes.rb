@@ -9,7 +9,7 @@ module ActiveRecord
       self.user_provided_columns = {}
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       # Defines or overrides a attribute on this model. This allows customization of
       # Active Record's type casting behavior, as well as adding support for user defined
       # types.
@@ -27,7 +27,7 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      # The type detected by Active Record can be overriden.
+      # The type detected by Active Record can be overridden.
       #
       #   # db/schema.rb
       #   create_table :store_listings, force: true do |t|
@@ -109,13 +109,13 @@ module ActiveRecord
       end
 
       def clear_caches_calculated_from_columns
+        @attributes_builder = nil
+        @column_names = nil
+        @column_types = nil
         @columns = nil
         @columns_hash = nil
-        @column_types = nil
-        @column_defaults = nil
-        @raw_column_defaults = nil
-        @column_names = nil
         @content_columns = nil
+        @default_attributes = nil
       end
     end
   end

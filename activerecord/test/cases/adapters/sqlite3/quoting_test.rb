@@ -15,10 +15,10 @@ module ActiveRecord
 
         def test_type_cast_binary_encoding_without_logger
           @conn.extend(Module.new { def logger; end })
-          cast_type = Type::String.new
+          column = Column.new(nil, nil, Type::String.new)
           binary = SecureRandom.hex
           expected = binary.dup.encode!(Encoding::UTF_8)
-          assert_equal expected, @conn.type_cast(binary, cast_type)
+          assert_equal expected, @conn.type_cast(binary, column)
         end
 
         def test_type_cast_symbol

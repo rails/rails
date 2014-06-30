@@ -98,17 +98,28 @@ module ActiveRecord
       assert_equal 'Hello! decorated!', model.a_string
       assert_equal 'whatever', model.another_string
       assert_equal 'Hello! decorated! decorated!', child.a_string
-      # We are round tripping the default, and we don't undo our decoration
-      assert_equal 'whatever decorated! decorated!', child.another_string
+      assert_equal 'whatever decorated!', child.another_string
     end
 
-    test "defaults are decorated on the column" do
-      Model.attribute :a_string, Type::String.new, default: 'whatever'
-      Model.decorate_attribute_type(:a_string, :test) { |t| StringDecorator.new(t) }
+    class Multiplier < SimpleDelegator
+      def type_cast_from_user(value)
+        return if value.nil?
+        value * 2
+      end
+      alias type_cast_from_database type_cast_from_user
+    end
 
-      column = Model.columns_hash['a_string']
+    test "decorating with a proc" do
+      Model.attribute :an_int, Type::Integer.new
+      type_is_integer = proc { |_, type| type.type == :integer }
+      Model.decorate_matching_attribute_types type_is_integer, :multiplier do |type|
+        Multiplier.new(type)
+      end
 
-      assert_equal 'whatever decorated!', column.default
+      model = Model.new(a_string: 'whatever', an_int: 1)
+
+      assert_equal 'whatever', model.a_string
+      assert_equal 2, model.an_int
     end
   end
 end

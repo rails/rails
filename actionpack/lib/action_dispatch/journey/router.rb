@@ -105,7 +105,8 @@ module ActionDispatch
             routes.concat get_routes_as_head(routes)
           end
 
-          routes.sort_by!(&:precedence).select! { |r| r.matches?(req) }
+          routes.select! { |r| r.matches?(req) }
+          routes.sort_by!(&:precedence)
 
           routes.map! { |r|
             match_data  = r.path.match(req.path_info)

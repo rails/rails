@@ -64,9 +64,8 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     def test_default
       @connection.add_column 'hstores', 'permissions', :hstore, default: '"users"=>"read", "articles"=>"write"'
       Hstore.reset_column_information
-      column = Hstore.columns_hash["permissions"]
 
-      assert_equal({"users"=>"read", "articles"=>"write"}, column.default)
+      assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.column_defaults['permissions'])
       assert_equal({"users"=>"read", "articles"=>"write"}, Hstore.new.permissions)
     ensure
       Hstore.reset_column_information
@@ -170,6 +169,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       hstore.reload
 
       assert_equal 'four', hstore.settings['three']
+      assert_not hstore.changed?
     end
 
     def test_gen1
@@ -293,16 +293,6 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
 
     def test_multiline
       assert_cycle("a\nb" => "c\nd")
-    end
-
-    def test_update_all
-      hstore = Hstore.create! tags: { "one" => "two" }
-
-      Hstore.update_all tags: { "three" => "four" }
-      assert_equal({ "three" => "four" }, hstore.reload.tags)
-
-      Hstore.update_all tags: { }
-      assert_equal({ }, hstore.reload.tags)
     end
 
     class TagCollection

@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Float < Type::Float
+        class Float < Type::Float # :nodoc:
           include Infinity
 
           def cast_value(value)

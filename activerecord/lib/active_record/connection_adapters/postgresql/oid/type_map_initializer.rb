@@ -40,7 +40,7 @@ module ActiveRecord
 
           def register_array_type(row)
             if subtype = @store.lookup(row['typelem'].to_i)
-              register row['oid'], OID::Array.new(subtype)
+              register row['oid'], OID::Array.new(subtype, row['typdelim'])
             end
           end
 

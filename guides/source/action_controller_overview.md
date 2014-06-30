@@ -1164,7 +1164,64 @@ class ClientsController < ApplicationController
 end
 ```
 
+WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development). If you would like to dynamically generate error pages, see [Custom errors page](#custom-errors-page).
+
 NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's [article](http://m.onkey.org/2008/7/20/rescue-from-dispatching) on the subject for more information.
+
+
+### Custom errors page
+
+You can customize the layout of your error handling using controllers and views.
+First define your app own routes to display the errors page.
+
+* `config/application.rb`
+
+  ```ruby
+  config.exceptions_app = self.routes
+  ```
+
+* `config/routes.rb`
+
+  ```ruby
+  get '/404', to: 'errors#not_found'
+  get '/422', to: 'errors#unprocessable_entity'
+  get '/500', to: 'errors#server_error'
+  ```
+
+Create the controller and views.
+
+* `app/controllers/errors_controller.rb`
+
+  ```ruby
+  class ErrorsController < ActionController::Base
+    layout 'error'
+
+    def not_found
+      render status: :not_found
+    end
+
+    def unprocessable_entity
+      render status: :unprocessable_entity
+    end
+
+    def server_error
+      render status: :server_error
+    end
+  end
+  ```
+
+* `app/views`
+
+  ```
+    errors/
+      not_found.html.erb
+      unprocessable_entity.html.erb
+      server_error.html.erb
+    layouts/
+      error.html.erb
+  ```
+
+Do not forget to set the correct status code on the controller as shown before. You should avoid using the database or any complex operations because the user is already on the error page. Generating another error while on an error page could cause issues.
 
 Force HTTPS protocol
 --------------------
