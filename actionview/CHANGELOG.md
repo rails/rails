@@ -1,3 +1,7 @@
+*   Added String support for min and max properties for date field helpers.
+
+    *Todd Bealmear*
+
 *   The `highlight` helper now accepts a block to be used instead of the `highlighter`
     option.
 
