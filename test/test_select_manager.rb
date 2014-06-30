@@ -140,7 +140,7 @@ module Arel
           mgr.to_sql.must_be_like %{ SELECT  FROM "users" INNER JOIN "users" "users_2" ON omg }
         end
 
-        it 'converts to sqlliterals' do
+        it 'converts to sqlliterals with multiple items' do
           table = Table.new :users
           right = table.alias
           mgr   = table.from table
@@ -152,7 +152,7 @@ module Arel
 
     describe 'clone' do
       it 'creates new cores' do
-        table   = Table.new :users, :engine => Table.engine, :as => 'foo'
+        table   = Table.new :users, :as => 'foo'
         mgr = table.from table
         m2 = mgr.clone
         m2.project "foo"
@@ -160,7 +160,7 @@ module Arel
       end
 
       it 'makes updates to the correct copy' do
-        table   = Table.new :users, :engine => Table.engine, :as => 'foo'
+        table   = Table.new :users, :as => 'foo'
         mgr = table.from table
         m2 = mgr.clone
         m3 = m2.clone
@@ -172,7 +172,7 @@ module Arel
 
     describe 'initialize' do
       it 'uses alias in sql' do
-        table   = Table.new :users, :engine => Table.engine, :as => 'foo'
+        table   = Table.new :users, :as => 'foo'
         mgr = table.from table
         mgr.skip 10
         mgr.to_sql.must_be_like %{ SELECT FROM "users" "foo" OFFSET 10 }
@@ -382,8 +382,7 @@ module Arel
       it 'should return the ast' do
         table   = Table.new :users
         mgr = table.from table
-        ast = mgr.ast
-        assert ast
+        assert mgr.ast
       end
 
       it 'should allow orders to work when the ast is grepped' do
@@ -532,7 +531,7 @@ module Arel
       assert_equal 'bar', join.right
     end
 
-    it 'should create join nodes with a klass' do
+    it 'should create join nodes with a full outer join klass' do
       relation = Arel::SelectManager.new Table.engine
       join = relation.create_join 'foo', 'bar', Arel::Nodes::FullOuterJoin
       assert_kind_of Arel::Nodes::FullOuterJoin, join
@@ -540,7 +539,7 @@ module Arel
       assert_equal 'bar', join.right
     end
 
-    it 'should create join nodes with a klass' do
+    it 'should create join nodes with a outer join klass' do
       relation = Arel::SelectManager.new Table.engine
       join = relation.create_join 'foo', 'bar', Arel::Nodes::OuterJoin
       assert_kind_of Arel::Nodes::OuterJoin, join
@@ -548,7 +547,7 @@ module Arel
       assert_equal 'bar', join.right
     end
 
-    it 'should create join nodes with a klass' do
+    it 'should create join nodes with a right outer join klass' do
       relation = Arel::SelectManager.new Table.engine
       join = relation.create_join 'foo', 'bar', Arel::Nodes::RightOuterJoin
       assert_kind_of Arel::Nodes::RightOuterJoin, join
@@ -616,7 +615,8 @@ module Arel
     end
 
     describe 'joins' do
-      it 'returns join sql' do
+
+      it 'returns inner join sql' do
         table   = Table.new :users
         aliaz   = table.alias
         manager = Arel::SelectManager.new Table.engine
@@ -648,6 +648,22 @@ module Arel
         joins = users.join(counts).on(counts[:user_id].eq(10))
         joins.to_sql.must_be_like  %{
           SELECT FROM "users" INNER JOIN (SELECT "comments"."user_id" AS user_id, COUNT("comments"."user_id") AS count FROM "comments" GROUP BY "comments"."user_id") counts ON counts."user_id" = 10
+        }
+      end
+
+      it "joins itself" do
+        left      = Table.new :users
+        right     = left.alias
+        predicate = left[:id].eq(right[:id])
+
+        mgr = left.join(right)
+        mgr.project Nodes::SqlLiteral.new('*')
+        mgr.on(predicate).must_equal mgr
+
+        mgr.to_sql.must_be_like %{
+           SELECT * FROM "users"
+             INNER JOIN "users" "users_2"
+               ON "users"."id" = "users_2"."id"
         }
       end
 
@@ -933,6 +949,27 @@ module Arel
     end
 
     describe 'update' do
+
+      it 'creates an update statement' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
+
+        stmt.to_sql.must_be_like %{
+          UPDATE "users" SET "id" = 1
+        }
+      end
+
+      it 'takes a string' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new Table.engine
+        manager.from table
+        stmt = manager.compile_update(Nodes::SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
+
+        stmt.to_sql.must_be_like %{ UPDATE "users" SET foo = bar }
+      end
+
       it 'copies limits' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
@@ -961,15 +998,6 @@ module Arel
         }
       end
 
-      it 'takes a string' do
-        table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
-        manager.from table
-        stmt = manager.compile_update(Nodes::SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
-
-        stmt.to_sql.must_be_like %{ UPDATE "users" SET foo = bar }
-      end
-
       it 'copies where clauses' do
         table   = Table.new :users
         manager = Arel::SelectManager.new Table.engine
@@ -995,19 +1023,15 @@ module Arel
         }
       end
 
-      it 'executes an update statement' do
-        table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
-        manager.from table
-        stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
-
-        stmt.to_sql.must_be_like %{
-          UPDATE "users" SET "id" = 1
-        }
-      end
     end
 
     describe 'project' do
+      it "takes sql literals" do
+        manager = Arel::SelectManager.new Table.engine
+        manager.project Nodes::SqlLiteral.new '*'
+        manager.to_sql.must_be_like %{ SELECT * }
+      end
+
       it 'takes multiple args' do
         manager = Arel::SelectManager.new Table.engine
         manager.project Nodes::SqlLiteral.new('foo'),
@@ -1021,11 +1045,6 @@ module Arel
         manager.to_sql.must_be_like %{ SELECT * }
       end
 
-      it "takes sql literals" do
-        manager = Arel::SelectManager.new Table.engine
-        manager.project Nodes::SqlLiteral.new '*'
-        manager.to_sql.must_be_like %{ SELECT * }
-      end
     end
 
     describe 'projections' do
@@ -1094,24 +1113,6 @@ module Arel
         manager = Arel::SelectManager.new Table.engine
         manager.from(table)
         manager.project(table['id']).where(table['id'].eq 1).must_equal manager
-      end
-    end
-
-    describe "join" do
-      it "joins itself" do
-        left      = Table.new :users
-        right     = left.alias
-        predicate = left[:id].eq(right[:id])
-
-        mgr = left.join(right)
-        mgr.project Nodes::SqlLiteral.new('*')
-        mgr.on(predicate).must_equal mgr
-
-        mgr.to_sql.must_be_like %{
-           SELECT * FROM "users"
-             INNER JOIN "users" "users_2"
-               ON "users"."id" = "users_2"."id"
-        }
       end
     end
 
