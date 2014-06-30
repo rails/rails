@@ -27,12 +27,13 @@ module ActionController
         host = options.delete(:host)
         before_filter(options) do
           if !request.ssl? && !Rails.env.development?
-            redirect_options = {:protocol => 'https://', :status => :moved_permanently}
-            redirect_options.merge!(:host => host) if host
-            redirect_options.merge!(:params => request.query_parameters)
-            redirect_options.merge!(:format => request.params[:format]) if request.format.present?
+            secure_url = ActionDispatch::Http::URL.url_for({
+              :protocol => 'https://',
+              :path     => request.fullpath,
+              :host     => host || request.host
+            })
 
-            redirect_to redirect_options
+            redirect_to secure_url, :status => :moved_permanently
           end
         end
       end
