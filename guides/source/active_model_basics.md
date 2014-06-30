@@ -3,16 +3,15 @@ Active Model Basics
 
 This guide should provide you with all you need to get started using model
 classes. Active Model allows for Action Pack helpers to interact with
-non-Active Record models. Active Model also helps building custom ORMs for use
+plain Ruby object. Active Model also helps building custom ORMs for use
 outside of the Rails framework.
 
-After reading this guide, you will know:
+After reading this guide, you will be able to add to plain Ruby objects:
 
-* How to create a plain Ruby object that behaves like an Active Record model.
-* Add callbacks and validations like Active Record to a plain Ruby object.
-* Add serializers to a plain Ruby object.
-* Integrate plain Ruby object with the Rails internationalization (i18n)
-framework.
+* The ability to behaves like an Active Record model.
+* Add callbacks and validations like Active Record.
+* Add serializers.
+* Integrate with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
@@ -20,9 +19,8 @@ Introduction
 ------------
 
 Active Model is a library containing various modules used in developing
-frameworks that need to interact with the Rails Action Pack library.
-Active Model provides a known set of interfaces for usage in classes.
-Some of modules are explained below.
+classes that need some features present on Active Record.
+Some of these modules are explained below.
 
 ### ActiveModel::AttributeMethods
 
@@ -243,7 +241,7 @@ class EmailContact
 end
 ```
 
-When including `ActiveModel::Model` you get some features like.
+When including `ActiveModel::Model` you get some features like:
 
 - model name instrospection
 - conversions
