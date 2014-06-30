@@ -202,16 +202,11 @@ module ActiveRecord
         if column.nil?
           ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
             `column_for_attribute` will return a null object for non-existent columns
-            in Rails 5.0. Use `attribute_exists?` if you need to check for an
+            in Rails 5.0. Use `has_attribute?` if you need to check for an
             attribute's existence.
           MESSAGE
         end
         column
-      end
-
-      # Returns whether or not an attribute exists with the given name.
-      def attribute_exists?(name)
-        @attributes.include?(name)
       end
     end
 
