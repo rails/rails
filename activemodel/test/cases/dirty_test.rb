@@ -47,7 +47,7 @@ class DirtyTest < ActiveModel::TestCase
     end
 
     def rollback
-      rollback_changes
+      undo_changes
     end
   end
 
@@ -181,7 +181,7 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
   end
 
-  test "rollback should restore all previous data" do
+  test "undo_changes should restore all previous data" do
     @model.name = 'Dmitry'
     @model.color = 'Red'
     @model.save

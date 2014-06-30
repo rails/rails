@@ -1,4 +1,4 @@
-*   Added `rollback_changes` method to `ActiveModel::Dirty` API to roolback all the
+*   Added `undo_changes` method to `ActiveModel::Dirty` API to restore all the
     changed values to the previous data.
 
     *Igor G.*

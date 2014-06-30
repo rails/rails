@@ -17,7 +17,7 @@ module ActiveModel
   # * Call <tt>changes_applied</tt> after the changes are persisted.
   # * Call <tt>reset_changes</tt> when you want to reset the changes
   #   information.
-  # * Call <tt>rollback_changes</tt> when you want to restore previous data
+  # * Call <tt>undo_changes</tt> when you want to restore previous data.
   #
   # A minimal implementation could be:
   #
@@ -45,7 +45,7 @@ module ActiveModel
   #     end
   #
   #     def rollback!
-  #       rollback_changes
+  #       undo_changes
   #     end
   #   end
   #
@@ -191,7 +191,7 @@ module ActiveModel
       end
 
       # Restore all previous data.
-      def rollback_changes # :doc:
+      def undo_changes # :doc:
         changed_attributes.each_key { |attr| reset_attribute! attr }
       end
 
