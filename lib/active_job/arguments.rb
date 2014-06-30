@@ -1,4 +1,5 @@
 require 'active_model/global_locator'
+require 'active_model/global_identification'
 
 module ActiveJob
   class Arguments
