@@ -18,8 +18,11 @@ module ActionView
           end
 
           def datetime_value(value)
-            return value unless value.is_a? String
-            DateTime.parse(value) rescue nil
+            if value.is_a? String
+              DateTime.parse(value) rescue nil
+            else
+              value
+            end
           end
       end
     end
