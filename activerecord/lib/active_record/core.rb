@@ -248,12 +248,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = {}
-      self.class.raw_column_defaults.each do |k, v|
-        defaults[k] = v.duplicable? ? v.dup : v
-      end
-
-      @attributes = self.class.attributes_builder.build_from_database(defaults)
+      @attributes = self.class.default_attributes.dup
 
       init_internals
       initialize_internals_callback

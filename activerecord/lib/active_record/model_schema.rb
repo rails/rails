@@ -224,8 +224,8 @@ module ActiveRecord
       end
 
       def column_types # :nodoc:
-        @column_types ||= Hash.new(Type::Value.new).tap do |column_types|
-          columns.each { |column| column_types[column.name] = column.cast_type }
+        @column_types ||= columns_hash.transform_values(&:cast_type).tap do |h|
+          h.default = Type::Value.new
         end
       end
 
@@ -236,17 +236,12 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        @column_defaults ||= Hash[raw_column_defaults.map { |name, default|
-          [name, type_for_attribute(name).type_cast_from_database(default)]
-        }]
+        default_attributes.to_hash
       end
 
-      # Returns a hash where the keys are the column names and the values
-      # are the default values suitable for use in `@raw_attriubtes`
-      def raw_column_defaults # :nodoc:
-        @raw_column_defaults ||= Hash[columns_hash.map { |name, column|
-          [name, column.default]
-        }]
+      def default_attributes # :nodoc:
+        @default_attributes ||= attributes_builder.build_from_database(
+          columns_hash.transform_values(&:default))
       end
 
       # Returns an array of column names as strings.
@@ -292,11 +287,10 @@ module ActiveRecord
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
         @arel_engine             = nil
-        @column_defaults         = nil
-        @raw_column_defaults     = nil
         @column_names            = nil
         @column_types            = nil
         @content_columns         = nil
+        @default_attributes      = nil
         @dynamic_methods_hash    = nil
         @inheritance_column      = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation                = nil
