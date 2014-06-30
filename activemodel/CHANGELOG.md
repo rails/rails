@@ -1,3 +1,8 @@
+*   Added `rollback_changes` method to `ActiveModel::Dirty` API to roolback all the
+    changed values to the previous data.
+
+    *Igor G.*
+
 *   Allow proc and symbol as values for `only_integer` of `NumericalityValidator`
 
     *Robin Mehner*

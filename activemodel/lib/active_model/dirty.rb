@@ -179,19 +179,19 @@ module ActiveModel
     private
 
       # Removes current changes and makes them accessible through +previous_changes+.
-      def changes_applied
+      def changes_applied # :doc:
         @previously_changed = changes
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      # Removes all dirty data: current changes and previous changes
-      def reset_changes
+      # Removes all dirty data: current changes and previous changes.
+      def reset_changes # :doc:
         @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      # Restore all previous data
-      def rollback_changes #:doc:
+      # Restore all previous data.
+      def rollback_changes # :doc:
         changed_attributes.each_key { |attr| reset_attribute! attr }
       end
 
