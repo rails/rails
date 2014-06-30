@@ -996,7 +996,7 @@ class UserControllerTest < ActionController::TestCase
 
     assert_equal "You have been invited by me@example.com", invite_email.subject
     assert_equal 'friend@example.com', invite_email.to[0]
-    assert_match(/Hi friend@example.com/, invite_email.body)
+    assert_match(/Hi friend@example.com/, invite_email.body.to_s)
   end
 end
 ```
