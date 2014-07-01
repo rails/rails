@@ -1,3 +1,9 @@
+*   Generate shallow paths for all children of shallow resources.
+
+    Fixes #15783.
+
+    *Seb Jacobs*
+
 *   JSONP responses are now rendered with the `text/javascript` content type
     when rendering through a `respond_to` block.
 

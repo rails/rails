@@ -2012,6 +2012,28 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/blogs/1/posts/2/comments/new', new_blog_post_comment_path(:blog_id => 1, :post_id => 2)
   end
 
+  def test_direct_children_of_shallow_resources
+    draw do
+      resources :blogs do
+        resources :posts, shallow: true do
+          resources :comments
+        end
+      end
+    end
+
+    post '/posts/1/comments'
+    assert_equal 'comments#create', @response.body
+    assert_equal '/posts/1/comments', post_comments_path('1')
+
+    get '/posts/2/comments/new'
+    assert_equal 'comments#new', @response.body
+    assert_equal '/posts/2/comments/new', new_post_comment_path('2')
+
+    get '/posts/1/comments'
+    assert_equal 'comments#index', @response.body
+    assert_equal '/posts/1/comments', post_comments_path('1')
+  end
+
   def test_shallow_nested_resources_within_scope
     draw do
       scope '/hello' do
