@@ -13,11 +13,11 @@ module ActionMailer
 
       # Enable or disable mailer previews through app configuration:
       #
-      #     config.action_mailer.preview_enabled = true
+      #     config.action_mailer.show_previews = true
       #
       # Defaults to true for development environment
       #
-      mattr_accessor :preview_enabled, instance_writer: false
+      mattr_accessor :show_previews, instance_writer: false
 
       # :nodoc:
       mattr_accessor :preview_interceptors, instance_writer: false
@@ -102,8 +102,8 @@ module ActionMailer
           Base.preview_path
         end
 
-        def preview_enabled #:nodoc:
-          Base.preview_enabled
+        def show_previews #:nodoc:
+          Base.show_previews
         end
 
         def inform_preview_interceptors(message) #:nodoc:

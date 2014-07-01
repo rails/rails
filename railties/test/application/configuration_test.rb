@@ -966,28 +966,28 @@ module ApplicationTests
       assert db_config.is_a?(Hash)
     end
 
-    test 'config.mail_preview_enabled defaults to true in development' do
+    test 'config.action_mailer.show_previews defaults to true in development' do
       Rails.env = "development"
       require "#{app_path}/config/environment"
 
-      assert Rails.application.config.action_mailer.preview_enabled
+      assert Rails.application.config.action_mailer.show_previews
     end
 
-    test 'config.mail_preview_enabled defaults to false in production' do
+    test 'config.action_mailer.show_previews defaults to false in production' do
       Rails.env = "production"
       require "#{app_path}/config/environment"
 
-      assert_equal Rails.application.config.action_mailer.preview_enabled, false
+      assert_equal Rails.application.config.action_mailer.show_previews, false
     end
 
-    test 'config.mail_preview_enabled can be set in the configuration file' do
+    test 'config.action_mailer.show_previews can be set in the configuration file' do
       Rails.env = "production"
       add_to_config <<-RUBY
-        config.action_mailer.preview_enabled = true
+        config.action_mailer.show_previews = true
       RUBY
       require "#{app_path}/config/environment"
 
-      assert_equal Rails.application.config.action_mailer.preview_enabled, true
+      assert_equal Rails.application.config.action_mailer.show_previews, true
     end
   end
 end

@@ -459,10 +459,10 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
     ```
 
-* `config.action_mailer.preview_enabled` enable or disable mailer previews. By default this is `true` in development.
+* `config.action_mailer.show_previews` enable or disable mailer previews. By default this is `true` in development.
 
     ```ruby
-    config.action_mailer.preview_enabled = false
+    config.action_mailer.show_previews = false
     ```
 
 ### Configuring Active Support

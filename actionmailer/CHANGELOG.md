@@ -1,4 +1,4 @@
-*   Add `config.action_mailer.preview_enabled` configuration option.
+*   Add `config.action_mailer.show_previews` configuration option.
 
     This config option can be used to enable the mail preview in environments
     other than development (such as staging).

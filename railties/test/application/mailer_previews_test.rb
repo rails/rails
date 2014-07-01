@@ -27,14 +27,14 @@ module ApplicationTests
     end
 
     test "/rails/mailers is accessible with correct configuraiton" do
-      add_to_config "config.action_mailer.preview_enabled = true"
+      add_to_config "config.action_mailer.show_previews = true"
       app("production")
       get "/rails/mailers"
       assert_equal 200, last_response.status
     end
 
-    test "/rails/mailers is not accessible with preview_enabled = false" do
-      add_to_config "config.action_mailer.preview_enabled = false"
+    test "/rails/mailers is not accessible with show_previews = false" do
+      add_to_config "config.action_mailer.show_previews = false"
       app("development")
       get "/rails/mailers"
       assert_equal 404, last_response.status
