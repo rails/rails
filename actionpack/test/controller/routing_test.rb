@@ -839,8 +839,11 @@ end
 class RouteSetTest < ActiveSupport::TestCase
   include RoutingTestHelpers
 
-  def set
-    @set ||= ROUTING::RouteSet.new
+  attr_reader :set
+
+  def setup
+    super
+    @set = ROUTING::RouteSet.new
   end
 
   def request
