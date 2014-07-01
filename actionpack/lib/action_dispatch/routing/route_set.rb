@@ -9,6 +9,7 @@ require 'active_support/core_ext/array/extract_options'
 require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
 require 'action_dispatch/routing/endpoint'
+require 'action_dispatch/routing/dsl/scope'
 
 module ActionDispatch
   module Routing
@@ -312,12 +313,10 @@ module ActionDispatch
           raise "You are using the old router DSL which has been removed in Rails 3.1. " <<
             "Please check how to update your routes file at: http://www.engineyard.com/blog/2010/the-lowdown-on-routes-in-rails-3/"
         end
-        mapper = Mapper.new(self)
-        if default_scope
-          mapper.with_default_scope(default_scope, &block)
-        else
-          mapper.instance_exec(&block)
-        end
+        scope_defaults = default_scope || { :path_names => resources_path_names }
+        scope = DSL::Scope.new(nil, scope_defaults)
+        scope.set = self
+        scope.instance_exec(&block)
       end
 
       def finalize!
