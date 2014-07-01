@@ -9,6 +9,7 @@ require 'active_support/core_ext/array/extract_options'
 require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
 require 'action_dispatch/routing/endpoint'
+require 'action_dispatch/url_generation'
 
 module ActionDispatch
   module Routing
@@ -157,7 +158,7 @@ module ActionDispatch
 
             def call(t, args, inner_options)
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
-                options = t.url_options.merge @options
+                options = t.context.url_options.merge @options
                 options[:path] = optimized_helper(args)
                 ActionDispatch::Http::URL.url_for(options)
               else
@@ -390,7 +391,7 @@ module ActionDispatch
               delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
               attr_reader :_routes
               def url_options; {}; end
-              NULL_CONTEXT = Struct.new(:path_parameters, :url_options).new({}, {})
+              NULL_CONTEXT = ActionDispatch::UrlGeneration.empty({})
               def context; NULL_CONTEXT; end
             end
 

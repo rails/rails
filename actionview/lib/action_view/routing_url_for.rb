@@ -1,4 +1,5 @@
 require 'action_dispatch/routing/polymorphic_routes'
+require 'action_dispatch/url_generation'
 
 module ActionView
   module RoutingUrlFor
@@ -101,10 +102,8 @@ module ActionView
       controller.url_options
     end
 
-    Context = Struct.new(:path_parameters, :url_options)
     def context
-      Context.new(controller.request.path_parameters,
-                  controller.url_options)
+      controller.context
     end
 
     def _routes_context #:nodoc:

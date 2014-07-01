@@ -1,3 +1,5 @@
+require 'action_dispatch/url_generation'
+
 module ActionController
   # Includes +url_for+ into the host class. The class has to provide a +RouteSet+ by implementing
   # the <tt>_routes</tt> method. Otherwise, an exception will be raised.
@@ -22,21 +24,8 @@ module ActionController
 
     include AbstractController::UrlFor
 
-    class Context
-      attr_reader :url_options
-
-      def initialize(request, url_options)
-        @request     = request
-        @url_options = url_options
-      end
-
-      def path_parameters
-        @request.path_parameters
-      end
-    end
-
     def context
-      @context ||= Context.new(request, url_options)
+      @context ||= ActionDispatch::UrlGeneration.request(request, url_options)
     end
 
     def url_options

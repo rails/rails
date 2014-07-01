@@ -2,6 +2,7 @@ require 'stringio'
 require 'uri'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/try'
+require 'action_dispatch/url_generation'
 require 'rack/test'
 
 module ActionDispatch
@@ -208,12 +209,11 @@ module ActionDispatch
         end
       end
 
-      CONTEXT = Struct.new(:path_parameters, :url_options)
       def context
         if controller
-          CONTEXT.new(controller.request.path_parameters, url_options)
+          ActionDispatch::UrlGeneration.request(request, url_options)
         else
-          CONTEXT.new({}, url_options)
+          ActionDispatch::UrlGeneration.empty(url_options)
         end
       end
 
@@ -498,12 +498,11 @@ module ActionDispatch
       super || self.class.app
     end
 
-    CONTEXT = Struct.new(:path_parameters, :url_options)
     def context
       if controller
-        CONTEXT.new(controller.request.path_parameters, url_options)
+        ActionDispatch::UrlGeneration.request request, url_options
       else
-        CONTEXT.new({}, url_options)
+        ActionDispatch::UrlGeneration.empty url_options
       end
     end
 

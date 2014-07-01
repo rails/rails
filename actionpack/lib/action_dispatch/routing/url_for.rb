@@ -1,3 +1,5 @@
+require 'action_dispatch/url_generation'
+
 module ActionDispatch
   module Routing
     # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
@@ -111,9 +113,8 @@ module ActionDispatch
         default_url_options
       end
 
-      CONTEXT = Struct.new(:path_parameters, :url_options)
       def context
-        CONTEXT.new({}, url_options)
+        ActionDispatch::UrlGeneration.empty url_options
       end
 
       # Generate a url based on the options provided, default_url_options and the

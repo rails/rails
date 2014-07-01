@@ -8,12 +8,8 @@ module ActionDispatch
       attr_accessor :scope, :routes
       alias :_routes :routes
 
-      Context = Struct.new(:path_parameters, :url_options)
-
       def initialize(routes, scope)
         @routes, @scope = routes, scope
-        context = Context.new(scope_context.path_parameters,
-                              scope_context.url_options)
         @controller = Class.new {
           attr_reader :context
           def initialize(context)
@@ -21,7 +17,7 @@ module ActionDispatch
           end
 
           include routes.url_helpers
-        }.new(context)
+        }.new(scope_context)
       end
 
       def url_options
