@@ -1606,7 +1606,6 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_slashes_are_implied
-    @set = nil
     set.draw { get("/:controller(/:action(/:id))") }
 
     assert_equal '/content',        url_for(set, { :controller => 'content', :action => 'index' })
