@@ -1,5 +1,4 @@
 require 'action_dispatch/routing/polymorphic_routes'
-require 'action_dispatch/url_generation'
 
 module ActionView
   module RoutingUrlFor
