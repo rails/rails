@@ -651,7 +651,7 @@ module ActionDispatch
         _url_for({}, options)
       end
 
-      def _url_for(recall, options)
+      def _url_for(path_params, options)
         options = default_url_options.merge options
 
         user = password = nil
@@ -671,7 +671,7 @@ module ActionDispatch
         path_options = options.dup
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
-        path, params = generate(path_options, recall)
+        path, params = generate(path_options, path_params)
 
         if options.key? :params
           params.merge! options[:params]
