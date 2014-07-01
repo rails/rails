@@ -198,7 +198,7 @@ module ActionDispatch
 
       def url_options
         @url_options ||= default_url_options.dup.tap do |url_options|
-          url_options.reverse_merge!(controller.url_options) if controller
+          url_options.reverse_merge!(controller.url_only_options) if controller
 
           if @app.respond_to?(:routes)
             url_options.reverse_merge!(@app.routes.default_url_options)
@@ -208,12 +208,12 @@ module ActionDispatch
         end
       end
 
-      NULL_CONTEXT = Struct.new(:path_parameters).new({})
+      CONTEXT = Struct.new(:path_parameters, :url_options)
       def context
         if controller
-          controller.request
+          CONTEXT.new(controller.request.path_parameters, url_options)
         else
-          NULL_CONTEXT
+          CONTEXT.new({}, url_options)
         end
       end
 
@@ -498,12 +498,12 @@ module ActionDispatch
       super || self.class.app
     end
 
-    NULL_CONTEXT = Struct.new(:path_parameters).new({})
+    CONTEXT = Struct.new(:path_parameters, :url_options)
     def context
       if controller
-        controller.request
+        CONTEXT.new(controller.request.path_parameters, url_options)
       else
-        NULL_CONTEXT
+        CONTEXT.new({}, url_options)
       end
     end
 

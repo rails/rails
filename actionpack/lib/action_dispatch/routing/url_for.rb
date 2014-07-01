@@ -111,8 +111,10 @@ module ActionDispatch
         default_url_options
       end
 
-      NULL_CONTEXT = Struct.new(:path_parameters).new({})
-      def context; NULL_CONTEXT; end
+      CONTEXT = Struct.new(:path_parameters, :url_options)
+      def context
+        CONTEXT.new({}, url_options)
+      end
 
       # Generate a url based on the options provided, default_url_options and the
       # routes defined in routes.rb. The following options are supported:
@@ -153,9 +155,13 @@ module ActionDispatch
       def url_for(options = nil)
         case options
         when nil
-          _routes.url_for(url_options.symbolize_keys)
+          hash = url_options.symbolize_keys
+          hash.delete :_recall
+          _routes._url_for(context.path_parameters, hash)
         when Hash
-          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
+          hash = options.symbolize_keys.reverse_merge!(url_options)
+          hash.delete :_recall
+          _routes._url_for(context.path_parameters, hash)
         when String
           options
         when Symbol

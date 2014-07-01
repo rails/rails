@@ -28,8 +28,21 @@ module ActionController
       h
     end
 
+    class Context
+      attr_reader :url_options
+
+      def initialize(request, url_options)
+        @request     = request
+        @url_options = url_options
+      end
+
+      def path_parameters
+        @request.path_parameters
+      end
+    end
+
     def context
-      @context ||= request
+      @context ||= Context.new(request, url_only_options)
     end
 
     def url_options

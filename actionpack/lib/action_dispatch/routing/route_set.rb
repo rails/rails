@@ -208,7 +208,8 @@ module ActionDispatch
           end
 
           def call(t, args, inner_options)
-            controller_options = t.url_options
+            context = t.context
+            controller_options = context.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
                                           inner_options || {},
@@ -389,7 +390,7 @@ module ActionDispatch
               delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
               attr_reader :_routes
               def url_options; {}; end
-              NULL_CONTEXT = Struct.new(:path_parameters).new({})
+              NULL_CONTEXT = Struct.new(:path_parameters, :url_options).new({}, {})
               def context; NULL_CONTEXT; end
             end
 
