@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/extract_options'
-require 'action_dispatch/routing/dsl/abstract_scope/nil_refinement'
 require 'action_dispatch/routing/dsl/abstract_scope/normalization'
 
 module DSL
