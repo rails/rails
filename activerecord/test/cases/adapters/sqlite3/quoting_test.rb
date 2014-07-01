@@ -103,6 +103,13 @@ module ActiveRecord
           }.new
           assert_raise(TypeError) { @conn.type_cast(quoted_id_obj, nil) }
         end
+
+        def test_quoting_binary_strings
+          value = "hello".encode('ascii-8bit')
+          column = Column.new(nil, 1, SQLite3String.new)
+
+          assert_equal "'hello'", @conn.quote(value, column)
+        end
       end
     end
   end
