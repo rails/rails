@@ -10,6 +10,14 @@ module ActionDispatch
 
       def initialize(routes, scope)
         @routes, @scope = routes, scope
+        @controller = Class.new {
+          attr_reader :context
+          def initialize(context)
+            @context = context
+          end
+
+          include routes.url_helpers
+        }.new(scope.context)
       end
 
       def url_options
@@ -28,7 +36,7 @@ module ActionDispatch
             def #{method}(*args)
               options = args.extract_options!
               args << url_options.merge((options || {}).symbolize_keys)
-              routes.url_helpers.#{method}(*args)
+              @controller.#{method}(*args)
             end
           RUBY
           send(method, *args)

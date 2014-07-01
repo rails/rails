@@ -22,6 +22,16 @@ module ActionController
 
     include AbstractController::UrlFor
 
+    def url_only_options
+      h = url_options.dup
+      h.delete :_recall
+      h
+    end
+
+    def context
+      @context ||= request
+    end
+
     def url_options
       @_url_options ||= {
         :host => request.host,

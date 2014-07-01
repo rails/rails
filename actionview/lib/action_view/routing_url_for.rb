@@ -101,6 +101,10 @@ module ActionView
       controller.url_options
     end
 
+    def context
+      controller.request
+    end
+
     def _routes_context #:nodoc:
       controller
     end

@@ -111,6 +111,9 @@ module ActionDispatch
         default_url_options
       end
 
+      NULL_CONTEXT = Struct.new(:path_parameters).new({})
+      def context; NULL_CONTEXT; end
+
       # Generate a url based on the options provided, default_url_options and the
       # routes defined in routes.rb. The following options are supported:
       #

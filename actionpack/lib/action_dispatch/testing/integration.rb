@@ -208,6 +208,15 @@ module ActionDispatch
         end
       end
 
+      NULL_CONTEXT = Struct.new(:path_parameters).new({})
+      def context
+        if controller
+          controller.request
+        else
+          NULL_CONTEXT
+        end
+      end
+
       # Resets the instance. This can be used to reset the state information
       # in an existing session instance, so it can be used from a clean-slate
       # condition.
@@ -487,6 +496,15 @@ module ActionDispatch
 
     def app
       super || self.class.app
+    end
+
+    NULL_CONTEXT = Struct.new(:path_parameters).new({})
+    def context
+      if controller
+        controller.request
+      else
+        NULL_CONTEXT
+      end
     end
 
     def url_options

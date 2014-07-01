@@ -216,7 +216,7 @@ module ActionDispatch
                                           options,
                                           @segment_keys)
 
-            t._routes.url_for(hash)
+            t._routes._url_for(t.context.path_parameters, hash)
           end
 
           def handle_positional_args(controller_options, inner_options, args, result, path_params)
@@ -389,6 +389,8 @@ module ActionDispatch
               delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
               attr_reader :_routes
               def url_options; {}; end
+              NULL_CONTEXT = Struct.new(:path_parameters).new({})
+              def context; NULL_CONTEXT; end
             end
 
             # Make named_routes available in the module singleton
@@ -644,6 +646,10 @@ module ActionDispatch
 
       # The +options+ argument must be a hash whose keys are *symbols*.
       def url_for(options)
+        _url_for options.delete(:_recall) { {} }, options
+      end
+
+      def _url_for(recall, options)
         options = default_url_options.merge options
 
         user = password = nil
@@ -652,8 +658,6 @@ module ActionDispatch
           user     = options.delete :user
           password = options.delete :password
         end
-
-        recall  = options.delete(:_recall) { {} }
 
         original_script_name = options.delete(:original_script_name)
         script_name = find_script_name options
