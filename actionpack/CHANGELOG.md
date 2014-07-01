@@ -170,5 +170,10 @@
 
     *Tony Wooster*
 
+*   Allowing `recognize_path` uses the given environment which can be
+    `request.env`. This allows using `request.env` keys within `route`
+    constraints.
+
+    *Tony Wooster*
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionpack/CHANGELOG.md) for previous changes.
