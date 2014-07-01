@@ -1,3 +1,9 @@
+*   Generate shallow paths for all children of shallow resources.
+
+    Fixes #15783.
+
+    *Seb Jacobs*
+
 *   JSONP responses are now rendered with the `text/javascript` content type
     when rendering through a `respond_to` block.
 
@@ -176,6 +182,5 @@
     `default_url_options` methods.
 
     *Tony Wooster*
-
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionpack/CHANGELOG.md) for previous changes.
