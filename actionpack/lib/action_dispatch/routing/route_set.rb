@@ -334,6 +334,10 @@ module ActionDispatch
         @prepend.each { |blk| eval_block(blk) }
       end
 
+      def dispatcher(defaults)
+        Routing::RouteSet::Dispatcher.new(defaults)
+      end
+
       module MountedHelpers #:nodoc:
         extend ActiveSupport::Concern
         include UrlFor

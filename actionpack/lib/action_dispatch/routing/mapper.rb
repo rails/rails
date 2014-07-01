@@ -66,7 +66,7 @@ module ActionDispatch
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
-        def self.build(scope, path, options)
+        def self.build(scope, set, path, options)
           options = scope[:options].merge(options) if scope[:options]
 
           options.delete :only
@@ -77,12 +77,13 @@ module ActionDispatch
 
           defaults = (scope[:defaults] || {}).merge options.delete(:defaults) || {}
 
-          new scope, path, defaults, options
+          new scope, set, path, defaults, options
         end
 
-        def initialize(scope, path, defaults, options)
+        def initialize(scope, set, path, defaults, options)
           @requirements, @conditions = {}, {}
           @defaults = defaults
+          @set = set
 
           @to                 = options.delete :to
           @default_controller = options.delete(:controller) || scope[:controller]
@@ -249,9 +250,9 @@ module ActionDispatch
               Constraints.new(to, blocks, false)
             else
               if blocks.any?
-                Constraints.new(dispatcher, blocks, true)
+                Constraints.new(dispatcher(defaults), blocks, true)
               else
-                dispatcher
+                dispatcher(defaults)
               end
             end
           end
@@ -348,8 +349,8 @@ module ActionDispatch
             parser.parse path
           end
 
-          def dispatcher
-            Routing::RouteSet::Dispatcher.new(defaults)
+          def dispatcher(defaults)
+            @set.dispatcher defaults
           end
       end
 
@@ -1551,7 +1552,7 @@ module ActionDispatch
             options[:as] = name_for_action(options[:as], action)
           end
 
-          mapping = Mapping.build(@scope, URI.parser.escape(path), options)
+          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
