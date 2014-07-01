@@ -1706,7 +1706,43 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal '/ibocorp', url_for(set, { :controller => 'ibocorp', :action => "show", :page => 1 })
   end
 
+  include ActionDispatch::RoutingVerbs
+
+  class TestSet < ROUTING::RouteSet
+    def initialize(block)
+      @block = block
+      super()
+    end
+
+    class Dispatcher < ROUTING::RouteSet::Dispatcher
+      def initialize(defaults, set, block)
+        super(defaults)
+        @block = block
+        @set = set
+      end
+
+      def controller_reference(controller_param)
+        block = @block
+        set = @set
+        Class.new(ActionController::Base) {
+          include set.url_helpers
+          define_method(:process) { |name| block.call(self) }
+          def to_a; [200, {}, []]; end
+        }
+      end
+    end
+
+    def dispatcher defaults
+      TestSet::Dispatcher.new defaults, self, @block
+    end
+  end
+
+  alias :routes :set
+
   def test_generate_with_optional_params_recalls_last_request
+    controller = nil
+    @set = TestSet.new ->(c) { controller = c }
+
     set.draw do
       get "blog/", :controller => "blog", :action => "index"
 
@@ -1721,23 +1757,29 @@ class RouteSetTest < ActiveSupport::TestCase
       get "*anything", :controller => "blog", :action => "unknown_request"
     end
 
-    assert_equal({:controller => "blog", :action => "index"}, set.recognize_path("/blog"))
-    assert_equal({:controller => "blog", :action => "show", :id => "123"}, set.recognize_path("/blog/show/123"))
-    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :day => nil, :month => nil }, set.recognize_path("/blog/2004"))
-    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => nil }, set.recognize_path("/blog/2004/12"))
-    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => "25"}, set.recognize_path("/blog/2004/12/25"))
-    assert_equal({:controller => "articles", :action => "edit", :id => "123"}, set.recognize_path("/blog/articles/edit/123"))
-    assert_equal({:controller => "articles", :action => "show_stats"}, set.recognize_path("/blog/articles/show_stats"))
-    assert_equal({:controller => "blog", :action => "unknown_request", :anything => "blog/wibble"}, set.recognize_path("/blog/wibble"))
-    assert_equal({:controller => "blog", :action => "unknown_request", :anything => "junk"}, set.recognize_path("/junk"))
+    recognize_path = ->(path) {
+      get(URI("http://example.org" + path))
+      controller.request.path_parameters
+    }
 
-    last_request = set.recognize_path("/blog/2006/07/28").freeze
-    assert_equal({:controller => "blog",  :action => "show_date", :year => "2006", :month => "07", :day => "28"}, last_request)
-    assert_equal("/blog/2006/07/25", url_for(set, { :day => 25 }, last_request))
-    assert_equal("/blog/2005",       url_for(set, { :year => 2005 }, last_request))
-    assert_equal("/blog/show/123",   url_for(set, { :action => "show" , :id => 123 }, last_request))
-    assert_equal("/blog/2006",       url_for(set, { :year => 2006 }, last_request))
-    assert_equal("/blog/2006",       url_for(set, { :year => 2006, :month => nil }, last_request))
+    assert_equal({:controller => "blog", :action => "index"}, recognize_path.("/blog"))
+    assert_equal({:controller => "blog", :action => "show", :id => "123"}, recognize_path.("/blog/show/123"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :day => nil, :month => nil }, recognize_path.("/blog/2004"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => nil }, recognize_path.("/blog/2004/12"))
+    assert_equal({:controller => "blog", :action => "show_date", :year => "2004", :month => "12", :day => "25"}, recognize_path.("/blog/2004/12/25"))
+    assert_equal({:controller => "articles", :action => "edit", :id => "123"}, recognize_path.("/blog/articles/edit/123"))
+    assert_equal({:controller => "articles", :action => "show_stats"}, recognize_path.("/blog/articles/show_stats"))
+    assert_equal({:controller => "blog", :action => "unknown_request", :anything => "blog/wibble"}, recognize_path.("/blog/wibble"))
+    assert_equal({:controller => "blog", :action => "unknown_request", :anything => "junk"}, recognize_path.("/junk"))
+
+    get URI('http://example.org/blog/2006/07/28')
+
+    assert_equal({:controller => "blog",  :action => "show_date", :year => "2006", :month => "07", :day => "28"}, controller.request.path_parameters)
+    assert_equal("/blog/2006/07/25", controller.url_for({ :day => 25, :only_path => true }))
+    assert_equal("/blog/2005",       controller.url_for({ :year => 2005, :only_path => true }))
+    assert_equal("/blog/show/123",   controller.url_for({ :action => "show" , :id => 123, :only_path => true }))
+    assert_equal("/blog/2006",       controller.url_for({ :year => 2006, :only_path => true }))
+    assert_equal("/blog/2006",       controller.url_for({ :year => 2006, :month => nil, :only_path => true }))
   end
 
   private
