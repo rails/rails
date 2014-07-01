@@ -687,11 +687,7 @@ module ActionController
 
       def build_request_uri(action, parameters)
         unless @request.env["PATH_INFO"]
-          options = if @controller.respond_to?(:url_options)
-                      @controller.__send__(:url_options).merge(parameters)
-                    else
-                      parameters
-                    end
+          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
 
           options.update(
             :only_path => true,
