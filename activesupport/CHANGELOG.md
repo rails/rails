@@ -1,3 +1,10 @@
+*   `DateTime#to_f` now preserves the fractional seconds instead of always
+    rounding to `.0`.
+
+    Fixes #15994.
+
+    *John Paul Ashenfelter*
+
 *   Add `Hash#transform_values` to simplify a common pattern where the values of a
     hash must change, but the keys are left the same.
 
