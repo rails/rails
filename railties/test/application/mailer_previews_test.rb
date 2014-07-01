@@ -26,6 +26,20 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "/rails/mailers is accessible with correct configuraiton" do
+      add_to_config "config.action_mailer.preview_enabled = true"
+      app("production")
+      get "/rails/mailers"
+      assert_equal 200, last_response.status
+    end
+
+    test "/rails/mailers is not accessible with preview_enabled = false" do
+      add_to_config "config.action_mailer.preview_enabled = false"
+      app("development")
+      get "/rails/mailers"
+      assert_equal 404, last_response.status
+    end
+
     test "mailer previews are loaded from the default preview_path" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base

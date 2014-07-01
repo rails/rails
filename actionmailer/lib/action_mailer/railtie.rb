@@ -18,8 +18,9 @@ module ActionMailer
       options.assets_dir      ||= paths["public"].first
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
+      options.preview_enabled = Rails.env.development? if options.preview_enabled.nil?
 
-      if Rails.env.development?
+      if options.preview_enabled
         options.preview_path  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
       end
 
@@ -37,6 +38,13 @@ module ActionMailer
         register_observers(options.delete(:observers))
 
         options.each { |k,v| send("#{k}=", v) }
+
+        if options.preview_enabled
+          app.routes.append do
+            get '/rails/mailers'         => "rails/mailers#index"
+            get '/rails/mailers/*path'   => "rails/mailers#preview"
+          end
+        end
       end
     end
 
