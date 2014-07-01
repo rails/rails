@@ -3,6 +3,8 @@ A Guide for Upgrading Ruby on Rails
 
 This guide provides steps to be followed when you upgrade your applications to a newer version of Ruby on Rails. These steps are also available in individual release guides.
 
+--------------------------------------------------------------------------------
+
 General Advice
 --------------
 
