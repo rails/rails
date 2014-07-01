@@ -275,7 +275,7 @@ class ::ApplicationController < ActionController::Base
 end
 
 class Workshop
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
   attr_accessor :id
 

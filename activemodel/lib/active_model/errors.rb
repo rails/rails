@@ -13,7 +13,7 @@ module ActiveModel
   #
   #   class Person
   #     # Required dependency for ActiveModel::Errors
-  #     extend ActiveModel::Naming
+  #     include ActiveModel::Naming
   #
   #     def initialize
   #       @errors = ActiveModel::Errors.new(self)
@@ -434,7 +434,7 @@ module ActiveModel
 
       options = {
         default: defaults,
-        model: @base.class.model_name.human,
+        model: @base.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
         value: value
       }.merge!(options)

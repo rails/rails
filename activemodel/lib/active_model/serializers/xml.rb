@@ -12,7 +12,7 @@ module ActiveModel
       include ActiveModel::Serialization
 
       included do
-        extend ActiveModel::Naming
+        include ActiveModel::Naming
       end
 
       class Serializer #:nodoc:
@@ -84,7 +84,7 @@ module ActiveModel
           @builder = options[:builder]
           @builder.instruct! unless options[:skip_instruct]
 
-          root = (options[:root] || @serializable.class.model_name.element).to_s
+          root = (options[:root] || @serializable.model_name.element).to_s
           root = ActiveSupport::XmlMini.rename_key(root, options)
 
           args = [root]

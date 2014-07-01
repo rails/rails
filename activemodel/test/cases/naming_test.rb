@@ -273,8 +273,22 @@ class NameWithAnonymousClassTest < ActiveModel::TestCase
   end
 end
 
-class NamingMethodDelegationTest < ActiveModel::TestCase
-  def test_model_name
-    assert_equal Blog::Post.model_name, Blog::Post.new.model_name
+class NamingUsage < ActiveModel::TestCase
+  class MyModel; end
+
+  def test_extend_naming_is_a_warning
+    assert_deprecated do
+      MyModel.extend ActiveModel::Naming
+    end
+  end
+
+  def test_include_naming_defines_instance_accessor
+    MyModel.send(:include, ActiveModel::Naming)
+    assert_equal MyModel.new.model_name, ActiveModel::Name.new(MyModel)
+  end
+
+  def test_include_naming_defines_class_accessor
+    MyModel.send(:include, ActiveModel::Naming)
+    assert_equal MyModel.model_name, ActiveModel::Name.new(MyModel)
   end
 end

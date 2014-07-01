@@ -4,6 +4,6 @@ module Blog
   end
 
   class Post
-    extend ActiveModel::Naming
+    include ActiveModel::Naming
   end
 end

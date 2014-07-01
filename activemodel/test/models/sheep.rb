@@ -1,3 +1,3 @@
 class Sheep
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
 end

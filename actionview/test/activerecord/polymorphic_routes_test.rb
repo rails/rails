@@ -34,8 +34,8 @@ class ModelDelegator < ActiveRecord::Base
 end
 
 class ModelDelegate
-  def self.model_name
-    ActiveModel::Name.new(self)
+  def model_name
+    ActiveModel::Name.new(self.class)
   end
 
   def to_param

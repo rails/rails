@@ -249,9 +249,9 @@ module ActionDispatch
           model = record.to_model
           name = if record.persisted?
                    args << model
-                   model.class.model_name.singular_route_key
+                   model.model_name.singular_route_key
                  else
-                   @key_strategy.call model.class.model_name
+                   @key_strategy.call model.model_name
                  end
 
           named_route = prefix + "#{name}_#{suffix}"
@@ -279,7 +279,7 @@ module ActionDispatch
               parent.model_name.singular_route_key
             else
               args << parent.to_model
-              parent.to_model.class.model_name.singular_route_key
+              parent.to_model.model_name.singular_route_key
             end
           }
 
@@ -292,9 +292,9 @@ module ActionDispatch
           else
             if record.persisted?
               args << record.to_model
-              record.to_model.class.model_name.singular_route_key
+              record.to_model.model_name.singular_route_key
             else
-              @key_strategy.call record.to_model.class.model_name
+              @key_strategy.call record.to_model.model_name
             end
           end
 

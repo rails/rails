@@ -73,12 +73,12 @@ module ActiveModel
 
       # == \Naming
       #
-      # Model.model_name must return a string with some convenience methods:
-      # <tt>:human</tt>, <tt>:singular</tt> and <tt>:plural</tt>. Check
-      # ActiveModel::Naming for more information.
+      # Model#model_name must return a string with some convenience methods:
+      # <tt>:human</tt>, <tt>:singular</tt> and <tt>:plural</tt>.
+      # Check ActiveModel::Naming for more information.
       def test_model_naming
-        assert model.class.respond_to?(:model_name), "The model should respond to model_name"
-        model_name = model.class.model_name
+        assert model.respond_to?(:model_name), "The model should respond to model_name"
+        model_name = model.model_name
         assert model_name.respond_to?(:to_str)
         assert model_name.human.respond_to?(:to_str)
         assert model_name.singular.respond_to?(:to_str)

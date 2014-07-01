@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 class RecordTagPost
-  extend ActiveModel::Naming
+  include ActiveModel::Naming
   include ActiveModel::Conversion
   attr_accessor :id, :body
 

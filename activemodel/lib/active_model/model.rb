@@ -58,7 +58,7 @@ module ActiveModel
   module Model
     def self.included(base) #:nodoc:
       base.class_eval do
-        extend  ActiveModel::Naming
+        include ActiveModel::Naming
         extend  ActiveModel::Translation
         include ActiveModel::Validations
         include ActiveModel::Conversion

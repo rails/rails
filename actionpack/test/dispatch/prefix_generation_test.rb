@@ -3,7 +3,7 @@ require 'rack/test'
 
 module TestGenerationPrefix
   class Post
-    extend ActiveModel::Naming
+    include ActiveModel::Naming
 
     def to_param
       "1"
