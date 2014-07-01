@@ -104,7 +104,7 @@ module ActionView
     Context = Struct.new(:path_parameters, :url_options)
     def context
       Context.new(controller.request.path_parameters,
-                  controller.url_only_options)
+                  controller.url_options)
     end
 
     def _routes_context #:nodoc:

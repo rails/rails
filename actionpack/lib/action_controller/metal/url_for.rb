@@ -22,12 +22,6 @@ module ActionController
 
     include AbstractController::UrlFor
 
-    def url_only_options
-      h = url_options.dup
-      h.delete :_recall
-      h
-    end
-
     class Context
       attr_reader :url_options
 
@@ -42,15 +36,14 @@ module ActionController
     end
 
     def context
-      @context ||= Context.new(request, url_only_options)
+      @context ||= Context.new(request, url_options)
     end
 
     def url_options
       @_url_options ||= {
         :host => request.host,
         :port => request.optional_port,
-        :protocol => request.protocol,
-        :_recall => request.path_parameters
+        :protocol => request.protocol
       }.merge(super).freeze
 
       if (same_origin = _routes.equal?(env["action_dispatch.routes".freeze])) ||

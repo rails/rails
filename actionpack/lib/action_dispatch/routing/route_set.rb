@@ -647,7 +647,7 @@ module ActionDispatch
 
       # The +options+ argument must be a hash whose keys are *symbols*.
       def url_for(options)
-        _url_for options.delete(:_recall) { {} }, options
+        _url_for({}, options)
       end
 
       def _url_for(recall, options)
