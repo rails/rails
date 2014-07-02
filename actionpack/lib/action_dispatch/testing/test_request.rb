@@ -39,7 +39,7 @@ module ActionDispatch
     end
 
     def action=(action_name)
-      path_parameters["action"] = action_name.to_s
+      path_parameters[:action] = action_name.to_s
     end
 
     def if_modified_since=(last_modified)
