@@ -19,6 +19,11 @@
     *Larry Lv*
 
 
+## Rails 4.0.8 (July 2, 2014) ##
+
+*No changes*
+
+
 ## Rails 4.0.7 (July 2, 2014) ##
 
 *No changes*
