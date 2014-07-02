@@ -1,3 +1,10 @@
+*   JSONP responses are now rendered with the `text/javascript` content type
+    when rendering through a `respond_to` block.
+
+    Fixes #15081.
+
+    *Lucas Mazza*
+
 *   Add `config.action_controller.always_permitted_parameters` to configure which
     parameters are permitted globally. The default value of this configuration is
     `['controller', 'action']`.
