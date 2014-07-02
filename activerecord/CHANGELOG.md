@@ -1,3 +1,12 @@
+## Rails 4.0.7 (July 2, 2014) ##
+
+*   Fix SQL Injection Vulnerability in 'range' quoting.
+
+    Fixes CVE-2014-3483
+
+    *Rafael Mendonça França*
+
+
 ## Rails 4.0.6 (June 26, 2014) ##
 
 *   Fixed the inferred table name of a has_and_belongs_to_many auxiliar

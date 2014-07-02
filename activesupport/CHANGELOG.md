@@ -1,3 +1,8 @@
+## Rails 4.0.7 (July 2, 2014) ##
+
+*No changes*
+
+
 ## Rails 4.0.6 (June 26, 2014) ##
 
 *   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
