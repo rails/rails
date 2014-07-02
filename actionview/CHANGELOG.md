@@ -1,3 +1,7 @@
+*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
+
+    *John F. Douthat*
+
 *   Bring `cache_digest` rake tasks up-to-date with the latest API changes
 
     *Jiri Pospisil*
