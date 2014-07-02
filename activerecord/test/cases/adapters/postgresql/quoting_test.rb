@@ -19,6 +19,11 @@ module ActiveRecord
           assert_equal 'f', @conn.type_cast(false, nil)
           assert_equal 'f', @conn.type_cast(false, c)
         end
+
+        def test_quote_bit_string
+          c = PostgreSQLColumn.new(nil, 1, 'bit')
+          assert_equal nil, @conn.quote("'); SELECT * FORM users; /*\n01\n*/--", c)
+        end
       end
     end
   end

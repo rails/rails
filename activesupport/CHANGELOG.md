@@ -1,3 +1,13 @@
+## Rails 3.2.19 (Jul 2, 2014) ##
+
+*   Make sure Active Support configurations are applied correctly.
+
+    Before this change configuration set using `config.active_support`
+    would not be set.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 3.2.18 (May 6, 2014) ##
 
 * No changes.

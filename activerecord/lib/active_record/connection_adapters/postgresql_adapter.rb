@@ -442,8 +442,8 @@ module ActiveRecord
           when 'xml'   then "xml '#{quote_string(value)}'"
           when /^bit/
             case value
-            when /^[01]*$/      then "B'#{value}'" # Bit-string notation
-            when /^[0-9A-F]*$/i then "X'#{value}'" # Hexadecimal notation
+            when /\A[01]*\Z/      then "B'#{value}'" # Bit-string notation
+            when /\A[0-9A-F]*\Z/i then "X'#{value}'" # Hexadecimal notation
             end
           else
             super
@@ -1160,7 +1160,7 @@ module ActiveRecord
         FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
         def exec_no_cache(sql, binds)
-          @connection.async_exec(sql)
+          @connection.async_exec(sql, [])
         end
 
         def exec_cache(sql, binds)

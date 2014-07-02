@@ -1,3 +1,5 @@
+## Rails 3.2.19 (Jul 2, 2014) ##
+
 *   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
     `options[:raise]`.
 
