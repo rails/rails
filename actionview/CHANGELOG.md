@@ -1,3 +1,7 @@
+*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
+
+    *John F. Douthat*
+
 *   Added String support for min and max properties for date field helpers.
 
     *Todd Bealmear*
