@@ -1,3 +1,12 @@
+## Rails 4.1.3 (July 2, 2014) ##
+
+*   Fix SQL Injection Vulnerability in 'range' quoting.
+
+    Fixes CVE-2014-3483
+
+    *Rafael Mendonça França*
+
+
 ## Rails 4.1.2 (June 26, 2014) ##
 
 *   Fix regression on eager loading association based on SQL query rather than
