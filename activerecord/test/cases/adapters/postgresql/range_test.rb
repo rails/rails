@@ -216,6 +216,24 @@ if ActiveRecord::Base.connection.supports_ranges?
       assert_equal Date.new(2012, 1, 3)..Date.new(2012, 1, 4), range.date_range
     end
 
+    def test_update_all_with_ranges
+      PostgresqlRange.create!
+
+      PostgresqlRange.update_all(int8_range: 1..100)
+
+      assert_equal 1...101, PostgresqlRange.first.int8_range
+    end
+
+    def test_ranges_correctly_escape_input
+      e = assert_raises(ActiveRecord::StatementInvalid) do
+        range = "1,2]'; SELECT * FROM users; --".."a"
+        PostgresqlRange.update_all(int8_range: range)
+      end
+
+      assert e.message.starts_with?("PG::InvalidTextRepresentation")
+      ActiveRecord::Base.connection.rollback_transaction
+    end
+
     private
       def assert_equal_round_trip(range, attribute, value)
         round_trip(range, attribute, value)
