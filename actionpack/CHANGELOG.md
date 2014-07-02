@@ -19,6 +19,11 @@
     *Larry Lv*
 
 
+## Rails 4.0.7 (July 2, 2014) ##
+
+*No changes*
+
+
 ## Rails 4.0.6 (June 26, 2014) ##
 
 *   Fix URL generation with `:trailing_slash` such that it does not add

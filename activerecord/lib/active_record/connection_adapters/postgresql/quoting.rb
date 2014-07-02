@@ -23,7 +23,8 @@ module ActiveRecord
           case value
           when Range
             if /range$/ =~ sql_type
-              "'#{PostgreSQLColumn.range_to_string(value)}'::#{sql_type}"
+              escaped = quote_string(PostgreSQLColumn.range_to_string(value))
+              "#{escaped}::#{sql_type}"
             else
               super
             end
@@ -70,8 +71,8 @@ module ActiveRecord
             when 'xml'   then "xml '#{quote_string(value)}'"
             when /^bit/
               case value
-              when /^[01]*$/      then "B'#{value}'" # Bit-string notation
-              when /^[0-9A-F]*$/i then "X'#{value}'" # Hexadecimal notation
+              when /\A[01]*\Z/      then "B'#{value}'" # Bit-string notation
+              when /\A[0-9A-F]*\Z/i then "X'#{value}'" # Hexadecimal notation
               end
             else
               super
