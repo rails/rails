@@ -16,14 +16,14 @@ module ActiveRecord
   # the companies table with type = "Firm". You can then fetch this row again using
   # <tt>Company.where(name: '37signals').first</tt> and it will return a Firm object.
   #
-  # Be aware that because the type column is an attribute on the record every new 
+  # Be aware that because the type column is an attribute on the record every new
   # subclass will instantly be marked as dirty and the type column will be included
-  # in the list of changed attributes on the record.  This is different from non
+  # in the list of changed attributes on the record. This is different from non
   # STI classes:
   #
   #   Company.new.changed? # => false
-  #   Firm.new.changed? # => true
-  #   Firm.new.changes # => {"type"=>["","Firm"]}
+  #   Firm.new.changed?    # => true
+  #   Firm.new.changes     # => {"type"=>["","Firm"]}
   #
   # If you don't have a type column defined in your table, single-table inheritance won't
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
