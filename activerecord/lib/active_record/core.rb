@@ -514,10 +514,7 @@ module ActiveRecord
     end
 
     def init_internals
-      pk = self.class.primary_key
-      if pk && !@attributes.include?(pk)
-        @attributes.write_from_database(pk, nil)
-      end
+      @attributes.ensure_initialized(self.class.primary_key)
 
       @aggregation_cache        = {}
       @association_cache        = {}
