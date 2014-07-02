@@ -1,6 +1,7 @@
 module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
+    include ActiveModel::Validations
 
     # BCrypt hash function can handle maximum 72 characters, and if we pass
     # password of length more than 72 characters it ignores extra characters.

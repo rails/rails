@@ -20,6 +20,11 @@ class SecurePasswordTest < ActiveModel::TestCase
     ActiveModel::SecurePassword.min_cost = @original_min_cost
   end
 
+  test "user object should respond to valid?" do
+    assert_respond_to @visitor, :valid?
+    assert_respond_to @user, :valid?
+  end
+
   test "create/update without validations" do
     assert @visitor.valid?(:create), 'visitor should be valid'
     assert @visitor.valid?(:update), 'visitor should be valid'
