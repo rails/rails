@@ -315,9 +315,8 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      pk = self.class.primary_key
       @attributes = @attributes.dup
-      @attributes.write_from_database(pk, nil)
+      @attributes.reset(self.class.primary_key)
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 

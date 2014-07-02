@@ -52,6 +52,12 @@ module ActiveRecord
       super
     end
 
+    def reset(key)
+      if include?(key)
+        write_from_database(key, nil)
+      end
+    end
+
     protected
 
     attr_reader :attributes

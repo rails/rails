@@ -141,5 +141,17 @@ module ActiveRecord
     ensure
       Topic.default_scopes = prev_default_scopes
     end
+
+    def test_dup_without_primary_key
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = 'parrots_pirates'
+      end
+
+      record = klass.create!
+
+      assert_nothing_raised do
+        record.dup
+      end
+    end
   end
 end
