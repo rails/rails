@@ -1,3 +1,10 @@
+*   JSONP responses are now rendered with the `text/javascript` content type
+    when rendering through a `respond_to` block.
+
+    Fixes #15081.
+
+    *Lucas Mazza*
+
 *   Added `config.action_view.raise_on_missing_translations` to define whether an
     error should be raised for missing translations.
 
