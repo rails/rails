@@ -20,20 +20,12 @@ class SecurePasswordTest < ActiveModel::TestCase
     ActiveModel::SecurePassword.min_cost = @original_min_cost
   end
 
-  test "user object should respond to valid?" do
-    assert_respond_to @visitor, :valid?
+  test "automatically include ActiveModel::Validations when validations are enabled" do
     assert_respond_to @user, :valid?
   end
 
-  test "create/update without validations" do
-    assert @visitor.valid?(:create), 'visitor should be valid'
-    assert @visitor.valid?(:update), 'visitor should be valid'
-
-    @visitor.password = '123'
-    @visitor.password_confirmation = '456'
-
-    assert @visitor.valid?(:create), 'visitor should be valid'
-    assert @visitor.valid?(:update), 'visitor should be valid'
+  test "don't include ActiveModel::Validations when validations are disabled" do
+    assert_not_respond_to @visitor, :valid?
   end
 
   test "create a new user with validations and valid password/confirmation" do
