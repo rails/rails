@@ -8,14 +8,17 @@ module ActiveRecord
         super
         @connection = MiniTest::Mock.new
         @app = MiniTest::Mock.new
-        @pending = CheckPending.new(@app, @connection)
+        conn = @connection
+        @pending = Class.new(CheckPending) {
+          define_method(:connection) { conn }
+        }.new(@app)
         @pending.instance_variable_set :@last_check, -1 # Force checking
       end
 
       def teardown
-        super
         assert @connection.verify
         assert @app.verify
+        super
       end
 
       def test_errors_if_pending
