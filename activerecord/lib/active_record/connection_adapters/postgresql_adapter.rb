@@ -819,7 +819,7 @@ module ActiveRecord
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
 
         def exec_no_cache(sql, name, binds)
-          log(sql, name, binds) { @connection.async_exec(sql) }
+          log(sql, name, binds) { @connection.async_exec(sql, []) }
         end
 
         def exec_cache(sql, name, binds)

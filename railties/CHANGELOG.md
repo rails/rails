@@ -8,6 +8,11 @@
     *Yves Senn*, *Carlos Antonio da Silva*, *Robin Dupret*
 
 
+## Rails 4.1.3 (July 2, 2014) ##
+
+*   No changes.
+
+
 ## Rails 4.1.2 (June 26, 2014) ##
 
 *   Load database configuration from the first `database.yml` available in paths.

@@ -57,6 +57,12 @@ module ActiveRecord
           assert_equal "'1970-01-01 00:00:00.000000'", @conn.quote(Time.at(0))
           assert_equal "'1970-01-01 00:00:00.000000'", @conn.quote(Time.at(0).to_datetime)
         end
+
+        def test_quote_range
+          range = "1,2]'; SELECT * FROM users; --".."a"
+          c = PostgreSQLColumn.new(nil, nil, OID::Range.new(:integer), 'int8range')
+          assert_equal "[1,2]''; SELECT * FROM users; --,a]::int8range", @conn.quote(range, c)
+        end
       end
     end
   end
