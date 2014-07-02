@@ -27,7 +27,7 @@ module ActionDispatch
         raise(ArgumentError, ':tempfile is required') unless @tempfile
 
         @original_filename = encode_filename(hash[:filename])
-        @content_type      = hash[:type]
+        @content_type      = hash[:type] || hash[:content_type]
         @headers           = hash[:head]
       end
 
