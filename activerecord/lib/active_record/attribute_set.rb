@@ -52,6 +52,12 @@ module ActiveRecord
       super
     end
 
+    def ensure_initialized(key)
+      unless self[key].initialized?
+        write_from_database(key, nil)
+      end
+    end
+
     protected
 
     attr_reader :attributes
