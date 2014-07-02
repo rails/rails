@@ -1066,7 +1066,7 @@ class RequestEtag < BaseRequestTest
   end
 end
 
-class RequestVarient < BaseRequestTest
+class RequestVariant < BaseRequestTest
   test "setting variant" do
     request = stub_request
 
