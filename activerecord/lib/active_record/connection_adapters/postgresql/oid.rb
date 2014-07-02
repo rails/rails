@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/postgresql/oid/infinity'
 
 require 'active_record/connection_adapters/postgresql/oid/array'
+require 'active_record/connection_adapters/postgresql/oid/big_integer'
 require 'active_record/connection_adapters/postgresql/oid/bit'
 require 'active_record/connection_adapters/postgresql/oid/bit_varying'
 require 'active_record/connection_adapters/postgresql/oid/bytea'

@@ -33,6 +33,10 @@ module ActiveRecord
         [:name, :limit, :precision, :scale, :default, :null]
       end
 
+      def print_primary_key_type(column, printer)
+        # :noop
+      end
+
       private
 
       def schema_default(column)

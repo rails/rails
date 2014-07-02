@@ -7,6 +7,7 @@ require 'active_record/connection_adapters/postgresql/oid'
 require 'active_record/connection_adapters/postgresql/quoting'
 require 'active_record/connection_adapters/postgresql/referential_integrity'
 require 'active_record/connection_adapters/postgresql/schema_definitions'
+require 'active_record/connection_adapters/postgresql/schema_dumper'
 require 'active_record/connection_adapters/postgresql/schema_statements'
 require 'active_record/connection_adapters/postgresql/database_statements'
 
@@ -81,6 +82,7 @@ module ActiveRecord
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer" },
+        big_integer: { name: "bigint" },
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "timestamp" },
@@ -115,6 +117,7 @@ module ActiveRecord
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
+      include PostgreSQL::SchemaDumper
       include PostgreSQL::DatabaseStatements
       include Savepoints
 
@@ -430,7 +433,7 @@ module ActiveRecord
         def initialize_type_map(m) # :nodoc:
           register_class_with_limit m, 'int2', OID::Integer
           m.alias_type 'int4', 'int2'
-          m.alias_type 'int8', 'int2'
+          m.register_type 'int8', OID::BigInteger.new
           m.alias_type 'oid', 'int2'
           m.register_type 'float4', OID::Float.new
           m.alias_type 'float8', 'float4'
@@ -499,7 +502,6 @@ module ActiveRecord
 
         def extract_limit(sql_type) # :nodoc:
           case sql_type
-          when /^bigint/i;    8
           when /^smallint/i;  2
           else super
           end

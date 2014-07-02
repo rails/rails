@@ -129,9 +129,8 @@ HEADER
           if pkcol
             if pk != 'id'
               tbl.print %Q(, primary_key: "#{pk}")
-            elsif pkcol.sql_type == 'uuid'
-              tbl.print ", id: :uuid"
-              tbl.print %Q(, default: "#{pkcol.default_function}") if pkcol.default_function
+            else
+              @connection.print_primary_key_type(pkcol, tbl)
             end
           else
             tbl.print ", id: false"
