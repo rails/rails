@@ -1,3 +1,8 @@
+*   Backport `Enumerable#to_h`, `Array#to_h`, `Hash#to_h`, `NilClass#to_h`,
+    `Struct#to_h`, and `ENV.to_h` on versions of ruby which do not support them.
+
+    *Sean Griffin*
+
 *   Add `Hash#transform_values` to simplify a common pattern where the values of a
     hash must change, but the keys are left the same.
 
