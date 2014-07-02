@@ -26,7 +26,7 @@ module ActionDispatch
         end
       end
 
-      def content_type
+      def media_type
         content_mime_type && content_mime_type.to_s
       end
 
