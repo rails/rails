@@ -1,3 +1,12 @@
+## Rails 3.2.19 (Jul 2, 2014) ##
+
+*   Fix SQL Injection Vulnerability in 'bitstring' quoting.
+
+    Fixes CVE-2014-3482.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 3.2.18 (May 6, 2014) ##
 
 * No changes.
