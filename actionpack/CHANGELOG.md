@@ -1,3 +1,10 @@
+*   JSONP responses are now rendered with the `text/javascript` content type
+    when rendering through a `respond_to` block.
+
+    Fixes #15081.
+
+    *Lucas Mazza*
+
 *   Fix env['PATH_INFO'] missing leading slash when a rack app mounted at '/'.
 
     Fixes #15511.
