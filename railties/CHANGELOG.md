@@ -8,6 +8,11 @@
     *Yves Senn*, *Carlos Antonio da Silva*, *Robin Dupret*
 
 
+## Rails 4.1.4 (July 2, 2014) ##
+
+*   No changes.
+
+
 ## Rails 4.1.3 (July 2, 2014) ##
 
 *   No changes.

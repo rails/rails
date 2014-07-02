@@ -66,6 +66,13 @@
     *Arun Agrawal*
 
 
+## Rails 4.1.4 (July 2, 2014) ##
+
+*   Fix regression added from the latest security fix.
+
+    *Sean Griffin*, *Matthew Draper*
+
+
 ## Rails 4.1.3 (July 2, 2014) ##
 
 *   Fix SQL Injection Vulnerability in 'range' quoting.
