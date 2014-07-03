@@ -1,3 +1,11 @@
+*   Correctly dump `:bigserial` primary keys on PostgreSQL. Previously if a
+    table was created with `create_table :foo, id: :bigserial`, that information
+    would be lost in `schema.rb`.
+
+    Fixes #15968.
+
+    *Sean Griffin*
+
 *   `has_many :through` associations will no longer save the through record
     twice when added in an `after_create` callback defined before the
     associations.
