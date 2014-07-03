@@ -1,3 +1,7 @@
+*   Return self from model.readonly!
+
+    *David Rueck*
+
 *   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
 
     *Abdelkader Boudih*
