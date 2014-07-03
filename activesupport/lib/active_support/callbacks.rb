@@ -416,15 +416,8 @@ module ActiveSupport
       #   Procs::   A proc to call with the object.
       #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
       #
-      # All of these objects are compiled into methods and handled
-      # the same after this point:
-      #
-      #   Symbols:: Already methods.
-      #   Strings:: class_eval'd into methods.
-      #   Procs::   using define_method compiled into methods.
-      #   Objects::
-      #     a method is created that calls the before_foo method
-      #     on the object.
+      # All of these objects are converted into a lambda and handled
+      # the same after this point.
       def make_lambda(filter)
         case filter
         when Symbol
