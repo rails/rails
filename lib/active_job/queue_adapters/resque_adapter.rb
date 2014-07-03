@@ -1,7 +1,11 @@
 require 'resque'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/access'
-require 'resque-scheduler'
+begin
+  require 'resque-scheduler'
+rescue LoadError
+  require 'resque_scheduler'
+end
 
 module ActiveJob
   module QueueAdapters
