@@ -220,23 +220,18 @@ module ActionView
         :@_result,
         :@_routes,
         :@controller,
-        :@_layouts,
-        :@_files,
         :@_rendered_views,
         :@method_name,
         :@output_buffer,
-        :@_partials,
         :@passed,
         :@rendered,
         :@request,
         :@routes,
         :@tagged_logger,
-        :@_templates,
         :@options,
         :@test_passed,
         :@view,
-        :@view_context_class,
-        :@_subscribers
+        :@view_context_class
       ]
 
       def _user_defined_ivars

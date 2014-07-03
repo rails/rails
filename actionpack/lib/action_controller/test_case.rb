@@ -7,62 +7,58 @@ module ActionController
   module TemplateAssertions
     extend ActiveSupport::Concern
 
+    mattr_accessor :partials, :templates, :layouts, :files
+
     included do
-      setup :setup_subscriptions
-      teardown :teardown_subscriptions
+      teardown :clear_template_assertion_variables
     end
 
-    def setup_subscriptions
-      @_partials = Hash.new(0)
-      @_templates = Hash.new(0)
-      @_layouts = Hash.new(0)
-      @_files = Hash.new(0)
-      @_subscribers = []
+    self.partials = Hash.new(0)
+    self.templates = Hash.new(0)
+    self.layouts = Hash.new(0)
+    self.files = Hash.new(0)
 
-      @_subscribers << ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
-        path = payload[:layout]
-        if path
-          @_layouts[path] += 1
-          if path =~ /^layouts\/(.*)/
-            @_layouts[$1] += 1
-          end
-        end
-      end
-
-      @_subscribers << ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
-        path = payload[:virtual_path]
-        next unless path
-        partial = path =~ /^.*\/_[^\/]*$/
-
-        if partial
-          @_partials[path] += 1
-          @_partials[path.split("/").last] += 1
-        end
-
-        @_templates[path] += 1
-      end
-
-      @_subscribers << ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
-        next if payload[:virtual_path] # files don't have virtual path
-
-        path = payload[:identifier]
-        if path
-          @_files[path] += 1
-          @_files[path.split("/").last] += 1
+    ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
+      path = payload[:layout]
+      if path
+        self.layouts[path] += 1
+        if path =~ /^layouts\/(.*)/
+          self.layouts[$1] += 1
         end
       end
     end
 
-    def teardown_subscriptions
-      @_subscribers.each do |subscriber|
-        ActiveSupport::Notifications.unsubscribe(subscriber)
+    ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
+      path = payload[:virtual_path]
+      next unless path
+      partial = path =~ /^.*\/_[^\/]*$/
+
+      if partial
+        self.partials[path] += 1
+        self.partials[path.split("/").last] += 1
+      end
+
+      self.templates[path] += 1
+    end
+
+    ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
+      next if payload[:virtual_path] # files don't have virtual path
+
+      path = payload[:identifier]
+      if path
+        self.files[path] += 1
+        self.files[path.split("/").last] += 1
+      end
+    end
+
+    def clear_template_assertion_variables
+      [:partials, :templates, :layouts, :files].each do |template_type|
+        self.send(template_type).clear
       end
     end
 
     def process(*args)
-      @_partials = Hash.new(0)
-      @_templates = Hash.new(0)
-      @_layouts = Hash.new(0)
+      clear_template_assertion_variables
       super
     end
 
@@ -101,7 +97,7 @@ module ActionController
       case options
       when NilClass, Regexp, String, Symbol
         options = options.to_s if Symbol === options
-        rendered = @_templates
+        rendered = self.templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
         matches_template =
@@ -124,20 +120,20 @@ module ActionController
         if options.key?(:layout)
           expected_layout = options[:layout]
           msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
-                  expected_layout, @_layouts.keys)
+                  expected_layout, self.layouts.keys)
 
           case expected_layout
           when String, Symbol
-            assert_includes @_layouts.keys, expected_layout.to_s, msg
+            assert_includes self.layouts.keys, expected_layout.to_s, msg
           when Regexp
-            assert(@_layouts.keys.any? {|l| l =~ expected_layout }, msg)
+            assert(self.layouts.keys.any? {|l| l =~ expected_layout }, msg)
           when nil, false
-            assert(@_layouts.empty?, msg)
+            assert(self.layouts.empty?, msg)
           end
         end
 
         if options[:file]
-          assert_includes @_files.keys, options[:file]
+          assert_includes self.files.keys, options[:file]
         end
 
         if expected_partial = options[:partial]
@@ -156,17 +152,17 @@ module ActionController
               warn "the :locals option to #assert_template is only supported in a ActionView::TestCase"
             end
           elsif expected_count = options[:count]
-            actual_count = @_partials[expected_partial]
+            actual_count = self.partials[expected_partial]
             msg = message || sprintf("expecting %s to be rendered %s time(s) but rendered %s time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
           else
             msg = message || sprintf("expecting partial <%s> but action rendered <%s>",
-                    options[:partial], @_partials.keys)
-            assert_includes @_partials, expected_partial, msg
+                    options[:partial], self.partials.keys)
+            assert_includes self.partials, expected_partial, msg
           end
         elsif options.key?(:partial)
-          assert @_partials.empty?,
+          assert self.partials.empty?,
             "Expected no partials to be rendered"
         end
       else
