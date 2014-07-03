@@ -28,11 +28,6 @@ module ActiveRecord
             else
               super
             end
-          when Hash
-            case sql_type
-            when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
-            else super
-            end
           when Float
             if value.infinite? && column.type == :datetime
               "'#{value.to_s.downcase}'"
@@ -79,11 +74,6 @@ module ActiveRecord
               value
             else
               super
-            end
-          when Hash
-            case column.sql_type
-            when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
-            else super
             end
           else
             super
