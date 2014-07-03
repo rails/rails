@@ -29,9 +29,7 @@ module ActiveRecord
               super
             end
           when Float
-            if value.infinite? && column.type == :datetime
-              "'#{value.to_s.downcase}'"
-            elsif value.infinite? || value.nan?
+            if value.infinite? || value.nan?
               "'#{value.to_s}'"
             else
               super
