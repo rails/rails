@@ -10,26 +10,8 @@ module ActiveRecord
             @type = type
           end
 
-          def extract_bounds(value)
-            from, to = value[1..-2].split(',')
-            {
-              from:          (value[1] == ',' || from == '-infinity') ? @subtype.infinity(negative: true) : from,
-              to:            (value[-2] == ',' || to == 'infinity') ? @subtype.infinity : to,
-              exclude_start: (value[0] == '('),
-              exclude_end:   (value[-1] == ')')
-            }
-          end
-
-          def infinity?(value)
-            value.respond_to?(:infinite?) && value.infinite?
-          end
-
           def type_cast_for_schema(value)
             value.inspect.gsub('Infinity', '::Float::INFINITY')
-          end
-
-          def type_cast_single(value)
-            infinity?(value) ? value : @subtype.type_cast_from_database(value)
           end
 
           def cast_value(value)
@@ -52,6 +34,40 @@ This is not reliable and will be removed in the future.
               end
             end
             ::Range.new(from, to, extracted[:exclude_end])
+          end
+
+          def type_cast_for_database(value)
+            if value.is_a?(::Range)
+              from = type_cast_single_for_database(value.begin)
+              to = type_cast_single_for_database(value.end)
+              "[#{from},#{to}#{value.exclude_end? ? ')' : ']'}"
+            else
+              super
+            end
+          end
+
+          private
+
+          def type_cast_single(value)
+            infinity?(value) ? value : @subtype.type_cast_from_database(value)
+          end
+
+          def type_cast_single_for_database(value)
+            infinity?(value) ? '' : @subtype.type_cast_for_database(value)
+          end
+
+          def extract_bounds(value)
+            from, to = value[1..-2].split(',')
+            {
+              from:          (value[1] == ',' || from == '-infinity') ? @subtype.infinity(negative: true) : from,
+              to:            (value[-2] == ',' || to == 'infinity') ? @subtype.infinity : to,
+              exclude_start: (value[0] == '('),
+              exclude_end:   (value[-1] == ')')
+            }
+          end
+
+          def infinity?(value)
+            value.respond_to?(:infinite?) && value.infinite?
           end
         end
       end

@@ -271,12 +271,12 @@ _SQL
     end
 
     def test_ranges_correctly_escape_input
-      e = assert_raises(ActiveRecord::StatementInvalid) do
-        range = "1,2]'; SELECT * FROM users; --".."a"
-        PostgresqlRange.update_all(int8_range: range)
-      end
+      range = "-1,2]'; DROP TABLE postgresql_ranges; --".."a"
+      PostgresqlRange.update_all(int8_range: range)
 
-      assert e.message.starts_with?("PG::InvalidTextRepresentation")
+      assert_nothing_raised do
+        PostgresqlRange.first
+      end
     end
 
     private
