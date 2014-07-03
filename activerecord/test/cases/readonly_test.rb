@@ -10,6 +10,12 @@ require 'models/person'
 class ReadOnlyTest < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments, :developers, :projects, :developers_projects, :people, :readers
 
+  def test_readonly_bang
+    dev = Developer.new.readonly!
+    assert_instance_of(Developer, dev)
+    assert dev.readonly?
+  end
+
   def test_cant_save_readonly_record
     dev = Developer.find(1)
     assert !dev.readonly?

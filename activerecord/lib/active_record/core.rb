@@ -403,9 +403,10 @@ module ActiveRecord
       @readonly
     end
 
-    # Marks this record as read only.
+    # Marks this record as read only and returns it
     def readonly!
       @readonly = true
+      self
     end
 
     def connection_handler
