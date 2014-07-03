@@ -26,8 +26,8 @@ class ParameterSerializationTest < ActiveSupport::TestCase
   end
 
   test 'should dive deep into arrays or hashes' do
-    assert_equal [ { "a" => Person.find(5).gid }.with_indifferent_access ], ActiveJob::Arguments.serialize([ { a: Person.find(5) } ])
-    assert_equal [ [ Person.find(5).gid ] ], ActiveJob::Arguments.serialize([ [ Person.find(5) ] ])
+    assert_equal [ { "a" => Person.find(5).gid.to_s }.with_indifferent_access ], ActiveJob::Arguments.serialize([ { a: Person.find(5) } ])
+    assert_equal [ [ Person.find(5).gid.to_s ] ], ActiveJob::Arguments.serialize([ [ Person.find(5) ] ])
   end
 
   test 'should dive deep into arrays or hashes and raise exception on complex objects' do
@@ -45,11 +45,11 @@ class ParameterSerializationTest < ActiveSupport::TestCase
   end
 
   test 'should serialize records with global id' do
-    assert_equal [ Person.find(5).gid ], ActiveJob::Arguments.serialize([ Person.find(5) ])
+    assert_equal [ Person.find(5).gid.to_s ], ActiveJob::Arguments.serialize([ Person.find(5) ])
   end
 
   test 'should serialize values and records together' do
-    assert_equal [ 3, Person.find(5).gid ], ActiveJob::Arguments.serialize([ 3, Person.find(5) ])
+    assert_equal [ 3, Person.find(5).gid.to_s ], ActiveJob::Arguments.serialize([ 3, Person.find(5) ])
   end
 end
 
