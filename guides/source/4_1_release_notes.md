@@ -157,7 +157,7 @@ By default, these preview classes live in `test/mailers/previews`.
 This can be configured using the `preview_path` option.
 
 See its
-[documentation](http://api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html)
+[documentation](http://api.rubyonrails.org/v4.1.0/classes/ActionMailer/Base.html#class-ActionMailer::Base-label-Previewing+emails)
 for a detailed write up.
 
 ### Active Record enums
