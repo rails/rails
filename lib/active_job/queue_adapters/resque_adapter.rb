@@ -1,7 +1,7 @@
 require 'resque'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/access'
-require 'resque_scheduler'
+require 'resque-scheduler'
 
 module ActiveJob
   module QueueAdapters
