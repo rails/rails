@@ -1,3 +1,8 @@
+*   Fixed error in `reset_counters` when associations have `select` scope.
+    (Call to `count` generates invalid SQL.)
+
+    *Cade Truitt*
+
 *   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
 
     *Abdelkader Boudih*
