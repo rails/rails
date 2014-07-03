@@ -34,23 +34,20 @@ module ActiveModel
       #
       #   gem 'bcrypt', '~> 3.1.7'
       #
-      # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
-      #
-      #   # Schema: User(name:string, password_digest:string)
-      #   class User < ActiveRecord::Base
+      #   class User
+      #     include ActiveModel::SecurePassword
+      #     attr_accessor :password_digest
       #     has_secure_password
       #   end
       #
-      #   user = User.new(name: 'david', password: '', password_confirmation: 'nomatch')
-      #   user.save                                                       # => false, password required
-      #   user.password = 'mUc3m00RsqyRe'
-      #   user.save                                                       # => false, confirmation doesn't match
-      #   user.password_confirmation = 'mUc3m00RsqyRe'
-      #   user.save                                                       # => true
-      #   user.authenticate('notright')                                   # => false
-      #   user.authenticate('mUc3m00RsqyRe')                              # => user
-      #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
-      #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
+      #   user = User.new
+      #   user.valid?                                                     # => false, password required
+      #   user.password = 'aditya'
+      #   user.valid?                                                     # => true
+      #   user.password_confirmation = 'nomatch'
+      #   user.valid?                                                     # => false, Password confirmation doesn't match Password
+      #   user.authenticate('incorrect_pass')                             # => false
+      #   user.authenticate('aditya')                                     # => user
       def has_secure_password(options = {})
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
@@ -89,14 +86,17 @@ module ActiveModel
     module InstanceMethodsOnActivation
       # Returns +self+ if the password is correct, otherwise +false+.
       #
-      #   class User < ActiveRecord::Base
+      #   class User
+      #     include ActiveModel::SecurePassword
+      #     attr_accessor :password_digest
       #     has_secure_password validations: false
       #   end
       #
-      #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
-      #   user.save
+      #   user = User.new
+      #   user.valid?                        # => true
+      #   user.password = 'aditya'
       #   user.authenticate('notright')      # => false
-      #   user.authenticate('mUc3m00RsqyRe') # => user
+      #   user.authenticate('aditya')        # => user
       def authenticate(unencrypted_password)
         BCrypt::Password.new(password_digest) == unencrypted_password && self
       end
@@ -106,15 +106,17 @@ module ActiveModel
       # Encrypts the password into the +password_digest+ attribute, only if the
       # new password is not blank.
       #
-      #   class User < ActiveRecord::Base
+      #   class User
+      #     include ActiveModel::SecurePassword
+      #     attr_accessor :password_digest
       #     has_secure_password validations: false
       #   end
       #
       #   user = User.new
       #   user.password = nil
-      #   user.password_digest # => nil
-      #   user.password = 'mUc3m00RsqyRe'
-      #   user.password_digest # => "$2a$10$4LEA7r4YmNHtvlAvHhsYAeZmk/xeUVtMTYqwIvYY76EW5GUqDiP4."
+      #   user.password_digest      # => nil
+      #   user.password = 'aditya'
+      #   user.password_digest      # => "$2a$10$fSFBKNMHJQp/7rkOUmlVg./XL70RfiXusfVXRAMn.nLey3v7Ji9yK"
       def password=(unencrypted_password)
         if unencrypted_password.nil?
           self.password_digest = nil
