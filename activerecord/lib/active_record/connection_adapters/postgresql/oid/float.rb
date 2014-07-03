@@ -7,6 +7,7 @@ module ActiveRecord
 
           def cast_value(value)
             case value
+            when ::Float then     value
             when 'Infinity' then  ::Float::INFINITY
             when '-Infinity' then -::Float::INFINITY
             when 'NaN' then       ::Float::NAN
