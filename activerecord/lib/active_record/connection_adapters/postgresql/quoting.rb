@@ -41,13 +41,6 @@ module ActiveRecord
             else
               super
             end
-          when Numeric
-            if sql_type == 'money' || [:string, :text].include?(column.type)
-              # Not truly string input, so doesn't require (or allow) escape string syntax.
-              "'#{value}'"
-            else
-              super
-            end
           when String
             case sql_type
             when 'xml'   then "xml '#{quote_string(value)}'"
