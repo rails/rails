@@ -53,6 +53,11 @@ module Rails
         end
       end
 
+      # DELETE destroy_many
+      def self.destroy(klass, params=nil)
+        "#{klass}.destroy(#{params})"
+      end
+
       # POST create
       def save
         "#{name}.save"
@@ -72,6 +77,11 @@ module Rails
       # DELETE destroy
       def destroy
         "#{name}.destroy"
+      end
+
+      # Destroy all
+      def self.destroy_all(klass)
+        "#{klass}.destroy_all"
       end
     end
   end

@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/range/include_range'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/deprecation'
 require 'active_support/rescuable'
@@ -432,6 +433,7 @@ module ActionController
         IO,
         ActionDispatch::Http::UploadedFile,
         Rack::Test::UploadedFile,
+        Range
       ]
 
       def permitted_scalar?(value)
@@ -462,6 +464,39 @@ module ActionController
         end
       end
 
+      def array_of_permitted_scalars_and_within_range_filter(params, key, permitted_range)
+        if has_key?(key)
+          ranges = parse_ranges self[key]
+          return if ranges.nil?
+          result = ranges.all? { |element| permitted_range === element }
+          params[key] = ranges if result
+        end
+      end
+
+      # Parses strings as ranges
+      def parse_ranges(value)
+        new_param = value.to_s.split(',').map do |r|
+          r.strip!
+          if matches = /\A(\d+)\.\.(\.?)(\d+)\z/.match(r) and matches[1].to_i <= matches[3].to_i
+            if matches[2].empty?
+              range = matches[1].to_i..matches[3].to_i
+            elsif matches[2] == '.'
+              range = matches[1].to_i...matches[3].to_i
+            end
+            range.to_a
+          elsif /^\d+$/ =~ r
+            r.to_i
+          else
+            nil
+          end
+        end.compact.flatten.uniq
+        if new_param && !new_param.empty?
+          new_param
+        else
+          nil
+        end
+      end
+
       EMPTY_ARRAY = []
       def hash_filter(params, filter)
         filter = filter.with_indifferent_access
@@ -473,6 +508,8 @@ module ActionController
           if filter[key] == EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
             array_of_permitted_scalars_filter(params, key)
+          elsif filter[key].is_a?(Range)
+            array_of_permitted_scalars_and_within_range_filter(params, key, filter[key])
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|
