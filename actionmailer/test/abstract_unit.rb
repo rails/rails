@@ -26,27 +26,9 @@ I18n.enforce_available_locales = false
 FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
-class MockSMTP
-  def self.deliveries
-    @@deliveries
-  end
-
-  def initialize
-    @@deliveries = []
-  end
-
-  def sendmail(mail, from, to)
-    @@deliveries << [mail, from, to]
-  end
-
-  def start(*args)
-    yield self
-  end
-end
-
-class Net::SMTP
-  def self.new(*args)
-    MockSMTP.new
+class Rails
+  def self.root
+    File.expand_path('../', File.dirname(__FILE__))
   end
 end
 
