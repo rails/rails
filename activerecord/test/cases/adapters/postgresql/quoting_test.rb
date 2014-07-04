@@ -66,7 +66,7 @@ module ActiveRecord
 
         def test_quote_bit_string
           c = PostgreSQLColumn.new(nil, 1, OID::Bit.new)
-          assert_equal nil, @conn.quote("'); SELECT * FORM users; /*\n01\n*/--", c)
+          assert_equal nil, @conn.quote("'); SELECT * FROM users; /*\n01\n*/--", c)
         end
       end
     end
