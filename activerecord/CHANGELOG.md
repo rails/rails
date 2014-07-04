@@ -1,3 +1,9 @@
+*   After a successful `reload`, `new_record?` is always false.
+
+    Fixes #12101.
+
+    *Matthew Draper*
+
 *   `has_many :through` associations will no longer save the through record
     twice when added in an `after_create` callback defined before the
     associations.

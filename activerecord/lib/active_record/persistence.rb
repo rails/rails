@@ -399,6 +399,7 @@ module ActiveRecord
       @column_types           = self.class.column_types
       @column_types_override  = fresh_object.instance_variable_get('@column_types_override')
       @attributes_cache       = {}
+      @new_record             = false
       self
     end
 
