@@ -1,3 +1,43 @@
+*   Restore 4.0 behavior for ActiveRecord `serialize` object as `JSON`.
+
+    With 4.1.x, `serialize` started returning a string when `JSON` was passed as the second attribute. It will now return a hash as per previous versions (prior to 4.1.x)
+
+    Example: An ActiveRecord model named `Post` with a `comment` column that uses the serialize method to convert a `Comment` object to `JSON`.
+
+        class Post < ActiveRecord::Base
+          serialize :comment, JSON
+        end
+
+        class Comment
+          include ActiveModel::Model
+          attr_accessor :category, :text
+        end
+
+        post = Post.create!
+        post.comment = Comment.new(category: "Animals", text: "This is a comment about squirrels.")
+        post.save!
+
+        # 4.0
+        post.comment # => returns a Hash
+
+        # 4.1 before
+        post.comment # => returns a String
+
+        # 4.1 now
+        post.comment # => returns a Hash
+    
+    When `JSON` is used with `serialize`, ActiveRecord will use the new 
+    `ActiveRecord::Coders::JSON` coder which delegates 
+    `ActiveRecord::Coders::JSON.dump/load` to 
+    `ActiveSupport::JSON.encode/decode`.
+
+    To keep the previous behaviour, supply a custom coder instead 
+    (see the following [gist](https://gist.github.com/jenncoop/8c4142bbe59da77daa63) for an example).
+
+    Fixes #15594.
+
+    *Jenn Cooper*
+
 *   Fixed error in `reset_counters` when associations have `select` scope.
     (Call to `count` generates invalid SQL.)
 
