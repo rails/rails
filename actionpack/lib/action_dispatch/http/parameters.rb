@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/deprecation'
 
 module ActionDispatch
   module Http
@@ -24,8 +25,10 @@ module ActionDispatch
         @env[PARAMETERS_KEY] = parameters
       end
 
-      # The same as <tt>path_parameters</tt> with explicitly symbolized keys.
       def symbolized_path_parameters
+        ActiveSupport::Deprecation.warn(
+          "`symbolized_path_parameters` is deprecated. Please use `path_parameters`"
+        )
         path_parameters
       end
 
@@ -33,8 +36,6 @@ module ActionDispatch
       # Returned hash keys are strings:
       #
       #   {'action' => 'my_action', 'controller' => 'my_controller'}
-      #
-      # See <tt>symbolized_path_parameters</tt> for symbolized keys.
       def path_parameters
         @env[PARAMETERS_KEY] ||= {}
       end

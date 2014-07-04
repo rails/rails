@@ -2831,7 +2831,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_symbolized_path_parameters_is_not_stale
+  def test_path_parameters_is_not_stale
     draw do
       scope '/countries/:country', :constraints => lambda { |params, req| %w(all France).include?(params[:country]) } do
         get '/',       :to => 'countries#index'
@@ -3148,7 +3148,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/downloads/1/1.tar'
     assert_equal 'downloads#show', @response.body
-    assert_equal expected_params, @request.symbolized_path_parameters
+    assert_equal expected_params, @request.path_parameters
     assert_equal '/downloads/1/1.tar', download_path('1')
     assert_equal '/downloads/1/1.tar', download_path('1', '1')
   end
