@@ -1,3 +1,9 @@
+*   After a successful `reload`, `new_record?` is always false.
+
+    Fixes #12101.
+
+    *Matthew Draper*
+
 *   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
 
     *Abdelkader Boudih*

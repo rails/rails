@@ -396,6 +396,7 @@ module ActiveRecord
         end
 
       @attributes = fresh_object.instance_variable_get('@attributes')
+      @new_record = false
       self
     end
 
