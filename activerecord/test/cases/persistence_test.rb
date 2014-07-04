@@ -865,4 +865,16 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 1, post[:wibble]
     assert_nil post.reload[:wibble]
   end
+
+  def test_find_via_reload
+    post = Post.new
+
+    assert post.new_record?
+
+    post.id = 1
+    post.reload
+
+    assert_equal "Welcome to the weblog", post.title
+    assert_not post.new_record?
+  end
 end
