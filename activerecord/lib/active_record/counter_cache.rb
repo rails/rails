@@ -34,7 +34,7 @@ module ActiveRecord
           counter_name = reflection.counter_cache_column
 
           stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
-            arel_table[counter_name] => object.send(association).count
+            arel_table[counter_name] => object.send(association).count(:all)
           })
           connection.update stmt
         end

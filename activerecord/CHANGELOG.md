@@ -1,3 +1,8 @@
+*   Fixed error in `reset_counters` when associations have `select` scope.
+    (Call to `count` generates invalid SQL.)
+
+    *Cade Truitt*
+
 *   After a successful `reload`, `new_record?` is always false.
 
     Fixes #12101.
