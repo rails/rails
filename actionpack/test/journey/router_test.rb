@@ -544,18 +544,23 @@ module ActionDispatch
       def test_recognize_cares_about_verbs
         path   = Path::Pattern.from_string "/books(/:action(.:format))"
         app    = Object.new
-        conditions = {
-          :request_method => 'GET'
-        }
+        conditions = { request_method: 'GET' }
         @router.routes.add_route(app, path, conditions, {})
+
+        env = rails_env 'PATH_INFO' => '/books/list.rss',
+                        "REQUEST_METHOD" => "POST"
+
+        called = false
+        @router.recognize(env) do |r, params|
+          called = true
+        end
+
+        assert_not called
 
         conditions = conditions.dup
         conditions[:request_method] = 'POST'
 
         post = @router.routes.add_route(app, path, conditions, {})
-
-        env = rails_env 'PATH_INFO' => '/books/list.rss',
-                        "REQUEST_METHOD"    => "POST"
 
         called = false
         @router.recognize(env) do |r, params|
