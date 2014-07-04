@@ -16,10 +16,10 @@ module ActiveRecord
       end
 
       def type_cast_for_database(value)
-        if value.is_a?(::String)
-          ::String.new(value)
-        else
-          super
+        case value
+        when ::Numeric then value.to_s
+        when ::String then ::String.new(value)
+        else super
         end
       end
 
