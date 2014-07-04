@@ -19,6 +19,7 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   class ::SpecialTopic < ::Topic
     has_many :special_replies, :foreign_key => 'parent_id'
+    has_many :lightweight_special_replies, -> { select('topics.id, topics.title') }, :foreign_key => 'parent_id', :class_name => 'SpecialReply'
   end
 
   class ::SpecialReply < ::Reply
@@ -159,5 +160,14 @@ class CounterCacheTest < ActiveRecord::TestCase
       Topic.reset_counters(@topic.id, :replies_count)
     end
     assert_equal "'Topic' has no association called 'replies_count'", e.message
+  end
+
+  test "reset counter works with select declared on association" do
+    special = SpecialTopic.create!(:title => 'Special')
+    SpecialTopic.increment_counter(:replies_count, special.id)
+
+    assert_difference 'special.reload.replies_count', -1 do
+      SpecialTopic.reset_counters(special.id, :lightweight_special_replies)
+    end
   end
 end
