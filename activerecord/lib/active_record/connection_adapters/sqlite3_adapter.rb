@@ -50,34 +50,6 @@ module ActiveRecord
       end
     end
 
-    class SQLite3String < Type::String # :nodoc:
-      def initialize(logger, *args)
-        @logger = logger
-        super(*args)
-      end
-
-      def type_cast_for_database(value)
-        return unless value
-
-        if value.encoding == Encoding::ASCII_8BIT
-          @logger.error "Binary data inserted for `string` type" if @logger
-          value.encode Encoding::UTF_8
-        else
-          value
-        end
-      end
-
-      class Factory
-        def initialize(logger)
-          @logger = logger
-        end
-
-        def new(*args)
-          SQLite3String.new(@logger, *args)
-        end
-      end
-    end
-
     # The SQLite3 adapter works SQLite 3.6.16 or newer
     # with the sqlite3-ruby drivers (available as gem from https://rubygems.org/gems/sqlite3).
     #
@@ -255,14 +227,6 @@ module ActiveRecord
         end
       end
 
-      def _type_cast(value) # :nodoc:
-        if value.is_a?(BigDecimal)
-          value.to_f
-        else
-          super
-        end
-      end
-
       def quote_string(s) #:nodoc:
         @connection.class.quote(s)
       end
@@ -283,6 +247,19 @@ module ActiveRecord
         else
           super
         end
+      end
+
+      def type_cast(value, column) # :nodoc:
+        return value.to_f if BigDecimal === value
+        return super unless String === value
+        return super unless column && value
+
+        value = super
+        if column.type == :string && value.encoding == Encoding::ASCII_8BIT
+          logger.error "Binary data inserted for `string` type on column `#{column.name}`" if logger
+          value = value.encode Encoding::UTF_8
+        end
+        value
       end
 
       # DATABASE STATEMENTS ======================================
@@ -526,7 +503,6 @@ module ActiveRecord
         def initialize_type_map(m)
           super
           m.register_type(/binary/i, SQLite3Binary.new)
-          register_class_with_limit m, %r(char)i, SQLite3String::Factory.new(logger)
         end
 
         def select(sql, name = nil, binds = []) #:nodoc:
