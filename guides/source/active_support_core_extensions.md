@@ -3674,7 +3674,7 @@ t.advance(seconds: 1)
 
 Active Support defines `Time.current` to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines `Time.yesterday` and `Time.tomorrow`, and the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Time.current`.
 
-When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` and not `Time.now`. There are cases where the user time zone might be in the future compared to the system time zone, which `Time.today` uses by default. This means `Time.now` may equal `Time.yesterday`.
+When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` and `Date.current` instead of `Time.now` and `Date.today`. There are cases where the user time zone might be in the future compared to the system time zone, which `Date.today` uses by default. This means `Date.today` may equal `Date.yesterday`.
 
 #### `all_day`, `all_week`, `all_month`, `all_quarter` and `all_year`
 
