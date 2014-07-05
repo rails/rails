@@ -1309,6 +1309,10 @@ module ActiveRecord
       #   that is the inverse of this <tt>has_one</tt> association. Does not work in combination
       #   with <tt>:through</tt> or <tt>:as</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+      # [:required]
+      #   When set to +true+, the association will also have its presence validated.
+      #   This will validate the association itself, not the id. You can use
+      #   +:inverse_of+ to avoid an extra query during validation.
       #
       # Option examples:
       #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1320,6 +1324,7 @@ module ActiveRecord
       #   has_one :boss, readonly: :true
       #   has_one :club, through: :membership
       #   has_one :primary_address, -> { where primary: true }, through: :addressables, source: :addressable
+      #   has_one :credit_card, required: true
       def has_one(name, scope = nil, options = {})
         reflection = Builder::HasOne.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
@@ -1421,6 +1426,10 @@ module ActiveRecord
       #   object that is the inverse of this <tt>belongs_to</tt> association. Does not work in
       #   combination with the <tt>:polymorphic</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+      # [:required]
+      #   When set to +true+, the association will also have its presence validated.
+      #   This will validate the association itself, not the id. You can use
+      #   +:inverse_of+ to avoid an extra query during validation.
       #
       # Option examples:
       #   belongs_to :firm, foreign_key: "client_of"
@@ -1433,6 +1442,7 @@ module ActiveRecord
       #   belongs_to :post, counter_cache: true
       #   belongs_to :company, touch: true
       #   belongs_to :company, touch: :employees_last_updated_at
+      #   belongs_to :company, required: true
       def belongs_to(name, scope = nil, options = {})
         reflection = Builder::BelongsTo.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
