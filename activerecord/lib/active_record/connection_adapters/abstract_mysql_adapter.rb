@@ -753,8 +753,8 @@ module ActiveRecord
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
-        if strict_mode? && !variables.has_key?('sql_mode')
-          variables['sql_mode'] = 'STRICT_ALL_TABLES'
+        unless variables.has_key?('sql_mode')
+          variables['sql_mode'] = strict_mode? ? 'STRICT_ALL_TABLES' : ''
         end
 
         # NAMES does not have an equals sign, see
