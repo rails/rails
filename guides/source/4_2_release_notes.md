@@ -319,6 +319,11 @@ for detailed changes.
   as well as `Kernel#concern` to avoid the `module Foo; extend ActiveSupport::Concern; end`
   boilerplate. ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
 
+* Added `Hash#transform_values` and `Hash#transform_values!` to simplify a
+  common pattern where the values of a hash must change, but the keys are left
+  the same.
+  ([Pull Request](https://github.com/rails/rails/pull/15819))
+
 Credits
 -------
 
