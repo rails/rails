@@ -1,3 +1,8 @@
+*   Add a `:required` option to singular associations, providing a nicer
+    API for presence validations on associations.
+
+    *Sean Griffin*
+
 *   Fixed error in `reset_counters` when associations have `select` scope.
     (Call to `count` generates invalid SQL.)
 

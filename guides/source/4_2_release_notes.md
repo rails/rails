@@ -262,6 +262,10 @@ for detailed changes.
 * Added support for user-created range types in PostgreSQL adapter.
   ([Commit](https://github.com/rails/rails/commit/4cb47167e747e8f9dc12b0ddaf82bdb68c03e032))
 
+* Added a `:required` option to singular associations, which defines a
+  presence validation on the association.
+  ([Pull Request](https://github.com/rails/rails/pull/16056))
+
 Active Model
 ------------
 
