@@ -97,7 +97,6 @@ module ActiveRecord
 
   module Coders
     autoload :YAMLColumn, 'active_record/coders/yaml_column'
-    autoload :JSON, 'active_record/coders/json'
   end
 
   module AttributeMethods
