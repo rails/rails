@@ -21,13 +21,6 @@ module ActiveRecord
           sql_type = type_to_sql(column.type, column.limit, column.precision, column.scale)
 
           case value
-          when Range
-            if /range$/ =~ sql_type
-              escaped = quote_string(PostgreSQLColumn.range_to_string(value))
-              "'#{escaped}'::#{sql_type}"
-            else
-              super
-            end
           when Float
             if value.infinite? || value.nan?
               "'#{value.to_s}'"
@@ -54,12 +47,6 @@ module ActiveRecord
           return super unless column
 
           case value
-          when Range
-            if /range$/ =~ column.sql_type
-              PostgreSQLColumn.range_to_string(value)
-            else
-              super
-            end
           when NilClass
             if column.array
               value

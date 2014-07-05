@@ -1,11 +1,7 @@
-require 'active_record/connection_adapters/postgresql/cast'
-
 module ActiveRecord
   module ConnectionAdapters
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
-      extend PostgreSQL::Cast
-
       attr_accessor :array
 
       def initialize(name, default, cast_type, sql_type = nil, null = true, default_function = nil)
