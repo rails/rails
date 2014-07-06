@@ -43,21 +43,6 @@ module ActiveRecord
           end
         end
 
-        def type_cast(value, column)
-          return super unless column
-
-          case value
-          when NilClass
-            if column.array
-              value
-            else
-              super
-            end
-          else
-            super
-          end
-        end
-
         # Quotes strings for use in SQL input.
         def quote_string(s) #:nodoc:
           @connection.escape(s)
