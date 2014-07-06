@@ -21,6 +21,7 @@ require 'active_record/connection_adapters/postgresql/oid/specialized_string'
 require 'active_record/connection_adapters/postgresql/oid/time'
 require 'active_record/connection_adapters/postgresql/oid/uuid'
 require 'active_record/connection_adapters/postgresql/oid/vector'
+require 'active_record/connection_adapters/postgresql/oid/xml'
 
 require 'active_record/connection_adapters/postgresql/oid/type_map_initializer'
 
