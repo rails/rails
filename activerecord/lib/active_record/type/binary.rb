@@ -24,7 +24,7 @@ module ActiveRecord
 
       class Data # :nodoc:
         def initialize(value)
-          @value = value
+          @value = value.to_s
         end
 
         def to_s

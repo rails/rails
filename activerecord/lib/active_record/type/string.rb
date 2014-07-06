@@ -17,8 +17,10 @@ module ActiveRecord
 
       def type_cast_for_database(value)
         case value
-        when ::Numeric then value.to_s
+        when ::Numeric, ActiveSupport::Duration then value.to_s
         when ::String then ::String.new(value)
+        when true then "1"
+        when false then "0"
         else super
         end
       end
