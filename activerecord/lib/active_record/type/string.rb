@@ -5,10 +5,6 @@ module ActiveRecord
         :string
       end
 
-      def text?
-        true
-      end
-
       def changed_in_place?(raw_old_value, new_value)
         if new_value.is_a?(::String)
           raw_old_value != new_value

@@ -30,7 +30,6 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
     assert_equal :decimal, column.type
     assert_equal "custom_money", column.sql_type
     assert column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end

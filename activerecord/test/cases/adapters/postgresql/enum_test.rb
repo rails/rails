@@ -34,7 +34,6 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     assert_equal :enum, column.type
     assert_equal "mood", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end
