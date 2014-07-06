@@ -7,7 +7,7 @@ require 'sqlite3'
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    # sqlite3 adapter reuses sqlite_connection.
+    # SQLite3 adapter reuses sqlite_connection.
     def sqlite3_connection(config)
       # Require database.
       unless config[:database]
@@ -16,7 +16,7 @@ module ActiveRecord
 
       # Allow database path relative to Rails.root, but only if
       # the database path is not the special path that tells
-      # Sqlite to build a database only in memory.
+      # SQLite to build a database only in memory.
       if ':memory:' != config[:database]
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
