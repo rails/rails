@@ -361,6 +361,22 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_raise(ActionController::RoutingError) { rs.recognize_path("/admin/products") }
   end
 
+  def test_route_with_rack_environment
+    rs.draw do
+      post   "/people"     => "people#create"
+      get    "/people/:id" => "people#show"
+      put    "/people/:id" => "people#update"
+      patch  "/people/:id" => "people#update"
+      delete "/people/:id" => "people#destroy"
+    end
+
+    assert_equal({controller: "people", action: "create"}, rs.recognize_path("/people", Rack::MockRequest.env_for("/people", method: :post)))
+    assert_equal({controller: "people", action: "show", id: "5"}, rs.recognize_path("/people/5", Rack::MockRequest.env_for("/people/5", method: :get)))
+    assert_equal({controller: "people", action: "update", id: "5"}, rs.recognize_path("/people/5", Rack::MockRequest.env_for("/people/5", method: :put)))
+    assert_equal({controller: "people", action: "update", id: "5"}, rs.recognize_path("/people/5", Rack::MockRequest.env_for("/people/5", method: :patch)))
+    assert_equal({controller: "people", action: "destroy", id: "5"}, rs.recognize_path("/people/5", Rack::MockRequest.env_for("/people/5", method: :delete)))
+  end
+
   def test_route_with_regexp_and_dot
     rs.draw do
       get ':controller/:action/:file',
