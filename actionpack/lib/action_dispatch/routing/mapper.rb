@@ -1434,7 +1434,7 @@ module ActionDispatch
           end
 
           with_scope_level(:nested) do
-            if shallow? && shallow_nesting_depth > 1
+            if shallow? && shallow_nesting_depth >= 1
               shallow_scope(parent_resource.nested_scope, nested_options) { yield }
             else
               scope(parent_resource.nested_scope, nested_options) { yield }
