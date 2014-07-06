@@ -57,7 +57,7 @@ module ActiveRecord
         end
       end
 
-      # sqlite databases should be able to support any type and not
+      # SQLite databases should be able to support any type and not
       # just the ones mentioned in the native_database_types.
       # Therefore test_invalid column should always return true
       # even if the type is not valid.
@@ -126,7 +126,7 @@ module ActiveRecord
         assert @conn, 'should have connection'
       end
 
-      # sqlite3 defaults to UTF-8 encoding
+      # SQLite3 defaults to UTF-8 encoding
       def test_encoding
         assert_equal 'UTF-8', @conn.encoding
       end
