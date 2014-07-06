@@ -1,3 +1,8 @@
+*   ActionController::TemplateAssertions now sets up subscriptions only once
+    instead of doing it during each test setup.
+
+    *Guo Xiang Tan*
+
 *   JSONP responses are now rendered with the `text/javascript` content type
     when rendering through a `respond_to` block.
 
