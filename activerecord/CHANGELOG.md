@@ -1,3 +1,14 @@
+*   Avoid type casting boolean and ActiveSupport::Duration values to numeric
+    values for string columns. Otherwise, in some database, the string column
+    values will be coerced to a numeric allowing false or 0.seconds match any
+    string starting with a non-digit.
+
+    Example:
+
+        App.where(apikey: false) # => SELECT * FROM users WHERE apikey = '0'
+
+    *Dylan Thacker-Smith*
+
 *   Add a `:required` option to singular associations, providing a nicer
     API for presence validations on associations.
 
