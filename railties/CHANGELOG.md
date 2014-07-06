@@ -48,7 +48,7 @@
 
     *Matthew Draper*
 
-*   Remove SQLite3 lines from `.gitignore` if the application is not using SQLite3.
+*   Remove sqlite3 lines from `.gitignore` if the application is not using sqlite3.
 
     *Dmitrii Golub*
 
