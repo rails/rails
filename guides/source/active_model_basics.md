@@ -198,3 +198,47 @@ person.valid?                        # => true
 person.token = nil
 person.valid?                        # => raises ActiveModel::StrictValidationFailed
 ```
+
+### ActiveModel::SecurePassword
+
+`ActiveModel::SecurePassword` provides a way to securely store any
+password in an encrypted form. On including this module, a
+`has_secure_password` class method is provided which defines 
+an accessor named `password` with certain validations on it. The 
+`ActiveModel::SecurePassword` depends on the 
+[`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'), so include 
+this gem in your Gemfile to use `ActiveModel::SecurePassword` correctly.
+
+In order to make this work, the model must have an accessor named 
+`password_digest`. The `has_secure_password` will add the following 
+validations on the `password` accessor:
+
+1. Password should be present.
+2. Password should be equal to its confirmation.
+3. This maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
+
+```ruby
+class Person
+  include ActiveModel::SecurePassword
+  has_secure_password
+  attr_accessor :password_digest
+end
+
+person = Person.new
+
+# When password is blank.
+person.valid? # => false
+
+# When the confirmation doesn't match the password.
+person.password = 'aditya'
+person.password_confirmation = 'nomatch'
+person.valid? # => false
+
+# When the length of password, exceeds 72.
+person.password = person.password_confirmation = 'a' * 100
+person.valid? # => false
+
+# When all validations are passed.
+person.password = person.password_confirmation = 'aditya'
+person.valid? # => true
+```
