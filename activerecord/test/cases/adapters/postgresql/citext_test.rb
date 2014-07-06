@@ -36,7 +36,6 @@ if ActiveRecord::Base.connection.supports_extensions?
       assert_equal :citext, column.type
       assert_equal 'citext', column.sql_type
       assert_not column.text?
-      assert_not column.number?
       assert_not column.binary?
       assert_not column.array
     end

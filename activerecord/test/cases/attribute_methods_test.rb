@@ -388,6 +388,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
 
     assert_equal true, Topic.new(:author_name => "Name").author_name?
+    assert_equal true, Topic.new(:author_name => "0").author_name?
   end
 
   def test_query_attribute_number

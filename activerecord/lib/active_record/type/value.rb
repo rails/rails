@@ -48,13 +48,14 @@ module ActiveRecord
         value.inspect
       end
 
+      # Used for the attribute predicate methods
+      def value_present?(value) # :nodoc:
+        !value.blank? && !ConnectionAdapters::Column::FALSE_VALUES.include?(value)
+      end
+
       # These predicates are not documented, as I need to look further into
       # their use, and see if they can be removed entirely.
       def text? # :nodoc:
-        false
-      end
-
-      def number? # :nodoc:
         false
       end
 
