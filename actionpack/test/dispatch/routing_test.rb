@@ -3443,19 +3443,19 @@ private
 
   def draw(&block)
     self.class.stub_controllers do |routes|
-      @app = routes
-      @app.default_url_options = { host: 'www.example.com' }
-      @app.draw(&block)
+      routes.default_url_options = { host: 'www.example.com' }
+      routes.draw(&block)
+      @app = RoutedRackApp.new routes
     end
   end
 
   def url_for(options = {})
-    @app.url_helpers.url_for(options)
+    @app.routes.url_helpers.url_for(options)
   end
 
   def method_missing(method, *args, &block)
     if method.to_s =~ /_(path|url)$/
-      @app.url_helpers.send(method, *args, &block)
+      @app.routes.url_helpers.send(method, *args, &block)
     else
       super
     end
@@ -3523,8 +3523,10 @@ class TestAltApp < ActionDispatch::IntegrationTest
     get "/" => TestAltApp::AltApp.new
   end
 
+  APP = build_app AltRoutes
+
   def app
-    AltRoutes
+    APP
   end
 
   def test_alt_request_without_header
@@ -3551,15 +3553,16 @@ class TestAppendingRoutes < ActionDispatch::IntegrationTest
   def setup
     super
     s = self
-    @app = ActionDispatch::Routing::RouteSet.new
-    @app.append do
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.append do
       get '/hello'   => s.simple_app('fail')
       get '/goodbye' => s.simple_app('goodbye')
     end
 
-    @app.draw do
+    routes.draw do
       get '/hello' => s.simple_app('hello')
     end
+    @app = self.class.build_app routes
   end
 
   def test_goodbye_should_be_available
@@ -3588,8 +3591,9 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
   end
 
   def draw(&block)
-    @app = ActionDispatch::Routing::RouteSet.new
-    @app.draw(&block)
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.draw(&block)
+    @app = self.class.build_app routes
   end
 
   def test_missing_controller
@@ -3689,8 +3693,10 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
     resources :posts
   end
 
+  APP = build_app DefaultScopeRoutes
+
   def app
-    DefaultScopeRoutes
+    APP
   end
 
   include DefaultScopeRoutes.url_helpers
@@ -3715,11 +3721,14 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
     lambda { |env| [ 200, { 'Content-Type' => 'text/plain' }, [response] ] }
   end
 
-  setup do
-    s = self
-    @app = ActionDispatch::Routing::RouteSet.new
+  attr_reader :app
 
-    @app.draw do
+  def setup
+    s = self
+    routes = ActionDispatch::Routing::RouteSet.new
+    @app = RoutedRackApp.new routes
+
+    routes.draw do
       (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
         match '/' => s.simple_app(method), :via => method.underscore.to_sym
       end
@@ -3750,7 +3759,8 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test 'escapes slash in generated path segment' do
     assert_equal '/a%20b%2Fc+d', segment_path(:segment => 'a b/c+d')
@@ -3781,7 +3791,8 @@ class TestUnicodePaths < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test 'recognizes unicode path' do
     get "/#{Rack::Utils.escape("ほげ")}"
@@ -3812,7 +3823,8 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test "controller option which starts with '/' from multiple nested controller" do
     get "/foo/bar/baz"
@@ -3831,7 +3843,8 @@ class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test 'recognizes tilde path' do
     get "/~user"
@@ -3858,7 +3871,8 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
     end
   end
 
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test "redirect escapes interpolated parameters with redirect proc" do
     get "/foo/1%3E"
@@ -3900,7 +3914,8 @@ class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
     end
   end
 
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test "parameters are reset between constraint checks" do
     get "/bar"
@@ -3920,7 +3935,8 @@ class TestGlobRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   #include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   def test_glob_constraint
     get "/dummy"
@@ -3952,7 +3968,8 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test 'enabled when not mounted and default_url_options is empty' do
     assert Routes.url_helpers.optimize_routes_generation?
@@ -4024,7 +4041,8 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
     end
   end
 
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   include Routes.url_helpers
 
@@ -4059,7 +4077,8 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test "constraints are copied to defaults when using constraints method" do
     assert_equal 'http://admin.example.com/', admin_root_url
@@ -4140,8 +4159,9 @@ class TestOptionalRootSegments < ActionDispatch::IntegrationTest
     end
   end
 
+  APP = build_app Routes
   def app
-    Routes
+    APP
   end
 
   include Routes.url_helpers
@@ -4172,7 +4192,8 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   def test_integer_port_constraints
     get 'http://www.example.com/integer'
@@ -4220,7 +4241,8 @@ class TestFormatConstraints < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   def test_string_format_constraints
     get 'http://www.example.com/string'
@@ -4289,8 +4311,9 @@ class TestRouteDefaults < ActionDispatch::IntegrationTest
     end
   end
 
+  APP = build_app Routes
   def app
-    Routes
+    APP
   end
 
   include Routes.url_helpers
@@ -4318,8 +4341,9 @@ class TestRackAppRouteGeneration < ActionDispatch::IntegrationTest
     end
   end
 
+  APP = build_app Routes
   def app
-    Routes
+    APP
   end
 
   include Routes.url_helpers
@@ -4344,8 +4368,9 @@ class TestRedirectRouteGeneration < ActionDispatch::IntegrationTest
     end
   end
 
+  APP = build_app Routes
   def app
-    Routes
+    APP
   end
 
   include Routes.url_helpers
@@ -4368,7 +4393,8 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     end
   end
 
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   include Routes.url_helpers
 
