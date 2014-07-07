@@ -38,7 +38,6 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal :string, @column.type
     assert_equal "character varying", @column.sql_type
     assert @column.array
-    assert_not @column.text?
     assert_not @column.number?
     assert_not @column.binary?
 

@@ -26,7 +26,6 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
     assert_equal "money", column.sql_type
     assert_equal 2, column.scale
     assert column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end
