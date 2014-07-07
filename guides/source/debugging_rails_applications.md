@@ -279,7 +279,7 @@ Make sure you have started your web server with the option `--debugger`:
 ```bash
 $ rails server --debugger
 => Booting WEBrick
-=> Rails 4.1.1 application starting on http://0.0.0.0:3000
+=> Rails 4.1.4 application starting on http://0.0.0.0:3000
 => Debugger enabled
 ...
 ```
@@ -535,7 +535,7 @@ TIP: You can use the debugger while using `rails console`. Just remember to `req
 
 ```
 $ rails console
-Loading development environment (Rails 4.1.1)
+Loading development environment (Rails 4.1.4)
 >> require "debugger"
 => []
 >> author = Author.first
