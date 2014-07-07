@@ -123,7 +123,7 @@ run the following:
 $ bin/rails --version
 ```
 
-If it says something like "Rails 4.1.1", you are ready to continue.
+If it says something like "Rails 4.2.0", you are ready to continue.
 
 ### Creating the Blog Application
 
