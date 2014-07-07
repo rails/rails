@@ -189,7 +189,7 @@ module ActionDispatch
         if app.respond_to?(:routes)
           singleton_class.class_eval do
             include app.routes.url_helpers
-            include app.routes.mounted_helpers if app.routes.respond_to?(:mounted_helpers)
+            include app.routes.mounted_helpers
           end
         end
 
