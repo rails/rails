@@ -439,11 +439,11 @@ Rails 4.1 now expects an explicit block to be passed when calling
 `ActiveSupport::Callbacks` being largely rewritten for the 4.1 release.
 
 ```ruby
-# Rails 4.1
-set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
-
-# Rails 4.0
+# Previously in Rails 4.0
 set_callback :save, :around, ->(r, &block) { stuff; result = block.call; stuff }
+
+# Now in Rails 4.1
+set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
 ```
 
 Upgrading from Rails 3.2 to Rails 4.0
