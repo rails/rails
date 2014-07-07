@@ -1,10 +1,6 @@
 module ActiveRecord
   module Type
     module Numeric # :nodoc:
-      def number?
-        true
-      end
-
       def type_cast(value)
         value = case value
                 when true then 1
@@ -17,6 +13,10 @@ module ActiveRecord
 
       def changed?(old_value, _new_value, new_value_before_type_cast) # :nodoc:
         super || number_to_non_number?(old_value, new_value_before_type_cast)
+      end
+
+      def value_present?(value)
+        super && !value.zero?
       end
 
       private

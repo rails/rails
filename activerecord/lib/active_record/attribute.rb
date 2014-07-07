@@ -46,16 +46,16 @@ module ActiveRecord
       type.changed_in_place?(old_value, value)
     end
 
+    def value_present?
+      type.value_present?(value)
+    end
+
     def with_value_from_user(value)
       self.class.from_user(name, value, type)
     end
 
     def with_value_from_database(value)
       self.class.from_database(name, value, type)
-    end
-
-    def type_cast
-      raise NotImplementedError
     end
 
     def initialized?
@@ -68,6 +68,10 @@ module ActiveRecord
       if defined?(@value) && @value.duplicable?
         @value = @value.dup
       end
+    end
+
+    def type_cast(*)
+      raise NotImplementedError
     end
 
     class FromDatabase < Attribute # :nodoc:

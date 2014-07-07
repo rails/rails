@@ -25,6 +25,10 @@ module ActiveRecord
         end
       end
 
+      def value_present?(value)
+        !value.blank?
+      end
+
       private
 
       def cast_value(value)

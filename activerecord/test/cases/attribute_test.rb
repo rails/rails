@@ -138,5 +138,16 @@ module ActiveRecord
     test "uninitialized attributes have no value" do
       assert_nil Attribute.uninitialized(:foo, nil).value
     end
+
+    test "value_present? passes the cast value to the type" do
+      type = Object.new
+      def type.type_cast_from_database(value); value.to_s; end
+      def type.value_present?(value); value == "1"; end
+      present_attribute = Attribute.from_database(nil, 1, type)
+      blank_attribute = Attribute.from_database(nil, 2, type)
+
+      assert present_attribute.value_present?
+      assert_not blank_attribute.value_present?
+    end
   end
 end
