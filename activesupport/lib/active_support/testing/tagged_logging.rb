@@ -9,9 +9,7 @@ module ActiveSupport
         if tagged_logger
           heading = "#{self.class}: #{name}"
           divider = '-' * heading.size
-          tagged_logger.info divider
-          tagged_logger.info heading
-          tagged_logger.info divider
+          tagged_logger.info { "#{divider}\n#{heading}\n#{divider}" }
         end
         super
       end
