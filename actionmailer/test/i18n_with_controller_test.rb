@@ -28,8 +28,23 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
     get ':controller(/:action(/:id))'
   end
 
+  class RoutedRackApp
+    attr_reader :routes
+
+    def initialize(routes, &blk)
+      @routes = routes
+      @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
+    end
+
+    def call(env)
+      @stack.call(env)
+    end
+  end
+
+  APP = RoutedRackApp.new(Routes)
+
   def app
-    Routes
+    APP
   end
 
   teardown do
