@@ -230,7 +230,7 @@ module ActiveRecord #:nodoc:
   #
   # When you do <tt>Firm.create(name: "37signals")</tt>, this record will be saved in
   # the companies table with type = "Firm". You can then fetch this row again using
-  # <tt>Company.where(name: '37signals').first</tt> and it will return a Firm object.
+  # <tt>Company.find_by(name: '37signals')</tt> and it will return a Firm object.
   #
   # If you don't have a type column defined in your table, single-table inheritance won't
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
