@@ -1165,9 +1165,9 @@ Inserting data into HTML templates needs extra care. For example, you can't just
 
 #### Safe Strings
 
-Active Support has the concept of <i>(html) safe</i> strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
+Active Support has the concept of _(html) safe_ strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
 
-Strings are considered to be <i>unsafe</i> by default:
+Strings are considered to be _unsafe_ by default:
 
 ```ruby
 "".html_safe? # => false

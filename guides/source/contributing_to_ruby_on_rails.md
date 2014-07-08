@@ -109,9 +109,7 @@ After applying their branch, test it out! Here are some things to think about:
 
 Once you're happy that the pull request contains a good change, comment on the GitHub issue indicating your approval. Your comment should indicate that you like the change and what you like about it. Something like:
 
-<blockquote>
-I like the way you've restructured that code in generate_finder_sql - much nicer. The tests look good too.
-</blockquote>
+>I like the way you've restructured that code in generate_finder_sql - much nicer. The tests look good too.
 
 If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
 

@@ -144,7 +144,7 @@ In Rails, models tests are what you write to test your models.
 
 For this guide we will be using Rails _scaffolding_. It will create the model, a migration, controller and views for the new resource in a single operation. It will also create a full test suite following Rails best practices. We will be using examples from this generated code and will be supplementing it with additional examples where necessary.
 
-NOTE: For more information on Rails <i>scaffolding</i>, refer to [Getting Started with Rails](getting_started.html)
+NOTE: For more information on Rails _scaffolding_, refer to [Getting Started with Rails](getting_started.html)
 
 When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/models` folder:
 

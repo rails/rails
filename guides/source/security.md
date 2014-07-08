@@ -25,7 +25,7 @@ The Gartner Group however estimates that 75% of attacks are at the web applicati
 
 The threats against web applications include user account hijacking, bypass of access control, reading or modifying sensitive data, or presenting fraudulent content. Or an attacker might be able to install a Trojan horse program or unsolicited e-mail sending software, aim at financial enrichment or cause brand name damage by modifying company resources. In order to prevent attacks, minimize their impact and remove points of attack, first of all, you have to fully understand the attack methods in order to find the correct countermeasures. That is what this guide aims at.
 
-In order to develop secure web applications you have to keep up to date on all layers and know your enemies. To keep up to date subscribe to security mailing lists, read security blogs and make updating and security checks a habit (check the <a href="#additional-resources">Additional Resources</a> chapter). It is done manually because that's how you find the nasty logical security problems.
+In order to develop secure web applications you have to keep up to date on all layers and know your enemies. To keep up to date subscribe to security mailing lists, read security blogs and make updating and security checks a habit (check the [Additional Resources](#additional-resources) chapter). It is done manually because that's how you find the nasty logical security problems.
 
 Sessions
 --------
@@ -68,7 +68,7 @@ Hence, the cookie serves as temporary authentication for the web application. An
 
 * Most people don't clear out the cookies after working at a public terminal. So if the last user didn't log out of a web application, you would be able to use it as this user. Provide the user with a _log-out button_ in the web application, and _make it prominent_.
 
-* Many cross-site scripting (XSS) exploits aim at obtaining the user's cookie. You'll read <a href="#cross-site-scripting-xss">more about XSS</a> later.
+* Many cross-site scripting (XSS) exploits aim at obtaining the user's cookie. You'll read [more about XSS](#cross-site-scripting-xss) later.
 
 * Instead of stealing a cookie unknown to the attacker, they fix a user's session identifier (in the cookie) known to them. Read more about this so-called session fixation later.
 
@@ -187,7 +187,7 @@ This attack method works by including malicious code or a link in a page that ac
 
 ![](images/csrf.png)
 
-In the <a href="#sessions">session chapter</a> you have learned that most Rails applications use cookie-based sessions. Either they store the session id in the cookie and have a server-side session hash, or the entire session hash is on the client-side. In either case the browser will automatically send along the cookie on every request to a domain, if it can find a cookie for that domain. The controversial point is, that it will also send the cookie, if the request comes from a site of a different domain. Let's start with an example:
+In the [session chapter](#sessions) you have learned that most Rails applications use cookie-based sessions. Either they store the session id in the cookie and have a server-side session hash, or the entire session hash is on the client-side. In either case the browser will automatically send along the cookie on every request to a domain, if it can find a cookie for that domain. The controversial point is, that it will also send the cookie, if the request comes from a site of a different domain. Let's start with an example:
 
 * Bob browses a message board and views a post from a hacker where there is a crafted HTML image element. The element references a command in Bob's project management application, rather than an image file.
 * `<img src="http://www.webapp.com/project/1/destroy">`
@@ -257,7 +257,7 @@ end
 
 The above method can be placed in the `ApplicationController` and will be called when a CSRF token is not present or is incorrect on a non-GET request.
 
-Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so they can read the CSRF security token from a form or directly submit the form. Read <a href="#cross-site-scripting-xss">more about XSS</a> later.
+Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so they can read the CSRF security token from a form or directly submit the form. Read [more about XSS](#cross-site-scripting-xss) later.
 
 Redirection and Files
 ---------------------
@@ -477,7 +477,7 @@ config.filter_parameters << :password
 
 INFO: _Do you find it hard to remember all your passwords? Don't write them down, but use the initial letters of each word in an easy to remember sentence._
 
-Bruce Schneier, a security technologist, [has analyzed](http://www.schneier.com/blog/archives/2006/12/realworld_passw.html) 34,000 real-world user names and passwords from the MySpace phishing attack mentioned <a href="#examples-from-the-underground">below</a>. It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
+Bruce Schneier, a security technologist, [has analyzed](http://www.schneier.com/blog/archives/2006/12/realworld_passw.html) 34,000 real-world user names and passwords from the MySpace phishing attack mentioned [below](#examples-from-the-underground). It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
 
 password1, abc123, myspace1, password, blink182, qwerty1, ****you, 123abc, baseball1, football1, 123456, soccer, monkey1, liverpool1, princess1, jordan23, slipknot1, superman1, iloveyou1, and monkey.
 
@@ -630,7 +630,7 @@ Also, the second query renames some columns with the AS statement so that the we
 
 #### Countermeasures
 
-Ruby on Rails has a built-in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using `Model.find(id)` or `Model.find_by_some thing(something)` automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually</em>.
+Ruby on Rails has a built-in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. *Using `Model.find(id)` or `Model.find_by_some thing(something)` automatically applies this countermeasure*. But in SQL fragments, especially *in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually*.
 
 Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:
 
