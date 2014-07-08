@@ -1,3 +1,18 @@
+*   Fix the SQL generated when a `delete_all` is run on an association to not
+    produce an `IN` statements.
+
+    Before:
+
+      UPDATE "categorizations" SET "category_id" = NULL WHERE
+      "categorizations"."category_id" = 1 AND "categorizations"."id" IN (1, 2)
+
+    After:
+
+      UPDATE "categorizations" SET "category_id" = NULL WHERE
+      "categorizations"."category_id" = 1
+
+    *Eileen M. Uchitelle, Aaron Patterson*
+
 *   Avoid type casting boolean and ActiveSupport::Duration values to numeric
     values for string columns. Otherwise, in some database, the string column
     values will be coerced to a numeric allowing false or 0.seconds match any
