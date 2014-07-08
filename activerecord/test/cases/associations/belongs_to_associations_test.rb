@@ -937,6 +937,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
+  fixtures :authors, :author_addresses
+
   def test_destroy_linked_models
     address = AuthorAddress.create!
     author = Author.create! name: "Author", author_address_id: address.id
