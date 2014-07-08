@@ -654,9 +654,13 @@ class RequestMethod < BaseRequestTest
     assert_equal 'POST', request.method
   end
 
-  test "invalid method hacking on post raises exception" do
+  test "method raises exception on invalid HTTP method" do
     assert_raise(ActionController::UnknownHttpMethod) do
-      stub_request('REQUEST_METHOD' => '_RANDOM_METHOD').request_method
+      stub_request('rack.methodoverride.original_method' => '_RANDOM_METHOD').method
+    end
+
+    assert_raise(ActionController::UnknownHttpMethod) do
+      stub_request('REQUEST_METHOD' => '_RANDOM_METHOD').method
     end
   end
 
