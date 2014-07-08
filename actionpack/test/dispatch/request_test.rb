@@ -632,12 +632,14 @@ class RequestProtocol < BaseRequestTest
 end
 
 class RequestMethod < BaseRequestTest
-  test "request methods" do
-    [:post, :get, :patch, :put, :delete].each do |method|
-      request = stub_request('REQUEST_METHOD' => method.to_s.upcase)
+  test "method returns environment's request method when it has not been
+    overriden by middleware".squish do
 
-      assert_equal method.to_s.upcase, request.method
-      assert_equal method, request.method_symbol
+    ActionDispatch::Request::HTTP_METHODS.each do |method|
+      request = stub_request('REQUEST_METHOD' => method)
+
+      assert_equal method, request.method
+      assert_equal method.underscore.to_sym, request.method_symbol
     end
   end
 
