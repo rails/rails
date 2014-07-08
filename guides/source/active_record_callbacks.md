@@ -15,7 +15,7 @@ After reading this guide, you will know:
 The Object Life Cycle
 ---------------------
 
-During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object life cycle</em> so that you can control your application and its data.
+During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this *object life cycle* so that you can control your application and its data.
 
 Callbacks allow you to trigger logic before or after an alteration of an object's state.
 
