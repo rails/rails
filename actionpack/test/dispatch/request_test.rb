@@ -647,12 +647,9 @@ class RequestMethod < BaseRequestTest
     end
   end
 
-  test "allow method hacking on post" do
-    %w(GET OPTIONS PATCH PUT POST DELETE).each do |method|
-      request = stub_request 'REQUEST_METHOD' => method.to_s.upcase
-
-      assert_equal(method == "HEAD" ? "GET" : method, request.method)
-    end
+  test "method returns original value of environment request method on POST" do
+    request = stub_request('rack.methodoverride.original_method' => 'POST')
+    assert_equal 'POST', request.method
   end
 
   test "invalid method hacking on post raises exception" do
