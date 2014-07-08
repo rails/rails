@@ -12,12 +12,13 @@ module ActionDispatch
         @routes, @scope = routes, scope
         @controller = Class.new {
           attr_reader :context
-          def initialize(context)
+          def initialize(context, routes)
             @context = context
+            @_routes = routes
           end
 
           include routes.url_helpers
-        }.new(scope_context)
+        }.new(scope_context, routes)
       end
 
       def url_options
