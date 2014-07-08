@@ -798,6 +798,12 @@ class RequestFormat < BaseRequestTest
     assert_not request.format.json?
   end
 
+  test "format does not throw exceptions when malformed parameters" do
+    request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
+    assert request.formats
+    assert request.format.html?
+  end
+
   test "formats with xhr request" do
     request = stub_request 'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     request.expects(:parameters).at_least_once.returns({})
@@ -893,15 +899,15 @@ class RequestParameters < BaseRequestTest
     assert_equal({"bar" => 2}, request.query_parameters)
   end
 
-  test "parameters still accessible after rack parse error" do
+  test "parameters not accessible after rack parse error" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
 
-    assert_raises(ActionController::BadRequest) do
-      # rack will raise a TypeError when parsing this query string
-      request.parameters
+    2.times do
+      assert_raises(ActionController::BadRequest) do
+        # rack will raise a TypeError when parsing this query string
+        request.parameters
+      end
     end
-
-    assert_equal({}, request.parameters)
   end
 
   test "we have access to the original exception" do
