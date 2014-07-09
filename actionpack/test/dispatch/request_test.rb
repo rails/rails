@@ -664,17 +664,6 @@ class RequestMethod < BaseRequestTest
     end
   end
 
-  test "restrict method hacking" do
-    [:get, :patch, :put, :delete].each do |method|
-      request = stub_request(
-        'action_dispatch.request.request_parameters' => { :_method => 'put' },
-        'REQUEST_METHOD' => method.to_s.upcase
-      )
-
-      assert_equal method.to_s.upcase, request.method
-    end
-  end
-
   test "post masquerading as patch" do
     request = stub_request(
       'REQUEST_METHOD' => 'PATCH',
