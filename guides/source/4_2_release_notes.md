@@ -76,7 +76,6 @@ Please refer to the [Changelog][railties] for detailed changes.
 * Introduced `Rails.gem_version` as a convenience method to return `Gem::Version.new(Rails.version)`.
   ([Pull Request](https://github.com/rails/rails/pull/14101))
 
-
 Action Pack
 -----------
 
@@ -85,39 +84,41 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 ### Deprecations
 
 * Deprecated support for setting the `:to` option of a router to a symbol or a
-  string that does not contain a `#` character:
+  string that does not contain a `#` character ([Commit](https://github.com/rails/rails/commit/cc26b6b7bccf0eea2e2c1a9ebdcc9d30ca7390d9)):
 
-      get '/posts', to: MyRackApp    => (No change necessary)
-      get '/posts', to: 'post#index' => (No change necessary)
-      get '/posts', to: 'posts'      => get '/posts', controller: :posts
-      get '/posts', to: :index       => get '/posts', action: :index
-
-  ([Commit](https://github.com/rails/rails/commit/cc26b6b7bccf0eea2e2c1a9ebdcc9d30ca7390d9))
+  ```ruby
+  get '/posts', to: MyRackApp    => (No change necessary)
+  get '/posts', to: 'post#index' => (No change necessary)
+  get '/posts', to: 'posts'      => get '/posts', controller: :posts
+  get '/posts', to: :index       => get '/posts', action: :index
+  ```
 
 ### Notable changes
 
 * The `*_filter` family methods has been removed from the documentation. Their
-  usage are discouraged in favor of the `*_action` family methods:
-
-      after_filter          => after_action
-      append_after_filter   => append_after_action
-      append_around_filter  => append_around_action
-      append_before_filter  => append_before_action
-      around_filter         => around_action
-      before_filter         => before_action
-      prepend_after_filter  => prepend_after_action
-      prepend_around_filter => prepend_around_action
-      prepend_before_filter => prepend_before_action
-      skip_after_filter     => skip_after_action
-      skip_around_filter    => skip_around_action
-      skip_before_filter    => skip_before_action
-      skip_filter           => skip_action_callback
-
+  usage are discouraged in favor of the `*_action` family methods (see below).
   If your application is depending on these methods, you should use the
   replacement `*_action` methods instead. These methods will be deprecated in
   the future and eventually removed from Rails.
   (Commit [1](https://github.com/rails/rails/commit/6c5f43bab8206747a8591435b2aa0ff7051ad3de),
   [2](https://github.com/rails/rails/commit/489a8f2a44dc9cea09154ee1ee2557d1f037c7d4))
+
+  ```
+  after_filter          => after_action
+  append_after_filter   => append_after_action
+  append_around_filter  => append_around_action
+  append_before_filter  => append_before_action
+  around_filter         => around_action
+  before_filter         => before_action
+  prepend_after_filter  => prepend_after_action
+  prepend_around_filter => prepend_around_action
+  prepend_before_filter => prepend_before_action
+  skip_after_filter     => skip_after_action
+  skip_around_filter    => skip_around_action
+  skip_before_filter    => skip_before_action
+  skip_filter           => skip_action_callback
+  ```
+
 
 * Added HTTP method `MKCALENDAR` from RFC-4791
   ([Pull Request](https://github.com/rails/rails/pull/15121))
@@ -209,13 +210,10 @@ for detailed changes.
 * Deprecated half-baked support for PostgreSQL range values with excluding
   beginnings. We currently map PostgreSQL ranges to Ruby ranges. This conversion
   is not fully possible because the Ruby range does not support excluded
-  beginnings.
-
-  The current solution of incrementing the beginning is not correct and is now
-  deprecated. For subtypes where we don't know how to increment (e.g. `#succ`
-  is not defined) it will raise an `ArgumentError` for ranges with excluding
-  beginnings.
-
+  beginnings. The current solution of incrementing the beginning is not correct
+  and is now deprecated. For subtypes where we don't know how to increment
+  (e.g. `#succ` is not defined) it will raise an `ArgumentError` for ranges with
+  excluding beginnings.
   ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
 
 * Deprecated broken support for automatic detection of counter caches on
