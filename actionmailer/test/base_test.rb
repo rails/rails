@@ -82,6 +82,16 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Not SPAM", email['X-SPAM'].decoded)
   end
 
+  test "can overwrite default headers passed as a hash to mail" do
+    email = BaseMailer.welcome('X-Random-Default' => 'custom')
+    assert_equal("custom", email['X-Random-Default'].decoded)
+  end
+
+  test "can overwrite default headers passed as a hash to headers" do
+    email = BaseMailer.welcome_with_headers('X-Random-Default' => 'custom')
+    assert_equal("custom", email['X-Random-Default'].decoded)
+  end
+
   test "can pass random headers in as a hash to mail" do
     hash = {'X-Special-Domain-Specific-Header' => "SecretValue",
             'In-Reply-To' => '1234@mikel.me.com' }
