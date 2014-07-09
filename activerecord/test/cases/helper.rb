@@ -119,12 +119,20 @@ def verify_default_timezone_config
   end
 end
 
-def enable_uuid_ossp!(connection)
+def enable_extension!(extension, connection)
   return false unless connection.supports_extensions?
-  return connection.reconnect! if connection.extension_enabled?('uuid-ossp')
+  return connection.reconnect! if connection.extension_enabled?(extension)
 
-  connection.enable_extension 'uuid-ossp'
+  connection.enable_extension extension
   connection.commit_db_transaction
+  connection.reconnect!
+end
+
+def disable_extension!(extension, connection)
+  return false unless connection.supports_extensions?
+  return true unless connection.extension_enabled?(extension)
+
+  connection.disable_extension extension
   connection.reconnect!
 end
 
