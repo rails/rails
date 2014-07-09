@@ -14,12 +14,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
 
-    unless @connection.extension_enabled?('hstore')
-      @connection.enable_extension 'hstore'
-      @connection.commit_db_transaction
-    end
-
-    @connection.reconnect!
+    enable_hstore!(@connection)
 
     @connection.transaction do
       @connection.create_table('hstores') do |t|
