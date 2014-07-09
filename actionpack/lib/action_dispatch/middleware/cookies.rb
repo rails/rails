@@ -289,8 +289,8 @@ module ActionDispatch
         end
       end
 
-      # Sets the cookie named +name+. The second argument may be the very cookie
-      # value, or a hash of options as documented above.
+      # Sets the cookie named +name+. The second argument may be the cookie's
+      # value or a hash of options as documented above.
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
