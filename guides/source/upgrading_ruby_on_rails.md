@@ -212,6 +212,16 @@ If your application depends on one of these features, you can get them back by
 adding the [`activesupport-json_encoder`](https://github.com/rails/activesupport-json_encoder)
 gem to your Gemfile.
 
+#### JSON representation of Time objects
+
+`#as_json` for objects with time component (`Time`, `DateTime`, `ActiveSupport::TimeWithZone`)
+now returns millisecond precision by default. If you need to keep old behavior with no millisecond
+precision, set the following in an initializer:
+
+```
+ActiveSupport::JSON::Encoding.time_precision = 0
+```
+
 ### Usage of `return` within inline callback blocks
 
 Previously, Rails allowed inline callback blocks to use `return` this way:
@@ -402,6 +412,20 @@ In earlier versions a `HashWithIndifferentAccess` was used. This means that
 symbol access is no longer supported. This is also the case for
 `store_accessors` based on top of `json` or `hstore` columns. Make sure to use
 string keys consistently.
+
+### Explicit block use for `ActiveSupport::Callbacks`
+
+Rails 4.1 now expects an explicit block to be passed when calling
+`ActiveSupport::Callbacks.set_callback`. This change stems from
+`ActiveSupport::Callbacks` being largely rewritten for the 4.1 release.
+
+```ruby
+# Previously in Rails 4.0
+set_callback :save, :around, ->(r, &block) { stuff; result = block.call; stuff }
+
+# Now in Rails 4.1
+set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
+```
 
 Upgrading from Rails 3.2 to Rails 4.0
 -------------------------------------
