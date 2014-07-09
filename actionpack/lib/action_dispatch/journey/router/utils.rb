@@ -53,7 +53,7 @@ module ActionDispatch
           end
 
           def unescape_uri(uri)
-            uri.gsub(ESCAPED) { [$&[1, 2].hex].pack('C') }.force_encoding(uri.encoding)
+            uri.gsub(ESCAPED) { [$&[1, 2].hex].pack('C') }.force_encoding(ENCODING)
           end
 
           protected

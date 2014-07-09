@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'abstract_unit'
 
 module ActionDispatch
@@ -26,6 +27,10 @@ module ActionDispatch
 
         def test_normalize_path_uppercase
           assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aabar%aabaz")
+        end
+
+        def test_us_ascii_to_utf_8_ruby_1_9_3
+          assert_equal "/person/Šašinková", Utils.normalize_path("/person/Šašinková")
         end
       end
     end
