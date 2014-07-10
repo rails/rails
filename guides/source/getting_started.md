@@ -749,8 +749,7 @@ to create an article. Try it! You should get an error that looks like this:
 (images/getting_started/forbidden_attributes_for_new_article.png)
 
 Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called `[strong_parameters]
-(http://guides.rubyonrails.org/action_controller_overview.html#strong-parameters)`,
+and you're running into one of them now. This one is called [strong parameters](http://guides.rubyonrails.org/action_controller_overview.html#strong-parameters),
 which requires us to tell Rails exactly which parameters are allowed into our
 controller actions.
 
