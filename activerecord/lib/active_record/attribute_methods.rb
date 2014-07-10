@@ -18,6 +18,8 @@ module ActiveRecord
       include TimeZoneConversion
       include Dirty
       include Serialization
+
+      delegate :column_for_attribute, to: :class
     end
 
     AttrNames = Module.new {
@@ -154,16 +156,6 @@ module ActiveRecord
         end
       end
 
-      def find_generated_attribute_method(method_name) # :nodoc:
-        klass = self
-        until klass == Base
-          gen_methods = klass.generated_attribute_methods
-          return gen_methods.instance_method(method_name) if method_defined_within?(method_name, gen_methods, Object)
-          klass = klass.superclass
-        end
-        nil
-      end
-
       # Returns +true+ if +attribute+ is an attribute method and table exists,
       # +false+ otherwise.
       #
@@ -192,24 +184,29 @@ module ActiveRecord
             []
           end
       end
-    end
 
-    # If we haven't generated any methods yet, generate them, then
-    # see if we've created the method we're looking for.
-    def method_missing(method, *args, &block) # :nodoc:
-      self.class.define_attribute_methods
-      if respond_to_without_attributes?(method)
-        # make sure to invoke the correct attribute method, as we might have gotten here via a `super`
-        # call in a overwritten attribute method
-        if attribute_method = self.class.find_generated_attribute_method(method)
-          # this is probably horribly slow, but should only happen at most once for a given AR class
-          attribute_method.bind(self).call(*args, &block)
-        else
-          return super unless respond_to_missing?(method, true)
-          send(method, *args, &block)
+      # Returns the column object for the named attribute.
+      # Returns nil if the named attribute does not exist.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   person = Person.new
+      #   person.column_for_attribute(:name) # the result depends on the ConnectionAdapter
+      #   # => #<ActiveRecord::ConnectionAdapters::SQLite3Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
+      #
+      #   person.column_for_attribute(:nothing)
+      #   # => nil
+      def column_for_attribute(name)
+        column = columns_hash[name.to_s]
+        if column.nil?
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            `column_for_attribute` will return a null object for non-existent columns
+            in Rails 5.0. Use `has_attribute?` if you need to check for an
+            attribute's existence.
+          MESSAGE
         end
-      else
-        super
+        column
       end
     end
 
@@ -230,18 +227,14 @@ module ActiveRecord
     #   person.respond_to('age?')   # => true
     #   person.respond_to(:nothing) # => false
     def respond_to?(name, include_private = false)
+      return false unless super
       name = name.to_s
-      self.class.define_attribute_methods
-      result = super
-
-      # If the result is false the answer is false.
-      return false unless result
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
       # We check defined?(@attributes) not to issue warnings if called on objects that
       # have been allocated but not yet initialized.
-      if defined?(@attributes) && @attributes.any? && self.class.column_names.include?(name)
+      if defined?(@attributes) && self.class.column_names.include?(name)
         return has_attribute?(name)
       end
 
@@ -258,7 +251,7 @@ module ActiveRecord
     #   person.has_attribute?('age')    # => true
     #   person.has_attribute?(:nothing) # => false
     def has_attribute?(attr_name)
-      @attributes.has_key?(attr_name.to_s)
+      @attributes.include?(attr_name.to_s)
     end
 
     # Returns an array of names for the attributes available on this object.
@@ -282,14 +275,7 @@ module ActiveRecord
     #   person.attributes
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
     def attributes
-      attribute_names.each_with_object({}) { |name, attrs|
-        attrs[name] = read_attribute(name)
-      }
-    end
-
-    # Placeholder so it can be overriden when needed by serialization
-    def attributes_for_coder # :nodoc:
-      attributes
+      @attributes.to_hash
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
@@ -344,23 +330,6 @@ module ActiveRecord
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 
-    # Returns the column object for the named attribute. Returns +nil+ if the
-    # named attribute not exists.
-    #
-    #   class Person < ActiveRecord::Base
-    #   end
-    #
-    #   person = Person.new
-    #   person.column_for_attribute(:name) # the result depends on the ConnectionAdapter
-    #   # => #<ActiveRecord::ConnectionAdapters::SQLite3Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
-    #
-    #   person.column_for_attribute(:nothing)
-    #   # => nil
-    def column_for_attribute(name)
-      # FIXME: should this return a null object for columns that don't exist?
-      self.class.columns_hash[name.to_s]
-    end
-
     # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
     # "2004-12-12" in a date column is cast to a date object, like Date.new(2004, 12, 12)). It raises
     # <tt>ActiveModel::MissingAttributeError</tt> if the identified attribute is missing.
@@ -400,13 +369,6 @@ module ActiveRecord
 
     protected
 
-    def clone_attributes(reader_method = :read_attribute, attributes = {}) # :nodoc:
-      attribute_names.each do |name|
-        attributes[name] = clone_attribute_value(reader_method, name)
-      end
-      attributes
-    end
-
     def clone_attribute_value(reader_method, attribute_name) # :nodoc:
       value = send(reader_method, attribute_name)
       value.duplicable? ? value.clone : value
@@ -443,16 +405,16 @@ module ActiveRecord
 
     # Filters the primary keys and readonly attributes from the attribute names.
     def attributes_for_update(attribute_names)
-      attribute_names.select do |name|
-        column_for_attribute(name) && !readonly_attribute?(name)
+      attribute_names.reject do |name|
+        readonly_attribute?(name)
       end
     end
 
     # Filters out the primary keys, from the attribute names, when the primary
     # key is to be generated (e.g. the id attribute has no value).
     def attributes_for_create(attribute_names)
-      attribute_names.select do |name|
-        column_for_attribute(name) && !(pk_attribute?(name) && id.nil?)
+      attribute_names.reject do |name|
+        pk_attribute?(name) && id.nil?
       end
     end
 
@@ -465,9 +427,6 @@ module ActiveRecord
     end
 
     def typecasted_attribute_value(name)
-      # FIXME: we need @attributes to be used consistently.
-      # If the values stored in @attributes were already typecasted, this code
-      # could be simplified
       read_attribute(name)
     end
   end

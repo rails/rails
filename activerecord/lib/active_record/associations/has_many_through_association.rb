@@ -63,7 +63,15 @@ module ActiveRecord
         end
 
         save_through_record(record)
-        update_counter(1)
+        if has_cached_counter? && !through_reflection_updates_counter_cache?
+          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+            Automatic updating of counter caches on through associations has been
+            deprecated, and will be removed in Rails 5.0. Instead, please set the
+            appropriate counter_cache options on the has_many and belongs_to for
+            your associations to #{through_reflection.name}.
+          MESSAGE
+          update_counter_in_database(1)
+        end
         record
       end
 
@@ -82,14 +90,20 @@ module ActiveRecord
           @through_records[record.object_id] ||= begin
             ensure_mutable
 
-            through_record = through_association.build through_scope_attributes
+            through_record = through_association.build(*options_for_through_record)
             through_record.send("#{source_reflection.name}=", record)
             through_record
           end
         end
 
+        def options_for_through_record
+          [through_scope_attributes]
+        end
+
         def through_scope_attributes
-          scope.where_values_hash(through_association.reflection.name.to_s)
+          scope.where_values_hash(through_association.reflection.name.to_s).
+            except!(through_association.reflection.foreign_key,
+                    through_association.reflection.klass.inheritance_column)
         end
 
         def save_through_record(record)
@@ -105,9 +119,9 @@ module ActiveRecord
 
           inverse = source_reflection.inverse_of
           if inverse
-            if inverse.macro == :has_many
+            if inverse.collection?
               record.send(inverse.name) << build_through_record(record)
-            elsif inverse.macro == :has_one
+            elsif inverse.has_one?
               record.send("#{inverse.name}=", build_through_record(record))
             end
           end
@@ -116,7 +130,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          !(through_reflection.macro == :belongs_to && owner[through_reflection.foreign_key].blank?)
+          !(through_reflection.belongs_to? && owner[through_reflection.foreign_key].blank?)
         end
 
         def update_through_counter?(method)
@@ -170,7 +184,7 @@ module ActiveRecord
             klass.decrement_counter counter, records.map(&:id)
           end
 
-          if through_reflection.macro == :has_many && update_through_counter?(method)
+          if through_reflection.collection? && update_through_counter?(method)
             update_counter(-count, through_reflection)
           end
 
@@ -180,14 +194,18 @@ module ActiveRecord
         def through_records_for(record)
           attributes = construct_join_attributes(record)
           candidates = Array.wrap(through_association.target)
-          candidates.find_all { |c| c.attributes.slice(*attributes.keys) == attributes }
+          candidates.find_all do |c|
+            attributes.all? do |key, value|
+              c.public_send(key) == value
+            end
+          end
         end
 
         def delete_through_records(records)
           records.each do |record|
             through_records = through_records_for(record)
 
-            if through_reflection.macro == :has_many
+            if through_reflection.collection?
               through_records.each { |r| through_association.target.delete(r) }
             else
               if through_records.include?(through_association.target)
@@ -207,6 +225,11 @@ module ActiveRecord
         # NOTE - not sure that we can actually cope with inverses here
         def invertible_for?(record)
           false
+        end
+
+        def through_reflection_updates_counter_cache?
+          counter_name = cached_counter_attribute_name
+          inverse_updates_counter_named?(counter_name, through_reflection)
         end
     end
   end

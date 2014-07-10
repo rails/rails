@@ -8,6 +8,7 @@ After reading this guide, you will know:
 * How to use PostgreSQL's datatypes.
 * How to use UUID primary keys.
 * How to implement full text search with PostgreSQL.
+* How to back your Active Record models with database views.
 
 --------------------------------------------------------------------------------
 
@@ -51,11 +52,13 @@ Document.create payload: data
 
 ```ruby
 # db/migrate/20140207133952_create_books.rb
-create_table :book do |t|
+create_table :books do |t|
   t.string 'title'
   t.string 'tags', array: true
   t.integer 'ratings', array: true
 end
+add_index :books, :tags, using: 'gin'
+add_index :books, :ratings, using: 'gin'
 
 # app/models/book.rb
 class Book < ActiveRecord::Base
@@ -322,7 +325,8 @@ macbook.address
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-geometric.html)
 
-All geometric types are mapped to normal text.
+All geometric types, with the exception of `points` are mapped to normal text.
+A point is casted to an array containing `x` and `y` coordinates.
 
 
 UUID Primary Keys
@@ -370,8 +374,8 @@ Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
                  "cat & dog")
 ```
 
-Views
------
+Database Views
+--------------
 
 * [view creation](http://www.postgresql.org/docs/9.3/static/sql-createview.html)
 
@@ -426,8 +430,8 @@ second = Article.create! title: "Brace yourself",
 
 Article.count # => 1
 first.archive!
-p Article.count # => 2
+Article.count # => 2
 ```
 
-Note: This application only cares about non-archived `Articles`. A view also
+NOTE: This application only cares about non-archived `Articles`. A view also
 allows for conditions so we can exclude the archived `Articles` directly.

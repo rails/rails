@@ -267,11 +267,9 @@ module AbstractController
     end
 
     class AliasedCallbacks < ControllerWithCallbacks
-      ActiveSupport::Deprecation.silence do
-        before_filter :first
-        after_filter :second
-        around_filter :aroundz
-      end
+      before_filter :first
+      after_filter :second
+      around_filter :aroundz
 
       def first
         @text = "Hello world"

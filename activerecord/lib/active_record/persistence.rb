@@ -48,8 +48,8 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {})
         klass = discriminate_class_for_record(attributes)
-        column_types = klass.decorate_columns(column_types.dup)
-        klass.allocate.init_with('attributes' => attributes, 'column_types' => column_types)
+        attributes = klass.attributes_builder.build_from_database(attributes, column_types)
+        klass.allocate.init_with('attributes' => attributes, 'new_record' => false)
       end
 
       private
@@ -180,7 +180,6 @@ module ActiveRecord
     def becomes(klass)
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
-      became.instance_variable_set("@attributes_cache", @attributes_cache)
       became.instance_variable_set("@changed_attributes", @changed_attributes) if defined?(@changed_attributes)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
@@ -396,11 +395,8 @@ module ActiveRecord
           self.class.unscoped { self.class.find(id) }
         end
 
-      @attributes.update(fresh_object.instance_variable_get('@attributes'))
-
-      @column_types           = self.class.column_types
-      @column_types_override  = fresh_object.instance_variable_get('@column_types_override')
-      @attributes_cache       = {}
+      @attributes = fresh_object.instance_variable_get('@attributes')
+      @new_record = false
       self
     end
 
@@ -490,7 +486,7 @@ module ActiveRecord
 
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def _update_record(attribute_names = @attributes.keys)
+    def _update_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
         0
@@ -501,7 +497,7 @@ module ActiveRecord
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def _create_record(attribute_names = @attributes.keys)
+    def _create_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values

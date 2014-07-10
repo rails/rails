@@ -16,9 +16,9 @@ Company.has_many :accounts
 class NumericData < ActiveRecord::Base
   self.table_name = 'numeric_data'
 
-  property :world_population, Type::Integer.new
-  property :my_house_population, Type::Integer.new
-  property :atoms_in_universe, Type::Integer.new
+  attribute :world_population, Type::Integer.new
+  attribute :my_house_population, Type::Integer.new
+  attribute :atoms_in_universe, Type::Integer.new
 end
 
 class CalculationsTest < ActiveRecord::TestCase
@@ -51,11 +51,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_return_nil_as_average
     assert_nil NumericData.average(:bank_balance)
-  end
-
-  def test_type_cast_calculated_value_should_convert_db_averages_of_fixnum_class_to_decimal
-    assert_equal 0, NumericData.all.send(:type_cast_calculated_value, 0, nil, 'avg')
-    assert_equal 53.0, NumericData.all.send(:type_cast_calculated_value, 53, nil, 'avg')
   end
 
   def test_should_get_maximum_of_field
@@ -609,5 +604,12 @@ class CalculationsTest < ActiveRecord::TestCase
     taks_relation = Topic.select(:approved, :id).order(:id)
     assert_equal [1,2,3,4,5], taks_relation.pluck(:id)
     assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
+  end
+
+  def test_pluck_columns_with_same_name
+    expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
+    actual = Topic.joins(:replies)
+      .pluck('topics.title', 'replies_topics.title')
+    assert_equal expected, actual
   end
 end

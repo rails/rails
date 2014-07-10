@@ -262,7 +262,7 @@ module ActiveSupport
       # If we're subtracting a Duration of variable length (i.e., years, months, days), move backwards from #time,
       # otherwise move backwards #utc, for accuracy when moving across DST boundaries
       if other.acts_like?(:time)
-        utc.to_f - other.to_f
+        to_time - other.to_time
       elsif duration_of_variable_length?(other)
         method_missing(:-, other)
       else
@@ -351,6 +351,14 @@ module ActiveSupport
 
     def marshal_load(variables)
       initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2].utc)
+    end
+
+    # respond_to_missing? is not called in some cases, such as when type conversion is
+    # performed with Kernel#String
+    def respond_to?(sym, include_priv = false)
+      # ensure that we're not going to throw and rescue from NoMethodError in method_missing which is slow
+      return false if sym.to_sym == :to_str
+      super
     end
 
     # Ensure proxy class responds to all methods that underlying time instance

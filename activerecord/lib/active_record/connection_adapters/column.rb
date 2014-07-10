@@ -13,13 +13,13 @@ module ActiveRecord
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
       end
 
-      attr_reader :name, :default, :cast_type, :null, :sql_type, :default_function
-      attr_accessor :coder
+      attr_reader :name, :cast_type, :null, :sql_type, :default, :default_function
 
-      alias :encoded? :coder
-
-      delegate :type, :precision, :scale, :limit, :klass, :text?, :number?, :binary?,
-        :type_cast_for_write, :type_cast_for_database, to: :cast_type
+      delegate :type, :precision, :scale, :limit, :klass, :accessor,
+        :text?, :number?, :binary?, :changed?,
+        :type_cast_from_user, :type_cast_from_database, :type_cast_for_database,
+        :type_cast_for_schema,
+        to: :cast_type
 
       # Instantiates a new column in the table.
       #
@@ -35,22 +35,12 @@ module ActiveRecord
         @cast_type        = cast_type
         @sql_type         = sql_type
         @null             = null
-        @default          = extract_default(default)
+        @default          = default
         @default_function = nil
-        @coder            = nil
       end
 
       def has_default?
         !default.nil?
-      end
-
-      # Casts value to an appropriate instance.
-      def type_cast(value)
-        if encoded?
-          coder.load(value)
-        else
-          cast_type.type_cast(value)
-        end
       end
 
       # Returns the human name of the column name.
@@ -61,8 +51,10 @@ module ActiveRecord
         Base.human_attribute_name(@name)
       end
 
-      def extract_default(default)
-        type_cast(default)
+      def with_type(type)
+        dup.tap do |clone|
+          clone.instance_variable_set('@cast_type', type)
+        end
       end
     end
   end

@@ -188,8 +188,8 @@ module ActionDispatch
         # This makes app.url_for and app.foo_path available in the console
         if app.respond_to?(:routes)
           singleton_class.class_eval do
-            include app.routes.url_helpers if app.routes.respond_to?(:url_helpers)
-            include app.routes.mounted_helpers if app.routes.respond_to?(:mounted_helpers)
+            include app.routes.url_helpers
+            include app.routes.mounted_helpers
           end
         end
 
@@ -267,12 +267,6 @@ module ActionDispatch
             https! URI::HTTPS === location if location.scheme
             host! "#{location.host}:#{location.port}" if location.host
             path = location.query ? "#{location.path}?#{location.query}" : location.path
-          end
-
-          unless ActionController::Base < ActionController::Testing
-            ActionController::Base.class_eval do
-              include ActionController::Testing
-            end
           end
 
           hostname, port = host.split(':')
@@ -353,7 +347,7 @@ module ActionDispatch
       # By default, a single session is automatically created for you, but you
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
-      def open_session(app = nil)
+      def open_session
         dup.tap do |session|
           yield session if block_given?
         end

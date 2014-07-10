@@ -31,10 +31,12 @@ Engines are also closely related to plugins. The two share a common `lib`
 directory structure, and are both generated using the `rails plugin new`
 generator. The difference is that an engine is considered a "full plugin" by
 Rails (as indicated by the `--full` option that's passed to the generator
-command). This guide will refer to them simply as "engines" throughout. An
-engine **can** be a plugin, and a plugin **can** be an engine.
+command). We'll actually be using the `--mountable` option here, which includes
+all the features of `--full`, and then some. This guide will refer to these 
+"full plugins" simply as "engines" throughout. An engine **can** be a plugin,
+and a plugin **can** be an engine.
 
-The engine that will be created in this guide will be called "blorgh". The
+The engine that will be created in this guide will be called "blorgh". This
 engine will provide blogging functionality to its host applications, allowing
 for new articles and comments to be created. At the beginning of this guide, you
 will be working solely within the engine itself, but in later sections you'll
@@ -49,9 +51,8 @@ guide.
 
 It's important to keep in mind at all times that the application should
 **always** take precedence over its engines. An application is the object that
-has final say in what goes on in the universe (with the universe being the
-application's environment) where the engine should only be enhancing it, rather
-than changing it drastically.
+has final say in what goes on in its environment. The engine should
+only be enhancing it, rather than changing it drastically.
 
 To see demonstrations of other engines, check out
 [Devise](https://github.com/plataformatec/devise), an engine that provides
@@ -82,8 +83,11 @@ The full list of options for the plugin generator may be seen by typing:
 $ bin/rails plugin --help
 ```
 
-The `--full` option tells the generator that you want to create an engine,
-including a skeleton structure that provides the following:
+The `--mountable` option tells the generator that you want to create a
+"mountable" and namespace-isolated engine. This generator will provide the same
+skeleton structure as would the `--full` option. The `--full` option tells the
+generator that you want to create an engine, including a skeleton structure
+that provides the following:
 
   * An `app` directory tree
   * A `config/routes.rb` file:
@@ -94,7 +98,7 @@ including a skeleton structure that provides the following:
     ```
 
   * A file at `lib/blorgh/engine.rb`, which is identical in function to a
-  * standard Rails application's `config/application.rb` file:
+    standard Rails application's `config/application.rb` file:
 
     ```ruby
     module Blorgh
@@ -103,9 +107,7 @@ including a skeleton structure that provides the following:
     end
     ```
 
-The `--mountable` option tells the generator that you want to create a
-"mountable" and namespace-isolated engine. This generator will provide the same
-skeleton structure as would the `--full` option, and will add:
+The `--mountable` option will add to the `--full` option:
 
   * Asset manifest files (`application.js` and `application.css`)
   * A namespaced `ApplicationController` stub
@@ -393,7 +395,7 @@ end
 ```
 
 This helps prevent conflicts with any other engine or application that may have
-a article resource as well.
+an article resource as well.
 
 Finally, the assets for this resource are generated in two files:
 `app/assets/javascripts/blorgh/articles.js` and
@@ -471,7 +473,7 @@ called `Blorgh::Comment`. Now run the migration to create our blorgh_comments
 table:
 
 ```bash
-$ bin/rake db:migrate
+$ rake db:migrate
 ```
 
 To show the comments on an article, edit `app/views/blorgh/articles/show.html.erb` and
@@ -505,8 +507,8 @@ NOTE: Because the `has_many` is defined inside a class that is inside the
 model for these objects, so there's no need to specify that using the
 `:class_name` option here.
 
-Next, there needs to be a form so that comments can be created on a article. To add
-this, put this line underneath the call to `render @article.comments` in
+Next, there needs to be a form so that comments can be created on an article. To
+add this, put this line underneath the call to `render @article.comments` in
 `app/views/blorgh/articles/show.html.erb`:
 
 ```erb
@@ -682,14 +684,14 @@ engine's models can query them correctly. To copy these migrations into the
 application use this command:
 
 ```bash
-$ bin/rake blorgh:install:migrations
+$ rake blorgh:install:migrations
 ```
 
 If you have multiple engines that need migrations copied over, use
 `railties:install:migrations` instead:
 
 ```bash
-$ bin/rake railties:install:migrations
+$ rake railties:install:migrations
 ```
 
 This command, when run for the first time, will copy over all the migrations
@@ -738,13 +740,15 @@ the application. In the case of the `blorgh` engine, making articles and comment
 have authors would make a lot of sense.
 
 A typical application might have a `User` class that would be used to represent
-authors for a article or a comment. But there could be a case where the application
-calls this class something different, such as `Person`. For this reason, the
-engine should not hardcode associations specifically for a `User` class.
+authors for an article or a comment. But there could be a case where the
+application calls this class something different, such as `Person`. For this
+reason, the engine should not hardcode associations specifically for a `User`
+class.
 
 To keep it simple in this case, the application will have a class called `User`
-that represents the users of the application. It can be generated using this
-command inside the application:
+that represents the users of the application (we'll get into making this
+configurable further on). It can be generated using this command inside the
+application:
 
 ```bash
 rails g model user name:string
@@ -822,7 +826,7 @@ This migration will need to be run on the application. To do that, it must first
 be copied using this command:
 
 ```bash
-$ bin/rake blorgh:install:migrations
+$ rake blorgh:install:migrations
 ```
 
 Notice that only _one_ migration was copied over here. This is because the first
@@ -839,7 +843,7 @@ with the same name already exists. Copied migration
 Run the migration using:
 
 ```bash
-$ bin/rake db:migrate
+$ rake db:migrate
 ```
 
 Now with all the pieces in place, an action will take place that will associate

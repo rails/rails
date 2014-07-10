@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class SchemaDumperTest < ActiveRecord::TestCase
   setup do
@@ -62,7 +63,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|uuid)\s+"/)
+        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|uuid|point)\s+"/)
           match[0].length
         end
       end
@@ -371,15 +372,28 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "subscribers", id: false}, output
   end
 
+  if ActiveRecord::Base.connection.supports_foreign_keys?
+    def test_foreign_keys_are_dumped_at_the_bottom_to_circumvent_dependency_issues
+      output = standard_dump
+      assert_match(/^\s+add_foreign_key "fk_test_has_fk"[^\n]+\n\s+add_foreign_key "lessons_students"/, output)
+    end
+  end
+
   class CreateDogMigration < ActiveRecord::Migration
     def up
+      create_table("dog_owners") do |t|
+      end
+
       create_table("dogs") do |t|
         t.column :name, :string
+        t.column :owner_id, :integer
       end
       add_index "dogs", [:name]
+      add_foreign_key :dogs, :dog_owners, column: "owner_id" if supports_foreign_keys?
     end
     def down
       drop_table("dogs")
+      drop_table("dog_owners")
     end
   end
 
@@ -393,13 +407,45 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     output = standard_dump
     assert_no_match %r{create_table "foo_.+_bar"}, output
-    assert_no_match %r{create_index "foo_.+_bar"}, output
+    assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
+
+    if ActiveRecord::Base.connection.supports_foreign_keys?
+      assert_no_match %r{add_foreign_key "foo_.+_bar"}, output
+      assert_no_match %r{add_foreign_key "[^"]+", "foo_.+_bar"}, output
+    end
   ensure
     migration.migrate(:down)
 
     ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ''
     $stdout = original
   end
+end
 
+class SchemaDumperDefaultsTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :defaults, force: true do |t|
+      t.string   :string_with_default,   default: "Hello!"
+      t.date     :date_with_default,     default: '2014-06-05'
+      t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
+      t.time     :time_with_default,     default: "07:17:04"
+    end
+  end
+
+  teardown do
+    return unless @connection
+    @connection.execute 'DROP TABLE IF EXISTS defaults'
+  end
+
+  def test_schema_dump_defaults_with_universally_supported_types
+    output = dump_table_schema('defaults')
+
+    assert_match %r{t\.string\s+"string_with_default",\s+default: "Hello!"}, output
+    assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output
+    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: '2014-06-05 07:17:04'}, output
+    assert_match %r{t\.time\s+"time_with_default",\s+default: '2000-01-01 07:17:04'}, output
+  end
 end

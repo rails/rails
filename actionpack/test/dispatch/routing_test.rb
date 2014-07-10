@@ -99,6 +99,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_namespace_without_controller_segment
+    draw do
+      namespace :admin do
+        get 'hello/:controllers/:action'
+      end
+    end
+    get '/admin/hello/foo/new'
+    assert_equal 'foo', @request.params["controllers"]
+  end
+
   def test_session_singleton_resource
     draw do
       resource :session do
@@ -351,8 +361,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       controller(:global) do
         get 'global/hide_notice'
-        get 'global/export',      :to => :export, :as => :export_request
-        get '/export/:id/:file',  :to => :export, :as => :export_download, :constraints => { :file => /.*/ }
+        get 'global/export',      :action => :export, :as => :export_request
+        get '/export/:id/:file',  :action => :export, :as => :export_download, :constraints => { :file => /.*/ }
         get 'global/:action'
       end
     end
@@ -720,8 +730,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       resources :replies do
         member do
-          put :answer, :to => :mark_as_answer
-          delete :answer, :to => :unmark_as_answer
+          put :answer, :action => :mark_as_answer
+          delete :answer, :action => :unmark_as_answer
         end
       end
     end
@@ -1178,7 +1188,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       controller :articles do
         scope '/articles', :as => 'article' do
           scope :path => '/:title', :title => /[a-z]+/, :as => :with_title do
-            get '/:id', :to => :with_id, :as => ""
+            get '/:id', :action => :with_id, :as => ""
           end
         end
       end
@@ -1425,7 +1435,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_scoped_controller_with_namespace_and_action
     draw do
       namespace :account do
-        get ':action/callback', :action => /twitter|github/, :to => "callbacks", :as => :callback
+        get ':action/callback', :action => /twitter|github/, :controller => "callbacks", :as => :callback
       end
     end
 
@@ -1482,7 +1492,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_normalize_namespaced_matches
     draw do
       namespace :account do
-        get 'description', :to => :description, :as => "description"
+        get 'description', :action => :description, :as => "description"
       end
     end
 
@@ -2012,6 +2022,28 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/blogs/1/posts/2/comments/new', new_blog_post_comment_path(:blog_id => 1, :post_id => 2)
   end
 
+  def test_direct_children_of_shallow_resources
+    draw do
+      resources :blogs do
+        resources :posts, shallow: true do
+          resources :comments
+        end
+      end
+    end
+
+    post '/posts/1/comments'
+    assert_equal 'comments#create', @response.body
+    assert_equal '/posts/1/comments', post_comments_path('1')
+
+    get '/posts/2/comments/new'
+    assert_equal 'comments#new', @response.body
+    assert_equal '/posts/2/comments/new', new_post_comment_path('2')
+
+    get '/posts/1/comments'
+    assert_equal 'comments#index', @response.body
+    assert_equal '/posts/1/comments', post_comments_path('1')
+  end
+
   def test_shallow_nested_resources_within_scope
     draw do
       scope '/hello' do
@@ -2144,7 +2176,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         end
         resources :invoices do
           get "outstanding" => "invoices#outstanding", :on => :collection
-          get "overdue", :to => :overdue, :on => :collection
+          get "overdue", :action => :overdue, :on => :collection
           get "print" => "invoices#print", :as => :print, :on => :member
           post "preview" => "invoices#preview", :as => :preview, :on => :new
         end
@@ -2230,6 +2262,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'first.last', @request.params[:id]
     assert_equal true, @request.format.xml?
     assert_equal '/api/1.0/users/first.last.xml', api_user_path(:version => '1.0', :id => 'first.last', :format => :xml)
+  end
+
+  def test_match_without_via
+    assert_raises(ArgumentError) do
+      draw do
+        match '/foo/bar', :to => 'files#show'
+      end
+    end
+  end
+
+  def test_match_with_empty_via
+    assert_raises(ArgumentError) do
+      draw do
+        match '/foo/bar', :to => 'files#show', :via => []
+      end
+    end
   end
 
   def test_glob_parameter_accepts_regexp
@@ -2805,7 +2853,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_symbolized_path_parameters_is_not_stale
+  def test_path_parameters_is_not_stale
     draw do
       scope '/countries/:country', :constraints => lambda { |params, req| %w(all France).include?(params[:country]) } do
         get '/',       :to => 'countries#index'
@@ -2970,7 +3018,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_raise(ArgumentError) do
-      draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      assert_deprecated do
+        draw { controller("/feeds") { get '/feeds/:service', :to => :show } }
+      end
     end
 
     assert_raise(ArgumentError) do
@@ -3120,12 +3170,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/downloads/1/1.tar'
     assert_equal 'downloads#show', @response.body
-    assert_equal expected_params, @request.symbolized_path_parameters
+    assert_equal expected_params, @request.path_parameters
     assert_equal '/downloads/1/1.tar', download_path('1')
     assert_equal '/downloads/1/1.tar', download_path('1', '1')
   end
 
   def test_absolute_controller_namespace
+    draw do
+      namespace :foo do
+        get '/', to: '/bar#index', as: 'root'
+      end
+    end
+
+    get '/foo'
+    assert_equal 'bar#index', @response.body
+    assert_equal '/foo', foo_root_path
+  end
+
+  def test_namespace_as_controller
     draw do
       namespace :foo do
         get '/', to: '/bar#index', as: 'root'
@@ -3215,6 +3277,58 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/admin/posts/1/comments'
     assert_equal 'admin/comments#index', @response.body
     assert_equal '/admin/posts/1/comments', admin_post_comments_path('1')
+  end
+
+  def test_mix_string_to_controller_action
+    draw do
+      get '/projects', controller: 'project_files',
+                       action: 'index',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_string_to_controller
+    draw do
+      get '/projects', controller: 'project_files',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_string_to_action
+    draw do
+      get '/projects', action: 'index',
+                       to: 'comments#index'
+    end
+    get '/projects'
+    assert_equal 'comments#index', @response.body
+  end
+
+  def test_mix_symbol_to_controller_action
+    assert_deprecated do
+      draw do
+        get '/projects', controller: 'project_files',
+                         action: 'index',
+                         to: :show
+      end
+    end
+    get '/projects'
+    assert_equal 'project_files#show', @response.body
+  end
+
+  def test_mix_string_to_controller_action_no_hash
+    assert_deprecated do
+      draw do
+        get '/projects', controller: 'project_files',
+                         action: 'index',
+                         to: 'show'
+      end
+    end
+    get '/projects'
+    assert_equal 'show#index', @response.body
   end
 
   def test_shallow_path_and_prefix_are_not_added_to_non_shallow_routes
@@ -3329,19 +3443,19 @@ private
 
   def draw(&block)
     self.class.stub_controllers do |routes|
-      @app = routes
-      @app.default_url_options = { host: 'www.example.com' }
-      @app.draw(&block)
+      routes.default_url_options = { host: 'www.example.com' }
+      routes.draw(&block)
+      @app = RoutedRackApp.new routes
     end
   end
 
   def url_for(options = {})
-    @app.url_helpers.url_for(options)
+    @app.routes.url_helpers.url_for(options)
   end
 
   def method_missing(method, *args, &block)
     if method.to_s =~ /_(path|url)$/
-      @app.url_helpers.send(method, *args, &block)
+      @app.routes.url_helpers.send(method, *args, &block)
     else
       super
     end
@@ -3409,8 +3523,10 @@ class TestAltApp < ActionDispatch::IntegrationTest
     get "/" => TestAltApp::AltApp.new
   end
 
+  APP = build_app AltRoutes
+
   def app
-    AltRoutes
+    APP
   end
 
   def test_alt_request_without_header
@@ -3437,15 +3553,16 @@ class TestAppendingRoutes < ActionDispatch::IntegrationTest
   def setup
     super
     s = self
-    @app = ActionDispatch::Routing::RouteSet.new
-    @app.append do
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.append do
       get '/hello'   => s.simple_app('fail')
       get '/goodbye' => s.simple_app('goodbye')
     end
 
-    @app.draw do
+    routes.draw do
       get '/hello' => s.simple_app('hello')
     end
+    @app = self.class.build_app routes
   end
 
   def test_goodbye_should_be_available
@@ -3474,8 +3591,38 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
   end
 
   def draw(&block)
-    @app = ActionDispatch::Routing::RouteSet.new
-    @app.draw(&block)
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.draw(&block)
+    @app = self.class.build_app routes
+  end
+
+  def test_missing_controller
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get '/foo/bar', :action => :index
+      end
+    }
+    assert_match(/Missing :controller/, ex.message)
+  end
+
+  def test_missing_action
+    ex = assert_raises(ArgumentError) {
+      assert_deprecated do
+        draw do
+          get '/foo/bar', :to => 'foo'
+        end
+      end
+    }
+    assert_match(/Missing :action/, ex.message)
+  end
+
+  def test_missing_action_on_hash
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get '/foo/bar', :to => 'foo#'
+      end
+    }
+    assert_match(/Missing :action/, ex.message)
   end
 
   def test_valid_controller_options_inside_namespace
@@ -3519,6 +3666,16 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
 
     assert_match "'Admin::StorageFiles' is not a supported controller name", e.message
   end
+
+  def test_warn_with_ruby_constant_syntax_no_colons
+    e = assert_raise(ArgumentError) do
+      draw do
+        resources :storage_files, :controller => 'Admin'
+      end
+    end
+
+    assert_match "'Admin' is not a supported controller name", e.message
+  end
 end
 
 class TestDefaultScope < ActionDispatch::IntegrationTest
@@ -3536,8 +3693,10 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
     resources :posts
   end
 
+  APP = build_app DefaultScopeRoutes
+
   def app
-    DefaultScopeRoutes
+    APP
   end
 
   include DefaultScopeRoutes.url_helpers
@@ -3562,11 +3721,14 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
     lambda { |env| [ 200, { 'Content-Type' => 'text/plain' }, [response] ] }
   end
 
-  setup do
-    s = self
-    @app = ActionDispatch::Routing::RouteSet.new
+  attr_reader :app
 
-    @app.draw do
+  def setup
+    s = self
+    routes = ActionDispatch::Routing::RouteSet.new
+    @app = RoutedRackApp.new routes
+
+    routes.draw do
       (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
         match '/' => s.simple_app(method), :via => method.underscore.to_sym
       end
@@ -3597,7 +3759,8 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test 'escapes slash in generated path segment' do
     assert_equal '/a%20b%2Fc+d', segment_path(:segment => 'a b/c+d')
@@ -3628,7 +3791,8 @@ class TestUnicodePaths < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test 'recognizes unicode path' do
     get "/#{Rack::Utils.escape("ほげ")}"
@@ -3659,7 +3823,8 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test "controller option which starts with '/' from multiple nested controller" do
     get "/foo/bar/baz"
@@ -3678,7 +3843,8 @@ class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test 'recognizes tilde path' do
     get "/~user"
@@ -3705,7 +3871,8 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
     end
   end
 
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test "redirect escapes interpolated parameters with redirect proc" do
     get "/foo/1%3E"
@@ -3747,7 +3914,8 @@ class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
     end
   end
 
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test "parameters are reset between constraint checks" do
     get "/bar"
@@ -3767,7 +3935,8 @@ class TestGlobRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   #include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   def test_glob_constraint
     get "/dummy"
@@ -3799,7 +3968,8 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test 'enabled when not mounted and default_url_options is empty' do
     assert Routes.url_helpers.optimize_routes_generation?
@@ -3871,7 +4041,8 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
     end
   end
 
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   include Routes.url_helpers
 
@@ -3906,7 +4077,8 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   test "constraints are copied to defaults when using constraints method" do
     assert_equal 'http://admin.example.com/', admin_root_url
@@ -3960,7 +4132,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       set.draw do
         get "/bar/:id", :to => redirect("/foo/show/%{id}")
         get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
-        get "/foo(/:action(/:id))", :to => "test_invalid_urls/foo"
+        get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
         get "/:controller(/:action(/:id))"
       end
 
@@ -3987,8 +4159,9 @@ class TestOptionalRootSegments < ActionDispatch::IntegrationTest
     end
   end
 
+  APP = build_app Routes
   def app
-    Routes
+    APP
   end
 
   include Routes.url_helpers
@@ -4019,7 +4192,8 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   def test_integer_port_constraints
     get 'http://www.example.com/integer'
@@ -4067,7 +4241,8 @@ class TestFormatConstraints < ActionDispatch::IntegrationTest
   end
 
   include Routes.url_helpers
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   def test_string_format_constraints
     get 'http://www.example.com/string'
@@ -4136,8 +4311,9 @@ class TestRouteDefaults < ActionDispatch::IntegrationTest
     end
   end
 
+  APP = build_app Routes
   def app
-    Routes
+    APP
   end
 
   include Routes.url_helpers
@@ -4165,8 +4341,9 @@ class TestRackAppRouteGeneration < ActionDispatch::IntegrationTest
     end
   end
 
+  APP = build_app Routes
   def app
-    Routes
+    APP
   end
 
   include Routes.url_helpers
@@ -4191,8 +4368,9 @@ class TestRedirectRouteGeneration < ActionDispatch::IntegrationTest
     end
   end
 
+  APP = build_app Routes
   def app
-    Routes
+    APP
   end
 
   include Routes.url_helpers
@@ -4215,7 +4393,8 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     end
   end
 
-  def app; Routes end
+  APP = build_app Routes
+  def app; APP end
 
   include Routes.url_helpers
 

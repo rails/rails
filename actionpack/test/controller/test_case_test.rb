@@ -737,12 +737,12 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
-  def test_symbolized_path_params_reset_after_request
+  def test_path_params_reset_after_request
     get :test_params, :id => "foo"
-    assert_equal "foo", @request.symbolized_path_parameters[:id]
+    assert_equal "foo", @request.path_parameters[:id]
     @request.recycle!
     get :test_params
-    assert_nil @request.symbolized_path_parameters[:id]
+    assert_nil @request.path_parameters[:id]
   end
 
   def test_request_protocol_is_reset_after_request

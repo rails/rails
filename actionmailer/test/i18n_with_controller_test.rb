@@ -28,11 +28,31 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
     get ':controller(/:action(/:id))'
   end
 
+  class RoutedRackApp
+    attr_reader :routes
+
+    def initialize(routes, &blk)
+      @routes = routes
+      @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
+    end
+
+    def call(env)
+      @stack.call(env)
+    end
+  end
+
+  APP = RoutedRackApp.new(Routes)
+
   def app
-    Routes
+    APP
+  end
+
+  teardown do
+    I18n.locale = I18n.default_locale
   end
 
   def test_send_mail
+    Mail::SMTP.any_instance.expects(:deliver!)
     with_translation 'de', email_subject: '[Anmeldung] Willkommen' do
       get '/test/send_mail'
       assert_equal "Mail sent - Subject: [Anmeldung] Willkommen", @response.body

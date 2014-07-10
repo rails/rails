@@ -147,7 +147,7 @@ behavior out of the box:
       extend ActiveModel::Naming
     end
 
-    NamedPerson.model_name        # => "NamedPerson"
+    NamedPerson.model_name.name   # => "NamedPerson"
     NamedPerson.model_name.human  # => "Named person"
 
   {Learn more}[link:classes/ActiveModel/Naming.html]
@@ -262,6 +262,11 @@ API documentation is at
 
 * http://api.rubyonrails.org
 
-Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+Bug reports can be filed for the Ruby on Rails project here:
 
 * https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+

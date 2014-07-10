@@ -3,20 +3,7 @@ module ActiveRecord
     module Serialization
       extend ActiveSupport::Concern
 
-      included do
-        # Returns a hash of all the attributes that have been specified for
-        # serialization as keys and their class restriction as values.
-        class_attribute :serialized_attributes, instance_accessor: false
-        self.serialized_attributes = {}
-      end
-
       module ClassMethods
-        ##
-        # :method: serialized_attributes
-        #
-        # Returns a hash of all the attributes that have been specified for
-        # serialization as keys and their class restriction as values.
-
         # If you have an attribute that needs to be saved to the database as an
         # object, and retrieved as the same object, then specify the name of that
         # attribute using this method and it will be handled automatically. The
@@ -50,146 +37,27 @@ module ActiveRecord
         #     serialize :preferences, Hash
         #   end
         def serialize(attr_name, class_name_or_coder = Object)
-          include Behavior
-
           coder = if [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
                     class_name_or_coder
                   else
                     Coders::YAMLColumn.new(class_name_or_coder)
                   end
 
-          # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
-          # has its own hash of own serialized attributes
-          self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
-        end
-      end
-
-      class Type # :nodoc:
-        delegate :type, :type_cast_for_database, to: :@column
-
-        def initialize(column)
-          @column = column
-        end
-
-        def type_cast(value)
-          if value.state == :serialized
-            value.unserialized_value @column.type_cast value.value
-          else
-            value.unserialized_value
+          decorate_attribute_type(attr_name, :serialize) do |type|
+            Type::Serialized.new(type, coder)
           end
         end
 
-        def accessor
-          ActiveRecord::Store::IndifferentHashAccessor
-        end
-      end
-
-      class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
-        def unserialized_value(v = value)
-          state == :serialized ? unserialize(v) : value
-        end
-
-        def serialized_value
-          state == :unserialized ? serialize : value
-        end
-
-        def unserialize(v)
-          self.state = :unserialized
-          self.value = coder.load(v)
-        end
-
-        def serialize
-          self.state = :serialized
-          self.value = coder.dump(value)
-        end
-      end
-
-      # This is only added to the model when serialize is called, which
-      # ensures we do not make things slower when serialization is not used.
-      module Behavior # :nodoc:
-        extend ActiveSupport::Concern
-
-        module ClassMethods # :nodoc:
-          def initialize_attributes(attributes, options = {})
-            serialized = (options.delete(:serialized) { true }) ? :serialized : :unserialized
-            super(attributes, options)
-
-            serialized_attributes.each do |key, coder|
-              if attributes.key?(key)
-                attributes[key] = Attribute.new(coder, attributes[key], serialized)
-              end
-            end
-
-            attributes
-          end
-        end
-
-        def should_record_timestamps?
-          super || (self.record_timestamps && (attributes.keys & self.class.serialized_attributes.keys).present?)
-        end
-
-        def keys_for_partial_write
-          super | (attributes.keys & self.class.serialized_attributes.keys)
-        end
-
-        def type_cast_attribute_for_write(column, value)
-          if column && coder = self.class.serialized_attributes[column.name]
-            Attribute.new(coder, value, :unserialized)
-          else
-            super
-          end
-        end
-
-        def raw_type_cast_attribute_for_write(column, value)
-          if column && coder = self.class.serialized_attributes[column.name]
-            Attribute.new(coder, value, :serialized)
-          else
-            super
-          end
-        end
-
-        def _field_changed?(attr, old, value)
-          if self.class.serialized_attributes.include?(attr)
-            old != value
-          else
-            super
-          end
-        end
-
-        def read_attribute_before_type_cast(attr_name)
-          if self.class.serialized_attributes.include?(attr_name)
-            super.unserialized_value
-          else
-            super
-          end
-        end
-
-        def attributes_before_type_cast
-          super.dup.tap do |attributes|
-            self.class.serialized_attributes.each_key do |key|
-              if attributes.key?(key)
-                attributes[key] = attributes[key].unserialized_value
-              end
-            end
-          end
-        end
-
-        def typecasted_attribute_value(name)
-          if self.class.serialized_attributes.include?(name)
-            @attributes[name].serialized_value
-          else
-            super
-          end
-        end
-
-        def attributes_for_coder
-          attribute_names.each_with_object({}) do |name, attrs|
-            attrs[name] = if self.class.serialized_attributes.include?(name)
-                            @attributes[name].serialized_value
-                          else
-                            read_attribute(name)
-                          end
-          end
+        def serialized_attributes
+          ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
+            `serialized_attributes` is deprecated without replacement, and will
+            be removed in Rails 5.0.
+          WARNING
+          @serialized_attributes ||= Hash[
+            columns.select { |t| t.cast_type.is_a?(Type::Serialized) }.map { |c|
+              [c.name, c.cast_type.coder]
+            }
+          ]
         end
       end
     end

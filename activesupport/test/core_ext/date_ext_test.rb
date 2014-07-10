@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'core_ext/date_and_time_behavior'
+require 'time_zone_test_helpers'
 
 class DateExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year,month,day,*args)
@@ -8,6 +9,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   include DateAndTimeBehavior
+  include TimeZoneTestHelpers
 
   def test_yesterday_in_calendar_reform
     assert_equal Date.new(1582,10,4), Date.new(1582,10,15).yesterday
@@ -349,22 +351,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     Date.new(2005,2,28).advance(options)
     assert_equal({ :years => 3, :months => 11, :days => 2 }, options)
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
-    def with_tz_default(tz = nil)
-      old_tz = Time.zone
-      Time.zone = tz
-      yield
-    ensure
-      Time.zone = old_tz
-    end
 end
 
 class DateExtBehaviorTest < ActiveSupport::TestCase

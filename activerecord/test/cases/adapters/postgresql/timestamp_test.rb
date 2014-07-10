@@ -123,6 +123,18 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal date, Developer.find_by_name("aaron").updated_at
   end
 
+  def test_bc_timestamp_leap_year
+    date = Time.utc(-4, 2, 29)
+    Developer.create!(:name => "taihou", :updated_at => date)
+    assert_equal date, Developer.find_by_name("taihou").updated_at
+  end
+
+  def test_bc_timestamp_year_zero
+    date = Time.utc(0, 4, 7)
+    Developer.create!(:name => "yahagi", :updated_at => date)
+    assert_equal date, Developer.find_by_name("yahagi").updated_at
+  end
+
   private
 
   def pg_datetime_precision(table_name, column_name)

@@ -62,6 +62,11 @@ ActiveRecord::Schema.define do
     t.references :magazine
   end
 
+  create_table :articles_tags, force: true do |t|
+    t.references :article
+    t.references :tag
+  end
+
   create_table :audit_logs, force: true do |t|
     t.column :message, :string, null: false
     t.column :developer_id, :integer, null: false
@@ -78,6 +83,8 @@ ActiveRecord::Schema.define do
 
   create_table :author_addresses, force: true do |t|
   end
+
+  add_foreign_key :authors, :author_addresses
 
   create_table :author_favorites, force: true do |t|
     t.column :author_id, :integer
@@ -185,7 +192,7 @@ ActiveRecord::Schema.define do
       t.text    :body, null: false
     end
     t.string  :type
-    t.integer :taggings_count, default: 0
+    t.integer :tags_count, default: 0
     t.integer :children_count, default: 0
     t.integer :parent_id
     t.references :author, polymorphic: true
@@ -529,6 +536,7 @@ ActiveRecord::Schema.define do
     t.references :best_friend
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0
+    t.timestamp :born_at
     t.timestamps
   end
 
@@ -563,7 +571,6 @@ ActiveRecord::Schema.define do
     end
     t.string  :type
     t.integer :comments_count, default: 0
-    t.integer :taggings_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
     t.integer :taggings_with_destroy_count, default: 0
     t.integer :tags_count, default: 0
@@ -774,6 +781,8 @@ ActiveRecord::Schema.define do
     t.integer :man_id
     t.integer :polymorphic_man_id
     t.string  :polymorphic_man_type
+    t.integer :polymorphic_man_without_inverse_id
+    t.string  :polymorphic_man_without_inverse_type
     t.integer :horrible_polymorphic_man_id
     t.string  :horrible_polymorphic_man_type
   end
@@ -848,10 +857,10 @@ ActiveRecord::Schema.define do
       t.integer :fk_id, null: false
     end
 
-    create_table :fk_test_has_pk, force: true do |t|
+    create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
     end
 
-    execute "ALTER TABLE fk_test_has_fk ADD CONSTRAINT fk_name FOREIGN KEY (#{quote_column_name 'fk_id'}) REFERENCES #{quote_table_name 'fk_test_has_pk'} (#{quote_column_name 'id'})"
+    execute "ALTER TABLE fk_test_has_fk ADD CONSTRAINT fk_name FOREIGN KEY (#{quote_column_name 'fk_id'}) REFERENCES #{quote_table_name 'fk_test_has_pk'} (#{quote_column_name 'pk_id'})"
 
     execute "ALTER TABLE lessons_students ADD CONSTRAINT student_id_fk FOREIGN KEY (#{quote_column_name 'student_id'}) REFERENCES #{quote_table_name 'students'} (#{quote_column_name 'id'})"
   end
@@ -860,6 +869,7 @@ ActiveRecord::Schema.define do
     t.float :overloaded_float, default: 500
     t.float :unoverloaded_float
     t.string :overloaded_string_with_limit, limit: 255
+    t.string :string_with_default, default: 'the original default'
   end
 end
 

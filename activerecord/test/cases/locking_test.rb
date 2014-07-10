@@ -273,8 +273,11 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
   end
 
-  def test_quoted_locking_column_is_deprecated
-    assert_deprecated { ActiveRecord::Base.quoted_locking_column }
+  def test_yaml_dumping_with_lock_column
+    t1 = LockWithoutDefault.new
+    t2 = YAML.load(YAML.dump(t1))
+
+    assert_equal t1.attributes, t2.attributes
   end
 end
 

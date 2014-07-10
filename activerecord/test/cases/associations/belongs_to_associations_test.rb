@@ -787,8 +787,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     post    = posts(:welcome)
     comment = comments(:greetings)
 
-    assert_difference lambda { post.reload.taggings_count }, -1 do
-      assert_difference 'comment.reload.taggings_count', +1 do
+    assert_difference lambda { post.reload.tags_count }, -1 do
+      assert_difference 'comment.reload.tags_count', +1 do
         tagging.taggable = comment
       end
     end
@@ -933,5 +933,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
+  end
+end
+
+class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
+  fixtures :authors, :author_addresses
+
+  def test_destroy_linked_models
+    address = AuthorAddress.create!
+    author = Author.create! name: "Author", author_address_id: address.id
+
+    author.destroy!
   end
 end

@@ -8,9 +8,6 @@ end
 class PostgresqlTime < ActiveRecord::Base
 end
 
-class PostgresqlBitString < ActiveRecord::Base
-end
-
 class PostgresqlOid < ActiveRecord::Base
 end
 
@@ -33,15 +30,12 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
 
-    @connection.execute("INSERT INTO postgresql_bit_strings (id, bit_string, bit_string_varying) VALUES (1, B'00010101', X'15')")
-    @first_bit_string = PostgresqlBitString.find(1)
-
     @connection.execute("INSERT INTO postgresql_oids (id, obj_id) VALUES (1, 1234)")
     @first_oid = PostgresqlOid.find(1)
   end
 
   teardown do
-    [PostgresqlNumber, PostgresqlTime, PostgresqlBitString, PostgresqlOid].each(&:delete_all)
+    [PostgresqlNumber, PostgresqlTime, PostgresqlOid].each(&:delete_all)
   end
 
   def test_data_type_of_number_types
@@ -52,11 +46,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def test_data_type_of_time_types
     assert_equal :string, @first_time.column_for_attribute(:time_interval).type
     assert_equal :string, @first_time.column_for_attribute(:scaled_time_interval).type
-  end
-
-  def test_data_type_of_bit_string_types
-    assert_equal :string, @first_bit_string.column_for_attribute(:bit_string).type
-    assert_equal :string, @first_bit_string.column_for_attribute(:bit_string_varying).type
   end
 
   def test_data_type_of_oid_types
@@ -74,11 +63,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def test_time_values
     assert_equal '-1 years -2 days', @first_time.time_interval
     assert_equal '-21 days', @first_time.scaled_time_interval
-  end
-
-  def test_bit_string_values
-    assert_equal '00010101', @first_bit_string.bit_string
-    assert_equal '00010101', @first_bit_string.bit_string_varying
   end
 
   def test_oid_values
@@ -101,23 +85,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert @first_time.save
     assert @first_time.reload
     assert_equal '2 years 00:03:00', @first_time.time_interval
-  end
-
-  def test_update_bit_string
-    new_bit_string = '11111111'
-    new_bit_string_varying = '0xFF'
-    @first_bit_string.bit_string = new_bit_string
-    @first_bit_string.bit_string_varying = new_bit_string_varying
-    assert @first_bit_string.save
-    assert @first_bit_string.reload
-    assert_equal new_bit_string, @first_bit_string.bit_string
-    assert_equal @first_bit_string.bit_string, @first_bit_string.bit_string_varying
-  end
-
-  def test_invalid_hex_string
-    new_bit_string = 'FF'
-    @first_bit_string.bit_string = new_bit_string
-    assert_raise(ActiveRecord::StatementInvalid) { assert @first_bit_string.save }
   end
 
   def test_update_oid

@@ -1,3 +1,40 @@
+*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
+
+    *John F. Douthat*
+
+*   Added String support for min and max properties for date field helpers.
+
+    *Todd Bealmear*
+
+*   The `highlight` helper now accepts a block to be used instead of the `highlighter`
+    option.
+
+    *Lucas Mazza*
+
+*   The `except` and `highlight` helpers now accept regular expressions.
+
+    *Jan Szumiec*
+
+*   Flatten the array parameter in `safe_join`, so it behaves consistently with
+    `Array#join`.
+
+    *Paul Grayson*
+
+*   Honor `html_safe` on array elements in tag values, as we do for plain string
+    values.
+
+    *Paul Grayson*
+
+*   Add `ActionView::Template::Handler.unregister_template_handler`.
+
+    It performs the opposite of `ActionView::Template::Handler.register_template_handler`.
+
+    *Zuhao Wan*
+
+*   Bring `cache_digest` rake tasks up-to-date with the latest API changes
+
+    *Jiri Pospisil*
+
 *   Allow custom `:host` option to be passed to `asset_url` helper that
     overwrites `config.action_controller.asset_host` for particular asset.
 

@@ -2,10 +2,14 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
-        class Money < Type::Decimal
+        class Money < Type::Decimal # :nodoc:
           include Infinity
 
           class_attribute :precision
+
+          def type
+            :money
+          end
 
           def scale
             2

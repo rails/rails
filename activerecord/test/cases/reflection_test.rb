@@ -80,6 +80,12 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal :integer, @first.column_for_attribute("id").type
   end
 
+  def test_non_existent_columns_return_nil
+    assert_deprecated do
+      assert_nil @first.column_for_attribute("attribute_that_doesnt_exist")
+    end
+  end
+
   def test_reflection_klass_for_nested_class_name
     reflection = MacroReflection.new(:company, nil, nil, { :class_name => 'MyApplication::Business::Company' }, ActiveRecord::Base)
     assert_nothing_raised do
@@ -404,6 +410,38 @@ class ReflectionTest < ActiveRecord::TestCase
     reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, { :join_table => 'product_categories' }, category)
     reflection.stubs(:klass).returns(product)
     assert_equal 'product_categories', reflection.join_table
+  end
+
+  def test_includes_accepts_symbols
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes([departments: :chefs]).first.chefs
+    end
+  end
+
+  def test_includes_accepts_strings
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes(['departments' => 'chefs']).first.chefs
+    end
+  end
+
+  def test_reflect_on_association_accepts_symbols
+    assert_nothing_raised do
+      assert_equal Hotel.reflect_on_association(:departments).name, :departments
+    end
+  end
+
+  def test_reflect_on_association_accepts_strings
+    assert_nothing_raised do
+      assert_equal Hotel.reflect_on_association("departments").name, :departments
+    end
   end
 
   private

@@ -1,8 +1,5 @@
 # encoding: utf-8
-
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlFullTextTest < ActiveRecord::TestCase
   class PostgresqlTsvector < ActiveRecord::Base; end
@@ -12,7 +9,6 @@ class PostgresqlFullTextTest < ActiveRecord::TestCase
     assert_equal :tsvector, column.type
     assert_equal "tsvector", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end

@@ -2,6 +2,7 @@ require 'active_record/connection_adapters/postgresql/oid/infinity'
 
 require 'active_record/connection_adapters/postgresql/oid/array'
 require 'active_record/connection_adapters/postgresql/oid/bit'
+require 'active_record/connection_adapters/postgresql/oid/bit_varying'
 require 'active_record/connection_adapters/postgresql/oid/bytea'
 require 'active_record/connection_adapters/postgresql/oid/cidr'
 require 'active_record/connection_adapters/postgresql/oid/date'
@@ -20,6 +21,7 @@ require 'active_record/connection_adapters/postgresql/oid/specialized_string'
 require 'active_record/connection_adapters/postgresql/oid/time'
 require 'active_record/connection_adapters/postgresql/oid/uuid'
 require 'active_record/connection_adapters/postgresql/oid/vector'
+require 'active_record/connection_adapters/postgresql/oid/xml'
 
 require 'active_record/connection_adapters/postgresql/oid/type_map_initializer'
 

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 require "cases/helper"
 require 'support/connection_helper'
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 module PostgresqlCompositeBehavior
   include ConnectionHelper
@@ -53,7 +51,6 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
     assert_nil column.type
     assert_equal "full_address", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end
@@ -83,16 +80,21 @@ end
 class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
   include PostgresqlCompositeBehavior
 
-  class FullAddressType < ActiveRecord::ConnectionAdapters::Type::Value
+  class FullAddressType < ActiveRecord::Type::Value
     def type; :full_address end
 
-    def type_cast(value)
+    def type_cast_from_database(value)
       if value =~ /\("?([^",]*)"?,"?([^",]*)"?\)/
         FullAddress.new($1, $2)
       end
     end
 
-    def type_cast_for_write(value)
+    def type_cast_from_user(value)
+      value
+    end
+
+    def type_cast_for_database(value)
+      return if value.nil?
       "(#{value.city},#{value.street})"
     end
   end
@@ -110,7 +112,6 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
     assert_equal :full_address, column.type
     assert_equal "full_address", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end

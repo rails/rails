@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 require "cases/helper"
 require 'support/connection_helper'
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlDomainTest < ActiveRecord::TestCase
   include ConnectionHelper
@@ -32,7 +30,6 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
     assert_equal :decimal, column.type
     assert_equal "custom_money", column.sql_type
     assert column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end

@@ -308,7 +308,7 @@ More Information:
 
 Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands. This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.
 
-What this means is that all previous `remote_<method>` helpers have been removed from Rails core and put into the [Prototype Legacy Helper](http://github.com/rails/prototype_legacy_helper.) To get UJS hooks into your HTML, you now pass `:remote => true` instead. For example:
+What this means is that all previous `remote_<method>` helpers have been removed from Rails core and put into the [Prototype Legacy Helper](http://github.com/rails/prototype_legacy_helper). To get UJS hooks into your HTML, you now pass `:remote => true` instead. For example:
 
 ```ruby
 form_for @post, :remote => true
@@ -521,7 +521,7 @@ A large effort was made in Active Support to make it cherry pickable, that is, y
 These are the main changes in Active Support:
 
 * Large clean up of the library removing unused methods throughout.
-* Active Support no longer provides vendored versions of [TZInfo](http://tzinfo.rubyforge.org/), [Memcache Client](http://deveiate.org/projects/RMemCache/) and [Builder](http://builder.rubyforge.org/,) these are all included as dependencies and installed via the `bundle install` command.
+* Active Support no longer provides vendored versions of TZInfo, Memcache Client and Builder. These are all included as dependencies and installed via the `bundle install` command.
 * Safe buffers are implemented in `ActiveSupport::SafeBuffer`.
 * Added `Array.uniq_by` and `Array.uniq_by!`.
 * Removed `Array#rand` and backported `Array#sample` from Ruby 1.9.

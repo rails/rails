@@ -95,7 +95,7 @@ module AbstractController
       end
 
       def test_subdomain_may_be_object
-        model = mock(:to_param => 'api')
+        model = Class.new { def self.to_param; 'api'; end }
         add_host!
         assert_equal('http://api.basecamphq.com/c/a/i',
           W.new.url_for(:subdomain => model, :controller => 'c', :action => 'a', :id => 'i')

@@ -97,6 +97,9 @@ module ActionDispatch # :nodoc:
         x
       end
 
+      def abort
+      end
+
       def close
         @response.commit!
         @closed = true
@@ -207,18 +210,6 @@ module ActionDispatch # :nodoc:
     end
     alias_method :status_message, :message
 
-    def respond_to?(method, include_private = false)
-      if method.to_s == 'to_path'
-        stream.respond_to?(method)
-      else
-        super
-      end
-    end
-
-    def to_path
-      stream.to_path
-    end
-
     # Returns the content of the response as a string. This contains the contents
     # of any calls to <tt>render</tt>.
     def body
@@ -269,6 +260,17 @@ module ActionDispatch # :nodoc:
 
     def close
       stream.close if stream.respond_to?(:close)
+    end
+
+    def abort
+      if stream.respond_to?(:abort)
+        stream.abort
+      elsif stream.respond_to?(:close)
+        # `stream.close` should really be reserved for a close from the
+        # other direction, but we must fall back to it for
+        # compatibility.
+        stream.close
+      end
     end
 
     # Turns the Response into a Rack-compatible array of the status, headers,
@@ -337,6 +339,38 @@ module ActionDispatch # :nodoc:
       !@sending_file && @charset != false
     end
 
+    class RackBody
+      def initialize(response)
+        @response = response
+      end
+
+      def each(*args, &block)
+        @response.each(*args, &block)
+      end
+
+      def close
+        # Rack "close" maps to Response#abort, and *not* Response#close
+        # (which is used when the controller's finished writing)
+        @response.abort
+      end
+
+      def body
+        @response.body
+      end
+
+      def respond_to?(method, include_private = false)
+        if method.to_s == 'to_path'
+          @response.stream.respond_to?(method)
+        else
+          super
+        end
+      end
+
+      def to_path
+        @response.stream.to_path
+      end
+    end
+
     def rack_response(status, header)
       assign_default_content_type_and_charset!(header)
       handle_conditional_get!
@@ -347,7 +381,7 @@ module ActionDispatch # :nodoc:
         header.delete CONTENT_TYPE
         [status, header, []]
       else
-        [status, header, Rack::BodyProxy.new(self){}]
+        [status, header, RackBody.new(self)]
       end
     end
   end

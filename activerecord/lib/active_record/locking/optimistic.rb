@@ -66,7 +66,7 @@ module ActiveRecord
           send(lock_col + '=', previous_lock_value + 1)
         end
 
-        def _update_record(attribute_names = @attributes.keys) #:nodoc:
+        def _update_record(attribute_names = self.attribute_names) #:nodoc:
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
 
@@ -141,7 +141,7 @@ module ActiveRecord
 
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def locking_column=(value)
-          @column_defaults = nil
+          clear_caches_calculated_from_columns
           @locking_column = value.to_s
         end
 
@@ -149,12 +149,6 @@ module ActiveRecord
         def locking_column
           reset_locking_column unless defined?(@locking_column)
           @locking_column
-        end
-
-        # Quote the column name used for optimistic locking.
-        def quoted_locking_column
-          ActiveSupport::Deprecation.warn "ActiveRecord::Base.quoted_locking_column is deprecated and will be removed in Rails 4.2 or later."
-          connection.quote_column_name(locking_column)
         end
 
         # Reset the column used for optimistic locking back to the +lock_version+ default.
@@ -169,17 +163,41 @@ module ActiveRecord
           super
         end
 
-        def column_defaults
-          @column_defaults ||= begin
-            defaults = super
+        private
 
-            if defaults.key?(locking_column) && lock_optimistically
-              defaults[locking_column] ||= 0
+        # We need to apply this decorator here, rather than on module inclusion. The closure
+        # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
+        # sub class being decorated. As such, changes to `lock_optimistically`, or
+        # `locking_column` would not be picked up.
+        def inherited(subclass)
+          subclass.class_eval do
+            is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
+            decorate_matching_attribute_types(is_lock_column, :_optimistic_locking) do |type|
+              LockingType.new(type)
             end
-
-            defaults
           end
+          super
         end
+      end
+    end
+
+    class LockingType < SimpleDelegator # :nodoc:
+      def type_cast_from_database(value)
+        # `nil` *should* be changed to 0
+        super.to_i
+      end
+
+      def changed?(old_value, *)
+        # Ensure we save if the default was `nil`
+        super || old_value == 0
+      end
+
+      def init_with(coder)
+        __setobj__(coder['subtype'])
+      end
+
+      def encode_with(coder)
+        coder['subtype'] = __getobj__
       end
     end
   end

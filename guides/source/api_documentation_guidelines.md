@@ -13,7 +13,19 @@ After reading this guide, you will know:
 RDoc
 ----
 
-The Rails API documentation is generated with RDoc. Please consult the documentation for help with the [markup](http://rdoc.rubyforge.org/RDoc/Markup.html), and also take into account these [additional directives](http://rdoc.rubyforge.org/RDoc/Parser/Ruby.html).
+The [Rails API documentation](http://api.rubyonrails.org) is generated with
+[RDoc](http://docs.seattlerb.org/rdoc/).
+
+```bash
+  bundle exec rake rdoc
+```
+
+Resulting HTML files can be found in the ./doc/rdoc directory.
+
+Please consult the RDoc documentation for help with the
+[markup](http://docs.seattlerb.org/rdoc/RDoc/Markup.html),
+and also take into account these [additional
+directives](http://docs.seattlerb.org/rdoc/RDoc/Parser/Ruby.html).
 
 Wording
 -------
@@ -67,7 +79,7 @@ used. Instead of:
 English
 -------
 
-Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
+Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Example Code
 ------------
@@ -317,5 +329,33 @@ If you come across an existing `:nodoc:` you should tread lightly. Consider aski
 A `:nodoc:` should never be added simply because a method or class is missing documentation. There may be an instance where an internal public method wasn't given a `:nodoc:` by mistake, for example when switching a method from private to public visibility. When this happens it should be discussed over a PR on a case-by-case basis and never committed directly to docrails.
 
 To summarize, the Rails team uses `:nodoc:` to mark publicly visible methods and classes for internal use; changes to the visibility of API should be considered carefully and discussed over a pull request first.
+
+Regarding the Rails Stack
+-------------------------
+
+When documenting parts of Rails API, it's important to remember all of the
+pieces that go into the Rails stack.
+
+This means that behavior may change depending on the scope or context of the
+method or class you're trying to document.
+
+In various places there is different behavior when you take the entire stack
+into account, one such example is
+`ActionView::Helpers::AssetTagHelper#image_tag`:
+
+```ruby
+# image_tag("icon.png")
+#   # => <img alt="Icon" src="/assets/icon.png" />
+```
+
+Although the default behavior for `#image_tag` is to always return
+`/images/icon.png`, we take into account the full Rails stack (including the
+Asset Pipeline) we may see the result seen above.
+
+We're only concerned with the behavior experienced when using the full default
+Rails stack.
+
+In this case, we want to document the behavior of the _framework_, and not just
+this specific method.
 
 If you have a question on how the Rails team handles certain API, don't hesitate to open a ticket or send a patch to the [issue tracker](https://github.com/rails/rails/issues).

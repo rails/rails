@@ -120,7 +120,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`.
 
-* `config.serve_static_assets` configures Rails itself to serve static assets. Defaults to true, but in the production environment is turned off as the server software (e.g. Nginx or Apache) used to run the application should serve static assets instead. Unlike the default setting set this to true when running (absolutely not recommended!) or testing your app in production mode using WEBrick. Otherwise you won't be able use page caching and requests for files that exist regularly under the public directory will anyway hit your Rails app.
+* `config.serve_static_assets` configures Rails itself to serve static assets. Defaults to true, but in the production environment is turned off as the server software (e.g. NGINX or Apache) used to run the application should serve static assets instead. Unlike the default setting set this to true when running (absolutely not recommended!) or testing your app in production mode using WEBrick. Otherwise you won't be able use page caching and requests for files that exist regularly under the public directory will anyway hit your Rails app.
 
 * `config.session_store` is usually set up in `config/initializers/session_store.rb` and specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Custom session stores can also be specified:
 
@@ -330,6 +330,8 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
+* `config.action_controller.always_permitted_parameters` sets a list of whitelisted parameters that are permitted by default. The default values are `['controller', 'action']`.
+
 ### Configuring Action Dispatch
 
 * `config.action_dispatch.session_store` sets the name of the store for session data. The default is `:cookie_store`; other valid options include `:active_record_store`, `:mem_cache_store` or the name of your own custom class.
@@ -451,6 +453,18 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.interceptors = ["MailInterceptor"]
     ```
 
+* `config.action_mailer.preview_path` specifies the location of mailer previews.
+
+    ```ruby
+    config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+    ```
+
+* `config.action_mailer.show_previews` enable or disable mailer previews. By default this is `true` in development.
+
+    ```ruby
+    config.action_mailer.show_previews = false
+    ```
+
 ### Configuring Active Support
 
 There are a few configuration options available in Active Support:
@@ -552,7 +566,7 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.connections'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 {"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database"}}
 ```
 
@@ -569,7 +583,7 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.connections'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 {"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database", "pool"=>5}}
 ```
 
@@ -585,7 +599,7 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.connections'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 {"development"=>{"adapter"=>"sqlite3", "database"=>"NOT_my_database"}}
 ```
 
@@ -729,7 +743,7 @@ Rails will now prepend "/app1" when generating links.
 
 #### Using Passenger
 
-Passenger makes it easy to run your application in a subdirectory. You can find the relevant configuration in the [passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
+Passenger makes it easy to run your application in a subdirectory. You can find the relevant configuration in the [Passenger manual](http://www.modrails.com/documentation/Users%20guide%20Apache.html#deploying_rails_to_sub_uri).
 
 #### Using a Reverse Proxy
 
@@ -739,11 +753,11 @@ Many modern web servers can be used as a proxy server to balance third-party ele
 
 One such application server you can use is [Unicorn](http://unicorn.bogomips.org/) to run behind a reverse proxy.
 
-In this case, you would need to configure the proxy server (nginx, apache, etc) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
+In this case, you would need to configure the proxy server (NGINX, Apache, etc) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
 
 You can find more information in the [Unicorn readme](http://unicorn.bogomips.org/README.html) and understand the [philosophy](http://unicorn.bogomips.org/PHILOSOPHY.html) behind it.
 
-Once you've configured the application server, you must proxy requests to it by configuring your web server appropriately. For example your nginx config may include:
+Once you've configured the application server, you must proxy requests to it by configuring your web server appropriately. For example your NGINX config may include:
 
 ```
 upstream application_server {
@@ -769,7 +783,7 @@ server {
 }
 ```
 
-Be sure to read the [nginx documentation](http://nginx.org/en/docs/) for the most up-to-date information.
+Be sure to read the [NGINX documentation](http://nginx.org/en/docs/) for the most up-to-date information.
 
 #### Considerations when deploying to a subdirectory
 

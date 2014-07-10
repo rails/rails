@@ -41,6 +41,9 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
+        class_option :skip_gems,          type: :array, default: [],
+                                          desc: 'Skip the provided gems files'
+
         class_option :skip_action_view,   type: :boolean, aliases: '-V', default: false,
                                           desc: 'Skip Action View files'
 
@@ -79,7 +82,7 @@ module Rails
       end
 
       def initialize(*args)
-        @gem_filter    = lambda { |gem| true }
+        @gem_filter    = lambda { |gem| !options[:skip_gems].include?(gem.name) }
         @extra_entries = []
         super
         convert_database_option_for_jruby
@@ -104,14 +107,14 @@ module Rails
       end
 
       def gemfile_entries
-        [ rails_gemfile_entry,
-          database_gemfile_entry,
-          assets_gemfile_entry,
-          javascript_gemfile_entry,
-          jbuilder_gemfile_entry,
-          sdoc_gemfile_entry,
-          spring_gemfile_entry,
-          @extra_entries].flatten.find_all(&@gem_filter)
+        [rails_gemfile_entry,
+         database_gemfile_entry,
+         assets_gemfile_entry,
+         javascript_gemfile_entry,
+         jbuilder_gemfile_entry,
+         sdoc_gemfile_entry,
+         spring_gemfile_entry,
+         @extra_entries].flatten.find_all(&@gem_filter)
       end
 
       def add_gem_entry_filter
@@ -200,10 +203,12 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
-           GemfileEntry.github('arel', 'rails/arel')]
+           GemfileEntry.github('arel', 'rails/arel'),
+           GemfileEntry.github('rack', 'rack/rack')]
         elsif options.edge?
           [GemfileEntry.github('rails', 'rails/rails'),
-           GemfileEntry.github('arel', 'rails/arel')]
+           GemfileEntry.github('arel', 'rails/arel'),
+           GemfileEntry.github('rack', 'rack/rack')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,

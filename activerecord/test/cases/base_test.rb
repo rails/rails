@@ -985,9 +985,9 @@ class BasicsTest < ActiveRecord::TestCase
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
 
-    property :world_population, Type::Integer.new
-    property :my_house_population, Type::Integer.new
-    property :atoms_in_universe, Type::Integer.new
+    attribute :world_population, Type::Integer.new
+    attribute :my_house_population, Type::Integer.new
+    attribute :atoms_in_universe, Type::Integer.new
   end
 
   def test_big_decimal_conditions
@@ -1488,15 +1488,14 @@ class BasicsTest < ActiveRecord::TestCase
     attrs = topic.attributes.dup
     attrs.delete 'id'
 
-    typecast = Class.new {
+    typecast = Class.new(ActiveRecord::Type::Value) {
       def type_cast value
         "t.lo"
       end
     }
 
     types = { 'author_name' => typecast.new }
-    topic = Topic.allocate.init_with 'attributes' => attrs,
-                                     'column_types' => types
+    topic = Topic.instantiate(attrs, types)
 
     assert_equal 't.lo', topic.author_name
   end
@@ -1596,5 +1595,12 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal after_handler, new_handler
     assert_equal orig_handler, klass.connection_handler
+  end
+
+  # Note: This is a performance optimization for Array#uniq and Hash#[] with
+  # AR::Base objects. If the future has made this irrelevant, feel free to
+  # delete this.
+  test "records without an id have unique hashes" do
+    assert_not_equal Post.new.hash, Post.new.hash
   end
 end

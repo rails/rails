@@ -14,9 +14,9 @@ module ActiveRecord
         raise ArgumentError, "No database file specified. Missing argument: database"
       end
 
-      # Allow database path relative to Rails.root, but only if
-      # the database path is not the special path that tells
-      # Sqlite to build a database only in memory.
+      # Allow database path relative to Rails.root, but only if the database
+      # path is not the special path that tells sqlite to build a database only
+      # in memory.
       if ':memory:' != config[:database]
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
@@ -219,10 +219,9 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary
-          s = value.unpack("H*")[0]
-          "x'#{s}'"
+      def _quote(value) # :nodoc:
+        if value.is_a?(Type::Binary::Data)
+          "x'#{value.hex}'"
         else
           super
         end
@@ -393,7 +392,7 @@ module ActiveRecord
 
           sql_type = field['type']
           cast_type = lookup_cast_type(sql_type)
-          Column.new(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
+          new_column(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
         end
       end
 

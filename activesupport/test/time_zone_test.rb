@@ -1,7 +1,10 @@
 require 'abstract_unit'
 require 'active_support/time'
+require 'time_zone_test_helpers'
 
 class TimeZoneTest < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   def test_utc_to_local
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
@@ -416,12 +419,4 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Hawaii"])
     assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end

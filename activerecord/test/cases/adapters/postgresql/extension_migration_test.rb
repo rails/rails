@@ -1,6 +1,4 @@
 require "cases/helper"
-require "active_record/base"
-require "active_record/connection_adapters/postgresql_adapter"
 
 class PostgresqlExtensionMigrationTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false

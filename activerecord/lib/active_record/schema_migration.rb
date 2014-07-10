@@ -5,6 +5,9 @@ require 'active_record/base'
 module ActiveRecord
   class SchemaMigration < ActiveRecord::Base
     class << self
+      def primary_key
+        nil
+      end
 
       def table_name
         "#{table_name_prefix}#{ActiveRecord::Base.schema_migrations_table_name}#{table_name_suffix}"
@@ -35,6 +38,14 @@ module ActiveRecord
           connection.remove_index table_name, name: index_name
           connection.drop_table(table_name)
         end
+      end
+
+      def normalize_migration_number(number)
+        "%.3d" % number.to_i
+      end
+
+      def normalized_versions
+        pluck(:version).map { |v| normalize_migration_number v }
       end
     end
 

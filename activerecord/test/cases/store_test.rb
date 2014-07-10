@@ -183,27 +183,12 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal({}, @john.params)
   end
 
-  test "attributes_for_coder should return stored fields already serialized" do
-    attributes = {
-      "id" => @john.id,
-      "name"=> @john.name,
-      "settings" => "--- !ruby/hash:ActiveSupport::HashWithIndifferentAccess\ncolor: black\n",
-      "preferences" => "--- !ruby/hash:ActiveSupport::HashWithIndifferentAccess\nremember_login: true\n",
-      "json_data" => "{\"height\":\"tall\"}", "json_data_empty"=>"{\"is_a_good_guy\":true}",
-      "params" => "--- !ruby/hash:ActiveSupport::HashWithIndifferentAccess {}\n",
-      "account_id"=> @john.account_id
-    }
-
-    assert_equal attributes, @john.attributes_for_coder
-  end
-
   test "dump, load and dump again a model" do
     dumped = YAML.dump(@john)
     loaded = YAML.load(dumped)
     assert_equal @john, loaded
 
     second_dump = YAML.dump(loaded)
-    assert_equal dumped, second_dump
     assert_equal @john, YAML.load(second_dump)
   end
 end

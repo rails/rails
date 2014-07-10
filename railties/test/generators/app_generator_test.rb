@@ -21,6 +21,7 @@ DEFAULT_APP_FILES = %w(
   bin/bundle
   bin/rails
   bin/rake
+  bin/setup
   config/environments
   config/initializers
   config/locales
@@ -444,6 +445,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_no_match(/spring/, content)
+    end
+  end
+
+  def test_generator_if_skip_gems_is_given
+    run_generator [destination_root, "--skip-gems", "turbolinks", "coffee-rails"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/turbolinks/, content)
+      assert_no_match(/coffee-rails/, content)
+    end
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_no_match(/data-turbolinks-track/, content)
+    end
+    assert_file "app/assets/javascripts/application.js" do |content|
+      assert_no_match(/turbolinks/, content)
     end
   end
 

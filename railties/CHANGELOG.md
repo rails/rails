@@ -1,3 +1,25 @@
+*   Deprecate `Rails::Rack::LogTailer` with not replacement.
+
+    *Rafael Mendonça França*
+
+*   Add a generic --skip-gems options to generator
+
+    This option is useful if users want to remove some gems like jbuilder,
+    turbolinks, coffee-rails, etc that don't have specific options on the
+    generator.
+
+        rails new my_app --skip-gems turbolinks coffee-rails
+
+    *Rafael Mendonça França*
+
+*   Invalid `bin/rails generate` commands will now show spelling suggestions.
+
+    *Richard Schneeman*
+
+*   Add `bin/setup` script to bootstrap an application.
+
+    *Yves Senn*
+
 *   Replace double quotes with single quotes while adding an entry into Gemfile.
 
     *Alexander Belaev*
@@ -25,10 +47,6 @@
 *   Move configuration of asset precompile list and version to an initializer.
 
     *Matthew Draper*
-
-*   Do not set the Rails environment to test by default when using test_unit Railtie.
-
-    *Konstantin Shabanov*
 
 *   Remove sqlite3 lines from `.gitignore` if the application is not using sqlite3.
 

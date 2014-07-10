@@ -12,6 +12,10 @@ module ActiveRecord
 
         private
 
+        def visit_DropForeignKey(name)
+          "DROP FOREIGN KEY #{name}"
+        end
+
         def visit_TableDefinition(o)
           name = o.name
           create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(name)} "
@@ -61,24 +65,20 @@ module ActiveRecord
           @collation = collation
           @extra     = extra
           super(name, default, cast_type, sql_type, null)
+          assert_valid_default(default)
+          extract_default
         end
 
-        def extract_default(default)
+        def extract_default
           if blob_or_text_column?
-            if default.blank?
-              null || strict ? nil : ''
-            else
-              raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
-            end
-          elsif missing_default_forged_as_empty_string?(default)
-            nil
-          else
-            super
+            @default = null || strict ? nil : ''
+          elsif missing_default_forged_as_empty_string?(@default)
+            @default = nil
           end
         end
 
         def has_default?
-          return false if blob_or_text_column? #mysql forbids defaults on blob and text columns
+          return false if blob_or_text_column? # MySQL forbids defaults on blob and text columns
           super
         end
 
@@ -101,6 +101,12 @@ module ActiveRecord
         # a type allowing default ''.
         def missing_default_forged_as_empty_string?(default)
           type != :string && !null && default == ''
+        end
+
+        def assert_valid_default(default)
+          if blob_or_text_column? && default.present?
+            raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
+          end
         end
       end
 
@@ -190,6 +196,10 @@ module ActiveRecord
         true
       end
 
+      def supports_foreign_keys?
+        true
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
@@ -206,12 +216,11 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def new_column(field, default, sql_type, null, collation, extra = "") # :nodoc:
-        cast_type = lookup_cast_type(sql_type)
+      def new_column(field, default, cast_type, sql_type = nil, null = true, collation = "", extra = "") # :nodoc:
         Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
-      # Must return the Mysql error number from the exception, if the exception has an
+      # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:
         raise NotImplementedError
@@ -219,10 +228,9 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary
-          s = value.unpack("H*")[0]
-          "x'#{s}'"
+      def _quote(value) # :nodoc:
+        if value.is_a?(Type::Binary::Data)
+          "x'#{value.hex}'"
         else
           super
         end
@@ -381,7 +389,7 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        return false unless name
+        return false unless name.present?
         return true if tables(nil, nil, name).any?
 
         name          = name.to_s
@@ -425,7 +433,9 @@ module ActiveRecord
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
             field_name = set_field_encoding(field[:Field])
-            new_column(field_name, field[:Default], field[:Type], field[:Null] == "YES", field[:Collation], field[:Extra])
+            sql_type = field[:Type]
+            cast_type = lookup_cast_type(sql_type)
+            new_column(field_name, field[:Default], cast_type, sql_type, field[:Null] == "YES", field[:Collation], field[:Extra])
           end
         end
       end
@@ -497,6 +507,34 @@ module ActiveRecord
       def add_index(table_name, column_name, options = {}) #:nodoc:
         index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options} #{index_algorithm}"
+      end
+
+      def foreign_keys(table_name)
+        fk_info = select_all <<-SQL.strip_heredoc
+          SELECT fk.referenced_table_name as 'to_table'
+                ,fk.referenced_column_name as 'primary_key'
+                ,fk.column_name as 'column'
+                ,fk.constraint_name as 'name'
+          FROM information_schema.key_column_usage fk
+          WHERE fk.referenced_column_name is not null
+            AND fk.table_schema = '#{@config[:database]}'
+            AND fk.table_name = '#{table_name}'
+        SQL
+
+        create_table_info = select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+
+        fk_info.map do |row|
+          options = {
+            column: row['column'],
+            name: row['name'],
+            primary_key: row['primary_key']
+          }
+
+          options[:on_update] = extract_foreign_key_action(create_table_info, row['name'], "UPDATE")
+          options[:on_delete] = extract_foreign_key_action(create_table_info, row['name'], "DELETE")
+
+          ForeignKeyDefinition.new(table_name, row['to_table'], options)
+        end
       end
 
       # Maps logical Rails types to MySQL-specific data types.
@@ -755,8 +793,8 @@ module ActiveRecord
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
-        if strict_mode? && !variables.has_key?('sql_mode')
-          variables['sql_mode'] = 'STRICT_ALL_TABLES'
+        unless variables.has_key?('sql_mode')
+          variables['sql_mode'] = strict_mode? ? 'STRICT_ALL_TABLES' : ''
         end
 
         # NAMES does not have an equals sign, see
@@ -776,6 +814,15 @@ module ActiveRecord
 
         # ...and send them all in one query
         @connection.query  "SET #{encoding} #{variable_assignments}"
+      end
+
+      def extract_foreign_key_action(structure, name, action) # :nodoc:
+        if structure =~ /CONSTRAINT #{quote_column_name(name)} FOREIGN KEY .* REFERENCES .* ON #{action} (CASCADE|SET NULL|RESTRICT)/
+          case $1
+          when 'CASCADE'; :cascade
+          when 'SET NULL'; :nullify
+          end
+        end
       end
     end
   end

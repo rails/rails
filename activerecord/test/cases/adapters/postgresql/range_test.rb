@@ -1,7 +1,5 @@
 require "cases/helper"
 require 'support/connection_helper'
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 if ActiveRecord::Base.connection.supports_ranges?
   class PostgresqlRange < ActiveRecord::Base
@@ -158,7 +156,7 @@ _SQL
       assert_equal 0.5..0.7, @first_range.float_range
       assert_equal 0.5...0.7, @second_range.float_range
       assert_equal 0.5...Float::INFINITY, @third_range.float_range
-      assert_equal (-Float::INFINITY...Float::INFINITY), @fourth_range.float_range
+      assert_equal(-Float::INFINITY...Float::INFINITY, @fourth_range.float_range)
       assert_nil @empty_range.float_range
     end
 
@@ -262,6 +260,23 @@ _SQL
     def test_exclude_beginning_for_subtypes_without_succ_method_is_not_supported
       assert_raises(ArgumentError) { PostgresqlRange.create!(num_range: "(0.1, 0.2]") }
       assert_raises(ArgumentError) { PostgresqlRange.create!(float_range: "(0.5, 0.7]") }
+    end
+
+    def test_update_all_with_ranges
+      PostgresqlRange.create!
+
+      PostgresqlRange.update_all(int8_range: 1..100)
+
+      assert_equal 1...101, PostgresqlRange.first.int8_range
+    end
+
+    def test_ranges_correctly_escape_input
+      range = "-1,2]'; DROP TABLE postgresql_ranges; --".."a"
+      PostgresqlRange.update_all(int8_range: range)
+
+      assert_nothing_raised do
+        PostgresqlRange.first
+      end
     end
 
     private

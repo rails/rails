@@ -159,10 +159,10 @@ class ArticlesController < ApplicationController
   def create
     @article = Article.new(params[:article])
     logger.debug "New article: #{@article.attributes.inspect}"
-    logger.debug  Article should be valid: #{@article.valid?}"
+    logger.debug "Article should be valid: #{@article.valid?}"
 
     if @article.save
-      flash[:notice] =  Article was successfully created.'
+      flash[:notice] =  'Article was successfully created.'
       logger.debug "The article was saved and now the user is going to be redirected..."
       redirect_to(@article)
     else
@@ -184,7 +184,8 @@ vbkNvbnRyb2xsZXI6OkZsYXNoOjpGbGFzaEhhc2h7AAY6CkB1c2VkewA=--b18cd92fba90eacf8137e
  "body"=>"I'm learning how to print in logs!!!", "published"=>"0"},
  "authenticity_token"=>"2059c1286e93402e389127b1153204e0d1e275dd", "action"=>"create", "controller"=>"articles"}
 New article: {"updated_at"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!",
- "published"=>false, "created_at"=>nil} Article should be valid: true
+ "published"=>false, "created_at"=>nil}
+Article should be valid: true
   Article Create (0.000443)   INSERT INTO "articles" ("updated_at", "title", "body", "published",
  "created_at") VALUES('2008-09-08 14:52:54', 'Debugging Rails',
  'I''m learning how to print in logs!!!', 'f', '2008-09-08 14:52:54')
@@ -308,7 +309,7 @@ For example:
 
 ```bash
 => Booting WEBrick
-=> Rails 4.1.1 application starting in development on http://0.0.0.0:3000
+=> Rails 4.2.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
 => Notice: server is listening on all interfaces (0.0.0.0). Consider using 127.0.0.1 (--binding option)
 => Ctrl-C to shutdown server
@@ -421,11 +422,11 @@ then `backtrace` will supply the answer.
 --> #0  ArticlesController.index
       at /PathTo/project/test_app/app/controllers/articles_controller.rb:8
     #1  ActionController::ImplicitRender.send_action(method#String, *args#Array)
-      at /PathToGems/actionpack-4.1.1/lib/action_controller/metal/implicit_render.rb:4
+      at /PathToGems/actionpack-4.2.0/lib/action_controller/metal/implicit_render.rb:4
     #2  AbstractController::Base.process_action(action#NilClass, *args#Array)
-      at /PathToGems/actionpack-4.1.1/lib/abstract_controller/base.rb:189
+      at /PathToGems/actionpack-4.2.0/lib/abstract_controller/base.rb:189
     #3  ActionController::Rendering.process_action(action#NilClass, *args#NilClass)
-      at /PathToGems/actionpack-4.1.1/lib/action_controller/metal/rendering.rb:10
+      at /PathToGems/actionpack-4.2.0/lib/action_controller/metal/rendering.rb:10
 ...
 ```
 
@@ -437,7 +438,7 @@ context.
 ```
 (byebug) frame 2
 
-[184, 193] in /PathToGems/actionpack-4.1.1/lib/abstract_controller/base.rb
+[184, 193] in /PathToGems/actionpack-4.2.0/lib/abstract_controller/base.rb
    184:       # is the intended way to override action dispatching.
    185:       #
    186:       # Notice that the first argument is the method to be dispatched
@@ -654,7 +655,7 @@ instruction to be executed. In this case, the activesupport's `week` method.
 ```
 (byebug) step
 
-[50, 59] in /PathToGems/activesupport-4.1.1/lib/active_support/core_ext/numeric/time.rb
+[50, 59] in /PathToGems/activesupport-4.2.0/lib/active_support/core_ext/numeric/time.rb
    50:     ActiveSupport::Duration.new(self * 24.hours, [[:days, self]])
    51:   end
    52:   alias :day :days

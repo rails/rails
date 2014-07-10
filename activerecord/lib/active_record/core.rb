@@ -16,7 +16,6 @@ module ActiveRecord
       mattr_accessor :logger, instance_writer: false
 
       ##
-      # :singleton-method:
       # Contains the database configuration - as is typically stored in config/database.yml -
       # as a Hash.
       #
@@ -249,16 +248,12 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = self.class.column_defaults.dup
-      defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
-
-      @attributes   = self.class.initialize_attributes(defaults)
-      @column_types_override = nil
-      @column_types = self.class.column_types
+      @attributes = self.class.default_attributes.dup
 
       init_internals
       initialize_internals_callback
 
+      self.class.define_attribute_methods
       # +options+ argument is only needed to make protected_attributes gem easier to hook.
       # Remove it when we drop support to this gem.
       init_attributes(attributes, options) if attributes
@@ -278,13 +273,11 @@ module ActiveRecord
     #   post.init_with('attributes' => { 'title' => 'hello world' })
     #   post.title # => 'hello world'
     def init_with(coder)
-      @attributes   = self.class.initialize_attributes(coder['attributes'])
-      @column_types_override = coder['column_types']
-      @column_types = self.class.column_types
+      @attributes = coder['attributes']
 
       init_internals
 
-      @new_record = false
+      @new_record = coder['new_record']
 
       self.class.define_attribute_methods
 
@@ -322,17 +315,13 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
-      self.class.initialize_attributes(cloned_attributes, :serialized => false)
-
-      @attributes = cloned_attributes
-      @attributes[self.class.primary_key] = nil
+      @attributes = @attributes.dup
+      @attributes.reset(self.class.primary_key)
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
       @aggregation_cache = {}
       @association_cache = {}
-      @attributes_cache  = {}
 
       @new_record  = true
       @destroyed   = false
@@ -353,7 +342,10 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      coder['attributes'] = attributes_for_coder
+      # FIXME: Remove this when we better serialize attributes
+      coder['raw_attributes'] = attributes_before_type_cast
+      coder['attributes'] = @attributes
+      coder['new_record'] = new_record?
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
@@ -376,7 +368,11 @@ module ActiveRecord
     # Delegates to id in order to allow two records of the same type and id to work with something like:
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
-      id.hash
+      if id
+        id.hash
+      else
+        super
+      end
     end
 
     # Clone and freeze the attributes hash such that associations are still
@@ -430,6 +426,29 @@ module ActiveRecord
                      "not initialized"
                    end
       "#<#{self.class} #{inspection}>"
+    end
+
+    # Takes a PP and prettily prints this record to it, allowing you to get a nice result from `pp record`
+    # when pp is required.
+    def pretty_print(pp)
+      pp.object_address_group(self) do
+        if defined?(@attributes) && @attributes
+          column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
+          pp.seplist(column_names, proc { pp.text ',' }) do |column_name|
+            column_value = read_attribute(column_name)
+            pp.breakable ' '
+            pp.group(1) do
+              pp.text column_name
+              pp.text ':'
+              pp.breakable
+              pp.pp column_value
+            end
+          end
+        else
+          pp.breakable ' '
+          pp.text 'not initialized'
+        end
+      end
     end
 
     # Returns a hash of the given methods with their names as keys and returned values as values.
@@ -495,12 +514,10 @@ module ActiveRecord
     end
 
     def init_internals
-      pk = self.class.primary_key
-      @attributes[pk] = nil unless @attributes.key?(pk)
+      @attributes.ensure_initialized(self.class.primary_key)
 
       @aggregation_cache        = {}
       @association_cache        = {}
-      @attributes_cache         = {}
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false
@@ -519,6 +536,12 @@ module ActiveRecord
     # Remove it when we drop support to this gem.
     def init_attributes(attributes, options)
       assign_attributes(attributes)
+    end
+
+    def thaw
+      if frozen?
+        @attributes = @attributes.dup
+      end
     end
   end
 end

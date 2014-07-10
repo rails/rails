@@ -372,12 +372,20 @@ module ActiveRecord
       end
 
       def call(env)
-        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
-        if @last_check < mtime
-          ActiveRecord::Migration.check_pending!
-          @last_check = mtime
+        if connection.supports_migrations?
+          mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+          if @last_check < mtime
+            ActiveRecord::Migration.check_pending!(connection)
+            @last_check = mtime
+          end
         end
         @app.call(env)
+      end
+
+      private
+
+      def connection
+        ActiveRecord::Base.connection
       end
     end
 
@@ -642,7 +650,9 @@ module ActiveRecord
         unless @connection.respond_to? :revert
           unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
-            arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table
+            if [:rename_table, :add_foreign_key].include?(method)
+              arguments[1] = proper_table_name(arguments.second, table_name_options)
+            end
           end
         end
         return super unless connection.respond_to?(method)
@@ -711,7 +721,7 @@ module ActiveRecord
       if ActiveRecord::Base.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
-        "%.3d" % number
+        SchemaMigration.normalize_migration_number(number)
       end
     end
 
@@ -849,19 +859,6 @@ module ActiveRecord
 
       def last_migration #:nodoc:
         migrations(migrations_paths).last || NullMigration.new
-      end
-
-      def proper_table_name(name, options = {})
-        ActiveSupport::Deprecation.warn "ActiveRecord::Migrator.proper_table_name is deprecated and will be removed in Rails 4.2. Use the proper_table_name instance method on ActiveRecord::Migration instead"
-        options = {
-          table_name_prefix: ActiveRecord::Base.table_name_prefix,
-          table_name_suffix: ActiveRecord::Base.table_name_suffix
-        }.merge(options)
-        if name.respond_to? :table_name
-          name.table_name
-        else
-          "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
-        end
       end
 
       def migrations_paths

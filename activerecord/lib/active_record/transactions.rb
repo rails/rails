@@ -339,7 +339,7 @@ module ActiveRecord
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc:
-      @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
+      @_start_transaction_state[:id] = id
       unless @_start_transaction_state.include?(:new_record)
         @_start_transaction_state[:new_record] = @new_record
       end
@@ -347,7 +347,7 @@ module ActiveRecord
         @_start_transaction_state[:destroyed] = @destroyed
       end
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
-      @_start_transaction_state[:frozen?] = @attributes.frozen?
+      @_start_transaction_state[:frozen?] = frozen?
     end
 
     # Clear the new record state and id of a record.
@@ -367,17 +367,10 @@ module ActiveRecord
         transaction_level = (@_start_transaction_state[:level] || 0) - 1
         if transaction_level < 1 || force
           restore_state = @_start_transaction_state
-          was_frozen = restore_state[:frozen?]
-          @attributes = @attributes.dup if @attributes.frozen?
+          thaw unless restore_state[:frozen?]
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
-          if restore_state.has_key?(:id)
-            write_attribute(self.class.primary_key, restore_state[:id])
-          else
-            @attributes.delete(self.class.primary_key)
-            @attributes_cache.delete(self.class.primary_key)
-          end
-          @attributes.freeze if was_frozen
+          write_attribute(self.class.primary_key, restore_state[:id])
         end
       end
     end

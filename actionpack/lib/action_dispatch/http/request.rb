@@ -209,8 +209,8 @@ module ActionDispatch
     end
 
     # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
-    # (case-insensitive). All major JavaScript libraries send this header with
-    # every Ajax request.
+    # (case-insensitive), which may need to be manually added depending on the
+    # choice of JavaScript libraries and frameworks.
     def xml_http_request?
       @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
     end
@@ -291,7 +291,7 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= Utils.deep_munge((normalize_encode_params(super) || {}))
+      @env["action_dispatch.request.query_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
     rescue TypeError => e
       raise ActionController::BadRequest.new(:query, e)
     end
@@ -299,7 +299,7 @@ module ActionDispatch
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= Utils.deep_munge((normalize_encode_params(super) || {}))
+      @env["action_dispatch.request.request_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
     rescue TypeError => e
       raise ActionController::BadRequest.new(:request, e)
     end

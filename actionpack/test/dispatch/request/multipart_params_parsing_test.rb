@@ -8,7 +8,11 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
 
     def parse
-      self.class.last_request_parameters = request.request_parameters
+      self.class.last_request_parameters = begin
+        request.request_parameters
+      rescue EOFError
+        {}
+      end
       self.class.last_parameters = request.parameters
       head :ok
     end
@@ -145,7 +149,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   test "does not raise EOFError on GET request with multipart content-type" do
     with_routing do |set|
       set.draw do
-        get ':action', to: 'multipart_params_parsing_test/test'
+        get ':action', controller: 'multipart_params_parsing_test/test'
       end
       headers = { "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x" }
       get "/parse", {}, headers
@@ -174,7 +178,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          post ':action', :to => 'multipart_params_parsing_test/test'
+          post ':action', :controller => 'multipart_params_parsing_test/test'
         end
         yield
       end

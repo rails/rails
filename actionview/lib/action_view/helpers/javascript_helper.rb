@@ -47,7 +47,13 @@ module ActionView
       # tag.
       #
       #   javascript_tag "alert('All is good')", defer: 'defer'
-      #   # => <script defer="defer">alert('All is good')</script>
+      # 
+      # Returns: 
+      #   <script defer="defer">
+      #   //<![CDATA[
+      #   alert('All is good')
+      #   //]]>
+      #   </script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.

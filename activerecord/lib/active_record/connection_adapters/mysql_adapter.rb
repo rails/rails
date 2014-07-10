@@ -263,7 +263,7 @@ module ActiveRecord
       end
 
       module Fields # :nodoc:
-        class DateTime < Type::DateTime
+        class DateTime < Type::DateTime # :nodoc:
           def cast_value(value)
             if Mysql::Time === value
               new_time(
@@ -280,7 +280,7 @@ module ActiveRecord
           end
         end
 
-        class Time < Type::Time
+        class Time < Type::Time # :nodoc:
           def cast_value(value)
             if Mysql::Time === value
               new_time(
@@ -298,7 +298,7 @@ module ActiveRecord
         end
 
         class << self
-          TYPES = ConnectionAdapters::Type::HashLookupTypeMap.new # :nodoc:
+          TYPES = Type::HashLookupTypeMap.new # :nodoc:
 
           delegate :register_type, :alias_type, to: :TYPES
 
@@ -409,7 +409,7 @@ module ActiveRecord
             stmt.execute(*type_casted_binds.map { |_, val| val })
           rescue Mysql::Error => e
             # Older versions of MySQL leave the prepared statement in a bad
-            # place when an error occurs. To support older mysql versions, we
+            # place when an error occurs. To support older MySQL versions, we
             # need to close the statement and delete the statement from the
             # cache.
             stmt.close

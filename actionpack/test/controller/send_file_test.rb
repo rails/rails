@@ -9,6 +9,7 @@ end
 
 class SendFileController < ActionController::Base
   include TestFileUtils
+  include ActionController::Testing
   layout "layouts/standard" # to make sure layouts don't interfere
 
   attr_writer :options
@@ -31,8 +32,6 @@ end
 
 class SendFileTest < ActionController::TestCase
   include TestFileUtils
-
-  Mime::Type.register "image/png", :png unless defined? Mime::PNG
 
   def setup
     @controller = SendFileController.new

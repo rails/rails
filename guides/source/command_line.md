@@ -62,7 +62,7 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ bin/rails server
 => Booting WEBrick
-=> Rails 4.0.0 application starting in development on http://0.0.0.0:3000
+=> Rails 4.2.0 application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
 [2013-08-07 02:00:01] INFO  WEBrick 1.3.1
@@ -123,19 +123,18 @@ Usage: rails generate controller NAME [action action] [options]
 Description:
     ...
 
-    To create a controller within a module, specify the controller name as a
-    path like 'parent_module/controller_name'.
+    To create a controller within a module, specify the controller name as a path like 'parent_module/controller_name'.
 
     ...
 
 Example:
-    `rails generate controller CreditCard open debit credit close`
+    `rails generate controller CreditCards open debit credit close`
 
-    Credit card controller with URLs like /credit_card/debit.
+    Credit card controller with URLs like /credit_cards/debit.
         Controller: app/controllers/credit_card_controller.rb
-        Test:       test/controllers/credit_card_controller_test.rb
-        Views:      app/views/credit_card/debit.html.erb [...]
-        Helper:     app/helpers/credit_card_helper.rb
+        Test:       test/controllers/credit_cards_controller_test.rb
+        Views:      app/views/credit_cards/debit.html.erb [...]
+        Helper:     app/helpers/credit_cards_helper.rb
 ```
 
 The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of **hello**, which will say something nice to us.
@@ -290,9 +289,34 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 4.0.0)
+Loading development environment in sandbox (Rails 4.2.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
+```
+
+#### The app and helper objects
+
+Inside the `rails console` you have access to the `app` and `helper` instances.
+
+With the `app` method you can access url and path helpers, as well as do requests.
+
+```bash
+>> app.root_path
+=> "/"
+
+>> app.get _
+Started GET "/" for 127.0.0.1 at 2014-06-19 10:41:57 -0300
+...
+```
+
+With the `helper` method it is possible to access Rails and your application's helpers.
+
+```bash
+>> helper.time_ago_in_words 30.days.ago
+=> "about 1 month"
+
+>> helper.my_custom_helper
+=> "my custom helper"
 ```
 
 ### `rails dbconsole`
@@ -378,13 +402,13 @@ About your application's environment
 Ruby version              1.9.3 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.3
-Rails version             4.1.1
+Rails version             4.2.0
 JavaScript Runtime        Node.js (V8)
-Active Record version     4.1.1
-Action Pack version       4.1.1
-Action View version       4.1.1
-Action Mailer version     4.1.1
-Active Support version    4.1.1
+Active Record version     4.2.0
+Action Pack version       4.2.0
+Action View version       4.2.0
+Action Mailer version     4.2.0
+Active Support version    4.2.0
 Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development

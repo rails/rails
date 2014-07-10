@@ -103,7 +103,11 @@ module ActiveRecord
         uuid:        { name: "uuid" },
         json:        { name: "json" },
         ltree:       { name: "ltree" },
-        citext:      { name: "citext" }
+        citext:      { name: "citext" },
+        point:       { name: "point" },
+        bit:         { name: "bit" },
+        bit_varying: { name: "bit varying" },
+        money:       { name: "money" },
       }
 
       OID = PostgreSQL::OID #:nodoc:
@@ -152,6 +156,10 @@ module ActiveRecord
       end
 
       def supports_transaction_isolation?
+        true
+      end
+
+      def supports_foreign_keys?
         true
       end
 
@@ -302,10 +310,6 @@ module ActiveRecord
         self.client_min_messages = old
       end
 
-      def supports_insert_with_returning?
-        true
-      end
-
       def supports_ddl_transactions?
         true
       end
@@ -344,14 +348,13 @@ module ActiveRecord
         if supports_extensions?
           res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled",
             'SCHEMA'
-          res.column_types['enabled'].type_cast res.rows.first.first
+          res.cast_values.first
         end
       end
 
       def extensions
         if supports_extensions?
-          res = exec_query "SELECT extname from pg_extension", "SCHEMA"
-          res.rows.map { |r| res.column_types['extname'].type_cast r.first }
+          exec_query("SELECT extname from pg_extension", "SCHEMA").cast_values
         else
           super
         end
@@ -378,6 +381,11 @@ module ActiveRecord
 
       def update_table_definition(table_name, base) #:nodoc:
         PostgreSQL::Table.new(table_name, base)
+      end
+
+      def lookup_cast_type(sql_type) # :nodoc:
+        oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first['oid'].to_i
+        super(oid)
       end
 
       protected
@@ -432,8 +440,8 @@ module ActiveRecord
           m.alias_type 'name', 'varchar'
           m.alias_type 'bpchar', 'varchar'
           m.register_type 'bool', Type::Boolean.new
-          m.register_type 'bit', OID::Bit.new
-          m.alias_type 'varbit', 'bit'
+          register_class_with_limit m, 'bit', OID::Bit
+          register_class_with_limit m, 'varbit', OID::BitVarying
           m.alias_type 'timestamptz', 'timestamp'
           m.register_type 'date', OID::Date.new
           m.register_type 'time', OID::Time.new
@@ -446,7 +454,7 @@ module ActiveRecord
           m.register_type 'cidr', OID::Cidr.new
           m.register_type 'inet', OID::Inet.new
           m.register_type 'uuid', OID::Uuid.new
-          m.register_type 'xml', OID::SpecializedString.new(:xml)
+          m.register_type 'xml', OID::Xml.new
           m.register_type 'tsvector', OID::SpecializedString.new(:tsvector)
           m.register_type 'macaddr', OID::SpecializedString.new(:macaddr)
           m.register_type 'citext', OID::SpecializedString.new(:citext)
@@ -498,57 +506,16 @@ module ActiveRecord
         end
 
         # Extracts the value from a PostgreSQL column default definition.
-        def extract_value_from_default(default) # :nodoc:
-          # This is a performance optimization for Ruby 1.9.2 in development.
-          # If the value is nil, we return nil straight away without checking
-          # the regular expressions. If we check each regular expression,
-          # Regexp#=== will call NilClass#to_str, which will trigger
-          # method_missing (defined by whiny nil in ActiveSupport) which
-          # makes this method very very slow.
-          return default unless default
-
+        def extract_value_from_default(oid, default) # :nodoc:
           case default
-            when /\A'(.*)'::(num|date|tstz|ts|int4|int8)range\z/m
-              $1
+            # Quoted types
+            when /\A[\(B]?'(.*)'::/m
+              $1.gsub(/''/, "'")
+            # Boolean types
+            when 'true', 'false'
+              default
             # Numeric types
             when /\A\(?(-?\d+(\.\d*)?\)?(::bigint)?)\z/
-              $1
-            # Character types
-            when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
-              $1.gsub(/''/, "'")
-            # Binary data types
-            when /\A'(.*)'::bytea\z/m
-              $1
-            # Date/time types
-            when /\A'(.+)'::(?:time(?:stamp)? with(?:out)? time zone|date)\z/
-              $1
-            when /\A'(.*)'::interval\z/
-              $1
-            # Boolean type
-            when 'true'
-              true
-            when 'false'
-              false
-            # Geometric types
-            when /\A'(.*)'::(?:point|line|lseg|box|"?path"?|polygon|circle)\z/
-              $1
-            # Network address types
-            when /\A'(.*)'::(?:cidr|inet|macaddr)\z/
-              $1
-            # Bit string types
-            when /\AB'(.*)'::"?bit(?: varying)?"?\z/
-              $1
-            # XML type
-            when /\A'(.*)'::xml\z/m
-              $1
-            # Arrays
-            when /\A'(.*)'::"?\D+"?\[\]\z/
-              $1
-            # Hstore
-            when /\A'(.*)'::hstore\z/
-              $1
-            # JSON
-            when /\A'(.*)'::json\z/
               $1
             # Object identifier types
             when /\A-?\d+\z/
@@ -602,7 +569,7 @@ module ActiveRecord
         end
 
         def exec_no_cache(sql, name, binds)
-          log(sql, name, binds) { @connection.async_exec(sql) }
+          log(sql, name, binds) { @connection.async_exec(sql, []) }
         end
 
         def exec_cache(sql, name, binds)

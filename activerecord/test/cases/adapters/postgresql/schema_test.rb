@@ -331,14 +331,15 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_pk_and_sequence_for_with_schema_specified
+    pg_name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
     [
       %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"),
       %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
     ].each do |given|
       pk, seq = @connection.pk_and_sequence_for(given)
       assert_equal 'id', pk, "primary key should be found when table referenced as #{given}"
-      assert_equal "#{PK_TABLE_NAME}_id_seq", seq, "sequence name should be found when table referenced as #{given}" if given == %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}")
-      assert_equal "#{UNMATCHED_SEQUENCE_NAME}", seq, "sequence name should be found when table referenced as #{given}" if given ==  %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
+      assert_equal pg_name.new(SCHEMA_NAME, "#{PK_TABLE_NAME}_id_seq"), seq, "sequence name should be found when table referenced as #{given}" if given == %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}")
+      assert_equal pg_name.new(SCHEMA_NAME, UNMATCHED_SEQUENCE_NAME), seq, "sequence name should be found when table referenced as #{given}" if given ==  %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
     end
   end
 
@@ -376,6 +377,14 @@ class SchemaTest < ActiveRecord::TestCase
     }.each do |given,expect|
       assert_equal expect, @connection.schema_exists?(given)
     end
+  end
+
+  def test_reset_pk_sequence
+    sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "SELECT setval('#{sequence_name}', 123)"
+    assert_equal "124", @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_pk_sequence!("#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}")
+    assert_equal "1", @connection.select_value("SELECT nextval('#{sequence_name}')")
   end
 
   private

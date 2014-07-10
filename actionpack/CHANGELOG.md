@@ -1,6 +1,49 @@
-*   Deprecate all *_filter callbacks in favor of *_action callbacks.
+*   Generate shallow paths for all children of shallow resources.
 
-    *Rafael Mendonça França*
+    Fixes #15783.
+
+    *Seb Jacobs*
+
+*   JSONP responses are now rendered with the `text/javascript` content type
+    when rendering through a `respond_to` block.
+
+    Fixes #15081.
+
+    *Lucas Mazza*
+
+*   Add `config.action_controller.always_permitted_parameters` to configure which
+    parameters are permitted globally. The default value of this configuration is
+    `['controller', 'action']`.
+
+    *Gary S. Weaver*, *Rafael Chacon*
+
+*   Fix env['PATH_INFO'] missing leading slash when a rack app mounted at '/'.
+
+    Fixes #15511.
+
+    *Larry Lv*
+
+*   ActionController::Parameters#require now accepts `false` values.
+
+    Fixes #15685.
+
+    *Sergio Romano*
+
+*   With authorization header `Authorization: Token token=`, `authenticate` now
+    recognize token as nil, instead of "token".
+
+    Fixes #14846.
+
+    *Larry Lv*
+
+*   Ensure the controller is always notified as soon as the client disconnects
+    during live streaming, even when the controller is blocked on a write.
+
+    *Nicholas Jakobsen*, *Matthew Draper*
+
+*   Routes specifying 'to:' must be a string that contains a "#" or a rack
+    application.  Use of a symbol should be replaced with `action: symbol`.
+    Use of a string without a "#" should be replaced with `controller: string`.
 
 *   Fix URL generation with `:trailing_slash` such that it does not add
     a trailing slash after `.:format`
@@ -115,7 +158,7 @@
     *Boris Kuznetsov*
 
 *   Swapped the parameters of assert_equal in `assert_select` so that the
-    proper values were printed correctly
+    proper values were printed correctly.
 
     Fixes #14422.
 
@@ -139,6 +182,5 @@
     `default_url_options` methods.
 
     *Tony Wooster*
-
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionpack/CHANGELOG.md) for previous changes.

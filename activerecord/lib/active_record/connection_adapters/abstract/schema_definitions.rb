@@ -15,7 +15,7 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key, :sql_type) #:nodoc:
+    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key, :sql_type, :cast_type) #:nodoc:
 
       def primary_key?
         primary_key || type.to_sym == :primary_key
@@ -23,6 +23,37 @@ module ActiveRecord
     end
 
     class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
+    end
+
+    class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options) #:nodoc:
+      def name
+        options[:name]
+      end
+
+      def column
+        options[:column]
+      end
+
+      def primary_key
+        options[:primary_key] || default_primary_key
+      end
+
+      def on_delete
+        options[:on_delete]
+      end
+
+      def on_update
+        options[:on_update]
+      end
+
+      def custom_primary_key?
+        options[:primary_key] != default_primary_key
+      end
+
+      private
+      def default_primary_key
+        "id"
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -102,8 +133,8 @@ module ActiveRecord
       # * <tt>:index</tt> -
       #   Create an index for the column. Can be either <tt>true</tt> or an options hash.
       #
-      # For clarity's sake: the precision is the number of significant digits,
-      # while the scale is the number of digits that can be stored following
+      # Note: The precision is the total number of significant digits
+      # and the scale is the number of digits that can be stored following
       # the decimal point. For example, the number 123.45 has a precision of 5
       # and a scale of 2. A decimal with a precision of 5 and a scale of 2 can
       # range from -999.99 to 999.99.
@@ -303,13 +334,25 @@ module ActiveRecord
 
     class AlterTable # :nodoc:
       attr_reader :adds
+      attr_reader :foreign_key_adds
+      attr_reader :foreign_key_drops
 
       def initialize(td)
         @td   = td
         @adds = []
+        @foreign_key_adds = []
+        @foreign_key_drops = []
       end
 
       def name; @td.name; end
+
+      def add_foreign_key(to_table, options)
+        @foreign_key_adds << ForeignKeyDefinition.new(name, to_table, options)
+      end
+
+      def drop_foreign_key(name)
+        @foreign_key_drops << name
+      end
 
       def add_column(name, type, options)
         name = name.to_s

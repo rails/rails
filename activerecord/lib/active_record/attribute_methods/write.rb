@@ -26,8 +26,6 @@ module ActiveRecord
         protected
 
         if Module.methods_transplantable?
-          # See define_method_attribute in read.rb for an explanation of
-          # this code.
           def define_method_attribute=(name)
             method = WriterMethodCache[name]
             generated_attribute_methods.module_eval {
@@ -55,11 +53,11 @@ module ActiveRecord
       # specified +value+. Empty strings for fixnum and float columns are
       # turned into +nil+.
       def write_attribute(attr_name, value)
-        write_attribute_with_type_cast(attr_name, value, :type_cast_attribute_for_write)
+        write_attribute_with_type_cast(attr_name, value, true)
       end
 
       def raw_write_attribute(attr_name, value)
-        write_attribute_with_type_cast(attr_name, value, :raw_type_cast_attribute_for_write)
+        write_attribute_with_type_cast(attr_name, value, false)
       end
 
       private
@@ -68,30 +66,17 @@ module ActiveRecord
         write_attribute(attribute_name, value)
       end
 
-      def type_cast_attribute_for_write(column, value)
-        return value unless column
-
-        column.type_cast_for_write value
-      end
-      alias_method :raw_type_cast_attribute_for_write, :type_cast_attribute_for_write
-
-      def write_attribute_with_type_cast(attr_name, value, type_cast_method)
+      def write_attribute_with_type_cast(attr_name, value, should_type_cast)
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
-        @attributes_cache.delete(attr_name)
-        column = column_for_attribute(attr_name)
 
-        # If we're dealing with a binary column, write the data to the cache
-        # so we don't attempt to typecast multiple times.
-        if column && column.binary?
-          @attributes_cache[attr_name] = value
-        end
-
-        if column || @attributes.has_key?(attr_name)
-          @attributes[attr_name] = send(type_cast_method, column, value)
+        if should_type_cast
+          @attributes.write_from_user(attr_name, value)
         else
-          raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
+          @attributes.write_from_database(attr_name, value)
         end
+
+        value
       end
     end
   end

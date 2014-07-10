@@ -6,14 +6,13 @@ module ActiveRecord
     # <tt>ActiveRecord::Tasks::DatabaseTasks</tt> is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used in rake tasks provided by Active Record.
+    # The tasks defined here are used with Rake tasks provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
     # config values are set by Rails already, so it's necessary to do it only if you
     # want to change the defaults or when you want to use Active Record outside of Rails
     # (in such case after configuring the database tasks, you can also use the rake tasks
     # defined in Active Record).
-    #
     #
     # The possible config values are:
     #
@@ -59,7 +58,11 @@ module ActiveRecord
       end
 
       def fixtures_path
-        @fixtures_path ||= File.join(root, 'test', 'fixtures')
+        @fixtures_path ||= if ENV['FIXTURES_PATH']
+                             File.join(root, ENV['FIXTURES_PATH'])
+                           else
+                             File.join(root, 'test', 'fixtures')
+                           end
       end
 
       def root
@@ -142,6 +145,18 @@ module ActiveRecord
 
       def purge(configuration)
         class_for_adapter(configuration['adapter']).new(configuration).purge
+      end
+
+      def purge_all
+        each_local_configuration { |configuration|
+          purge configuration
+        }
+      end
+
+      def purge_current(environment = env)
+        each_current_configuration(environment) { |configuration|
+          purge configuration
+        }
       end
 
       def structure_dump(*arguments)

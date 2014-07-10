@@ -104,11 +104,11 @@ module ActiveRecord
         end
 
         def association_key_type
-          @klass.column_types[association_key_name.to_s].type
+          @klass.type_for_attribute(association_key_name.to_s).type
         end
 
         def owner_key_type
-          @model.column_types[owner_key_name.to_s].type
+          @model.type_for_attribute(owner_key_name.to_s).type
         end
 
         def load_slices(slices)
@@ -149,6 +149,10 @@ module ActiveRecord
             if values.key? :order
               scope.order! values[:order]
             end
+          end
+
+          if preload_values[:readonly] || values[:readonly]
+            scope.readonly!
           end
 
           if options[:as]

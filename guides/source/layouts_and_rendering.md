@@ -308,7 +308,7 @@ TIP: This option should be used only if you don't care about the content type of
 the response. Using `:plain` or `:html` might be more appropriate in most of the
 time.
 
-NOTE: Unless overriden, your response returned from this render option will be
+NOTE: Unless overridden, your response returned from this render option will be
 `text/html`, as that is the default content type of Action Dispatch response.
 
 #### Options for `render`

@@ -233,6 +233,7 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_digest_difference("messages/edit", true) do
       change_template("comments/_comment")
     end
+  ensure
     ActionView::Resolver.caching = resolver_before
   end
 

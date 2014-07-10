@@ -1239,6 +1239,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
   end
 
+  test "including association based on sql condition and no database column" do
+    assert_equal pets(:parrot), Owner.including_last_pet.first.last_pet
+  end
+
   test "include instance dependent associations is deprecated" do
     message = "association scope 'posts_with_signature' is"
     assert_deprecated message do
@@ -1256,5 +1260,34 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_deprecated message do
       Author.eager_load(:posts_with_signature).to_a
     end
+  end
+
+  test "preloading readonly association" do
+    # has-one
+    firm = Firm.where(id: "1").preload(:readonly_account).first!
+    assert firm.readonly_account.readonly?
+
+    # has_and_belongs_to_many
+    project = Project.where(id: "2").preload(:readonly_developers).first!
+    assert project.readonly_developers.first.readonly?
+
+    # has-many :through
+    david = Author.where(id: "1").preload(:readonly_comments).first!
+    assert david.readonly_comments.first.readonly?
+  end
+
+  test "eager-loading readonly association" do
+    skip "eager_load does not yet preserve readonly associations"
+    # has-one
+    firm = Firm.where(id: "1").eager_load(:readonly_account).first!
+    assert firm.readonly_account.readonly?
+
+    # has_and_belongs_to_many
+    project = Project.where(id: "2").eager_load(:readonly_developers).first!
+    assert project.readonly_developers.first.readonly?
+
+    # has-many :through
+    david = Author.where(id: "1").eager_load(:readonly_comments).first!
+    assert david.readonly_comments.first.readonly?
   end
 end

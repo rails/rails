@@ -7,10 +7,10 @@ module ActionView
     # urls.
     #
     #   image_path("rails.png")
-    #   # => "/images/rails.png"
+    #   # => "/assets/rails.png"
     #
     #   image_url("rails.png")
-    #   # => "http://www.example.com/images/rails.png"
+    #   # => "http://www.example.com/assets/rails.png"
     #
     # === Using asset hosts
     #
@@ -88,9 +88,12 @@ module ActionView
     # still sending assets for plain HTTP requests from asset hosts. If you don't
     # have SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
+    # Note that the request parameter might not be supplied, e.g. when the assets
+    # are precompiled via a Rake task. Make sure to use a Proc instead of a lambda,
+    # since a Proc allows missing parameters and sets them to nil.
     #
     #   config.action_controller.asset_host = Proc.new { |source, request|
-    #     if request.ssl?
+    #     if request && request.ssl?
     #       "#{request.protocol}#{request.host_with_port}"
     #     else
     #       "#{request.protocol}assets.example.com"
@@ -152,7 +155,7 @@ module ActionView
       #
       # All other options provided are forwarded to +asset_path+ call.
       #
-      #   asset_url "application.js"                                 # => http://example.com/application.js
+      #   asset_url "application.js"                                 # => http://example.com/assets/application.js
       #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/assets/application.js
       #
       def asset_url(source, options = {})
@@ -228,13 +231,13 @@ module ActionView
         end
       end
 
-      # Computes the path to a javascript asset in the public javascripts directory.
+      # Computes the path to a JavaScript asset in the public javascripts directory.
       # If the +source+ filename has no extension, .js will be appended (except for explicit URIs)
       # Full paths from the document root will be passed through.
       # Used internally by +javascript_include_tag+ to build the script path.
       #
-      #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
-      #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
+      #   javascript_path "xmlhr"                              # => /assets/xmlhr.js
+      #   javascript_path "dir/xmlhr.js"                       # => /assets/dir/xmlhr.js
       #   javascript_path "/dir/xmlhr"                         # => /dir/xmlhr.js
       #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
       #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
@@ -243,7 +246,7 @@ module ActionView
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
-      # Computes the full URL to a javascript asset in the public javascripts directory.
+      # Computes the full URL to a JavaScript asset in the public javascripts directory.
       # This will use +javascript_path+ internally, so most of their behaviors will be the same.
       def javascript_url(source, options = {})
         url_to_asset(source, {type: :javascript}.merge!(options))
@@ -255,8 +258,8 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
       #
-      #   stylesheet_path "style"                                  # => /stylesheets/style.css
-      #   stylesheet_path "dir/style.css"                          # => /stylesheets/dir/style.css
+      #   stylesheet_path "style"                                  # => /assets/style.css
+      #   stylesheet_path "dir/style.css"                          # => /assets/dir/style.css
       #   stylesheet_path "/dir/style.css"                         # => /dir/style.css
       #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
       #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
@@ -276,9 +279,9 @@ module ActionView
       # Full paths from the document root will be passed through.
       # Used internally by +image_tag+ to build the image path:
       #
-      #   image_path("edit")                                         # => "/images/edit"
-      #   image_path("edit.png")                                     # => "/images/edit.png"
-      #   image_path("icons/edit.png")                               # => "/images/icons/edit.png"
+      #   image_path("edit")                                         # => "/assets/edit"
+      #   image_path("edit.png")                                     # => "/assets/edit.png"
+      #   image_path("icons/edit.png")                               # => "/assets/icons/edit.png"
       #   image_path("/icons/edit.png")                              # => "/icons/edit.png"
       #   image_path("http://www.example.com/img/edit.png")          # => "http://www.example.com/img/edit.png"
       #

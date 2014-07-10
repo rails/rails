@@ -1,5 +1,3 @@
-require 'ipaddr'
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # The goal of this module is to move Adapter specific column
@@ -25,7 +23,8 @@ module ActiveRecord
         spec[:precision] = column.precision.inspect if column.precision
         spec[:scale]     = column.scale.inspect if column.scale
         spec[:null]      = 'false' unless column.null
-        spec[:default]   = default_string(column.default) if column.has_default?
+        spec[:default]   = schema_default(column) if column.has_default?
+        spec.delete(:default) if spec[:default].nil?
         spec
       end
 
@@ -36,28 +35,12 @@ module ActiveRecord
 
       private
 
-        def default_string(value)
-          case value
-          when BigDecimal
-            value.to_s
-          when Date, DateTime, Time
-            "'#{value.to_s(:db)}'"
-          when Range
-            # infinity dumps as Infinity, which causes uninitialized constant error
-            value.inspect.gsub('Infinity', '::Float::INFINITY')
-          when IPAddr
-            subnet_mask = value.instance_variable_get(:@mask_addr)
-
-            # If the subnet mask is equal to /32, don't output it
-            if subnet_mask == (2**32 - 1)
-              "\"#{value.to_s}\""
-            else
-              "\"#{value.to_s}/#{subnet_mask.to_s(2).count('1')}\""
-            end
-          else
-            value.inspect
-          end
+      def schema_default(column)
+        default = column.type_cast_from_database(column.default)
+        unless default.nil?
+          column.type_cast_for_schema(default)
         end
+      end
     end
   end
 end

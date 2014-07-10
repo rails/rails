@@ -131,7 +131,8 @@ module ActionView #:nodoc:
   #     end
   #   end
   #
-  # More builder documentation can be found at http://builder.rubyforge.org.
+  # For more information on Builder please consult the [source
+  # code](https://github.com/jimweirich/builder).
   class Base
     include Helpers, ::ERB::Util, Context
 

@@ -188,6 +188,23 @@ module ActiveRecord
           active_record == other_aggregation.active_record
       end
 
+      JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
+
+      def join_keys(assoc_klass)
+        if source_macro == :belongs_to
+          if polymorphic?
+            reflection_key = association_primary_key(assoc_klass)
+          else
+            reflection_key = association_primary_key
+          end
+          reflection_foreign_key = foreign_key
+        else
+          reflection_key = foreign_key
+          reflection_foreign_key = active_record_primary_key
+        end
+        JoinKeys.new(reflection_key, reflection_foreign_key)
+      end
+
       private
         def derive_class_name
           name.to_s.camelize
@@ -228,7 +245,7 @@ module ActiveRecord
 
       def initialize(macro, name, scope, options, active_record)
         super
-        @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
+        @collection = macro == :has_many
         @automatic_inverse_of = nil
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
@@ -239,7 +256,7 @@ module ActiveRecord
 
       def association_scope_cache(conn, owner)
         key = conn.prepared_statements
-        if options[:polymorphic]
+        if polymorphic?
           key = [key, owner.read_attribute(@foreign_type)]
         end
         @association_scope_cache[key] ||= @scope_lock.synchronize {
@@ -273,8 +290,8 @@ module ActiveRecord
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
 
-      def primary_key_column
-        klass.columns_hash[klass.primary_key]
+      def primary_key_type
+        klass.type_for_attribute(klass.primary_key)
       end
 
       def association_foreign_key
@@ -303,7 +320,7 @@ module ActiveRecord
       end
 
       def check_validity_of_inverse!
-        unless options[:polymorphic]
+        unless polymorphic?
           if has_inverse? && inverse_of.nil?
             raise InverseOfAssociationNotFoundError.new(self)
           end
@@ -392,7 +409,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       # * you use autosave; <tt>autosave: true</tt>
       # * the association is a +has_many+ association
       def validate?
-        !options[:validate].nil? ? options[:validate] : (options[:autosave] == true || macro == :has_many)
+        !options[:validate].nil? ? options[:validate] : (options[:autosave] == true || collection?)
       end
 
       # Returns +true+ if +self+ is a +belongs_to+ reflection.
@@ -400,10 +417,15 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         macro == :belongs_to
       end
 
+      # Returns +true+ if +self+ is a +has_one+ reflection.
+      def has_one?
+        macro == :has_one
+      end
+
       def association_class
         case macro
         when :belongs_to
-          if options[:polymorphic]
+          if polymorphic?
             Associations::BelongsToPolymorphicAssociation
           else
             Associations::BelongsToAssociation
@@ -424,7 +446,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       end
 
       def polymorphic?
-        options.key? :polymorphic
+        options[:polymorphic]
       end
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
@@ -441,7 +463,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         def calculate_constructable(macro, options)
           case macro
           when :belongs_to
-            !options[:polymorphic]
+            !polymorphic?
           when :has_one
             !options[:through]
           else
@@ -465,7 +487,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         # returns either nil or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
-            inverse_name = ActiveSupport::Inflector.underscore(active_record.name).to_sym
+            inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name).to_sym
 
             begin
               reflection = klass._reflect_on_association(inverse_name)
@@ -536,6 +558,13 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
+    end
+
+    class HasAndBelongsToManyReflection < AssociationReflection #:nodoc:
+      def initialize(macro, name, scope, options, active_record)
+        super
+        @collection = true
+      end
     end
 
     # Holds all the meta-data about a :through association as it was specified
@@ -723,7 +752,7 @@ directive on your declaration like:
           raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
         end
 
-        if through_reflection.options[:polymorphic]
+        if through_reflection.polymorphic?
           raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
         end
 
@@ -731,15 +760,15 @@ directive on your declaration like:
           raise HasManyThroughSourceAssociationNotFoundError.new(self)
         end
 
-        if options[:source_type] && source_reflection.options[:polymorphic].nil?
+        if options[:source_type] && !source_reflection.polymorphic?
           raise HasManyThroughAssociationPointlessSourceTypeError.new(active_record.name, self, source_reflection)
         end
 
-        if source_reflection.options[:polymorphic] && options[:source_type].nil?
+        if source_reflection.polymorphic? && options[:source_type].nil?
           raise HasManyThroughAssociationPolymorphicSourceError.new(active_record.name, self, source_reflection)
         end
 
-        if macro == :has_one && through_reflection.collection?
+        if has_one? && through_reflection.collection?
           raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
         end
 

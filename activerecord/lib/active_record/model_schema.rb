@@ -51,6 +51,8 @@ module ActiveRecord
       self.pluralize_table_names = true
 
       self.inheritance_column = 'type'
+
+      delegate :type_for_attribute, to: :class
     end
 
     module ClassMethods
@@ -217,36 +219,29 @@ module ActiveRecord
         connection.schema_cache.table_exists?(table_name)
       end
 
-      def column_types # :nodoc:
-        @column_types ||= decorate_columns(columns_hash.dup)
+      def attributes_builder # :nodoc:
+        @attributes_builder ||= AttributeSet::Builder.new(column_types)
       end
 
-      def decorate_columns(columns_hash) # :nodoc:
-        return if columns_hash.empty?
-
-        @serialized_column_names ||= self.columns_hash.keys.find_all do |name|
-          serialized_attributes.key?(name)
+      def column_types # :nodoc:
+        @column_types ||= columns_hash.transform_values(&:cast_type).tap do |h|
+          h.default = Type::Value.new
         end
+      end
 
-        @serialized_column_names.each do |name|
-          columns_hash[name] = AttributeMethods::Serialization::Type.new(columns_hash[name])
-        end
-
-        @time_zone_column_names ||= self.columns_hash.find_all do |name, col|
-          create_time_zone_conversion_attribute?(name, col)
-        end.map!(&:first)
-
-        @time_zone_column_names.each do |name|
-          columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(columns_hash[name])
-        end
-
-        columns_hash
+      def type_for_attribute(attr_name) # :nodoc:
+        column_types[attr_name]
       end
 
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        @column_defaults ||= Hash[columns.map { |c| [c.name, c.default] }]
+        default_attributes.to_hash
+      end
+
+      def default_attributes # :nodoc:
+        @default_attributes ||= attributes_builder.build_from_database(
+          columns_hash.transform_values(&:default))
       end
 
       # Returns an array of column names as strings.
@@ -292,23 +287,15 @@ module ActiveRecord
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
         @arel_engine             = nil
-        @column_defaults         = nil
         @column_names            = nil
         @column_types            = nil
         @content_columns         = nil
+        @default_attributes      = nil
         @dynamic_methods_hash    = nil
         @inheritance_column      = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation                = nil
-        @serialized_column_names = nil
         @time_zone_column_names  = nil
         @cached_time_zone        = nil
-      end
-
-      # This is a hook for use by modules that need to do extra stuff to
-      # attributes when they are initialized. (e.g. attribute
-      # serialization)
-      def initialize_attributes(attributes, options = {}) #:nodoc:
-        attributes
       end
 
       private

@@ -23,6 +23,10 @@ module ActionController
       options = app.config.action_controller
 
       ActionController::Parameters.permit_all_parameters = options.delete(:permit_all_parameters) { false }
+      if app.config.action_controller[:always_permitted_parameters]
+        ActionController::Parameters.always_permitted_parameters =
+          app.config.action_controller.delete(:always_permitted_parameters)
+      end
       ActionController::Parameters.action_on_unpermitted_parameters = options.delete(:action_on_unpermitted_parameters) do
         (Rails.env.test? || Rails.env.development?) ? :log : false
       end

@@ -34,9 +34,18 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     assert_equal :enum, column.type
     assert_equal "mood", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
+  end
+
+  def test_enum_defaults
+    @connection.add_column 'postgresql_enums', 'good_mood', :mood, default: 'happy'
+    PostgresqlEnum.reset_column_information
+
+    assert_equal "happy", PostgresqlEnum.column_defaults['good_mood']
+    assert_equal "happy", PostgresqlEnum.new.good_mood
+  ensure
+    PostgresqlEnum.reset_column_information
   end
 
   def test_enum_mapping

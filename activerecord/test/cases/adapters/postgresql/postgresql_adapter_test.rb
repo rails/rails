@@ -134,18 +134,18 @@ module ActiveRecord
       end
 
       def test_default_sequence_name
-        assert_equal 'accounts_id_seq',
+        assert_equal PostgreSQL::Name.new('public', 'accounts_id_seq'),
           @connection.default_sequence_name('accounts', 'id')
 
-        assert_equal 'accounts_id_seq',
+        assert_equal PostgreSQL::Name.new('public', 'accounts_id_seq'),
           @connection.default_sequence_name('accounts')
       end
 
       def test_default_sequence_name_bad_table
-        assert_equal 'zomg_id_seq',
+        assert_equal PostgreSQL::Name.new(nil, 'zomg_id_seq'),
           @connection.default_sequence_name('zomg', 'id')
 
-        assert_equal 'zomg_id_seq',
+        assert_equal PostgreSQL::Name.new(nil, 'zomg_id_seq'),
           @connection.default_sequence_name('zomg')
       end
 
@@ -216,7 +216,7 @@ module ActiveRecord
         )
 
         seq = @connection.pk_and_sequence_for('ex').last
-        assert_equal 'ex_id_seq', seq
+        assert_equal PostgreSQL::Name.new("public", "ex_id_seq"), seq
 
         @connection.exec_query(
           "DELETE FROM pg_depend WHERE objid = 'ex2_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"
@@ -351,6 +351,17 @@ module ActiveRecord
       def test_columns_for_distinct_with_nulls
         assert_equal "posts.title, posts.updater_id AS alias_0", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls first"])
         assert_equal "posts.title, posts.updater_id AS alias_0", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls last"])
+      end
+
+      def test_columns_for_distinct_without_order_specifiers
+        assert_equal "posts.title, posts.updater_id AS alias_0",
+          @connection.columns_for_distinct("posts.title", ["posts.updater_id"])
+
+        assert_equal "posts.title, posts.updater_id AS alias_0",
+          @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls last"])
+
+        assert_equal "posts.title, posts.updater_id AS alias_0",
+          @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls first"])
       end
 
       def test_raise_error_when_cannot_translate_exception

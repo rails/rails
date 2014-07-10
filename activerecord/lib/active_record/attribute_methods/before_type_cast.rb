@@ -43,7 +43,7 @@ module ActiveRecord
       #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
       #   task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
       def read_attribute_before_type_cast(attr_name)
-        @attributes[attr_name.to_s]
+        @attributes[attr_name.to_s].value_before_type_cast
       end
 
       # Returns a hash of attributes before typecasting and deserialization.
@@ -57,7 +57,7 @@ module ActiveRecord
       #   task.attributes_before_type_cast
       #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
       def attributes_before_type_cast
-        @attributes
+        @attributes.values_before_type_cast
       end
 
       private

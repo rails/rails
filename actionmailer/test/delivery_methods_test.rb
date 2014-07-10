@@ -108,6 +108,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
   end
 
   test "delivery method can be customized per instance" do
+    Mail::SMTP.any_instance.expects(:deliver!)
     email = DeliveryMailer.welcome.deliver
     assert_instance_of Mail::SMTP, email.delivery_method
     email = DeliveryMailer.welcome(delivery_method: :test).deliver
@@ -117,7 +118,6 @@ class MailDeliveryTest < ActiveSupport::TestCase
   test "delivery method can be customized in subclasses not changing the parent" do
     DeliveryMailer.delivery_method = :test
     assert_equal :smtp, ActionMailer::Base.delivery_method
-    $BREAK = true
     email = DeliveryMailer.welcome.deliver
     assert_instance_of Mail::TestMailer, email.delivery_method
   end

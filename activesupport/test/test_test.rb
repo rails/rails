@@ -28,10 +28,28 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     assert_equal 'custom', e.message
   end
 
-  def test_assert_no_difference
+  def test_assert_no_difference_pass
     assert_no_difference '@object.num' do
       # ...
     end
+  end
+
+  def test_assert_no_difference_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_no_difference '@object.num' do
+        @object.increment
+      end
+    end
+    assert_equal "\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_no_difference_with_message_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_no_difference '@object.num', 'Object Changed' do
+        @object.increment
+      end
+    end
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
   end
 
   def test_assert_difference

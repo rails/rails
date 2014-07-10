@@ -2,6 +2,11 @@ module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
+    # BCrypt hash function can handle maximum 72 characters, and if we pass
+    # password of length more than 72 characters it ignores extra characters.
+    # Hence need to put a restriction on password length.
+    MAX_PASSWORD_LENGTH_ALLOWED = 72
+
     class << self
       attr_accessor :min_cost # :nodoc:
     end
@@ -11,16 +16,20 @@ module ActiveModel
       # Adds methods to set and authenticate against a BCrypt password.
       # This mechanism requires you to have a +password_digest+ attribute.
       #
-      # Validations for presence of password on create, confirmation of password
-      # (using a +password_confirmation+ attribute) are automatically added. If
-      # you wish to turn off validations, pass <tt>validations: false</tt> as an
-      # argument. You can add more validations by hand if need be.
+      # The following validations are added automatically:
+      # * Password must be present on creation
+      # * Password length should be less than or equal to 72 characters
+      # * Confirmation of password (using a +password_confirmation+ attribute)
       #
-      # If you don't need the confirmation validation, just don't set any
-      # value to the password_confirmation attribute and the validation
-      # will not be triggered.
+      # If password confirmation validation is not needed, simply leave out the
+      # value for +password_confirmation+ (i.e. don't provide a form field for
+      # it). When this attribute has a +nil+ value, the validation will not be
+      # triggered.
       #
-      # You need to add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
+      # For further customizability, it is possible to supress the default
+      # validations by passing <tt>validations: false</tt> as an argument.
+      #
+      # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
       #
       #   gem 'bcrypt', '~> 3.1.7'
       #
@@ -55,6 +64,8 @@ module ActiveModel
         include InstanceMethodsOnActivation
 
         if options.fetch(:validations, true)
+          include ActiveModel::Validations
+
           # This ensures the model has a password by checking whether the password_digest
           # is present, so that this works with both new and existing records. However,
           # when there is an error, the message is added to the password attribute instead
@@ -63,6 +74,7 @@ module ActiveModel
             record.errors.add(:password, :blank) unless record.password_digest.present?
           end
 
+          validates_length_of :password, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
           validates_confirmation_of :password, if: ->{ password.present? }
         end
 

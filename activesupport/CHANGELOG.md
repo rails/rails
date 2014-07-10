@@ -1,3 +1,84 @@
+*   `DateTime#to_f` now preserves the fractional seconds instead of always
+    rounding to `.0`.
+
+    Fixes #15994.
+
+    *John Paul Ashenfelter*
+
+*   Add `Hash#transform_values` to simplify a common pattern where the values of a
+    hash must change, but the keys are left the same.
+
+    *Sean Griffin*
+
+*   Always instrument `ActiveSupport::Cache`.
+
+    Since `ActiveSupport::Notifications` only instrument items when there
+    are subscriber we don't need to disable instrumentation.
+
+    *Peter Wagenet*
+
+*   Make the `apply_inflections` method case-insensitive when checking
+    whether a word is uncountable or not.
+
+    *Robin Dupret*
+
+*   Make Dependencies pass a name to NameError error.
+
+    *arthurnn*
+
+*   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
+
+    *Adam Panzer / Michael Grosser*
+
+*   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
+    when working with objects with a nanosecond component.
+
+    `ActiveSupport::TimeWithZone#-` should return the same result as if we were
+    using `Time#-`:
+
+        Time.now.end_of_day - Time.now.beginning_of_day #=> 86399.999999999
+
+    Before:
+
+        Time.zone.now.end_of_day.nsec #=> 999999999
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day #=> 86400.0
+
+    After:
+
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day
+        #=> 86399.999999999
+
+    *Gordon Chan*
+
+*   Fixed precision error in NumberHelper when using Rationals.
+
+    Before:
+
+        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
+        #=> "330.00"
+
+    After:
+
+        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
+        #=> "333.33"
+
+    See #15379.
+
+    *Juanjo Bazán*
+
+*   Removed deprecated `Numeric#ago` and friends
+
+    Replacements:
+
+        5.ago   => 5.seconds.ago
+        5.until => 5.seconds.until
+        5.since => 5.seconds.since
+        5.from_now => 5.seconds.from_now
+
+    See #12389 for the history and rationale behind this.
+
+    *Godfrey Chan*
+
 *   DateTime `advance` now supports partial days.
 
     Before:

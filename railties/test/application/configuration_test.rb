@@ -8,6 +8,12 @@ end
 
 class ::MyOtherMailInterceptor < ::MyMailInterceptor; end
 
+class ::MyPreviewMailInterceptor
+  def self.previewing_email(email); email; end
+end
+
+class ::MyOtherPreviewMailInterceptor < ::MyPreviewMailInterceptor; end
+
 class ::MyMailObserver
   def self.delivered_email(email); email; end
 end
@@ -460,6 +466,32 @@ module ApplicationTests
       assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
     end
 
+    test "registers preview interceptors with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.preview_interceptors = MyPreviewMailInterceptor
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      assert_equal [::MyPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+    end
+
+    test "registers multiple preview interceptors with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.preview_interceptors = [MyPreviewMailInterceptor, "MyOtherPreviewMailInterceptor"]
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      assert_equal [MyPreviewMailInterceptor, MyOtherPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+    end
+
     test "registers observers with ActionMailer" do
       add_to_config <<-RUBY
         config.action_mailer.observers = MyMailObserver
@@ -682,6 +714,44 @@ module ApplicationTests
       assert_match "We're sorry, but something went wrong", last_response.body
     end
 
+    test "config.action_controller.always_permitted_parameters are: controller, action by default" do
+      require "#{app_path}/config/environment"
+      assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
+    end
+
+    test "config.action_controller.always_permitted_parameters = ['controller', 'action', 'format']" do
+      add_to_config <<-RUBY
+        config.action_controller.always_permitted_parameters = %w( controller action format )
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
+    end
+
+    test "config.action_controller.always_permitted_parameters = ['controller','action','format'] does not raise exeception" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render text: params.permit(post: [:title])
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.always_permitted_parameters = %w( controller action format )
+        config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", {post: {"title" =>"zomg"}, format: "json"}
+      assert_equal 200, last_response.status
+    end
+
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
       ENV["RAILS_ENV"] = "development"
 
@@ -894,6 +964,30 @@ module ApplicationTests
       db_config =  Rails.application.config.database_configuration
 
       assert db_config.is_a?(Hash)
+    end
+
+    test 'config.action_mailer.show_previews defaults to true in development' do
+      Rails.env = "development"
+      require "#{app_path}/config/environment"
+
+      assert Rails.application.config.action_mailer.show_previews
+    end
+
+    test 'config.action_mailer.show_previews defaults to false in production' do
+      Rails.env = "production"
+      require "#{app_path}/config/environment"
+
+      assert_equal Rails.application.config.action_mailer.show_previews, false
+    end
+
+    test 'config.action_mailer.show_previews can be set in the configuration file' do
+      Rails.env = "production"
+      add_to_config <<-RUBY
+        config.action_mailer.show_previews = true
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal Rails.application.config.action_mailer.show_previews, true
     end
   end
 end
