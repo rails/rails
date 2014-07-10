@@ -16,9 +16,9 @@ module ActionDispatch
 
       # Get a session from the cache.
       def get_session(env, sid)
-        sid ||= generate_sid
-        session = @cache.read(cache_key(sid))
-        session ||= {}
+        unless sid and session = @cache.read(cache_key(sid))
+          sid, session = generate_sid, {}
+        end
         [sid, session]
       end
 
