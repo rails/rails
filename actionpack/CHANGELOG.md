@@ -1,3 +1,17 @@
+*   `render nothing: true` or rendering a `nil` body no longer add a single
+    space to the response body.
+
+    The old behavior was added as a workaround for a bug in an early version of
+    Safari, where the HTTP headers are not returned correctly if the response
+    body has a 0-length. This is been fixed since and the workaround is no
+    longer necessary.
+
+    Use `render body: ' '` if the old behavior is desired.
+
+    See #14883 for details.
+
+    *Godfrey Chan*
+
 *   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
     ("Rosetta Flash")
 

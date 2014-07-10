@@ -67,8 +67,8 @@ module ActionController
         options[:html] = ERB::Util.html_escape(options[:html])
       end
 
-      if options.delete(:nothing) || _any_render_format_is_nil?(options)
-        options[:body] = " "
+      if options.delete(:nothing)
+        options[:body] = nil
       end
 
       if options[:status]
@@ -84,10 +84,6 @@ module ActionController
           options[format] = options[format].to_text
         end
       end
-    end
-
-    def _any_render_format_is_nil?(options)
-      RENDER_FORMATS_IN_PRIORITY.any? { |format| options.key?(format) && options[format].nil? }
     end
 
     # Process controller specific options, as status, content-type and location.
