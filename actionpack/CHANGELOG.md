@@ -1,3 +1,12 @@
+*   Because URI paths may contain non US-ASCII characters we need to force
+    the encoding of any unescaped URIs to UTF-8 if they are US-ASCII.
+    This essentially replicates the functionality of the monkey patch to
+    URI.parser.unescape in active_support/core_ext/uri.rb.
+
+    Fixes #16104.
+
+    *Karl Entwistle*
+
 *   Generate shallow paths for all children of shallow resources.
 
     Fixes #15783.
