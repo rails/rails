@@ -1,3 +1,32 @@
+*   Dom and Selector assertions has extracted to rails-dom-testing to better be used in both Action Pack and Action View.
+
+    Note:
+    This also changes the substitution values syntax in `assert_select`.
+
+    `assert_select "div#?", /\d+/`
+    `assert_select "div:match('id', ?)", /\d+/`
+
+    The attribute to match should be enclosed in quotes to avoid
+    issues with Nokogiri's css selector syntax parsing.
+    It is not necessary to do so with the question mark.
+    Calling `assert_select` with an invalid selector will emit a deprecation warning and skip the assertions.
+
+    *Kasper Timm Hansen*
+
+*   The sanitizers in `sanitize_helper` have been extracted to rails-html-sanitizer. Loofah is used for sanitization instead of html-scanner.
+
+    This means:
+    `sanitize` can now take a `Loofah::Scrubber` for powerful scrubbing.
+    [See some examples of scrubbers here](https://github.com/flavorjones/loofah#loofahscrubber)
+
+    `PermitScrubber` has been added. Set the attributes and tags you want to keep and get everything else stripped.
+
+    `TargetScrubber` has been added. Set the attributes and tags you want to have stripped and keep everything else.
+
+    The documentation for `PermitScrubber` and `TargetScrubber` explains how you can gain complete control over when and how elements should be stripped.
+
+    *Kasper Timm Hansen*
+
 *   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
 
     *John F. Douthat*

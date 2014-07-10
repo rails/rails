@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'action_view/vendor/html-scanner'
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
@@ -292,7 +291,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "OK", body
       assert_equal "OK", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Loofah::HTML::Document, html_document
       assert_equal 1, request_count
     end
   end
@@ -308,7 +307,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "Created", body
       assert_equal "Created", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Loofah::HTML::Document, html_document
       assert_equal 1, request_count
     end
   end
@@ -368,7 +367,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :redirect
       assert_response :found
       assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Loofah::HTML::Document, html_document
       assert_equal 1, request_count
 
       follow_redirect!
