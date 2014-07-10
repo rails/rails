@@ -1,3 +1,21 @@
+*   Add `Rails::Application.config_for` to load a configuration for the current
+    environment.
+
+        # config/exception_notification.yml:
+        production:
+          url: http://127.0.0.1:8080
+          namespace: my_app_production
+        development:
+          url: http://localhost:3001
+          namespace: my_app_development
+
+        # config/production.rb
+        MyApp::Application.configure do
+          config.middleware.use ExceptionNotifier, config_for(:exception_notification)
+        end
+
+    *Rafael Mendonça França*, *DHH*
+
 *   Deprecate `Rails::Rack::LogTailer` without replacement.
 
     *Rafael Mendonça França*

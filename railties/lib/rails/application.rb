@@ -187,6 +187,38 @@ module Rails
       end
     end
 
+    # Convenience for loading config/foo.yml for the current Rails env.
+    #
+    # Example:
+    #
+    #     # config/exception_notification.yml:
+    #     production:
+    #       url: http://127.0.0.1:8080
+    #       namespace: my_app_production
+    #     development:
+    #       url: http://localhost:3001
+    #       namespace: my_app_development
+    #
+    #     # config/production.rb
+    #     MyApp::Application.configure do
+    #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
+    #     end
+    def config_for(name)
+      yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
+
+      if yaml.exist?
+        require "yaml"
+        require "erb"
+        (YAML.load(ERB.new(yaml.read).result) || {})[Rails.env] || {}
+      else
+        raise "Could not load configuration. No such file - #{yaml}"
+      end
+    rescue Psych::SyntaxError => e
+      raise "YAML syntax error occurred while parsing #{yaml}. " \
+        "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
+        "Error: #{e.message}"
+    end
+
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
