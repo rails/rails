@@ -499,6 +499,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.column :updated_at, :datetime
     t.column :happy_at,   :datetime
+    t.column :sad_at  ,   :datetime
     t.string :essay_id
   end
 
@@ -562,6 +563,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :owner_id, :integer
     t.timestamps null: false
+    t.datetime :neutered_at
   end
 
   create_table :pirates, force: true do |t|

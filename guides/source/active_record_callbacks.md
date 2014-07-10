@@ -195,6 +195,10 @@ An Employee was touched
 => true
 ```
 
+All calls to `touch` in a transaction are batched up and executed
+together, just before the transaction is committed. Any `after_touch`
+callbacks are called at that time.
+
 Running Callbacks
 -----------------
 

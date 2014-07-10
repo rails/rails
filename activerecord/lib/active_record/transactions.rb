@@ -181,6 +181,58 @@ module ActiveRecord
     # +after_commit+ is a good spot to put in a hook to clearing a cache since clearing it from
     # within a transaction could trigger the cache to be regenerated before the database is updated.
     #
+    # === Touches in a transaction are executed in batch
+    #
+    # For efficiency, all calls to +touch+ in a transaction are delayed until the transaction is about
+    # to commit. At that point, they are consolidated into as few database round-trips as possible.
+    # In this example, any time a pet is created or updated, its owner is touched:
+    #
+    #   class Owner < ActiveRecord::Base
+    #     has_many :pets
+    #     accepts_nested_attributes_for :pets
+    #   end
+    #
+    #   class Pet < ActiveRecord::Base
+    #     belongs_to :owner, touch: true
+    #   end
+    #
+    #   class OwnersController < ApplicationController
+    #     def update
+    #       @owner.update(owner_params)
+    #     end
+    #
+    #     private
+    #     def owner_params
+    #       params.require(:owner).permit(:name, pets_attributes: [:id, :name])
+    #     end
+    #   end
+    #
+    # +owner_params+ can include attributes for any number of nested +Pet+ instances.
+    # If 25 Pet instances were updated outside of a transaction, <tt>@owner</tt> would be touched 25 times and its
+    # +after_touch+ callback would be executed 25 times. All but one of these round-trips are redundant:
+    #
+    #   SQL (0.1ms)  UPDATE "owners" SET "updated_at" = '2014-07-09 19:48:07.137158' WHERE "owners"."id" = 1
+    #   SQL (0.1ms)  UPDATE "owners" SET "updated_at" = '2014-07-09 19:48:07.138457' WHERE "owners"."id" = 1
+    #   SQL (0.1ms)  UPDATE "owners" SET "updated_at" = '2014-07-09 19:48:07.140088' WHERE "owners"."id" = 1
+    #   ... etc., a total of 25 times.
+    #
+    # But because <tt>@owner.update</tt> is automatically wrapped in a transaction, those touches are consolidated
+    # into a single database round-trip and a single call to <tt>@owner</tt>'s +after_touch+ callback.
+    #
+    #   SQL (0.1ms)  UPDATE "owners" SET "updated_at" = '2014-07-09 19:48:07.140088' WHERE "owners"."id" = 1
+    #
+    # In addition, if multiple instances of the same class are touched in a transaction, all their
+    # records are updated simultaneously in a single SQL UPDATE call.
+    #
+    # When touches are executed at the end of a transaction, additional +touch+ calls might occur as
+    # side-effects. (E.g., in +after_touch+ handlers.) If that happens, a second pass is made to execute
+    # those touches as well. This continues until there are no more touches, or until the sun swallows
+    # up the earth. Whichever comes first.
+    #
+    # Note that if +owner1.touch+ and +owner2.touch+ are called in a transaction, and they are
+    # separate instances of the same class with the same id, only +owner1+'s +after_touch+ handler will be called.
+    # This is a side-effect of batching up the touches.
+    #
     # === Caveats
     #
     # If you're on MySQL, then do not use DDL operations in nested transactions

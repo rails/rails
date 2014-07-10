@@ -12,4 +12,9 @@ class Pet < ActiveRecord::Base
   after_destroy do |record|
     Pet.after_destroy_output = record.current_user
   end
+
+  after_touch :after_touch_callback
+
+  def after_touch_callback
+  end
 end

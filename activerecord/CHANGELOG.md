@@ -1,3 +1,18 @@
+*   When `touch` calls are made in a transaction, consolidate them into the
+    smallest possible number of database round-trips. The following example now
+    makes only four round-trips where it used to make 12:
+
+        Comment belongs_to :message, touch: true
+        Message belongs_to :project, touch: true
+        Project belongs_to :account, touch: true
+
+        comments.size # => 3
+        Comment.transaction { comments.each &:touch! }
+
+    Fixes #18606.
+
+    *Brian Morearty*
+
 *   Use `SCHEMA` instead of `DB_STRUCTURE` for specifiying structure file.
 
     This makes the db:structure tasks consistent with test:load_structure.

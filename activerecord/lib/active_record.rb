@@ -38,6 +38,7 @@ module ActiveRecord
   autoload :Core
   autoload :ConnectionHandling
   autoload :CounterCache
+  autoload :DelayTouching
   autoload :DynamicMatchers
   autoload :Enum
   autoload :Explain
