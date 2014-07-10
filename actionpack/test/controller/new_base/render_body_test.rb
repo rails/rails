@@ -111,17 +111,17 @@ module RenderBody
       assert_status 404
     end
 
-    test "rendering body with nil returns an empty body padded for Safari" do
+    test "rendering body with nil returns an empty body" do
       get "/render_body/with_layout/with_nil"
 
-      assert_body " "
+      assert_body ""
       assert_status 200
     end
 
-    test "Rendering body with nil and custom status code returns an empty body padded for Safari and the status" do
+    test "Rendering body with nil and custom status code returns an empty body and the status" do
       get "/render_body/with_layout/with_nil_and_status"
 
-      assert_body " "
+      assert_body ""
       assert_status 403
     end
 
