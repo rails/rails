@@ -1,3 +1,8 @@
+*   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
+    ("Rosetta Flash")
+
+    *Greg Campbell*
+
 *   Generate shallow paths for all children of shallow resources.
 
     Fixes #15783.
