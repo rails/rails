@@ -27,4 +27,9 @@ class IntegerExtTest < ActiveSupport::TestCase
     assert_equal 'st', 1.ordinal
     assert_equal 'th', 8.ordinal
   end
+
+  def test_morethan
+    [ -10, 0, 10, 34 ].each { |i| assert i.morethan?(-12) }
+    [ -10, 0, 10, 34 ].each { |i| assert ! i.morethan?(50) }
+  end
 end
