@@ -870,11 +870,11 @@ module ActiveRecord
       def try_to_load_dependency(file_name)
         require_dependency file_name
       rescue LoadError => e
-        # Let's hope the developer has included it
-        # Let's warn in case this is a subdependency, otherwise
-        # subdependency error messages are totally cryptic
-        if ActiveRecord::Base.logger
-          ActiveRecord::Base.logger.warn("Unable to load #{file_name}, underlying cause #{e.message} \n\n #{e.backtrace.join("\n")}")
+        unless fixture_class_names.key?(file_name.pluralize)
+          if ActiveRecord::Base.logger
+            ActiveRecord::Base.logger.warn("Unable to load #{file_name}, make sure you added it to ActiveSupport::TestCase.set_fixture_class")
+            ActiveRecord::Base.logger.warn("underlying cause #{e.message} \n\n #{e.backtrace.join("\n")}")
+          end
         end
       end
 
