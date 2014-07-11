@@ -210,6 +210,7 @@ module ActionDispatch
           def call(t, args)
             controller_options = t.url_options
             options = controller_options.merge @options
+            ensure_no_model_for_format(args)
             hash = handle_positional_args(controller_options, args, options, @segment_keys)
             t._routes.url_for(hash)
           end
@@ -228,6 +229,14 @@ module ActionDispatch
             end
 
             result.merge!(inner_options)
+          end
+
+          def ensure_no_model_for_format(args)
+            if format_index = @segment_keys.index(:format)
+              if args[format_index].respond_to?(:to_model)
+                args.delete_at(format_index)
+              end
+            end
           end
         end
 

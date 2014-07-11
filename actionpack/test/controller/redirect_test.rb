@@ -275,6 +275,23 @@ class RedirectTest < ActionController::TestCase
     end
   end
 
+  def test_redirect_to_singular_record
+    with_routing do |set|
+      set.draw do
+        resource :workshop
+        get ':controller/:action'
+      end
+
+      get :redirect_to_existing_record
+      assert_equal "http://test.host/workshop", redirect_to_url
+      assert_redirected_to Workshop.new(5)
+
+      get :redirect_to_new_record
+      assert_equal "http://test.host/workshop", redirect_to_url
+      assert_redirected_to Workshop.new(nil)
+    end
+  end
+
   def test_redirect_to_nil
     assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil

@@ -95,6 +95,8 @@ class FormHelperTest < ActionView::TestCase
       resources :comments
     end
 
+    resource :comment
+
     namespace :admin do
       resources :posts do
         resources :comments
@@ -3084,6 +3086,18 @@ class FormHelperTest < ActionView::TestCase
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output
+  end
+
+  def test_form_for_with_new_singular_resource
+    form_for(Comment.new) {}
+    expected = whole_form('/comment', 'new_comment', 'new_comment')
+    assert_equal expected, output_buffer
+  end
+
+  def test_form_for_with_persisted_singular_resource
+    form_for(Comment.new(123)) {}
+    expected = whole_form('/comment', 'edit_comment_123', 'edit_comment', method: :patch)
+    assert_equal expected, output_buffer
   end
 
   def test_form_for_only_instantiates_builder_once
