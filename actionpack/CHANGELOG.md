@@ -1,3 +1,8 @@
+*   Use `String#bytesize` instead of `String#size` when checking for cookie
+    overflow.
+
+    *Agis Anastasopoulos*
+   
 *   `render nothing: true` or rendering a `nil` body no longer add a single
     space to the response body.
 
