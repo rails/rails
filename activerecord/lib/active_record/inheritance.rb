@@ -213,15 +213,30 @@ module ActiveRecord
 
       def subclass_from_attributes(attrs)
         subclass_name = attrs.with_indifferent_access[inheritance_column]
+        subclass = begin
+          find_sti_class(subclass_name)
+        rescue SubclassNotFound
+          nil
+        end
 
-        if subclass_name.present? && subclass_name != self.name
-          subclass = subclass_name.safe_constantize
+        if subclass.present?
+          if subclass.name != self.name
+            unless descendants.include?(subclass)
+              raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass_name} is not a subclass of #{name}")
+            end
 
-          unless descendants.include?(subclass)
-            raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass_name} is not a subclass of #{name}")
+            return subclass
           end
+        else
+          if subclass_name.present? && subclass_name != self.name
+            subclass = subclass_name.safe_constantize
 
-          subclass
+            unless descendants.include?(subclass)
+              raise ActiveRecord::SubclassNotFound.new("Invalid single-table inheritance type: #{subclass_name} is not a subclass of #{name}")
+            end
+
+            subclass
+          end
         end
       end
     end

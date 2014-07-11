@@ -1,3 +1,10 @@
+*   Change `subclass_from_attributes` to use `find_sti_class`. This allows
+    a user to overwrite `find_sti_class` to customize what classes should be
+    used for a given value in the database. This change also moves
+    `find_sti_class` from `private` to `protected`
+
+    *Eric Roberts*
+    
 *   Fix the SQL generated when a `delete_all` is run on an association to not
     produce an `IN` statements.
 
