@@ -49,6 +49,12 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
 
     expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'", :using => :gist)
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people"  ("last_name" varchar_pattern_ops))
+    assert_equal expected, add_index(:people, :last_name, opclass: :varchar_pattern_ops)
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name" gist_trgm_ops))
+    assert_equal expected, add_index(:people, :last_name, using: :gist, opclass: :gist_trgm_ops)
   end
 
   private

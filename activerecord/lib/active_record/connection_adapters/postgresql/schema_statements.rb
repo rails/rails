@@ -156,6 +156,8 @@ module ActiveRecord
             ORDER BY i.relname
           SQL
 
+          valid_opclasses = Regexp.union(opclasses) if result.any?
+
           result.map do |row|
             index_name = row[0]
             unique = row[1] == 't'
@@ -178,10 +180,19 @@ module ActiveRecord
               orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
               where = inddef.scan(/WHERE (.+)$/).flatten[0]
               using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
+              opclass = inddef.scan(/USING .+? \(.+? (#{valid_opclasses.source})\)/).flatten[0].try(:to_sym)
 
-              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
+              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using, opclass)
             end
           end.compact
+        end
+
+        # Returns the list of all avalable index opclasses.
+        def opclasses #:nodoc:
+          query(<<-SQL, 'SCHEMA').map { |row| row[0] }
+            SELECT opcname
+            FROM pg_opclass
+          SQL
         end
 
         # Returns the list of all column definitions for a table.
@@ -479,8 +490,8 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
-          index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
-          execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}"
+          index_name, index_type, index_columns, index_options, index_algorithm, index_using, index_opclass = add_index_options(table_name, column_name, options)
+          execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns}#{index_opclass})#{index_options}"
         end
 
         def remove_index!(table_name, index_name) #:nodoc:
