@@ -62,7 +62,16 @@ Please refer to the [Changelog][railties] for detailed changes.
 * The `rails application` command has been removed without replacement.
   ([Pull Request](https://github.com/rails/rails/pull/11616))
 
+### Deprecations
+
+* Deprecated `Rails::Rack::LogTailer` without replacement.
+  ([Commit](https://github.com/rails/rails/commit/84a13e019e93efaa8994b3f8303d635a7702dbce))
+
 ### Notable changes
+
+* Introduced `--skip-gems` option in the app generator to skip gems such as
+  `turbolinks` and `coffee-rails` that does not have their own specific flags.
+  ([Commit](https://github.com/rails/rails/commit/10565895805887d4faf004a6f71219da177f78b7))
 
 * Introduced `bin/setup` script to bootstrap an application.
   ([Pull Request](https://github.com/rails/rails/pull/15189))
@@ -96,6 +105,15 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/cc26b6b7bccf0eea2e2c1a9ebdcc9d30ca7390d9))
 
 ### Notable changes
+
+* `render nothing: true` or rendering a `nil` body no longer add a single space
+  padding to the response body.
+  ([Pull Request](https://github.com/rails/rails/pull/14883))
+
+* Introduced the `always_permitted_parameters` option to configure which
+  parameters are permitted globally. The default value of this configuration is
+  `['controller', 'action']`.
+  ([Pull Request](https://github.com/rails/rails/pull/15933))
 
 * The `*_filter` family methods has been removed from the documentation. Their
   usage are discouraged in favor of the `*_action` family methods:
@@ -159,6 +177,10 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
+* The form helpers no longer generate a `<div>` element with inline CSS around
+  the hidden fields.
+  ([Pull Request](https://github.com/rails/rails/pull/14738))
+
 
 Action Mailer
 -------------
@@ -166,6 +188,10 @@ Action Mailer
 Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Notable changes
+
+* Added the `show_previews` configuration option for enabling mailer previews
+  outside of the development environment.
+  ([Pull Request](https://github.com/rails/rails/pull/15970))
 
 
 Active Record
@@ -177,15 +203,15 @@ for detailed changes.
 
 ### Removals
 
+* Removed `cache_attributes` and friends. All attributes are cached.
+  ([Pull Request](https://github.com/rails/rails/pull/15429))
+
 * Removed deprecated method `ActiveRecord::Base.quoted_locking_column`.
   ([Pull Request](https://github.com/rails/rails/pull/15612))
 
 * Removed deprecated `ActiveRecord::Migrator.proper_table_name`. Use the
   `proper_table_name` instance method on `ActiveRecord::Migration` instead.
   ([Pull Request](https://github.com/rails/rails/pull/15512))
-
-* Removed `cache_attributes` and friends. All attributes are cached.
-  ([Pull Request](https://github.com/rails/rails/pull/15429))
 
 * Removed unused `:timestamp` type. Transparently alias it to `:datetime`
   in all cases. Fixes inconsistencies when column types are sent outside of
@@ -194,12 +220,18 @@ for detailed changes.
 
 ### Deprecations
 
-* Deprecated returning `nil` from `column_for_attribute` when no column exists.
-  It will return a null object in Rails 5.0
-  ([Pull Request](https://github.com/rails/rails/pull/15878))
+* Deprecated broken support for automatic detection of counter caches on
+  `has_many :through` associations. You should instead manually specify the
+  counter cache on the `has_many` and `belongs_to` associations for the through
+  records.
+  ([Pull Request](https://github.com/rails/rails/pull/15754))
 
 * Deprecated `serialized_attributes` without replacement.
   ([Pull Request](https://github.com/rails/rails/pull/15704))
+
+* Deprecated returning `nil` from `column_for_attribute` when no column exists.
+  It will return a null object in Rails 5.0
+  ([Pull Request](https://github.com/rails/rails/pull/15878))
 
 * Deprecated using `.joins`, `.preload` and `.eager_load` with associations that
   depends on the instance state (i.e. those defined with a scope that takes an
@@ -216,20 +248,38 @@ for detailed changes.
   is not fully possible because the Ruby range does not support excluded
   beginnings.
 
-    The current solution of incrementing the beginning is not correct
-    and is now deprecated. For subtypes where we don't know how to increment
-    (e.g. `#succ` is not defined) it will raise an `ArgumentError` for ranges with
-    excluding beginnings.
+  The current solution of incrementing the beginning is not correct
+  and is now deprecated. For subtypes where we don't know how to increment
+  (e.g. `#succ` is not defined) it will raise an `ArgumentError` for ranges with
+  excluding beginnings.
 
-    ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
-
-* Deprecated broken support for automatic detection of counter caches on
-  `has_many :through` associations. You should instead manually specify the
-  counter cache on the `has_many` and `belongs_to` associations for the through
-  records.
-  ([Pull Request](https://github.com/rails/rails/pull/15754))
+  ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
 
 ### Notable changes
+
+* Added a `:required` option to singular associations, which defines a
+  presence validation on the association.
+  ([Pull Request](https://github.com/rails/rails/pull/16056))
+
+* Introduced `ActiveRecord::Base#validate!` that raises `RecordInvalid` if the
+  record is invalid.
+  ([Pull Request](https://github.com/rails/rails/pull/8639))
+
+* `ActiveRecord::Base#reload` now behaves the same as `m = Model.find(m.id)`,
+  meaning that it no longer retains the extra attributes from custom `select`s.
+  ([Pull Request](https://github.com/rails/rails/pull/15866))
+
+* Introduced the `bin/rake db:purge` task to empty the database for the current
+  environment.
+  ([Commit](https://github.com/rails/rails/commit/e2f232aba15937a4b9d14bd91e0392c6d55be58d))
+
+* `ActiveRecord::Dirty` now detects in-place changes to mutable values.
+  Serialized attributes on ActiveRecord models will no longer save when
+  unchanged. This also works with other types such as string columns and
+  json columns on PostgreSQL.
+  (Pull Requests [1](https://github.com/rails/rails/pull/15674),
+  [2](https://github.com/rails/rails/pull/15786),
+  [3](https://github.com/rails/rails/pull/15788))
 
 * Added support for `#pretty_print` in `ActiveRecord::Base` objects.
   ([Pull Request](https://github.com/rails/rails/pull/15172))
@@ -259,9 +309,6 @@ for detailed changes.
 * Added support for user-created range types in PostgreSQL adapter.
   ([Commit](https://github.com/rails/rails/commit/4cb47167e747e8f9dc12b0ddaf82bdb68c03e032))
 
-* Added a `:required` option to singular associations, which defines a
-  presence validation on the association.
-  ([Pull Request](https://github.com/rails/rails/pull/16056))
 
 Active Model
 ------------
@@ -274,6 +321,14 @@ Please refer to the [Changelog][active-model] for detailed changes.
   ([Pull Request](https://github.com/rails/rails/pull/15617))
 
 ### Notable changes
+
+* Introduced `undo_changes` method in `ActiveModel::Dirty` to restore the
+  changed (dirty) attributes to their previous values.
+  ([Pull Request](https://github.com/rails/rails/pull/14861))
+
+* `has_secure_password` now verifies that the given password is less than 72
+  characters if validations are enabled.
+  ([Pull Request](https://github.com/rails/rails/pull/15708))
 
 * Introduced `#validate` as an alias for `#valid?`.
   ([Pull Request](https://github.com/rails/rails/pull/14456))
@@ -302,20 +357,18 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Notable changes
 
+* Added `Hash#transform_values` and `Hash#transform_values!` to simplify a
+  common pattern where the values of a hash must change, but the keys are left
+  the same.
+  ([Pull Request](https://github.com/rails/rails/pull/15819))
+
 * The `humanize` inflector helper now strips any leading underscores.
   ([Commit](https://github.com/rails/rails/commit/daaa21bc7d20f2e4ff451637423a25ff2d5e75c7))
-
-* Added `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5`.
-  ([Pull Request](https://github.com/rails/rails/pull/12016))
 
 * Introduce `Concern#class_methods` as an alternative to `module ClassMethods`,
   as well as `Kernel#concern` to avoid the `module Foo; extend ActiveSupport::Concern; end`
   boilerplate. ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
 
-* Added `Hash#transform_values` and `Hash#transform_values!` to simplify a
-  common pattern where the values of a hash must change, but the keys are left
-  the same.
-  ([Pull Request](https://github.com/rails/rails/pull/15819))
 
 Credits
 -------

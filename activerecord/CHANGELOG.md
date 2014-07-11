@@ -871,7 +871,7 @@
     *Vilius Luneckas* *Ahmed AbouElhamayed*
 
 *   `before_add` callbacks are fired before the record is saved on
-    `has_and_belongs_to_many` assocations *and* on `has_many :through`
+    `has_and_belongs_to_many` associations *and* on `has_many :through`
     associations.  Before this change, `before_add` callbacks would be fired
     before the record was saved on `has_and_belongs_to_many` associations, but
     *not* on `has_many :through` associations.
