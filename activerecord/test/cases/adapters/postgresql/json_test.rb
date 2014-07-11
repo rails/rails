@@ -35,7 +35,6 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     assert_equal :json, column.type
     assert_equal "json", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end
@@ -77,7 +76,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     column = JsonDataType.columns_hash["payload"]
 
     data = "{\"a_key\":\"a_value\"}"
-    hash = column.class.string_to_json data
+    hash = column.type_cast_from_database(data)
     assert_equal({'a_key' => 'a_value'}, hash)
     assert_equal({'a_key' => 'a_value'}, column.type_cast_from_database(data))
 

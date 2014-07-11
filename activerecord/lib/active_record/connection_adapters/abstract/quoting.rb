@@ -9,12 +9,7 @@ module ActiveRecord
         # records are quoted as their primary key
         return value.quoted_id if value.respond_to?(:quoted_id)
 
-        # FIXME: The only case we get an object other than nil or a real column
-        # is `SchemaStatements#add_column` with a PG array that has a non-empty default
-        # value. Is this really the only case? Are we missing tests for other types?
-        # We should have a real column object passed (or nil) here, and check for that
-        # instead
-        if column.respond_to?(:cast_type)
+        if column
           value = column.cast_type.type_cast_for_database(value)
         end
 
@@ -29,12 +24,7 @@ module ActiveRecord
           return value.id
         end
 
-        # FIXME: The only case we get an object other than nil or a real column
-        # is `SchemaStatements#add_column` with a PG array that has a non-empty default
-        # value. Is this really the only case? Are we missing tests for other types?
-        # We should have a real column object passed (or nil) here, and check for that
-        # instead
-        if column.respond_to?(:cast_type)
+        if column
           value = column.cast_type.type_cast_for_database(value)
         end
 
@@ -66,7 +56,7 @@ module ActiveRecord
       # This works for mysql and mysql2 where table.column can be used to
       # resolve ambiguity.
       #
-      # We override this in the sqlite and postgresql adapters to use only
+      # We override this in the sqlite3 and postgresql adapters to use only
       # the column name (as per syntax requirements).
       def quote_table_name_for_assignment(table, attr)
         quote_table_name("#{table}.#{attr}")

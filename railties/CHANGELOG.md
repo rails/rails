@@ -1,4 +1,4 @@
-*   Deprecate `Rails::Rack::LogTailer` with not replacement.
+*   Deprecate `Rails::Rack::LogTailer` without replacement.
 
     *Rafael Mendonça França*
 

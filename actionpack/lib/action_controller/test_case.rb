@@ -30,25 +30,21 @@ module ActionController
       end
 
       @_subscribers << ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
-        path = payload[:virtual_path]
-        next unless path
-        partial = path =~ /^.*\/_[^\/]*$/
+        if virtual_path = payload[:virtual_path]
+          partial = virtual_path =~ /^.*\/_[^\/]*$/
 
-        if partial
-          @_partials[path] += 1
-          @_partials[path.split("/").last] += 1
-        end
+          if partial
+            @_partials[virtual_path] += 1
+            @_partials[virtual_path.split("/").last] += 1
+          end
 
-        @_templates[path] += 1
-      end
-
-      @_subscribers << ActiveSupport::Notifications.subscribe("!render_template.action_view") do |_name, _start, _finish, _id, payload|
-        next if payload[:virtual_path] # files don't have virtual path
-
-        path = payload[:identifier]
-        if path
-          @_files[path] += 1
-          @_files[path.split("/").last] += 1
+          @_templates[virtual_path] += 1
+        else
+          path = payload[:identifier]
+          if path
+            @_files[path] += 1
+            @_files[path.split("/").last] += 1
+          end
         end
       end
     end
@@ -233,7 +229,6 @@ module ActionController
       @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-      @symbolized_path_params = nil
       @method = @request_method = nil
       @fullpath = @ip = @remote_ip = @protocol = nil
       @env['action_dispatch.request.query_parameters'] = {}

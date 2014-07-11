@@ -231,7 +231,7 @@ module ActionView
         end
       end
 
-      # Computes the path to a javascript asset in the public javascripts directory.
+      # Computes the path to a JavaScript asset in the public javascripts directory.
       # If the +source+ filename has no extension, .js will be appended (except for explicit URIs)
       # Full paths from the document root will be passed through.
       # Used internally by +javascript_include_tag+ to build the script path.
@@ -246,7 +246,7 @@ module ActionView
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
-      # Computes the full URL to a javascript asset in the public javascripts directory.
+      # Computes the full URL to a JavaScript asset in the public javascripts directory.
       # This will use +javascript_path+ internally, so most of their behaviors will be the same.
       def javascript_url(source, options = {})
         url_to_asset(source, {type: :javascript}.merge!(options))

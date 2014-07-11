@@ -412,6 +412,38 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 'product_categories', reflection.join_table
   end
 
+  def test_includes_accepts_symbols
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes([departments: :chefs]).first.chefs
+    end
+  end
+
+  def test_includes_accepts_strings
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes(['departments' => 'chefs']).first.chefs
+    end
+  end
+
+  def test_reflect_on_association_accepts_symbols
+    assert_nothing_raised do
+      assert_equal Hotel.reflect_on_association(:departments).name, :departments
+    end
+  end
+
+  def test_reflect_on_association_accepts_strings
+    assert_nothing_raised do
+      assert_equal Hotel.reflect_on_association("departments").name, :departments
+    end
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)

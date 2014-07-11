@@ -383,6 +383,11 @@ module ActiveRecord
         PostgreSQL::Table.new(table_name, base)
       end
 
+      def lookup_cast_type(sql_type) # :nodoc:
+        oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first['oid'].to_i
+        super(oid)
+      end
+
       protected
 
         # Returns the version of the connected PostgreSQL server.
@@ -449,7 +454,7 @@ module ActiveRecord
           m.register_type 'cidr', OID::Cidr.new
           m.register_type 'inet', OID::Inet.new
           m.register_type 'uuid', OID::Uuid.new
-          m.register_type 'xml', OID::SpecializedString.new(:xml)
+          m.register_type 'xml', OID::Xml.new
           m.register_type 'tsvector', OID::SpecializedString.new(:tsvector)
           m.register_type 'macaddr', OID::SpecializedString.new(:macaddr)
           m.register_type 'citext', OID::SpecializedString.new(:citext)
@@ -564,7 +569,7 @@ module ActiveRecord
         end
 
         def exec_no_cache(sql, name, binds)
-          log(sql, name, binds) { @connection.async_exec(sql) }
+          log(sql, name, binds) { @connection.async_exec(sql, []) }
         end
 
         def exec_cache(sql, name, binds)

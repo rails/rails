@@ -36,6 +36,7 @@ module ActiveRecord::Associations::Builder
       reflection = builder.build(model)
       define_accessors model, reflection
       define_callbacks model, reflection
+      define_validations model, reflection
       builder.define_extensions model
       reflection
     end
@@ -122,6 +123,10 @@ module ActiveRecord::Associations::Builder
           association(:#{name}).writer(value)
         end
       CODE
+    end
+
+    def self.define_validations(model, reflection)
+      # noop
     end
 
     def self.valid_dependent_options

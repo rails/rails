@@ -1,3 +1,15 @@
+*   `DateTime#to_f` now preserves the fractional seconds instead of always
+    rounding to `.0`.
+
+    Fixes #15994.
+
+    *John Paul Ashenfelter*
+
+*   Add `Hash#transform_values` to simplify a common pattern where the values of a
+    hash must change, but the keys are left the same.
+
+    *Sean Griffin*
+
 *   Always instrument `ActiveSupport::Cache`.
 
     Since `ActiveSupport::Notifications` only instrument items when there
@@ -11,9 +23,11 @@
     *Robin Dupret*
 
 *   Make Dependencies pass a name to NameError error.
+
     *arthurnn*
 
 *   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
+
     *Adam Panzer / Michael Grosser*
 
 *   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost

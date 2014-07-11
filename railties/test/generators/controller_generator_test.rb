@@ -73,7 +73,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_skip_routes
     run_generator ["account", "foo", "--skip-routes"]
     assert_file "config/routes.rb" do |routes|
-      assert_no_match /get 'account\/foo'/, routes
+      assert_no_match(/get 'account\/foo'/, routes)
     end
   end
 

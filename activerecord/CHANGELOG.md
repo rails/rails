@@ -4,6 +4,48 @@
 
     *Jeff Browning*
 
+*   Fix the SQL generated when a `delete_all` is run on an association to not
+    produce an `IN` statements.
+
+    Before:
+
+      UPDATE "categorizations" SET "category_id" = NULL WHERE
+      "categorizations"."category_id" = 1 AND "categorizations"."id" IN (1, 2)
+
+    After:
+
+      UPDATE "categorizations" SET "category_id" = NULL WHERE
+      "categorizations"."category_id" = 1
+
+    *Eileen M. Uchitelle, Aaron Patterson*
+
+*   Avoid type casting boolean and ActiveSupport::Duration values to numeric
+    values for string columns. Otherwise, in some database, the string column
+    values will be coerced to a numeric allowing false or 0.seconds match any
+    string starting with a non-digit.
+
+    Example:
+
+        App.where(apikey: false) # => SELECT * FROM users WHERE apikey = '0'
+
+    *Dylan Thacker-Smith*
+
+*   Add a `:required` option to singular associations, providing a nicer
+    API for presence validations on associations.
+
+    *Sean Griffin*
+
+*   Fixed error in `reset_counters` when associations have `select` scope.
+    (Call to `count` generates invalid SQL.)
+
+    *Cade Truitt*
+
+*   After a successful `reload`, `new_record?` is always false.
+
+    Fixes #12101.
+
+    *Matthew Draper*
+
 *   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
 
     *Abdelkader Boudih*
@@ -134,14 +176,7 @@
     Serialized attributes on ActiveRecord models will no longer save when
     unchanged. Fixes #8328.
 
-    Sean Griffin
-
-*   Fixed automatic maintaining test schema to properly handle sql structure
-    schema format.
-
-    Fixes #15394.
-
-    *Wojciech Wnętrzak*
+    *Sean Griffin*
 
 *   Pluck now works when selecting columns from different tables with the same
     name.
@@ -842,7 +877,7 @@
     *Vilius Luneckas* *Ahmed AbouElhamayed*
 
 *   `before_add` callbacks are fired before the record is saved on
-    `has_and_belongs_to_many` assocations *and* on `has_many :through`
+    `has_and_belongs_to_many` associations *and* on `has_many :through`
     associations.  Before this change, `before_add` callbacks would be fired
     before the record was saved on `has_and_belongs_to_many` associations, but
     *not* on `has_many :through` associations.

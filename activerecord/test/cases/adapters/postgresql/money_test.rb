@@ -26,7 +26,6 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
     assert_equal "money", column.sql_type
     assert_equal 2, column.scale
     assert column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end
@@ -69,5 +68,29 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
     money.save!
     money.reload
     assert_equal new_value, money.wealth
+  end
+
+  def test_update_all_with_money_string
+    money = PostgresqlMoney.create!
+    PostgresqlMoney.update_all(wealth: "987.65")
+    money.reload
+
+    assert_equal 987.65, money.wealth
+  end
+
+  def test_update_all_with_money_big_decimal
+    money = PostgresqlMoney.create!
+    PostgresqlMoney.update_all(wealth: '123.45'.to_d)
+    money.reload
+
+    assert_equal 123.45, money.wealth
+  end
+
+  def test_update_all_with_money_numeric
+    money = PostgresqlMoney.create!
+    PostgresqlMoney.update_all(wealth: 123.45)
+    money.reload
+
+    assert_equal 123.45, money.wealth
   end
 end

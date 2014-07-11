@@ -20,12 +20,14 @@ module TestUrlGeneration
       mount MyRouteGeneratingController.action(:index), at: '/bar'
     end
 
+    APP = build_app Routes
+
     def _routes
       Routes
     end
 
     def app
-      Routes
+      APP
     end
 
     test "generating URLS normally" do

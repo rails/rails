@@ -13,11 +13,11 @@ module ActiveRecord
     end
 
     def values_before_type_cast
-      attributes.each_with_object({}) { |(k, v), h| h[k] = v.value_before_type_cast }
+      attributes.transform_values(&:value_before_type_cast)
     end
 
     def to_hash
-      initialized_attributes.each_with_object({}) { |(k, v), h| h[k] = v.value }
+      initialized_attributes.transform_values(&:value)
     end
     alias_method :to_h, :to_hash
 
@@ -43,17 +43,25 @@ module ActiveRecord
     end
 
     def initialize_dup(_)
-      @attributes = attributes.dup
-      attributes.each do |key, attr|
-        attributes[key] = attr.dup
-      end
-
+      @attributes = attributes.transform_values(&:dup)
       super
     end
 
     def initialize_clone(_)
       @attributes = attributes.clone
       super
+    end
+
+    def reset(key)
+      if include?(key)
+        write_from_database(key, nil)
+      end
+    end
+
+    def ensure_initialized(key)
+      unless self[key].initialized?
+        write_from_database(key, nil)
+      end
     end
 
     protected

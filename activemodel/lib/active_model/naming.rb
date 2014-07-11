@@ -216,6 +216,7 @@ module ActiveModel
   module Naming
     def self.extended(base) #:nodoc:
       base.class_eval do
+        remove_possible_method(:model_name)
         delegate :model_name, to: :class
       end
     end

@@ -1,3 +1,11 @@
+*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
+
+    *John F. Douthat*
+
+*   Added String support for min and max properties for date field helpers.
+
+    *Todd Bealmear*
+
 *   The `highlight` helper now accepts a block to be used instead of the `highlighter`
     option.
 
@@ -88,7 +96,7 @@
 *   Remove wrapping div with inline styles for hidden form fields.
 
     We are dropping HTML 4.01 and XHTML strict compliance since input tags directly
-    inside a form are valid HTML5, and the absense of inline styles help in validating
+    inside a form are valid HTML5, and the absence of inline styles help in validating
     for Content Security Policy.
 
     *Joost Baaij*

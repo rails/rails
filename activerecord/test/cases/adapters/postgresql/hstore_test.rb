@@ -56,7 +56,6 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       assert_equal :hstore, @column.type
       assert_equal "hstore", @column.sql_type
       assert_not @column.number?
-      assert_not @column.text?
       assert_not @column.binary?
       assert_not @column.array
     end
@@ -112,13 +111,7 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     end
 
     def test_type_cast_hstore
-      assert @column
-
-      data = "\"1\"=>\"2\""
-      hash = @column.class.string_to_hstore data
-      assert_equal({'1' => '2'}, hash)
-      assert_equal({'1' => '2'}, @column.type_cast_from_database(data))
-
+      assert_equal({'1' => '2'}, @column.type_cast_from_database("\"1\"=>\"2\""))
       assert_equal({}, @column.type_cast_from_database(""))
       assert_equal({'key'=>nil}, @column.type_cast_from_database('key => NULL'))
       assert_equal({'c'=>'}','"a"'=>'b "a b'}, @column.type_cast_from_database(%q(c=>"}", "\"a\""=>"b \"a b")))
@@ -173,19 +166,19 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
     end
 
     def test_gen1
-      assert_equal(%q(" "=>""), @column.class.hstore_to_string({' '=>''}))
+      assert_equal(%q(" "=>""), @column.cast_type.type_cast_for_database({' '=>''}))
     end
 
     def test_gen2
-      assert_equal(%q(","=>""), @column.class.hstore_to_string({','=>''}))
+      assert_equal(%q(","=>""), @column.cast_type.type_cast_for_database({','=>''}))
     end
 
     def test_gen3
-      assert_equal(%q("="=>""), @column.class.hstore_to_string({'='=>''}))
+      assert_equal(%q("="=>""), @column.cast_type.type_cast_for_database({'='=>''}))
     end
 
     def test_gen4
-      assert_equal(%q(">"=>""), @column.class.hstore_to_string({'>'=>''}))
+      assert_equal(%q(">"=>""), @column.cast_type.type_cast_for_database({'>'=>''}))
     end
 
     def test_parse1

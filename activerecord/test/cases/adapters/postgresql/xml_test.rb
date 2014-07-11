@@ -11,7 +11,7 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
     begin
       @connection.transaction do
         @connection.create_table('xml_data_type') do |t|
-          t.xml 'payload', default: {}
+          t.xml 'payload'
         end
       end
     rescue ActiveRecord::StatementInvalid
@@ -31,5 +31,18 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
   def test_null_xml
     @connection.execute %q|insert into xml_data_type (payload) VALUES(null)|
     assert_nil XmlDataType.first.payload
+  end
+
+  def test_round_trip
+    data = XmlDataType.new(payload: "<foo>bar</foo>")
+    assert_equal "<foo>bar</foo>", data.payload
+    data.save!
+    assert_equal "<foo>bar</foo>", data.reload.payload
+  end
+
+  def test_update_all
+    data = XmlDataType.create!
+    XmlDataType.update_all(payload: "<bar>baz</bar>")
+    assert_equal "<bar>baz</bar>", data.reload.payload
   end
 end

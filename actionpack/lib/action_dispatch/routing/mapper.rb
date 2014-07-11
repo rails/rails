@@ -717,7 +717,7 @@ module ActionDispatch
       #   resources :posts, module: "admin"
       #
       # If you want to route /admin/posts to +PostsController+
-      # (without the Admin:: module prefix), you could use
+      # (without the <tt>Admin::</tt> module prefix), you could use
       #
       #   scope "/admin" do
       #     resources :posts
@@ -1434,7 +1434,7 @@ module ActionDispatch
           end
 
           with_scope_level(:nested) do
-            if shallow? && shallow_nesting_depth > 1
+            if shallow? && shallow_nesting_depth >= 1
               shallow_scope(parent_resource.nested_scope, nested_options) { yield }
             else
               scope(parent_resource.nested_scope, nested_options) { yield }

@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/deprecation'
 
 module ActionDispatch
   module Http
@@ -24,8 +25,10 @@ module ActionDispatch
         @env[PARAMETERS_KEY] = parameters
       end
 
-      # The same as <tt>path_parameters</tt> with explicitly symbolized keys.
       def symbolized_path_parameters
+        ActiveSupport::Deprecation.warn(
+          "`symbolized_path_parameters` is deprecated. Please use `path_parameters`"
+        )
         path_parameters
       end
 
@@ -33,31 +36,22 @@ module ActionDispatch
       # Returned hash keys are strings:
       #
       #   {'action' => 'my_action', 'controller' => 'my_controller'}
-      #
-      # See <tt>symbolized_path_parameters</tt> for symbolized keys.
       def path_parameters
         @env[PARAMETERS_KEY] ||= {}
       end
 
     private
 
-      # Convert nested Hash to HashWithIndifferentAccess
-      # and UTF-8 encode both keys and values in nested Hash.
+      # Convert nested Hash to HashWithIndifferentAccess.
       #
-      # TODO: Validate that the characters are UTF-8. If they aren't,
-      # you'll get a weird error down the road, but our form handling
-      # should really prevent that from happening
       def normalize_encode_params(params)
         case params
-        when String
-          params.force_encoding(Encoding::UTF_8).encode!
         when Hash
           if params.has_key?(:tempfile)
             UploadedFile.new(params)
           else
             params.each_with_object({}) do |(key, val), new_hash|
-              new_key = key.is_a?(String) ? key.dup.force_encoding(Encoding::UTF_8).encode! : key
-              new_hash[new_key] = if val.is_a?(Array)
+              new_hash[key] = if val.is_a?(Array)
                 val.map! { |el| normalize_encode_params(el) }
               else
                 normalize_encode_params(val)

@@ -98,9 +98,9 @@ configure the load path for your Gemfile's dependencies.
 
 A standard Rails application depends on several gems, specifically:
 
-* abstract
 * actionmailer
 * actionpack
+* actionview
 * activemodel
 * activerecord
 * activesupport
@@ -119,7 +119,7 @@ A standard Rails application depends on several gems, specifically:
 * rails
 * railties
 * rake
-* sqlite3-ruby
+* sqlite3
 * thor
 * treetop
 * tzinfo

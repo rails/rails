@@ -51,7 +51,6 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
     assert_nil column.type
     assert_equal "full_address", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end
@@ -113,7 +112,6 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
     assert_equal :full_address, column.type
     assert_equal "full_address", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end

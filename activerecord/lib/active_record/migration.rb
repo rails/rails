@@ -366,21 +366,26 @@ module ActiveRecord
     # This class is used to verify that all migrations have been run before
     # loading a web page if config.active_record.migration_error is set to :page_load
     class CheckPending
-      def initialize(app, connection = Base.connection)
+      def initialize(app)
         @app = app
-        @connection = connection
         @last_check = 0
       end
 
       def call(env)
-        if @connection.supports_migrations?
+        if connection.supports_migrations?
           mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
           if @last_check < mtime
-            ActiveRecord::Migration.check_pending!(@connection)
+            ActiveRecord::Migration.check_pending!(connection)
             @last_check = mtime
           end
         end
         @app.call(env)
+      end
+
+      private
+
+      def connection
+        ActiveRecord::Base.connection
       end
     end
 

@@ -1,3 +1,49 @@
+*   Use `String#bytesize` instead of `String#size` when checking for cookie
+    overflow.
+
+    *Agis Anastasopoulos*
+   
+*   `render nothing: true` or rendering a `nil` body no longer add a single
+    space to the response body.
+
+    The old behavior was added as a workaround for a bug in an early version of
+    Safari, where the HTTP headers are not returned correctly if the response
+    body has a 0-length. This is been fixed since and the workaround is no
+    longer necessary.
+
+    Use `render body: ' '` if the old behavior is desired.
+
+    See #14883 for details.
+
+    *Godfrey Chan*
+
+*   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
+    ("Rosetta Flash")
+
+    *Greg Campbell*
+
+*   Because URI paths may contain non US-ASCII characters we need to force
+    the encoding of any unescaped URIs to UTF-8 if they are US-ASCII.
+    This essentially replicates the functionality of the monkey patch to
+    URI.parser.unescape in active_support/core_ext/uri.rb.
+
+    Fixes #16104.
+
+    *Karl Entwistle*
+
+*   Generate shallow paths for all children of shallow resources.
+
+    Fixes #15783.
+
+    *Seb Jacobs*
+
+*   JSONP responses are now rendered with the `text/javascript` content type
+    when rendering through a `respond_to` block.
+
+    Fixes #15081.
+
+    *Lucas Mazza*
+
 *   Add `config.action_controller.always_permitted_parameters` to configure which
     parameters are permitted globally. The default value of this configuration is
     `['controller', 'action']`.
@@ -31,6 +77,8 @@
 *   Routes specifying 'to:' must be a string that contains a "#" or a rack
     application.  Use of a symbol should be replaced with `action: symbol`.
     Use of a string without a "#" should be replaced with `controller: string`.
+
+    *Aaron Patterson*
 
 *   Fix URL generation with `:trailing_slash` such that it does not add
     a trailing slash after `.:format`
@@ -169,6 +217,5 @@
     `default_url_options` methods.
 
     *Tony Wooster*
-
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionpack/CHANGELOG.md) for previous changes.

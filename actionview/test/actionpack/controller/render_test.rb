@@ -839,7 +839,7 @@ class RenderTest < ActionController::TestCase
   def test_render_text_with_nil
     get :render_text_with_nil
     assert_response 200
-    assert_equal ' ', @response.body
+    assert_equal '', @response.body
   end
 
   # :ported:
@@ -1027,7 +1027,7 @@ class RenderTest < ActionController::TestCase
 
   def test_rendering_nothing_on_layout
     get :rendering_nothing_on_layout
-    assert_equal " ", @response.body
+    assert_equal '', @response.body
   end
 
   def test_render_to_string_doesnt_break_assigns

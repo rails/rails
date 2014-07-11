@@ -54,8 +54,14 @@ module ActionDispatch
       end
 
       def formats
-        @env["action_dispatch.request.formats"] ||=
-          if parameters[:format]
+        @env["action_dispatch.request.formats"] ||= begin
+          params_readable = begin
+                              parameters[:format]
+                            rescue ActionController::BadRequest
+                              false
+                            end
+
+          if params_readable
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts
@@ -64,8 +70,8 @@ module ActionDispatch
           else
             [Mime::HTML]
           end
+        end
       end
-
       # Sets the \variant for template.
       def variant=(variant)
         if variant.is_a?(Symbol)

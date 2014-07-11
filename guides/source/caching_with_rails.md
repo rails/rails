@@ -185,7 +185,7 @@ end
 Cache Stores
 ------------
 
-Rails provides different stores for the cached data created by <b>action</b> and <b>fragment</b> caches.
+Rails provides different stores for the cached data created by **action** and **fragment** caches.
 
 TIP: Page caches are always stored on disk.
 

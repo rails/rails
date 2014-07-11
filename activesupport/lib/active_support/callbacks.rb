@@ -71,7 +71,7 @@ module ActiveSupport
     # order.
     #
     # If the callback chain was halted, returns +false+. Otherwise returns the
-    # result of the block, nil if no callbacks have been set, or +true+ 
+    # result of the block, +nil+ if no callbacks have been set, or +true+
     # if callbacks have been set but no block is given.
     #
     #   run_callbacks :save do
@@ -416,15 +416,8 @@ module ActiveSupport
       #   Procs::   A proc to call with the object.
       #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
       #
-      # All of these objects are compiled into methods and handled
-      # the same after this point:
-      #
-      #   Symbols:: Already methods.
-      #   Strings:: class_eval'd into methods.
-      #   Procs::   using define_method compiled into methods.
-      #   Objects::
-      #     a method is created that calls the before_foo method
-      #     on the object.
+      # All of these objects are converted into a lambda and handled
+      # the same after this point.
       def make_lambda(filter)
         case filter
         when Symbol
@@ -573,7 +566,7 @@ module ActiveSupport
       #
       #   set_callback :save, :before, :before_meth
       #   set_callback :save, :after,  :after_meth, if: :condition
-      #   set_callback :save, :around, ->(r, &block) { stuff; result = block.call; stuff }
+      #   set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
       #
       # The second arguments indicates whether the callback is to be run +:before+,
       # +:after+, or +:around+ the event. If omitted, +:before+ is assumed. This

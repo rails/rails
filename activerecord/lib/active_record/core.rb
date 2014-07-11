@@ -248,12 +248,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      defaults = {}
-      self.class.raw_column_defaults.each do |k, v|
-        defaults[k] = v.duplicable? ? v.dup : v
-      end
-
-      @attributes = self.class.attributes_builder.build_from_database(defaults)
+      @attributes = self.class.default_attributes.dup
 
       init_internals
       initialize_internals_callback
@@ -320,9 +315,8 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      pk = self.class.primary_key
       @attributes = @attributes.dup
-      @attributes.write_from_database(pk, nil)
+      @attributes.reset(self.class.primary_key)
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
@@ -520,10 +514,7 @@ module ActiveRecord
     end
 
     def init_internals
-      pk = self.class.primary_key
-      if pk && !@attributes.include?(pk)
-        @attributes.write_from_database(pk, nil)
-      end
+      @attributes.ensure_initialized(self.class.primary_key)
 
       @aggregation_cache        = {}
       @association_cache        = {}

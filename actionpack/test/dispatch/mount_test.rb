@@ -35,8 +35,9 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     mount SprocketsApp, :at => "/", :via => :get
   end
 
+  APP = RoutedRackApp.new Router
   def app
-    Router
+    APP
   end
 
   def test_app_name_is_properly_generated_when_engine_is_mounted_in_resources

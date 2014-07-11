@@ -83,12 +83,10 @@ module ActiveRecord
 
       def test_quote_with_quoted_id
         assert_equal 1, @quoter.quote(Struct.new(:quoted_id).new(1), nil)
-        assert_equal 1, @quoter.quote(Struct.new(:quoted_id).new(1), 'foo')
       end
 
       def test_quote_nil
         assert_equal 'NULL', @quoter.quote(nil, nil)
-        assert_equal 'NULL', @quoter.quote(nil, 'foo')
       end
 
       def test_quote_true
@@ -102,48 +100,39 @@ module ActiveRecord
       def test_quote_float
         float = 1.2
         assert_equal float.to_s, @quoter.quote(float, nil)
-        assert_equal float.to_s, @quoter.quote(float, Object.new)
       end
 
       def test_quote_fixnum
         fixnum = 1
         assert_equal fixnum.to_s, @quoter.quote(fixnum, nil)
-        assert_equal fixnum.to_s, @quoter.quote(fixnum, Object.new)
       end
 
       def test_quote_bignum
         bignum = 1 << 100
         assert_equal bignum.to_s, @quoter.quote(bignum, nil)
-        assert_equal bignum.to_s, @quoter.quote(bignum, Object.new)
       end
 
       def test_quote_bigdecimal
         bigdec = BigDecimal.new((1 << 100).to_s)
         assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, nil)
-        assert_equal bigdec.to_s('F'), @quoter.quote(bigdec, Object.new)
       end
 
       def test_dates_and_times
         @quoter.extend(Module.new { def quoted_date(value) 'lol' end })
         assert_equal "'lol'", @quoter.quote(Date.today, nil)
-        assert_equal "'lol'", @quoter.quote(Date.today, Object.new)
         assert_equal "'lol'", @quoter.quote(Time.now, nil)
-        assert_equal "'lol'", @quoter.quote(Time.now, Object.new)
         assert_equal "'lol'", @quoter.quote(DateTime.now, nil)
-        assert_equal "'lol'", @quoter.quote(DateTime.now, Object.new)
       end
 
       def test_crazy_object
         crazy = Class.new.new
         expected = "'#{YAML.dump(crazy)}'"
         assert_equal expected, @quoter.quote(crazy, nil)
-        assert_equal expected, @quoter.quote(crazy, Object.new)
       end
 
       def test_crazy_object_calls_quote_string
         crazy = Class.new { def initialize; @lol = 'lo\l' end }.new
         assert_match "lo\\\\l", @quoter.quote(crazy, nil)
-        assert_match "lo\\\\l", @quoter.quote(crazy, Object.new)
       end
 
       def test_quote_string_no_column

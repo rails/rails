@@ -21,89 +21,24 @@ module ActiveRecord
           sql_type = type_to_sql(column.type, column.limit, column.precision, column.scale)
 
           case value
-          when Range
-            if /range$/ =~ sql_type
-              "'#{PostgreSQLColumn.range_to_string(value)}'::#{sql_type}"
-            else
-              super
-            end
-          when Array
-            case sql_type
-            when 'point' then super(PostgreSQLColumn.point_to_string(value))
-            when 'json' then super(PostgreSQLColumn.json_to_string(value))
-            else
-              super(value, array_column(column))
-            end
-          when Hash
-            case sql_type
-            when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
-            when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
-            else super
-            end
           when Float
-            if value.infinite? && column.type == :datetime
-              "'#{value.to_s.downcase}'"
-            elsif value.infinite? || value.nan?
+            if value.infinite? || value.nan?
               "'#{value.to_s}'"
-            else
-              super
-            end
-          when Numeric
-            if sql_type == 'money' || [:string, :text].include?(column.type)
-              # Not truly string input, so doesn't require (or allow) escape string syntax.
-              "'#{value}'"
             else
               super
             end
           when String
             case sql_type
-            when 'xml'   then "xml '#{quote_string(value)}'"
             when /^bit/
               case value
-              when /^[01]*$/      then "B'#{value}'" # Bit-string notation
-              when /^[0-9A-F]*$/i then "X'#{value}'" # Hexadecimal notation
+              when /\A[01]*\Z/      then "B'#{value}'" # Bit-string notation
+              when /\A[0-9A-F]*\Z/i then "X'#{value}'" # Hexadecimal notation
               end
             else
               super
             end
           else
             super
-          end
-        end
-
-        def type_cast(value, column, array_member = false)
-          return super(value, column) unless column
-
-          case value
-          when Range
-            if /range$/ =~ column.sql_type
-              PostgreSQLColumn.range_to_string(value)
-            else
-              super(value, column)
-            end
-          when NilClass
-            if column.array && array_member
-              'NULL'
-            elsif column.array
-              value
-            else
-              super(value, column)
-            end
-          when Array
-            case column.sql_type
-            when 'point' then PostgreSQLColumn.point_to_string(value)
-            when 'json' then PostgreSQLColumn.json_to_string(value)
-            else
-              super(value, array_column(column))
-            end
-          when Hash
-            case column.sql_type
-            when 'hstore' then PostgreSQLColumn.hstore_to_string(value, array_member)
-            when 'json' then PostgreSQLColumn.json_to_string(value)
-            else super(value, column)
-            end
-          else
-            super(value, column)
           end
         end
 
@@ -160,41 +95,27 @@ module ActiveRecord
         private
 
         def _quote(value)
-          if value.is_a?(Type::Binary::Data)
+          case value
+          when Type::Binary::Data
             "'#{escape_bytea(value.to_s)}'"
+          when OID::Xml::Data
+            "xml '#{quote_string(value.to_s)}'"
           else
             super
           end
         end
 
         def _type_cast(value)
-          if value.is_a?(Type::Binary::Data)
+          case value
+          when Type::Binary::Data
             # Return a bind param hash with format as binary.
             # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
             # for more information
             { value: value.to_s, format: 1 }
+          when OID::Xml::Data
+            value.to_s
           else
             super
-          end
-        end
-
-        def array_column(column)
-          if column.array && !column.respond_to?(:cast_type)
-            Column.new('', nil, OID::Array.new(AdapterProxyType.new(column, self)))
-          else
-            column
-          end
-        end
-
-        class AdapterProxyType < SimpleDelegator # :nodoc:
-          def initialize(column, adapter)
-            @column = column
-            @adapter = adapter
-            super(column)
-          end
-
-          def type_cast_for_database(value)
-            @adapter.type_cast(value, @column)
           end
         end
       end

@@ -34,7 +34,7 @@ module ActiveRecord
     #   # => counts the number of different age values
     #
     # Note: not all valid +select+ expressions are valid +count+ expressions. The specifics differ
-    # between databases. In invalid cases, an error from the databsae is thrown.
+    # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil, options = {})
       # TODO: Remove options argument as soon we remove support to
       # activerecord-deprecated_finders.

@@ -31,10 +31,12 @@ Engines are also closely related to plugins. The two share a common `lib`
 directory structure, and are both generated using the `rails plugin new`
 generator. The difference is that an engine is considered a "full plugin" by
 Rails (as indicated by the `--full` option that's passed to the generator
-command). This guide will refer to them simply as "engines" throughout. An
-engine **can** be a plugin, and a plugin **can** be an engine.
+command). We'll actually be using the `--mountable` option here, which includes
+all the features of `--full`, and then some. This guide will refer to these 
+"full plugins" simply as "engines" throughout. An engine **can** be a plugin,
+and a plugin **can** be an engine.
 
-The engine that will be created in this guide will be called "blorgh". The
+The engine that will be created in this guide will be called "blorgh". This
 engine will provide blogging functionality to its host applications, allowing
 for new articles and comments to be created. At the beginning of this guide, you
 will be working solely within the engine itself, but in later sections you'll
@@ -49,9 +51,8 @@ guide.
 
 It's important to keep in mind at all times that the application should
 **always** take precedence over its engines. An application is the object that
-has final say in what goes on in the universe (with the universe being the
-application's environment) where the engine should only be enhancing it, rather
-than changing it drastically.
+has final say in what goes on in its environment. The engine should
+only be enhancing it, rather than changing it drastically.
 
 To see demonstrations of other engines, check out
 [Devise](https://github.com/plataformatec/devise), an engine that provides
@@ -745,8 +746,9 @@ reason, the engine should not hardcode associations specifically for a `User`
 class.
 
 To keep it simple in this case, the application will have a class called `User`
-that represents the users of the application. It can be generated using this
-command inside the application:
+that represents the users of the application (we'll get into making this
+configurable further on). It can be generated using this command inside the
+application:
 
 ```bash
 rails g model user name:string

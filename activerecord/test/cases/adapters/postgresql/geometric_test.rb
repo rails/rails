@@ -28,7 +28,6 @@ class PostgresqlPointTest < ActiveRecord::TestCase
     column = PostgresqlPoint.columns_hash["x"]
     assert_equal :point, column.type
     assert_equal "point", column.sql_type
-    assert_not column.text?
     assert_not column.number?
     assert_not column.binary?
     assert_not column.array
