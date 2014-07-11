@@ -39,11 +39,11 @@ module Rails
       def setup
         @subscriber = Subscriber.new
         @notifier = ActiveSupport::Notifications.notifier
-        notifier.subscribe 'request.action_dispatch', subscriber
+        @subscription = notifier.subscribe 'request.action_dispatch', subscriber
       end
 
       def teardown
-        notifier.unsubscribe subscriber
+        notifier.unsubscribe @subscription
       end
 
       def test_notification
