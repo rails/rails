@@ -9,7 +9,17 @@ module Rails
       def parse!(args)
         args, options = args.dup, {}
 
-        opt_parser = OptionParser.new do |opts|
+        option_parser(options).parse! args
+
+        options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
+        options[:server]     = args.shift
+        options
+      end
+
+      private
+
+      def option_parser(options)
+        OptionParser.new do |opts|
           opts.banner = "Usage: rails server [mongrel, thin, etc] [options]"
           opts.on("-p", "--port=port", Integer,
                   "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
@@ -37,12 +47,6 @@ module Rails
 
           opts.on("-h", "--help", "Show this help message.") { puts opts; exit }
         end
-
-        opt_parser.parse! args
-
-        options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
-        options[:server]     = args.shift
-        options
       end
     end
 
