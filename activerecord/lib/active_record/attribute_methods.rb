@@ -251,7 +251,7 @@ module ActiveRecord
     #   person.has_attribute?('age')    # => true
     #   person.has_attribute?(:nothing) # => false
     def has_attribute?(attr_name)
-      @attributes.include?(attr_name.to_s)
+      @attributes.key?(attr_name.to_s)
     end
 
     # Returns an array of names for the attributes available on this object.
@@ -386,7 +386,7 @@ module ActiveRecord
 
     def attribute_method?(attr_name) # :nodoc:
       # We check defined? because Syck calls respond_to? before actually calling initialize.
-      defined?(@attributes) && @attributes.include?(attr_name)
+      defined?(@attributes) && @attributes.key?(attr_name)
     end
 
     private
