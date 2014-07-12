@@ -4,7 +4,7 @@ class Hash
   #
   #   { a: 1, b: 2, c: 3 }.transform_values { |x| x * 2 }
   #   # => { a: 2, b: 4, c: 6 }
-  def transform_values(&block)
+  def transform_values
     result = self.class.new
     each do |key, value|
       result[key] = yield(value)
