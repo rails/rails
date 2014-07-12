@@ -546,6 +546,14 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal "http://cdn.example.com/images/file.png", image_path("file.png")
   end
 
+  def test_image_url_with_asset_host_proc_returning_nil
+    @controller.config.asset_host = Proc.new { nil }
+    @controller.request = Struct.new(:base_url, :script_name).new("http://www.example.com", nil)
+
+    assert_equal "/images/rails.png", image_path("rails.png")
+    assert_equal "http://www.example.com/images/rails.png", image_url("rails.png")
+  end
+
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request
     @controller.config.asset_host = Proc.new do |source, request|
       if request.ssl?
