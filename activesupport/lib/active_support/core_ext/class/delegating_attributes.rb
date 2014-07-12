@@ -1,24 +1,29 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/module/deprecation'
+
 
 class Class
   def superclass_delegating_accessor(name, options = {})
     # Create private _name and _name= methods that can still be used if the public
-    # methods are overridden. This allows
-    _superclass_delegating_accessor("_#{name}")
+    # methods are overridden.
+    _superclass_delegating_accessor("_#{name}", options)
 
-    # Generate the public methods name, name=, and name?
+    # Generate the public methods name, name=, and name?.
     # These methods dispatch to the private _name, and _name= methods, making them
-    # overridable
+    # overridable.
     singleton_class.send(:define_method, name) { send("_#{name}") }
     singleton_class.send(:define_method, "#{name}?") { !!send("_#{name}") }
     singleton_class.send(:define_method, "#{name}=") { |value| send("_#{name}=", value) }
 
-    # If an instance_reader is needed, generate methods for name and name= on the
-    # class itself, so instances will be able to see them
-    define_method(name) { send("_#{name}") } if options[:instance_reader] != false
-    define_method("#{name}?") { !!send("#{name}") } if options[:instance_reader] != false
+    # If an instance_reader is needed, generate public instance methods name and name?.
+    if options[:instance_reader] != false
+      define_method(name) { send("_#{name}") }
+      define_method("#{name}?") { !!send("#{name}") }
+    end
   end
+
+  deprecate superclass_delegating_accessor: :class_attribute
 
   private
     # Take the object being set and store it in a method. This gives us automatic

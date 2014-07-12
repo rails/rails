@@ -204,7 +204,7 @@ module ActiveModel
   #     extend ActiveModel::Naming
   #   end
   #
-  #   BookCover.model_name        # => "BookCover"
+  #   BookCover.model_name.name   # => "BookCover"
   #   BookCover.model_name.human  # => "Book cover"
   #
   #   BookCover.model_name.i18n_key              # => :book_cover
@@ -214,14 +214,22 @@ module ActiveModel
   # is required to pass the Active Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
+    def self.extended(base) #:nodoc:
+      base.class_eval do
+        remove_possible_method(:model_name)
+        delegate :model_name, to: :class
+      end
+    end
+
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information
     # (See ActiveModel::Name for more information).
     #
-    #   class Person < ActiveModel::Model
+    #   class Person
+    #     include ActiveModel::Model
     #   end
     #
-    #   Person.model_name          # => Person
+    #   Person.model_name.name     # => "Person"
     #   Person.model_name.class    # => ActiveModel::Name
     #   Person.model_name.singular # => "person"
     #   Person.model_name.plural   # => "people"
@@ -262,10 +270,10 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     #   # For isolated engine:
-    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> post
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) # => "post"
     #
     #   # For shared engine:
-    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> blog_post
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) # => "blog_post"
     def self.singular_route_key(record_or_class)
       model_name_from_record_or_class(record_or_class).singular_route_key
     end
@@ -274,10 +282,10 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     #   # For isolated engine:
-    #   ActiveModel::Naming.route_key(Blog::Post) #=> posts
+    #   ActiveModel::Naming.route_key(Blog::Post) # => "posts"
     #
     #   # For shared engine:
-    #   ActiveModel::Naming.route_key(Blog::Post) #=> blog_posts
+    #   ActiveModel::Naming.route_key(Blog::Post) # => "blog_posts"
     #
     # The route key also considers if the noun is uncountable and, in
     # such cases, automatically appends _index.
@@ -289,10 +297,10 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     #   # For isolated engine:
-    #   ActiveModel::Naming.param_key(Blog::Post) #=> post
+    #   ActiveModel::Naming.param_key(Blog::Post) # => "post"
     #
     #   # For shared engine:
-    #   ActiveModel::Naming.param_key(Blog::Post) #=> blog_post
+    #   ActiveModel::Naming.param_key(Blog::Post) # => "blog_post"
     def self.param_key(record_or_class)
       model_name_from_record_or_class(record_or_class).param_key
     end

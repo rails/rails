@@ -6,8 +6,12 @@ module ActiveRecord
     # then we can remove the indirection.
 
     def respond_to?(name, include_private = false)
-      match = Method.match(self, name)
-      match && match.valid? || super
+      if self == Base
+        super
+      else
+        match = Method.match(self, name)
+        match && match.valid? || super
+      end
     end
 
     private
@@ -35,7 +39,7 @@ module ActiveRecord
         end
 
         def pattern
-          /^#{prefix}_([_a-zA-Z]\w*)#{suffix}$/
+          @pattern ||= /\A#{prefix}_([_a-zA-Z]\w*)#{suffix}\Z/
         end
 
         def prefix
@@ -84,13 +88,18 @@ module ActiveRecord
         "#{finder}(#{attributes_hash})"
       end
 
+      # The parameters in the signature may have reserved Ruby words, in order
+      # to prevent errors, we start each param name with `_`.
+      #
       # Extended in activerecord-deprecated_finders
       def signature
-        attribute_names.join(', ')
+        attribute_names.map { |name| "_#{name}" }.join(', ')
       end
 
+      # Given that the parameters starts with `_`, the finder needs to use the
+      # same parameter name.
       def attributes_hash
-        "{" + attribute_names.map { |name| ":#{name} => #{name}" }.join(',') + "}"
+        "{" + attribute_names.map { |name| ":#{name} => _#{name}" }.join(',') + "}"
       end
 
       def finder

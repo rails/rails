@@ -11,21 +11,19 @@ module Rails
 
       def build_stack
         ActionDispatch::MiddlewareStack.new.tap do |middleware|
-          if rack_cache = load_rack_cache
-            require "action_dispatch/http/rack_cache"
-            middleware.use ::Rack::Cache, rack_cache
-          end
-
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, config.ssl_options
           end
 
-          if config.action_dispatch.x_sendfile_header.present?
-            middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
-          end
+          middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
 
           if config.serve_static_assets
             middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
+          end
+
+          if rack_cache = load_rack_cache
+            require "action_dispatch/http/rack_cache"
+            middleware.use ::Rack::Cache, rack_cache
           end
 
           middleware.use ::Rack::Lock unless allow_concurrency?

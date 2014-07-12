@@ -36,6 +36,11 @@ class LookupContextTest < ActiveSupport::TestCase
     assert @lookup_context.formats.frozen?
   end
 
+  test "provides getters and setters for variants" do
+    @lookup_context.variants = [:mobile]
+    assert_equal [:mobile], @lookup_context.variants
+  end
+
   test "provides getters and setters for formats" do
     @lookup_context.formats = [:html]
     assert_equal [:html], @lookup_context.formats
@@ -68,7 +73,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "delegates changing the locale to the I18n configuration object if it contains a lookup_context object" do
     begin
-      I18n.config = AbstractController::I18nProxy.new(I18n.config, @lookup_context)
+      I18n.config = ActionView::I18nProxy.new(I18n.config, @lookup_context)
       @lookup_context.locale = :pt
       assert_equal :pt, I18n.locale
       assert_equal :pt, @lookup_context.locale
@@ -86,6 +91,20 @@ class LookupContextTest < ActiveSupport::TestCase
     @lookup_context.locale = :da
     template = @lookup_context.find("hello_world", %w(test))
     assert_equal "Hey verden", template.source
+  end
+
+  test "find templates with given variants" do
+    @lookup_context.formats  = [:html]
+    @lookup_context.variants = [:phone]
+
+    template = @lookup_context.find("hello_world", %w(test))
+    assert_equal "Hello phone!", template.source
+
+    @lookup_context.variants = [:phone]
+    @lookup_context.formats  = [:text]
+
+    template = @lookup_context.find("hello_world", %w(test))
+    assert_equal "Hello texty phone!", template.source
   end
 
   test "found templates respects given formats if one cannot be found from template or handler" do
@@ -249,15 +268,15 @@ class TestMissingTemplate < ActiveSupport::TestCase
     e = assert_raise ActionView::MissingTemplate do
       @lookup_context.find("foo", %w(parent child), true)
     end
-    assert_match %r{Missing partial parent/foo, child/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing partial parent/_foo, child/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
   test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
     e = assert_raise ActionView::MissingTemplate do
-      details = {:handlers=>[], :formats=>[], :locale=>[]}
+      details = {:handlers=>[], :formats=>[], :variants=>[], :locale=>[]}
       @lookup_context.view_paths.find("foo", "parent", true, details)
     end
-    assert_match %r{Missing partial parent/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
+    assert_match %r{Missing partial parent/_foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
 end

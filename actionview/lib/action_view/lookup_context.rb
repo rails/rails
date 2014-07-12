@@ -1,6 +1,7 @@
 require 'thread_safe'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'action_view/template/resolver'
 
 module ActionView
   # = Action View Lookup Context
@@ -52,6 +53,7 @@ module ActionView
       locales
     end
     register_detail(:formats) { ActionView::Base.default_formats || [:html, :text, :js, :css,  :xml, :json] }
+    register_detail(:variants) { [] }
     register_detail(:handlers){ Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
@@ -62,6 +64,13 @@ module ActionView
       @details_keys = ThreadSafe::Cache.new
 
       def self.get(details)
+        if details[:formats]
+          details = details.dup
+          syms    = Set.new Mime::SET.symbols
+          details[:formats] = details[:formats].select { |v|
+            syms.include? v
+          }
+        end
         @details_keys[details] ||= new
       end
 
@@ -105,7 +114,7 @@ module ActionView
     module ViewPaths
       attr_reader :view_paths, :html_fallback_for_js
 
-      # Whenever setting view paths, makes a copy so we can manipulate then in
+      # Whenever setting view paths, makes a copy so that we can manipulate them in
       # instance objects as we wish.
       def view_paths=(paths)
         @view_paths = ActionView::PathSet.new(Array(paths))
@@ -125,7 +134,8 @@ module ActionView
       end
       alias :template_exists? :exists?
 
-      # Add fallbacks to the view paths. Useful in cases you are rendering a :file.
+      # Adds fallbacks to the view paths. Useful in cases when you are rendering
+      # a :file.
       def with_fallbacks
         added_resolvers = 0
         self.class.fallbacks.each do |resolver|
@@ -150,7 +160,14 @@ module ActionView
       def detail_args_for(options)
         return @details, details_key if options.empty? # most common path.
         user_details = @details.merge(options)
-        [user_details, DetailsKey.get(user_details)]
+
+        if @cache
+          details_key = DetailsKey.get(user_details)
+        else
+          details_key = nil
+        end
+
+        [user_details, details_key]
       end
 
       # Support legacy foo.erb names even though we now ignore .erb
@@ -211,7 +228,7 @@ module ActionView
     end
 
     # Overload locale= to also set the I18n.locale. If the current I18n.config object responds
-    # to original_config, it means that it's has a copy of the original I18n configuration and it's
+    # to original_config, it means that it has a copy of the original I18n configuration and it's
     # acting as proxy, which we need to skip.
     def locale=(value)
       if value
@@ -222,7 +239,7 @@ module ActionView
       super(@skip_default_locale ? I18n.locale : default_locale)
     end
 
-    # A method which only uses the first format in the formats array for layout lookup.
+    # Uses the first format in the formats array for layout lookup.
     def with_layout_format
       if formats.size == 1
         yield

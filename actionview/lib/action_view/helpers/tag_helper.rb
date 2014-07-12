@@ -9,6 +9,7 @@ module ActionView
     module TagHelper
       extend ActiveSupport::Concern
       include CaptureHelper
+      include OutputSafetyHelper
 
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
@@ -42,7 +43,8 @@ module ActionView
       # For example, a key +user_id+ would render as <tt>data-user-id</tt> and
       # thus accessed as <tt>dataset.userId</tt>.
       #
-      # Values are encoded to JSON, with the exception of strings and symbols.
+      # Values are encoded to JSON, with the exception of strings, symbols and
+      # BigDecimals.
       # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
       #
@@ -55,6 +57,9 @@ module ActionView
       #
       #   tag("input", type: 'text', disabled: true)
       #   # => <input type="text" disabled="disabled" />
+      #
+      #   tag("input", type: 'text', class: ["strong", "highlight"])
+      #   # => <input class="strong highlight" type="text" />
       #
       #   tag("img", src: "open & shut.png")
       #   # => <img src="open &amp; shut.png" />
@@ -75,7 +80,7 @@ module ActionView
       # Set escape to false to disable attribute value escaping.
       #
       # ==== Options
-      # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and
+      # The +options+ hash can be used with attributes with no value like (<tt>disabled</tt> and
       # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
       # symbols or strings for the attribute names.
       #
@@ -84,6 +89,8 @@ module ActionView
       #    # => <p>Hello world!</p>
       #   content_tag(:div, content_tag(:p, "Hello world!"), class: "strong")
       #    # => <div class="strong"><p>Hello world!</p></div>
+      #   content_tag(:div, "Hello world!", class: ["strong", "highlight"])
+      #    # => <div class="strong highlight">Hello world!</div>
       #   content_tag("select", options, multiple: true)
       #    # => <select multiple="multiple">...options...</select>
       #
@@ -114,7 +121,7 @@ module ActionView
       #   cdata_section("hello]]>world")
       #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        splitted = content.gsub(']]>', ']]]]><![CDATA[>')
+        splitted = content.to_s.gsub(']]>', ']]]]><![CDATA[>')
         "<![CDATA[#{splitted}]]>".html_safe
       end
 
@@ -133,7 +140,7 @@ module ActionView
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
-          content     = ERB::Util.h(content) if escape
+          content     = ERB::Util.unwrapped_html_escape(content) if escape
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
         end
 
@@ -151,7 +158,7 @@ module ActionView
               attrs << tag_option(key, value, escape)
             end
           end
-          " #{attrs.sort! * ' '}".html_safe unless attrs.empty?
+          " #{attrs.sort! * ' '}" unless attrs.empty?
         end
 
         def data_tag_option(key, value, escape)
@@ -167,8 +174,11 @@ module ActionView
         end
 
         def tag_option(key, value, escape)
-          value = value.join(" ") if value.is_a?(Array)
-          value = ERB::Util.h(value) if escape
+          if value.is_a?(Array)
+            value = escape ? safe_join(value, " ") : value.join(" ")
+          else
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value
+          end
           %(#{key}="#{value}")
         end
     end

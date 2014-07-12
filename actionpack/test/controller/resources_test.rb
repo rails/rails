@@ -4,6 +4,7 @@ require 'active_support/core_ext/object/with_options'
 require 'active_support/core_ext/array/extract_options'
 
 class ResourcesTest < ActionController::TestCase
+
   def test_default_restful_routes
     with_restful_routing :messages do
       assert_simply_restful_for :messages
@@ -1004,7 +1005,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destory], [], 'products/1/images')
+      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destroy], [], 'products/1/images')
       assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destroy], [], 'products/1/images')
     end
   end
@@ -1320,6 +1321,8 @@ class ResourcesTest < ActionController::TestCase
         assert_recognizes options, path_options
       elsif Array(not_allowed).include?(action)
         assert_not_recognizes options, path_options
+      else
+        raise Assertion, 'Invalid Action has passed'
       end
     end
 

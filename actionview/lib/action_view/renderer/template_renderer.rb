@@ -11,7 +11,7 @@ module ActionView
       prepend_formats(template.formats)
 
       unless context.rendered_format
-        context.rendered_format = template.formats.first || formats.last
+        context.rendered_format = template.formats.first || formats.first
       end
 
       render_template(template, options[:layout], options[:locals])
@@ -21,8 +21,14 @@ module ActionView
     def determine_template(options) #:nodoc:
       keys = options.fetch(:locals, {}).keys
 
-      if options.key?(:text)
+      if options.key?(:body)
+        Template::Text.new(options[:body])
+      elsif options.key?(:text)
         Template::Text.new(options[:text], formats.first)
+      elsif options.key?(:plain)
+        Template::Text.new(options[:plain])
+      elsif options.key?(:html)
+        Template::HTML.new(options[:html], formats.first)
       elsif options.key?(:file)
         with_fallbacks { find_template(options[:file], nil, false, keys, @details) }
       elsif options.key?(:inline)
@@ -35,7 +41,7 @@ module ActionView
           find_template(options[:template], options[:prefixes], false, keys, @details)
         end
       else
-        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file or :text option."
+        raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :text or :body option."
       end
     end
 

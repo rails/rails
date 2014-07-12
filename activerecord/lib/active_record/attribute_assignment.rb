@@ -11,7 +11,19 @@ module ActiveRecord
     # If the passed hash responds to <tt>permitted?</tt> method and the return value
     # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
     # exception is raised.
+    #
+    #   cat = Cat.new(name: "Gorby", status: "yawning")
+    #   cat.attributes # =>  { "name" => "Gorby", "status" => "yawning", "created_at" => nil, "updated_at" => nil}
+    #   cat.assign_attributes(status: "sleeping")
+    #   cat.attributes # =>  { "name" => "Gorby", "status" => "sleeping", "created_at" => nil, "updated_at" => nil }
+    #
+    # New attributes will be persisted in the database when the object is saved.
+    #
+    # Aliased to <tt>attributes=</tt>.
     def assign_attributes(new_attributes)
+      if !new_attributes.respond_to?(:stringify_keys)
+        raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
+      end
       return if new_attributes.blank?
 
       attributes                  = new_attributes.stringify_keys
@@ -103,7 +115,7 @@ module ActiveRecord
     end
 
     class MultiparameterAttribute #:nodoc:
-      attr_reader :object, :name, :values, :column
+      attr_reader :object, :name, :values, :cast_type
 
       def initialize(object, name, values)
         @object = object
@@ -114,22 +126,22 @@ module ActiveRecord
       def read_value
         return if values.values.compact.empty?
 
-        @column = object.class.reflect_on_aggregation(name.to_sym) || object.column_for_attribute(name)
-        klass   = column.klass
+        @cast_type = object.type_for_attribute(name)
+        klass = cast_type.klass
 
         if klass == Time
           read_time
         elsif klass == Date
           read_date
         else
-          read_other(klass)
+          read_other
         end
       end
 
       private
 
       def instantiate_time_object(set_values)
-        if object.class.send(:create_time_zone_conversion_attribute?, name, column)
+        if object.class.send(:create_time_zone_conversion_attribute?, name, cast_type)
           Time.zone.local(*set_values)
         else
           Time.send(object.class.default_timezone, *set_values)
@@ -137,9 +149,9 @@ module ActiveRecord
       end
 
       def read_time
-        # If column is a :time (and not :date or :timestamp) there is no need to validate if
+        # If column is a :time (and not :date or :datetime) there is no need to validate if
         # there are year/month/day fields
-        if column.type == :time
+        if cast_type.type == :time
           # if the column is a time set the values to their defaults as January 1, 1970, but only if they're nil
           { 1 => 1970, 2 => 1, 3 => 1 }.each do |key,value|
             values[key] ||= value
@@ -169,13 +181,12 @@ module ActiveRecord
         end
       end
 
-      def read_other(klass)
+      def read_other
         max_position = extract_max_param
         positions    = (1..max_position)
         validate_required_parameters!(positions)
 
-        set_values = values.values_at(*positions)
-        klass.new(*set_values)
+        values.slice(*positions)
       end
 
       # Checks whether some blank date parameter exists. Note that this is different

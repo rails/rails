@@ -1,19 +1,34 @@
-*   `inclusion` / `exclusion` validations with ranges will only use the faster
-    `Range#cover` for numerical ranges, and the more accurate `Range#include?`
-    for non-numerical ones.
+*   Added `undo_changes` method to `ActiveModel::Dirty` API to restore all the
+    changed values to the previous data.
 
-    Fixes range validations like `:a..:f` that used to pass with values like `:be`.
-    Fixes #10593
+    *Igor G.*
 
-    *Charles Bergeron*
+*   Allow proc and symbol as values for `only_integer` of `NumericalityValidator`
 
-*   Fix regression in has_secure_password. When a password is set, but a
-    confirmation is an empty string, it would incorrectly save.
+    *Robin Mehner*
 
-    *Steve Klabnik* and *Phillip Calvin*
+*   `has_secure_password` now verifies that the given password is less than 72
+    characters if validations are enabled.
 
-*   Deprecate `Validator#setup`. This should be done manually now in the validator's constructor.
+    Fixes #14591.
 
-    *Nick Sutterer*
+    *Akshay Vishnoi*
 
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activemodel/CHANGELOG.md) for previous changes.
+*   Remove deprecated `Validator#setup` without replacement.
+
+    See #10716.
+
+    *Kuldeep Aggarwal*
+
+*   Add plural and singular form for length validator's default messages.
+
+    *Abd ar-Rahman Hamid*
+
+*   Introduce `validate` as an alias for `valid?`.
+
+    This is more intuitive when you want to run validations but don't care about
+    the return value.
+
+    *Henrik Nyh*
+
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activemodel/CHANGELOG.md) for previous changes.

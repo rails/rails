@@ -100,13 +100,13 @@ class RenderJsonTest < ActionController::TestCase
   end
 
   def test_render_json_with_callback
-    get :render_json_hello_world_with_callback
-    assert_equal 'alert({"hello":"world"})', @response.body
+    xhr :get, :render_json_hello_world_with_callback
+    assert_equal '/**/alert({"hello":"world"})', @response.body
     assert_equal 'text/javascript', @response.content_type
   end
 
   def test_render_json_with_custom_content_type
-    get :render_json_with_custom_content_type
+    xhr :get, :render_json_with_custom_content_type
     assert_equal '{"hello":"world"}', @response.body
     assert_equal 'text/javascript', @response.content_type
   end

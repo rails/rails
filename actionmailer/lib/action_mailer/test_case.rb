@@ -20,6 +20,7 @@ module ActionMailer
         class_attribute :_mailer_class
         setup :initialize_test_deliveries
         setup :set_expected_mail
+        teardown :restore_test_deliveries
       end
 
       module ClassMethods
@@ -54,8 +55,15 @@ module ActionMailer
       protected
 
         def initialize_test_deliveries
+          @old_delivery_method = ActionMailer::Base.delivery_method
+          @old_perform_deliveries = ActionMailer::Base.perform_deliveries
           ActionMailer::Base.delivery_method = :test
           ActionMailer::Base.perform_deliveries = true
+        end
+
+        def restore_test_deliveries
+          ActionMailer::Base.delivery_method = @old_delivery_method
+          ActionMailer::Base.perform_deliveries = @old_perform_deliveries
           ActionMailer::Base.deliveries.clear
         end
 

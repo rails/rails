@@ -30,7 +30,7 @@ module ActiveModel
   #   end
   #
   # Then in your class, you can use the +before_create+, +after_create+ and
-  # +around_create+ methods, just as you would in an Active Record module.
+  # +around_create+ methods, just as you would in an Active Record model.
   #
   #   before_create :action_before_create
   #

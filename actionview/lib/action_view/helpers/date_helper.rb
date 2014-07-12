@@ -19,6 +19,10 @@ module ActionView
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
     #   of \date[month].
     module DateHelper
+      MINUTES_IN_YEAR = 525600
+      MINUTES_IN_QUARTER_YEAR = 131400
+      MINUTES_IN_THREE_QUARTERS_YEAR = 394200
+
       # Reports the approximate distance in time between two Time, Date or DateTime objects or integers as seconds.
       # Pass <tt>include_seconds: true</tt> if you want more detailed approximations when distance < 1 min, 29 secs.
       # Distances are reported based on the following table:
@@ -50,29 +54,21 @@ module ActionView
       #   distance_of_time_in_words(from_time, from_time + 50.minutes)                                # => about 1 hour
       #   distance_of_time_in_words(from_time, 50.minutes.from_now)                                   # => about 1 hour
       #   distance_of_time_in_words(from_time, from_time + 15.seconds)                                # => less than a minute
-      #   distance_of_time_in_words(from_time, from_time + 15.seconds, include_seconds: true)      # => less than 20 seconds
+      #   distance_of_time_in_words(from_time, from_time + 15.seconds, include_seconds: true)         # => less than 20 seconds
       #   distance_of_time_in_words(from_time, 3.years.from_now)                                      # => about 3 years
       #   distance_of_time_in_words(from_time, from_time + 60.hours)                                  # => 3 days
-      #   distance_of_time_in_words(from_time, from_time + 45.seconds, include_seconds: true)      # => less than a minute
-      #   distance_of_time_in_words(from_time, from_time - 45.seconds, include_seconds: true)      # => less than a minute
+      #   distance_of_time_in_words(from_time, from_time + 45.seconds, include_seconds: true)         # => less than a minute
+      #   distance_of_time_in_words(from_time, from_time - 45.seconds, include_seconds: true)         # => less than a minute
       #   distance_of_time_in_words(from_time, 76.seconds.from_now)                                   # => 1 minute
       #   distance_of_time_in_words(from_time, from_time + 1.year + 3.days)                           # => about 1 year
       #   distance_of_time_in_words(from_time, from_time + 3.years + 6.months)                        # => over 3 years
       #   distance_of_time_in_words(from_time, from_time + 4.years + 9.days + 30.minutes + 5.seconds) # => about 4 years
       #
       #   to_time = Time.now + 6.years + 19.days
-      #   distance_of_time_in_words(from_time, to_time, include_seconds: true)                     # => about 6 years
-      #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                     # => about 6 years
+      #   distance_of_time_in_words(from_time, to_time, include_seconds: true)                        # => about 6 years
+      #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                        # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
-      def distance_of_time_in_words(from_time, to_time = 0, include_seconds_or_options = {}, options = {})
-        if include_seconds_or_options.is_a?(Hash)
-          options = include_seconds_or_options
-        else
-          ActiveSupport::Deprecation.warn "distance_of_time_in_words and time_ago_in_words now accept :include_seconds " +
-                                          "as a part of options hash, not a boolean argument"
-          options[:include_seconds] ||= !!include_seconds_or_options
-        end
-
+      def distance_of_time_in_words(from_time, to_time = 0, options = {})
         options = {
           scope: :'datetime.distance_in_words'
         }.merge!(options)
@@ -123,16 +119,16 @@ module ActionView
                 # e.g. if there are 20 leap year days between 2 dates having the same day
                 # and month then the based on 365 days calculation
                 # the distance in years will come out to over 80 years when in written
-                # english it would read better as about 80 years.
+                # English it would read better as about 80 years.
                 minutes_with_offset = distance_in_minutes - minute_offset_for_leap_year
               else
                 minutes_with_offset = distance_in_minutes
               end
-              remainder                   = (minutes_with_offset % 525600)
-              distance_in_years           = (minutes_with_offset.div 525600)
-              if remainder < 131400
+              remainder                   = (minutes_with_offset % MINUTES_IN_YEAR)
+              distance_in_years           = (minutes_with_offset.div MINUTES_IN_YEAR)
+              if remainder < MINUTES_IN_QUARTER_YEAR
                 locale.t(:about_x_years,  :count => distance_in_years)
-              elsif remainder < 394200
+              elsif remainder < MINUTES_IN_THREE_QUARTERS_YEAR
                 locale.t(:over_x_years,   :count => distance_in_years)
               else
                 locale.t(:almost_x_years, :count => distance_in_years + 1)
@@ -157,8 +153,8 @@ module ActionView
       #
       # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
       #
-      def time_ago_in_words(from_time, include_seconds_or_options = {})
-        distance_of_time_in_words(from_time, Time.now, include_seconds_or_options)
+      def time_ago_in_words(from_time, options = {})
+        distance_of_time_in_words(from_time, Time.now, options)
       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
@@ -177,9 +173,16 @@ module ActionView
       #   "2 - February" instead of "February").
       # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
       #   Note: You can also use Rails' i18n functionality for this.
+      # * <tt>:month_format_string</tt> - Set to a format string. The string gets passed keys +:number+ (integer)
+      #   and +:name+ (string). A format string would be something like "%{name} (%<number>02d)" for example.
+      #   See <tt>Kernel.sprintf</tt> for documentation on format sequences.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
-      # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Time.now.year - 5</tt>.
-      # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Time.now.year + 5</tt>.
+      # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt>if
+      #   you are creating new record. While editing existing record, <tt>:start_year</tt> defaults to
+      #   the current selected year minus 5.
+      # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
+      #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
+      #   the current selected year plus 5.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
@@ -539,7 +542,7 @@ module ActionView
       #   my_date = Time.now + 2.days
       #
       #   # Generates a select field for days that defaults to the day for the date in my_date.
-      #   select_day(my_time)
+      #   select_day(my_date)
       #
       #   # Generates a select field for days that defaults to the number given.
       #   select_day(5)
@@ -549,7 +552,7 @@ module ActionView
       #
       #   # Generates a select field for days that defaults to the day for the date in my_date
       #   # that is named 'due' rather than 'day'.
-      #   select_day(my_time, field_name: 'due')
+      #   select_day(my_date, field_name: 'due')
       #
       #   # Generates a select field for days with a custom prompt. Use <tt>prompt: true</tt> for a
       #   # generic prompt.
@@ -854,24 +857,36 @@ module ActionView
           I18n.translate(key, :locale => @options[:locale])
         end
 
-        # Lookup month name for number.
-        #  month_name(1) => "January"
+        # Looks up month names by number (1-based):
         #
-        # If <tt>:use_month_numbers</tt> option is passed
-        #  month_name(1) => 1
+        #   month_name(1) # => "January"
         #
-        # If <tt>:use_two_month_numbers</tt> option is passed
-        #  month_name(1) => '01'
+        # If the <tt>:use_month_numbers</tt> option is passed:
         #
-        # If <tt>:add_month_numbers</tt> option is passed
-        #  month_name(1) => "1 - January"
+        #   month_name(1) # => 1
+        #
+        # If the <tt>:use_two_month_numbers</tt> option is passed:
+        #
+        #   month_name(1) # => '01'
+        #
+        # If the <tt>:add_month_numbers</tt> option is passed:
+        #
+        #   month_name(1) # => "1 - January"
+        #
+        # If the <tt>:month_format_string</tt> option is passed:
+        #
+        #   month_name(1) # => "January (01)"
+        #
+        # depending on the format string.
         def month_name(number)
           if @options[:use_month_numbers]
             number
           elsif @options[:use_two_digit_numbers]
-            sprintf "%02d", number
+            '%02d' % number
           elsif @options[:add_month_numbers]
             "#{number} - #{month_names[number]}"
+          elsif format_string = @options[:month_format_string]
+            format_string % {number: number, name: month_names[number]}
           else
             month_names[number]
           end
@@ -950,7 +965,7 @@ module ActionView
             :name => input_name_from_type(type)
           }.merge!(@html_options)
           select_options[:disabled] = 'disabled' if @options[:disabled]
-          select_options[:class] = type if @options[:with_css_classes]
+          select_options[:class] = [select_options[:class], type].compact.join(' ') if @options[:with_css_classes]
 
           select_html = "\n"
           select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]
@@ -1070,7 +1085,7 @@ module ActionView
       # Wraps ActionView::Helpers::DateHelper#datetime_select for form builders:
       #
       #   <%= form_for @person do |f| %>
-      #     <%= f.time_select :last_request_at %>
+      #     <%= f.datetime_select :last_request_at %>
       #     <%= f.submit %>
       #   <% end %>
       #

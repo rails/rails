@@ -66,16 +66,6 @@ class InfoTest < ActiveSupport::TestCase
   end
 
   protected
-    def svn_info=(info)
-      Rails::Info.module_eval do
-        class << self
-          def svn_info
-            info
-          end
-        end
-      end
-    end
-
     def properties
       Rails::Info.properties
     end

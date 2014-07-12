@@ -37,6 +37,8 @@ module StaticTests
   end
 
   def test_served_static_file_with_non_english_filename
+    jruby_skip "Stop skipping if following bug gets fixed: " \
+      "http://jira.codehaus.org/browse/JRUBY-7192"
     assert_html "means hello in Japanese\n", get("/foo/#{Rack::Utils.escape("こんにちは.html")}")
   end
 
@@ -133,11 +135,16 @@ module StaticTests
     end
 
     def with_static_file(file)
-      path = "#{FIXTURE_LOAD_PATH}/public" + file
-      File.open(path, "wb+") { |f| f.write(file) }
+      path = "#{FIXTURE_LOAD_PATH}/#{public_path}" + file
+      begin
+        File.open(path, "wb+") { |f| f.write(file) }
+      rescue Errno::EPROTO
+        skip "Couldn't create a file #{path}"
+      end
+
       yield file
     ensure
-      File.delete(path)
+      File.delete(path) if File.exist? path
     end
 end
 
@@ -145,11 +152,24 @@ class StaticTest < ActiveSupport::TestCase
   DummyApp = lambda { |env|
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
-  App = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
 
   def setup
-    @app = App
+    @app = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
+  end
+
+  def public_path
+    "public"
   end
 
   include StaticTests
+end
+
+class StaticEncodingTest < StaticTest
+  def setup
+    @app = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/公共", "public, max-age=60")
+  end
+
+  def public_path
+    "公共"
+  end
 end

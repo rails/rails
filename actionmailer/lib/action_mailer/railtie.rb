@@ -18,6 +18,11 @@ module ActionMailer
       options.assets_dir      ||= paths["public"].first
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
+      options.show_previews = Rails.env.development? if options.show_previews.nil?
+
+      if options.show_previews
+        options.preview_path  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
+      end
 
       # make sure readers methods get compiled
       options.asset_host          ||= app.config.asset_host
@@ -29,15 +34,29 @@ module ActionMailer
         include app.routes.mounted_helpers
 
         register_interceptors(options.delete(:interceptors))
+        register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
 
         options.each { |k,v| send("#{k}=", v) }
+
+        if options.show_previews
+          app.routes.append do
+            get '/rails/mailers'         => "rails/mailers#index"
+            get '/rails/mailers/*path'   => "rails/mailers#preview"
+          end
+        end
       end
     end
 
     initializer "action_mailer.compile_config_methods" do
       ActiveSupport.on_load(:action_mailer) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
+      end
+    end
+
+    config.after_initialize do
+      if ActionMailer::Base.preview_path
+        ActiveSupport::Dependencies.autoload_paths << ActionMailer::Base.preview_path
       end
     end
   end

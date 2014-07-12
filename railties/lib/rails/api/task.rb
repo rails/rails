@@ -7,7 +7,6 @@ module Rails
         'activesupport' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/active_support/**/*.rb
           ),
           :exclude => 'lib/active_support/vendor/*'
@@ -16,16 +15,13 @@ module Rails
         'activerecord' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/active_record/**/*.rb
-          ),
-          :exclude => 'lib/active_record/vendor/*'
+          )
         },
 
         'activemodel' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/active_model/**/*.rb
           )
         },
@@ -33,29 +29,30 @@ module Rails
         'actionpack' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/abstract_controller/**/*.rb
             lib/action_controller/**/*.rb
             lib/action_dispatch/**/*.rb
+          )
+        },
+
+        'actionview' => {
+          :include => %w(
+            README.rdoc
             lib/action_view/**/*.rb
           ),
-          :exclude => 'lib/action_controller/vendor/*'
+          :exclude => 'lib/action_view/vendor/*'
         },
 
         'actionmailer' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
             lib/action_mailer/**/*.rb
-          ),
-          :exclude => 'lib/action_mailer/vendor/*'
+          )
         },
 
         'railties' => {
           :include => %w(
             README.rdoc
-            CHANGELOG.md
-            MIT-LICENSE
             lib/**/*.rb
           ),
           :exclude => 'lib/rails/generators/rails/**/templates/**/*.rb'
@@ -135,9 +132,17 @@ module Rails
       def api_dir
         'doc/rdoc'
       end
+    end
 
+    class EdgeTask < RepoTask
       def rails_version
         "master@#{`git rev-parse HEAD`[0, 7]}"
+      end
+    end
+
+    class StableTask < RepoTask
+      def rails_version
+        File.read('RAILS_VERSION').strip
       end
     end
 

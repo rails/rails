@@ -41,13 +41,13 @@ class ActionsTest < Rails::Generators::TestCase
   def test_add_source_adds_source_to_gemfile
     run_generator
     action :add_source, 'http://gems.github.com'
-    assert_file 'Gemfile', /source "http:\/\/gems\.github\.com"/
+    assert_file 'Gemfile', /source 'http:\/\/gems\.github\.com'/
   end
 
   def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, 'will-paginate'
-    assert_file 'Gemfile', /gem "will\-paginate"/
+    assert_file 'Gemfile', /gem 'will\-paginate'/
   end
 
   def test_gem_with_version_should_include_version_in_gemfile
@@ -55,7 +55,7 @@ class ActionsTest < Rails::Generators::TestCase
 
     action :gem, 'rspec', '>=2.0.0.a5'
 
-    assert_file 'Gemfile', /gem "rspec", ">=2.0.0.a5"/
+    assert_file 'Gemfile', /gem 'rspec', '>=2.0.0.a5'/
   end
 
   def test_gem_should_insert_on_separate_lines
@@ -66,8 +66,8 @@ class ActionsTest < Rails::Generators::TestCase
     action :gem, 'rspec'
     action :gem, 'rspec-rails'
 
-    assert_file 'Gemfile', /^gem "rspec"$/
-    assert_file 'Gemfile', /^gem "rspec-rails"$/
+    assert_file 'Gemfile', /^gem 'rspec'$/
+    assert_file 'Gemfile', /^gem 'rspec-rails'$/
   end
 
   def test_gem_should_include_options
@@ -75,7 +75,15 @@ class ActionsTest < Rails::Generators::TestCase
 
     action :gem, 'rspec', github: 'dchelimsky/rspec', tag: '1.2.9.rc1'
 
-    assert_file 'Gemfile', /gem "rspec", github: "dchelimsky\/rspec", tag: "1\.2\.9\.rc1"/
+    assert_file 'Gemfile', /gem 'rspec', github: 'dchelimsky\/rspec', tag: '1\.2\.9\.rc1'/
+  end
+
+  def test_gem_falls_back_to_inspect_if_string_contains_single_quote
+    run_generator
+
+    action :gem, 'rspec', ">=2.0'0"
+
+    assert_file 'Gemfile', /^gem 'rspec', ">=2\.0'0"$/
   end
 
   def test_gem_group_should_wrap_gems_in_a_group
@@ -89,7 +97,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem 'fakeweb'
     end
 
-    assert_file 'Gemfile', /\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend/
+    assert_file 'Gemfile', /\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block

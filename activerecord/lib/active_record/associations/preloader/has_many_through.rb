@@ -4,7 +4,7 @@ module ActiveRecord
       class HasManyThrough < CollectionAssociation #:nodoc:
         include ThroughAssociation
 
-        def associated_records_by_owner
+        def associated_records_by_owner(preloader)
           records_by_owner = super
 
           if reflection_scope.distinct_value

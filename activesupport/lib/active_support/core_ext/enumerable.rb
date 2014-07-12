@@ -35,7 +35,7 @@ module Enumerable
     if block_given?
       Hash[map { |elem| [yield(elem), elem] }]
     else
-      to_enum :index_by
+      to_enum(:index_by) { size if respond_to?(:size) }
     end
   end
 

@@ -30,7 +30,12 @@ module Rails
 
       protected
         attr_reader :file_name
-        alias :singular_name :file_name
+
+        # FIXME: We are avoiding to use alias because a bug on thor that make
+        # this method public and add it to the task list.
+        def singular_name
+          file_name
+        end
 
         # Wrap block with namespace of current application
         # if namespace exists and is not skipped
@@ -90,7 +95,7 @@ module Rails
         end
 
         def namespaced_path
-          @namespaced_path ||= namespace.name.split("::").map {|m| m.underscore }[0]
+          @namespaced_path ||= namespace.name.split("::").first.underscore
         end
 
         def class_name

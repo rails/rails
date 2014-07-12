@@ -1,6 +1,8 @@
 require 'fileutils'
+require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
+require 'active_support/message_verifier'
 require 'rails/engine'
 
 module Rails
@@ -51,6 +53,29 @@ module Rails
   #   10) Run config.before_eager_load and eager_load! if eager_load is true
   #   11) Run config.after_initialize callbacks
   #
+  # == Multiple Applications
+  #
+  # If you decide to define multiple applications, then the first application
+  # that is initialized will be set to +Rails.application+, unless you override
+  # it with a different application.
+  #
+  # To create a new application, you can instantiate a new instance of a class
+  # that has already been created:
+  #
+  #   class Application < Rails::Application
+  #   end
+  #
+  #   first_application  = Application.new
+  #   second_application = Application.new(config: first_application.config)
+  #
+  # In the above example, the configuration from the first application was used
+  # to initialize the second application. You can also use the +initialize_copy+
+  # on one of the applications to create a copy of the application which shares
+  # the configuration.
+  #
+  # If you decide to define rake tasks, runners, or initializers in an
+  # application other than +Rails.application+, then you must run those
+  # these manually.
   class Application < Engine
     autoload :Bootstrap,              'rails/application/bootstrap'
     autoload :Configuration,          'rails/application/configuration'
@@ -61,12 +86,16 @@ module Rails
 
     class << self
       def inherited(base)
-        raise "You cannot have more than one Rails::Application" if Rails.application
         super
-        Rails.application = base.instance
-        Rails.application.add_lib_to_load_path!
-        ActiveSupport.run_load_hooks(:before_configuration, base.instance)
+        base.instance
       end
+
+      # Makes the +new+ method public.
+      #
+      # Note that Rails::Application inherits from Rails::Engine, which
+      # inherits from Rails::Railtie and the +new+ method on Rails::Railtie is
+      # private
+      public :new
     end
 
     attr_accessor :assets, :sandbox
@@ -75,14 +104,31 @@ module Rails
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
-    def initialize
-      super
-      @initialized      = false
-      @reloaders        = []
-      @routes_reloader  = nil
-      @app_env_config   = nil
-      @ordered_railties = nil
-      @railties         = nil
+    INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
+                         :routes, :helpers, :app_env_config, :secrets] # :nodoc:
+
+    def initialize(initial_variable_values = {}, &block)
+      super()
+      @initialized       = false
+      @reloaders         = []
+      @routes_reloader   = nil
+      @app_env_config    = nil
+      @ordered_railties  = nil
+      @railties          = nil
+      @message_verifiers = {}
+
+      Rails.application ||= self
+
+      add_lib_to_load_path!
+      ActiveSupport.run_load_hooks(:before_configuration, self)
+
+      initial_variable_values.each do |variable_name, value|
+        if INITIAL_VARIABLES.include?(variable_name)
+          instance_variable_set("@#{variable_name}", value)
+        end
+      end
+
+      instance_eval(&block) if block_given?
     end
 
     # Returns true if the application is initialized.
@@ -107,13 +153,37 @@ module Rails
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @caching_key_generator ||= begin
-        if config.secret_key_base
-          key_generator = ActiveSupport::KeyGenerator.new(config.secret_key_base, iterations: 1000)
+      @caching_key_generator ||=
+        if secrets.secret_key_base
+          key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
           ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
         end
+    end
+
+    # Returns a message verifier object.
+    #
+    # This verifier can be used to generate and verify signed messages in the application.
+    #
+    # It is recommended not to use the same verifier for different things, so you can get different
+    # verifiers passing the +verifier_name+ argument.
+    #
+    # ==== Parameters
+    #
+    # * +verifier_name+ - the name of the message verifier.
+    #
+    # ==== Examples
+    #
+    #     message = Rails.application.message_verifier('sensitive_data').generate('my sensible data')
+    #     Rails.application.message_verifier('sensitive_data').verify(message)
+    #     # => 'my sensible data'
+    #
+    # See the +ActiveSupport::MessageVerifier+ documentation for more information.
+    def message_verifier(verifier_name)
+      @message_verifiers[verifier_name] ||= begin
+        secret = key_generator.generate_key(verifier_name.to_s)
+        ActiveSupport::MessageVerifier.new(secret)
       end
     end
 
@@ -127,7 +197,7 @@ module Rails
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => config.secret_token,
-          "action_dispatch.secret_key_base" => config.secret_key_base,
+          "action_dispatch.secret_key_base" => secrets.secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.logger" => Rails.logger,
@@ -136,9 +206,46 @@ module Rails
           "action_dispatch.http_auth_salt" => config.action_dispatch.http_auth_salt,
           "action_dispatch.signed_cookie_salt" => config.action_dispatch.signed_cookie_salt,
           "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
-          "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
+          "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
+          "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer
         })
       end
+    end
+
+    # If you try to define a set of rake tasks on the instance, these will get
+    # passed up to the rake tasks defined on the application's class.
+    def rake_tasks(&block)
+      self.class.rake_tasks(&block)
+    end
+
+    # Sends the initializers to the +initializer+ method defined in the
+    # Rails::Initializable module. Each Rails::Application class has its own
+    # set of initializers, as defined by the Initializable module.
+    def initializer(name, opts={}, &block)
+      self.class.initializer(name, opts, &block)
+    end
+
+    # Sends any runner called in the instance of a new application up
+    # to the +runner+ method defined in Rails::Railtie.
+    def runner(&blk)
+      self.class.runner(&blk)
+    end
+
+    # Sends any console called in the instance of a new application up
+    # to the +console+ method defined in Rails::Railtie.
+    def console(&blk)
+      self.class.console(&blk)
+    end
+
+    # Sends any generators called in the instance of a new application up
+    # to the +generators+ method defined in Rails::Railtie.
+    def generators(&blk)
+      self.class.generators(&blk)
+    end
+
+    # Sends the +isolate_namespace+ method up to the class method.
+    def isolate_namespace(mod)
+      self.class.isolate_namespace(mod)
     end
 
     ## Rails internal API
@@ -158,7 +265,9 @@ module Rails
     # you need to load files in lib/ during the application configuration as well.
     def add_lib_to_load_path! #:nodoc:
       path = File.join config.root, 'lib'
-      $LOAD_PATH.unshift(path) if File.exists?(path)
+      if File.exist?(path) && !$LOAD_PATH.include?(path)
+        $LOAD_PATH.unshift(path)
+      end
     end
 
     def require_environment! #:nodoc:
@@ -202,12 +311,61 @@ module Rails
       @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
     end
 
+    def config=(configuration) #:nodoc:
+      @config = configuration
+    end
+
+    def secrets #:nodoc:
+      @secrets ||= begin
+        secrets = ActiveSupport::OrderedOptions.new
+        yaml = config.paths["config/secrets"].first
+        if File.exist?(yaml)
+          require "erb"
+          all_secrets = YAML.load(ERB.new(IO.read(yaml)).result) || {}
+          env_secrets = all_secrets[Rails.env]
+          secrets.merge!(env_secrets.symbolize_keys) if env_secrets
+        end
+
+        # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
+        secrets.secret_key_base ||= config.secret_key_base
+
+        secrets
+      end
+    end
+
+    def secrets=(secrets) #:nodoc:
+      @secrets = secrets
+    end
+
     def to_app #:nodoc:
       self
     end
 
     def helpers_paths #:nodoc:
       config.helpers_paths
+    end
+
+    console do
+      require "pp"
+    end
+
+    console do
+      unless ::Kernel.private_method_defined?(:y)
+        if RUBY_VERSION >= '2.0'
+          require "psych/y"
+        else
+          module ::Kernel
+            def y(*objects)
+              puts ::Psych.dump_stream(*objects)
+            end
+            private :y
+          end
+        end
+      end
+    end
+
+    def migration_railties # :nodoc:
+      (ordered_railties & railties_without_main_app).reverse
     end
 
   protected
@@ -218,9 +376,9 @@ module Rails
       railties.each { |r| r.run_tasks_blocks(app) }
       super
       require "rails/tasks"
-      config = self.config
       task :environment do
-        config.eager_load = false
+        ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
+
         require_environment!
       end
     end
@@ -238,6 +396,11 @@ module Rails
     def run_console_blocks(app) #:nodoc:
       railties.each { |r| r.run_console_blocks(app) }
       super
+    end
+
+    def railties_without_main_app # :nodoc:
+      @railties_without_main_app ||= Rails::Railtie.subclasses.map(&:instance) +
+        Rails::Engine.subclasses.map(&:instance)
     end
 
     # Returns the ordered railties for this application considering railties_order.
@@ -293,8 +456,8 @@ module Rails
     end
 
     def validate_secret_key_config! #:nodoc:
-      if config.secret_key_base.blank? && config.secret_token.blank?
-        raise "You must set config.secret_key_base in your app's config."
+      if secrets.secret_key_base.blank? && config.secret_token.blank?
+        raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
       end
     end
   end

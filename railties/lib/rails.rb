@@ -10,7 +10,6 @@ require 'active_support/core_ext/array/extract_options'
 
 require 'rails/application'
 require 'rails/version'
-require 'rails/deprecation'
 
 require 'active_support/railtie'
 require 'action_dispatch/railtie'
@@ -26,6 +25,7 @@ module Rails
 
   autoload :Info
   autoload :InfoController
+  autoload :MailersController
   autoload :WelcomeController
 
   class << self
@@ -78,10 +78,6 @@ module Rails
       groups.compact!
       groups.uniq!
       groups
-    end
-
-    def version
-      VERSION::STRING
     end
 
     def public_path

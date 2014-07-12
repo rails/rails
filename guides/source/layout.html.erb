@@ -1,10 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 <title><%= yield(:page_title) || 'Ruby on Rails Guides' %></title>
 <link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
@@ -36,7 +35,6 @@
         <li class="more-info"><a href="https://github.com/rails/rails">Code</a></li>
         <li class="more-info"><a href="http://rubyonrails.org/screencasts">Screencasts</a></li>
         <li class="more-info"><a href="http://rubyonrails.org/documentation">Documentation</a></li>
-        <li class="more-info"><a href="http://rubyonrails.org/ecosystem">Ecosystem</a></li>
         <li class="more-info"><a href="http://rubyonrails.org/community">Community</a></li>
         <li class="more-info"><a href="http://weblog.rubyonrails.org/">Blog</a></li>
       </ul>
@@ -48,7 +46,7 @@
       <ul class="nav">
         <li><a class="nav-item" href="index.html">Home</a></li>
         <li class="guides-index guides-index-large">
-          <a href="index.html" onclick="guideMenu(); return false;" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
           <div id="guides" class="clearfix" style="display: none;">
             <hr />
             <% ['L', 'R'].each do |position| %>
@@ -78,7 +76,6 @@
           </select>
         </li>
       </ul>
-      </div>
     </div>
   </div>
   <hr class="hide" />
@@ -101,19 +98,15 @@
           You're encouraged to help improve the quality of this guide.
         </p>
         <p>
-          If you see any typos or factual errors that you are confident to fix,
-          you can push the fix to <%= link_to 'docrails', 'https://github.com/rails/docrails' %> (Ask
-          the <%= link_to 'Rails core team', 'http://rubyonrails.org/core' %> for push access).
-          If you choose to open a pull request, please do it in <%= link_to 'Rails', 'https://github.com/rails/rails' %>
-          and not in the <%= link_to 'docrails', 'https://github.com/rails/docrails' %> repository.
-          Commits made to docrails are still reviewed, but that happens after you've submitted your
-          contribution. <%= link_to 'docrails', 'https://github.com/rails/docrails' %> is
-          cross-merged with master periodically.
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <%= link_to 'documentation contributions', 'http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation' %> section.
         </p>
         <p>
           You may also find incomplete content, or stuff that is not up to date.
-          Please do add any missing documentation for master. Check the
-          <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
+          Please do add any missing documentation for master. Make sure to check
+          <%= link_to 'Edge Guides','http://edgeguides.rubyonrails.org' %> first to verify
+          if the issues are already fixed or not on the master branch.
+          Check the <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
           for style and conventions.
         </p>
         <p>
@@ -143,7 +136,7 @@
   <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushSql.js"></script>
   <script type="text/javascript" src="javascripts/syntaxhighlighter/shBrushPlain.js"></script>
   <script type="text/javascript">
-    SyntaxHighlighter.all()
+    SyntaxHighlighter.all();
     $(guidesIndex.bind);
   </script>
 </body>

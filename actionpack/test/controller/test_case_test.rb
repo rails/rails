@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
+require 'active_support/json/decoding'
 
 class TestCaseTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -160,6 +161,29 @@ XML
     def view_assigns
       { "bar" => "bar" }
     end
+  end
+
+  class DefaultUrlOptionsCachingController < ActionController::Base
+    before_action { @dynamic_opt = 'opt' }
+
+    def test_url_options_reset
+      render text: url_for(params)
+    end
+
+    def default_url_options
+      if defined?(@dynamic_opt)
+        super.merge dynamic_opt: @dynamic_opt
+      else
+        super
+      end
+    end
+  end
+
+  def test_url_options_reset
+    @controller = DefaultUrlOptionsCachingController.new
+    get :test_url_options_reset
+    assert_nil @request.params['dynamic_opt']
+    assert_match(/dynamic_opt=opt/, @response.body)
   end
 
   def test_raw_post_handling
@@ -622,7 +646,7 @@ XML
     @request.headers['Referer'] = "http://nohost.com/home"
     @request.headers['Content-Type'] = "application/rss+xml"
     get :test_headers
-    parsed_env = JSON.parse(@response.body)
+    parsed_env = ActiveSupport::JSON.decode(@response.body)
     assert_equal "http://nohost.com/home", parsed_env["HTTP_REFERER"]
     assert_equal "application/rss+xml", parsed_env["CONTENT_TYPE"]
   end
@@ -631,14 +655,14 @@ XML
     @request.headers['HTTP_REFERER'] = "http://example.com/about"
     @request.headers['CONTENT_TYPE'] = "application/json"
     get :test_headers
-    parsed_env = JSON.parse(@response.body)
+    parsed_env = ActiveSupport::JSON.decode(@response.body)
     assert_equal "http://example.com/about", parsed_env["HTTP_REFERER"]
     assert_equal "application/json", parsed_env["CONTENT_TYPE"]
   end
 
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
-    assert_kind_of String, @request.path_parameters['id']
+    assert_kind_of String, @request.path_parameters[:id]
   end
 
   def test_array_path_parameter_handled_properly
@@ -649,17 +673,17 @@ XML
       end
 
       get :test_params, :path => ['hello', 'world']
-      assert_equal ['hello', 'world'], @request.path_parameters['path']
-      assert_equal 'hello/world', @request.path_parameters['path'].to_param
+      assert_equal ['hello', 'world'], @request.path_parameters[:path]
+      assert_equal 'hello/world', @request.path_parameters[:path].to_param
     end
   end
 
   def test_assert_realistic_path_parameters
     get :test_params, :id => 20, :foo => Object.new
 
-    # All elements of path_parameters should use string keys
+    # All elements of path_parameters should use Symbol keys
     @request.path_parameters.keys.each do |key|
-      assert_kind_of String, key
+      assert_kind_of Symbol, key
     end
   end
 
@@ -705,12 +729,20 @@ XML
     assert @request.params[:foo].blank?
   end
 
-  def test_symbolized_path_params_reset_after_request
+  def test_filtered_parameters_reset_between_requests
+    get :no_op, :foo => "bar"
+    assert_equal "bar", @request.filtered_parameters[:foo]
+
+    get :no_op, :foo => "baz"
+    assert_equal "baz", @request.filtered_parameters[:foo]
+  end
+
+  def test_path_params_reset_after_request
     get :test_params, :id => "foo"
-    assert_equal "foo", @request.symbolized_path_parameters[:id]
+    assert_equal "foo", @request.path_parameters[:id]
     @request.recycle!
     get :test_params
-    assert_nil @request.symbolized_path_parameters[:id]
+    assert_nil @request.path_parameters[:id]
   end
 
   def test_request_protocol_is_reset_after_request

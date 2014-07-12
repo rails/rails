@@ -39,6 +39,8 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_external() redirect_to "http://www.rubyonrails.org"; end
 
+  def redirect_external_protocol_relative() redirect_to "//www.rubyonrails.org"; end
+
   def response404() head '404 AWOL' end
 
   def response500() head '500 Sorry' end
@@ -258,6 +260,19 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     end
   end
 
+  def test_assert_redirect_failure_message_with_protocol_relative_url
+    begin
+      process :redirect_external_protocol_relative
+      assert_redirected_to "/foo"
+    rescue ActiveSupport::TestCase::Assertion => ex
+      assert_no_match(
+        /#{request.protocol}#{request.host}\/\/www.rubyonrails.org/,
+        ex.message,
+        'protocol relative url was incorrectly normalized'
+      )
+    end
+  end
+
   def test_template_objects_exist
     process :assign_this
     assert !@controller.instance_variable_defined?(:"@hi")
@@ -309,6 +324,9 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
     process :redirect_external
     assert_equal 'http://www.rubyonrails.org', @response.redirect_url
+
+    process :redirect_external_protocol_relative
+    assert_equal '//www.rubyonrails.org', @response.redirect_url
   end
 
   def test_no_redirect_url
@@ -426,22 +444,18 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_assert_response_uses_exception_message
     @controller = AssertResponseWithUnexpectedErrorController.new
-    get :index
+    e = assert_raise RuntimeError, 'Expected non-success response' do
+      get :index
+    end
     assert_response :success
-    flunk 'Expected non-success response'
-  rescue RuntimeError => e
-    assert e.message.include?('FAIL')
+    assert_includes 'FAIL', e.message
   end
 
   def test_assert_response_failure_response_with_no_exception
     @controller = AssertResponseWithUnexpectedErrorController.new
     get :show
-    assert_response :success
-    flunk 'Expected non-success response'
-  rescue ActiveSupport::TestCase::Assertion
-    # success
-  rescue
-    flunk "assert_response failed to handle failure response with missing, but optional, exception."
+    assert_response 500
+    assert_equal 'Boom', response.body
   end
 end
 

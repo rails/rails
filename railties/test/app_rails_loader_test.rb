@@ -22,8 +22,14 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
     exe = "#{script_dir}/rails"
 
     test "is not in a Rails application if #{exe} is not found in the current or parent directories" do
-      File.stubs(:exists?).with('bin/rails').returns(false)
-      File.stubs(:exists?).with('script/rails').returns(false)
+      File.stubs(:file?).with('bin/rails').returns(false)
+      File.stubs(:file?).with('script/rails').returns(false)
+
+      assert !Rails::AppRailsLoader.exec_app_rails
+    end
+
+    test "is not in a Rails application if #{exe} exists but is a folder" do
+      FileUtils.mkdir_p(exe)
 
       assert !Rails::AppRailsLoader.exec_app_rails
     end

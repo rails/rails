@@ -19,8 +19,6 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def assert_distance_of_time_in_words(from, to=nil)
-    Fixnum.send :private, :/  # test we avoid Integer#/ (redefined by mathn)
-
     to ||= from
 
     # 0..1 minute with :include_seconds => true
@@ -123,12 +121,16 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "about 4 hours", distance_of_time_in_words(from + 4.hours, to)
     assert_equal "less than 20 seconds", distance_of_time_in_words(from + 19.seconds, to, :include_seconds => true)
     assert_equal "less than a minute", distance_of_time_in_words(from + 19.seconds, to, :include_seconds => false)
-
-  ensure
-    Fixnum.send :public, :/
   end
 
   def test_distance_in_words
+    from = Time.utc(2004, 6, 6, 21, 45, 0)
+    assert_distance_of_time_in_words(from)
+  end
+
+  def test_distance_in_words_with_mathn_required
+    # test we avoid Integer#/ (redefined by mathn)
+    require 'mathn'
     from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
   end
@@ -322,6 +324,16 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), :add_month_numbers => true)
     assert_dom_equal expected, select_month(8, :add_month_numbers => true)
+  end
+
+  def test_select_month_with_format_string
+    expected = %(<select id="date_month" name="date[month]">\n)
+    expected << %(<option value="1">January (01)</option>\n<option value="2">February (02)</option>\n<option value="3">March (03)</option>\n<option value="4">April (04)</option>\n<option value="5">May (05)</option>\n<option value="6">June (06)</option>\n<option value="7">July (07)</option>\n<option value="8" selected="selected">August (08)</option>\n<option value="9">September (09)</option>\n<option value="10">October (10)</option>\n<option value="11">November (11)</option>\n<option value="12">December (12)</option>\n)
+    expected << "</select>\n"
+
+    format_string = '%{name} (%<number>02d)'
+    assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), :month_format_string => format_string)
+    assert_dom_equal expected, select_month(8, :month_format_string => format_string)
   end
 
   def test_select_month_with_numbers_and_names_with_abbv
@@ -1026,6 +1038,22 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005, :prefix => "date[first]", :with_css_classes => true})
+  end
+
+  def test_select_date_with_css_classes_option_and_html_class_option
+    expected =  %(<select id="date_first_year" name="date[first][year]" class="datetime optional year">\n)
+    expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<select id="date_first_month" name="date[first][month]" class="datetime optional month">\n)
+    expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<select id="date_first_day" name="date[first][day]" class="datetime optional day">\n)
+    expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), {:start_year => 2003, :end_year => 2005, :prefix => "date[first]", :with_css_classes => true}, { class: 'datetime optional' })
   end
 
   def test_select_datetime

@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'active_support/core_ext/date'
+require 'active_support/core_ext/numeric/time'
 
 class AssertDifferenceTest < ActiveSupport::TestCase
   def setup
@@ -19,17 +21,35 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     assert_equal true, assert_not(nil)
     assert_equal true, assert_not(false)
 
-    e = assert_raises(MiniTest::Assertion) { assert_not true }
+    e = assert_raises(Minitest::Assertion) { assert_not true }
     assert_equal 'Expected true to be nil or false', e.message
 
-    e = assert_raises(MiniTest::Assertion) { assert_not true, 'custom' }
+    e = assert_raises(Minitest::Assertion) { assert_not true, 'custom' }
     assert_equal 'custom', e.message
   end
 
-  def test_assert_no_difference
+  def test_assert_no_difference_pass
     assert_no_difference '@object.num' do
       # ...
     end
+  end
+
+  def test_assert_no_difference_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_no_difference '@object.num' do
+        @object.increment
+      end
+    end
+    assert_equal "\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_no_difference_with_message_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_no_difference '@object.num', 'Object Changed' do
+        @object.increment
+      end
+    end
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
   end
 
   def test_assert_difference
@@ -71,7 +91,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   end
 
   def test_array_of_expressions_identify_failure
-    assert_raises(MiniTest::Assertion) do
+    assert_raises(Minitest::Assertion) do
       assert_difference ['@object.num', '1 + 1'] do
         @object.increment
       end
@@ -79,59 +99,11 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   end
 
   def test_array_of_expressions_identify_failure_when_message_provided
-    assert_raises(MiniTest::Assertion) do
+    assert_raises(Minitest::Assertion) do
       assert_difference ['@object.num', '1 + 1'], 1, 'something went wrong' do
         @object.increment
       end
     end
-  end
-end
-
-class AssertBlankTest < ActiveSupport::TestCase
-  BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", [], {} ]
-  NOT_BLANK = [ EmptyFalse.new, Object.new, true, 0, 1, 'x', [nil], { nil => 0 } ]
-
-  def test_assert_blank_true
-    BLANK.each { |value|
-      assert_deprecated { assert_blank value }
-    }
-  end
-
-  def test_assert_blank_false
-    NOT_BLANK.each { |v|
-      assert_deprecated {
-        begin
-          assert_blank v
-          fail 'should not get to here'
-        rescue Exception => e
-          assert_match(/is not blank/, e.message)
-        end
-      }
-    }
-  end
-end
-
-class AssertPresentTest < ActiveSupport::TestCase
-  BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", [], {} ]
-  NOT_BLANK = [ EmptyFalse.new, Object.new, true, 0, 1, 'x', [nil], { nil => 0 } ]
-
-  def test_assert_present_true
-    NOT_BLANK.each { |v|
-      assert_deprecated { assert_present v }
-    }
-  end
-
-  def test_assert_present_false
-    BLANK.each { |v|
-      assert_deprecated {
-        begin
-          assert_present v
-          fail 'should not get to here'
-        rescue Exception => e
-          assert_match(/is blank/, e.message)
-        end
-      }
-    }
   end
 end
 
@@ -170,7 +142,6 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
     end
 end
 
-
 class SubclassSetupAndTeardownTest < SetupAndTeardownTest
   setup :bar
   teardown :bar
@@ -191,7 +162,6 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
     end
 end
 
-
 class TestCaseTaggedLoggingTest < ActiveSupport::TestCase
   def before_setup
     require 'stringio'
@@ -202,5 +172,67 @@ class TestCaseTaggedLoggingTest < ActiveSupport::TestCase
 
   def test_logs_tagged_with_current_test_case
     assert_match "#{self.class}: #{name}\n", @out.string
+  end
+end
+
+class TimeHelperTest < ActiveSupport::TestCase
+  setup do
+    Time.stubs now: Time.now
+  end
+
+  teardown do
+    travel_back
+  end
+
+  def test_time_helper_travel
+    expected_time = Time.now + 1.day
+    travel 1.day
+
+    assert_equal expected_time, Time.now
+    assert_equal expected_time.to_date, Date.today
+  end
+
+  def test_time_helper_travel_with_block
+    expected_time = Time.now + 1.day
+
+    travel 1.day do
+      assert_equal expected_time, Time.now
+      assert_equal expected_time.to_date, Date.today
+    end
+
+    assert_not_equal expected_time, Time.now
+    assert_not_equal expected_time.to_date, Date.today
+  end
+
+  def test_time_helper_travel_to
+    expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+    travel_to expected_time
+
+    assert_equal expected_time, Time.now
+    assert_equal Date.new(2004, 11, 24), Date.today
+  end
+
+  def test_time_helper_travel_to_with_block
+    expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+
+    travel_to expected_time do
+      assert_equal expected_time, Time.now
+      assert_equal Date.new(2004, 11, 24), Date.today
+    end
+
+    assert_not_equal expected_time, Time.now
+    assert_not_equal Date.new(2004, 11, 24), Date.today
+  end
+
+  def test_time_helper_travel_back
+    expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+
+    travel_to expected_time
+    assert_equal expected_time, Time.now
+    assert_equal Date.new(2004, 11, 24), Date.today
+    travel_back
+
+    assert_not_equal expected_time, Time.now
+    assert_not_equal Date.new(2004, 11, 24), Date.today
   end
 end

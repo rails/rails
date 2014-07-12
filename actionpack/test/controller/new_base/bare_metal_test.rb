@@ -2,6 +2,8 @@ require "abstract_unit"
 
 module BareMetalTest
   class BareController < ActionController::Metal
+    include ActionController::RackDelegation
+
     def index
       self.response_body = "Hello world"
     end
@@ -81,8 +83,8 @@ module BareMetalTest
       assert_nil headers['Content-Length']
     end
 
-    test "head :continue (101) does not return a content-type header" do
-      headers = HeadController.action(:continue).call(Rack::MockRequest.env_for("/")).second
+    test "head :switching_protocols (101) does not return a content-type header" do
+      headers = HeadController.action(:switching_protocols).call(Rack::MockRequest.env_for("/")).second
       assert_nil headers['Content-Type']
       assert_nil headers['Content-Length']
     end

@@ -6,7 +6,7 @@ require 'models/person'
 class I18nValidationTest < ActiveModel::TestCase
 
   def setup
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
     @person = Person.new
 
     @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
@@ -16,9 +16,10 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def teardown
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
+    I18n.backend.reload!
   end
 
   def test_full_message_encoding

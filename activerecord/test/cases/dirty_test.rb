@@ -125,30 +125,30 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_time_attributes_changes_without_time_zone
-    target = Class.new(ActiveRecord::Base)
-    target.table_name = 'pirates'
+    with_timezone_config aware_attributes: false do
+      target = Class.new(ActiveRecord::Base)
+      target.table_name = 'pirates'
 
-    target.time_zone_aware_attributes = false
+      # New record - no changes.
+      pirate = target.new
+      assert !pirate.created_on_changed?
+      assert_nil pirate.created_on_change
 
-    # New record - no changes.
-    pirate = target.new
-    assert !pirate.created_on_changed?
-    assert_nil pirate.created_on_change
+      # Saved - no changes.
+      pirate.catchphrase = 'arrrr, time zone!!'
+      pirate.save!
+      assert !pirate.created_on_changed?
+      assert_nil pirate.created_on_change
 
-    # Saved - no changes.
-    pirate.catchphrase = 'arrrr, time zone!!'
-    pirate.save!
-    assert !pirate.created_on_changed?
-    assert_nil pirate.created_on_change
-
-    # Change created_on.
-    old_created_on = pirate.created_on
-    pirate.created_on = Time.now + 1.day
-    assert pirate.created_on_changed?
-    # kind_of does not work because
-    # ActiveSupport::TimeWithZone.name == 'Time'
-    assert_instance_of Time, pirate.created_on_was
-    assert_equal old_created_on, pirate.created_on_was
+      # Change created_on.
+      old_created_on = pirate.created_on
+      pirate.created_on = Time.now + 1.day
+      assert pirate.created_on_changed?
+      # kind_of does not work because
+      # ActiveSupport::TimeWithZone.name == 'Time'
+      assert_instance_of Time, pirate.created_on_was
+      assert_equal old_created_on, pirate.created_on_was
+    end
   end
 
 
@@ -309,16 +309,14 @@ class DirtyTest < ActiveRecord::TestCase
   def test_attribute_will_change!
     pirate = Pirate.create!(:catchphrase => 'arr')
 
-    pirate.catchphrase << ' matey'
     assert !pirate.catchphrase_changed?
-
     assert pirate.catchphrase_will_change!
     assert pirate.catchphrase_changed?
-    assert_equal ['arr matey', 'arr matey'], pirate.catchphrase_change
+    assert_equal ['arr', 'arr'], pirate.catchphrase_change
 
-    pirate.catchphrase << '!'
+    pirate.catchphrase << ' matey!'
     assert pirate.catchphrase_changed?
-    assert_equal ['arr matey', 'arr matey!'], pirate.catchphrase_change
+    assert_equal ['arr', 'arr matey!'], pirate.catchphrase_change
   end
 
   def test_association_assignment_changes_foreign_key
@@ -445,11 +443,20 @@ class DirtyTest < ActiveRecord::TestCase
   def test_save_should_store_serialized_attributes_even_with_partial_writes
     with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
+
+      assert_not topic.changed?
+
       topic.content[:b] = "b"
-      #assert topic.changed? # Known bug, will fail
+
+      assert topic.changed?
+
       topic.save!
+
+      assert_not topic.changed?
       assert_equal "b", topic.content[:b]
+
       topic.reload
+
       assert_equal "b", topic.content[:b]
     end
   end
@@ -584,6 +591,14 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_datetime_attribute_doesnt_change_if_zone_is_modified_in_string
+    time_in_paris = Time.utc(2014, 1, 1, 12, 0, 0).in_time_zone('Paris')
+    pirate = Pirate.create!(:catchphrase => 'rrrr', :created_on => time_in_paris)
+
+    pirate.created_on = pirate.created_on.in_time_zone('Tokyo').to_s
+    assert !pirate.created_on_changed?
+  end
+
   test "partial insert" do
     with_partial_writes Person do
       jon = nil
@@ -608,18 +623,30 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  test "partial_updates config attribute is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
+  test "defaults with type that implements `type_cast_for_database`" do
+    type = Class.new(ActiveRecord::Type::Value) do
+      def type_cast(value)
+        value.to_i
+      end
 
-    assert klass.partial_writes?
-    assert_deprecated { assert klass.partial_updates? }
-    assert_deprecated { assert klass.partial_updates  }
+      def type_cast_for_database(value)
+        value.to_s
+      end
+    end
 
-    assert_deprecated { klass.partial_updates = false }
+    model_class = Class.new(ActiveRecord::Base) do
+      self.table_name = 'numeric_data'
+      attribute :foo, type.new, default: 1
+    end
 
-    assert !klass.partial_writes?
-    assert_deprecated { assert !klass.partial_updates? }
-    assert_deprecated { assert !klass.partial_updates  }
+    model = model_class.new
+    assert_not model.foo_changed?
+
+    model = model_class.new(foo: 1)
+    assert_not model.foo_changed?
+
+    model = model_class.new(foo: '1')
+    assert_not model.foo_changed?
   end
 
   private

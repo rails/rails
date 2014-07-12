@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name        = 'actionview'
   s.version     = version
   s.summary     = 'Rendering framework putting the V in MVC (part of Rails).'
-  s.description = ''
+  s.description = 'Simple, battle-tested conventions and helpers for building web pages.'
 
   s.required_ruby_version = '>= 1.9.3'
 
@@ -20,10 +20,10 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency 'activesupport', version
-  s.add_dependency 'activemodel',   version
 
-  s.add_dependency 'builder',       '~> 3.1.0'
+  s.add_dependency 'builder',       '~> 3.1'
   s.add_dependency 'erubis',        '~> 2.7.0'
 
-  s.add_development_dependency 'actionpack', version
+  s.add_development_dependency 'actionpack',  version
+  s.add_development_dependency 'activemodel', version
 end

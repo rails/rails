@@ -318,7 +318,7 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-        config.secret_key_base = nil
+        secrets.secret_key_base = nil
       RUBY
 
       require "#{app_path}/config/environment"

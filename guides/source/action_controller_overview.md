@@ -34,7 +34,7 @@ The naming convention of controllers in Rails favors pluralization of the last w
 
 Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
-NOTE: The controller naming convention differs from the naming convention of models, which expected to be named in singular form.
+NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
 
 Methods and Actions
@@ -112,6 +112,10 @@ NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&id
 
 The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.
 
+NOTE: Values such as `[]`, `[nil]` or `[nil, nil, ...]` in `params` are replaced
+with `nil` for security reasons by default. See [Security Guide](security.html#unsafe-query-generation)
+for more information.
+
 To send a hash you include the key name inside the brackets:
 
 ```html
@@ -160,7 +164,7 @@ NOTE: Support for parsing XML parameters has been extracted into a gem named `ac
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-match '/clients/:status' => 'clients#index', foo: 'bar'
+get '/clients/:status' => 'clients#index', foo: 'bar'
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
@@ -209,7 +213,7 @@ class PeopleController < ActionController::Base
   # Request reply.
   def update
     person = current_account.people.find(params[:id])
-    person.update_attributes!(person_params)
+    person.update!(person_params)
     redirect_to person
   end
 
@@ -256,7 +260,7 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any subhash of it
+This will mark the `:log_entry` parameters hash and any sub-hash of it
 permitted. Extreme care should be taken when using `permit!` as it
 will allow all current and future model attributes to be
 mass-assigned.
@@ -321,16 +325,16 @@ in mind. It is not meant as a silver bullet to handle all your
 whitelisting problems. However you can easily mix the API with your
 own code to adapt to your situation.
 
-Imagine a scenario where you want to whitelist an attribute
-containing a hash with any keys. Using strong parameters you can't
-allow a hash with any keys but you can use a simple assignment to get
-the job done:
+Imagine a scenario where you have parameters representing a product
+name and a hash of arbitrary data associated with that product, and
+you want to whitelist the product name attribute but also the whole
+data hash. The strong parameters API doesn't let you directly
+whitelist the whole of a nested hash with any keys, but you can use
+the keys of your nested hash to declare what to whitelist:
 
 ```ruby
 def product_params
-  params.require(:product).permit(:name).tap do |whitelisted|
-    whitelisted[:data] = params[:product][:data]
-  end
+  params.require(:product).permit(:name, data: params[:product][:data].try(:keys))
 end
 ```
 
@@ -346,11 +350,11 @@ Your application has a session for each user in which you can store small amount
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
-For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
+For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof. And it is also encrypted so anyone with access to it can't read its contents. (Rails will not accept it if it has been edited).
 
-The CookieStore can store around 4kB of data — much less than the others — but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+The CookieStore can store around 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
 
-If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using ActionDispatch::Session::CacheStore. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
+If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using `ActionDispatch::Session::CacheStore`. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
 Read more about session storage in the [Security Guide](security.html).
 
@@ -360,33 +364,48 @@ If you need a different session storage mechanism, you can change it in the `con
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
 # (create the session table with "rails g active_record:session_migration")
-# YourApp::Application.config.session_store :active_record_store
+# Rails.application.config.session_store :active_record_store
 ```
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in `config/initializers/session_store.rb`:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
+Rails.application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`
+Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/secrets.yml`
 
 ```ruby
 # Be sure to restart your server when you modify this file.
 
-# Your secret key for verifying the integrity of signed cookies.
+# Your secret key is used for verifying the integrity of signed cookies.
 # If you change this key, all old signed cookies will become invalid!
+
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
+# You can use `rake secret` to generate a secure secret key.
+
+# Make sure the secrets in this file are kept private
+# if you're sharing your code publicly.
+
+development:
+  secret_key_base: a75d...
+
+test:
+  secret_key_base: 492f...
+
+# Do not keep production secrets in the repository,
+# instead read values from the environment.
+production:
+  secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 ```
 
 NOTE: Changing the secret when using the `CookieStore` will invalidate all existing sessions.
@@ -410,7 +429,7 @@ class ApplicationController < ActionController::Base
   # logging out removes it.
   def current_user
     @_current_user ||= session[:current_user_id] &&
-      User.find_by_id(session[:current_user_id])
+      User.find_by(id: session[:current_user_id])
   end
 end
 ```
@@ -538,7 +557,7 @@ end
 Cookies
 -------
 
-Your application can store small amounts of data on the client — called cookies — that will be persisted across requests and even sessions. Rails provides easy access to cookies via the `cookies` method, which — much like the `session` — works like a hash:
+Your application can store small amounts of data on the client - called cookies - that will be persisted across requests and even sessions. Rails provides easy access to cookies via the `cookies` method, which - much like the `session` - works like a hash:
 
 ```ruby
 class CommentsController < ApplicationController
@@ -567,6 +586,62 @@ end
 ```
 
 Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
+
+Rails also provides a signed cookie jar and an encrypted cookie jar for storing
+sensitive data. The signed cookie jar appends a cryptographic signature on the
+cookie values to protect their integrity. The encrypted cookie jar encrypts the
+values in addition to signing them, so that they cannot be read by the end user.
+Refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+for more details.
+
+These special cookie jars use a serializer to serialize the assigned values into
+strings and deserializes them into Ruby objects on read.
+
+You can specify what serializer to use:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = :json
+```
+
+The default serializer for new applications is `:json`. For compatibility with
+old applications with existing cookies, `:marshal` is used when `serializer`
+option is not specified.
+
+You may also set this option to `:hybrid`, in which case Rails would transparently
+deserialize existing (`Marshal`-serialized) cookies on read and re-write them in
+the `JSON` format. This is useful for migrating existing applications to the
+`:json` serializer.
+
+It is also possible to pass a custom serializer that responds to `load` and
+`dump`:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
+```
+
+When using the `:json` or `:hybrid` serializer, you should beware that not all
+Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
+will be serialized as strings, and `Hash`es will have their keys stringified.
+
+```ruby
+class CookiesController < ApplicationController
+  def set_cookie
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
+    redirect_to action: 'read_cookie'
+  end
+
+  def read_cookie
+    cookies.encrypted[:expiration_date] # => "2014-03-20"
+  end
+end
+```
+
+It's advisable that you only store simple data (strings and numbers) in cookies.
+If you have to store complex objects, you would need to handle the conversion
+manually when reading the values on subsequent requests.
+
+If you use the cookie session store, this would apply to the `session` and
+`flash` hash as well.
 
 Rendering XML and JSON data
 ---------------------------
@@ -665,14 +740,17 @@ The first is to use a block directly with the *_action methods. The block receiv
 ```ruby
 class ApplicationController < ActionController::Base
   before_action do |controller|
-    redirect_to new_login_url unless controller.send(:logged_in?)
+    unless controller.send(:logged_in?)
+      flash[:error] = "You must be logged in to access this section"
+      redirect_to new_login_url
+    end
   end
 end
 ```
 
 Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter is not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
 
-The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and can not be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
+The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -680,16 +758,16 @@ class ApplicationController < ActionController::Base
 end
 
 class LoginFilter
-  def self.filter(controller)
+  def self.before(controller)
     unless controller.send(:logged_in?)
-      controller.flash[:error] = "You must be logged in"
+      controller.flash[:error] = "You must be logged in to access this section"
       controller.redirect_to controller.new_login_url
     end
   end
 end
 ```
 
-Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method `filter` which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same `filter` method, which will get run in the same way. The method must `yield` to execute the action. Alternatively, it can have both a `before` and an `after` method that are run before and after the action.
+Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class must implement a method with the same name as the filter, so for the `before_action` filter the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
 
 Request Forgery Protection
 --------------------------
@@ -794,7 +872,7 @@ class AdminsController < ApplicationController
 end
 ```
 
-With this in place, you can create namespaced controllers that inherit from `AdminController`. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
+With this in place, you can create namespaced controllers that inherit from `AdminsController`. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
 ### HTTP Digest Authentication
 
@@ -808,11 +886,11 @@ class AdminsController < ApplicationController
 
   private
 
-  def authenticate
-    authenticate_or_request_with_http_digest do |username|
-      USERS[username]
+    def authenticate
+      authenticate_or_request_with_http_digest do |username|
+        USERS[username]
+      end
     end
-  end
 end
 ```
 
@@ -839,13 +917,13 @@ class ClientsController < ApplicationController
 
   private
 
-  def generate_pdf(client)
-    Prawn::Document.new do
-      text client.name, align: :center
-      text "Address: #{client.address}"
-      text "Email: #{client.email}"
-    end.render
-  end
+    def generate_pdf(client)
+      Prawn::Document.new do
+        text client.name, align: :center
+        text "Address: #{client.address}"
+        text "Email: #{client.email}"
+      end.render
+    end
 end
 ```
 
@@ -907,6 +985,92 @@ Now the user can request to get a PDF version of a client just by adding ".pdf" 
 GET /clients/1.pdf
 ```
 
+### Live Streaming of Arbitrary Data
+
+Rails allows you to stream more than just files. In fact, you can stream anything
+you would like in a response object. The `ActionController::Live` module allows
+you to create a persistent connection with a browser. Using this module, you will
+be able to send arbitrary data to the browser at specific points in time.
+
+#### Incorporating Live Streaming
+
+Including `ActionController::Live` inside of your controller class will provide
+all actions inside of the controller the ability to stream data. You can mix in
+the module like so:
+
+```ruby
+class MyController < ActionController::Base
+  include ActionController::Live
+
+  def stream
+    response.headers['Content-Type'] = 'text/event-stream'
+    100.times {
+      response.stream.write "hello world\n"
+      sleep 1
+    }
+  ensure
+    response.stream.close
+  end
+end
+```
+
+The above code will keep a persistent connection with the browser and send 100
+messages of `"hello world\n"`, each one second apart.
+
+There are a couple of things to notice in the above example. We need to make
+sure to close the response stream. Forgetting to close the stream will leave
+the socket open forever. We also have to set the content type to `text/event-stream`
+before we write to the response stream. This is because headers cannot be written
+after the response has been committed (when `response.committed` returns a truthy
+value), which occurs when you `write` or `commit` the response stream.
+
+#### Example Usage
+
+Let's suppose that you were making a Karaoke machine and a user wants to get the
+lyrics for a particular song. Each `Song` has a particular number of lines and
+each line takes time `num_beats` to finish singing.
+
+If we wanted to return the lyrics in Karaoke fashion (only sending the line when
+the singer has finished the previous line), then we could use `ActionController::Live`
+as follows:
+
+```ruby
+class LyricsController < ActionController::Base
+  include ActionController::Live
+
+  def show
+    response.headers['Content-Type'] = 'text/event-stream'
+    song = Song.find(params[:id])
+
+    song.each do |line|
+      response.stream.write line.lyrics
+      sleep line.num_beats
+    end
+  ensure
+    response.stream.close
+  end
+end
+```
+
+The above code sends the next line only after the singer has completed the previous
+line.
+
+#### Streaming Considerations
+
+Streaming arbitrary data is an extremely powerful tool. As shown in the previous
+examples, you can choose when and what to send across a response stream. However,
+you should also note the following things:
+
+* Each response stream creates a new thread and copies over the thread local
+  variables from the original thread. Having too many thread local variables can
+  negatively impact performance. Similarly, a large number of threads can also
+  hinder performance.
+* Failing to close the response stream will leave the corresponding socket open
+  forever. Make sure to call `close` whenever you are using a response stream.
+* WEBrick servers buffer all responses, and so including `ActionController::Live`
+  will not work. You must use a web server which does not automatically buffer
+  responses.
+
 Log Filtering
 -------------
 
@@ -914,7 +1078,7 @@ Rails keeps a log file for each environment in the `log` folder. These are extre
 
 ### Parameters Filtering
 
-You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+You can filter out sensitive request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
@@ -922,7 +1086,7 @@ config.filter_parameters << :password
 
 ### Redirects Filtering
 
-Sometimes it's desirable to filter out from log files some sensible locations your application is redirecting to.
+Sometimes it's desirable to filter out from log files some sensitive locations your application is redirecting to.
 You can do that by using the `config.filter_redirect` configuration option:
 
 ```ruby
@@ -962,9 +1126,9 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def record_not_found
-    render text: "404 Not Found", status: 404
-  end
+    def record_not_found
+      render plain: "404 Not Found", status: 404
+    end
 end
 ```
 
@@ -976,10 +1140,10 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def user_not_authorized
-    flash[:error] = "You don't have access to this section."
-    redirect_to :back
-  end
+    def user_not_authorized
+      flash[:error] = "You don't have access to this section."
+      redirect_to :back
+    end
 end
 
 class ClientsController < ApplicationController
@@ -993,14 +1157,71 @@ class ClientsController < ApplicationController
 
   private
 
-  # If the user is not authorized, just throw the exception.
-  def check_authorization
-    raise User::NotAuthorized unless current_user.admin?
-  end
+    # If the user is not authorized, just throw the exception.
+    def check_authorization
+      raise User::NotAuthorized unless current_user.admin?
+    end
 end
 ```
 
+WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development). If you would like to dynamically generate error pages, see [Custom errors page](#custom-errors-page).
+
 NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's [article](http://m.onkey.org/2008/7/20/rescue-from-dispatching) on the subject for more information.
+
+
+### Custom errors page
+
+You can customize the layout of your error handling using controllers and views.
+First define your app own routes to display the errors page.
+
+* `config/application.rb`
+
+  ```ruby
+  config.exceptions_app = self.routes
+  ```
+
+* `config/routes.rb`
+
+  ```ruby
+  get '/404', to: 'errors#not_found'
+  get '/422', to: 'errors#unprocessable_entity'
+  get '/500', to: 'errors#server_error'
+  ```
+
+Create the controller and views.
+
+* `app/controllers/errors_controller.rb`
+
+  ```ruby
+  class ErrorsController < ActionController::Base
+    layout 'error'
+
+    def not_found
+      render status: :not_found
+    end
+
+    def unprocessable_entity
+      render status: :unprocessable_entity
+    end
+
+    def server_error
+      render status: :server_error
+    end
+  end
+  ```
+
+* `app/views`
+
+  ```
+    errors/
+      not_found.html.erb
+      unprocessable_entity.html.erb
+      server_error.html.erb
+    layouts/
+      error.html.erb
+  ```
+
+Do not forget to set the correct status code on the controller as shown before. You should avoid using the database or any complex operations because the user is already on the error page. Generating another error while on an error page could cause issues.
 
 Force HTTPS protocol
 --------------------

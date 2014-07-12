@@ -15,14 +15,22 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_simple_invoke
-    assert File.exists?(File.join(@path, 'generators', 'model_generator.rb'))
+    assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     Rails::Generators.invoke("test_unit:model", ["Account"])
   end
 
   def test_invoke_when_generator_is_not_found
-    output = capture(:stdout){ Rails::Generators.invoke :unknown }
-    assert_equal "Could not find generator unknown.\n", output
+    name = :unknown
+    output = capture(:stdout){ Rails::Generators.invoke name }
+    assert_match "Could not find generator '#{name}'", output
+    assert_match "`rails generate --help`", output
+  end
+
+  def test_generator_suggestions
+    name = :migrationz
+    output = capture(:stdout){ Rails::Generators.invoke name }
+    assert_match "Maybe you meant 'migration'", output
   end
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
@@ -31,7 +39,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_should_give_higher_preference_to_rails_generators
-    assert File.exists?(File.join(@path, 'generators', 'model_generator.rb'))
+    assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
     Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     warnings = capture(:stderr){ Rails::Generators.invoke :model, ["Account"] }
     assert warnings.empty?
@@ -106,7 +114,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_rails_generators_help_does_not_include_app_nor_plugin_new
     output = capture(:stdout){ Rails::Generators.help }
     assert_no_match(/app/, output)
-    assert_no_match(/plugin_new/, output)
+    assert_no_match(/[^:]plugin/, output)
   end
 
   def test_rails_generators_with_others_information

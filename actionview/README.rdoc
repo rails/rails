@@ -1,6 +1,9 @@
 = Action View
 
-
+Action View is a framework for handling view template lookup and rendering, and provides
+view helpers that assist when building HTML forms, Atom feeds and more.
+Template formats that Action View handles are ERB (embedded Ruby, typically
+used to inline short Ruby snippets inside HTML), and XML Builder.
 
 == Download and installation
 
@@ -26,6 +29,11 @@ API documentation is at
 
 * http://api.rubyonrails.org
 
-Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+Bug reports can be filed for the Ruby on Rails project here:
 
 * https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+

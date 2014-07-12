@@ -159,7 +159,7 @@ module ActionView
   #   </div>
   #
   # If a collection is given, the layout will be rendered once for each item in
-  # the collection. Just think these two snippets have the same output:
+  # the collection. For example, these two snippets have the same output:
   #
   #   <%# app/views/users/_user.html.erb %>
   #   Name: <%= user.name %>

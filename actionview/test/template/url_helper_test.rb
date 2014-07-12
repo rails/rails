@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'minitest/mock'
 
 class UrlHelperTest < ActiveSupport::TestCase
 
@@ -17,6 +18,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/" => "foo#bar"
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
+    get "/category/:category" => "foo#category"
   end
 
   include ActionView::Helpers::UrlHelper
@@ -51,14 +53,21 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_straight_url
-    assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /></div></form>}, button_to("Hello", "http://www.example.com")
+    assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /></form>}, button_to("Hello", "http://www.example.com")
+  end
+
+  def test_button_to_with_path
+    assert_dom_equal(
+      %{<form method="post" action="/article/Hello" class="button_to"><input type="submit" value="Hello" /></form>},
+      button_to("Hello", article_path("Hello".html_safe))
+    )
   end
 
   def test_button_to_with_straight_url_and_request_forgery
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /><input name="form_token" type="hidden" value="secret" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /><input name="form_token" type="hidden" value="secret" /></form>},
       button_to("Hello", "http://www.example.com")
     )
   ensure
@@ -66,96 +75,103 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_form_class
-    assert_dom_equal %{<form method="post" action="http://www.example.com" class="custom-class"><div><input type="submit" value="Hello" /></div></form>}, button_to("Hello", "http://www.example.com", form_class: 'custom-class')
+    assert_dom_equal %{<form method="post" action="http://www.example.com" class="custom-class"><input type="submit" value="Hello" /></form>}, button_to("Hello", "http://www.example.com", form_class: 'custom-class')
   end
 
   def test_button_to_with_form_class_escapes
-    assert_dom_equal %{<form method="post" action="http://www.example.com" class="&lt;script&gt;evil_js&lt;/script&gt;"><div><input type="submit" value="Hello" /></div></form>}, button_to("Hello", "http://www.example.com", form_class: '<script>evil_js</script>')
+    assert_dom_equal %{<form method="post" action="http://www.example.com" class="&lt;script&gt;evil_js&lt;/script&gt;"><input type="submit" value="Hello" /></form>}, button_to("Hello", "http://www.example.com", form_class: '<script>evil_js</script>')
   end
 
   def test_button_to_with_query
-    assert_dom_equal %{<form method="post" action="http://www.example.com/q1=v1&amp;q2=v2" class="button_to"><div><input type="submit" value="Hello" /></div></form>}, button_to("Hello", "http://www.example.com/q1=v1&q2=v2")
+    assert_dom_equal %{<form method="post" action="http://www.example.com/q1=v1&amp;q2=v2" class="button_to"><input type="submit" value="Hello" /></form>}, button_to("Hello", "http://www.example.com/q1=v1&q2=v2")
   end
 
   def test_button_to_with_html_safe_URL
-    assert_dom_equal %{<form method="post" action="http://www.example.com/q1=v1&amp;q2=v2" class="button_to"><div><input type="submit" value="Hello" /></div></form>}, button_to("Hello", "http://www.example.com/q1=v1&amp;q2=v2".html_safe)
+    assert_dom_equal %{<form method="post" action="http://www.example.com/q1=v1&amp;q2=v2" class="button_to"><input type="submit" value="Hello" /></form>}, button_to("Hello", "http://www.example.com/q1=v1&amp;q2=v2".html_safe)
   end
 
   def test_button_to_with_query_and_no_name
-    assert_dom_equal %{<form method="post" action="http://www.example.com?q1=v1&amp;q2=v2" class="button_to"><div><input type="submit" value="http://www.example.com?q1=v1&amp;q2=v2" /></div></form>}, button_to(nil, "http://www.example.com?q1=v1&q2=v2")
+    assert_dom_equal %{<form method="post" action="http://www.example.com?q1=v1&amp;q2=v2" class="button_to"><input type="submit" value="http://www.example.com?q1=v1&amp;q2=v2" /></form>}, button_to(nil, "http://www.example.com?q1=v1&q2=v2")
   end
 
   def test_button_to_with_javascript_confirm
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><div><input data-confirm="Are you sure?" type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input data-confirm="Are you sure?" type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", data: { confirm: "Are you sure?" })
     )
   end
 
   def test_button_to_with_javascript_disable_with
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><div><input data-disable-with="Greeting..." type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input data-disable-with="Greeting..." type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", data: { disable_with: "Greeting..." })
     )
   end
 
   def test_button_to_with_remote_and_form_options
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="custom-class" data-remote="true" data-type="json"><div><input type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="custom-class" data-remote="true" data-type="json"><input type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", remote: true, form: { class: "custom-class", "data-type" => "json" })
     )
   end
 
   def test_button_to_with_remote_and_javascript_confirm
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to" data-remote="true"><div><input data-confirm="Are you sure?" type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to" data-remote="true"><input data-confirm="Are you sure?" type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", remote: true, data: { confirm: "Are you sure?" })
     )
   end
 
   def test_button_to_with_remote_and_javascript_disable_with
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to" data-remote="true"><div><input data-disable-with="Greeting..." type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to" data-remote="true"><input data-disable-with="Greeting..." type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", remote: true, data: { disable_with: "Greeting..." })
     )
   end
 
   def test_button_to_with_remote_false
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", remote: false)
     )
   end
 
   def test_button_to_enabled_disabled
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", disabled: false)
     )
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><div><input disabled="disabled" type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input disabled="disabled" type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", disabled: true)
     )
   end
 
   def test_button_to_with_method_delete
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><div><input type="hidden" name="_method" value="delete" /><input type="submit" value="Hello" /></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><input type="hidden" name="_method" value="delete" /><input type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", method: :delete)
     )
   end
 
   def test_button_to_with_method_get
     assert_dom_equal(
-      %{<form method="get" action="http://www.example.com" class="button_to"><div><input type="submit" value="Hello" /></div></form>},
+      %{<form method="get" action="http://www.example.com" class="button_to"><input type="submit" value="Hello" /></form>},
       button_to("Hello", "http://www.example.com", method: :get)
     )
   end
 
   def test_button_to_with_block
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><div><button type="submit"><span>Hello</span></button></div></form>},
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit"><span>Hello</span></button></form>},
       button_to("http://www.example.com") { content_tag(:span, 'Hello') }
+    )
+  end
+
+  def test_button_to_with_params
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo" value="bar" /><input type="hidden" name="baz" value="quux" /></form>},
+      button_to("Hello", "http://www.example.com", params: {foo: :bar, baz: "quux"})
     )
   end
 
@@ -308,6 +324,13 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to('/', class: "special") { content_tag(:span, 'Example site') }
   end
 
+  def test_link_tag_using_block_and_hash
+    assert_dom_equal(
+      %{<a href="/"><span>Example site</span></a>},
+      link_to(url_hash) { content_tag(:span, 'Example site') }
+    )
+  end
+
   def test_link_tag_using_block_in_erb
     out = render_erb %{<%= link_to('/') do %>Example site<% end %>}
     assert_equal '<a href="/">Example site</a>', out
@@ -336,8 +359,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Listing</a>},
       link_to_unless(false, "Listing", url_hash)
 
-    assert_equal "Showing", link_to_unless(true, "Showing", url_hash)
-
     assert_equal "<strong>Showing</strong>",
       link_to_unless(true, "Showing", url_hash) { |name|
         "<strong>#{name}</strong>".html_safe
@@ -357,7 +378,6 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_link_to_if
     assert_equal "Showing", link_to_if(false, "Showing", url_hash)
     assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash)
-    assert_equal "Showing", link_to_if(false, "Showing", url_hash)
   end
 
   def request_for_url(url, opts = {})
@@ -395,6 +415,26 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/events", method: :post)
 
     assert !current_page?('/events')
+  end
+
+  def test_current_page_with_escaped_params
+    @request = request_for_url("/category/administra%c3%a7%c3%a3o")
+
+    assert current_page?(controller: 'foo', action: 'category', category: 'administração')
+  end
+
+  def test_current_page_with_escaped_params_with_different_encoding
+    @request = request_for_url("/")
+    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".force_encoding(Encoding::ASCII_8BIT)) do
+      assert current_page?(:controller => 'foo', :action => 'category', category: 'administração')
+      assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
+    end
+  end
+
+  def test_current_page_with_double_escaped_params
+    @request = request_for_url("/category/administra%c3%a7%c3%a3o?callback_url=http%3a%2f%2fexample.com%2ffoo")
+
+    assert current_page?(controller: 'foo', action: 'category', category: 'administração', callback_url: 'http://example.com/foo')
   end
 
   def test_link_unless_current

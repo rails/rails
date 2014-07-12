@@ -6,7 +6,7 @@ require 'models/person'
 
 class LengthValidationTest < ActiveModel::TestCase
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_validates_length_of_with_allow_nil
@@ -354,7 +354,7 @@ class LengthValidationTest < ActiveModel::TestCase
     p.karma = "The Smiths"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 
   def test_validates_length_of_for_infinite_maxima

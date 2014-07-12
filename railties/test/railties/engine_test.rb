@@ -34,6 +34,7 @@ module RailtiesTest
 
     test "serving sprocket's assets" do
       @plugin.write "app/assets/javascripts/engine.js.erb", "<%= :alert %>();"
+      add_to_env_config "development", "config.assets.digest = false"
 
       boot_rails
       require 'rack/test'
@@ -90,8 +91,8 @@ module RailtiesTest
       Dir.chdir(app_path) do
         output = `bundle exec rake bukkits:install:migrations`
 
-        assert File.exists?("#{app_path}/db/migrate/2_create_users.bukkits.rb")
-        assert File.exists?("#{app_path}/db/migrate/3_add_last_name_to_users.bukkits.rb")
+        assert File.exist?("#{app_path}/db/migrate/2_create_users.bukkits.rb")
+        assert File.exist?("#{app_path}/db/migrate/3_add_last_name_to_users.bukkits.rb")
         assert_match(/Copied migration 2_create_users.bukkits.rb from bukkits/, output)
         assert_match(/Copied migration 3_add_last_name_to_users.bukkits.rb from bukkits/, output)
         assert_match(/NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/, output)
@@ -108,6 +109,38 @@ module RailtiesTest
         `bundle exec rake railties:install:migrations`
 
         assert_equal migrations_count, Dir["#{app_path}/db/migrate/*.rb"].length
+      end
+    end
+
+    test 'respects the order of railties when installing migrations' do
+      @blog = engine "blog" do |plugin|
+        plugin.write "lib/blog.rb", <<-RUBY
+          module Blog
+            class Engine < ::Rails::Engine
+            end
+          end
+        RUBY
+      end
+
+      @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      @blog.write "db/migrate/2_create_blogs.rb", <<-RUBY
+        class CreateBlogs < ActiveRecord::Migration
+        end
+      RUBY
+
+      add_to_config("config.railties_order = [Bukkits::Engine, Blog::Engine, :all, :main_app]")
+
+      boot_rails
+
+      Dir.chdir(app_path) do
+        output  = `bundle exec rake railties:install:migrations`.split("\n")
+
+        assert_match(/Copied migration \d+_create_users.bukkits.rb from bukkits/, output.first)
+        assert_match(/Copied migration \d+_create_blogs.blog_engine.rb from blog_engine/, output.last)
       end
     end
 
@@ -136,7 +169,7 @@ module RailtiesTest
 
       Dir.chdir(@plugin.path) do
         output = `bundle exec rake app:bukkits:install:migrations`
-        assert File.exists?("#{app_path}/db/migrate/0_add_first_name_to_users.bukkits.rb")
+        assert File.exist?("#{app_path}/db/migrate/0_add_first_name_to_users.bukkits.rb")
         assert_match(/Copied migration 0_add_first_name_to_users.bukkits.rb from bukkits/, output)
         assert_equal 1, Dir["#{app_path}/db/migrate/*.rb"].length
       end
@@ -399,7 +432,7 @@ YAML
       assert $plugin_initializer
     end
 
-    test "midleware referenced in configuration" do
+    test "middleware referenced in configuration" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         class Bukkits
           def initialize(app)
@@ -592,10 +625,14 @@ YAML
       @plugin.write "app/models/bukkits/post.rb", <<-RUBY
         module Bukkits
           class Post
-            extend ActiveModel::Naming
+            include ActiveModel::Model
 
             def to_param
               "1"
+            end
+
+            def persisted?
+              true
             end
           end
         end
@@ -704,8 +741,7 @@ YAML
       @plugin.write "app/models/bukkits/post.rb", <<-RUBY
         module Bukkits
           class Post
-            extend ActiveModel::Naming
-            include ActiveModel::Conversion
+            include ActiveModel::Model
             attr_accessor :title
 
             def to_param
@@ -1077,6 +1113,7 @@ YAML
       RUBY
 
       add_to_config("config.railties_order = [:all, :main_app, Blog::Engine]")
+      add_to_env_config "development", "config.assets.digest = false"
 
       boot_rails
 
@@ -1234,12 +1271,6 @@ YAML
 
       get("/bar", {}, {'SCRIPT_NAME' => '/foo'})
       assert_equal '/foo/bukkits/bukkit', last_response.body
-    end
-
-    test "engines method is properly deprecated" do
-      boot_rails
-
-      assert_deprecated { app.railties.engines }
     end
 
   private

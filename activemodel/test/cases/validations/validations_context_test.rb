@@ -4,10 +4,8 @@ require 'cases/helper'
 require 'models/topic'
 
 class ValidationsContextTest < ActiveModel::TestCase
-
   def teardown
-    Topic.reset_callbacks(:validate)
-    Topic._validators.clear
+    Topic.clear_validators!
   end
 
   ERROR_MESSAGE = "Validation error from validator"
@@ -34,6 +32,19 @@ class ValidationsContextTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatAddsErrors, on: :create)
     topic = Topic.new
     assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+  end
+
+  test "with a class that adds errors on multiple contexts and validating a new model" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: [:context1, :context2])
+
+    topic = Topic.new
+    assert topic.valid?, "Validation ran with no context given when 'on' is set to context1 and context2"
+
+    assert topic.invalid?(:context1), "Validation did not run on context1 when 'on' is set to context1 and context2"
+    assert topic.errors[:base].include?(ERROR_MESSAGE)
+
+    assert topic.invalid?(:context2), "Validation did not run on context2 when 'on' is set to context1 and context2"
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 end

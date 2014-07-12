@@ -255,6 +255,15 @@ class AssociationProxyTest < ActiveRecord::TestCase
       assert_equal man, man.interests.where("1=1").first.man
     end
   end
+
+  def test_reset_unloads_target
+    david = authors(:david)
+    david.posts.reload
+
+    assert david.posts.loaded?
+    david.posts.reset
+    assert !david.posts.loaded?
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
@@ -278,7 +287,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   def test_habtm_association_redefinition_callbacks_should_differ_and_not_inherited
     # redeclared association on AR descendant should not inherit callbacks from superclass
     callbacks = PeopleList.before_add_for_has_and_belongs_to_many
-    assert_equal([:enlist], callbacks)
+    assert_equal(1, callbacks.length)
     callbacks = DifferentPeopleList.before_add_for_has_and_belongs_to_many
     assert_equal([], callbacks)
   end
@@ -286,7 +295,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   def test_has_many_association_redefinition_callbacks_should_differ_and_not_inherited
     # redeclared association on AR descendant should not inherit callbacks from superclass
     callbacks = PeopleList.before_add_for_has_many
-    assert_equal([:enlist], callbacks)
+    assert_equal(1, callbacks.length)
     callbacks = DifferentPeopleList.before_add_for_has_many
     assert_equal([], callbacks)
   end

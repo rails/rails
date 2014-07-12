@@ -1,8 +1,6 @@
 module ActionController
   module Head
-    extend ActiveSupport::Concern
-
-    # Return a response that has no content (merely headers). The options
+    # Returns a response that has no content (merely headers). The options
     # argument is interpreted to be a hash of header names and values.
     # This allows you to easily return a response that consists only of
     # significant headers:
@@ -29,7 +27,7 @@ module ActionController
       self.status = status
       self.location = url_for(location) if location
 
-      if include_content?(self.status)
+      if include_content?(self._status_code)
         self.content_type = content_type || (Mime[formats.first] if formats)
         self.response.charset = false if self.response
         self.response_body = " "

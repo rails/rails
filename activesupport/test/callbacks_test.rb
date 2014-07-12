@@ -1,27 +1,6 @@
 require 'abstract_unit'
 
 module CallbacksTest
-  class Phone
-    include ActiveSupport::Callbacks
-    define_callbacks :save
-
-    set_callback :save, :before, :before_save1
-    set_callback :save, :after, :after_save1
-
-    def before_save1; self.history << :before; end
-    def after_save1; self.history << :after; end
-
-    def save
-      run_callbacks :save do
-        raise 'boom'
-      end
-    end
-
-    def history
-      @history ||= []
-    end
-  end
-
   class Record
     include ActiveSupport::Callbacks
 

@@ -30,7 +30,7 @@ module HTML #:nodoc:
       @current_line = 1
     end
 
-    # Return the next token in the sequence, or +nil+ if there are no more tokens in
+    # Returns the next token in the sequence, or +nil+ if there are no more tokens in
     # the stream.
     def next
       return nil if @scanner.eos?

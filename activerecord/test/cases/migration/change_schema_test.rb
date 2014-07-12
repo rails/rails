@@ -11,10 +11,10 @@ module ActiveRecord
         @table_name = :testings
       end
 
-      def teardown
-        super
+      teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Base.primary_key_prefix_type = nil
+        ActiveRecord::Base.clear_cache!
       end
 
       def test_create_table_without_id
@@ -68,14 +68,14 @@ module ActiveRecord
         five = columns.detect { |c| c.name == "five" } unless mysql
 
         assert_equal "hello", one.default
-        assert_equal true, two.default
-        assert_equal false, three.default
-        assert_equal 1, four.default
+        assert_equal true, two.type_cast_from_database(two.default)
+        assert_equal false, three.type_cast_from_database(three.default)
+        assert_equal '1', four.default
         assert_equal "hello", five.default unless mysql
       end
 
-      def test_add_column_with_array
-        if current_adapter?(:PostgreSQLAdapter)
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_add_column_with_array
           connection.create_table :testings
           connection.add_column :testings, :foo, :string, :array => true
 
@@ -83,13 +83,9 @@ module ActiveRecord
           array_column = columns.detect { |c| c.name == "foo" }
 
           assert array_column.array
-        else
-          skip "array option only supported in PostgreSQLAdapter"
         end
-      end
 
-      def test_create_table_with_array_column
-        if current_adapter?(:PostgreSQLAdapter)
+        def test_create_table_with_array_column
           connection.create_table :testings do |t|
             t.string :foo, :array => true
           end
@@ -98,8 +94,6 @@ module ActiveRecord
           array_column = columns.detect { |c| c.name == "foo" }
 
           assert array_column.array
-        else
-          skip "array option only supported in PostgreSQLAdapter"
         end
       end
 
@@ -211,20 +205,18 @@ module ActiveRecord
         connection.create_table table_name
       end
 
-      def test_add_column_not_null_without_default
-        # Sybase, and SQLite3 will not allow you to add a NOT NULL
-        # column to a table without a default value.
-        if current_adapter?(:SybaseAdapter, :SQLite3Adapter)
-          skip "not supported on #{connection.class}"
-        end
+      # SQLite3 will not allow you to add a NOT NULL
+      # column to a table without a default value.
+      unless current_adapter?(:SQLite3Adapter)
+        def test_add_column_not_null_without_default
+          connection.create_table :testings do |t|
+            t.column :foo, :string
+          end
+          connection.add_column :testings, :bar, :string, :null => false
 
-        connection.create_table :testings do |t|
-          t.column :foo, :string
-        end
-        connection.add_column :testings, :bar, :string, :null => false
-
-        assert_raise(ActiveRecord::StatementInvalid) do
-          connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+          assert_raise(ActiveRecord::StatementInvalid) do
+            connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+          end
         end
       end
 
@@ -234,18 +226,28 @@ module ActiveRecord
         end
 
         con = connection
-        connection.enable_identity_insert("testings", true) if current_adapter?(:SybaseAdapter)
         connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
-        connection.enable_identity_insert("testings", false) if current_adapter?(:SybaseAdapter)
         assert_nothing_raised {connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
         assert_raises(ActiveRecord::StatementInvalid) do
-          unless current_adapter?(:OpenBaseAdapter)
-            connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
-          else
-            connection.insert("INSERT INTO testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) VALUES (2, 'hello', NULL)",
-                                     "Testing Insert","id",2)
-          end
+          connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
+        end
+      end
+
+      def test_add_column_with_timestamp_type
+        connection.create_table :testings do |t|
+          t.column :foo, :timestamp
+        end
+
+        klass = Class.new(ActiveRecord::Base)
+        klass.table_name = 'testings'
+
+        assert_equal :datetime, klass.columns_hash['foo'].type
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal 'timestamp without time zone', klass.columns_hash['foo'].sql_type
+        else
+          assert_equal klass.connection.type_to_sql('datetime'), klass.columns_hash['foo'].sql_type
         end
       end
 
@@ -273,7 +275,7 @@ module ActiveRecord
 
         person_klass.connection.add_column "testings", "wealth", :integer, :null => false, :default => 99
         person_klass.reset_column_information
-        assert_equal 99, person_klass.columns_hash["wealth"].default
+        assert_equal 99, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
         # Oracle needs primary key value from sequence
         if current_adapter?(:OracleAdapter)
@@ -285,20 +287,20 @@ module ActiveRecord
         # change column default to see that column doesn't lose its not null definition
         person_klass.connection.change_column_default "testings", "wealth", 100
         person_klass.reset_column_information
-        assert_equal 100, person_klass.columns_hash["wealth"].default
+        assert_equal 100, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
 
         # rename column to see that column doesn't lose its not null and/or default definition
         person_klass.connection.rename_column "testings", "wealth", "money"
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["wealth"]
-        assert_equal 100, person_klass.columns_hash["money"].default
+        assert_equal 100, person_klass.column_defaults["money"]
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column
         person_klass.connection.change_column "testings", "money", :integer, :null => false, :default => 1000
         person_klass.reset_column_information
-        assert_equal 1000, person_klass.columns_hash["money"].default
+        assert_equal 1000, person_klass.column_defaults["money"]
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column, make it nullable and clear default
@@ -314,6 +316,22 @@ module ActiveRecord
         assert_nil person_klass.columns_hash["money"].default
         assert_equal false, person_klass.columns_hash["money"].null
         assert_equal 2000, connection.select_values("SELECT money FROM testings").first.to_i
+      end
+
+      def test_change_column_null
+        testing_table_with_only_foo_attribute do
+          notnull_migration = Class.new(ActiveRecord::Migration) do
+            def change
+              change_column_null :testings, :foo, false
+            end
+          end
+          notnull_migration.new.suppress_messages do
+            notnull_migration.migrate(:up)
+            assert_equal false, connection.columns(:testings).find{ |c| c.name == "foo"}.null
+            notnull_migration.migrate(:down)
+            assert connection.columns(:testings).find{ |c| c.name == "foo"}.null
+          end
+        end
       end
 
       def test_column_exists

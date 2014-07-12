@@ -88,7 +88,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <% end %>
 </table>
 
-<br />
+<br>
 
 <%= link_to "New book", new_book_path %>
 ```
@@ -122,8 +122,7 @@ X-Runtime: 0.014297
 Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
 Cache-Control: no-cache
 
-
- $
+$
 ```
 
 We see there is an empty response (no data after the `Cache-Control` line), but the request was successful because Rails has set the response to 200 OK. You can set the `:status` option on render to change this response. Rendering nothing can be useful for Ajax requests where all you want to send back to the browser is an acknowledgment that the request was completed.
@@ -137,7 +136,7 @@ If you want to render the view that corresponds to a different template within t
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render "edit"
@@ -152,7 +151,7 @@ If you prefer, you can use a symbol instead of a string to specify the action to
 ```ruby
 def update
   @book = Book.find(params[:id])
-  if @book.update(params[:book])
+  if @book.update(book_params)
     redirect_to(@book)
   else
     render :edit
@@ -237,15 +236,34 @@ render inline: "xml.p {'Horrid coding practice!'}", type: :builder
 
 #### Rendering Text
 
-You can send plain text - with no markup at all - back to the browser by using the `:text` option to `render`:
+You can send plain text - with no markup at all - back to the browser by using
+the `:plain` option to `render`:
 
 ```ruby
-render text: "OK"
+render plain: "OK"
 ```
 
-TIP: Rendering pure text is most useful when you're responding to Ajax or web service requests that are expecting something other than proper HTML.
+TIP: Rendering pure text is most useful when you're responding to Ajax or web
+service requests that are expecting something other than proper HTML.
 
-NOTE: By default, if you use the `:text` option, the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the `layout: true` option.
+NOTE: By default, if you use the `:plain` option, the text is rendered without
+using the current layout. If you want Rails to put the text into the current
+layout, you need to add the `layout: true` option.
+
+#### Rendering HTML
+
+You can send a HTML string back to the browser by using the `:html` option to
+`render`:
+
+```ruby
+render html: "<strong>Not Found</strong>".html_safe
+```
+
+TIP: This is useful when you're rendering a small snippet of HTML code.
+However, you might want to consider moving it to a template file if the markup
+is complex.
+
+NOTE: This option will escape HTML entities if the string is not html safe.
 
 #### Rendering JSON
 
@@ -276,6 +294,22 @@ render js: "alert('Hello Rails');"
 ```
 
 This will send the supplied string to the browser with a MIME type of `text/javascript`.
+
+#### Rendering raw body
+
+You can send a raw content back to the browser, without setting any content
+type, by using the `:body` option to `render`:
+
+```ruby
+render body: "raw"
+```
+
+TIP: This option should be used only if you don't care about the content type of
+the response. Using `:plain` or `:html` might be more appropriate in most of the
+time.
+
+NOTE: Unless overridden, your response returned from this render option will be
+`text/html`, as that is the default content type of Action Dispatch response.
 
 #### Options for `render`
 
@@ -375,9 +409,9 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 423              | :locked                          |
 |                     | 424              | :failed_dependency               |
 |                     | 426              | :upgrade_required                |
-|                     | 423              | :precondition_required           |
-|                     | 424              | :too_many_requests               |
-|                     | 426              | :request_header_fields_too_large |
+|                     | 428              | :precondition_required           |
+|                     | 429              | :too_many_requests               |
+|                     | 431              | :request_header_fields_too_large |
 | **Server Error**    | 500              | :internal_server_error           |
 |                     | 501              | :not_implemented                 |
 |                     | 502              | :bad_gateway                     |
@@ -405,7 +439,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-With this declaration, all of the views rendered by the products controller will use `app/views/layouts/inventory.html.erb` as their layout.
+With this declaration, all of the views rendered by the `ProductsController` will use `app/views/layouts/inventory.html.erb` as their layout.
 
 To assign a specific layout for the entire application, use a `layout` declaration in your `ApplicationController` class:
 
@@ -472,33 +506,33 @@ Layout declarations cascade downward in the hierarchy, and more specific layout 
     end
     ```
 
-* `posts_controller.rb`
+* `articles_controller.rb`
 
     ```ruby
-    class PostsController < ApplicationController
+    class ArticlesController < ApplicationController
     end
     ```
 
-* `special_posts_controller.rb`
+* `special_articles_controller.rb`
 
     ```ruby
-    class SpecialPostsController < PostsController
+    class SpecialArticlesController < ArticlesController
       layout "special"
     end
     ```
 
-* `old_posts_controller.rb`
+* `old_articles_controller.rb`
 
     ```ruby
-    class OldPostsController < SpecialPostsController
+    class OldArticlesController < SpecialArticlesController
       layout false
 
       def show
-        @post = Post.find(params[:id])
+        @article = Article.find(params[:id])
       end
 
       def index
-        @old_posts = Post.older
+        @old_articles = Article.older
         render layout: "old"
       end
       # ...
@@ -508,10 +542,10 @@ Layout declarations cascade downward in the hierarchy, and more specific layout 
 In this application:
 
 * In general, views will be rendered in the `main` layout
-* `PostsController#index` will use the `main` layout
-* `SpecialPostsController#index` will use the `special` layout
-* `OldPostsController#show` will use no layout at all
-* `OldPostsController#index` will use the `old` layout
+* `ArticlesController#index` will use the `main` layout
+* `SpecialArticlesController#index` will use the `special` layout
+* `OldArticlesController#show` will use no layout at all
+* `OldArticlesController#index` will use the `old` layout
 
 #### Avoiding Double Render Errors
 
@@ -592,7 +626,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     render action: "index"
   end
@@ -607,7 +641,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     redirect_to action: :index
   end
@@ -626,7 +660,7 @@ def index
 end
 
 def show
-  @book = Book.find_by_id(params[:id])
+  @book = Book.find_by(id: params[:id])
   if @book.nil?
     @books = Book.all
     flash.now[:alert] = "Your book was not found"
@@ -704,7 +738,7 @@ WARNING: The asset tag helpers do _not_ verify the existence of the assets at th
 
 #### Linking to Feeds with the `auto_discovery_link_tag`
 
-The `auto_discovery_link_tag` helper builds HTML that most browsers and newsreaders can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
+The `auto_discovery_link_tag` helper builds HTML that most browsers and feed readers can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
 ```erb
 <%= auto_discovery_link_tag(:rss, {action: "feed"},
@@ -1009,7 +1043,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>New zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1017,7 +1050,6 @@ You can also pass local variables into partials, making them even more powerful 
 
     ```html+erb
     <h1>Editing zone</h1>
-    <%= error_messages_for :zone %>
     <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
@@ -1026,7 +1058,7 @@ You can also pass local variables into partials, making them even more powerful 
     ```html+erb
     <%= form_for(zone) do |f| %>
       <p>
-        <b>Zone name</b><br />
+        <b>Zone name</b><br>
         <%= f.text_field :name %>
       </p>
       <p>
@@ -1122,11 +1154,11 @@ With this change, you can access an instance of the `@products` collection as th
 You can also pass in arbitrary local variables to any partial you are rendering with the `locals: {}` option:
 
 ```erb
-<%= render partial: "products", collection: @products,
+<%= render partial: "product", collection: @products,
            as: :item, locals: {title: "Products Page"} %>
 ```
 
-Would render a partial `_products.html.erb` once for each instance of `product` in the `@products` instance variable passing the instance to the partial as a local variable called `item` and to each partial, make the local variable `title` available with the value `Products Page`.
+In this case, the partial will have access to a local variable `title` with the value "Products Page".
 
 TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by `_counter`. For example, if you're rendering `@products`, within the partial you can refer to `product_counter` to tell you how many times the partial has been rendered. This does not work in conjunction with the `as: :value` option.
 

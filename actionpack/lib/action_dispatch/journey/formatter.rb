@@ -12,13 +12,17 @@ module ActionDispatch
         @cache  = nil
       end
 
-      def generate(type, name, options, recall = {}, parameterize = nil)
+      def generate(name, options, recall = {}, parameterize = nil)
         constraints = recall.merge(options)
         missing_keys = []
 
         match_route(name, constraints) do |route|
           parameterized_parts = extract_parameterized_parts(route, options, recall, parameterize)
-          next if !name && route.requirements.empty? && route.parts.empty?
+
+          # Skip this route unless a name has been provided or it is a
+          # standard Rails route since we can't determine whether an options
+          # hash passed to url_for matches a Rack application or a redirect.
+          next unless name || route.dispatcher?
 
           missing_keys = missing_keys(route, parameterized_parts)
           next unless missing_keys.empty?
@@ -26,11 +30,17 @@ module ActionDispatch
             parameterized_parts.key?(key) || route.defaults.key?(key)
           end
 
+          defaults       = route.defaults
+          required_parts = route.required_parts
+          parameterized_parts.delete_if do |key, value|
+            value.to_s == defaults[key].to_s && !required_parts.include?(key)
+          end
+
           return [route.format(parameterized_parts), params]
         end
 
-        message = "No route matches #{constraints.inspect}"
-        message << " missing required keys: #{missing_keys.inspect}" if name
+        message = "No route matches #{Hash[constraints.sort].inspect}"
+        message << " missing required keys: #{missing_keys.sort.inspect}" if name
 
         raise ActionController::UrlGenerationError, message
       end
@@ -70,12 +80,12 @@ module ActionDispatch
           if named_routes.key?(name)
             yield named_routes[name]
           else
-            routes = non_recursive(cache, options.to_a)
+            routes = non_recursive(cache, options)
 
             hash = routes.group_by { |_, r| r.score(options) }
 
             hash.keys.sort.reverse_each do |score|
-              next if score < 0
+              break if score < 0
 
               hash[score].sort_by { |i, _| i }.each do |_, route|
                 yield route
@@ -86,14 +96,14 @@ module ActionDispatch
 
         def non_recursive(cache, options)
           routes = []
-          stack  = [cache]
+          queue  = [cache]
 
-          while stack.any?
-            c = stack.shift
+          while queue.any?
+            c = queue.shift
             routes.concat(c[:___routes]) if c.key?(:___routes)
 
             options.each do |pair|
-              stack << c[pair] if c.key?(pair)
+              queue << c[pair] if c.key?(pair)
             end
           end
 
@@ -117,14 +127,9 @@ module ActionDispatch
         def possibles(cache, options, depth = 0)
           cache.fetch(:___routes) { [] } + options.find_all { |pair|
             cache.key?(pair)
-          }.map { |pair|
+          }.flat_map { |pair|
             possibles(cache[pair], options, depth + 1)
-          }.flatten(1)
-        end
-
-        # Returns +true+ if no missing keys are present, otherwise +false+.
-        def verify_required_parts!(route, parts)
-          missing_keys(route, parts).empty?
+          }
         end
 
         def build_cache

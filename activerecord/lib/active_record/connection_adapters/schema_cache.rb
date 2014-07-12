@@ -1,4 +1,3 @@
-require 'active_support/deprecation/reporting'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -13,16 +12,10 @@ module ActiveRecord
         @columns_hash = {}
         @primary_keys = {}
         @tables       = {}
-        prepare_default_proc
       end
 
-      def primary_keys(table_name = nil)
-        if table_name
-          @primary_keys[table_name]
-        else
-          ActiveSupport::Deprecation.warn('call primary_keys with a table name!')
-          @primary_keys.dup
-        end
+      def primary_keys(table_name)
+        @primary_keys[table_name] ||= table_exists?(table_name) ? connection.primary_key(table_name) : nil
       end
 
       # A cached lookup for table existence.
@@ -35,40 +28,27 @@ module ActiveRecord
       # Add internal cache for table with +table_name+.
       def add(table_name)
         if table_exists?(table_name)
-          @primary_keys[table_name]
-          @columns[table_name]
-          @columns_hash[table_name]
+          primary_keys(table_name)
+          columns(table_name)
+          columns_hash(table_name)
         end
       end
 
-      def tables(name = nil)
-        if name
-          @tables[name]
-        else
-          ActiveSupport::Deprecation.warn('call tables with a name!')
-          @tables.dup
-        end
+      def tables(name)
+        @tables[name]
       end
 
       # Get the columns for a table
-      def columns(table = nil)
-        if table
-          @columns[table]
-        else
-          ActiveSupport::Deprecation.warn('call columns with a table name!')
-          @columns.dup
-        end
+      def columns(table_name)
+        @columns[table_name] ||= connection.columns(table_name)
       end
 
       # Get the columns for a table as a hash, key is the column name
       # value is the column object.
-      def columns_hash(table = nil)
-        if table
-          @columns_hash[table]
-        else
-          ActiveSupport::Deprecation.warn('call columns_hash with a table name!')
-          @columns_hash.dup
-        end
+      def columns_hash(table_name)
+        @columns_hash[table_name] ||= Hash[columns(table_name).map { |col|
+          [col.name, col]
+        }]
       end
 
       # Clears out internal caches
@@ -97,32 +77,11 @@ module ActiveRecord
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.
         @version = ActiveRecord::Migrator.current_version
-        [@version] + [@columns, @columns_hash, @primary_keys, @tables].map { |val|
-          Hash[val]
-        }
+        [@version, @columns, @columns_hash, @primary_keys, @tables]
       end
 
       def marshal_load(array)
         @version, @columns, @columns_hash, @primary_keys, @tables = array
-        prepare_default_proc
-      end
-
-      private
-
-      def prepare_default_proc
-        @columns.default_proc = Proc.new do |h, table_name|
-          h[table_name] = connection.columns(table_name)
-        end
-
-        @columns_hash.default_proc = Proc.new do |h, table_name|
-          h[table_name] = Hash[columns(table_name).map { |col|
-            [col.name, col]
-          }]
-        end
-
-        @primary_keys.default_proc = Proc.new do |h, table_name|
-          h[table_name] = table_exists?(table_name) ? connection.primary_key(table_name) : nil
-        end
       end
     end
   end

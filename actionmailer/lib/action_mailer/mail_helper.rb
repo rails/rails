@@ -11,8 +11,8 @@ module ActionMailer
       }.join("\n\n")
 
       # Make list points stand on their own line
-      formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { |s| "  #{$1} #{$2.strip}\n" }
-      formatted.gsub!(/[ ]*([#]+) ([^#]*)/) { |s| "  #{$1} #{$2.strip}\n" }
+      formatted.gsub!(/[ ]*([*]+) ([^*]*)/) { "  #{$1} #{$2.strip}\n" }
+      formatted.gsub!(/[ ]*([#]+) ([^#]*)/) { "  #{$1} #{$2.strip}\n" }
 
       formatted
     end
@@ -50,7 +50,7 @@ module ActionMailer
       end
 
       indentation = " " * indent
-      sentences.map { |sentence|
+      sentences.map! { |sentence|
         "#{indentation}#{sentence.join(' ')}"
       }.join "\n"
     end

@@ -18,11 +18,11 @@ module ActiveRecord
       end
 
       def create(attributes = {}, &block)
-        create_record(attributes, &block)
+        _create_record(attributes, &block)
       end
 
       def create!(attributes = {}, &block)
-        create_record(attributes, true, &block)
+        _create_record(attributes, true, &block)
       end
 
       def build(attributes = {})
@@ -38,11 +38,27 @@ module ActiveRecord
           scope.scope_for_create.stringify_keys.except(klass.primary_key)
         end
 
-        def find_target
-          scope.first.tap { |record| set_inverse_instance(record) }
+        def get_records
+          return scope.limit(1).to_a if reflection.scope_chain.any?(&:any?)
+
+          conn = klass.connection
+          sc = reflection.association_scope_cache(conn, owner) do
+            StatementCache.create(conn) { |params|
+              as = AssociationScope.create { params.bind }
+              target_scope.merge(as.scope(self, conn)).limit(1)
+            }
+          end
+
+          binds = AssociationScope.get_bind_values(owner, reflection.chain)
+          sc.execute binds, klass, klass.connection
         end
 
-        # Implemented by subclasses
+        def find_target
+          if record = get_records.first
+            set_inverse_instance record
+          end
+        end
+
         def replace(record)
           raise NotImplementedError, "Subclasses must implement a replace(record) method"
         end
@@ -51,7 +67,7 @@ module ActiveRecord
           replace(record)
         end
 
-        def create_record(attributes, raise_error = false)
+        def _create_record(attributes, raise_error = false)
           record = build_record(attributes)
           yield(record) if block_given?
           saved = record.save

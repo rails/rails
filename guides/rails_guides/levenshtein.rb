@@ -1,31 +1,39 @@
 module RailsGuides
   module Levenshtein
-    # Based on the pseudocode in http://en.wikipedia.org/wiki/Levenshtein_distance
-    def self.distance(s1, s2)
-      s = s1.unpack('U*')
-      t = s2.unpack('U*')
-      m = s.length
-      n = t.length
+    # This code is based directly on the Text gem implementation
+    # Returns a value representing the "cost" of transforming str1 into str2
+    def self.distance str1, str2
+      s = str1
+      t = str2
+      n = s.length
+      m = t.length
+      max = n/2
 
-      # matrix initialization
-      d = []
-      0.upto(m) { |i| d << [i] }
-      0.upto(n) { |j| d[0][j] = j }
+      return m if (0 == n)
+      return n if (0 == m)
+      return n if (n - m).abs > max
 
-      # distance computation
-      1.upto(m) do |i|
-        1.upto(n) do |j|
-          cost = s[i] == t[j] ? 0 : 1
-          d[i][j] = [
-            d[i-1][j] + 1,      # deletion
-            d[i][j-1] + 1,      # insertion
-            d[i-1][j-1] + cost, # substitution
-          ].min
+      d = (0..m).to_a
+      x = nil
+
+      str1.each_char.each_with_index do |char1,i|
+        e = i+1
+
+        str2.each_char.each_with_index do |char2,j|
+          cost = (char1 == char2) ? 0 : 1
+          x = [
+               d[j+1] + 1, # insertion
+               e + 1,      # deletion
+               d[j] + cost # substitution
+              ].min
+          d[j] = e
+          e = x
         end
+
+        d[m] = x
       end
 
-      # all done
-      return d[m][n]
+      return x
     end
   end
 end

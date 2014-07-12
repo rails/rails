@@ -48,6 +48,7 @@ module Rails
       assert_equal ['test'], info.tasks
     end
 
+    private
     def new_test_info(tasks)
       Class.new(TestTask::TestInfo) {
         def task_defined?(task)

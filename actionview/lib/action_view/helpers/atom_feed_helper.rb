@@ -10,7 +10,7 @@ module ActionView
       # Full usage example:
       #
       #   config/routes.rb:
-      #     Basecamp::Application.routes.draw do
+      #     Rails.application.routes.draw do
       #       resources :posts
       #       root to: "posts#index"
       #     end
@@ -64,7 +64,7 @@ module ActionView
       #         'xmlns:openSearch' => 'http://a9.com/-/spec/opensearch/1.1/'}) do |feed|
       #       feed.title("My great blog!")
       #       feed.updated((@posts.first.created_at))
-      #       feed.tag!(openSearch:totalResults, 10)
+      #       feed.tag!('openSearch:totalResults', 10)
       #
       #       @posts.each do |post|
       #         feed.entry(post) do |entry|

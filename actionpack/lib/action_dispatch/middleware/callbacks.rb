@@ -8,14 +8,14 @@ module ActionDispatch
 
     class << self
       delegate :to_prepare, :to_cleanup, :to => "ActionDispatch::Reloader"
-    end
 
-    def self.before(*args, &block)
-      set_callback(:call, :before, *args, &block)
-    end
+      def before(*args, &block)
+        set_callback(:call, :before, *args, &block)
+      end
 
-    def self.after(*args, &block)
-      set_callback(:call, :after, *args, &block)
+      def after(*args, &block)
+        set_callback(:call, :after, *args, &block)
+      end
     end
 
     def initialize(app)

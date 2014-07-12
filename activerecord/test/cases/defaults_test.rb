@@ -18,7 +18,7 @@ class DefaultTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :FirebirdAdapter, :OpenBaseAdapter, :OracleAdapter)
+  if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
     def test_default_integers
       default = Default.new
       assert_instance_of Fixnum, default.positive_integer
@@ -154,7 +154,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
         t.column :omit, :integer, :null => false
       end
 
-      assert_equal 0, klass.columns_hash['zero'].default
+      assert_equal '0', klass.columns_hash['zero'].default
       assert !klass.columns_hash['zero'].null
       # 0 in MySQL 4, nil in 5.
       assert [0, nil].include?(klass.columns_hash['omit'].default)
@@ -206,7 +206,12 @@ if current_adapter?(:PostgreSQLAdapter)
       assert_equal "some text", Default.new.text_col, "Default of text column was not correctly parse after updating default using '::text' since postgreSQL will add parens to the default in db"
     end
 
-    def teardown
+    def test_default_containing_quote_and_colons
+      @connection.execute "ALTER TABLE defaults ALTER COLUMN string_col SET DEFAULT 'foo''::bar'"
+      assert_equal "foo'::bar", Default.new.string_col
+    end
+
+    teardown do
       @connection.schema_search_path = @old_search_path
       Default.reset_column_information
     end

@@ -97,14 +97,17 @@ module ActionView
       # Create a select tag and a series of contained option tags for the provided object and method.
       # The option currently held by the object will be selected, provided that the object is available.
       #
-      # There are two possible formats for the choices parameter, corresponding to other helpers' output:
-      #   * A flat collection: see options_for_select
-      #   * A nested collection: see grouped_options_for_select
+      # There are two possible formats for the +choices+ parameter, corresponding to other helpers' output:
       #
-      # Example with @post.person_id => 1:
+      # * A flat collection (see +options_for_select+).
+      #
+      # * A nested collection (see +grouped_options_for_select+).
+      #
+      # For example:
+      #
       #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true })
       #
-      # could become:
+      # would become:
       #
       #   <select name="post[person_id]">
       #     <option value=""></option>
@@ -112,6 +115,8 @@ module ActionView
       #     <option value="2">Sam</option>
       #     <option value="3">Tobias</option>
       #   </select>
+      #
+      # assuming the associated person has ID 1.
       #
       # This can be used to provide a default set of options in the standard way: before rendering the create form, a
       # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
@@ -122,6 +127,15 @@ module ActionView
       # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>selected: value</tt> to use a different selection
       # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
       # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
+      #
+      # A block can be passed to +select+ to customize how the options tags will be rendered. This
+      # is useful when the options tag has complex attributes.
+      #
+      #   select(report, "campaign_ids") do
+      #     available_campaigns.each do |c|
+      #       content_tag(:option, c.name, value: c.id, data: { tags: c.tags.to_json })
+      #     end
+      #   end
       #
       # ==== Gotcha
       #
@@ -147,8 +161,8 @@ module ActionView
       # In case if you don't want the helper to generate this hidden field you can specify
       # <tt>include_hidden: false</tt> option.
       #
-      def select(object, method, choices, options = {}, html_options = {})
-        Tags::Select.new(object, method, self, choices, options, html_options).render
+      def select(object, method, choices = nil, options = {}, html_options = {}, &block)
+        Tags::Select.new(object, method, self, choices, options, html_options, &block).render
       end
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
@@ -246,7 +260,7 @@ module ActionView
         Tags::GroupedCollectionSelect.new(object, method, self, collection, group_method, group_label_method, option_key_method, option_value_method, options, html_options).render
       end
 
-      # Return select and option tags for the given object and method, using
+      # Returns select and option tags for the given object and method, using
       # #time_zone_options_for_select to generate the list of option tags.
       #
       # In addition to the <tt>:include_blank</tt> option documented above,
@@ -346,8 +360,8 @@ module ActionView
           html_attributes = option_html_attributes(element)
           text, value = option_text_and_value(element).map { |item| item.to_s }
 
-          html_attributes[:selected] = 'selected' if option_value_selected?(value, selected)
-          html_attributes[:disabled] = 'disabled' if disabled && option_value_selected?(value, disabled)
+          html_attributes[:selected] ||= option_value_selected?(value, selected)
+          html_attributes[:disabled] ||= disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
           content_tag_string(:option, text, html_attributes)
@@ -384,8 +398,8 @@ module ActionView
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
-          :selected => extract_values_from_collection(collection, value_method, selected),
-          :disabled => extract_values_from_collection(collection, value_method, disabled)
+          selected: extract_values_from_collection(collection, value_method, selected),
+          disabled: extract_values_from_collection(collection, value_method, disabled)
         }
 
         options_for_select(options, select_deselect)
@@ -444,7 +458,7 @@ module ActionView
           option_tags = options_from_collection_for_select(
             group.send(group_method), option_key_method, option_value_method, selected_key)
 
-          content_tag(:optgroup, option_tags, :label => group.send(group_label_method))
+          content_tag(:optgroup, option_tags, label: group.send(group_label_method))
         end.join.html_safe
       end
 
@@ -516,16 +530,20 @@ module ActionView
         body = "".html_safe
 
         if prompt
-          body.safe_concat content_tag(:option, prompt_text(prompt), :value => "")
+          body.safe_concat content_tag(:option, prompt_text(prompt), value: "")
         end
 
         grouped_options.each do |container|
+          html_attributes = option_html_attributes(container)
+
           if divider
             label = divider
           else
             label, container = container
           end
-          body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), :label => label)
+
+          html_attributes = { label: label }.merge!(html_attributes)
+          body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), html_attributes)
         end
 
         body
@@ -561,7 +579,7 @@ module ActionView
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)
-          zone_options.safe_concat content_tag(:option, '-------------', :value => '', :disabled => 'disabled')
+          zone_options.safe_concat content_tag(:option, '-------------', value: '', disabled: true)
           zone_options.safe_concat "\n"
 
           zones = zones - priority_zones
@@ -744,7 +762,7 @@ module ActionView
         end
 
         def prompt_text(prompt)
-          prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', :default => 'Please select')
+          prompt.kind_of?(String) ? prompt : I18n.translate('helpers.select.prompt', default: 'Please select')
         end
     end
 
@@ -752,13 +770,13 @@ module ActionView
       # Wraps ActionView::Helpers::FormOptionsHelper#select for form builders:
       #
       #   <%= form_for @post do |f| %>
-      #     <%= f.select :person_id, Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true }) %>
+      #     <%= f.select :person_id, Person.all.collect { |p| [ p.name, p.id ] }, include_blank: true %>
       #     <%= f.submit %>
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.
-      def select(method, choices, options = {}, html_options = {})
-        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options))
+      def select(method, choices = nil, options = {}, html_options = {}, &block)
+        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options), &block)
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_select for form builders:

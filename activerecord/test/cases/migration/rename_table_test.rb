@@ -19,35 +19,30 @@ module ActiveRecord
         super
       end
 
-      def test_rename_table_for_sqlite_should_work_with_reserved_words
-        renamed = false
+      if current_adapter?(:SQLite3Adapter)
+        def test_rename_table_for_sqlite_should_work_with_reserved_words
+          renamed = false
 
-        skip "not supported" unless current_adapter?(:SQLite3Adapter)
+          add_column :test_models, :url, :string
+          connection.rename_table :references, :old_references
+          connection.rename_table :test_models, :references
 
-        add_column :test_models, :url, :string
-        connection.rename_table :references, :old_references
-        connection.rename_table :test_models, :references
+          renamed = true
 
-        renamed = true
-
-        # Using explicit id in insert for compatibility across all databases
-        connection.execute "INSERT INTO 'references' (url, created_at, updated_at) VALUES ('http://rubyonrails.com', 0, 0)"
-        assert_equal 'http://rubyonrails.com', connection.select_value("SELECT url FROM 'references' WHERE id=1")
-      ensure
-        return unless renamed
-        connection.rename_table :references, :test_models
-        connection.rename_table :old_references, :references
+          # Using explicit id in insert for compatibility across all databases
+          connection.execute "INSERT INTO 'references' (url, created_at, updated_at) VALUES ('http://rubyonrails.com', 0, 0)"
+          assert_equal 'http://rubyonrails.com', connection.select_value("SELECT url FROM 'references' WHERE id=1")
+        ensure
+          return unless renamed
+          connection.rename_table :references, :test_models
+          connection.rename_table :old_references, :references
+        end
       end
 
       def test_rename_table
         rename_table :test_models, :octopi
 
-        # Using explicit id in insert for compatibility across all databases
-        connection.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
-
         connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
-
-        connection.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
       end
@@ -57,10 +52,7 @@ module ActiveRecord
 
         rename_table :test_models, :octopi
 
-        # Using explicit id in insert for compatibility across all databases
-        connection.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
         connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
-        connection.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
         index = connection.indexes(:octopi).first
@@ -76,14 +68,24 @@ module ActiveRecord
         assert_equal ['special_url_idx'], connection.indexes(:octopi).map(&:name)
       end
 
-      def test_rename_table_for_postgresql_should_also_rename_default_sequence
-        skip 'not supported' unless current_adapter?(:PostgreSQLAdapter)
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_rename_table_for_postgresql_should_also_rename_default_sequence
+          rename_table :test_models, :octopi
 
-        rename_table :test_models, :octopi
+          pk, seq = connection.pk_and_sequence_for('octopi')
 
-        pk, seq = connection.pk_and_sequence_for('octopi')
+          assert_equal ConnectionAdapters::PostgreSQL::Name.new("public", "octopi_#{pk}_seq"), seq
+        end
 
-        assert_equal "octopi_#{pk}_seq", seq
+        def test_renaming_table_doesnt_attempt_to_rename_non_existent_sequences
+          enable_uuid_ossp!(connection)
+          connection.create_table :cats, id: :uuid
+          assert_nothing_raised { rename_table :cats, :felines }
+          assert connection.table_exists? :felines
+        ensure
+          connection.drop_table :cats if connection.table_exists? :cats
+          connection.drop_table :felines if connection.table_exists? :felines
+        end
       end
     end
   end

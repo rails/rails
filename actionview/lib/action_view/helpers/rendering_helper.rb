@@ -12,6 +12,14 @@ module ActionView
       # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
       # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
       # * <tt>:text</tt> - Renders the text passed in out.
+      # * <tt>:plain</tt> - Renders the text passed in out. Setting the content
+      # type as <tt>text/plain</tt>.
+      # * <tt>:html</tt> - Renders the html safe string passed in out, otherwise
+      # performs html escape on the string first. Setting the content type as
+      # <tt>text/html</tt>.
+      # * <tt>:body</tt> - Renders the text passed in, and inherits the content
+      # type of <tt>text/html</tt> from <tt>ActionDispatch::Response</tt>
+      # object.
       #
       # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
       # as the locals hash.

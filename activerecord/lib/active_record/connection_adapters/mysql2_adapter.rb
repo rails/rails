@@ -1,6 +1,6 @@
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 
-gem 'mysql2', '~> 0.3.10'
+gem 'mysql2', '~> 0.3.13'
 require 'mysql2'
 
 module ActiveRecord
@@ -18,23 +18,22 @@ module ActiveRecord
       client = Mysql2::Client.new(config)
       options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
+    rescue Mysql2::Error => error
+      if error.message.include?("Unknown database")
+        raise ActiveRecord::NoDatabaseError.new(error.message, error)
+      else
+        raise
+      end
     end
   end
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-
-      class Column < AbstractMysqlAdapter::Column # :nodoc:
-        def adapter
-          Mysql2Adapter
-        end
-      end
-
       ADAPTER_NAME = 'Mysql2'
 
       def initialize(connection, logger, connection_options, config)
         super
-        @visitor = BindSubstitution.new self
+        @prepared_statements = false
         configure_connection
       end
 
@@ -63,10 +62,6 @@ module ActiveRecord
         end
       end
 
-      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?, extra)
-      end
-
       def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
       end
@@ -75,6 +70,14 @@ module ActiveRecord
 
       def quote_string(string)
         @connection.escape(string)
+      end
+
+      def quoted_date(value)
+        if value.acts_like?(:time) && value.respond_to?(:usec)
+          "#{super}.#{sprintf("%06d", value.usec)}"
+        else
+          super
+        end
       end
 
       # CONNECTION MANAGEMENT ====================================
@@ -207,7 +210,7 @@ module ActiveRecord
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
-      def select_rows(sql, name = nil)
+      def select_rows(sql, name = nil, binds = [])
         execute(sql, name).to_a
       end
 
@@ -229,8 +232,7 @@ module ActiveRecord
 
       alias exec_without_stmt exec_query
 
-      # Returns an array of record hashes with the column names as keys and
-      # column values as values.
+      # Returns an ActiveRecord::Result instance.
       def select(sql, name = nil, binds = [])
         exec_query(sql, name)
       end
@@ -269,6 +271,10 @@ module ActiveRecord
 
       def version
         @version ||= @connection.info[:version].scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+      end
+
+      def set_field_encoding field_name
+        field_name
       end
     end
   end

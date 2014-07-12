@@ -5,6 +5,7 @@ require 'models/developer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
+require 'models/movie'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -12,6 +13,11 @@ class TransactionTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
+  end
+
+  def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
+    movie = Movie.create
+    assert !movie.persisted?
   end
 
   def test_raise_after_destroy
@@ -115,6 +121,33 @@ class TransactionTest < ActiveRecord::TestCase
     e = assert_raises(RuntimeError) { @first.save }
     assert_equal "Make the transaction rollback", e.message
     assert !Topic.find(1).approved?
+  end
+
+  def test_rolling_back_in_a_callback_rollbacks_before_save
+    def @first.before_save_for_transaction
+      raise ActiveRecord::Rollback
+    end
+    assert !@first.approved
+
+    Topic.transaction do
+      @first.approved  = true
+      @first.save!
+    end
+    assert !Topic.find(@first.id).approved?, "Should not commit the approved flag"
+  end
+
+  def test_raising_exception_in_nested_transaction_restore_state_in_save
+    topic = Topic.new
+
+    def topic.after_save_for_transaction
+      raise 'Make the transaction rollback'
+    end
+
+    assert_raises(RuntimeError) do
+      Topic.transaction { topic.save }
+    end
+
+    assert topic.new_record?, "#{topic.inspect} should be new record"
   end
 
   def test_update_should_rollback_on_failure
@@ -361,6 +394,36 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal "Three", @three
   end if Topic.connection.supports_savepoints?
 
+  def test_using_named_savepoints
+    Topic.transaction do
+      @first.approved  = true
+      @first.save!
+      Topic.connection.create_savepoint("first")
+
+      @first.approved  = false
+      @first.save!
+      Topic.connection.rollback_to_savepoint("first")
+      assert @first.reload.approved?
+
+      @first.approved  = false
+      @first.save!
+      Topic.connection.release_savepoint("first")
+      assert_not @first.reload.approved?
+    end
+  end if Topic.connection.supports_savepoints?
+
+  def test_releasing_named_savepoints
+    Topic.transaction do
+      Topic.connection.create_savepoint("another")
+      Topic.connection.release_savepoint("another")
+
+      # The savepoint is now gone and we can't remove it again.
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Topic.connection.release_savepoint("another")
+      end
+    end
+  end
+
   def test_rollback_when_commit_raises
     Topic.connection.expects(:begin_db_transaction)
     Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
@@ -377,24 +440,35 @@ class TransactionTest < ActiveRecord::TestCase
     topic = Topic.new(:title => 'test')
     topic.freeze
     e = assert_raise(RuntimeError) { topic.save }
-    assert_equal "can't modify frozen Hash", e.message
+    assert_match(/frozen/i, e.message) # Not good enough, but we can't do much
+                                       # about it since there is no specific error
+                                       # for frozen objects.
     assert !topic.persisted?, 'not persisted'
     assert_nil topic.id
     assert topic.frozen?, 'not frozen'
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
+    topic_without_callbacks = Class.new(ActiveRecord::Base) do
+      self.table_name = 'topics'
+    end
+
     topic_1 = Topic.new(:title => 'test_1')
     topic_2 = Topic.new(:title => 'test_2')
+    topic_3 = topic_without_callbacks.new(:title => 'test_3')
+
     Topic.transaction do
       assert topic_1.save
       assert topic_2.save
+      assert topic_3.save
       @first.save
       @second.destroy
       assert topic_1.persisted?, 'persisted'
       assert_not_nil topic_1.id
       assert topic_2.persisted?, 'persisted'
       assert_not_nil topic_2.id
+      assert topic_3.persisted?, 'persisted'
+      assert_not_nil topic_3.id
       assert @first.persisted?, 'persisted'
       assert_not_nil @first.id
       assert @second.destroyed?, 'destroyed'
@@ -405,19 +479,11 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nil topic_1.id
     assert !topic_2.persisted?, 'not persisted'
     assert_nil topic_2.id
+    assert !topic_3.persisted?, 'not persisted'
+    assert_nil topic_3.id
     assert @first.persisted?, 'persisted'
     assert_not_nil @first.id
     assert !@second.destroyed?, 'not destroyed'
-  end
-
-  if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
-    def test_outside_transaction_works
-      assert assert_deprecated { Topic.connection.outside_transaction? }
-      Topic.connection.begin_db_transaction
-      assert assert_deprecated { !Topic.connection.outside_transaction? }
-      Topic.connection.rollback_db_transaction
-      assert assert_deprecated { Topic.connection.outside_transaction? }
-    end
   end
 
   def test_sqlite_add_column_in_transaction
@@ -448,6 +514,13 @@ class TransactionTest < ActiveRecord::TestCase
         assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
         raise ActiveRecord::Rollback
       end
+    end
+  ensure
+    begin
+      Topic.connection.remove_column('topics', 'stuff')
+    rescue
+    ensure
+      Topic.reset_column_information
     end
   end
 
@@ -535,16 +608,16 @@ if current_adapter?(:PostgreSQLAdapter)
   class ConcurrentTransactionTest < TransactionTest
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
-    def test_transaction_per_thread
-      assert_nothing_raised do
-        threads = (1..3).map do
+    unless in_memory_db?
+      def test_transaction_per_thread
+        threads = 3.times.map do
           Thread.new do
             Topic.transaction do
               topic = Topic.find(1)
               topic.approved = !topic.approved?
-              topic.save!
+              assert topic.save!
               topic.approved = !topic.approved?
-              topic.save!
+              assert topic.save!
             end
             Topic.connection.close
           end
@@ -602,15 +675,6 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       assert_equal original_salary, Developer.find(1).salary
-    end
-
-    test "#transaction_joinable= is deprecated" do
-      Developer.transaction do
-        conn = Developer.connection
-        assert conn.current_transaction.joinable?
-        assert_deprecated { conn.transaction_joinable = false }
-        assert !conn.current_transaction.joinable?
-      end
     end
   end
 end

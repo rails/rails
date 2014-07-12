@@ -12,13 +12,17 @@ class FormTagHelperTest < ActionView::TestCase
 
   def hidden_fields(options = {})
     method = options[:method]
+    enforce_utf8 = options.fetch(:enforce_utf8, true)
 
-    txt =  %{<div style="margin:0;padding:0;display:inline">}
-    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    if method && !%w(get post).include?(method.to_s)
-      txt << %{<input name="_method" type="hidden" value="#{method}" />}
+    ''.tap do |txt|
+      if enforce_utf8
+        txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+      end
+
+      if method && !%w(get post).include?(method.to_s)
+        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+      end
     end
-    txt << %{</div>}
   end
 
   def form_text(action = "http://www.example.com", options = {})
@@ -108,6 +112,20 @@ class FormTagHelperTest < ActionView::TestCase
 
     expected = whole_form
     assert_dom_equal expected, actual
+  end
+
+  def test_form_tag_enforce_utf8_true
+    actual = form_tag({}, { :enforce_utf8 => true })
+    expected = whole_form("http://www.example.com", :enforce_utf8 => true)
+    assert_dom_equal expected, actual
+    assert actual.html_safe?
+  end
+
+  def test_form_tag_enforce_utf8_false
+    actual = form_tag({}, { :enforce_utf8 => false })
+    expected = whole_form("http://www.example.com", :enforce_utf8 => false)
+    assert_dom_equal expected, actual
+    assert actual.html_safe?
   end
 
   def test_form_tag_with_block_in_erb
@@ -459,6 +477,11 @@ class FormTagHelperTest < ActionView::TestCase
   def test_button_tag_with_block_and_options
     output = button_tag(:name => 'temptation', :type => 'button') { content_tag(:strong, 'Do not press me') }
     assert_dom_equal('<button name="temptation" type="button"><strong>Do not press me</strong></button>', output)
+  end
+
+  def test_button_tag_defaults_with_block_and_options
+    output = button_tag(:name => 'temptation', :value => 'within') { content_tag(:strong, 'Do not press me') }
+    assert_dom_equal('<button name="temptation" value="within" type="submit" ><strong>Do not press me</strong></button>', output)
   end
 
   def test_button_tag_with_confirmation

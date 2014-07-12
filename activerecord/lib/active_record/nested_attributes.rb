@@ -305,7 +305,7 @@ module ActiveRecord
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
 
         attr_names.each do |association_name|
-          if reflection = reflect_on_association(association_name)
+          if reflection = _reflect_on_association(association_name)
             reflection.autosave = true
             add_autosave_association_callbacks(reflection)
 
@@ -335,7 +335,7 @@ module ActiveRecord
       # the helper methods defined below. Makes it seem like the nested
       # associations are just regular associations.
       def generate_association_writer(association_name, type)
-        generated_feature_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
+        generated_association_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
           if method_defined?(:#{association_name}_attributes=)
             remove_method(:#{association_name}_attributes=)
           end
@@ -465,19 +465,17 @@ module ActiveRecord
             association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
-          unless association.loaded? || call_reject_if(association_name, attributes)
+          unless call_reject_if(association_name, attributes)
             # Make sure we are operating on the actual object which is in the association's
             # proxy_target array (either by finding it, or adding it if not found)
-            target_record = association.target.detect { |record| record == existing_record }
-
+            # Take into account that the proxy_target may have changed due to callbacks
+            target_record = association.target.detect { |record| record.id.to_s == attributes['id'].to_s }
             if target_record
               existing_record = target_record
             else
-              association.add_to_target(existing_record)
+              association.add_to_target(existing_record, :skip_callbacks)
             end
-          end
 
-          if !call_reject_if(association_name, attributes)
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
           end
         else
@@ -487,10 +485,10 @@ module ActiveRecord
     end
 
     # Takes in a limit and checks if the attributes_collection has too many
-    # records. The method will take limits in the form of symbols, procs, and
-    # number-like objects (anything that can be compared with an integer).
+    # records. It accepts limit in the form of symbol, proc, or
+    # number-like object (anything that can be compared with an integer).
     #
-    # Will raise an TooManyRecords error if the attributes_collection is
+    # Raises TooManyRecords error if the attributes_collection is
     # larger than the limit.
     def check_record_limit!(limit, attributes_collection)
       if limit
@@ -518,10 +516,10 @@ module ActiveRecord
 
     # Determines if a hash contains a truthy _destroy key.
     def has_destroy_flag?(hash)
-      ConnectionAdapters::Column.value_to_boolean(hash['_destroy'])
+      Type::Boolean.new.type_cast_from_user(hash['_destroy'])
     end
 
-    # Determines if a new record should be build by checking for
+    # Determines if a new record should be rejected by checking
     # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
     # association and evaluates to +true+.
     def reject_new_record?(association_name, attributes)
@@ -544,7 +542,7 @@ module ActiveRecord
     end
 
     def raise_nested_attributes_record_not_found!(association_name, record_id)
-      raise RecordNotFound, "Couldn't find #{self.class.reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
+      raise RecordNotFound, "Couldn't find #{self.class._reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
     end
   end
 end

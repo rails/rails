@@ -4,6 +4,9 @@ require 'active_record'
 require 'minitest/autorun'
 require 'logger'
 
+# Ensure backward compatibility with Minitest 4
+Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
+
 # This connection will do for database-independent bug reports.
 ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
 ActiveRecord::Base.logger = Logger.new(STDOUT)
@@ -25,7 +28,7 @@ class Comment < ActiveRecord::Base
   belongs_to :post
 end
 
-class BugTest < MiniTest::Unit::TestCase
+class BugTest < Minitest::Test
   def test_association_stuff
     post = Post.create!
     post.comments << Comment.create!

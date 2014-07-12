@@ -1,60 +1,14 @@
 require 'rbconfig'
-require 'minitest/parallel_each'
 
 module ActiveSupport
   module Testing
-    class RemoteError < StandardError
-
-      attr_reader :message, :backtrace
-
-      def initialize(exception)
-        @message = "caught #{exception.class.name}: #{exception.message}"
-        @backtrace = exception.backtrace
-      end
-    end
-
-    class ProxyTestResult
-      def initialize(calls = [])
-        @calls = calls
-      end
-
-      def add_error(e)
-        e = Test::Unit::Error.new(e.test_name, RemoteError.new(e.exception))
-        @calls << [:add_error, e]
-      end
-
-      def __replay__(result)
-        @calls.each do |name, args|
-          result.send(name, *args)
-        end
-      end
-
-      def marshal_dump
-        @calls
-      end
-
-      def marshal_load(calls)
-        initialize(calls)
-      end
-
-      def method_missing(name, *args)
-        @calls << [name, args]
-      end
-
-      def info_signal
-        Signal.list['INFO']
-      end
-    end
-
     module Isolation
       require 'thread'
 
       def self.included(klass) #:nodoc:
-        klass.extend(Module.new {
-          def test_methods
-            ParallelEach.new super
-          end
-        })
+        klass.class_eval do
+          parallelize_me!
+        end
       end
 
       def self.forking_env?
@@ -83,6 +37,8 @@ module ActiveSupport
       module Forking
         def run_in_isolation(&blk)
           read, write = IO.pipe
+          read.binmode
+          write.binmode
 
           pid = fork do
             read.close
@@ -107,22 +63,31 @@ module ActiveSupport
           require "tempfile"
 
           if ENV["ISOLATION_TEST"]
-            proxy = ProxyTestResult.new
-            retval = yield proxy
+            yield
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump([retval, proxy])].pack("m")
+              file.puts [Marshal.dump(self.dup)].pack("m")
             end
             exit!
           else
             Tempfile.open("isolation") do |tmpfile|
-              ENV["ISOLATION_TEST"]   = @method_name
-              ENV["ISOLATION_OUTPUT"] = tmpfile.path
+              env = {
+                ISOLATION_TEST: self.class.name,
+                ISOLATION_OUTPUT: tmpfile.path
+              }
 
               load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
-              `#{Gem.ruby} #{load_paths} #{$0} #{ORIG_ARGV.join(" ")} -t\"#{self.class}\"`
+              orig_args = ORIG_ARGV.join(" ")
+              test_opts = "-n#{self.class.name}##{self.name}"
+              command = "#{Gem.ruby} #{load_paths} #{$0} #{orig_args} #{test_opts}"
 
-              ENV.delete("ISOLATION_TEST")
-              ENV.delete("ISOLATION_OUTPUT")
+              # IO.popen lets us pass env in a cross-platform way
+              child = IO.popen([env, command])
+
+              begin
+                Process.wait(child.pid)
+              rescue Errno::ECHILD # The child process may exit before we wait
+                nil
+              end
 
               return tmpfile.read.unpack("m")[0]
             end

@@ -12,8 +12,11 @@ module ActionView
       # These are used to generate the dynamic forms that implement non-remote links with
       # <tt>:method</tt>.
       #
-      # Note that regular forms generate hidden fields, and that Ajax calls are whitelisted,
-      # so they do not use these tags.
+      # You don't need to use these tags for regular forms as they generate their own hidden fields.
+      #
+      # For AJAX requests other than GETs, extract the "csrf-token" from the meta-tag and send as the 
+      # "X-CSRF-Token" HTTP header. If you are using jQuery with jquery-rails this happens automatically.
+      #
       def csrf_meta_tags
         if protect_against_forgery?
           [

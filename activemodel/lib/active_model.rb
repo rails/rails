@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2013 David Heinemeier Hansson
+# Copyright (c) 2004-2014 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -48,6 +48,7 @@ module ActiveModel
 
   eager_autoload do
     autoload :Errors
+    autoload :StrictValidationFailed, 'active_model/errors'
   end
 
   module Serializers
@@ -59,9 +60,9 @@ module ActiveModel
     end
   end
 
-  def eager_load!
+  def self.eager_load!
     super
-    ActiveModel::Serializer.eager_load!
+    ActiveModel::Serializers.eager_load!
   end
 end
 

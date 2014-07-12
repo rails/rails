@@ -12,6 +12,7 @@ module ApplicationTests
       boot_rails
       require "rails"
       require "action_controller/railtie"
+      require "action_view/railtie"
 
       class MyApp < Rails::Application
         config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"

@@ -1,5 +1,5 @@
 require 'action_controller/metal/exceptions'
-require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionDispatch
   class ExceptionWrapper
@@ -32,6 +32,8 @@ module ActionDispatch
     def initialize(env, exception)
       @env = env
       @exception = original_exception(exception)
+
+      expand_backtrace if exception.is_a?(SyntaxError) || exception.try(:original_exception).try(:is_a?, SyntaxError)
     end
 
     def rescue_template
@@ -96,13 +98,19 @@ module ActionDispatch
     def source_fragment(path, line)
       return unless Rails.respond_to?(:root) && Rails.root
       full_path = Rails.root.join(path)
-      if File.exists?(full_path)
+      if File.exist?(full_path)
         File.open(full_path, "r") do |file|
           start = [line - 3, 0].max
           lines = file.each_line.drop(start).take(6)
           Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
         end
       end
+    end
+
+    def expand_backtrace
+      @exception.backtrace.unshift(
+        @exception.to_s.split("\n")
+      ).flatten! 
     end
   end
 end

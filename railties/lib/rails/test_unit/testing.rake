@@ -1,24 +1,11 @@
-require 'rbconfig'
 require 'rake/testtask'
 require 'rails/test_unit/sub_test_task'
-require 'active_support/deprecation'
 
 task default: :test
 
-desc 'Runs test:units, test:functionals, test:integration together'
+desc 'Runs test:units, test:functionals, test:generators, test:integration together'
 task :test do
-  info = Rails::TestTask.test_info Rake.application.top_level_tasks
-  if info.files.any?
-    Rails::TestTask.new('test:single') { |t|
-      t.test_files = info.files
-    }
-    ENV['TESTOPTS'] ||= info.opts
-    Rake.application.top_level_tasks.replace info.tasks
-
-    Rake::Task['test:single'].invoke
-  else
-    Rake::Task[ENV['TEST'] ? 'test:single' : 'test:run'].invoke
-  end
+  Rails::TestTask.test_creator(Rake.application.top_level_tasks).invoke_rake_task
 end
 
 namespace :test do
@@ -26,7 +13,7 @@ namespace :test do
     # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
   end
 
-  task :run => ['test:units', 'test:functionals', 'test:integration']
+  task :run => ['test:units', 'test:functionals', 'test:generators', 'test:integration']
 
   # Inspired by: http://ngauthier.com/2012/02/quick-tests-with-bash.html
   desc "Run tests quickly by merging all types and not resetting db"
@@ -45,6 +32,10 @@ namespace :test do
     Rails::TestTask.new(name => "test:prepare") do |t|
       t.pattern = "test/#{name}/**/*_test.rb"
     end
+  end
+
+  Rails::TestTask.new(generators: "test:prepare") do |t|
+    t.pattern = "test/lib/generators/**/*_test.rb"
   end
 
   Rails::TestTask.new(units: "test:prepare") do |t|

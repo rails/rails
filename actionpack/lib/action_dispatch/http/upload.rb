@@ -18,6 +18,7 @@ module ActionDispatch
       # A +Tempfile+ object with the actual uploaded file. Note that some of
       # its interface is available directly.
       attr_accessor :tempfile
+      alias :to_io :tempfile
 
       # A string with the headers of the multipart request.
       attr_accessor :headers
@@ -72,19 +73,6 @@ module ActionDispatch
         # Encode the filename in the utf8 encoding, unless it is nil
         filename.force_encoding(Encoding::UTF_8).encode! if filename
       end
-    end
-
-    module Upload # :nodoc:
-      # Replace file upload hash with UploadedFile objects
-      # when normalize and encode parameters.
-      def normalize_encode_params(value)
-        if Hash === value && value.has_key?(:tempfile)
-          UploadedFile.new(value)
-        else
-          super
-        end
-      end
-      private :normalize_encode_params
     end
   end
 end

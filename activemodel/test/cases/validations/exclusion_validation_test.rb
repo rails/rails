@@ -7,7 +7,7 @@ require 'models/person'
 class ExclusionValidationTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
+    Topic.clear_validators!
   end
 
   def test_validates_exclusion_of
@@ -50,7 +50,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
     p.karma = "Lifo"
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 
   def test_validates_exclusion_of_with_lambda
@@ -87,6 +87,6 @@ class ExclusionValidationTest < ActiveModel::TestCase
 
     assert p.valid?
   ensure
-    Person.reset_callbacks(:validate)
+    Person.clear_validators!
   end
 end

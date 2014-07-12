@@ -43,6 +43,10 @@ module ActiveSupport
       :custom_units_for_number_to_human => {:mili => "mm", :centi => "cm", :deci => "dm", :unit => "m", :ten => "dam", :hundred => "hm", :thousand => "km"}
     end
 
+    def teardown
+      I18n.backend.reload!
+    end
+
     def test_number_to_i18n_currency
       assert_equal("&$ - 10.00", number_to_currency(10, :locale => 'ts'))
       assert_equal("(&$ - 10.00)", number_to_currency(-10, :locale => 'ts'))
@@ -50,8 +54,6 @@ module ActiveSupport
     end
 
     def test_number_to_currency_with_empty_i18n_store
-      I18n.backend.store_translations 'empty', {}
-
       assert_equal("$10.00", number_to_currency(10, :locale => 'empty'))
       assert_equal("-$10.00", number_to_currency(-10, :locale => 'empty'))
     end
@@ -80,8 +82,6 @@ module ActiveSupport
     end
 
     def test_number_with_i18n_precision_and_empty_i18n_store
-      I18n.backend.store_translations 'empty', {}
-
       assert_equal("123456789.123", number_to_rounded(123456789.123456789, :locale => 'empty'))
       assert_equal("1.000", number_to_rounded(1.0000, :locale => 'empty'))
     end
@@ -92,8 +92,6 @@ module ActiveSupport
     end
 
     def test_number_with_i18n_delimiter_and_empty_i18n_store
-      I18n.backend.store_translations 'empty', {}
-
       assert_equal("1,000,000.234", number_to_delimited(1000000.234, :locale => 'empty'))
     end
 
@@ -107,8 +105,6 @@ module ActiveSupport
     end
 
     def test_number_to_i18n_percentage_and_empty_i18n_store
-      I18n.backend.store_translations 'empty', {}
-
       assert_equal("1.000%", number_to_percentage(1, :locale => 'empty'))
       assert_equal("1.243%", number_to_percentage(1.2434, :locale => 'empty'))
       assert_equal("12434.000%", number_to_percentage(12434, :locale => 'empty'))
@@ -121,8 +117,6 @@ module ActiveSupport
     end
 
     def test_number_to_i18n_human_size_with_empty_i18n_store
-      I18n.backend.store_translations 'empty', {}
-
       assert_equal("2 KB", number_to_human_size(2048, :locale => 'empty'))
       assert_equal("42 Bytes", number_to_human_size(42, :locale => 'empty'))
     end
@@ -142,8 +136,6 @@ module ActiveSupport
     end
 
     def test_number_to_human_with_empty_i18n_store
-      I18n.backend.store_translations 'empty', {}
-
       assert_equal "2 Thousand", number_to_human(2000, :locale => 'empty')
       assert_equal "1.23 Billion", number_to_human(1234567890, :locale => 'empty')
     end

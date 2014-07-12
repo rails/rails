@@ -8,18 +8,10 @@ module ActiveRecord
         class_attribute :default_scopes, instance_writer: false, instance_predicate: false
 
         self.default_scopes = []
-
-        def self.default_scopes?
-          ActiveSupport::Deprecation.warn(
-            "#default_scopes? is deprecated. Do something like #default_scopes.empty? instead."
-          )
-
-          !!self.default_scopes
-        end
       end
 
       module ClassMethods
-        # Returns a scope for the model without the +default_scope+.
+        # Returns a scope for the model without the previously set scopes.
         #
         #   class Post < ActiveRecord::Base
         #     def self.default_scope
@@ -27,11 +19,12 @@ module ActiveRecord
         #     end
         #   end
         #
-        #   Post.all          # Fires "SELECT * FROM posts WHERE published = true"
-        #   Post.unscoped.all # Fires "SELECT * FROM posts"
+        #   Post.all                                  # Fires "SELECT * FROM posts WHERE published = true"
+        #   Post.unscoped.all                         # Fires "SELECT * FROM posts"
+        #   Post.where(published: false).unscoped.all # Fires "SELECT * FROM posts"
         #
         # This method also accepts a block. All queries inside the block will
-        # not use the +default_scope+:
+        # not use the previously set scopes.
         #
         #   Post.unscoped {
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
@@ -91,29 +84,24 @@ module ActiveRecord
           scope = Proc.new if block_given?
 
           if scope.is_a?(Relation) || !scope.respond_to?(:call)
-            ActiveSupport::Deprecation.warn(
-              "Calling #default_scope without a block is deprecated. For example instead " \
+            raise ArgumentError,
+              "Support for calling #default_scope without a block is removed. For example instead " \
               "of `default_scope where(color: 'red')`, please use " \
               "`default_scope { where(color: 'red') }`. (Alternatively you can just redefine " \
               "self.default_scope.)"
-            )
           end
 
           self.default_scopes += [scope]
         end
 
-        def build_default_scope # :nodoc:
+        def build_default_scope(base_rel = relation) # :nodoc:
           if !Base.is_a?(method(:default_scope).owner)
             # The user has defined their own default scope method, so call that
             evaluate_default_scope { default_scope }
           elsif default_scopes.any?
             evaluate_default_scope do
-              default_scopes.inject(relation) do |default_scope, scope|
-                if !scope.is_a?(Relation) && scope.respond_to?(:call)
-                  default_scope.merge(unscoped { scope.call })
-                else
-                  default_scope.merge(scope)
-                end
+              default_scopes.inject(base_rel) do |default_scope, scope|
+                default_scope.merge(base_rel.scoping { scope.call })
               end
             end
           end

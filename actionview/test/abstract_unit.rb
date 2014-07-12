@@ -24,7 +24,6 @@ require 'action_dispatch'
 require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
-require 'action_controller/caching'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
@@ -42,6 +41,9 @@ Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
+
+# Disable available locale checks to avoid warnings running the test suite.
+I18n.enforce_available_locales = false
 
 # Register danish language for testing
 I18n.backend.store_translations 'da', {}
@@ -268,9 +270,10 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 end
 
+ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
+
 module ActionController
   class Base
-    include ActionController::Testing
     # This stub emulates the Railtie including the URL helpers from a Rails application
     include SharedTestRoutes.url_helpers
     include SharedTestRoutes.mounted_helpers
@@ -288,9 +291,6 @@ module ActionController
     include ActionDispatch::TestProcess
     include ActionDispatch::SharedRoutes
   end
-end
-
-class ::ApplicationController < ActionController::Base
 end
 
 module ActionView
@@ -330,53 +330,11 @@ module ActionDispatch
   end
 end
 
-module ActionDispatch
-  module RoutingVerbs
-    def get(uri_or_host, path = nil)
-      host = uri_or_host.host unless path
-      path ||= uri_or_host.path
-
-      params = {'PATH_INFO'      => path,
-                'REQUEST_METHOD' => 'GET',
-                'HTTP_HOST'      => host}
-
-      routes.call(params)[2].join
-    end
-  end
+# Skips the current run on Rubinius using Minitest::Assertions#skip
+def rubinius_skip(message = '')
+  skip message if RUBY_ENGINE == 'rbx'
 end
-
-module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_recall => recall))
-  end
-end
-
-class ResourcesController < ActionController::Base
-  def index() render :nothing => true end
-  alias_method :show, :index
-end
-
-class ThreadsController  < ResourcesController; end
-class MessagesController < ResourcesController; end
-class CommentsController < ResourcesController; end
-class ReviewsController < ResourcesController; end
-class AuthorsController < ResourcesController; end
-class LogosController < ResourcesController; end
-
-class AccountsController <  ResourcesController; end
-class AdminController   <  ResourcesController; end
-class ProductsController < ResourcesController; end
-class ImagesController < ResourcesController; end
-class PreferencesController < ResourcesController; end
-
-module Backoffice
-  class ProductsController < ResourcesController; end
-  class TagsController < ResourcesController; end
-  class ManufacturersController < ResourcesController; end
-  class ImagesController < ResourcesController; end
-
-  module Admin
-    class ProductsController < ResourcesController; end
-    class ImagesController < ResourcesController; end
-  end
+# Skips the current run on JRuby using Minitest::Assertions#skip
+def jruby_skip(message = '')
+  skip message if defined?(JRUBY_VERSION)
 end

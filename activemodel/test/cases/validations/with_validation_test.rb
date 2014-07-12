@@ -6,8 +6,7 @@ require 'models/topic'
 class ValidatesWithTest < ActiveModel::TestCase
 
   def teardown
-    Topic.reset_callbacks(:validate)
-    Topic._validators.clear
+    Topic.clear_validators!
   end
 
   ERROR_MESSAGE = "Validation error from validator"

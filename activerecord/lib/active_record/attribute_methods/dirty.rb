@@ -14,24 +14,12 @@ module ActiveRecord
 
         class_attribute :partial_writes, instance_writer: false
         self.partial_writes = true
-
-        def self.partial_updates=(v); self.partial_writes = v; end
-        def self.partial_updates?; partial_writes?; end
-        def self.partial_updates; partial_writes; end
-
-        ActiveSupport::Deprecation.deprecate_methods(
-          singleton_class,
-          :partial_updates= => :partial_writes=,
-          :partial_updates? => :partial_writes?,
-          :partial_updates  => :partial_writes
-        )
       end
 
       # Attempts to +save+ the record and clears changed attributes if successful.
       def save(*)
         if status = super
-          @previously_changed = changes
-          @changed_attributes.clear
+          changes_applied
         end
         status
       end
@@ -39,79 +27,140 @@ module ActiveRecord
       # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
       def save!(*)
         super.tap do
-          @previously_changed = changes
-          @changed_attributes.clear
+          changes_applied
         end
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
-          @previously_changed.clear
-          @changed_attributes.clear
+          reset_changes
         end
       end
 
-    private
+      def initialize_dup(other) # :nodoc:
+        super
+        calculate_changes_from_defaults
+      end
+
+      def changed?
+        super || changed_in_place.any?
+      end
+
+      def changed
+        super | changed_in_place
+      end
+
+      def attribute_changed?(attr_name, options = {})
+        result = super
+        # We can't change "from" something in place. Only setters can define
+        # "from" and "to"
+        result ||= changed_in_place?(attr_name) unless options.key?(:from)
+        result
+      end
+
+      def changes_applied
+        super
+        store_original_raw_attributes
+      end
+
+      def reset_changes
+        super
+        original_raw_attributes.clear
+      end
+
+      private
+
+      def calculate_changes_from_defaults
+        @changed_attributes = nil
+        self.class.column_defaults.each do |attr, orig_value|
+          changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value)
+        end
+      end
+
       # Wrap write_attribute to remember original attribute value.
       def write_attribute(attr, value)
         attr = attr.to_s
 
-        # The attribute already has an unsaved change.
-        if attribute_changed?(attr)
-          old = @changed_attributes[attr]
-          @changed_attributes.delete(attr) unless _field_changed?(attr, old, value)
-        else
-          old = clone_attribute_value(:read_attribute, attr)
-          @changed_attributes[attr] = old if _field_changed?(attr, old, value)
-        end
+        old_value = old_attribute_value(attr)
 
-        # Carry on.
-        super(attr, value)
+        result = super
+        store_original_raw_attribute(attr)
+        save_changed_attribute(attr, old_value)
+        result
       end
 
-      def update_record(*)
+      def raw_write_attribute(attr, value)
+        attr = attr.to_s
+
+        result = super
+        original_raw_attributes[attr] = value
+        result
+      end
+
+      def save_changed_attribute(attr, old_value)
+        if attribute_changed?(attr)
+          changed_attributes.delete(attr) unless _field_changed?(attr, old_value)
+        else
+          changed_attributes[attr] = old_value if _field_changed?(attr, old_value)
+        end
+      end
+
+      def old_attribute_value(attr)
+        if attribute_changed?(attr)
+          changed_attributes[attr]
+        else
+          clone_attribute_value(:read_attribute, attr)
+        end
+      end
+
+      def _update_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end
 
-      def create_record(*)
+      def _create_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end
 
       # Serialized attributes should always be written in case they've been
       # changed in place.
       def keys_for_partial_write
-        changed | (attributes.keys & self.class.serialized_attributes.keys)
+        changed
       end
 
-      def _field_changed?(attr, old, value)
-        if column = column_for_attribute(attr)
-          if column.number? && (changes_from_nil_to_empty_string?(column, old, value) ||
-                                changes_from_zero_to_string?(old, value))
-            value = nil
-          else
-            value = column.type_cast(value)
-          end
+      def _field_changed?(attr, old_value)
+        @attributes[attr].changed_from?(old_value)
+      end
+
+      def changed_in_place
+        self.class.attribute_names.select do |attr_name|
+          changed_in_place?(attr_name)
         end
-
-        old != value
       end
 
-      def changes_from_nil_to_empty_string?(column, old, value)
-        # For nullable numeric columns, NULL gets stored in database for blank (i.e. '') values.
-        # Hence we don't record it as a change if the value changes from nil to ''.
-        # If an old value of 0 is set to '' we want this to get changed to nil as otherwise it'll
-        # be typecast back to 0 (''.to_i => 0)
-        column.null && (old.nil? || old == 0) && value.blank?
+      def changed_in_place?(attr_name)
+        old_value = original_raw_attribute(attr_name)
+        @attributes[attr_name].changed_in_place_from?(old_value)
       end
 
-      def changes_from_zero_to_string?(old, value)
-        # For columns with old 0 and value non-empty string
-        old == 0 && value.is_a?(String) && value.present? && non_zero?(value)
+      def original_raw_attribute(attr_name)
+        original_raw_attributes.fetch(attr_name) do
+          read_attribute_before_type_cast(attr_name)
+        end
       end
 
-      def non_zero?(value)
-        value !~ /\A0+(\.0+)?\z/
+      def original_raw_attributes
+        @original_raw_attributes ||= {}
+      end
+
+      def store_original_raw_attribute(attr_name)
+        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database
+      end
+
+      def store_original_raw_attributes
+        attribute_names.each do |attr|
+          store_original_raw_attribute(attr)
+        end
       end
     end
   end

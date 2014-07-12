@@ -1,76 +1,250 @@
-*   Fix return value from `BacktraceCleaner#noise` when the cleaner is configured
-    with multiple silencers.
+*   `DateTime#to_f` now preserves the fractional seconds instead of always
+    rounding to `.0`.
 
-    Fixes #11030
+    Fixes #15994.
+
+    *John Paul Ashenfelter*
+
+*   Add `Hash#transform_values` to simplify a common pattern where the values of a
+    hash must change, but the keys are left the same.
+
+    *Sean Griffin*
+
+*   Always instrument `ActiveSupport::Cache`.
+
+    Since `ActiveSupport::Notifications` only instrument items when there
+    are subscriber we don't need to disable instrumentation.
+
+    *Peter Wagenet*
+
+*   Make the `apply_inflections` method case-insensitive when checking
+    whether a word is uncountable or not.
+
+    *Robin Dupret*
+
+*   Make Dependencies pass a name to NameError error.
+
+    *arthurnn*
+
+*   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
+
+    *Adam Panzer / Michael Grosser*
+
+*   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
+    when working with objects with a nanosecond component.
+
+    `ActiveSupport::TimeWithZone#-` should return the same result as if we were
+    using `Time#-`:
+
+        Time.now.end_of_day - Time.now.beginning_of_day #=> 86399.999999999
+
+    Before:
+
+        Time.zone.now.end_of_day.nsec #=> 999999999
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day #=> 86400.0
+
+    After:
+
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day
+        #=> 86399.999999999
+
+    *Gordon Chan*
+
+*   Fixed precision error in NumberHelper when using Rationals.
+
+    Before:
+
+        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
+        #=> "330.00"
+
+    After:
+
+        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
+        #=> "333.33"
+
+    See #15379.
+
+    *Juanjo Bazán*
+
+*   Removed deprecated `Numeric#ago` and friends
+
+    Replacements:
+
+        5.ago   => 5.seconds.ago
+        5.until => 5.seconds.until
+        5.since => 5.seconds.since
+        5.from_now => 5.seconds.from_now
+
+    See #12389 for the history and rationale behind this.
+
+    *Godfrey Chan*
+
+*   DateTime `advance` now supports partial days.
+
+    Before:
+
+        DateTime.now.advance(days: 1, hours: 12)
+
+    After:
+
+        DateTime.now.advance(days: 1.5)
+
+    Fixes #12005.
+
+    *Shay Davidson*
+
+*   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
+    in nested arrays.  This change also applies to `Hash#deep_stringify_keys`,
+    `Hash#deep_stringify_keys!`, `Hash#deep_symbolize_keys` and
+    `Hash#deep_symbolize_keys!`.
+
+    *OZAWA Sakuro*
+
+*   Fixed confusing `DelegationError` in `Module#delegate`.
+
+    See #15186.
+
+    *Vladimir Yarotsky*
+
+*   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
+    when a subscriber method is redefined.
+
+    *Dennis Schön*
+
+*   Remove deprecated string based terminators for `ActiveSupport::Callbacks`.
+
+    *Eileen M. Uchitelle*
+
+*   Fixed an issue when using
+    `ActiveSupport::NumberHelper::NumberToDelimitedConverter` to
+    convert a value that is an `ActiveSupport::SafeBuffer` introduced
+    in 2da9d67.
+
+    See #15064.
 
     *Mark J. Titorenko*
 
-*   `HashWithIndifferentAccess#select` now returns a `HashWithIndifferentAccess`
-    instance instead of a `Hash` instance.
+*   `TimeZone#parse` defaults the day of the month to '1' if any other date
+    components are specified. This is more consistent with the behavior of
+    `Time#parse`.
 
-    Fixes #10723
+    *Ulysse Carion*
 
-    *Albert Llop*
+*   `humanize` strips leading underscores, if any.
 
-*   Add `DateTime#usec` and `DateTime#nsec` so that `ActiveSupport::TimeWithZone` keeps
-    sub-second resolution when wrapping a `DateTime` value.
+    Before:
 
-    Fixes #10855
+        '_id'.humanize # => ""
 
-    *Andrew White*
+    After:
 
-*   Fix `ActiveSupport::Dependencies::Loadable#load_dependency` calling
-    `#blame_file!` on Exceptions that do not have the Blamable mixin
+        '_id'.humanize # => "Id"
 
-    *Andrew Kreiling*
+    *Xavier Noria*
 
-*   Override `Time.at` to support the passing of Time-like values when called with a single argument.
+*   Fixed backward compatibility isues introduced in 326e652.
 
-    *Andrew White*
+    Empty Hash or Array should not present in serialization result.
 
-*   Prevent side effects to hashes inside arrays when
-    `Hash#with_indifferent_access` is called.
+        {a: []}.to_query # => ""
+        {a: {}}.to_query # => ""
 
-    Fixes #10526
+    For more info see #14948.
 
-    *Yves Senn*
+    *Bogdan Gusiev*
 
-*   Raise an error when multiple `included` blocks are defined for a Concern.
-    The old behavior would silently discard previously defined blocks, running
-    only the last one.
+*   Add `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5` to support stable
+    UUID fixtures on PostgreSQL.
 
-    *Mike Dillon*
+    *Roderick van Domburg*
 
-*   Replace `multi_json` with `json`.
+*   Fixed `ActiveSupport::Duration#eql?` so that `1.second.eql?(1.second)` is
+    true.
 
-    Since Rails requires Ruby 1.9 and since Ruby 1.9 includes `json` in the standard library,
-    `multi_json` is no longer necessary.
+    This fixes the current situation of:
 
-    *Erik Michaels-Ober*
+        1.second.eql?(1.second) #=> false
 
-*   Added escaping of U+2028 and U+2029 inside the json encoder.
-    These characters are legal in JSON but break the Javascript interpreter.
-    After escaping them, the JSON is still legal and can be parsed by Javascript.
+    `eql?` also requires that the other object is an `ActiveSupport::Duration`.
+    This requirement makes `ActiveSupport::Duration`'s behavior consistent with
+    the behavior of Ruby's numeric types:
 
-    *Mario Caropreso + Viktor Kelemen + zackham*
+        1.eql?(1.0) #=> false
+        1.0.eql?(1) #=> false
 
-*   Fix skipping object callbacks using metadata fetched via callback chain
-    inspection methods (`_*_callbacks`)
+        1.second.eql?(1) #=> false (was true)
+        1.eql?(1.second) #=> false
 
-    *Sean Walbran*
+        { 1 => "foo", 1.0 => "bar" }
+        #=> { 1 => "foo", 1.0 => "bar" }
 
-*   Add a `fetch_multi` method to the cache stores. The method provides
-    an easy to use API for fetching multiple values from the cache.
+        { 1 => "foo", 1.second => "bar" }
+        # now => { 1 => "foo", 1.second => "bar" }
+        # was => { 1 => "bar" }
 
-    Example:
+    And though the behavior of these hasn't changed, for reference:
 
-        # Calculating scores is expensive, so we only do it for posts
-        # that have been updated. Cache keys are automatically extracted
-        # from objects that define a #cache_key method.
-        scores = Rails.cache.fetch_multi(*posts) do |post|
-          calculate_score(post)
+        1 == 1.0 #=> true
+        1.0 == 1 #=> true
+
+        1 == 1.second #=> true
+        1.second == 1 #=> true
+
+    *Emily Dobervich*
+
+*   `ActiveSupport::SafeBuffer#prepend` acts like `String#prepend` and modifies
+    instance in-place, returning self. `ActiveSupport::SafeBuffer#prepend!` is
+    deprecated.
+
+    *Pavel Pravosud*
+
+*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
+    given. In particular, `.new`, `#update`, `#merge`, `#replace` all accept
+    objects which respond to `#to_hash`, even if those objects are not Hashes
+    directly.
+
+    *Peter Jaros*
+
+*   Deprecate `Class#superclass_delegating_accessor`, use `Class#class_attribute` instead.
+
+    *Akshay Vishnoi*
+
+*   Ensure classes which `include Enumerable` get `#to_json` in addition to
+    `#as_json`.
+
+    *Sammy Larbi*
+
+*   Change the signature of `fetch_multi` to return a hash rather than an
+    array. This makes it consistent with the output of `read_multi`.
+
+    *Parker Selbert*
+
+*   Introduce `Concern#class_methods` as a sleek alternative to clunky
+    `module ClassMethods`. Add `Kernel#concern` to define at the toplevel
+    without chunky `module Foo; extend ActiveSupport::Concern` boilerplate.
+
+        # app/models/concerns/authentication.rb
+        concern :Authentication do
+          included do
+            after_create :generate_private_key
+          end
+
+          class_methods do
+            def authenticate(credentials)
+              # ...
+            end
+          end
+
+          def generate_private_key
+            # ...
+          end
         end
 
-    *Daniel Schierbeck*
+        # app/models/user.rb
+        class User < ActiveRecord::Base
+          include Authentication
+        end
 
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activesupport/CHANGELOG.md) for previous changes.
+    *Jeremy Kemper*
+
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activesupport/CHANGELOG.md) for previous changes.

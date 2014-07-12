@@ -35,5 +35,15 @@ module ActionView
         end
       end
     end
+
+    initializer "action_view.setup_action_pack" do |app|
+      ActiveSupport.on_load(:action_controller) do
+        ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
+      end
+    end
+
+    rake_tasks do
+      load "action_view/tasks/dependencies.rake"
+    end
   end
 end

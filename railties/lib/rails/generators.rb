@@ -1,6 +1,8 @@
 activesupport_path = File.expand_path('../../../../activesupport/lib', __FILE__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 
+require 'thor/group'
+
 require 'active_support'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/kernel/singleton_class'
@@ -9,12 +11,11 @@ require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/string/inflections'
 
-require 'rails/generators/base'
-
 module Rails
   module Generators
     autoload :Actions,         'rails/generators/actions'
     autoload :ActiveModel,     'rails/generators/active_model'
+    autoload :Base,            'rails/generators/base'
     autoload :Migration,       'rails/generators/migration'
     autoload :NamedBase,       'rails/generators/named_base'
     autoload :ResourceHelpers, 'rails/generators/resource_helpers'
@@ -155,10 +156,20 @@ module Rails
         args << "--help" if args.empty? && klass.arguments.any? { |a| a.required? }
         klass.start(args, config)
       else
-        puts "Could not find generator #{namespace}."
+        options     = sorted_groups.map(&:last).flatten
+        suggestions = options.sort_by {|suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
+        msg =  "Could not find generator '#{namespace}'. "
+        msg << "Maybe you meant #{ suggestions.map {|s| "'#{s}'"}.join(" or ") }\n"
+        msg << "Run `rails generate --help` for more options."
+        puts msg
       end
     end
 
+    # Returns an array of generator namespaces that are hidden.
+    # Generator namespaces may be hidden for a variety of reasons.
+    # Some are aliased such as "rails:migration" and can be
+    # invoked with the shorter "migration", others are private to other generators
+    # such as "css:scaffold".
     def self.hidden_namespaces
       @hidden_namespaces ||= begin
         orm      = options[:rails][:orm]
@@ -198,17 +209,6 @@ module Rails
 
     # Show help message with available generators.
     def self.help(command = 'generate')
-      lookup!
-
-      namespaces = subclasses.map{ |k| k.namespace }
-      namespaces.sort!
-
-      groups = Hash.new { |h,k| h[k] = [] }
-      namespaces.each do |namespace|
-        base = namespace.split(':').first
-        groups[base] << namespace
-      end
-
       puts "Usage: rails #{command} GENERATOR [args] [options]"
       puts
       puts "General options:"
@@ -221,19 +221,73 @@ module Rails
       puts "Please choose a generator below."
       puts
 
-      # Print Rails defaults first.
+      print_generators
+    end
+
+    def self.public_namespaces
+      lookup!
+      subclasses.map { |k| k.namespace }
+    end
+
+    def self.print_generators
+      sorted_groups.each { |b, n| print_list(b, n) }
+    end
+
+    def self.sorted_groups
+      namespaces = public_namespaces
+      namespaces.sort!
+      groups = Hash.new { |h,k| h[k] = [] }
+      namespaces.each do |namespace|
+        base = namespace.split(':').first
+        groups[base] << namespace
+      end
       rails = groups.delete("rails")
       rails.map! { |n| n.sub(/^rails:/, '') }
       rails.delete("app")
-      rails.delete("plugin_new")
-      print_list("rails", rails)
+      rails.delete("plugin")
 
       hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
-      groups.sort.each { |b, n| print_list(b, n) }
+      [["rails", rails]] + groups.sort.to_a
     end
 
     protected
+
+      # This code is based directly on the Text gem implementation
+      # Returns a value representing the "cost" of transforming str1 into str2
+      def self.levenshtein_distance str1, str2
+        s = str1
+        t = str2
+        n = s.length
+        m = t.length
+        max = n/2
+
+        return m if (0 == n)
+        return n if (0 == m)
+        return n if (n - m).abs > max
+
+        d = (0..m).to_a
+        x = nil
+
+        str1.each_char.each_with_index do |char1,i|
+          e = i+1
+
+          str2.each_char.each_with_index do |char2,j|
+            cost = (char1 == char2) ? 0 : 1
+            x = [
+                 d[j+1] + 1, # insertion
+                 e + 1,      # deletion
+                 d[j] + cost # substitution
+                ].min
+            d[j] = e
+            e = x
+          end
+
+          d[m] = x
+        end
+
+        return x
+      end
 
       # Prints a list of generators.
       def self.print_list(base, namespaces) #:nodoc:

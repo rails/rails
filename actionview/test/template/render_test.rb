@@ -12,7 +12,6 @@ module RenderTestCases
     @controller_view = TestController.new.view_context
 
     # Reload and register danish language for testing
-    I18n.reload!
     I18n.backend.store_translations 'da', {}
     I18n.backend.store_translations 'pt-BR', {}
 
@@ -22,7 +21,7 @@ module RenderTestCases
 
   def test_render_without_options
     e = assert_raises(ArgumentError) { @view.render() }
-    assert_match "You invoked render but did not give any of :partial, :template, :inline, :file or :text option.", e.message
+    assert_match(/You invoked render but did not give any of (.+) option./, e.message)
   end
 
   def test_render_file
@@ -39,6 +38,11 @@ module RenderTestCases
   def test_render_template_with_format
     assert_match "<h1>No Comment</h1>", @view.render(:template => "comments/empty", :formats => [:html])
     assert_match "<error>No Comment</error>", @view.render(:template => "comments/empty", :formats => [:xml])
+  end
+
+  def test_rendered_format_without_format
+    @view.render(:inline => "test")
+    assert_equal :html, @view.lookup_context.rendered_format
   end
 
   def test_render_partial_implicitly_use_format_of_the_rendered_template
@@ -58,7 +62,7 @@ module RenderTestCases
 
   def test_render_template_with_a_missing_partial_of_another_format
     @view.lookup_context.formats = [:html]
-    assert_raise ActionView::Template::Error, "Missing partial /missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
+    assert_raise ActionView::Template::Error, "Missing partial /_missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
       @view.render(:template => "with_format", :formats => [:json])
     end
   end
@@ -299,6 +303,16 @@ module RenderTestCases
     assert_equal "Hola: david", @controller_view.render('customer_greeting', :greeting => 'Hola', :customer_greeting => Customer.new("david"))
   end
 
+  def test_render_partial_with_object_uses_render_partial_path
+    assert_equal "Hello: lifo",
+      @controller_view.render(:partial => Customer.new("lifo"), :locals => {:greeting => "Hello"})
+  end
+
+  def test_render_partial_with_object_and_format_uses_render_partial_path
+    assert_equal "<greeting>Hello</greeting><name>lifo</name>",
+      @controller_view.render(:partial => Customer.new("lifo"), :formats => :xml, :locals => {:greeting => "Hello"})
+  end
+
   def test_render_partial_using_object
     assert_equal "Hello: lifo",
       @controller_view.render(Customer.new("lifo"), :greeting => "Hello")
@@ -314,7 +328,8 @@ module RenderTestCases
     exception = assert_raises ActionView::Template::Error do
       @controller_view.render("partial_name_local_variable")
     end
-    assert_match "undefined local variable or method `partial_name_local_variable'", exception.message
+    assert_instance_of NameError, exception.original_exception
+    assert_equal :partial_name_local_variable, exception.original_exception.name
   end
 
   # TODO: The reason for this test is unclear, improve documentation
@@ -354,29 +369,46 @@ module RenderTestCases
 
   def test_render_inline_with_render_from_to_proc
     ActionView::Template.register_template_handler :ruby_handler, :source.to_proc
-    assert_equal '3', @view.render(:inline => "(1 + 2).to_s", :type => :ruby_handler)
+    assert_equal '3', @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
+  ensure
+    ActionView::Template.unregister_template_handler :ruby_handler
   end
 
   def test_render_inline_with_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CustomHandler
-    assert_equal 'source: "Hello, World!"', @view.render(:inline => "Hello, World!", :type => :foo)
+    assert_equal 'source: "Hello, World!"', @view.render(inline: "Hello, World!", type: :foo)
+  ensure
+    ActionView::Template.unregister_template_handler :foo
   end
 
   def test_render_inline_with_locals_and_compilable_custom_type
     ActionView::Template.register_template_handler :foo, CustomHandler
-    assert_equal 'source: "Hello, <%= name %>!"', @view.render(:inline => "Hello, <%= name %>!", :locals => { :name => "Josh" }, :type => :foo)
+    assert_equal 'source: "Hello, <%= name %>!"', @view.render(inline: "Hello, <%= name %>!", locals: { name: "Josh" }, type: :foo)
+  ensure
+    ActionView::Template.unregister_template_handler :foo
   end
 
   def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization
     ActionView::Template::Handlers.extensions
     ActionView::Template.register_template_handler :foo, CustomHandler
     assert ActionView::Template::Handlers.extensions.include?(:foo)
+  ensure
+    ActionView::Template.unregister_template_handler :foo
+  end
+
+  def test_render_does_not_use_unregistered_extension_and_template_handler
+    ActionView::Template.register_template_handler :foo, CustomHandler
+    ActionView::Template.unregister_template_handler :foo
+    assert_not ActionView::Template::Handlers.extensions.include?(:foo)
+    assert_equal "Hello, World!", @view.render(inline: "Hello, World!", type: :foo)
+  ensure
+    ActionView::Template::Handlers.class_variable_get(:@@template_handlers).delete(:foo)
   end
 
   def test_render_ignores_templates_with_malformed_template_handlers
     ActiveSupport::Deprecation.silence do
       %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
-        assert File.exists?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
+        assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
         assert_raises(ActionView::MissingTemplate) { @view.render(:file => "test/malformed/#{name}") }
       end
     end
@@ -439,7 +471,7 @@ module RenderTestCases
 
   def test_render_partial_with_layout_raises_descriptive_error
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: 'test/partial', layout: true) }
-    assert_match "Missing partial /true with", e.message
+    assert_match "Missing partial /_true with", e.message
   end
 
   def test_render_with_nested_layout
@@ -459,7 +491,9 @@ module RenderTestCases
 
   def test_render_with_passing_couple_extensions_to_one_register_template_handler_function_call
     ActionView::Template.register_template_handler :foo1, :foo2, CustomHandler
-    assert_equal @view.render(:inline => "Hello, World!", :type => :foo1), @view.render(:inline => "Hello, World!", :type => :foo2)
+    assert_equal @view.render(inline: "Hello, World!", type: :foo1), @view.render(inline: "Hello, World!", type: :foo2)
+  ensure
+    ActionView::Template.unregister_template_handler :foo1, :foo2
   end
 
   def test_render_throws_exception_when_no_extensions_passed_to_register_template_handler_function_call
@@ -479,6 +513,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
 
   def teardown
     GC.start
+    I18n.reload!
   end
 end
 
@@ -496,6 +531,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 
   def teardown
     GC.start
+    I18n.reload!
   end
 
   def test_render_utf8_template_with_magic_comment

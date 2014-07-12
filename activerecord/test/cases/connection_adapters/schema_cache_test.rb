@@ -45,8 +45,8 @@ module ActiveRecord
 
         @cache = Marshal.load(Marshal.dump(@cache))
 
-        assert_equal 12, @cache.columns('posts').size
-        assert_equal 12, @cache.columns_hash('posts').size
+        assert_equal 11, @cache.columns('posts').size
+        assert_equal 11, @cache.columns_hash('posts').size
         assert @cache.tables('posts')
         assert_equal 'id', @cache.primary_keys('posts')
       end

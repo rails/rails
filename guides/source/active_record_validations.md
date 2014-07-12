@@ -85,7 +85,7 @@ end
 We can see how it works by looking at some `rails console` output:
 
 ```ruby
-$ rails console
+$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -121,7 +121,7 @@ database only if the object is valid:
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
 The non-bang versions don't, `save` and `update` return `false`,
-`create` just return the objects.
+`create` just returns the object.
 
 ### Skipping Validations
 
@@ -175,28 +175,28 @@ class Person < ActiveRecord::Base
 end
 
 >> p = Person.new
-#=> #<Person id: nil, name: nil>
+# => #<Person id: nil, name: nil>
 >> p.errors.messages
-#=> {}
+# => {}
 
 >> p.valid?
-#=> false
+# => false
 >> p.errors.messages
-#=> {name:["can't be blank"]}
+# => {name:["can't be blank"]}
 
 >> p = Person.create
-#=> #<Person id: nil, name: nil>
+# => #<Person id: nil, name: nil>
 >> p.errors.messages
-#=> {name:["can't be blank"]}
+# => {name:["can't be blank"]}
 
 >> p.save
-#=> false
+# => false
 
 >> p.save!
-#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
 >> Person.create!
-#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+# => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 `invalid?` is simply the inverse of `valid?`. It triggers your validations,
@@ -243,7 +243,7 @@ line of code you can add the same kind of validation to several attributes.
 All of them accept the `:on` and `:message` options, which define when the
 validation should be run and what message should be added to the `errors`
 collection if it fails, respectively. The `:on` option takes one of the values
-`:save` (the default), `:create` or `:update`. There is a default error
+`:create` or `:update`. There is a default error
 message for each one of the validation helpers. These messages are used when
 the `:message` option isn't specified. Let's take a look at each one of the
 available helpers.
@@ -337,7 +337,7 @@ set. In fact, this set can be any enumerable object.
 ```ruby
 class Account < ActiveRecord::Base
   validates :subdomain, exclusion: { in: %w(www us ca jp),
-    message: "Subdomain %{value} is reserved." }
+    message: "%{value} is reserved." }
 end
 ```
 
@@ -438,8 +438,6 @@ provide a personalized message or use `presence: true` instead. When
 `:in` or `:within` have a lower limit of 1, you should either provide a
 personalized message or call `presence` prior to `length`.
 
-The `size` helper is an alias for `length`.
-
 ### `numericality`
 
 This helper validates that your attributes have only numeric values. By
@@ -528,7 +526,7 @@ If you validate the presence of an object associated via a `has_one` or
 Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use `validates :field_name, inclusion: { in: [true, false] }`.
 
-The default error message is _"can't be empty"_.
+The default error message is _"can't be blank"_.
 
 ### `absence`
 
@@ -577,7 +575,9 @@ This helper validates that the attribute's value is unique right before the
 object gets saved. It does not create a uniqueness constraint in the database,
 so it may happen that two different database connections create two records
 with the same value for a column that you intend to be unique. To avoid that,
-you must create a unique index in your database.
+you must create a unique index on both columns in your database. See
+[the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html)
+for more details about multiple column indexes.
 
 ```ruby
 class Account < ActiveRecord::Base
@@ -618,16 +618,16 @@ The default error message is _"has already been taken"_.
 This helper passes the record to a separate class for validation.
 
 ```ruby
-class Person < ActiveRecord::Base
-  validates_with GoodnessValidator
-end
-
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if record.first_name == "Evil"
       record.errors[:base] << "This person is evil"
     end
   end
+end
+
+class Person < ActiveRecord::Base
+  validates_with GoodnessValidator
 end
 ```
 
@@ -646,16 +646,16 @@ Like all other validations, `validates_with` takes the `:if`, `:unless` and
 validator class as `options`:
 
 ```ruby
-class Person < ActiveRecord::Base
-  validates_with GoodnessValidator, fields: [:first_name, :last_name]
-end
-
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
       record.errors[:base] << "This person is evil"
     end
   end
+end
+
+class Person < ActiveRecord::Base
+  validates_with GoodnessValidator, fields: [:first_name, :last_name]
 end
 ```
 
@@ -684,7 +684,7 @@ class GoodnessValidator
     end
   end
 
-  # …
+  # ...
 end
 ```
 
@@ -765,10 +765,9 @@ class Person < ActiveRecord::Base
   validates :age, numericality: true, on: :update
 
   # the default (validates on both create and update)
-  validates :name, presence: true, on: :save
+  validates :name, presence: true
 end
 ```
-The last line is in review state and as of now, it is not running in any version of Rails 3.2.x as discussed in this [issue](https://github.com/rails/rails/issues/10248)
 
 Strict Validations
 ------------------
@@ -784,7 +783,7 @@ end
 Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
-There is also an ability to pass custom exception to `:strict` option
+There is also an ability to pass custom exception to `:strict` option.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -872,7 +871,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ActiveRecord::Base
   validates :mouse, presence: true,
-                    if: ["market.retail?", :desktop?]
+                    if: ["market.retail?", :desktop?],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```
@@ -911,8 +910,8 @@ end
 The easiest way to add custom validators for validating individual attributes
 is with the convenient `ActiveModel::EachValidator`. In this case, the custom
 validator class must implement a `validate_each` method which takes three
-arguments: record, attribute and value which correspond to the instance, the
-attribute to be validated and the value of the attribute in the passed
+arguments: record, attribute, and value. These correspond to the instance, the
+attribute to be validated, and the value of the attribute in the passed
 instance.
 
 ```ruby
@@ -1130,15 +1129,15 @@ generating a scaffold, Rails will put some ERB into the `_form.html.erb` that
 it generates that displays the full list of errors on that model.
 
 Assuming we have a model that's been saved in an instance variable named
-`@post`, it looks like this:
+`@article`, it looks like this:
 
 ```ruby
-<% if @post.errors.any? %>
+<% if @article.errors.any? %>
   <div id="error_explanation">
-    <h2><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h2>
+    <h2><%= pluralize(@article.errors.count, "error") %> prohibited this article from being saved:</h2>
 
     <ul>
-    <% @post.errors.full_messages.each do |msg| %>
+    <% @article.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
     <% end %>
     </ul>
@@ -1152,7 +1151,7 @@ the entry.
 
 ```
 <div class="field_with_errors">
- <input id="post_title" name="post[title]" size="30" type="text" value="">
+ <input id="article_title" name="article[title]" size="30" type="text" value="">
 </div>
 ```
 

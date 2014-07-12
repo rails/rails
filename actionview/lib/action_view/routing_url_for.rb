@@ -1,3 +1,5 @@
+require 'action_dispatch/routing/polymorphic_routes'
+
 module ActionView
   module RoutingUrlFor
 
@@ -77,14 +79,20 @@ module ActionView
       case options
       when String
         options
-      when nil, Hash
-        options ||= {}
-        options = { :only_path => options[:host].nil? }.merge!(options.symbolize_keys)
-        super
+      when nil
+        super({:only_path => true})
+      when Hash
+        super({ :only_path => options[:host].nil? }.merge!(options.symbolize_keys))
       when :back
         _back_url
+      when Symbol
+        ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_string_call self, options
+      when Array
+        polymorphic_path(options, options.extract_options!)
+      when Class
+        ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_class_call self, options
       else
-        polymorphic_path(options)
+        ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_model_call self, options
       end
     end
 

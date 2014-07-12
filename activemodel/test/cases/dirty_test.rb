@@ -3,11 +3,12 @@ require "cases/helper"
 class DirtyTest < ActiveModel::TestCase
   class DirtyModel
     include ActiveModel::Dirty
-    define_attribute_methods :name, :color
+    define_attribute_methods :name, :color, :size
 
     def initialize
       @name = nil
       @color = nil
+      @size = nil
     end
 
     def name
@@ -28,9 +29,25 @@ class DirtyTest < ActiveModel::TestCase
       @color = val
     end
 
+    def size
+      @size
+    end
+
+    def size=(val)
+      attribute_will_change!(:size) unless val == @size
+      @size = val
+    end
+
     def save
-      @previously_changed = changes
-      @changed_attributes.clear
+      changes_applied
+    end
+
+    def reload
+      reset_changes
+    end
+
+    def rollback
+      undo_changes
     end
   end
 
@@ -58,10 +75,28 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal [nil, "John"], @model.changes['name']
   end
 
+  test "checking if an attribute has changed to a particular value" do
+    @model.name = "Ringo"
+    assert @model.name_changed?(from: nil, to: "Ringo")
+    assert_not @model.name_changed?(from: "Pete", to: "Ringo")
+    assert @model.name_changed?(to: "Ringo")
+    assert_not @model.name_changed?(to: "Pete")
+    assert @model.name_changed?(from: nil)
+    assert_not @model.name_changed?(from: "Pete")
+  end
+
   test "changes accessible through both strings and symbols" do
     @model.name = "David"
     assert_not_nil @model.changes[:name]
     assert_not_nil @model.changes['name']
+  end
+
+  test "be consistent with symbols arguments after the changes are applied" do
+    @model.name = "David"
+    assert @model.attribute_changed?(:name)
+    @model.save
+    @model.name = 'Rafael'
+    assert @model.attribute_changed?(:name)
   end
 
   test "attribute mutation" do
@@ -124,5 +159,39 @@ class DirtyTest < ActiveModel::TestCase
     @model.name = "Mr. Manfredgensonton"
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
     assert_equal @model.name_was, "Otto"
+  end
+
+  test "using attribute_will_change! with a symbol" do
+    @model.size = 1
+    assert @model.size_changed?
+  end
+
+  test "reload should reset all changes" do
+    @model.name = 'Dmitry'
+    @model.name_changed?
+    @model.save
+    @model.name = 'Bob'
+
+    assert_equal [nil, 'Dmitry'], @model.previous_changes['name']
+    assert_equal 'Dmitry', @model.changed_attributes['name']
+
+    @model.reload
+
+    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
+    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
+  end
+
+  test "undo_changes should restore all previous data" do
+    @model.name = 'Dmitry'
+    @model.color = 'Red'
+    @model.save
+    @model.name = 'Bob'
+    @model.color = 'White'
+
+    @model.rollback
+
+    assert_not @model.changed?
+    assert_equal 'Dmitry', @model.name
+    assert_equal 'Red', @model.color
   end
 end

@@ -1,11 +1,20 @@
 require 'abstract_unit'
 
 module RenderText
+  class MinimalController < ActionController::Metal
+    include AbstractController::Rendering
+    include ActionController::Rendering
+
+    def index
+      render text: "Hello World!"
+    end
+  end
+
   class SimpleController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new]
 
     def index
-      render :text => "hello david"
+      render text: "hello david"
     end
   end
 
@@ -17,55 +26,61 @@ module RenderText
     )]
 
     def index
-      render :text => "hello david"
+      render text: "hello david"
     end
 
     def custom_code
-      render :text => "hello world", :status => 404
+      render text: "hello world", status: 404
     end
 
     def with_custom_code_as_string
-      render :text => "hello world", :status => "404 Not Found"
+      render text: "hello world", status: "404 Not Found"
     end
 
     def with_nil
-      render :text => nil
+      render text: nil
     end
 
     def with_nil_and_status
-      render :text => nil, :status => 403
+      render text: nil, status: 403
     end
 
     def with_false
-      render :text => false
+      render text: false
     end
 
     def with_layout_true
-      render :text => "hello world", :layout => true
+      render text: "hello world", layout: true
     end
 
     def with_layout_false
-      render :text => "hello world", :layout => false
+      render text: "hello world", layout: false
     end
 
     def with_layout_nil
-      render :text => "hello world", :layout => nil
+      render text: "hello world", layout: nil
     end
 
     def with_custom_layout
-      render :text => "hello world", :layout => "greetings"
+      render text: "hello world", layout: "greetings"
     end
 
     def with_ivar_in_layout
       @ivar = "hello world"
-      render :text => "hello world", :layout => "ivar"
+      render text: "hello world", layout: "ivar"
     end
   end
 
   class RenderTextTest < Rack::TestCase
+    test "rendering text from a minimal controller" do
+      get "/render_text/minimal/index"
+      assert_body "Hello World!"
+      assert_status 200
+    end
+
     test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
-        set.draw { get ':controller', :action => 'index' }
+        set.draw { get ':controller', action: 'index' }
 
         get "/render_text/simple"
         assert_body "hello david"
@@ -75,7 +90,7 @@ module RenderText
 
     test "rendering text from an action with default options renders the text without the layout" do
       with_routing do |set|
-        set.draw { get ':controller', :action => 'index' }
+        set.draw { get ':controller', action: 'index' }
 
         get "/render_text/with_layout"
 
@@ -91,17 +106,17 @@ module RenderText
       assert_status 404
     end
 
-    test "rendering text with nil returns an empty body padded for Safari" do
+    test "rendering text with nil returns an empty body" do
       get "/render_text/with_layout/with_nil"
 
-      assert_body " "
+      assert_body ""
       assert_status 200
     end
 
-    test "Rendering text with nil and custom status code returns an empty body padded for Safari and the status" do
+    test "Rendering text with nil and custom status code returns an empty body and the status" do
       get "/render_text/with_layout/with_nil_and_status"
 
-      assert_body " "
+      assert_body ""
       assert_status 403
     end
 
@@ -112,28 +127,28 @@ module RenderText
       assert_status 200
     end
 
-    test "rendering text with :layout => true" do
+    test "rendering text with layout: true" do
       get "/render_text/with_layout/with_layout_true"
 
       assert_body "hello world, I'm here!"
       assert_status 200
     end
 
-    test "rendering text with :layout => 'greetings'" do
+    test "rendering text with layout: 'greetings'" do
       get "/render_text/with_layout/with_custom_layout"
 
       assert_body "hello world, I wish thee well."
       assert_status 200
     end
 
-    test "rendering text with :layout => false" do
+    test "rendering text with layout: false" do
       get "/render_text/with_layout/with_layout_false"
 
       assert_body "hello world"
       assert_status 200
     end
 
-    test "rendering text with :layout => nil" do
+    test "rendering text with layout: nil" do
       get "/render_text/with_layout/with_layout_nil"
 
       assert_body "hello world"

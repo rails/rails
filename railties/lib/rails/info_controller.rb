@@ -1,11 +1,11 @@
+require 'rails/application_controller'
 require 'action_dispatch/routing/inspector'
 
-class Rails::InfoController < ActionController::Base # :nodoc:
-  self.view_paths = File.expand_path('../templates', __FILE__)
+class Rails::InfoController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
-  layout -> { request.xhr? ? nil : 'application' }
+  layout -> { request.xhr? ? false : 'application' }
 
-  before_filter :require_local!
+  before_action :require_local!
 
   def index
     redirect_to action: :routes
@@ -13,21 +13,11 @@ class Rails::InfoController < ActionController::Base # :nodoc:
 
   def properties
     @info = Rails::Info.to_html
+    @page_title = 'Properties'
   end
 
   def routes
     @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(_routes.routes)
-  end
-
-  protected
-
-  def require_local!
-    unless local_request?
-      render text: '<p>For security purposes, this information is only available to local requests.</p>', status: :forbidden
-    end
-  end
-
-  def local_request?
-    Rails.application.config.consider_all_requests_local || request.local?
+    @page_title = 'Routes'
   end
 end

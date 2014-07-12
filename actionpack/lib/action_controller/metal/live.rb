@@ -1,5 +1,6 @@
 require 'action_dispatch/http/response'
 require 'delegate'
+require 'active_support/json'
 
 module ActionController
   # Mix this module in to your controller, and all actions in that controller
@@ -32,9 +33,99 @@ module ActionController
   # the main thread. Make sure your actions are thread safe, and this shouldn't
   # be a problem (don't share state across threads, etc).
   module Live
+    # This class provides the ability to write an SSE (Server Sent Event)
+    # to an IO stream. The class is initialized with a stream and can be used
+    # to either write a JSON string or an object which can be converted to JSON.
+    #
+    # Writing an object will convert it into standard SSE format with whatever
+    # options you have configured. You may choose to set the following options:
+    #
+    #   1) Event. If specified, an event with this name will be dispatched on
+    #   the browser.
+    #   2) Retry. The reconnection time in milliseconds used when attempting
+    #   to send the event.
+    #   3) Id. If the connection dies while sending an SSE to the browser, then
+    #   the server will receive a +Last-Event-ID+ header with value equal to +id+.
+    #
+    # After setting an option in the constructor of the SSE object, all future
+    # SSEs sent across the stream will use those options unless overridden.
+    #
+    # Example Usage:
+    #
+    #   class MyController < ActionController::Base
+    #     include ActionController::Live
+    #
+    #     def index
+    #       response.headers['Content-Type'] = 'text/event-stream'
+    #       sse = SSE.new(response.stream, retry: 300, event: "event-name")
+    #       sse.write({ name: 'John'})
+    #       sse.write({ name: 'John'}, id: 10)
+    #       sse.write({ name: 'John'}, id: 10, event: "other-event")
+    #       sse.write({ name: 'John'}, id: 10, event: "other-event", retry: 500)
+    #     ensure
+    #       sse.close
+    #     end
+    #   end
+    #
+    # Note: SSEs are not currently supported by IE. However, they are supported
+    # by Chrome, Firefox, Opera, and Safari.
+    class SSE
+
+      WHITELISTED_OPTIONS = %w( retry event id )
+
+      def initialize(stream, options = {})
+        @stream = stream
+        @options = options
+      end
+
+      def close
+        @stream.close
+      end
+
+      def write(object, options = {})
+        case object
+        when String
+          perform_write(object, options)
+        else
+          perform_write(ActiveSupport::JSON.encode(object), options)
+        end
+      end
+
+      private
+
+        def perform_write(json, options)
+          current_options = @options.merge(options).stringify_keys
+
+          WHITELISTED_OPTIONS.each do |option_name|
+            if (option_value = current_options[option_name])
+              @stream.write "#{option_name}: #{option_value}\n"
+            end
+          end
+
+          message = json.gsub("\n", "\ndata: ")
+          @stream.write "data: #{message}\n\n"
+        end
+    end
+
+    class ClientDisconnected < RuntimeError
+    end
+
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
+      include MonitorMixin
+
+      # Ignore that the client has disconnected.
+      #
+      # If this value is `true`, calling `write` after the client
+      # disconnects will result in the written content being silently
+      # discarded. If this value is `false` (the default), a
+      # ClientDisconnected exception will be raised.
+      attr_accessor :ignore_disconnect
+
       def initialize(response)
-        @error_callback = nil
+        @error_callback = lambda { true }
+        @cv = new_cond
+        @aborted = false
+        @ignore_disconnect = false
         super(response, SizedQueue.new(10))
       end
 
@@ -45,17 +136,63 @@ module ActionController
         end
 
         super
-      end
 
-      def each
-        while str = @buf.pop
-          yield str
+        unless connected?
+          @buf.clear
+
+          unless @ignore_disconnect
+            # Raise ClientDisconnected, which is a RuntimeError (not an
+            # IOError), because that's more appropriate for something beyond
+            # the developer's control.
+            raise ClientDisconnected, "client disconnected"
+          end
         end
       end
 
+      def each
+        @response.sending!
+        while str = @buf.pop
+          yield str
+        end
+        @response.sent!
+      end
+
+      # Write a 'close' event to the buffer; the producer/writing thread
+      # uses this to notify us that it's finished supplying content.
+      #
+      # See also #abort.
       def close
-        super
-        @buf.push nil
+        synchronize do
+          super
+          @buf.push nil
+          @cv.broadcast
+        end
+      end
+
+      # Inform the producer/writing thread that the client has
+      # disconnected; the reading thread is no longer interested in
+      # anything that's being written.
+      #
+      # See also #close.
+      def abort
+        synchronize do
+          @aborted = true
+          @buf.clear
+        end
+      end
+
+      # Is the client still connected and waiting for content?
+      #
+      # The result of calling `write` when this is `false` is determined
+      # by `ignore_disconnect`.
+      def connected?
+        !@aborted
+      end
+
+      def await_close
+        synchronize do
+          @cv.wait_until { @closed }
+        end
       end
 
       def on_error(&block)
@@ -68,7 +205,7 @@ module ActionController
     end
 
     class Response < ActionDispatch::Response #:nodoc: all
-      class Header < DelegateClass(Hash)
+      class Header < DelegateClass(Hash) # :nodoc:
         def initialize(response, header)
           @response = response
           super(header)
@@ -91,12 +228,20 @@ module ActionController
         end
       end
 
-      def commit!
-        headers.freeze
+      private
+
+      def before_committed
         super
+        jar = request.cookie_jar
+        # The response can be committed multiple times
+        jar.write self unless committed?
       end
 
-      private
+      def before_sending
+        super
+        request.cookie_jar.commit!
+        headers.freeze
+      end
 
       def build_buffer(response, body)
         buf = Live::Buffer.new response
@@ -117,6 +262,7 @@ module ActionController
       t1 = Thread.current
       locals = t1.keys.map { |key| [key, t1[key]] }
 
+      error = nil
       # This processes the action in a child thread. It lets us return the
       # response code and headers back up the rack stack, and still process
       # the body in parallel with sending data to the client
@@ -131,14 +277,18 @@ module ActionController
         begin
           super(name)
         rescue => e
-          begin
-            @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
-            @_response.stream.call_on_error
-          rescue => exception
-            log_error(exception)
-          ensure
-            log_error(e)
-            @_response.stream.close
+          if @_response.committed?
+            begin
+              @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+              @_response.stream.call_on_error
+            rescue => exception
+              log_error(exception)
+            ensure
+              log_error(e)
+              @_response.stream.close
+            end
+          else
+            error = e
           end
         ensure
           @_response.commit!
@@ -146,6 +296,7 @@ module ActionController
       }
 
       @_response.await_commit
+      raise error if error
     end
 
     def log_error(exception)
@@ -160,7 +311,7 @@ module ActionController
 
     def response_body=(body)
       super
-      response.stream.close if response
+      response.close if response
     end
 
     def set_response!(request)

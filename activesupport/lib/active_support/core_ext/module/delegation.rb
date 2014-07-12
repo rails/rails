@@ -6,6 +6,11 @@ class Module
   # Provides a +delegate+ class method to easily expose contained objects'
   # public methods as your own.
   #
+  # ==== Options
+  # * <tt>:to</tt> - Specifies the target object
+  # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
+  # * <tt>:allow_nil</tt> - if set to true, prevents a +NoMethodError+ to be raised
+  #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
   # (also a symbol or string).
@@ -133,6 +138,8 @@ class Module
   #
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
+  # The target method must be public, otherwise it will raise +NoMethodError+.
+  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
@@ -163,38 +170,28 @@ class Module
       # methods still accept two arguments.
       definition = (method =~ /[^\]]=$/) ? 'arg' : '*args, &block'
 
-      # The following generated methods call the target exactly once, storing
+      # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
       #
       # Reason is twofold: On one hand doing less calls is in general better.
       # On the other hand it could be that the target has side-effects,
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
-      if allow_nil
-        module_eval(<<-EOS, file, line - 3)
-          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            _ = #{to}                                         #   _ = client
-            if !_.nil? || nil.respond_to?(:#{method})         #   if !_.nil? || nil.respond_to?(:name)
-              _.#{method}(#{definition})                      #     _.name(*args, &block)
-            end                                               #   end
-          end                                                 # end
-        EOS
-      else
-        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
-        module_eval(<<-EOS, file, line - 2)
-          def #{method_prefix}#{method}(#{definition})        # def customer_name(*args, &block)
-            _ = #{to}                                         #   _ = client
-            _.#{method}(#{definition})                        #   _.name(*args, &block)
-          rescue NoMethodError                                # rescue NoMethodError
-            if _.nil?                                         #   if _.nil?
-              #{exception}                                    #     # add helpful message to the exception
-            else                                              #   else
-              raise                                           #     raise
-            end                                               #   end
-          end                                                 # end
-        EOS
-      end
+      exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+
+      method_def = [
+        "def #{method_prefix}#{method}(#{definition})",
+        "  _ = #{to}",
+        "  if !_.nil? || nil.respond_to?(:#{method})",
+        "    _.#{method}(#{definition})",
+        "  else",
+        "    #{exception unless allow_nil}",
+        "  end",
+        "end"
+      ].join ';'
+
+      module_eval(method_def, file, line)
     end
   end
 end

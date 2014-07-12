@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Routes</title>
+  <title><%= @page_title %></title>
   <style>
     body { background-color: #fff; color: #333; }
 
@@ -29,7 +29,7 @@
   </style>
 </head>
 <body>
-<h2>Your App: <%= link_to 'properties', '/rails/info/properties' %> | <%= link_to 'routes', '/rails/info/routes' %></h2>
+
 <%= yield %>
 
 </body>

@@ -23,8 +23,8 @@ $ rails new blog -m http://example.com/template.rb
 You can use the rake task `rails:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
 
 ```bash
-$ rake rails:template LOCATION=~/template.rb
-$ rake rails:template LOCATION=http://example.com/template.rb
+$ bin/rake rails:template LOCATION=~/template.rb
+$ bin/rake rails:template LOCATION=http://example.com/template.rb
 ```
 
 Template API
@@ -47,7 +47,7 @@ The following sections outline the primary methods provided by the API:
 
 ### gem(*args)
 
-Adds a `gem` entry for the supplied gem to the generated application’s `Gemfile`.
+Adds a `gem` entry for the supplied gem to the generated application's `Gemfile`.
 
 For example, if your application depends on the gems `bj` and `nokogiri`:
 
@@ -78,7 +78,7 @@ end
 
 Adds the given source to the generated application's `Gemfile`.
 
-For example, if you need to source a gem from "http://code.whytheluckystiff.net":
+For example, if you need to source a gem from `"http://code.whytheluckystiff.net"`:
 
 ```ruby
 add_source "http://code.whytheluckystiff.net"
@@ -98,7 +98,7 @@ A block can be used in place of the `data` argument.
 
 ### vendor/lib/file/initializer(filename, data = nil, &block)
 
-Adds an initializer to the generated application’s `config/initializers` directory.
+Adds an initializer to the generated application's `config/initializers` directory.
 
 Let's say you like using `Object#not_nil?` and `Object#not_blank?`:
 
@@ -127,7 +127,7 @@ file 'app/components/foo.rb', <<-CODE
 CODE
 ```
 
-That’ll create the `app/components` directory and put `foo.rb` in there.
+That'll create the `app/components` directory and put `foo.rb` in there.
 
 ### rakefile(filename, data = nil, &block)
 
@@ -197,7 +197,7 @@ end
 
 ### ask(question)
 
-`ask()` gives you a chance to get some feedback from the user and use it in your templates. Let's say you want your user to name the new shiny library you’re adding:
+`ask()` gives you a chance to get some feedback from the user and use it in your templates. Let's say you want your user to name the new shiny library you're adding:
 
 ```ruby
 lib_name = ask("What do you want to call the shiny library ?")
@@ -211,7 +211,7 @@ CODE
 
 ### yes?(question) or no?(question)
 
-These methods let you ask questions from templates and decide the flow based on the user’s answer. Let's say you want to freeze rails only if the user wants to:
+These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to freeze rails only if the user wants to:
 
 ```ruby
 rake("rails:freeze:gems") if yes?("Freeze rails gems?")
@@ -226,4 +226,23 @@ Rails templates let you run any git command:
 git :init
 git add: "."
 git commit: "-a -m 'Initial commit'"
+```
+
+Advanced Usage
+--------------
+
+The application template is evaluated in the context of a
+`Rails::Generators::AppGenerator` instance. It uses the `apply` action
+provided by
+[Thor](https://github.com/erikhuda/thor/blob/master/lib/thor/actions.rb#L207).
+This means you can extend and change the instance to match your needs.
+
+For example by overwriting the `source_paths` method to contain the
+location of your template. Now methods like `copy_file` will accept
+relative paths to your template's location.
+
+```ruby
+def source_paths
+  [File.expand_path(File.dirname(__FILE__))]
+end
 ```

@@ -44,7 +44,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
     end
   end
 
-  def test_helpr_is_also_namespaced
+  def test_helper_is_also_namespaced
     run_generator
     assert_file "app/helpers/test_app/account_helper.rb", /module TestApp/, /  module AccountHelper/
     assert_file "test/helpers/test_app/account_helper_test.rb", /module TestApp/, /  class AccountHelperTest/
@@ -63,7 +63,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_routes_should_not_be_namespaced
     run_generator
-    assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
+    assert_file "config/routes.rb", /get 'account\/foo'/, /get 'account\/bar'/
   end
 
   def test_invokes_default_template_engine_even_with_no_action

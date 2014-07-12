@@ -90,13 +90,14 @@ module ActionView
     eager_autoload do
       autoload :Error
       autoload :Handlers
+      autoload :HTML
       autoload :Text
       autoload :Types
     end
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :virtual_path
+    attr_accessor :locals, :formats, :variants, :virtual_path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
 
@@ -122,6 +123,7 @@ module ActionView
       @virtual_path      = details[:virtual_path]
       @updated_at        = details[:updated_at] || Time.now
       @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
+      @variants          = [details[:variant]]
       @compile_mutex     = Mutex.new
     end
 
@@ -142,7 +144,7 @@ module ActionView
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
-    rescue Exception => e
+    rescue => e
       handle_render_error(view, e)
     end
 
@@ -294,7 +296,7 @@ module ActionView
         begin
           mod.module_eval(source, identifier, 0)
           ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
-        rescue Exception => e # errors from template code
+        rescue => e # errors from template code
           if logger = (view && view.logger)
             logger.debug "ERROR: compiling #{method_name} RAISED #{e}"
             logger.debug "Function body: #{source}"

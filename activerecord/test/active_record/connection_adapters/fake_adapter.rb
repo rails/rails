@@ -29,6 +29,7 @@ module ActiveRecord
         @columns[table_name] << ActiveRecord::ConnectionAdapters::Column.new(
           name.to_s,
           options[:default],
+          lookup_cast_type(sql_type.to_s),
           sql_type.to_s,
           options[:null])
       end

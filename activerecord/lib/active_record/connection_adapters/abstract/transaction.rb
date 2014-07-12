@@ -23,6 +23,10 @@ module ActiveRecord
         @parent = nil
       end
 
+      def finalized?
+        @state
+      end
+
       def committed?
         @state == :committed
       end

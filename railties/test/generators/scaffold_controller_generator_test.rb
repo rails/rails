@@ -93,6 +93,14 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/views/layouts/users.html.erb"
   end
 
+  def test_index_page_have_notice
+    run_generator
+
+    %w(index show).each do |view|
+      assert_file "app/views/users/#{view}.html.erb", /notice/
+    end
+  end
+
   def test_functional_tests
     run_generator ["User", "name:string", "age:integer", "organization:references{polymorphic}"]
 
@@ -160,10 +168,12 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     Unknown::Generators.send :remove_const, :ActiveModel
   end
 
-  def test_new_hash_style
-    run_generator
-    assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/render action: 'new'/, content)
+  def test_model_name_option
+    run_generator ["Admin::User", "--model-name=User"]
+    assert_file "app/controllers/admin/users_controller.rb" do |content|
+      assert_instance_method :index, content do |m|
+        assert_match("@users = User.all", m)
+      end
     end
   end
 end

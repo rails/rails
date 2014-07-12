@@ -16,7 +16,7 @@ module ActionView
       # provided here will only work in the context of a request
       # (link_to_unless_current, for instance), which must be provided
       # as a method called #request on the context.
-
+      BUTTON_TAG_METHOD_VERBS = %w{patch put delete}
       extend ActiveSupport::Concern
 
       include TagHelper
@@ -82,7 +82,7 @@ module ActionView
       #   to using GET. If <tt>href: '#'</tt> is used and the user has JavaScript
       #   disabled clicking the link will have no effect. If you are relying on the
       #   POST behavior, you should check for it in your controller's action by using
-      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>:patch</tt>, or <tt>put?</tt>.
+      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>patch?</tt>, or <tt>put?</tt>.
       # * <tt>remote: true</tt> - This will allow the unobtrusive JavaScript
       #   driver to make an Ajax request to the URL in question instead of following
       #   the link. The drivers each provide mechanisms for listening for the
@@ -92,8 +92,9 @@ module ActionView
       # ==== Data attributes
       #
       # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified. If the user accepts, the link is
-      #   processed normally, otherwise no action is taken.
+      #   driver to prompt with the question specified (in this case, the
+      #   resulting text would be <tt>question?</tt>. If the user accepts, the
+      #   link is processed normally, otherwise no action is taken.
       # * <tt>:disable_with</tt> - Value of this parameter will be
       #   used as the value for a disabled version of the submit
       #   button when the form is submitted. This feature is provided
@@ -172,7 +173,7 @@ module ActionView
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
       #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
       def link_to(name = nil, options = nil, html_options = nil, &block)
-        html_options, options = options, name if block_given?
+        html_options, options, name = options, name, block if block_given?
         options ||= {}
 
         html_options = convert_options_to_data_attributes(options, html_options)
@@ -213,6 +214,7 @@ module ActionView
       # * <tt>:form</tt> - This hash will be form attributes
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
+      # * <tt>:params</tt> - Hash of parameters to be rendered as hidden fields within the form.
       #
       # ==== Data attributes
       #
@@ -227,6 +229,11 @@ module ActionView
       # ==== Examples
       #   <%= button_to "New", action: "new" %>
       #   # => "<form method="post" action="/controller/new" class="button_to">
+      #   #      <div><input value="New" type="submit" /></div>
+      #   #    </form>"
+      #
+      #   <%= button_to "New", new_articles_path %>
+      #   # => "<form method="post" action="/articles/new" class="button_to">
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
@@ -287,9 +294,10 @@ module ActionView
 
         url    = options.is_a?(String) ? options : url_for(options)
         remote = html_options.delete('remote')
+        params = html_options.delete('params')
 
         method     = html_options.delete('method').to_s
-        method_tag = %w{patch put delete}.include?(method) ? method_tag(method) : ''.html_safe
+        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : ''.html_safe
 
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
@@ -310,7 +318,12 @@ module ActionView
         end
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
-        content_tag('form', content_tag('div', inner_tags), form_options)
+        if params
+          params.each do |param_name, value|
+            inner_tags.safe_concat tag(:input, type: "hidden", name: param_name, value: value.to_param)
+          end
+        end
+        content_tag('form', inner_tags, form_options)
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -376,15 +389,7 @@ module ActionView
       #   # If not...
       #   # => <a href="/accounts/signup">Reply</a>
       def link_to_unless(condition, name, options = {}, html_options = {}, &block)
-        if condition
-          if block_given?
-            block.arity <= 1 ? capture(name, &block) : capture(name, options, html_options, &block)
-          else
-            ERB::Util.html_escape(name)
-          end
-        else
-          link_to(name, options, html_options)
-        end
+        link_to_if !condition, name, options, html_options, &block
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -408,7 +413,15 @@ module ActionView
       #   # If they are logged in...
       #   # => <a href="/accounts/show/3">my_username</a>
       def link_to_if(condition, name, options = {}, html_options = {}, &block)
-        link_to_unless !condition, name, options, html_options, &block
+        if condition
+          link_to(name, options, html_options)
+        else
+          if block_given?
+            block.arity <= 1 ? capture(name, &block) : capture(name, options, html_options, &block)
+          else
+            ERB::Util.html_escape(name)
+          end
+        end
       end
 
       # Creates a mailto link tag to the specified +email_address+, which is
@@ -449,20 +462,18 @@ module ActionView
       #          <strong>Email me:</strong> <span>me@domain.com</span>
       #        </a>
       def mail_to(email_address, name = nil, html_options = {}, &block)
-        email_address = ERB::Util.html_escape(email_address)
-
         html_options, name = name, nil if block_given?
         html_options = (html_options || {}).stringify_keys
 
-        extras = %w{ cc bcc body subject }.map { |item|
+        extras = %w{ cc bcc body subject }.map! { |item|
           option = html_options.delete(item) || next
           "#{item}=#{Rack::Utils.escape_path(option)}"
         }.compact
-        extras = extras.empty? ? '' : '?' + ERB::Util.html_escape(extras.join('&'))
+        extras = extras.empty? ? '' : '?' + extras.join('&')
 
-        html_options["href"] = "mailto:#{email_address}#{extras}".html_safe
+        html_options["href"] = "mailto:#{email_address}#{extras}"
 
-        content_tag(:a, name || email_address.html_safe, html_options, &block)
+        content_tag(:a, name || email_address, html_options, &block)
       end
 
       # True if the current request URI was generated by the given +options+.
@@ -528,12 +539,13 @@ module ActionView
 
         return false unless request.get? || request.head?
 
-        url_string = url_for(options)
+        url_string = URI.parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
         # submitted url doesn't have any either. This lets the function
         # work with things like ?order=asc
         request_uri = url_string.index("?") ? request.fullpath : request.path
+        request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
         if url_string =~ /^\w+:\/\//
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"

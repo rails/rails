@@ -32,6 +32,15 @@ module ActionView #:nodoc:
         @@template_extensions = nil
       end
 
+      # Opposite to register_template_handler.
+      def unregister_template_handler(*extensions)
+        extensions.each do |extension|
+          handler = @@template_handlers.delete extension.to_sym
+          @@default_template_handlers = nil if @@default_template_handlers == handler
+        end
+        @@template_extensions = nil
+      end
+
       def template_handler_extensions
         @@template_handlers.keys.map {|key| key.to_s }.sort
       end

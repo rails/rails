@@ -1,6 +1,7 @@
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/file_update_checker'
 require 'rails/engine/configuration'
+require 'rails/source_annotation_extractor'
 
 module Rails
   class Application
@@ -76,6 +77,7 @@ module Rails
         @paths ||= begin
           paths = super
           paths.add "config/database",    with: "config/database.yml"
+          paths.add "config/secrets",     with: "config/secrets.yml"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"
@@ -87,31 +89,30 @@ module Rails
         end
       end
 
-      def threadsafe!
-        message = "config.threadsafe! is deprecated. Rails applications " \
-                  "behave by default as thread safe in production as long as config.cache_classes and " \
-                  "config.eager_load are set to true"
-        ActiveSupport::Deprecation.warn message
-        @cache_classes = true
-        @eager_load = true
-        self
-      end
-
-      # Loads and returns the configuration of the database.
+      # Loads and returns the entire raw configuration of database from
+      # values stored in `config/database.yml`.
       def database_configuration
-        yaml = paths["config/database"].first
-        if File.exists?(yaml)
+        yaml = Pathname.new(paths["config/database"].existent.first || "")
+
+        config = if yaml.exist?
+          require "yaml"
           require "erb"
-          YAML.load ERB.new(IO.read(yaml)).result
+          YAML.load(ERB.new(yaml.read).result) || {}
         elsif ENV['DATABASE_URL']
-          nil
+          # Value from ENV['DATABASE_URL'] is set to default database connection
+          # by Active Record.
+          {}
         else
           raise "Could not load database configuration. No such file - #{yaml}"
         end
+
+        config
       rescue Psych::SyntaxError => e
         raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
               "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
               "Error: #{e.message}"
+      rescue => e
+        raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
       end
 
       def log_level
@@ -150,8 +151,8 @@ module Rails
         end
       end
 
-      def whiny_nils=(*)
-        ActiveSupport::Deprecation.warn "config.whiny_nils option is deprecated and no longer works"
+      def annotations
+        SourceAnnotationExtractor::Annotation
       end
     end
   end

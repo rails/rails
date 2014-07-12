@@ -13,7 +13,7 @@ After reading this guide, you will know:
 Markdown
 -------
 
-Guides are written in [GitHub Flavored Markdown](http://github.github.com/github-flavored-markdown/). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), a [cheatsheet](http://daringfireball.net/projects/markdown/basics), and [additional documentation](http://github.github.com/github-flavored-markdown/) on the differences from traditional Markdown.
+Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), a [cheatsheet](http://daringfireball.net/projects/markdown/basics).
 
 Prologue
 --------
@@ -51,7 +51,7 @@ Use the same typography as in regular text:
 API Documentation Guidelines
 ----------------------------
 
-The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the [API Documentation Guidelines](api_documentation_guidelines.html:)
+The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the [API Documentation Guidelines](api_documentation_guidelines.html):
 
 * [Wording](api_documentation_guidelines.html#wording)
 * [Example Code](api_documentation_guidelines.html#example-code)

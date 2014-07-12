@@ -32,21 +32,22 @@ module ActiveSupport
   #
   # If the class has an initializer, it must accept no arguments.
   module PerThreadRegistry
-    protected
+    def self.extended(object)
+      object.instance_variable_set '@per_thread_registry_key', object.name.freeze
+    end
 
+    def instance
+      Thread.current[@per_thread_registry_key] ||= new
+    end
+
+    protected
       def method_missing(name, *args, &block) # :nodoc:
         # Caches the method definition as a singleton method of the receiver.
         define_singleton_method(name) do |*a, &b|
-          per_thread_registry_instance.public_send(name, *a, &b)
+          instance.public_send(name, *a, &b)
         end
 
         send(name, *args, &block)
-      end
-
-    private
-
-      def per_thread_registry_instance
-        Thread.current[name] ||= new
       end
   end
 end

@@ -6,7 +6,7 @@ module ActiveRecord
 
       def handle_dependency
         case options[:dependent]
-        when :restrict, :restrict_with_exception
+        when :restrict_with_exception
           raise ActiveRecord::DeleteRestrictionError.new(reflection.name) if load_target
 
         when :restrict_with_error
@@ -26,15 +26,19 @@ module ActiveRecord
         load_target
 
         return self.target if !(target || record)
-        if (target != record) || record.changed?
+
+        assigning_another_record = target != record
+        if assigning_another_record || record.changed?
+          save &&= owner.persisted?
+
           transaction_if(save) do
-            remove_target!(options[:dependent]) if target && !target.destroyed?
+            remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
 
             if record
               set_owner_attributes(record)
               set_inverse_instance(record)
 
-              if owner.persisted? && save && !record.save
+              if save && !record.save
                 nullify_owner_attributes(record)
                 set_owner_attributes(target) if target
                 raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."

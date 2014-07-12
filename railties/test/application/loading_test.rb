@@ -36,7 +36,7 @@ class LoadingTest < ActiveSupport::TestCase
   test "models without table do not panic on scope definitions when loaded" do
     app_file "app/models/user.rb", <<-MODEL
       class User < ActiveRecord::Base
-        default_scope where(published: true)
+        default_scope { where(published: true) }
       end
     MODEL
 

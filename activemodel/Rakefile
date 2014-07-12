@@ -13,9 +13,8 @@ end
 
 namespace :test do
   task :isolated do
-    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
     Dir.glob("#{dir}/test/**/*_test.rb").all? do |file|
-      sh(ruby, '-w', "-I#{dir}/lib", "-I#{dir}/test", file)
+      sh(Gem.ruby, '-w', "-I#{dir}/lib", "-I#{dir}/test", file)
     end or raise "Failures"
   end
 end

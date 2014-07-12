@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2013 David Heinemeier Hansson
+# Copyright (c) 2004-2014 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -27,16 +27,19 @@ require 'active_model'
 require 'arel'
 
 require 'active_record/version'
+require 'active_record/attribute_set'
 
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :Attribute
   autoload :Base
   autoload :Callbacks
   autoload :Core
   autoload :ConnectionHandling
   autoload :CounterCache
   autoload :DynamicMatchers
+  autoload :Enum
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
@@ -44,6 +47,7 @@ module ActiveRecord
   autoload :Migrator, 'active_record/migration'
   autoload :ModelSchema
   autoload :NestedAttributes
+  autoload :NoTouching
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
@@ -145,13 +149,8 @@ module ActiveRecord
     autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
     autoload :PostgreSQLDatabaseTasks,
       'active_record/tasks/postgresql_database_tasks'
-
-    autoload :FirebirdDatabaseTasks, 'active_record/tasks/firebird_database_tasks'
-    autoload :SqlserverDatabaseTasks, 'active_record/tasks/sqlserver_database_tasks'
-    autoload :OracleDatabaseTasks, 'active_record/tasks/oracle_database_tasks'
   end
 
-  autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
 
   def self.eager_load!

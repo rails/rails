@@ -11,7 +11,6 @@ module Rails
       def initialize(app, taggers = nil)
         @app          = app
         @taggers      = taggers || []
-        @instrumenter = ActiveSupport::Notifications.instrumenter
       end
 
       def call(env)
@@ -33,12 +32,13 @@ module Rails
           logger.debug ''
         end
 
-        @instrumenter.start 'action_dispatch.request', request: request
+        instrumenter = ActiveSupport::Notifications.instrumenter
+        instrumenter.start 'request.action_dispatch', request: request
         logger.info started_request_message(request)
         resp = @app.call(env)
         resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
         resp
-      rescue
+      rescue Exception
         finish(request)
         raise
       ensure
@@ -70,7 +70,8 @@ module Rails
       private
 
       def finish(request)
-        @instrumenter.finish 'action_dispatch.request', request: request
+        instrumenter = ActiveSupport::Notifications.instrumenter
+        instrumenter.finish 'request.action_dispatch', request: request
       end
 
       def development?

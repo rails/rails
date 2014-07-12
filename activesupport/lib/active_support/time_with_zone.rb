@@ -45,7 +45,7 @@ module ActiveSupport
 
     def initialize(utc_time, time_zone, local_time = nil, period = nil)
       @utc, @time_zone, @time = utc_time, time_zone, local_time
-      @period = @utc ? period : get_period_and_ensure_valid_local_time
+      @period = @utc ? period : get_period_and_ensure_valid_local_time(period)
     end
 
     # Returns a Time or DateTime instance that represents the time in +time_zone+.
@@ -132,8 +132,8 @@ module ActiveSupport
     end
 
     def xmlschema(fraction_digits = 0)
-      fraction = if fraction_digits > 0
-        (".%06i" % time.usec)[0, fraction_digits + 1]
+      fraction = if fraction_digits.to_i > 0
+        (".%06i" % time.usec)[0, fraction_digits.to_i + 1]
       end
 
       "#{time.strftime("%Y-%m-%dT%H:%M:%S")}#{fraction}#{formatted_offset(true, 'Z')}"
@@ -146,15 +146,15 @@ module ActiveSupport
     # to +false+.
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-    #   # => "2005-02-01T15:15:10Z"
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
+    #   # => "2005-02-01T05:15:10.000-10:00"
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone.to_json
-    #   # => "2005/02/01 15:15:10 +0000"
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
+    #   # => "2005/02/01 05:15:10 -1000"
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
-        xmlschema(3)
+        xmlschema(ActiveSupport::JSON::Encoding.time_precision)
       else
         %(#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
       end
@@ -185,8 +185,11 @@ module ActiveSupport
     end
     alias_method :rfc822, :rfc2822
 
-    # <tt>:db</tt> format outputs time in UTC; all others output time in local.
-    # Uses TimeWithZone's +strftime+, so <tt>%Z</tt> and <tt>%z</tt> work correctly.
+    # Returns a string of the object's date and time.
+    # Accepts an optional <tt>format</tt>:
+    # * <tt>:default</tt> - default value, mimics Ruby 1.9 Time#to_s format.
+    # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_formatted_s(:db).
+    # * Any key in <tt>Time::DATE_FORMATS</tt> can be used. See active_support/core_ext/time/conversions.rb.
     def to_s(format = :default)
       if format == :db
         utc.to_s(format)
@@ -259,7 +262,7 @@ module ActiveSupport
       # If we're subtracting a Duration of variable length (i.e., years, months, days), move backwards from #time,
       # otherwise move backwards #utc, for accuracy when moving across DST boundaries
       if other.acts_like?(:time)
-        utc.to_f - other.to_f
+        to_time - other.to_time
       elsif duration_of_variable_length?(other)
         method_missing(:-, other)
       else
@@ -350,6 +353,14 @@ module ActiveSupport
       initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2].utc)
     end
 
+    # respond_to_missing? is not called in some cases, such as when type conversion is
+    # performed with Kernel#String
+    def respond_to?(sym, include_priv = false)
+      # ensure that we're not going to throw and rescue from NoMethodError in method_missing which is slow
+      return false if sym.to_sym == :to_str
+      super
+    end
+
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)
@@ -367,12 +378,12 @@ module ActiveSupport
     end
 
     private
-      def get_period_and_ensure_valid_local_time
+      def get_period_and_ensure_valid_local_time(period)
         # we don't want a Time.local instance enforcing its own DST rules as well,
         # so transfer time values to a utc constructor if necessary
         @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
         begin
-          @time_zone.period_for_local(@time)
+          period || @time_zone.period_for_local(@time)
         rescue ::TZInfo::PeriodNotFound
           # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
           @time += 1.hour
@@ -390,7 +401,8 @@ module ActiveSupport
 
       def wrap_with_time_zone(time)
         if time.acts_like?(:time)
-          self.class.new(nil, time_zone, time)
+          periods = time_zone.periods_for_local(time)
+          self.class.new(nil, time_zone, time, periods.include?(period) ? period : nil)
         elsif time.is_a?(Range)
           wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
         else

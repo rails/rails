@@ -1,23 +1,23 @@
 require "cases/helper"
+require 'support/connection_helper'
 
 class ActiveSchemaTest < ActiveRecord::TestCase
-  def setup
-    @connection = ActiveRecord::Base.remove_connection
-    ActiveRecord::Base.establish_connection(@connection)
+  include ConnectionHelper
 
+  def setup
     ActiveRecord::Base.connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
       def execute(sql, name = nil) return sql end
     end
   end
 
-  def teardown
-    ActiveRecord::Base.remove_connection
-    ActiveRecord::Base.establish_connection(@connection)
+  teardown do
+    reset_connection
   end
 
   def test_add_index
-    # add_index calls index_name_exists? which can't work since execute is stubbed
+    # add_index calls table_exists? and index_name_exists? which can't work since execute is stubbed
+    def (ActiveRecord::Base.connection).table_exists?(*); true; end
     def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
 
     expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
@@ -114,6 +114,18 @@ class ActiveSchemaTest < ActiveRecord::TestCase
         ActiveRecord::Base.connection.drop_table :delete_me rescue nil
       end
     end
+  end
+
+  def test_indexes_in_create
+    ActiveRecord::Base.connection.stubs(:table_exists?).with(:temp).returns(false)
+    ActiveRecord::Base.connection.stubs(:index_name_exists?).with(:index_temp_on_zip).returns(false)
+
+    expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`) ) ENGINE=InnoDB AS SELECT id, name, zip FROM a_really_complicated_query"
+    actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
+      t.index :zip
+    end
+
+    assert_equal expected, actual
   end
 
   private

@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 
 class TestHelperMailer < ActionMailer::Base
@@ -34,6 +35,14 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_charset_is_utf_8
     assert_equal "UTF-8", charset
+  end
+
+  def test_encode
+    assert_equal '=?UTF-8?Q?This_is_=E3=81=82_string?=', encode('This is あ string')
+  end
+
+  def test_read_fixture
+    assert_equal ['Welcome!'], read_fixture('welcome')
   end
 
   def test_assert_emails

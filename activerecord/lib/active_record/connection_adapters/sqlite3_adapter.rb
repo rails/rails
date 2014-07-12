@@ -14,32 +14,48 @@ module ActiveRecord
         raise ArgumentError, "No database file specified. Missing argument: database"
       end
 
-      # Allow database path relative to Rails.root, but only if
-      # the database path is not the special path that tells
-      # Sqlite to build a database only in memory.
-      if defined?(Rails.root) && ':memory:' != config[:database]
-        config[:database] = File.expand_path(config[:database], Rails.root)
+      # Allow database path relative to Rails.root, but only if the database
+      # path is not the special path that tells sqlite to build a database only
+      # in memory.
+      if ':memory:' != config[:database]
+        config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
+        dirname = File.dirname(config[:database])
+        Dir.mkdir(dirname) unless File.directory?(dirname)
       end
 
       db = SQLite3::Database.new(
-        config[:database],
+        config[:database].to_s,
         :results_as_hash => true
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
 
-      ConnectionAdapters::SQLite3Adapter.new(db, logger, config)
+      ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
+    rescue Errno::ENOENT => error
+      if error.message.include?("No such file or directory")
+        raise ActiveRecord::NoDatabaseError.new(error.message, error)
+      else
+        raise
+      end
     end
   end
 
   module ConnectionAdapters #:nodoc:
-    class SQLite3Column < Column #:nodoc:
-      class <<  self
-        def binary_to_string(value)
-          if value.encoding != Encoding::ASCII_8BIT
-            value = value.force_encoding(Encoding::ASCII_8BIT)
-          end
-          value
+    class SQLite3Binary < Type::Binary # :nodoc:
+      def cast_value(value)
+        if value.encoding != Encoding::ASCII_8BIT
+          value = value.force_encoding(Encoding::ASCII_8BIT)
+        end
+        value
+      end
+    end
+
+    class SQLite3String < Type::String # :nodoc:
+      def type_cast_for_database(value)
+        if value.is_a?(::String) && value.encoding == Encoding::ASCII_8BIT
+          value.encode(Encoding::UTF_8)
+        else
+          super
         end
       end
     end
@@ -51,6 +67,22 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
+      include Savepoints
+
+      NATIVE_DATABASE_TYPES = {
+        primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
+        string:       { name: "varchar" },
+        text:         { name: "text" },
+        integer:      { name: "integer" },
+        float:        { name: "float" },
+        decimal:      { name: "decimal" },
+        datetime:     { name: "datetime" },
+        time:         { name: "time" },
+        date:         { name: "date" },
+        binary:       { name: "blob" },
+        boolean:      { name: "boolean" }
+      }
+
       class Version
         include Comparable
 
@@ -98,11 +130,7 @@ module ActiveRecord
         end
       end
 
-      class BindSubstitution < Arel::Visitors::SQLite # :nodoc:
-        include Arel::Visitors::BindVisitor
-      end
-
-      def initialize(connection, logger, config)
+      def initialize(connection, logger, connection_options, config)
         super(connection, logger)
 
         @active     = nil
@@ -110,10 +138,12 @@ module ActiveRecord
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @config = config
 
+        @visitor = Arel::Visitors::SQLite.new self
+
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @visitor = Arel::Visitors::SQLite.new self
+          @prepared_statements = true
         else
-          @visitor = unprepared_visitor
+          @prepared_statements = false
         end
       end
 
@@ -121,14 +151,16 @@ module ActiveRecord
         'SQLite'
       end
 
-      # Returns true
       def supports_ddl_transactions?
         true
       end
 
-      # Returns true if SQLite version is '3.6.8' or greater, false otherwise.
       def supports_savepoints?
-        sqlite_version >= '3.6.8'
+        true
+      end
+
+      def supports_partial_index?
+        sqlite_version >= '3.8.0'
       end
 
       # Returns true, since this connection adapter supports prepared statement
@@ -142,7 +174,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true.
       def supports_primary_key? #:nodoc:
         true
       end
@@ -151,7 +182,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true
       def supports_add_column?
         true
       end
@@ -173,16 +203,6 @@ module ActiveRecord
         @statements.clear
       end
 
-      # Returns true
-      def supports_count_distinct? #:nodoc:
-        true
-      end
-
-      # Returns true
-      def supports_autoincrement? #:nodoc:
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
@@ -195,20 +215,7 @@ module ActiveRecord
       end
 
       def native_database_types #:nodoc:
-        {
-          :primary_key => default_primary_key_type,
-          :string      => { :name => "varchar", :limit => 255 },
-          :text        => { :name => "text" },
-          :integer     => { :name => "integer" },
-          :float       => { :name => "float" },
-          :decimal     => { :name => "decimal" },
-          :datetime    => { :name => "datetime" },
-          :timestamp   => { :name => "datetime" },
-          :time        => { :name => "time" },
-          :date        => { :name => "date" },
-          :binary      => { :name => "blob" },
-          :boolean     => { :name => "boolean" }
-        }
+        NATIVE_DATABASE_TYPES
       end
 
       # Returns the current database encoding format as a string, eg: 'UTF-8'
@@ -216,17 +223,25 @@ module ActiveRecord
         @connection.encoding.to_s
       end
 
-      # Returns true.
       def supports_explain?
         true
       end
 
       # QUOTING ==================================================
 
-      def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary && column.class.respond_to?(:string_to_binary)
-          s = column.class.string_to_binary(value).unpack("H*")[0]
-          "x'#{s}'"
+      def _quote(value) # :nodoc:
+        case value
+        when Type::Binary::Data
+          "x'#{value.hex}'"
+        else
+          super
+        end
+      end
+
+      def _type_cast(value) # :nodoc:
+        case value
+        when BigDecimal
+          value.to_f
         else
           super
         end
@@ -254,24 +269,11 @@ module ActiveRecord
         end
       end
 
-      def type_cast(value, column) # :nodoc:
-        return value.to_f if BigDecimal === value
-        return super unless String === value
-        return super unless column && value
-
-        value = super
-        if column.type == :string && value.encoding == Encoding::ASCII_8BIT
-          logger.error "Binary data inserted for `string` type on column `#{column.name}`" if logger
-          value = value.encode Encoding::UTF_8
-        end
-        value
-      end
-
       # DATABASE STATEMENTS ======================================
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
+        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', []))
       end
 
       class ExplainPrettyPrinter
@@ -289,14 +291,20 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [])
-        log(sql, name, binds) do
+        type_casted_binds = binds.map { |col, val|
+          [col, type_cast(val, col)]
+        }
 
-          # Don't cache statements without bind values
-          if binds.empty?
+        log(sql, name, type_casted_binds) do
+          # Don't cache statements if they are not prepared
+          if without_prepared_statement?(binds)
             stmt    = @connection.prepare(sql)
-            cols    = stmt.columns
-            records = stmt.to_a
-            stmt.close
+            begin
+              cols    = stmt.columns
+              records = stmt.to_a
+            ensure
+              stmt.close
+            end
             stmt = records
           else
             cache = @statements[sql] ||= {
@@ -305,9 +313,7 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params binds.map { |col, val|
-              type_cast(val, col)
-            }
+            stmt.bind_params type_casted_binds.map { |_, val| val }
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)
@@ -344,20 +350,8 @@ module ActiveRecord
       end
       alias :create :insert_sql
 
-      def select_rows(sql, name = nil)
-        exec_query(sql, name).rows
-      end
-
-      def create_savepoint
-        execute("SAVEPOINT #{current_savepoint_name}")
-      end
-
-      def rollback_to_savepoint
-        execute("ROLLBACK TO SAVEPOINT #{current_savepoint_name}")
-      end
-
-      def release_savepoint
-        execute("RELEASE SAVEPOINT #{current_savepoint_name}")
+      def select_rows(sql, name = nil, binds = [])
+        exec_query(sql, name, binds).rows
       end
 
       def begin_db_transaction #:nodoc:
@@ -403,20 +397,34 @@ module ActiveRecord
             field["dflt_value"] = $1.gsub('""', '"')
           end
 
-          SQLite3Column.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)
+          sql_type = field['type']
+          cast_type = lookup_cast_type(sql_type)
+          new_column(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
         end
       end
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
         exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
+          sql = <<-SQL
+            SELECT sql
+            FROM sqlite_master
+            WHERE name=#{quote(row['name'])} AND type='index'
+            UNION ALL
+            SELECT sql
+            FROM sqlite_temp_master
+            WHERE name=#{quote(row['name'])} AND type='index'
+          SQL
+          index_sql = exec_query(sql).first['sql']
+          match = /\sWHERE\s+(.+)$/i.match(index_sql)
+          where = match[1] if match
           IndexDefinition.new(
             table_name,
             row['name'],
             row['unique'] != 0,
             exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
               col['name']
-            })
+            }, nil, nil, where)
         end
       end
 
@@ -492,14 +500,19 @@ module ActiveRecord
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
-        unless columns(table_name).detect{|c| c.name == column_name.to_s }
-          raise ActiveRecord::ActiveRecordError, "Missing column #{table_name}.#{column_name}"
-        end
-        alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
-        rename_column_indexes(table_name, column_name, new_column_name)
+        column = column_for(table_name, column_name)
+        alter_table(table_name, rename: {column.name => new_column_name.to_s})
+        rename_column_indexes(table_name, column.name, new_column_name)
       end
 
       protected
+
+        def initialize_type_map(m)
+          super
+          m.register_type(/binary/i, SQLite3Binary.new)
+          register_class_with_limit m, %r(char)i, SQLite3String
+        end
+
         def select(sql, name = nil, binds = []) #:nodoc:
           exec_query(sql, name, binds)
         end
@@ -603,17 +616,13 @@ module ActiveRecord
           @sqlite_version ||= SQLite3Adapter::Version.new(select_value('select sqlite_version(*)'))
         end
 
-        def default_primary_key_type
-          if supports_autoincrement?
-            'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL'
-          else
-            'INTEGER PRIMARY KEY NOT NULL'
-          end
-        end
-
         def translate_exception(exception, message)
           case exception.message
-          when /column(s)? .* (is|are) not unique/
+          # SQLite 3.8.2 returns a newly formatted error message:
+          #   UNIQUE constraint failed: *table_name*.*column_name*
+          # Older versions of SQLite return:
+          #   column *column_name* is not unique
+          when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
             RecordNotUnique.new(message, exception)
           else
             super

@@ -78,7 +78,7 @@ module DateAndTime
     # Returns a new date/time at the start of the month.
     # DateTime objects will have a time set to 0:00.
     def beginning_of_month
-      first_hour{ change(:day => 1) }
+      first_hour(change(:day => 1))
     end
     alias :at_beginning_of_month :beginning_of_month
 
@@ -113,7 +113,7 @@ module DateAndTime
     # which is determined by +Date.beginning_of_week+ or +config.beginning_of_week+
     # when set. +DateTime+ objects have their time set to 0:00.
     def next_week(given_day_in_next_week = Date.beginning_of_week)
-      first_hour{ weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)) }
+      first_hour(weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)))
     end
 
     # Short-hand for months_since(1).
@@ -136,7 +136,7 @@ module DateAndTime
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     # DateTime objects have their time set to 0:00.
     def prev_week(start_day = Date.beginning_of_week)
-      first_hour{ weeks_ago(1).beginning_of_week.days_since(days_span(start_day)) }
+      first_hour(weeks_ago(1).beginning_of_week.days_since(days_span(start_day)))
     end
     alias_method :last_week, :prev_week
 
@@ -188,7 +188,7 @@ module DateAndTime
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     # DateTime objects have their time set to 23:59:59.
     def end_of_week(start_day = Date.beginning_of_week)
-      last_hour{ days_since(6 - days_to_week_start(start_day)) }
+      last_hour(days_since(6 - days_to_week_start(start_day)))
     end
     alias :at_end_of_week :end_of_week
 
@@ -202,7 +202,7 @@ module DateAndTime
     # DateTime objects will have a time set to 23:59:59.
     def end_of_month
       last_day = ::Time.days_in_month(month, year)
-      last_hour{ days_since(last_day - day) }
+      last_hour(days_since(last_day - day))
     end
     alias :at_end_of_month :end_of_month
 
@@ -213,16 +213,35 @@ module DateAndTime
     end
     alias :at_end_of_year :end_of_year
 
-    private
-
-    def first_hour
-      result = yield
-      acts_like?(:time) ? result.change(:hour => 0) : result
+    # Returns a Range representing the whole week of the current date/time.
+    # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
+    def all_week(start_day = Date.beginning_of_week)
+      beginning_of_week(start_day)..end_of_week(start_day)
     end
 
-    def last_hour
-      result = yield
-      acts_like?(:time) ? result.end_of_day : result
+    # Returns a Range representing the whole month of the current date/time.
+    def all_month
+      beginning_of_month..end_of_month
+    end
+
+    # Returns a Range representing the whole quarter of the current date/time.
+    def all_quarter
+      beginning_of_quarter..end_of_quarter
+    end
+
+    # Returns a Range representing the whole year of the current date/time.
+    def all_year
+      beginning_of_year..end_of_year
+    end
+
+    private
+
+    def first_hour(date_or_time)
+      date_or_time.acts_like?(:time) ? date_or_time.beginning_of_day : date_or_time
+    end
+
+    def last_hour(date_or_time)
+      date_or_time.acts_like?(:time) ? date_or_time.end_of_day : date_or_time
     end
 
     def days_span(day)

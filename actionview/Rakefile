@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rake/packagetask'
 require 'rubygems/package_task'
 
 desc "Default Task"
@@ -8,35 +7,39 @@ task :default => :test
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => [:test_action_view, :test_active_record_integration]
-
-Rake::TestTask.new(:test_action_view) do |t|
-  t.libs << 'test'
-  t.test_files = Dir.glob('test/template/**/*_test.rb').sort
-  t.warning = true
-  t.verbose = true
-end
+task :test => ["test:template", "test:integration:action_pack", "test:integration:active_record"]
 
 namespace :test do
   task :isolated do
-    ruby = File.join(*RbConfig::CONFIG.values_at('bindir', 'RUBY_INSTALL_NAME'))
-    Dir.glob("test/{active_record,template}/**/*_test.rb").all? do |file|
-      sh(ruby, '-w', '-Ilib:test', file)
+    Dir.glob("test/{actionpack,activerecord,template}/**/*_test.rb").all? do |file|
+      sh(Gem.ruby, '-w', '-Ilib:test', file)
     end or raise "Failures"
   end
 
   Rake::TestTask.new(:template) do |t|
     t.libs << 'test'
-    t.pattern = 'test/template/**/*.rb'
+    t.test_files = Dir.glob('test/template/**/*_test.rb').sort
+    t.warning = true
+    t.verbose = true
   end
-end
 
-desc 'ActiveRecord Integration Tests'
-Rake::TestTask.new(:test_active_record_integration) do |t|
-  t.libs << 'test'
-  t.test_files = Dir.glob("test/activerecord/*_test.rb")
-  t.warning = true
-  t.verbose = true
+  namespace :integration do
+    desc 'ActiveRecord Integration Tests'
+    Rake::TestTask.new(:active_record) do |t|
+      t.libs << 'test'
+      t.test_files = Dir.glob("test/activerecord/*_test.rb")
+      t.warning = true
+      t.verbose = true
+    end
+
+    desc 'ActionPack Integration Tests'
+    Rake::TestTask.new(:action_pack) do |t|
+      t.libs << 'test'
+      t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
+      t.warning = true
+      t.verbose = true
+    end
+  end
 end
 
 spec = eval(File.read('actionview.gemspec'))

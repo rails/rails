@@ -1,16 +1,27 @@
 require "cases/helper"
+require 'support/connection_helper'
 
 class MysqlConnectionTest < ActiveRecord::TestCase
+  include ConnectionHelper
+
   def setup
     super
+    @subscriber = SQLSubscriber.new
+    @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     @connection = ActiveRecord::Base.connection
-    @connection.extend(LogIntercepter)
-    @connection.intercepted = true
   end
 
   def teardown
-    @connection.intercepted = false
-    @connection.logged = []
+    ActiveSupport::Notifications.unsubscribe(@subscription)
+    super
+  end
+
+  def test_bad_connection
+    assert_raise ActiveRecord::NoDatabaseError do
+      configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
+      connection = ActiveRecord::Base.mysql2_connection(configuration)
+      connection.exec_query('drop table if exists ex')
+    end
   end
 
   def test_no_automatic_reconnection_after_timeout
@@ -18,6 +29,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.update('set @@wait_timeout=1')
     sleep 2
     assert !@connection.active?
+
+    # Repair all fixture connections so other tests won't break.
+    @fixture_connections.each do |c|
+      c.verify!
+    end
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
@@ -61,6 +77,14 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_mysql_sql_mode_variable_overides_strict_mode
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql_mode' => 'ansi' }))
+      result = ActiveRecord::Base.connection.exec_query 'SELECT @@SESSION.sql_mode'
+      assert_not_equal [['STRICT_ALL_TABLES']], result.rows
+    end
+  end
+
   def test_mysql_set_session_variable_to_default
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => :default}}))
@@ -72,26 +96,22 @@ class MysqlConnectionTest < ActiveRecord::TestCase
 
   def test_logs_name_show_variable
     @connection.show_variable 'foo'
-    assert_equal "SCHEMA", @connection.logged[0][1]
+    assert_equal "SCHEMA", @subscriber.logged[0][1]
   end
 
   def test_logs_name_rename_column_sql
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
-    @connection.logged = []
+    @subscriber.logged.clear
     @connection.send(:rename_column_sql, 'bar_baz', 'foo', 'foo2')
-    assert_equal "SCHEMA", @connection.logged[0][1]
+    assert_equal "SCHEMA", @subscriber.logged[0][1]
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
   end
 
-  private
-
-  def run_without_connection
-    original_connection = ActiveRecord::Base.remove_connection
-    begin
-      yield original_connection
-    ensure
-      ActiveRecord::Base.establish_connection(original_connection)
+  if mysql_56?
+    def test_quote_time_usec
+      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0))
+      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0).to_datetime)
     end
   end
 end

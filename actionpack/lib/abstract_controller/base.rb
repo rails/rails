@@ -8,7 +8,8 @@ module AbstractController
   class Error < StandardError #:nodoc:
   end
 
-  class ActionNotFound < StandardError #:nodoc:
+  # Raised when a non-existing controller action is triggered.
+  class ActionNotFound < StandardError
   end
 
   # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
@@ -120,14 +121,14 @@ module AbstractController
     #
     # The actual method that is called is determined by calling
     # #method_for_action. If no method can handle the action, then an
-    # ActionNotFound error is raised.
+    # AbstractController::ActionNotFound error is raised.
     #
     # ==== Returns
     # * <tt>self</tt>
     def process(action, *args)
-      @_action_name = action_name = action.to_s
+      @_action_name = action.to_s
 
-      unless action_name = method_for_action(action_name)
+      unless action_name = _find_action_name(@_action_name)
         raise ActionNotFound, "The action '#{action}' could not be found for #{self.class.name}"
       end
 
@@ -160,7 +161,7 @@ module AbstractController
     # ==== Returns
     # * <tt>TrueClass</tt>, <tt>FalseClass</tt>
     def available_action?(action_name)
-      method_for_action(action_name).present?
+      _find_action_name(action_name).present?
     end
 
     private
@@ -204,6 +205,24 @@ module AbstractController
       end
 
       # Takes an action name and returns the name of the method that will
+      # handle the action.
+      #
+      # It checks if the action name is valid and returns false otherwise.
+      #
+      # See method_for_action for more information.
+      #
+      # ==== Parameters
+      # * <tt>action_name</tt> - An action name to find a method name for
+      #
+      # ==== Returns
+      # * <tt>string</tt> - The name of the method that handles the action
+      # * false           - No valid method name could be found.
+      # Raise AbstractController::ActionNotFound.
+      def _find_action_name(action_name)
+        _valid_action_name?(action_name) && method_for_action(action_name)
+      end
+
+      # Takes an action name and returns the name of the method that will
       # handle the action. In normal cases, this method returns the same
       # name as it receives. By default, if #method_for_action receives
       # a name that is not an action, it will look for an #action_missing
@@ -218,20 +237,25 @@ module AbstractController
       # the case.
       #
       # If none of these conditions are true, and method_for_action
-      # returns nil, an ActionNotFound exception will be raised.
+      # returns nil, an AbstractController::ActionNotFound exception will be raised.
       #
       # ==== Parameters
       # * <tt>action_name</tt> - An action name to find a method name for
       #
       # ==== Returns
       # * <tt>string</tt> - The name of the method that handles the action
-      # * <tt>nil</tt>    - No method name could be found. Raise ActionNotFound.
+      # * <tt>nil</tt>    - No method name could be found.
       def method_for_action(action_name)
         if action_method?(action_name)
           action_name
         elsif respond_to?(:action_missing, true)
           "_handle_action_missing"
         end
+      end
+
+      # Checks if the action name is valid and returns false otherwise.
+      def _valid_action_name?(action_name)
+        !action_name.to_s.include? File::SEPARATOR
       end
   end
 end

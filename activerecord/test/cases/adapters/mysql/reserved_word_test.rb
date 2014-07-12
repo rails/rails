@@ -2,7 +2,7 @@ require "cases/helper"
 
 class Group < ActiveRecord::Base
   Group.table_name = 'group'
-  belongs_to :select, :class_name => 'Select'
+  belongs_to :select
   has_one :values
 end
 
@@ -37,7 +37,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
       'distinct_select'=>'distinct_id int, select_id int'
   end
 
-  def teardown
+  teardown do
     drop_tables_directly ['group', 'select', 'values', 'distinct', 'distinct_select', 'order']
   end
 

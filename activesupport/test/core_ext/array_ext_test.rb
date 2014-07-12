@@ -1,22 +1,25 @@
 require 'abstract_unit'
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/big_decimal'
+require 'active_support/core_ext/hash'
 require 'active_support/core_ext/object/conversions'
-
-require 'active_support/core_ext' # FIXME: pulling in all to_xml extensions
-require 'active_support/hash_with_indifferent_access'
+require 'active_support/core_ext/string'
 
 class ArrayExtAccessTests < ActiveSupport::TestCase
   def test_from
     assert_equal %w( a b c d ), %w( a b c d ).from(0)
     assert_equal %w( c d ), %w( a b c d ).from(2)
     assert_equal %w(), %w( a b c d ).from(10)
+    assert_equal %w( d e ), %w( a b c d e ).from(-2)
+    assert_equal %w(), %w( a b c d e ).from(-10)
   end
 
   def test_to
     assert_equal %w( a ), %w( a b c d ).to(0)
     assert_equal %w( a b c ), %w( a b c d ).to(2)
     assert_equal %w( a b c d ), %w( a b c d ).to(10)
+    assert_equal %w( a b c ), %w( a b c d ).to(-2)
+    assert_equal %w(), %w( a b c ).to(-10)
   end
 
   def test_second_through_tenth
@@ -212,23 +215,29 @@ class ArraySplitTests < ActiveSupport::TestCase
   end
 
   def test_split_with_argument
-    assert_equal [[1, 2], [4, 5]],  [1, 2, 3, 4, 5].split(3)
-    assert_equal [[1, 2, 3, 4, 5]], [1, 2, 3, 4, 5].split(0)
+    a = [1, 2, 3, 4, 5]
+    assert_equal [[1, 2], [4, 5]],  a.split(3)
+    assert_equal [[1, 2, 3, 4, 5]], a.split(0)
+    assert_equal [1, 2, 3, 4, 5], a
   end
 
   def test_split_with_block
-    assert_equal [[1, 2], [4, 5], [7, 8], [10]], (1..10).to_a.split { |i| i % 3 == 0 }
+    a = (1..10).to_a
+    assert_equal [[1, 2], [4, 5], [7, 8], [10]], a.split { |i| i % 3 == 0 }
+    assert_equal [1, 2, 3, 4, 5, 6, 7, 8, 9 ,10], a
   end
 
   def test_split_with_edge_values
-    assert_equal [[], [2, 3, 4, 5]],  [1, 2, 3, 4, 5].split(1)
-    assert_equal [[1, 2, 3, 4], []],  [1, 2, 3, 4, 5].split(5)
-    assert_equal [[], [2, 3, 4], []], [1, 2, 3, 4, 5].split { |i| i == 1 || i == 5 }
+    a = [1, 2, 3, 4, 5]
+    assert_equal [[], [2, 3, 4, 5]],  a.split(1)
+    assert_equal [[1, 2, 3, 4], []],  a.split(5)
+    assert_equal [[], [2, 3, 4], []], a.split { |i| i == 1 || i == 5 }
+    assert_equal [1, 2, 3, 4, 5], a
   end
 end
 
 class ArrayToXmlTests < ActiveSupport::TestCase
-  def test_to_xml
+  def test_to_xml_with_hash_elements
     xml = [
       { :name => "David", :age => 26, :age_in_millis => 820497600000 },
       { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
@@ -241,6 +250,22 @@ class ArrayToXmlTests < ActiveSupport::TestCase
     assert xml.include?(%(<age type="integer">31</age>)), xml
     assert xml.include?(%(<age-in-millis type="decimal">1.0</age-in-millis>)), xml
     assert xml.include?(%(<name>Jason</name>)), xml
+  end
+
+  def test_to_xml_with_non_hash_elements
+    xml = [1, 2, 3].to_xml(:skip_instruct => true, :indent => 0)
+
+    assert_equal '<fixnums type="array"><fixnum', xml.first(29)
+    assert xml.include?(%(<fixnum type="integer">2</fixnum>)), xml
+  end
+
+  def test_to_xml_with_non_hash_different_type_elements
+    xml = [1, 2.0, '3'].to_xml(:skip_instruct => true, :indent => 0)
+
+    assert_equal '<objects type="array"><object', xml.first(29)
+    assert xml.include?(%(<object type="integer">1</object>)), xml
+    assert xml.include?(%(<object type="float">2.0</object>)), xml
+    assert xml.include?(%(object>3</object>)), xml
   end
 
   def test_to_xml_with_dedicated_name
@@ -263,6 +288,18 @@ class ArrayToXmlTests < ActiveSupport::TestCase
     assert xml.include?(%(<name>Jason</name>))
   end
 
+  def test_to_xml_with_indent_set
+    xml = [
+      { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
+    ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 4)
+
+    assert_equal "<objects>\n    <object>", xml.first(22)
+    assert xml.include?(%(\n        <street-address>Paulina</street-address>))
+    assert xml.include?(%(\n        <name>David</name>))
+    assert xml.include?(%(\n        <street-address>Evergreen</street-address>))
+    assert xml.include?(%(\n        <name>Jason</name>))
+  end
+
   def test_to_xml_with_dasherize_false
     xml = [
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
@@ -283,7 +320,7 @@ class ArrayToXmlTests < ActiveSupport::TestCase
     assert xml.include?(%(<street-address>Evergreen</street-address>))
   end
 
-  def test_to_with_instruct
+  def test_to_xml_with_instruct
     xml = [
       { :name => "David", :age => 26, :age_in_millis => 820497600000 },
       { :name => "Jason", :age => 31, :age_in_millis => BigDecimal.new('1.0') }
@@ -356,36 +393,6 @@ class ArrayExtractOptionsTests < ActiveSupport::TestCase
     hash = [{:foo => 1}.with_indifferent_access]
     options = hash.extract_options!
     assert_equal 1, options[:foo]
-  end
-end
-
-class ArrayUniqByTests < ActiveSupport::TestCase
-  def test_uniq_by
-    ActiveSupport::Deprecation.silence do
-      assert_equal [1,2], [1,2,3,4].uniq_by { |i| i.odd? }
-      assert_equal [1,2], [1,2,3,4].uniq_by(&:even?)
-      assert_equal((-5..0).to_a, (-5..5).to_a.uniq_by{ |i| i**2 })
-    end
-  end
-
-  def test_uniq_by!
-    a = [1,2,3,4]
-    ActiveSupport::Deprecation.silence do
-      a.uniq_by! { |i| i.odd? }
-    end
-    assert_equal [1,2], a
-
-    a = [1,2,3,4]
-    ActiveSupport::Deprecation.silence do
-      a.uniq_by! { |i| i.even? }
-    end
-    assert_equal [1,2], a
-
-    a = (-5..5).to_a
-    ActiveSupport::Deprecation.silence do
-      a.uniq_by! { |i| i**2 }
-    end
-    assert_equal((-5..0).to_a, a)
   end
 end
 

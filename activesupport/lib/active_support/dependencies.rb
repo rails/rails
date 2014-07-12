@@ -8,6 +8,7 @@ require 'active_support/core_ext/module/introspection'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/module/qualified_const'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/name_error'
 require 'active_support/core_ext/string/starts_ends_with'
@@ -175,12 +176,21 @@ module ActiveSupport #:nodoc:
       end
 
       def const_missing(const_name)
-        # The interpreter does not pass nesting information, and in the
-        # case of anonymous modules we cannot even make the trade-off of
-        # assuming their name reflects the nesting. Resort to Object as
-        # the only meaningful guess we can make.
-        from_mod = anonymous? ? ::Object : self
+        from_mod = anonymous? ? guess_for_anonymous(const_name) : self
         Dependencies.load_missing_constant(from_mod, const_name)
+      end
+
+      # We assume that the name of the module reflects the nesting
+      # (unless it can be proven that is not the case) and the path to the file
+      # that defines the constant. Anonymous modules cannot follow these
+      # conventions and therefore we assume that the user wants to refer to a
+      # top-level constant.
+      def guess_for_anonymous(const_name)
+        if Object.const_defined?(const_name)
+          raise NameError.new "#{const_name} cannot be autoloaded from an anonymous class or module", const_name
+        else
+          Object
+        end
       end
 
       def unloadable(const_desc = self)
@@ -198,9 +208,19 @@ module ActiveSupport #:nodoc:
         Dependencies.require_or_load(file_name)
       end
 
+      # Interprets a file using <tt>mechanism</tt> and marks its defined
+      # constants as autoloaded. <tt>file_name</tt> can be either a string or
+      # respond to <tt>to_path</tt>.
+      #
+      # Use this method in code that absolutely needs a certain constant to be
+      # defined at that point. A typical use case is to make constant name
+      # resolution deterministic for constants with the same relative name in
+      # different namespaces whose evaluation would depend on load order
+      # otherwise.
       def require_dependency(file_name, message = "No such file to load -- %s")
+        file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
-          raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
+          raise ArgumentError, "the file name must either be a String or implement #to_path -- you passed #{file_name.inspect}"
         end
 
         Dependencies.depend_on(file_name, message)
@@ -388,7 +408,8 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      # to_s works around a ruby1.9 issue where #starts_with?(Pathname) will always return false
+      # to_s works around a ruby1.9 issue where String#starts_with?(Pathname)
+      # will raise a TypeError: no implicit conversion of Pathname into String
       autoload_once_paths.any? { |base| path.starts_with? base.to_s }
     end
 
@@ -445,8 +466,6 @@ module ActiveSupport #:nodoc:
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
-      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name, false)
-
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
 
@@ -459,7 +478,7 @@ module ActiveSupport #:nodoc:
         if loaded.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
         else
-          require_or_load(expanded)
+          require_or_load(expanded, qualified_name)
           raise LoadError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it" unless from_mod.const_defined?(const_name, false)
           return from_mod.const_get(const_name)
         end
@@ -497,9 +516,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      raise NameError,
-            "uninitialized constant #{qualified_name}",
-            caller.reject { |l| l.starts_with? __FILE__ }
+      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
+      name_error.set_backtrace(caller.reject {|l| l.starts_with? __FILE__ })
+      raise name_error
     end
 
     # Remove the constants that have been autoloaded, and those that have been
@@ -647,6 +666,14 @@ module ActiveSupport #:nodoc:
 
       constants = normalized.split('::')
       to_remove = constants.pop
+
+      # Remove the file path from the loaded list.
+      file_path = search_for_file(const.underscore)
+      if file_path
+        expanded = File.expand_path(file_path)
+        expanded.sub!(/\.rb\z/, '')
+        self.loaded.delete(expanded)
+      end
 
       if constants.empty?
         parent = Object

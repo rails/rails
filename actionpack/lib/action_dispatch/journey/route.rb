@@ -23,6 +23,7 @@ module ActionDispatch
         @parts             = nil
         @decorated_ast     = nil
         @precedence        = 0
+        @path_formatter    = @path.build_formatter
       end
 
       def ast
@@ -64,15 +65,7 @@ module ActionDispatch
       alias :segment_keys :parts
 
       def format(path_options)
-        path_options.delete_if do |key, value|
-          value.to_s == defaults[key].to_s && !required_parts.include?(key)
-        end
-
-        Visitors::Formatter.new(path_options).accept(path.spec)
-      end
-
-      def optimized_path
-        Visitors::OptimizedPath.new.accept(path.spec)
+        @path_formatter.evaluate path_options
       end
 
       def optional_parts
@@ -91,6 +84,14 @@ module ActionDispatch
         @required_defaults ||= @defaults.dup.delete_if do |k,_|
           parts.include?(k) || !required_default?(k)
         end
+      end
+
+      def glob?
+        !path.spec.grep(Nodes::Star).empty?
+      end
+
+      def dispatcher?
+        @app.dispatcher?
       end
 
       def matches?(request)

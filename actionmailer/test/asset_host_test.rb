@@ -31,25 +31,10 @@ class AssetHostTest < ActiveSupport::TestCase
   def test_asset_host_as_one_argument_proc
     AssetHostMailer.config.asset_host = Proc.new { |source|
       if source.starts_with?('/images')
-        "http://images.example.com"
-      else
-        "http://assets.example.com"
+        'http://images.example.com'
       end
     }
     mail = AssetHostMailer.email_with_asset
     assert_equal %Q{<img alt="Somelogo" src="http://images.example.com/images/somelogo.png" />}, mail.body.to_s.strip
-  end
-
-  def test_asset_host_as_two_argument_proc
-    ActionController::Base.config.asset_host = Proc.new {|source,request|
-      if request && request.ssl?
-        "https://www.example.com"
-      else
-        "http://www.example.com"
-      end
-    }
-    mail = nil
-    assert_nothing_raised { mail = AssetHostMailer.email_with_asset }
-    assert_equal %Q{<img alt="Somelogo" src="http://www.example.com/images/somelogo.png" />}, mail.body.to_s.strip
   end
 end

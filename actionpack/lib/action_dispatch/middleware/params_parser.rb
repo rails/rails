@@ -41,7 +41,7 @@ module ActionDispatch
         when Proc
           strategy.call(request.raw_post)
         when :json
-          data = ActiveSupport::JSON.decode(request.body)
+          data = ActiveSupport::JSON.decode(request.raw_post)
           data = {:_json => data} unless data.is_a?(Hash)
           Request::Utils.deep_munge(data).with_indifferent_access
         else

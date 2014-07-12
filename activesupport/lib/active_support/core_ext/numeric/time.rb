@@ -61,19 +61,9 @@ class Numeric
   end
   alias :fortnight :fortnights
 
-  # Reads best without arguments:  10.minutes.ago
-  def ago(time = ::Time.current)
-    time - self
+  # Used with the standard time durations, like 1.hour.in_milliseconds --
+  # so we can feed them to JavaScript functions like getTime().
+  def in_milliseconds
+    self * 1000
   end
-
-  # Reads best with argument:  10.minutes.until(time)
-  alias :until :ago
-
-  # Reads best with argument:  10.minutes.since(time)
-  def since(time = ::Time.current)
-    time + self
-  end
-
-  # Reads best without arguments:  10.minutes.from_now
-  alias :from_now :since
 end

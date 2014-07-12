@@ -75,7 +75,7 @@ module ActiveRecord
       #   #      #<Pet id: nil, name: "Choo-Choo">
       #   #    ]
       #
-      #   person.pets.select([:id, :name])
+      #   person.pets.select(:id, :name )
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy">,
       #   #      #<Pet id: 2, name: "Spook">,
@@ -84,7 +84,7 @@ module ActiveRecord
       #
       # Be careful because this also means you're initializing a model
       # object with only the fields that you've selected. If you attempt
-      # to access a field that is not in the initialized record you'll
+      # to access a field except +id+ that is not in the initialized record you'll
       # receive:
       #
       #   person.pets.select(:name).first.person_id
@@ -106,13 +106,13 @@ module ActiveRecord
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
       #   #    ]
-      def select(select = nil, &block)
-        @association.select(select, &block)
+      def select(*fields, &block)
+        @association.select(*fields, &block)
       end
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as <tt>ActiveRecord::Base.find</tt>. Returns <tt>ActiveRecord::RecordNotFound</tt>
-      # error if the object can not be found.
+      # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -168,6 +168,32 @@ module ActiveRecord
       #   another_person_without.pets.first(3) # => []
       def first(*args)
         @association.first(*args)
+      end
+
+      # Same as +first+ except returns only the second record.
+      def second(*args)
+        @association.second(*args)
+      end
+
+      # Same as +first+ except returns only the third record.
+      def third(*args)
+        @association.third(*args)
+      end
+
+      # Same as +first+ except returns only the fourth record.
+      def fourth(*args)
+        @association.fourth(*args)
+      end
+
+      # Same as +first+ except returns only the fifth record.
+      def fifth(*args)
+        @association.fifth(*args)
+      end
+
+      # Same as +first+ except returns only the forty second record.
+      # Also known as accessing "the reddit".
+      def forty_two(*args)
+        @association.forty_two(*args)
       end
 
       # Returns the last record, or the last +n+ records, from the collection.
@@ -281,7 +307,7 @@ module ActiveRecord
       # so method calls may be chained.
       #
       #   class Person < ActiveRecord::Base
-      #     pets :has_many
+      #     has_many :pets
       #   end
       #
       #   person.pets.size # => 0
@@ -331,7 +357,7 @@ module ActiveRecord
 
       # Deletes all the records from the collection. For +has_many+ associations,
       # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
-      # option. Returns an array with the deleted records.
+      # option.
       #
       # If no <tt>:dependent</tt> option is given, then it will follow the
       # default strategy. The default strategy is <tt>:nullify</tt>. This
@@ -409,16 +435,11 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
-      def delete_all
-        @association.delete_all
+      def delete_all(dependent = nil)
+        @association.delete_all(dependent)
       end
 
       # Deletes the records of the collection directly from the database
@@ -670,6 +691,8 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       def count(column_name = nil, options = {})
+        # TODO: Remove options argument as soon we remove support to
+        # activerecord-deprecated_finders.
         @association.count(column_name, options)
       end
 
@@ -726,7 +749,7 @@ module ActiveRecord
       end
 
       # Returns +true+ if the collection is empty. If the collection has been
-      # loaded or the <tt>:counter_sql</tt> option is provided, it is equivalent
+      # loaded it is equivalent
       # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
       # it is equivalent to <tt>collection.exists?</tt>. If the collection has
       # not already been loaded and you are going to fetch the records anyway it
@@ -787,12 +810,12 @@ module ActiveRecord
       #     has_many :pets
       #   end
       #
-      #   person.pets.count #=> 1
-      #   person.pets.many? #=> false
+      #   person.pets.count # => 1
+      #   person.pets.many? # => false
       #
       #   person.pets << Pet.new(name: 'Snoopy')
-      #   person.pets.count #=> 2
-      #   person.pets.many? #=> true
+      #   person.pets.count # => 2
+      #   person.pets.many? # => true
       #
       # You can also pass a block to define criteria. The
       # behavior is the same, it returns true if the collection
@@ -832,6 +855,10 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
+      def arel
+        scope.arel
+      end
+
       def proxy_association
         @association
       end
@@ -848,8 +875,6 @@ module ActiveRecord
       def scope
         @association.scope
       end
-
-      # :nodoc:
       alias spawn scope
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
@@ -976,6 +1001,28 @@ module ActiveRecord
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload
+        self
+      end
+
+      # Unloads the association. Returns +self+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets # fetches pets from the database
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #
+      #   person.pets # uses the pets cache
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      #
+      #   person.pets.reset # clears the pets cache
+      #
+      #   person.pets  # fetches pets from the database
+      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
+      def reset
+        proxy_association.reset
+        proxy_association.reset_scope
         self
       end
     end

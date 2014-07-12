@@ -12,12 +12,6 @@ class Ab
   Constant3 = "Goodbye World"
 end
 
-module Xy
-  class Bc
-    include One
-  end
-end
-
 module Yz
   module Zy
     class Cd
@@ -64,6 +58,23 @@ end
 
 Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
+end
+
+Product = Struct.new(:name) do
+  delegate :name, :to => :manufacturer, :prefix => true
+  delegate :name, :to => :type, :prefix => true
+
+  def manufacturer
+    @manufacturer ||= begin
+      nil.unknown_method
+    end
+  end
+
+  def type
+    @type ||= begin
+      :thing_without_same_method_name_as_delegated.name
+    end
+  end
 end
 
 class ParameterSet
@@ -234,6 +245,16 @@ class ModuleTest < ActiveSupport::TestCase
     end
   end
 
+  def test_delegation_line_number
+    _, line = Someone.instance_method(:foo).source_location
+    assert_equal Someone::FAILED_DELEGATE_LINE, line
+  end
+
+  def test_delegate_line_with_nil
+    _, line = Someone.instance_method(:bar).source_location
+    assert_equal Someone::FAILED_DELEGATE_LINE_2, line
+  end
+
   def test_delegation_exception_backtrace
     someone = Someone.new("foo", "bar")
     someone.foo
@@ -264,6 +285,16 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal [3], se.ints
   end
 
+  def test_delegation_doesnt_mask_nested_no_method_error_on_nil_receiver
+    product = Product.new('Widget')
+
+    # Nested NoMethodError is a different name from the delegation
+    assert_raise(NoMethodError) { product.manufacturer_name }
+
+    # Nested NoMethodError is the same name as the delegation
+    assert_raise(NoMethodError) { product.type_name }
+  end
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent
@@ -277,12 +308,6 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_local_constants
     assert_equal %w(Constant1 Constant3), Ab.local_constants.sort.map(&:to_s)
-  end
-
-  def test_local_constant_names
-    ActiveSupport::Deprecation.silence do
-      assert_equal %w(Constant1 Constant3), Ab.local_constant_names.sort.map(&:to_s)
-    end
   end
 end
 

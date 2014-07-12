@@ -8,7 +8,7 @@ class RailtieTest < ActiveModel::TestCase
     require 'active_model/railtie'
 
     # Set a fake logger to avoid creating the log directory automatically
-    fake_logger = mock()
+    fake_logger = Logger.new(nil)
 
     @app ||= Class.new(::Rails::Application) do
       config.eager_load = false

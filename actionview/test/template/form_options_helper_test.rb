@@ -1,13 +1,10 @@
 require 'abstract_unit'
-require 'tzinfo'
 
 class Map < Hash
   def category
     "<mus>"
   end
 end
-
-TZInfo::Timezone.cattr_reader :loaded_zones
 
 class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
@@ -22,7 +19,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def setup
     @fake_timezones = %w(A B C D E).map do |id|
-      tz = TZInfo::Timezone.loaded_zones[id] = stub(:name => id, :to_s => id)
+      tz = stub(:name => id, :to_s => id)
       ActiveSupport::TimeZone.stubs(:[]).with(id).returns(tz)
       tz
     end
@@ -119,6 +116,26 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
       options_for_select([ "<Denmark>", "USA", "Sweden" ])
+    )
+  end
+
+  def test_array_options_for_select_with_custom_defined_selected
+    assert_dom_equal(
+      "<option selected=\"selected\" type=\"Coach\" value=\"1\">Richard Bandler</option>\n<option type=\"Coachee\" value=\"1\">Richard Bandler</option>",
+      options_for_select([
+        ['Richard Bandler', 1, { type: 'Coach', selected: 'selected' }],
+        ['Richard Bandler', 1, { type: 'Coachee' }]
+      ])
+    )
+  end
+
+  def test_array_options_for_select_with_custom_defined_disabled
+    assert_dom_equal(
+      "<option disabled=\"disabled\" type=\"Coach\" value=\"1\">Richard Bandler</option>\n<option type=\"Coachee\" value=\"1\">Richard Bandler</option>",
+      options_for_select([
+        ['Richard Bandler', 1, { type: 'Coach', disabled: 'disabled' }],
+        ['Richard Bandler', 1, { type: 'Coachee' }]
+      ])
     )
   end
 
@@ -298,6 +315,16 @@ class FormOptionsHelperTest < ActionView::TestCase
              [['United States','US'],"Canada"]],
          ["Europe",
              [["Great Britain","GB"], "Germany"]]
+       ])
+    )
+  end
+
+  def test_grouped_options_for_select_with_array_and_html_attributes
+    assert_dom_equal(
+      "<optgroup label=\"North America\" data-foo=\"bar\"><option value=\"US\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\" disabled=\"disabled\"><option value=\"GB\">Great Britain</option>\n<option value=\"Germany\">Germany</option></optgroup>",
+      grouped_options_for_select([
+         ["North America", [['United States','US'],"Canada"], :data => { :foo => 'bar' }],
+         ["Europe", [["Great Britain","GB"], "Germany"], :disabled => 'disabled']
        ])
     )
   end
@@ -549,6 +576,21 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_under_fields_for_with_block
+    @post = Post.new
+
+    output_buffer = fields_for :post, @post do |f|
+      concat(f.select(:category) do
+        concat content_tag(:option, "hello world")
+      end)
+    end
+
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option>hello world</option></select>",
+      output_buffer
+    )
+  end
+
   def test_select_with_multiple_to_add_hidden_input
     output_buffer =  select(:post, :category, "", {}, :multiple => true)
     assert_dom_equal(
@@ -773,6 +815,22 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\" disabled=\"disabled\">hest</option></select>",
       select("post", "category", %w( abe <mus> hest ), :disabled => 'hest')
+    )
+  end
+
+  def test_select_not_existing_method_with_selected_value
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_locale\" name=\"post[locale]\"><option value=\"en\">en</option>\n<option value=\"ru\" selected=\"selected\">ru</option></select>",
+      select("post", "locale", %w( en ru ), :selected => 'ru')
+    )
+  end
+
+  def test_select_with_prompt_and_selected_value
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"one\">one</option>\n<option selected=\"selected\" value=\"two\">two</option></select>",
+      select("post", "category", %w( one two ), :selected => 'two', :prompt => true)
     )
   end
 

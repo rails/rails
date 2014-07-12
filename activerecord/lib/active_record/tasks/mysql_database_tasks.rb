@@ -124,7 +124,7 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
       end
 
       def root_password
-        $stdout.print "Please provide the root password for your mysql installation\n>"
+        $stdout.print "Please provide the root password for your MySQL installation\n>"
         $stdin.gets.strip
       end
 
@@ -134,8 +134,9 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         args << "--password=#{configuration['password']}"  if configuration['password']
         args.concat(['--default-character-set', configuration['encoding']]) if configuration['encoding']
         configuration.slice('host', 'port', 'socket').each do |k, v|
-          args.concat([ "--#{k}", v ]) if v
+          args.concat([ "--#{k}", v.to_s ]) if v
         end
+
         args
       end
     end

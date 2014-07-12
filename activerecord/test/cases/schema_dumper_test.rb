@@ -1,10 +1,9 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class SchemaDumperTest < ActiveRecord::TestCase
-  def setup
-    super
+  setup do
     ActiveRecord::SchemaMigration.create_table
-    @stream = StringIO.new
   end
 
   def standard_dump
@@ -25,7 +24,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_magic_comment
-    assert_match "# encoding: #{@stream.external_encoding.name}", standard_dump
+    output = standard_dump
+    assert_match "# encoding: #{@stream.external_encoding.name}", output
   end
 
   def test_schema_dump
@@ -63,7 +63,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean)\s+"/)
+        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|uuid|point)\s+"/)
           match[0].length
         end
       end
@@ -177,7 +177,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
-    if current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter) || current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
       assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index", using: :btree', index_definition
     else
       assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index"', index_definition
@@ -188,8 +188,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
     index_definition = standard_dump.split(/\n/).grep(/add_index.*company_partial_index/).first.strip
     if current_adapter?(:PostgreSQLAdapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
-    elsif current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
+    elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
+    elsif current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
+      assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "rating > 10"', index_definition
     else
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index"', index_definition
     end
@@ -200,6 +202,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     match = output.match(%r{create_table "movies"(.*)do})
     assert_not_nil(match, "nonstandardpk table not found")
     assert_match %r(primary_key: "movieid"), match[1], "non-standard primary key not preserved"
+  end
+
+  def test_schema_dump_should_use_false_as_default
+    output = standard_dump
+    assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
@@ -247,19 +254,20 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
     end
 
-    def test_schema_dump_includes_extensions
-      connection = ActiveRecord::Base.connection
-      skip unless connection.supports_extensions?
+    if ActiveRecord::Base.connection.supports_extensions?
+      def test_schema_dump_includes_extensions
+        connection = ActiveRecord::Base.connection
 
-      connection.stubs(:extensions).returns(['hstore'])
-      output = standard_dump
-      assert_match "# These are extensions that must be enabled", output
-      assert_match %r{enable_extension "hstore"}, output
+        connection.stubs(:extensions).returns(['hstore'])
+        output = standard_dump
+        assert_match "# These are extensions that must be enabled", output
+        assert_match %r{enable_extension "hstore"}, output
 
-      connection.stubs(:extensions).returns([])
-      output = standard_dump
-      assert_no_match "# These are extensions that must be enabled", output
-      assert_no_match %r{enable_extension}, output
+        connection.stubs(:extensions).returns([])
+        output = standard_dump
+        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match %r{enable_extension}, output
+      end
     end
 
     def test_schema_dump_includes_xml_shorthand_definition
@@ -299,7 +307,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_includes_uuid_shorthand_definition
       output = standard_dump
-      if %r{create_table "poistgresql_uuids"} =~ output
+      if %r{create_table "postgresql_uuids"} =~ output
         assert_match %r{t.uuid "guid"}, output
       end
     end
@@ -308,6 +316,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = standard_dump
       if %r{create_table "postgresql_hstores"} =~ output
         assert_match %r[t.hstore "hash_store", default: {}], output
+      end
+    end
+
+    def test_schema_dump_includes_citext_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_citext"} =~ output
+        assert_match %r[t.citext "text_citext"], output
       end
     end
 
@@ -338,9 +353,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = standard_dump
     # Oracle supports precision up to 38 and it identifies decimals with scale 0 as integers
     if current_adapter?(:OracleAdapter)
-      assert_match %r{t.integer\s+"atoms_in_universe",\s+precision: 38,\s+scale: 0}, output
+      assert_match %r{t.integer\s+"atoms_in_universe",\s+precision: 38}, output
     else
-      assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 55,\s+scale: 0}, output
+      assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 55}, output
     end
   end
 
@@ -357,15 +372,28 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "subscribers", id: false}, output
   end
 
+  if ActiveRecord::Base.connection.supports_foreign_keys?
+    def test_foreign_keys_are_dumped_at_the_bottom_to_circumvent_dependency_issues
+      output = standard_dump
+      assert_match(/^\s+add_foreign_key "fk_test_has_fk"[^\n]+\n\s+add_foreign_key "lessons_students"/, output)
+    end
+  end
+
   class CreateDogMigration < ActiveRecord::Migration
     def up
+      create_table("dog_owners") do |t|
+      end
+
       create_table("dogs") do |t|
         t.column :name, :string
+        t.column :owner_id, :integer
       end
       add_index "dogs", [:name]
+      add_foreign_key :dogs, :dog_owners, column: "owner_id" if supports_foreign_keys?
     end
     def down
       drop_table("dogs")
+      drop_table("dog_owners")
     end
   end
 
@@ -379,13 +407,45 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     output = standard_dump
     assert_no_match %r{create_table "foo_.+_bar"}, output
-    assert_no_match %r{create_index "foo_.+_bar"}, output
+    assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
+
+    if ActiveRecord::Base.connection.supports_foreign_keys?
+      assert_no_match %r{add_foreign_key "foo_.+_bar"}, output
+      assert_no_match %r{add_foreign_key "[^"]+", "foo_.+_bar"}, output
+    end
   ensure
     migration.migrate(:down)
 
     ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ''
     $stdout = original
   end
+end
 
+class SchemaDumperDefaultsTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :defaults, force: true do |t|
+      t.string   :string_with_default,   default: "Hello!"
+      t.date     :date_with_default,     default: '2014-06-05'
+      t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
+      t.time     :time_with_default,     default: "07:17:04"
+    end
+  end
+
+  teardown do
+    return unless @connection
+    @connection.execute 'DROP TABLE IF EXISTS defaults'
+  end
+
+  def test_schema_dump_defaults_with_universally_supported_types
+    output = dump_table_schema('defaults')
+
+    assert_match %r{t\.string\s+"string_with_default",\s+default: "Hello!"}, output
+    assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output
+    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: '2014-06-05 07:17:04'}, output
+    assert_match %r{t\.time\s+"time_with_default",\s+default: '2000-01-01 07:17:04'}, output
+  end
 end

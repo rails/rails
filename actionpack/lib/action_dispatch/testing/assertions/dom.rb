@@ -7,20 +7,20 @@ module ActionDispatch
       #
       #   # assert that the referenced method generates the appropriate HTML string
       #   assert_dom_equal '<a href="http://www.example.com">Apples</a>', link_to("Apples", "http://www.example.com")
-      def assert_dom_equal(expected, actual, message = "")
+      def assert_dom_equal(expected, actual, message = nil)
         expected_dom = HTML::Document.new(expected).root
         actual_dom   = HTML::Document.new(actual).root
-        assert_equal expected_dom, actual_dom
+        assert_equal expected_dom, actual_dom, message
       end
 
       # The negated form of +assert_dom_equivalent+.
       #
       #   # assert that the referenced method does not generate the specified HTML string
       #   assert_dom_not_equal '<a href="http://www.example.com">Apples</a>', link_to("Oranges", "http://www.example.com")
-      def assert_dom_not_equal(expected, actual, message = "")
+      def assert_dom_not_equal(expected, actual, message = nil)
         expected_dom = HTML::Document.new(expected).root
         actual_dom   = HTML::Document.new(actual).root
-        assert_not_equal expected_dom, actual_dom
+        assert_not_equal expected_dom, actual_dom, message
       end
     end
   end

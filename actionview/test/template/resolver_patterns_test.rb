@@ -20,7 +20,7 @@ class ResolverPatternsTest < ActiveSupport::TestCase
     assert_equal [:html],                  templates.first.formats
   end
 
-  def test_should_return_all_templates_when_ambigous_pattern
+  def test_should_return_all_templates_when_ambiguous_pattern
     templates = @resolver.find_all("another", "custom_pattern", false, {:locale => [], :formats => [:html], :handlers => [:erb]})
     assert_equal 2, templates.size, "expected two templates"
     assert_equal "Another template!",      templates[0].source

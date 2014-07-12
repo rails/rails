@@ -26,8 +26,7 @@ module ActiveRecord
       ActiveRecord::SchemaMigration.delete_all rescue nil
     end
 
-    def teardown
-      super
+    teardown do
       ActiveRecord::SchemaMigration.delete_all rescue nil
       ActiveRecord::Migration.verbose = true
     end
@@ -91,15 +90,9 @@ module ActiveRecord
       assert_equal 'AddExpressions', migrations[0].name
     end
 
-    def test_deprecated_constructor
-      assert_deprecated do
-        ActiveRecord::Migrator.new(:up, MIGRATIONS_ROOT + "/valid")
-      end
-    end
-
     def test_relative_migrations
       list = Dir.chdir(MIGRATIONS_ROOT) do
-        ActiveRecord::Migrator.migrations("valid/")
+        ActiveRecord::Migrator.migrations("valid")
       end
 
       migration_proxy = list.find { |item|

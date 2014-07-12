@@ -12,7 +12,7 @@ module ActiveSupport
   # This can be used in situations similar to the <tt>MessageVerifier</tt>, but
   # where you don't want users to be able to determine the value of the payload.
   #
-  #   salt  = SecureRandom.random_bytes(64) 
+  #   salt  = SecureRandom.random_bytes(64)
   #   key   = ActiveSupport::KeyGenerator.new('password').generate_key(salt) # => "\x89\xE0\x156\xAC..."
   #   crypt = ActiveSupport::MessageEncryptor.new(key)                       # => #<ActiveSupport::MessageEncryptor ...>
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')              # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
@@ -76,12 +76,12 @@ module ActiveSupport
       encrypted_data = cipher.update(@serializer.dump(value))
       encrypted_data << cipher.final
 
-      [encrypted_data, iv].map {|v| ::Base64.strict_encode64(v)}.join("--")
+      "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
     end
 
     def _decrypt(encrypted_message)
       cipher = new_cipher
-      encrypted_data, iv = encrypted_message.split("--").map {|v| ::Base64.decode64(v)}
+      encrypted_data, iv = encrypted_message.split("--").map {|v| ::Base64.strict_decode64(v)}
 
       cipher.decrypt
       cipher.key = @secret
@@ -91,7 +91,7 @@ module ActiveSupport
       decrypted_data << cipher.final
 
       @serializer.load(decrypted_data)
-    rescue OpenSSLCipherError, TypeError
+    rescue OpenSSLCipherError, TypeError, ArgumentError
       raise InvalidMessage
     end
 

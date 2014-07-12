@@ -37,7 +37,12 @@ module ActiveSupport
 
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
-        @serializer.load(::Base64.decode64(data))
+        begin
+          @serializer.load(::Base64.strict_decode64(data))
+        rescue ArgumentError => argument_error
+          raise InvalidSignature if argument_error.message =~ %r{invalid base64}
+          raise
+        end
       else
         raise InvalidSignature
       end

@@ -36,7 +36,7 @@ hr {
 }
 
 h1,h2,h3,h4,h5,h6 { font-family: "Helvetica Neue", Arial, "Lucida Grande", sans-serif; }
-code { font:.9em "Courier New", Monaco, Courier, monospace; }
+code { font:.9em "Courier New", Monaco, Courier, monospace; display:inline}
 
 img { float:left; margin:1.5em 1.5em 1.5em 0; }
 a img { border:none; }

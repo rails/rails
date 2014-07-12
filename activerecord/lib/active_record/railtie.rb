@@ -31,21 +31,16 @@ module ActiveRecord
 
 
     config.active_record.use_schema_cache_dump = true
+    config.active_record.maintain_test_schema = true
 
     config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
       require "active_record/base"
 
-      ActiveRecord::Tasks::DatabaseTasks.seed_loader = Rails.application
-      ActiveRecord::Tasks::DatabaseTasks.env = Rails.env
-
       namespace :db do
         task :load_config do
-          ActiveRecord::Tasks::DatabaseTasks.db_dir = Rails.application.config.paths["db"].first
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
-          ActiveRecord::Tasks::DatabaseTasks.migrations_paths = Rails.application.paths['db/migrate'].to_a
-          ActiveRecord::Tasks::DatabaseTasks.fixtures_path = File.join Rails.root, 'test', 'fixtures'
 
           if defined?(ENGINE_PATH) && engine = Rails::Engine.find(ENGINE_PATH)
             if engine.paths['db/migrate'].existent
@@ -111,56 +106,6 @@ module ActiveRecord
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        begin
-          old_behavior, ActiveSupport::Deprecation.behavior = ActiveSupport::Deprecation.behavior, :stderr
-          whitelist_attributes = app.config.active_record.delete(:whitelist_attributes)
-
-          if respond_to?(:mass_assignment_sanitizer=)
-            mass_assignment_sanitizer = nil
-          else
-            mass_assignment_sanitizer = app.config.active_record.delete(:mass_assignment_sanitizer)
-          end
-
-          unless whitelist_attributes.nil? && mass_assignment_sanitizer.nil?
-            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
-              Model based mass assignment security has been extracted
-              out of Rails into a gem. Please use the new recommended protection model for
-              params or add `protected_attributes` to your Gemfile to use the old one.
-
-              To disable this message remove the `whitelist_attributes` option from your
-              `config/application.rb` file and any `mass_assignment_sanitizer` options
-              from your `config/environments/*.rb` files.
-
-              See http://guides.rubyonrails.org/security.html#mass-assignment for more information.
-            EOF
-          end
-
-          unless app.config.active_record.delete(:auto_explain_threshold_in_seconds).nil?
-            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
-              The Active Record auto explain feature has been removed.
-
-              To disable this message remove the `active_record.auto_explain_threshold_in_seconds`
-              option from the `config/environments/*.rb` config file.
-
-              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
-            EOF
-          end
-
-          unless app.config.active_record.delete(:observers).nil?
-            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
-              Active Record Observers has been extracted out of Rails into a gem.
-              Please use callbacks or add `rails-observers` to your Gemfile to use observers.
-
-              To disable this message remove the `observers` option from your
-              `config/application.rb` or from your initializers.
-
-              See http://guides.rubyonrails.org/4_0_release_notes.html for more information.
-            EOF
-          end
-        ensure
-          ActiveSupport::Deprecation.behavior = old_behavior
-        end
-
         app.config.active_record.each do |k,v|
           send "#{k}=", v
         end
@@ -171,8 +116,22 @@ module ActiveRecord
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
       ActiveSupport.on_load(:active_record) do
-        self.configurations = app.config.database_configuration || {}
-        establish_connection
+        self.configurations = Rails.application.config.database_configuration
+
+        begin
+          establish_connection
+        rescue ActiveRecord::NoDatabaseError
+          warn <<-end_warning
+Oops - You have a database configured, but it doesn't exist yet!
+
+Here's how to get started:
+
+  1. Configure your database in config/database.yml.
+  2. Run `bin/rake db:create` to create the database.
+  3. Run `bin/rake db:setup` to load your database schema.
+end_warning
+          raise
+        end
       end
     end
 

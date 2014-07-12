@@ -22,7 +22,7 @@ module ActionController #:nodoc:
   #
   #   3) if the responder does not <code>respond_to :to_xml</code>, call <code>#to_format</code> on it.
   #
-  # === Builtin HTTP verb semantics
+  # === Built-in HTTP verb semantics
   #
   # The default \Rails responder holds semantics for each HTTP verb. Depending on the
   # content type, verb and the resource status, it will behave differently.
@@ -144,7 +144,7 @@ module ActionController #:nodoc:
     undef_method(:to_json) if method_defined?(:to_json)
     undef_method(:to_yaml) if method_defined?(:to_yaml)
 
-    # Initializes a new responder an invoke the proper format. If the format is
+    # Initializes a new responder and invokes the proper format. If the format is
     # not defined, call to_format.
     #
     def self.call(*args)
@@ -202,6 +202,7 @@ module ActionController #:nodoc:
     # This is the common behavior for formats associated with APIs, such as :xml and :json.
     def api_behavior(error)
       raise error unless resourceful?
+      raise MissingRenderer.new(format) unless has_renderer?
 
       if get?
         display resource
@@ -267,6 +268,11 @@ module ActionController #:nodoc:
     #
     def has_errors?
       resource.respond_to?(:errors) && !resource.errors.empty?
+    end
+
+    # Check whether the necessary Renderer is available
+    def has_renderer?
+      Renderers::RENDERERS.include?(format)
     end
 
     # By default, render the <code>:edit</code> action for HTML requests with errors, unless

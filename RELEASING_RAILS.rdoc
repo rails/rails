@@ -25,6 +25,18 @@ for Rails.  You can check the status of his tests here:
 
 Do not release with Red AWDwR tests.
 
+=== Are the supported plugins working? If not, make it work.
+
+Some Rails plugins are important and need to be supported until Rails 5.
+As these plugins are outside the Rails repository it is easy to break then without knowing
+after some refactoring or bug fix, so it is important to check if the following plugins
+are working with the versions that will be released:
+
+* https://github.com/rails/protected_attributes
+* https://github.com/rails/activerecord-deprecated_finders
+
+Do not release red plugins tests.
+
 === Do we have any Git dependencies?  If so, contact those authors.
 
 Having Git dependencies indicates that we depend on unreleased code.
@@ -110,10 +122,10 @@ what to do in case anything goes wrong:
 
     $ rake all:build
     $ git commit -am'updating RAILS_VERSION'
-    $ git tag -m'tagging rc release' v3.0.10.rc1
+    $ git tag -m 'v3.0.10.rc1 release' v3.0.10.rc1
     $ git push
     $ git push --tags
-    $ for i in $(ls dist); do gem push $i; done
+    $ for i in $(ls pkg); do gem push $i; done
 
 === Send Rails release announcements
 
@@ -158,7 +170,7 @@ commits should be added to the release branch besides regression fixing commits.
 == Day of release
 
 Many of these steps are the same as for the release candidate, so if you need
-more explanation on a particular step, so the RC steps.
+more explanation on a particular step, see the RC steps.
 
 Today, do this stuff in this order:
 
@@ -203,34 +215,3 @@ There are two simple steps for fixing the CI:
 2. Fix it
 
 Repeat these steps until the CI is green.
-
-=== Manually trigger docs generation
-
-We have a post-receive hook in GitHub that calls the docs server on pushes.
-It triggers generation and publication of edge docs, updates the contrib app,
-and generates and publishes stable docs if a new stable tag is detected.
-
-The hook unfortunately is not invoked by tag pushing, so once the new stable
-tag has been pushed to origin, please run
-
-    rake publish_docs
-
-You should see something like this:
-
-    Rails master hook tasks scheduled:
-
-      * updates the local checkout
-      * updates Rails Contributors
-      * generates and publishes edge docs
-
-    If a new stable tag is detected it also
-
-      * generates and publishes stable docs
-
-    This needs typically a few minutes.
-
-Note you do not need to specify the tag, the docs server figures it out.
-
-Also, don't worry if you call that multiple times or the hook is triggered
-again by some immediate regular push, if the scripts are running new calls
-are just queued (in a queue of size 1).

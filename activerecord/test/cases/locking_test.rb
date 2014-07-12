@@ -8,6 +8,7 @@ require 'models/legacy_thing'
 require 'models/reference'
 require 'models/string_key_object'
 require 'models/car'
+require 'models/bulb'
 require 'models/engine'
 require 'models/wheel'
 require 'models/treasure'
@@ -16,6 +17,7 @@ class LockWithoutDefault < ActiveRecord::Base; end
 
 class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
   self.table_name = :lock_without_defaults_cust
+  self.column_defaults # to test @column_defaults caching.
   self.locking_column = :custom_lock_version
 end
 
@@ -25,6 +27,18 @@ end
 
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
+
+  def test_quote_value_passed_lock_col
+    p1 = Person.find(1)
+    assert_equal 0, p1.lock_version
+
+    Person.expects(:quote_value).with(0, Person.columns_hash[Person.locking_column]).returns('0').once
+
+    p1.first_name = 'anika2'
+    p1.save!
+
+    assert_equal 1, p1.lock_version
+  end
 
   def test_non_integer_lock_existing
     s1 = StringKeyObject.find("record1")
@@ -258,6 +272,13 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert p.treasures.empty?
     assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
   end
+
+  def test_yaml_dumping_with_lock_column
+    t1 = LockWithoutDefault.new
+    t2 = YAML.load(YAML.dump(t1))
+
+    assert_equal t1.attributes, t2.attributes
+  end
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
@@ -321,8 +342,6 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     def add_counter_column_to(model, col='test_count')
       model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
       model.reset_column_information
-      # OpenBase does not set a value to existing rows when adding a not null default column
-      model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
     end
 
     def remove_counter_column_from(model, col = :test_count)
@@ -349,7 +368,7 @@ end
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
-unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
+unless in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
     fixtures :people, :readers
@@ -411,6 +430,17 @@ unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
         raise 'oops'
       end rescue nil
       assert_equal old, person.reload.first_name
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_lock_sending_custom_lock_statement
+        Person.transaction do
+          person = Person.find(1)
+          assert_sql(/LIMIT 1 FOR SHARE NOWAIT/) do
+            person.lock!('FOR SHARE NOWAIT')
+          end
+        end
+      end
     end
 
     if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)

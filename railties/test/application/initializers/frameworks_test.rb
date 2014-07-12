@@ -182,7 +182,7 @@ module ApplicationTests
       end
       require "#{app_path}/config/environment"
       ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
-      assert ActiveRecord::Base.connection.schema_cache.tables["posts"]
+      assert ActiveRecord::Base.connection.schema_cache.tables("posts")
     end
 
     test "expire schema cache dump" do
@@ -192,7 +192,7 @@ module ApplicationTests
       end
       silence_warnings {
         require "#{app_path}/config/environment"
-        assert !ActiveRecord::Base.connection.schema_cache.tables["posts"]
+        assert !ActiveRecord::Base.connection.schema_cache.tables("posts")
       }
     end
 
@@ -217,7 +217,7 @@ module ApplicationTests
         orig_database_url = ENV.delete("DATABASE_URL")
         orig_rails_env, Rails.env = Rails.env, 'development'
         database_url_db_name = "db/database_url_db.sqlite3"
-        ENV["DATABASE_URL"] = "sqlite3://:@localhost/#{database_url_db_name}"
+        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
         assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])

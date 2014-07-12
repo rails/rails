@@ -183,7 +183,7 @@ module ActionController #:nodoc:
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
   # Please check its documentation for more information: http://unicorn.bogomips.org/Unicorn/Configurator.html#method-i-listen
   #
-  # If you are using Unicorn with Nginx, you may need to tweak Nginx.
+  # If you are using Unicorn with NGINX, you may need to tweak NGINX.
   # Streaming should work out of the box on Rainbows.
   #
   # ==== Passenger
@@ -193,31 +193,29 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    include AbstractController::Rendering
-
     protected
 
-    # Set proper cache control and transfer encoding when streaming
-    def _process_options(options) #:nodoc:
-      super
-      if options[:stream]
-        if env["HTTP_VERSION"] == "HTTP/1.0"
-          options.delete(:stream)
-        else
-          headers["Cache-Control"] ||= "no-cache"
-          headers["Transfer-Encoding"] = "chunked"
-          headers.delete("Content-Length")
+      # Set proper cache control and transfer encoding when streaming
+      def _process_options(options) #:nodoc:
+        super
+        if options[:stream]
+          if env["HTTP_VERSION"] == "HTTP/1.0"
+            options.delete(:stream)
+          else
+            headers["Cache-Control"] ||= "no-cache"
+            headers["Transfer-Encoding"] = "chunked"
+            headers.delete("Content-Length")
+          end
         end
       end
-    end
 
-    # Call render_body if we are streaming instead of usual +render+.
-    def _render_template(options) #:nodoc:
-      if options.delete(:stream)
-        Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
-      else
-        super
+      # Call render_body if we are streaming instead of usual +render+.
+      def _render_template(options) #:nodoc:
+        if options.delete(:stream)
+          Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
+        else
+          super
+        end
       end
-    end
   end
 end
