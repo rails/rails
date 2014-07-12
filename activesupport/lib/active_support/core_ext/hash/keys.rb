@@ -6,7 +6,8 @@ class Hash
   #  hash.transform_keys{ |key| key.to_s.upcase }
   #  # => {"NAME"=>"Rob", "AGE"=>"28"}
   def transform_keys
-    result = {}
+    return enum_for(:transform_keys) unless block_given?
+    result = self.class.new
     each_key do |key|
       result[yield(key)] = self[key]
     end
@@ -16,6 +17,7 @@ class Hash
   # Destructively convert all keys using the block operations.
   # Same as transform_keys but modifies +self+.
   def transform_keys!
+    return enum_for(:transform_keys!) unless block_given?
     keys.each do |key|
       self[yield(key)] = delete(key)
     end
