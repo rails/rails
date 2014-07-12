@@ -675,9 +675,9 @@ This will return single order objects for each day, but only those that are orde
 Overriding Conditions
 ---------------------
 
-### `except`
+### `unscope`
 
-You can specify certain conditions to be removed using the `except` method. For example:
+You can specify certain conditions to be removed using the `unscope` method. For example:
 
 ```ruby
 Article.where('id > 10').limit(20).order('id asc').except(:order)
@@ -688,11 +688,12 @@ The SQL that would be executed:
 ```sql
 SELECT * FROM articles WHERE id > 10 LIMIT 20
 
-# Original query without `except`
+# Original query without `unscope`
 SELECT * FROM articles WHERE id > 10 ORDER BY id asc LIMIT 20
+
 ```
 
-You can additionally call `unscope` to remove a specific where clauses. For example:
+You can additionally unscope specific where clauses. For example:
 
 ```ruby
 Article.where(id: 10, trashed: false).unscope(where: :id)
