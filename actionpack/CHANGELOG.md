@@ -1,3 +1,8 @@
+*   Return an absolute instead of relative path from an asset url in the case
+    of the `asset_host` proc returning nil
+
+    *Jolyon Pawlyn*
+
 *   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
     ("Rosetta Flash")
 
