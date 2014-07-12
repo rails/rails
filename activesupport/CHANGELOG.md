@@ -1,3 +1,10 @@
+*   Fixed a compatibility issue with the `Oj` gem when cherry-picking the file
+    `active_support/core_ext/object/json` without requiring `active_support/json`.
+
+    Fixes #16131.
+
+    *Godfrey Chan*
+
 *   Make `Hash#with_indifferent_access` copy the default proc too.
 
     *arthurnn*, *Xanders*
