@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'active_support/core_ext/hash/transform_keys'
+require 'active_support/core_ext/hash/keys'
 
 class TransformKeysTest < ActiveSupport::TestCase
   test "transform_keys returns a new hash with the keys computed from the block" do
