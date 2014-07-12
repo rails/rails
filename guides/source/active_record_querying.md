@@ -680,7 +680,7 @@ Overriding Conditions
 You can specify certain conditions to be removed using the `unscope` method. For example:
 
 ```ruby
-Article.where('id > 10').limit(20).order('id asc').except(:order)
+Article.where('id > 10').limit(20).order('id asc').unscope(:order)
 ```
 
 The SQL that would be executed:
@@ -693,7 +693,7 @@ SELECT * FROM articles WHERE id > 10 ORDER BY id asc LIMIT 20
 
 ```
 
-You can additionally unscope specific where clauses. For example:
+You can also unscope specific `where` clauses. For example:
 
 ```ruby
 Article.where(id: 10, trashed: false).unscope(where: :id)
