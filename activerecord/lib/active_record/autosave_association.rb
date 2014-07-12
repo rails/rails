@@ -432,7 +432,7 @@ module ActiveRecord
           elsif autosave != false
             key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
 
-            if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
+            if autosave != false && (new_record? || record.new_record? || (record[reflection.foreign_key] != key && !reflection.through_reflection) || autosave)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
               end
