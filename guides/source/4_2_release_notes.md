@@ -21,7 +21,6 @@ available in the
 [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2)
 guide.
 
-
 Major Features
 --------------
 
@@ -141,7 +140,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     (Commit [1](https://github.com/rails/rails/commit/6c5f43bab8206747a8591435b2aa0ff7051ad3de),
     [2](https://github.com/rails/rails/commit/489a8f2a44dc9cea09154ee1ee2557d1f037c7d4))
 
-
 * Added HTTP method `MKCALENDAR` from RFC-4791
   ([Pull Request](https://github.com/rails/rails/pull/15121))
 
@@ -157,7 +155,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 * Added option to disable logging of CSRF failures.
   ([Pull Request](https://github.com/rails/rails/pull/14280))
-
 
 Action View
 -------------
@@ -180,7 +177,6 @@ Please refer to the [Changelog][action-view] for detailed changes.
 * The form helpers no longer generate a `<div>` element with inline CSS around
   the hidden fields.
   ([Pull Request](https://github.com/rails/rails/pull/14738))
-
 
 Action Mailer
 -------------
@@ -248,12 +244,12 @@ for detailed changes.
   is not fully possible because the Ruby range does not support excluded
   beginnings.
 
-  The current solution of incrementing the beginning is not correct
-  and is now deprecated. For subtypes where we don't know how to increment
-  (e.g. `#succ` is not defined) it will raise an `ArgumentError` for ranges with
-  excluding beginnings.
+    The current solution of incrementing the beginning is not correct
+    and is now deprecated. For subtypes where we don't know how to increment
+    (e.g. `#succ` is not defined) it will raise an `ArgumentError` for ranges with
+    excluding beginnings.
 
-  ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
+    ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
 
 ### Notable changes
 
@@ -333,7 +329,6 @@ Please refer to the [Changelog][active-model] for detailed changes.
 * Introduced `#validate` as an alias for `#valid?`.
   ([Pull Request](https://github.com/rails/rails/pull/14456))
 
-
 Active Support
 --------------
 
@@ -342,7 +337,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 ### Removals
 
 * Removed deprecated `Numeric#ago`, `Numeric#until`, `Numeric#since`,
-  `Numeric#from_now`. ([Commit](https://github.com/rails/rails/commit/f1eddea1e3f6faf93581c43651348f48b2b7d8bb))
+  `Numeric#from_now`.
+  ([Commit](https://github.com/rails/rails/commit/f1eddea1e3f6faf93581c43651348f48b2b7d8bb))
 
 * Removed deprecated string based terminators for `ActiveSupport::Callbacks`.
   ([Pull Request](https://github.com/rails/rails/pull/15100))
@@ -350,10 +346,12 @@ Please refer to the [Changelog][active-support] for detailed changes.
 ### Deprecations
 
 * Deprecated `Class#superclass_delegating_accessor`, use `Class#class_attribute`
-  instead. ([Pull Request](https://github.com/rails/rails/pull/14271))
+  instead.
+  ([Pull Request](https://github.com/rails/rails/pull/14271))
 
 * Deprecated `ActiveSupport::SafeBuffer#prepend!` as `ActiveSupport::SafeBuffer#prepend`
-  now performs the same function. ([Pull Request](https://github.com/rails/rails/pull/14529))
+  now performs the same function.
+  ([Pull Request](https://github.com/rails/rails/pull/14529))
 
 ### Notable changes
 
@@ -367,8 +365,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 * Introduce `Concern#class_methods` as an alternative to `module ClassMethods`,
   as well as `Kernel#concern` to avoid the `module Foo; extend ActiveSupport::Concern; end`
-  boilerplate. ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
-
+  boilerplate.
+  ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
 
 Credits
 -------
