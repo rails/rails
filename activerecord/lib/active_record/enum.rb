@@ -145,11 +145,11 @@ module ActiveRecord
                   value = read_attribute(attr_name)
                   if attribute_changed?(attr_name)
                     if mapping[old] == value
-                      changed_attributes.delete(attr_name)
+                      clear_attribute_changes([attr_name])
                     end
                   else
                     if old != value
-                      changed_attributes[attr_name] = mapping.key old
+                      set_attribute_was(attr_name, mapping.key(old))
                     end
                   end
                 else
