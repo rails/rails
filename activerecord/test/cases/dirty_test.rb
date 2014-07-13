@@ -661,6 +661,27 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not model.foo_changed?
   end
 
+  test "in place mutation detection" do
+    pirate = Pirate.create!(catchphrase: "arrrr")
+    pirate.catchphrase << " matey!"
+
+    assert pirate.catchphrase_changed?
+    expected_changes = {
+      "catchphrase" => ["arrrr", "arrrr matey!"]
+    }
+    assert_equal(expected_changes, pirate.changes)
+    assert_equal("arrrr", pirate.catchphrase_was)
+    assert pirate.catchphrase_changed?(from: "arrrr")
+    assert_not pirate.catchphrase_changed?(from: "anything else")
+    assert pirate.changed_attributes.include?(:catchphrase)
+
+    pirate.save!
+    pirate.reload
+
+    assert_equal "arrrr matey!", pirate.catchphrase
+    assert_not pirate.changed?
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
