@@ -24,6 +24,17 @@ class TestRoutingRedirect < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_redirect_https_with_url_and_port
+    draw do
+      get 'secure', :to => redirect("localhost:3000")
+    end
+
+    with_https do
+      get '/secure'
+      verify_redirect 'https://localhost:3000'
+    end
+  end
+
   def test_redirect_with_port
     draw do
       get 'account/login', :to => redirect("/login")
@@ -56,6 +67,15 @@ class TestRoutingRedirect < ActionDispatch::IntegrationTest
 
     get '/account/google'
     verify_redirect 'http://www.google.com/', 302
+  end
+
+  def test_redirect_with_url_with_port
+    draw do
+      get 'account/google' => redirect('localhost:3000')
+    end
+
+    get '/account/google'
+    verify_redirect 'http://localhost:3000'
   end
 
   def test_login_redirect
