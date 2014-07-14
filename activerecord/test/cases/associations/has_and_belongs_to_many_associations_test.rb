@@ -883,4 +883,23 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     child.special_projects << SpecialProject.new("name" => "Special Project")
     assert child.save, 'child object should be saved'
   end
+
+  def test_included_associations_size
+    assert Project.first.salaried_developers.size,
+      Project.includes(:salaried_developers).first.salaried_developers.size
+
+    assert Project.includes(:salaried_developers).references(:salaried_developers).first.salaried_developers.size,
+      Project.includes(:salaried_developers).first.salaried_developers.size
+
+    # Nested HATBM
+    first_project = Developer.first.projects.first
+    preloaded_first_project =
+      Developer.includes(projects: :salaried_developers).
+        first.
+        projects.
+        detect { |p| p.id == first_project.id }
+
+    assert preloaded_first_project.salaried_developers.loaded?, true
+    assert first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
+  end
 end
